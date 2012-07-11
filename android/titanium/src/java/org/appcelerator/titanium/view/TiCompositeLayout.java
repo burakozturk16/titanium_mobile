@@ -159,7 +159,8 @@ public class TiCompositeLayout extends ViewGroup
 					} else if (p1.index > p2.index) {
 						result = 1;
 					} else {
-						throw new IllegalStateException("Ambiguous Z-Order");
+                        Log.w(TAG, "Ambiguous Z-Order");
+						// throw new IllegalStateException("Ambiguous Z-Order");
 					}
 				}
 
