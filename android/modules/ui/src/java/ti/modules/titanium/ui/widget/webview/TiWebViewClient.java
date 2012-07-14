@@ -10,6 +10,7 @@ package ti.modules.titanium.ui.widget.webview;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiConfig;
+import org.appcelerator.titanium.TiC;
 
 import ti.modules.titanium.media.TiVideoActivity;
 import android.content.Intent;
@@ -46,6 +47,11 @@ public class TiWebViewClient extends WebViewClient
 		KrollDict data = new KrollDict();
 		data.put("url", url);
 		webView.getProxy().fireEvent("load", data);
+		WebView nativeWebView = webView.getWebView();
+
+		if (nativeWebView != null) {
+			webView.getWebView().loadUrl("javascript:" + TiWebViewBinding.POLLING_CODE);
+		}
 	}
 
 	public TiWebViewBinding getBinding()
@@ -68,20 +74,12 @@ public class TiWebViewClient extends WebViewClient
 	{
 		super.onReceivedError(view, errorCode, description, failingUrl);
 
-		//TODO report this to the user
-		String text = "Javascript Error("+errorCode+"): " + description;
-		Log.e(LCAT, "Received on error" + text);
-		
-		// Kosso : Dec 10, 2011
-		// fire the error event!!!
 		KrollDict data = new KrollDict();
 		data.put("url", failingUrl);
-		data.put("description", description);
 		data.put("errorCode", errorCode);
 		data.put("message", description);
-		data.put("type", errorCode);
 		webView.getProxy().fireEvent("error", data);
-		
+
 	}
 
 	@Override
@@ -93,7 +91,7 @@ public class TiWebViewClient extends WebViewClient
 
 		if (URLUtil.isAssetUrl(url) || URLUtil.isContentUrl(url) || URLUtil.isFileUrl(url)) {
 			// go through the proxy to ensure we're on the UI thread
-			webView.getProxy().setProperty("url", url, true);
+			webView.getProxy().setPropertyAndFire(TiC.PROPERTY_URL, url);
 			return true;
 		} else if(url.startsWith(WebView.SCHEME_TEL)) {
 			Log.i(LCAT, "Launching dialer for " + url);

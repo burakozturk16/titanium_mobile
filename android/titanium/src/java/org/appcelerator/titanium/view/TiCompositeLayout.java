@@ -901,4 +901,5 @@ public class TiCompositeLayout extends ViewGroup
 	{
 		this.proxy = new WeakReference<TiViewProxy>(proxy);
 	}
+
 }

@@ -150,6 +150,7 @@ public class TiHTTPClient
 	private boolean autoRedirect = true;
 	private Uri uri;
 	private String url;
+	private ArrayList<File> tmpFiles = new ArrayList<File>();
 
 	protected HashMap<String,String> headers = new HashMap<String,String>();
 
@@ -970,7 +971,9 @@ public class TiHTTPClient
 				FileOutputStream fos = new FileOutputStream(tmpFile);
 				fos.write(blob.getBytes());
 				fos.close();
-				
+
+				tmpFiles.add(tmpFile);
+
 				FileBody body = new FileBody(tmpFile, mimeType);
 				parts.put(name, body);
 				return blob.getLength();
@@ -1042,7 +1045,7 @@ public class TiHTTPClient
 				HashMap<String, Object> data = (HashMap) userData;
 				boolean isPostOrPut = method.equals("POST") || method.equals("PUT");
 				boolean isGet = !isPostOrPut && method.equals("GET");
-								
+
 				// first time through check if we need multipart for POST
 				for (String key : data.keySet()) {
 					Object value = data.get(key);
@@ -1256,9 +1259,23 @@ public class TiHTTPClient
 				Log.e(LCAT, "HTTP Error (" + t.getClass().getName() + "): " + msg, t);
 				sendError(msg);
 			}
+
+			deleteTmpFiles();
 		}
 	}
-	
+
+	private void deleteTmpFiles()
+	{
+		if (tmpFiles.isEmpty()) {
+			return;
+		}
+
+		for (File tmpFile : tmpFiles) {
+			tmpFile.delete();
+		}
+		tmpFiles.clear();
+	}
+
 	private void handleURLEncodedData(UrlEncodedFormEntity form)
 	{
 		AbstractHttpEntity entity = null;
