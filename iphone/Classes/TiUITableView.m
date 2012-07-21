@@ -95,6 +95,8 @@
 -(void)prepareForReuse
 {
 	if (proxy.callbackCell == self) {
+        //first let s say we gonna disappear!
+        [proxy fireEvent:@"reuse" withObject:[proxy createEventObject:nil] propagate:YES];
 		[proxy prepareTableRowForReuse];
 	}
 	[self setProxy:nil];
