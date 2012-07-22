@@ -2577,15 +2577,15 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		}
 	}
 	[child setSandboxBounds:bounds];
-	if ([[child view] animating])
-	{
-        // changing the layout while animating is bad, ignore for now
-        DebugLog(@"[WARN] New layout set while view %@ animating: Will relayout after animation.", child);
-	}
-	else
-	{
+	// if ([[child view] animating])
+	// {
+ //        // changing the layout while animating is bad, ignore for now
+ //        DebugLog(@"[WARN] New layout set while view %@ animating: Will relayout after animation.", child);
+	// }
+	// else
+	// {
 		[child relayout];
-	}
+	// }
 
 	// tell our children to also layout
 	[child layoutChildren:optimize];
