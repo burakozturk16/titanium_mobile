@@ -350,21 +350,42 @@
 	[[b titleLabel] setShadowOffset:size];
 }
 
--(void)setTitlePadding_:(id)value
+-(void)setTitlePaddingLeft_:(id)left
 {
-	UIButton *b = [self button];
-	CGPoint p = [TiUtils pointValue:value];
-	b.titleEdgeInsets=UIEdgeInsetsMake(p.y, p.x, p.y, p.x);
+	titlePadding.origin.x = [TiUtils floatValue:left];
+	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
+}
+
+-(void)setTitlePaddingRight_:(id)right
+{
+	titlePadding.size.width = [TiUtils floatValue:right];
+	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
+}
+
+-(void)setTitlePaddingTop_:(id)top
+{
+	titlePadding.origin.y = [TiUtils floatValue:top];
+	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
+}
+
+-(void)setTitlePaddingBottom_:(id)bottom
+{
+	titlePadding.size.height = [TiUtils floatValue:bottom];
+	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
 }
 
 -(void)setWordWrap_:(id)value
 {
-    UIButton *b = [self button];
-    BOOL shouldWordWrap = [TiUtils boolValue:value def:YES];
-    if (shouldWordWrap)
-        [[b titleLabel] setLineBreakMode:UILineBreakModeWordWrap];
-    else 
-        [[b titleLabel] setLineBreakMode:UILineBreakModeTailTruncation];
+	BOOL shouldWordWrap = [TiUtils boolValue:value def:YES];
+	if (shouldWordWrap)
+		[[button titleLabel] setLineBreakMode:UILineBreakModeWordWrap];
+	else 
+		[[button titleLabel] setLineBreakMode:UILineBreakModeTailTruncation];
+}
+
+-(void)setVerticalAlign_:(id)alignment
+{
+	[button setContentVerticalAlignment:[TiUtils contentVerticalAlignmentValue:alignment]];
 }
 
 -(CGFloat)contentWidthForWidth:(CGFloat)value
