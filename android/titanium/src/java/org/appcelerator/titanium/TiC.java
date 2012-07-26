@@ -1779,12 +1779,42 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TEXT_PADDING = "textPadding";
+	public static final String PROPERTY_TEXT_PADDING_LEFT = "textPaddingLeft";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TITLE_PADDING = "titlePadding";
+	public static final String PROPERTY_TEXT_PADDING_RIGHT = "textPaddingRight";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TEXT_PADDING_TOP = "textPaddingTop";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TEXT_PADDING_BOTTOM = "textPaddingBottom";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TITLE_PADDING_LEFT = "titlePaddingLeft";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TITLE_PADDING_RIGHT = "titlePaddingRight";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TITLE_PADDING_TOP = "titlePaddingTop";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TITLE_PADDING_BOTTOM = "titlePaddingBottom";
 
 	/**
 	 * @module.api

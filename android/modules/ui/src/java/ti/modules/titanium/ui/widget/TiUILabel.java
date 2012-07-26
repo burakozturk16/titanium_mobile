@@ -25,6 +25,7 @@ import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import android.graphics.Rect;
 
 public class TiUILabel extends TiUIView
 {
@@ -34,6 +35,7 @@ public class TiUILabel extends TiUIView
 	private int shadowColor;
 	private int shadowDx;
 	private int shadowDy;
+	private Rect textPadding;
 
 
 	public TiUILabel(TiViewProxy proxy) {
@@ -44,10 +46,11 @@ public class TiUILabel extends TiUIView
 		shadowColor = 0;
 		shadowDx = 0;
 		shadowDy = 0;
+		textPadding = new Rect();
 
 		TextView tv = new TextView(getProxy().getActivity());
 		tv.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-		tv.setPadding(0, 0, 0, 0);
+		tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 		tv.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		tv.setKeyListener(null);
 		tv.setFocusable(false);
@@ -93,11 +96,21 @@ public class TiUILabel extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
 			tv.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP));
 		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
-			KrollDict value = d.getKrollDict(TiC.PROPERTY_TEXT_PADDING);
-			int x = value.getInt(TiC.PROPERTY_X);
-			int y = value.getInt(TiC.PROPERTY_Y);
-			tv.setPadding(x, y, x, y);
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_LEFT)) {
+			textPadding.left = TiConvert.toInt(d,0);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		}
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_RIGHT)) {
+			textPadding.right = TiConvert.toInt(d,0);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		}
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_TOP)) {
+			textPadding.top = TiConvert.toInt(d,0);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		}
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_BOTTOM)) {
+			textPadding.bottom = TiConvert.toInt(d,0);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
@@ -149,10 +162,21 @@ public class TiUILabel extends TiUIView
 			tv.setSingleLine(!TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
 			Linkify.addLinks(tv, TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING)) {
-			int x = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_X));
-			int y = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_Y));
-			tv.setPadding(x, y, x, y);
+		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_LEFT)) {
+			textPadding.left = TiConvert.toInt(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_RIGHT)) {
+			textPadding.right = TiConvert.toInt(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_TOP)) {
+			textPadding.top = TiConvert.toInt(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_BOTTOM)) {
+			textPadding.bottom = TiConvert.toInt(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor((String) newValue);
