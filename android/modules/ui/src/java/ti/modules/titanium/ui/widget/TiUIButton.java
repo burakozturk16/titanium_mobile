@@ -12,7 +12,6 @@ import java.util.HashMap;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.io.TiBaseFile;
@@ -32,8 +31,7 @@ import android.widget.Button;
 
 public class TiUIButton extends TiUIView
 {
-	private static final String LCAT = "TiUIButton";
-	private static final boolean DBG = TiConfig.LOGD;
+	private static final String TAG = "TiUIButton";
 
 	private int shadowColor;
 	private int shadowDx;
@@ -43,10 +41,10 @@ public class TiUIButton extends TiUIView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
-		if (DBG) {
-			Log.d(LCAT, "Creating a button");
-		}
 		titlePadding = new Rect();
+		titlePadding.left = 8;
+		titlePadding.right = 8;
+		Log.d(TAG, "Creating a button", Log.DEBUG_MODE);
 		Button btn = new Button(proxy.getActivity())
 		{
 			@Override
@@ -76,7 +74,7 @@ public class TiUIButton extends TiUIView
 					TiBaseFile file = TiFileFactory.createTitaniumFile(new String[] { url }, false);
 					bitmap = TiUIHelper.createBitmap(file.getInputStream());
 				} catch (IOException e) {
-					Log.e(LCAT, "Error setting button image", e);
+					Log.e(TAG, "Error setting button image", e);
 				}
 			} else if (value instanceof TiBlob) {
 				bitmap = TiUIHelper.createBitmap(((TiBlob) value).getInputStream());
@@ -139,9 +137,7 @@ public class TiUIButton extends TiUIView
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		if (DBG) {
-			Log.d(LCAT, "Property: " + key + " old: " + oldValue + " new: " + newValue);
-		}
+		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 		Button btn = (Button) getNativeView();
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			btn.setText((String) newValue);
@@ -155,6 +151,30 @@ public class TiUIButton extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(btn, null, TiConvert.toString(newValue));
 			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_LEFT)) {
+			titlePadding.left = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_RIGHT)) {
+			titlePadding.right = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_TOP)) {
+			titlePadding.top = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_BOTTOM)) {
+			titlePadding.bottom = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
+			shadowColor = TiConvert.toColor((String) newValue);
+			btn.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
+			shadowDx = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_X));
+			shadowDy = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_Y));
+			btn.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			btn.requestLayout();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
@@ -163,7 +183,7 @@ public class TiUIButton extends TiUIView
 	public void setOpacityForButton(float opacity)
 	{
 		if (opacity < 0 || opacity > 1) {
-			Log.w(LCAT, "Ignoring invalid value for opacity: " + opacity);
+			Log.w(TAG, "Ignoring invalid value for opacity: " + opacity);
 			return;
 		}
 		View view = getNativeView();

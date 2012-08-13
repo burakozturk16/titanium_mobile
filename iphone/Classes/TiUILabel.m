@@ -322,29 +322,29 @@
 -(void)setTextPaddingLeft_:(id)left
 {
     textPadding.origin.x = [TiUtils floatValue:left];
-    repad = YES;
     [self padLabel];
+	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void)setTextPaddingRight_:(id)right
 {
     textPadding.size.width = [TiUtils floatValue:right];
-    repad = YES;
     [self padLabel];
+	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void)setTextPaddingTop_:(id)top
 {
     textPadding.origin.y = [TiUtils floatValue:top];
-    repad = YES;
     [self padLabel];
+	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void)setTextPaddingBottom_:(id)bottom
 {
     textPadding.size.height = [TiUtils floatValue:bottom];
-    repad = YES;
     [self padLabel];
+	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void)setWordWrap_:(id)value
@@ -354,6 +354,7 @@
         [[self label] setLineBreakMode:UILineBreakModeWordWrap];
     else 
         [[self label] setLineBreakMode:UILineBreakModeTailTruncation];
+	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 @end

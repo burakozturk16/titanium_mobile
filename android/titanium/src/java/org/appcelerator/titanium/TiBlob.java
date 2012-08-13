@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -17,7 +17,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.util.KrollStreamHelper;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TitaniumBlob;
@@ -34,8 +33,7 @@ import android.graphics.Bitmap.CompressFormat;
 @Kroll.proxy
 public class TiBlob extends KrollProxy
 {
-	private static final String LCAT = "TiBlob";
-	private static final boolean DBG = TiConfig.LOGD;
+	private static final String TAG = "TiBlob";
 
 	/**
 	 * Represents a Blob that contains image data.
@@ -177,7 +175,7 @@ public class TiBlob extends KrollProxy
 				try {
 					bytes = ((String) data).getBytes("utf-8");
 				} catch (UnsupportedEncodingException e) {
-					Log.w(LCAT, e.getMessage(), e);
+					Log.w(TAG, e.getMessage(), e);
 				}
 				break;
 			case TYPE_DATA:
@@ -194,7 +192,7 @@ public class TiBlob extends KrollProxy
 						try {
 							stream.close();
 						} catch (IOException e) {
-							Log.w(LCAT, e.getMessage(), e);
+							Log.w(TAG, e.getMessage(), e);
 						}
 					}
 				}
@@ -238,7 +236,7 @@ public class TiBlob extends KrollProxy
 			try {
 				return ((TiBaseFile)data).getInputStream();
 			} catch (IOException e) {
-				Log.e(LCAT, e.getMessage(), e);
+				Log.e(TAG, e.getMessage(), e);
 				return null;
 			}
 			default:
@@ -255,7 +253,7 @@ public class TiBlob extends KrollProxy
 					String dataString = (String)data;
 					dataString += new String(blob.getBytes(), "utf-8");
 				} catch (UnsupportedEncodingException e) {
-					Log.w(LCAT, e.getMessage(), e);
+					Log.w(TAG, e.getMessage(), e);
 				}
 				break;
 			case TYPE_IMAGE:
@@ -297,7 +295,7 @@ public class TiBlob extends KrollProxy
 				try {
 					result = new String(getBytes(), "utf-8");
 				} catch (UnsupportedEncodingException e) {
-					Log.w(LCAT, "Unable to convert to string.");
+					Log.w(TAG, "Unable to convert to string.");
 				}
 				break;
 		}
@@ -423,10 +421,10 @@ public class TiBlob extends KrollProxy
 			return null;
 		}
 		if (this.type != TYPE_FILE) {
-			Log.w(LCAT, "getNativePath not supported for non-file blob types.");
+			Log.w(TAG, "getNativePath not supported for non-file blob types.");
 			return null;
 		} else if (!(data instanceof TiBaseFile)) {
-			Log.w(LCAT, "getNativePath unable to return value: underlying data is not file, rather " + data.getClass().getName());
+			Log.w(TAG, "getNativePath unable to return value: underlying data is not file, rather " + data.getClass().getName());
 			return null;
 		} else {
 			String path = ((TiBaseFile)data).nativePath();
@@ -450,10 +448,10 @@ public class TiBlob extends KrollProxy
 			return null;
 		}
 		if (this.type != TYPE_FILE) {
-			Log.w(LCAT, "getFile not supported for non-file blob types.");
+			Log.w(TAG, "getFile not supported for non-file blob types.");
 			return null;
 		} else if (!(data instanceof TiBaseFile)) {
-			Log.w(LCAT, "getFile unable to return value: underlying data is not file, rather " + data.getClass().getName());
+			Log.w(TAG, "getFile unable to return value: underlying data is not file, rather " + data.getClass().getName());
 			return null;
 		} else {
 			return new TiFileProxy((TiBaseFile)data);
