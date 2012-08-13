@@ -236,6 +236,7 @@ DEFINE_EXCEPTIONS
 	
 	if (!TiDimensionIsUndefined(width) || !TiDimensionIsUndefined(height))
 	{
+        CGFloat imgRatio = newImage.size.width / newImage.size.height;
 		if (!(calculatedWidth = TiDimensionCalculateValue(width, autoWidth))) {
 			calculatedWidth = autoWidth;
 		}
@@ -243,9 +244,12 @@ DEFINE_EXCEPTIONS
 		if (!(calculatedHeight = TiDimensionCalculateValue(height, autoHeight))) {
 			calculatedHeight = autoHeight;
 		}
-		
-		calculatedWidth = (calculatedWidth != 0.0) ? calculatedWidth : newImage.size.width;
-		calculatedHeight = (calculatedHeight != 0.0) ? calculatedHeight : newImage.size.height;
+		if (calculatedWidth == 0.0f && calculatedHeight == 0.0f) return newImage;
+        else if (calculatedHeight != 0.0f)
+            calculatedWidth = calculatedHeight * imgRatio;
+        else
+            calculatedHeight = calculatedWidth / imgRatio;
+                    
 		newImage = [UIImageResize resizedImage:CGSizeMake(calculatedWidth, calculatedHeight) 
 						  interpolationQuality:kCGInterpolationDefault 
 										 image:theimage
