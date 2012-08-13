@@ -504,10 +504,10 @@ def cleanup_app_logfiles(tiapp, log_id, iphone_version):
 			os.remove(i)
 
 def find_name_conflicts(project_dir, project_name):
-	for root, dirs, files in os.walk(project_dir):
-		for name in dirs:
-			if name == project_name:
-				print "[ERROR] Project name %s conflicts with resource named %s: Cannot build. Please change one." % (project_name, os.path.join(root, name))
+	for dir in ['Resources', 'Resources/iphone']:
+		for name in os.listdir(os.path.join(project_dir, dir)):
+			if name.lower() == project_name.lower():
+				print "[ERROR] Project name %s conflicts with resource named %s: Cannot build. Please change one." % (project_name, os.path.join(project_dir, dir, name))
 				exit(1)
 	pass
 
@@ -1385,7 +1385,7 @@ def main(args):
 
 					# launch the simulator
 					
-					# Awkard arg handling; we need to take 'retina' to be a device type,
+					# Awkward arg handling; we need to take 'retina' to be a device type,
 					# even though it's really not (it's a combination of device type and configuration).
 					# So we translate it into two args:
 					if simtype == 'retina':
@@ -1400,8 +1400,9 @@ def main(args):
 						sim = subprocess.Popen("\"%s\" launch \"%s\" --sdk %s --family %s" % (iphonesim,app_dir,iphone_version,simtype),shell=True,cwd=template_dir)
 
 					# activate the simulator window
-					command = 'osascript -e "tell application \\\"%s/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app\\\" to activate"'
-					os.system(command%xcodeselectpath)
+					ass = os.path.join(template_dir, 'iphone_sim_activate.scpt')
+					command = 'osascript "%s" "%s/Platforms/iPhoneSimulator.platform/Developer/Applications/iPhone Simulator.app"' % (ass, xcodeselectpath)
+					os.system(command)
 
 					end_time = time.time()-start_time
 
