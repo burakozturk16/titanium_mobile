@@ -137,22 +137,16 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	[self setValue:callback forUndefinedKey:@"onreadystatechange"];
 }
 
--(void)setOndownloadgrogress:(KrollCallback *)callback
-{
-	hasOndownloadgrogress = [callback isKindOfClass:[KrollCallback class]];
-	[self setValue:callback forUndefinedKey:@"ondownloadgrogress"];
-}
-
--(void)setOnsendprogress:(KrollCallback *)callback
-{
-	hasOnsendprogress = [callback isKindOfClass:[KrollCallback class]];
-	[self setValue:callback forUndefinedKey:@"onsendprogress"];
-}
-
 -(void)setOndatastream:(KrollCallback *)callback
 {
 	hasOndatastream = [callback isKindOfClass:[KrollCallback class]];
 	[self setValue:callback forUndefinedKey:@"ondatastream"];
+}
+
+-(void)setOnsendstream:(KrollCallback *)callback
+{
+	hasOnsendstream = [callback isKindOfClass:[KrollCallback class]];
+	[self setValue:callback forUndefinedKey:@"onsendstream"];
 }
 
 -(void)_destroy
@@ -307,8 +301,8 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 	if (state==NetworkClientStateDone && !failed)
 	{
-		thisPointer = [[[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self] autorelease];     
-		if (hasOndownloadgrogress && downloadProgress>0)
+		thisPointer = [[[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self] autorelease];		
+		if (hasOndatastream && downloadProgress>0)
 		{
 			CGFloat progress = (CGFloat)((CGFloat)downloadProgress/(CGFloat)downloadLength);
 			if (progress < 1.0)
@@ -317,12 +311,12 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 				// so we need to synthesize this
 				progress = 1.0;
 				TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-				NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"downloadgrogress",@"type",nil];
-				[self fireCallback:@"ondownloadgrogress" withArg:event withSource:thisPointer];
+				NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"datastream",@"type",nil];
+				[self fireCallback:@"ondatastream" withArg:event withSource:thisPointer];
 				[thisPointer release];
 			}
 		}
-		else if (hasOnsendprogress && uploadProgress>0)
+		else if (hasOnsendstream && uploadProgress>0)
 		{
 			CGFloat progress = (CGFloat)((CGFloat)uploadProgress/(CGFloat)uploadLength);
 			if (progress < 1.0)
@@ -331,8 +325,8 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 				// so we need to synthesize this
 				progress = 1.0;
 				TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-				NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"sendprogress",@"type",nil];
-				[self fireCallback:@"onsendprogress" withArg:event withSource:thisPointer];
+				NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"sendstream",@"type",nil];
+				[self fireCallback:@"onsendstream" withArg:event withSource:thisPointer];
 				[thisPointer release];
 			}
 		}
@@ -366,6 +360,18 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 }
 
+-(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) request
+{
+	if (hasOnsendstream)
+    {
+        [request setUploadProgressDelegate:self];
+    }
+    if (hasOndatastream)
+    {
+        [request setDownloadProgressDelegate:self];
+    }
+}
+
 -(void)open:(id)args
 {
 	RELEASE_TO_NIL(request);
@@ -395,20 +401,8 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
         NSTimeInterval timeoutVal = [timeout doubleValue] / 1000;
         [request setTimeOutSeconds:timeoutVal];
     }
-    
-    if (hasOndatastream)
-    {
-    	[request setDidReceiveDataSelector:@selector(request:receivedData:)];
-    }
-    
-    if (hasOnsendprogress)
-    {
-    	[request setUploadProgressDelegate:self];
-    }
-    if (hasOndownloadgrogress)
-    {
-    	[request setDownloadProgressDelegate:self];
-    }
+	
+	[self setResponseHandlersFroRequest:request];
 	
 	[request addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
 	
@@ -667,29 +661,16 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 }
 
 // Called when the request receives some data - bytes is the length of that data
-- (void)request:(ASIHTTPRequest *)request receivedData:(NSData *)data
-{
-	if (hasOndatastream)
-	{
-		NSString *dataToString = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding],@"data",@"datastream",@"type",nil];
-		[self fireCallback:@"ondatastream" withArg:event withSource:thisPointer];
-		[thisPointer release];
-	}
-}
-
-// Called when the request receives some data - bytes is the length of that data
 - (void)request:(ASIHTTPRequest *)request didReceiveBytes:(long long)bytes
 {
 	downloadProgress += bytes;
-	if (hasOndownloadgrogress)
+	if (hasOndatastream)
 	{
 		CGFloat progress = (CGFloat)((CGFloat)downloadProgress/(CGFloat)downloadLength);
 		progress = progress == INFINITY ? 1.0 : progress;
 		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"downloadgrogress",@"type",nil];
-		[self fireCallback:@"ondownloadgrogress" withArg:event withSource:thisPointer];
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"datastream",@"type",nil];
+		[self fireCallback:@"ondatastream" withArg:event withSource:thisPointer];
 		[thisPointer release];
 	}
 }
@@ -700,12 +681,12 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 - (void)request:(ASIHTTPRequest *)request didSendBytes:(long long)bytes
 {
 	uploadProgress += bytes;
-	if (hasOnsendprogress)
+	if (hasOnsendstream)
 	{
 		CGFloat progress = (CGFloat)((CGFloat)uploadProgress/(CGFloat)uploadLength);
 		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"sendprogress",@"type",nil];
-		[self fireCallback:@"onsendprogress" withArg:event withSource:thisPointer];
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithFloat:progress],@"progress",@"sendstream",@"type",nil];
+		[self fireCallback:@"onsendstream" withArg:event withSource:thisPointer];
 		[thisPointer release];
 	}
 }

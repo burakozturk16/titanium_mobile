@@ -42,8 +42,7 @@ typedef enum {
 	BOOL hasOnerror;
 	BOOL hasOnreadystatechange;
 	BOOL hasOndatastream;
-	BOOL hasOnsendprogress;
-	BOOL hasOndownloadgrogress;
+	BOOL hasOnsendstream;
 }
 // Internal
 -(NSDictionary*)responseHeaders;
@@ -52,9 +51,8 @@ typedef enum {
 -(void)setOnload:(KrollCallback *)callback;
 -(void)setOnerror:(KrollCallback *)callback;
 -(void)setOnreadystatechange:(KrollCallback *)callback;
--(void)setOndowloadprogress:(KrollCallback *)callback;
--(void)setOnsendprogress:(KrollCallback *)callback;
 -(void)setOndatastream:(KrollCallback *)callback;
+-(void)setOnsendstream:(KrollCallback *)callback;
 
 // state information
 @property(nonatomic,readonly) NSInteger status;
