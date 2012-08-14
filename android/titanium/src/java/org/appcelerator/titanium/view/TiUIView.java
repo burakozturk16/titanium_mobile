@@ -107,6 +107,9 @@ public abstract class TiUIView
 	private boolean zIndexChanged = false;
 	private TiBorderWrapperView borderView;
 
+	private boolean touchPassThrough = false;
+
+
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -618,6 +621,8 @@ public abstract class TiUIView
 			if (nativeView != null) {
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
 			}
+		} else if (key.equals(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+			touchPassThrough = TiConvert.toBoolean(newValue);
 		} else {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
@@ -644,6 +649,10 @@ public abstract class TiUIView
 			if (nativeView instanceof TiCompositeLayout) {
 				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(d, TiC.PROPERTY_HORIZONTAL_WRAP));
 			}
+		}
+
+		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+			touchPassThrough = TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH);
 		}
 
 		Integer bgColor = null;
@@ -1122,6 +1131,7 @@ public abstract class TiUIView
 		{
 			public boolean onTouch(View view, MotionEvent event)
 			{
+				if (touchPassThrough) return false;
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					lastUpEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
 					lastUpEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
