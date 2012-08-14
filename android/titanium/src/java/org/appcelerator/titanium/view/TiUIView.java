@@ -107,8 +107,6 @@ public abstract class TiUIView
 	private boolean zIndexChanged = false;
 	private TiBorderWrapperView borderView;
 
-	private boolean touchPassThrough = false;
-
 
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
@@ -622,7 +620,9 @@ public abstract class TiUIView
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
 			}
 		} else if (key.equals(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			touchPassThrough = TiConvert.toBoolean(newValue);
+			if (nativeView instanceof TiCompositeLayout) {
+				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(newValue));
+			}
 		} else {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
@@ -652,7 +652,9 @@ public abstract class TiUIView
 		}
 
 		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			touchPassThrough = TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH);
+			if (nativeView instanceof TiCompositeLayout) {
+				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+			}
 		}
 
 		Integer bgColor = null;
@@ -664,6 +666,7 @@ public abstract class TiUIView
 
 		} else if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR) && !nativeViewNull) {
 			bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
+			Log.i(TAG, "test PROPERTY_BACKGROUND_COLOR ");
 
 			// Set the background color on the view directly only
 			// if there is no border. If a border is present we must
@@ -1034,6 +1037,7 @@ public abstract class TiUIView
 	protected void registerTouchEvents(final View touchable)
 	{
 
+		Log.d(TAG, "registerTouchEvents ", Log.DEBUG_MODE);
 		touchView = new WeakReference<View>(touchable);
 
 		final ScaleGestureDetector scaleDetector = new ScaleGestureDetector(touchable.getContext(),
@@ -1119,7 +1123,7 @@ public abstract class TiUIView
 			@Override
 			public void onLongPress(MotionEvent e)
 			{
-				Log.d(TAG, "LONGPRESS on " + proxy, Log.DEBUG_MODE);
+				Log.i(TAG, "LONGPRESS on " + proxy);
 
 				if (proxy.hierarchyHasListener(TiC.EVENT_LONGPRESS)) {
 					proxy.fireEvent(TiC.EVENT_LONGPRESS, dictFromEvent(e));
@@ -1131,7 +1135,6 @@ public abstract class TiUIView
 		{
 			public boolean onTouch(View view, MotionEvent event)
 			{
-				if (touchPassThrough) return false;
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					lastUpEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
 					lastUpEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
