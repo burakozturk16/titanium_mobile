@@ -515,6 +515,7 @@ public abstract class TiUIView
 				//nativeView.setOnClickListener(null); // ? mistake? I assume OnKeyListener was meant
 				nativeView.setOnKeyListener(null);
 			}
+			
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			doSetClickable(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
@@ -623,6 +624,11 @@ public abstract class TiUIView
 			if (nativeView instanceof TiCompositeLayout) {
 				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(newValue));
 			}
+		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
+			if (nativeView instanceof TiCompositeLayout) {
+				boolean clip = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
+				((TiCompositeLayout) nativeView).setClipChildren(clip);
+			}
 		} else {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
@@ -654,6 +660,12 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
 			if (nativeView instanceof TiCompositeLayout) {
 				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+			}
+		}
+
+		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
+			if (nativeView instanceof TiCompositeLayout) {
+				((TiCompositeLayout) nativeView).setClipChildren(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));
 			}
 		}
 
