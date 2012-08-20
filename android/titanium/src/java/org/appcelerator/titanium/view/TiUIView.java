@@ -678,7 +678,6 @@ public abstract class TiUIView
 
 		} else if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR) && !nativeViewNull) {
 			bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
-			Log.i(TAG, "test PROPERTY_BACKGROUND_COLOR ");
 
 			// Set the background color on the view directly only
 			// if there is no border. If a border is present we must
@@ -1049,7 +1048,6 @@ public abstract class TiUIView
 	protected void registerTouchEvents(final View touchable)
 	{
 
-		Log.d(TAG, "registerTouchEvents ", Log.DEBUG_MODE);
 		touchView = new WeakReference<View>(touchable);
 
 		final ScaleGestureDetector scaleDetector = new ScaleGestureDetector(touchable.getContext(),
