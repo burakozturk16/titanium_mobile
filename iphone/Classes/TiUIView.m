@@ -651,7 +651,6 @@ DEFINE_EXCEPTIONS
 	{
 		RELEASE_TO_NIL(animation);
 		animation = [newAnimation retain];
-		animating = YES;
 		[animation animate:self];
 	}	
 	else
@@ -659,7 +658,10 @@ DEFINE_EXCEPTIONS
 		DebugLog(@"[WARN] Ti.View.animate() (view %@) could not make animation from: %@", self, newAnimation);
 	}
 }
-
+-(void)animationStarted
+{
+    animating = YES;
+}
 -(void)animationCompleted
 {
 	animating = NO;

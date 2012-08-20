@@ -197,7 +197,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Tells the view to make its root view a first responder.
  */
 -(void)makeRootViewFirstResponder;
-
+-(void)animationStarted;
 -(void)animationCompleted;
 
 /**
