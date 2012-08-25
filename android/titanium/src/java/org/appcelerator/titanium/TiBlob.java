@@ -63,6 +63,7 @@ public class TiBlob extends KrollProxy
 	private Object data;
 	private String mimetype;
 	private int width, height;
+	private Boolean couldBeAnImage = true;
 
 	private TiBlob(int type, Object data, String mimetype)
 	{
@@ -335,26 +336,43 @@ public class TiBlob extends KrollProxy
 	@Kroll.getProperty @Kroll.method
 	public int getWidth()
 	{
+		ensureImageReady();
 		return width;
 	}
 
 	@Kroll.getProperty @Kroll.method
 	public int getHeight()
 	{
+		ensureImageReady();
 		return height;
 	}
 
-    @Kroll.method
-    public TiBlob toImage()
-    {
-        byte[] bytes = getBytes();
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
-        this.width = options.outWidth;
-        this.height = options.outHeight;
-        return this;
-    }
+
+	private Boolean isImageMimeType()
+	{
+		return mimetype == "image/bitmap";
+	}
+
+	private void ensureImageReady()
+	{
+		if (!isImageMimeType() && couldBeAnImage)
+		{
+			byte[] bytes = getBytes();
+			BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeByteArray(bytes, 0, bytes.length, options);
+			if (options.outWidth != -1 && options.outHeight != -1)
+			{
+				this.width = options.outWidth;
+				this.height = options.outHeight;
+				this.mimetype = "image/bitmap";
+			}
+			else
+			{
+				couldBeAnImage = false;
+			}
+		}
+	}
 
     private int sampleSize(int outWidth, int outHeight, int newWidth, int newHeight) {
         int sample = 1;
