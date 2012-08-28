@@ -95,8 +95,6 @@
 -(void)prepareForReuse
 {
 	if (proxy.callbackCell == self) {
-        //first let s say we gonna disappear!
-        [proxy fireEvent:@"reuse" withObject:[proxy createEventObject:nil] propagate:YES];
 		[proxy prepareTableRowForReuse];
 	}
 	[self setProxy:nil];
@@ -2080,8 +2078,13 @@ return result;	\
 		}
 	}
 	UIColor * cellColor = [Webcolor webColorNamed:color];
-	cell.backgroundColor = (cellColor != nil)?cellColor:[UIColor whiteColor];
-    [self triggerActionForIndexPath:index fromPath:nil tableView:ourTableView wasAccessory:NO search:NO name:@"rowappear"];
+	if (cellColor == nil) {
+		cellColor = [UIColor whiteColor];
+	}
+	cell.backgroundColor = cellColor;
+	if(CGColorGetAlpha([cellColor CGColor])<1.0) {
+		[[cell textLabel] setBackgroundColor:[UIColor clearColor]];
+	}
 }
 
 - (NSString *)tableView:(UITableView *)ourTableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
