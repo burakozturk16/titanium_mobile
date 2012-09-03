@@ -1138,7 +1138,7 @@ public abstract class TiUIView
 			@Override
 			public void onLongPress(MotionEvent e)
 			{
-				Log.i(TAG, "LONGPRESS on " + proxy);
+				Log.d(TAG, "LONGPRESS on " + proxy, Log.DEBUG_MODE);
 
 				if (proxy.hierarchyHasListener(TiC.EVENT_LONGPRESS)) {
 					proxy.fireEvent(TiC.EVENT_LONGPRESS, dictFromEvent(e));
