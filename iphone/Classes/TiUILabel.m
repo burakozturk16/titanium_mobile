@@ -48,7 +48,7 @@
 	CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
 	CGSize shadowOffset = [label shadowOffset];
 	requiresLayout = YES;
-	if ((suggestedWidth > 0) && [value characterAtIndex:value.length-1] == ' ') {
+	if ((suggestedWidth > 0) && (value.length > 0) && [value characterAtIndex:value.length-1] == ' ') {
 		// (CGSize)sizeWithFont:(UIFont *)font constrainedToSize:(CGSize)size lineBreakMode:(UILineBreakMode)lineBreakMode method truncates
 		// the string having trailing spaces when given size parameter width is equal to the expected return width, so we adjust it here.
 		maxSize.width += 0.00001;
@@ -97,7 +97,7 @@
         CGRect labelRect = CGRectMake(originX, textPadding.origin.y, actualLabelSize.width, MIN(actualLabelSize.height, initFrame.size.height));
         switch (verticalAlign) {
             case UIControlContentVerticalAlignmentBottom:
-                labelRect.origin.y = initialLabelFrame.size.height - actualLabelSize.height - textPadding.size.height;
+                labelRect.origin.y = initFrame.size.height - actualLabelSize.height - textPadding.size.height;
                 break;
             case UIControlContentVerticalAlignmentCenter:
                 labelRect.origin.y = (initFrame.size.height - actualLabelSize.height)/2;
@@ -125,7 +125,7 @@
 }
 
 // FIXME: This isn't quite true.  But the brilliant soluton wasn't so brilliant, because it screwed with layout in unpredictable ways.
-//	Sadly, there was a brilliant solution for fixing the blurring here, but it turns out there's a 
+//	Sadly, there was a brilliant solution for fixing the blurring here, but it turns out there's a
 //	quicker fix: Make sure the label itself has an even height and width. Everything else is irrelevant.
 -(void)setCenter:(CGPoint)newCenter
 {
@@ -137,7 +137,7 @@
 	initialLabelFrame = bounds;
     
     [self padLabel];
-    
+
     [super frameSizeChanged:frame bounds:bounds];
 }
 
@@ -227,7 +227,7 @@
         [[self label] setAdjustsFontSizeToFitWidth:YES];
         [[self label] setMinimumFontSize:newSize];
     }
-    
+
 }
 
 -(CALayer *)backgroundImageLayer

@@ -99,8 +99,10 @@ public abstract class TiBaseActivity extends Activity
 	public void removeWindowFromStack(TiBaseWindowProxy proxy)
 	{
 		proxy.fireEvent(TiC.EVENT_BLUR, null);
+		boolean isTopWindow = ( (!windowStack.isEmpty()) && (windowStack.peek() == proxy) ) ? true : false;
 		windowStack.remove(proxy);
-		if (!windowStack.empty()) {
+		//Fire focus only if activity is not paused and the removed window was topWindow
+		if (!windowStack.empty() && isResumed && isTopWindow) {
 			TiBaseWindowProxy nextWindow = windowStack.peek();
 			nextWindow.fireEvent(TiC.EVENT_FOCUS, null, false);
 		}
@@ -536,7 +538,7 @@ public abstract class TiBaseActivity extends Activity
 
 		// Prevent default Android behavior for "back" press
 		// if the top window has a listener to handle the event.
-		if (topWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
+		if (topWindow != null && topWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
 			topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
 
 		} else {
