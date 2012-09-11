@@ -93,8 +93,8 @@
             default:
                 break;
         }
-        
-        CGRect labelRect = CGRectMake(originX, textPadding.origin.y, actualLabelSize.width, MIN(actualLabelSize.height, initFrame.size.height));
+
+        CGRect labelRect = CGRectMake(MAX(0,originX), MAX(0,textPadding.origin.y), actualLabelSize.width, MIN(actualLabelSize.height, initFrame.size.height));
         switch (verticalAlign) {
             case UIControlContentVerticalAlignmentBottom:
                 labelRect.origin.y = initFrame.size.height - actualLabelSize.height - textPadding.size.height;
@@ -106,9 +106,6 @@
             default:
                 
                 break;
-        }
-        if (initFrame.size.height < actualLabelSize.height) {
-            labelRect.size.height = initFrame.size.height;
         }
     
         [label setFrame:CGRectIntegral(labelRect)];
