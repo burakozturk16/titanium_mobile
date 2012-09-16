@@ -19,6 +19,8 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.graphics.Rect;
+
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;

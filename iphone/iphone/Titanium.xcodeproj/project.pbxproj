@@ -2169,9 +2169,9 @@
 				24CA8AB4111161FD0084E2DE /* TiNetworkHTTPClientResultProxy.m */,
 				24CA8AB5111161FD0084E2DE /* TiNetworkHTTPClientResultProxy.h */,
 				24CA8AB6111161FD0084E2DE /* TiNetworkHTTPClientProxy.m */,
+				24CA8AB7111161FD0084E2DE /* TiNetworkHTTPClientProxy.h */,
 				D5FF95B81600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.h */,
 				D5FF95B91600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m */,
-				24CA8AB7111161FD0084E2DE /* TiNetworkHTTPClientProxy.h */,
 				DA2556421353D2FC005D459C /* TiNetworkSocketProxy.h */,
 				DA2556431353D2FC005D459C /* TiNetworkSocketProxy.m */,
 			);
