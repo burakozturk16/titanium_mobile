@@ -302,9 +302,6 @@ public class TiCompositeLayout extends ViewGroup
 
 			if (isHorizontalArrangement()) {
 				if (enableHorizontalWrap) {
-					// Make maxWidth the width of the view and calculate the maxHeight based on the horizontal rows with
-					// wrap
-					maxWidth = w;
 
 					if ((horizontalRowWidth + childWidth) > w) {
 						horizontalRowWidth = childWidth;
@@ -313,6 +310,7 @@ public class TiCompositeLayout extends ViewGroup
 
 					} else {
 						horizontalRowWidth += childWidth;
+						maxWidth = Math.max(maxWidth, horizontalRowWidth);
 					}
 
 				} else {
