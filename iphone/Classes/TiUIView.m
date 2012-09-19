@@ -499,7 +499,7 @@ DEFINE_EXCEPTIONS
         backgroundImageLayer.contents = (id)renderedBg.CGImage;
 }
 
--(UIView *)BackgroundImageWrapperView
+-(UIView *)backgroundImageWrapperView
 {
 	return self;
 }
@@ -520,7 +520,7 @@ DEFINE_EXCEPTIONS
 		[backgroundImageLayer setFrame:[self bounds]];
         backgroundImageLayer.masksToBounds = YES;
         backgroundImageLayer.cornerRadius = self.layer.cornerRadius;
-		[[[self BackgroundImageWrapperView] layer] insertSublayer:backgroundImageLayer atIndex:0];
+		[[[self backgroundImageWrapperView] layer] insertSublayer:backgroundImageLayer atIndex:0];
 	}
     
     if (backgroundRepeat) {
@@ -722,7 +722,7 @@ DEFINE_EXCEPTIONS
 		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
 	}
     if ([self backgroundImageLayer] != nil) {
-		[[[self BackgroundImageWrapperView] layer] insertSublayer:[self backgroundImageLayer] atIndex:0];
+		[[[self backgroundImageWrapperView] layer] insertSublayer:[self backgroundImageLayer] atIndex:0];
 	}
 }
 
