@@ -558,8 +558,11 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
 	self.layer.cornerRadius = [TiUtils floatValue:radius];
-    if ([self backgroundImageLayer]) {
-        [self backgroundImageLayer].cornerRadius = self.layer.cornerRadius;
+    if (backgroundImageLayer) {
+        backgroundImageLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    if (gradientLayer) {
+        gradientLayer.cornerRadius = self.layer.cornerRadius;
     }
     [self updateShadowPath];
 }
@@ -629,6 +632,8 @@ DEFINE_EXCEPTIONS
 		[(TiGradientLayer *)gradientLayer setGradient:arg];
 		[gradientLayer setNeedsDisplayOnBoundsChange:YES];
 		[gradientLayer setFrame:[self bounds]];
+        gradientLayer.masksToBounds = YES;
+        gradientLayer.cornerRadius = self.layer.cornerRadius;
 		[gradientLayer setNeedsDisplay];
 		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
 	}
