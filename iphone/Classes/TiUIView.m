@@ -184,6 +184,7 @@ DEFINE_EXCEPTIONS
 	[animation release];
 	[backgroundImage release];
 	[gradientLayer release];
+	[backgroundImageLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
 	[twoFingerTapRecognizer release];
@@ -310,6 +311,7 @@ DEFINE_EXCEPTIONS
     if (backgroundRepeat) {
         [self renderRepeatedBackground:backgroundImage];
     }
+    [self updateShadowPath];
 }
 
 
@@ -335,7 +337,14 @@ DEFINE_EXCEPTIONS
 	if(!CGSizeEqualToSize(oldSize, newBounds.size))
 	{
 		oldSize = newBounds.size;
+        
+        [CATransaction begin];
+        [CATransaction setValue:(id)kCFBooleanTrue
+                         forKey:kCATransactionDisableActions];
 		[gradientLayer setFrame:newBounds];
+		[[self backgroundImageLayer] setFrame:newBounds];
+        [CATransaction commit];
+
 		[self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
 	}
 }
@@ -430,7 +439,7 @@ DEFINE_EXCEPTIONS
 
 -(CALayer *)backgroundImageLayer
 {
-	return [self layer];
+	return backgroundImageLayer;
 }
 
 // You might wonder why we don't just use the native feature of -[UIColor colorWithPatternImage:].
@@ -481,25 +490,43 @@ DEFINE_EXCEPTIONS
     UIImage* renderedBg = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    [self backgroundImageLayer].contents = (id)renderedBg.CGImage;
+    if (backgroundImageLayer)
+        backgroundImageLayer.contents = (id)renderedBg.CGImage;
+}
+
+-(UIView *)BackgroundImageWrapperView
+{
+	return self;
 }
 
 -(void)setBackgroundImage_:(id)image
 {
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
     
+    if (bgImage == nil)
+	{
+		[backgroundImageLayer removeFromSuperlayer];
+		RELEASE_TO_NIL(backgroundImageLayer);
+        return;
+	}
+	else if (backgroundImageLayer == nil)
+	{
+		backgroundImageLayer = [[CALayer alloc] init];
+		[backgroundImageLayer setFrame:[self bounds]];
+        backgroundImageLayer.backgroundColor = [UIColor blueColor].CGColor;
+        backgroundImageLayer.masksToBounds = YES;
+        backgroundImageLayer.cornerRadius = self.layer.cornerRadius;
+		[[[self BackgroundImageWrapperView] layer] insertSublayer:backgroundImageLayer atIndex:0];
+	}
+    
     if (backgroundRepeat) {
         [self renderRepeatedBackground:bgImage];
     }
     else {
-        [self backgroundImageLayer].contents = (id)bgImage.CGImage;
-        if (bgImage != nil) {
-            [self backgroundImageLayer].contentsScale = [bgImage scale];
-            [self backgroundImageLayer].contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [bgImage size]);
-        }
+        backgroundImageLayer.contents = (id)bgImage.CGImage;
+        backgroundImageLayer.contentsScale = [bgImage scale];
+        backgroundImageLayer.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [bgImage size]);
     }
-    
-    self.layer.masksToBounds = bgImage!=nil;
     self.backgroundImage = bgImage;
 }
 
@@ -531,7 +558,10 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
 	self.layer.cornerRadius = [TiUtils floatValue:radius];
-    self.layer.masksToBounds = YES;
+    if ([self backgroundImageLayer]) {
+        [self backgroundImageLayer].cornerRadius = self.layer.cornerRadius;
+    }
+    [self updateShadowPath];
 }
 
 -(void)setAnchorPoint_:(id)point
@@ -619,12 +649,71 @@ DEFINE_EXCEPTIONS
     return self.clipsToBounds;
 }
 
+
+-(CALayer *)shadowLayer
+{
+	return [self layer];
+}
+
+
+-(void)setShadowOffset_:(id)arg
+{
+	CGPoint p = [TiUtils pointValue:arg];
+    [[self shadowLayer] setShadowOffset:CGSizeMake(p.x, p.y)];
+}
+
+-(void)setShadowRadius_:(id)arg
+{
+    [[self shadowLayer] setShadowRadius:[TiUtils floatValue:arg]];
+}
+
+-(void)updateShadowPath
+{
+    if ([self shadowLayer].shadowOpacity > 0.0f)
+    {
+        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;//to speedup things
+
+    }
+}
+
+-(void)setShadowColor_:(id)color
+{
+	if (color==nil)
+	{
+		[[self shadowLayer] setShadowColor:nil];
+		[[self shadowLayer] setShadowOpacity:0.0f];
+        [self shadowLayer].masksToBounds = YES;
+	}
+	else
+	{
+		color = [TiUtils colorValue:color];
+        CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
+        
+        if (alpha == 0.0f)
+        {
+            [self shadowLayer].masksToBounds = YES;
+        }
+        else
+        {
+            [self shadowLayer].masksToBounds = NO;
+            [self shadowLayer].shouldRasterize =YES;
+//            [self shadowLayer].shadowPath = [UIBezierPath bezierPathWithRect:self.bounds].CGPath;
+            [self updateShadowPath];
+        }
+		[[self shadowLayer] setShadowOpacity:alpha];
+		[[self shadowLayer] setShadowColor:[color _color].CGColor];
+	}
+}
+
 -(void)didAddSubview:(UIView*)view
 {
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs...
 	if (gradientLayer != nil) {
 		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
+	}
+    if ([self backgroundImageLayer] != nil) {
+		[[[self BackgroundImageWrapperView] layer] insertSublayer:[self backgroundImageLayer] atIndex:0];
 	}
 }
 
