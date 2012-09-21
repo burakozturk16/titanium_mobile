@@ -850,6 +850,7 @@ public abstract class TiUIView
 				d = null;
 			}
 			nativeView = null;
+			borderView = null;
 			if (proxy != null) {
 				proxy.setModelListener(null);
 			}
@@ -861,6 +862,9 @@ public abstract class TiUIView
 	 */
 	public void show()
 	{
+		if (borderView != null) {
+			borderView.setVisibility(View.VISIBLE);
+		}
 		if (nativeView != null) {
 			nativeView.setVisibility(View.VISIBLE);
 		} else {
@@ -873,6 +877,9 @@ public abstract class TiUIView
 	 */
 	public void hide()
 	{
+		if (borderView != null) {
+			borderView.setVisibility(View.INVISIBLE);
+		}
 		if (nativeView != null) {
 			nativeView.setVisibility(View.INVISIBLE);
 		} else {
