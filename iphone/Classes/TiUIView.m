@@ -680,8 +680,8 @@ DEFINE_EXCEPTIONS
 {
     if ([self shadowLayer].shadowOpacity > 0.0f)
     {
-        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;//to speedup things
-
+        //to speedup things
+        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
     }
 }
 
@@ -706,7 +706,6 @@ DEFINE_EXCEPTIONS
         {
             [self shadowLayer].masksToBounds = NO;
             [self shadowLayer].shouldRasterize =YES;
-//            [self shadowLayer].shadowPath = [UIBezierPath bezierPathWithRect:self.bounds].CGPath;
             [self updateShadowPath];
         }
 		[[self shadowLayer] setShadowOpacity:alpha];
