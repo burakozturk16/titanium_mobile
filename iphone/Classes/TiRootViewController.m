@@ -104,7 +104,7 @@
 	// Default
     image = nil;
     if ([[UIScreen mainScreen] bounds].size.height == 568) {
-        image = [UIImage imageNamed:@"Default-568h@2x.png"];
+        image = [UIImage imageNamed:@"Default-568h.png"];
         if (image!=nil) {
             return image;
         }
@@ -361,7 +361,13 @@
             }
         }
         //Send out whatever the View Controller supports
-        return [topmostController supportedInterfaceOrientations];
+        NSUInteger retVal = [topmostController supportedInterfaceOrientations];
+        if ([topmostController respondsToSelector:@selector(isBeingDismissed)]) {
+            if ([topmostController isBeingDismissed]) {
+                retVal = retVal | [self orientationFlags];
+            }
+        }
+        return retVal;
     }
     return [self orientationFlags];
 }
@@ -1222,7 +1228,7 @@
 	leaveDuration = [[userInfo valueForKey:UIKeyboardAnimationDurationUserInfoKey] floatValue];
 	[self extractKeyboardInfo:userInfo];
 	keyboardVisible = NO;
-    
+
 	if(!updatingAccessoryView)
 	{
 		updatingAccessoryView = YES;
@@ -1251,6 +1257,9 @@
     if ( (updatingAccessoryView == NO) && ([TiUtils boolValue:_keyboardVisible] == keyboardVisible) ) {
         updatingAccessoryView = YES;
         [self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
+        if (!keyboardVisible) {
+            RELEASE_TO_NIL_AUTORELEASE(keyboardFocusedProxy);
+        }
     }
 }
 
@@ -1299,7 +1308,6 @@
 -(void)didKeyboardBlurOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)blurredProxy;
 {
 	WARN_IF_BACKGROUND_THREAD_OBJ
-    
 	if (blurredProxy != keyboardFocusedProxy)
 	{
 		DeveloperLog(@"[WARN] Blurred for %@<%X>, despite %@<%X> being the focus.",blurredProxy,blurredProxy,keyboardFocusedProxy,keyboardFocusedProxy);
@@ -1318,26 +1326,6 @@
 		return;
 	}
 
-	if(scrolledView != nil)	//If this isn't IN the toolbar, then we update the scrollviews to compensate.
-	{
-		UIView * ourView = [self viewForKeyboardAccessory];
-        CGRect rect = [ourView convertRect:endFrame fromView:nil];
-		CGFloat keyboardHeight = rect.origin.y;
-        if (keyboardHeight > 0) {
-            UIView * possibleScrollView = [scrolledView superview];
-            UIView<TiScrolling> * confirmedScrollView = nil;
-            while (possibleScrollView != nil)
-            {
-                if ([possibleScrollView conformsToProtocol:@protocol(TiScrolling)])
-                {
-                    confirmedScrollView = (UIView<TiScrolling>*)possibleScrollView;
-                }
-                possibleScrollView = [possibleScrollView superview];
-            }
-            [confirmedScrollView keyboardDidShowAtHeight:keyboardHeight];
-        }
-	}
-    RELEASE_TO_NIL_AUTORELEASE(keyboardFocusedProxy);
 	if((doomedView == nil) || (leavingAccessoryView == doomedView)){
 		//Nothing to worry about. No toolbar or it's on its way out.
 		return;
@@ -1364,7 +1352,7 @@
 -(void)didKeyboardFocusOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)visibleProxy;
 {
 	WARN_IF_BACKGROUND_THREAD_OBJ
-    
+
 	if (visibleProxy == keyboardFocusedProxy)
 	{
 		DeveloperLog(@"[WARN] Focused for %@<%X>, despite it already being the focus.",keyboardFocusedProxy,keyboardFocusedProxy);
@@ -1374,6 +1362,7 @@
 	{
 		DeveloperLog(@"[WARN] Focused for %@<%X>, despite %@<%X> already being the focus.",visibleProxy,visibleProxy,keyboardFocusedProxy,keyboardFocusedProxy);
 		[self didKeyboardBlurOnProxy:keyboardFocusedProxy];
+		RELEASE_TO_NIL_AUTORELEASE(keyboardFocusedProxy);
 	}
 	
 	keyboardFocusedProxy = [visibleProxy retain];
