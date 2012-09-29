@@ -1679,7 +1679,7 @@ class Builder(object):
 		trace("Launch output: %s" % output)
 
 	def wait_for_sdcard(self):
-		mount_points_check = ['/sdcard', '/mnt/sdcard']
+		mount_points_check = ['/sdcard', '/mnt/sdcard', '/mnt/sdcard-ext', '/mnt/sdcard/external_sd']
 		# Check the symlink that is typically in root.
 		# If you find it, add its target to the mount points to check.
 		output = self.run_adb('shell', 'ls', '-l', '/sdcard')
@@ -1697,7 +1697,7 @@ class Builder(object):
 				for mount_point in mount_points:
 					tokens = mount_point.split()
 					if len(tokens) < 2: continue
-					mount_path = tokens[1]
+					mount_path = tokens[2]
 					if mount_path in mount_points_check:
 						return True
 			else:
