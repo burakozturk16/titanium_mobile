@@ -344,8 +344,7 @@ class TiAppXML(object):
 		    return ''.join(rc)
 		
 		ignore_keys = ['CFBundleDisplayName', 'CFBundleExecutable', 'CFBundleIconFile',
-				'CFBundleIdentifier', 'CFBundleInfoDictionaryVersion', 'CFBundleName', 'CFBundlePackageType', 'CFBundleSignature',
-				'CFBundleVersion', 'CFBundleShortVersionString', 'LSRequiresIPhoneOS']
+				'CFBundleIdentifier', 'CFBundleInfoDictionaryVersion', 'CFBundleName', 'CFBundlePackageType', 'CFBundleSignature', 'CFBundleShortVersionString', 'LSRequiresIPhoneOS']
 		
 		for child in node.childNodes:
 			if child.nodeName == 'plist':
@@ -532,6 +531,7 @@ class TiAppXML(object):
 			fn = plist[e:]
 			plist = st + appid + fn
 
+		# if 'CFBundleVersion' in self.infoplist_properties:
 
 		# replace the version in case it's changed
 		i = plist.index('CFBundleVersion')
@@ -540,7 +540,13 @@ class TiAppXML(object):
 			e = plist.index('</string>',i+1)
 			st = plist[0:i+8]
 			fn = plist[e:]
-			version = self.properties['version']
+			if 'CFBundleVersion' in self.infoplist_properties:
+				version = self.infoplist_properties['CFBundleVersion']
+				i2 = version.index('<string>',0)
+				e2 = version.index('</string>',0)
+				version = version[i2+8:e2]
+			else:
+				version = self.properties['version']
 			plist = st + version + fn
 						
 		# replace the CFBundleShortVersionString in case it's changed
