@@ -645,7 +645,7 @@ class Compiler(object):
 							compiled_targets[ext].append(entry)
 						else:
 							compiled_targets[ext]=[entry]
-					if not write_routing:
+					else:
 						# only copy if different filesize or doesn't exist
 						if not os.path.exists(to_) or os.path.getsize(from_)!=os.path.getsize(to_):
 							print "[DEBUG] copying: %s to %s" % (from_,to_)
