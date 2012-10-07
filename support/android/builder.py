@@ -1697,6 +1697,10 @@ class Builder(object):
 				for mount_point in mount_points:
 					tokens = mount_point.split()
 					if len(tokens) < 2: continue
+					mount_path = tokens[1]
+					if mount_path in mount_points_check:
+						return True
+					if len(tokens) < 3: continue
 					mount_path = tokens[2]
 					if mount_path in mount_points_check:
 						return True
