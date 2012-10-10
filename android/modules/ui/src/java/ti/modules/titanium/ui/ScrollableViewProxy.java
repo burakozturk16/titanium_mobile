@@ -173,12 +173,6 @@ public class ScrollableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
-	public void removeView(int viewIndex)
-	{
-		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_REMOVE_VIEW), viewIndex);
-	}
-
-	@Kroll.method
 	public void scrollToView(Object view, @Kroll.argument(optional = true) boolean animated)
 	{
 		if (inScroll.get()) return;
