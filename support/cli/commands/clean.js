@@ -6,6 +6,9 @@
  */
 
 var appc = require('node-appc'),
+	i18n = appc.i18n(__dirname),
+	__ = i18n.__,
+	__n = i18n.__n,
 	ti = require('titanium-sdk'),
 	fs = require('fs'),
 	path = require('path'),
@@ -34,7 +37,7 @@ exports.config = function (logger, config, cli) {
 exports.validate = function (logger, config, cli) {
 	cli.argv.platform && ti.validatePlatform(logger, cli.argv, 'platform');
 	ti.validateProjectDir(logger, cli, cli.argv, 'project-dir');
-	ti.loadPlugins(logger, cli, cli.argv['project-dir']);
+	ti.loadPlugins(logger, cli, config, cli.argv['project-dir']);
 };
 
 exports.run = function (logger, config, cli) {

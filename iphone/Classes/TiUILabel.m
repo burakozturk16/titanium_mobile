@@ -154,6 +154,11 @@
 	return label;
 }
 
+- (id)accessibilityElement
+{
+	return [self label];
+}
+
 -(void)setHighlighted:(BOOL)newValue
 {
 	[[self label] setHighlighted:newValue];

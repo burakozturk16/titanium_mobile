@@ -304,6 +304,11 @@ DEFINE_EXCEPTIONS
 	return transformMatrix;
 }
 
+- (id)accessibilityElement
+{
+	return self;
+}
+
 #pragma mark Layout 
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -767,6 +772,12 @@ DEFINE_EXCEPTIONS
 -(BOOL)animating
 {
 	return animating;
+}
+
+-(void)setAccessibilityHidden_:(id)hidden
+{
+	// self and NOT self.accessibilityElement
+    self.accessibilityElementsHidden = [TiUtils boolValue:hidden def:NO];
 }
 
 #pragma mark Property Change Support

@@ -6,6 +6,9 @@
  */
 
 var appc = require('node-appc'),
+	i18n = appc.i18n(__dirname),
+	__ = i18n.__,
+	__n = i18n.__n,
 	afs = appc.fs,
 	path = require('path'),
 	async = require('async'),
@@ -15,7 +18,7 @@ exports.cliVersion = '>=3.X';
 
 exports.init = function (logger, config, cli) {
 	
-	cli.addHook('build.post', {
+	cli.addHook('build.post.compile', {
 		priority: 8000,
 		post: function (build, finished) {
 			if (cli.argv.target != 'device') return finished();
