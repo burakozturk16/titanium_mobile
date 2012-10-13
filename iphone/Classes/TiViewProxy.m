@@ -1893,17 +1893,19 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     }
     else if (TiDimensionIsUndefined(layoutProperties.width) && TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]))
     {
+        BOOL centerDefined = NO;
         int pinCount = 0;
         if (!TiDimensionIsUndefined(layoutProperties.left) ) {
             pinCount ++;
         }
         if (!TiDimensionIsUndefined(layoutProperties.centerX) ) {
+            centerDefined = YES;
             pinCount ++;
         }
         if (!TiDimensionIsUndefined(layoutProperties.right) ) {
             pinCount ++;
         }
-        if (pinCount < 2) {
+        if ( (pinCount < 2) || (!centerDefined) ){
             isAutoFill = YES;
         }
     }
@@ -1923,17 +1925,19 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     }
     else if (TiDimensionIsUndefined(layoutProperties.height) && TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]))
     {
+        BOOL centerDefined = NO;
         int pinCount = 0;
         if (!TiDimensionIsUndefined(layoutProperties.top) ) {
             pinCount ++;
         }
         if (!TiDimensionIsUndefined(layoutProperties.centerY) ) {
+            centerDefined = YES;
             pinCount ++;
         }
         if (!TiDimensionIsUndefined(layoutProperties.bottom) ) {
             pinCount ++;
         }
-        if (pinCount < 2) {
+        if ( (pinCount < 2) || (!centerDefined) ) {
             isAutoFill = YES;
         }
     }
