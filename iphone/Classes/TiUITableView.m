@@ -2058,6 +2058,13 @@ return result;	\
 	[[self tableView] deselectRowAtIndexPath:path animated:animated];
 }
 
+-(TiUITableViewRowProxy*)rowAtPoint:(CGPoint)point
+{
+	UITableView *ourTableView = [self tableView];
+	NSIndexPath *indexPath = [ourTableView indexPathForRowAtPoint:point];
+	return [self rowForIndexPath:indexPath];
+}
+
 #pragma mark Delegate
 
 - (void)tableView:(UITableView *)ourTableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath

@@ -380,6 +380,17 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	return nil;
 }
 
+-(TiUITableViewRowProxy*)getRowAtPoint:(id)args
+{
+	ENSURE_SINGLE_ARG(args,NSObject);
+	BOOL validPoint;
+	CGPoint point = [TiUtils pointValue:args valid:&validPoint];
+	if (!validPoint) {
+		[self throwException:TiExceptionInvalidType subreason:@"Parameter is not convertable to a TiPoint" location:CODELOCATION];
+	}
+	return [(TiUITableView*)[self view] rowAtPoint:point];
+}
+
 -(void)updateRow:(id)args
 {
     int index = 0;

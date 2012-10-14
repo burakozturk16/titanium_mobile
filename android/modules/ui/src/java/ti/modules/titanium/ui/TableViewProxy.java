@@ -383,6 +383,32 @@ public class TableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
+	public TableViewRowProxy getRowAtPoint(KrollDict point)
+	{
+		if (point == null) {
+			throw new IllegalArgumentException("getRowAtPoint: point must not be null");
+		}
+		if (!point.containsKey(TiC.PROPERTY_X)) {
+			throw new IllegalArgumentException("getRowAtPoint: required property \"x\" not found in point");
+		}
+
+		if (!point.containsKey(TiC.PROPERTY_Y)) {
+			throw new IllegalArgumentException("getRowAtPoint: required property \"y\" not found in point");
+		}
+
+		double x = point.getDouble(TiC.PROPERTY_X);
+		double y = point.getDouble(TiC.PROPERTY_Y);
+		int index = getTableView().getTableView().getIndexFromXY(x, y);
+		if (index != -1) {
+			Item item = getTableView().getTableView().getItemAtPosition(index);
+			if (item.proxy instanceof TableViewRowProxy) {
+				return (TableViewRowProxy)item.proxy;
+			}
+		}
+		return null;
+	}
+
+	@Kroll.method
 	public void insertRowBefore(int index, Object data, @Kroll.argument(optional = true) KrollDict options)
 	{
 		if (TiApplication.isUIThread()) {

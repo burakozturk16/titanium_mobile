@@ -87,6 +87,7 @@
 -(UITableView*)tableView;
 -(CGFloat)tableRowHeight:(CGFloat)height;
 -(void)setScrollsToTop_:(id)value;
+-(TiUITableViewRowProxy*)rowAtPoint:(CGPoint)point;
 
 #pragma Private
 -(void)selectRow:(id)args;
