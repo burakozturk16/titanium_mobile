@@ -151,8 +151,10 @@ public class TableViewProxy extends TiViewProxy
 			if (dataCopy.containsKeyAndNotNull(TiC.PROPERTY_X) && 
 				dataCopy.containsKeyAndNotNull(TiC.PROPERTY_Y))
 			{
-				double x = dataCopy.getDouble(TiC.PROPERTY_X);
-				double y = dataCopy.getDouble(TiC.PROPERTY_Y);
+				TiViewProxy source = (TiViewProxy)dataCopy.get(TiC.EVENT_PROPERTY_SOURCE);
+				KrollDict point = source.convertPointToView(dataCopy, this);
+				double x = point.getDouble(TiC.PROPERTY_X);
+				double y = point.getDouble(TiC.PROPERTY_Y);
 				int index = getTableView().getTableView().getIndexFromXY(x, y);
 				if (index != -1) {
 					Item item = getTableView().getTableView().getItemAtPosition(index);
