@@ -395,9 +395,8 @@ public class TableViewProxy extends TiViewProxy
 		if (!point.containsKey(TiC.PROPERTY_Y)) {
 			throw new IllegalArgumentException("getRowAtPoint: required property \"y\" not found in point");
 		}
-
-		double x = point.getDouble(TiC.PROPERTY_X);
-		double y = point.getDouble(TiC.PROPERTY_Y);
+		double x = TiConvert.toDouble(point, TiC.PROPERTY_X);
+		double y = TiConvert.toDouble(point, TiC.PROPERTY_Y);
 		int index = getTableView().getTableView().getIndexFromXY(x, y);
 		if (index != -1) {
 			Item item = getTableView().getTableView().getItemAtPosition(index);
