@@ -127,6 +127,11 @@
     
 }
 
+-(BOOL) belongsToContext:(id<TiEvaluator>) context
+{
+    id<TiEvaluator> myContext = ([self executionContext]==nil)?[self pageContext]:[self executionContext];
+    return (context == myContext);
+}
 
 -(void)add:(id)arg
 {
@@ -2802,6 +2807,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	ENSURE_UI_THREAD(setAccessibilityLabel, accessibilityLabel);
 	id accessibilityElement = [self view].accessibilityElement;
 	if (accessibilityElement != nil) {
+		[accessibilityElement setIsAccessibilityElement:YES];
 		[accessibilityElement setAccessibilityLabel:accessibilityLabel];
 	}
 	[self setValue:accessibilityLabel forUndefinedKey:@"accessibilityLabel"];
@@ -2812,6 +2818,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	ENSURE_UI_THREAD(setAccessibilityValue, accessibilityValue);
 	id accessibilityElement = [self view].accessibilityElement;
 	if (accessibilityElement != nil) {
+		[accessibilityElement setIsAccessibilityElement:YES];
 		[accessibilityElement setAccessibilityValue:accessibilityValue];
 	}
 	[self setValue:accessibilityValue forUndefinedKey:@"accessibilityValue"];
@@ -2822,6 +2829,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	ENSURE_UI_THREAD(setAccessibilityHint, accessibilityHint);
 	id accessibilityElement = [self view].accessibilityElement;
 	if (accessibilityElement != nil) {
+		[accessibilityElement setIsAccessibilityElement:YES];
 		[accessibilityElement setAccessibilityHint:accessibilityHint];
 	}
 	[self setValue:accessibilityHint forUndefinedKey:@"accessibilityHint"];
