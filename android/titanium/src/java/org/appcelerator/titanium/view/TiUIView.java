@@ -1188,7 +1188,7 @@ public abstract class TiUIView
 					return true;
 				}
 
-				boolean handled = gestureDetector.onTouchEvent(event);
+				boolean handled = detector.onTouchEvent(event);
 				if (handled) {
 					pointersDown = 0;
 					return true;
