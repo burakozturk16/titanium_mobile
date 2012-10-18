@@ -113,8 +113,7 @@ exports.config = function (logger, config, cli) {
 					},
 					'deploy-type': {
 						abbr: 'D',
-						default: 'development',
-						desc: __('the type of deployment; only used with target is %s', 'simulator'.cyan),
+						desc: __('the type of deployment; only used when target is %s or %s', 'simulator'.cyan, 'device'.cyan),
 						hint: __('type'),
 						values: ['test', 'development']
 					},
@@ -306,6 +305,24 @@ exports.validate = function (logger, config, cli) {
 		process.exit(1);
 	}
 	
+	if (cli.argv.xcode) {
+		// for xcode pre-compile builds only, read the manifest file and inject the cli args
+		var buildManifestFile = path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
+		if (!afs.exists(buildManifestFile)) {
+			logger.error(__('Build manifest does not exist: %s', buildManifestFile) + '\n');
+			logger.log(__('Clean your project, then rebuild it'));
+			process.exit(1);
+		}
+		
+		try {
+			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
+			cli.argv.target = buildManifest.target;
+			cli.argv['deploy-type'] = buildManifest.deployType;
+			cli.argv['output-dir'] = buildManifest.outputDir;
+			conf.options['output-dir'].required = false;
+		} catch (e) {}
+	}
+	
 	if (targets.indexOf(cli.argv.target) == -1) {
 		logger.error(__('Invalid target "%s"', cli.argv.target) + '\n');
 		appc.string.suggest(cli.argv.target, targets, logger.log, 3);
@@ -472,6 +489,8 @@ exports.validate = function (logger, config, cli) {
 };
 
 exports.run = function (logger, config, cli, finished) {
+	cli.argv.platform = 'ios';
+	
 	if (cli.argv.xcode) {
 		// basically, we bypass the pre, post, and finalize hooks for xcode builds
 		var buildObj = new build(logger, config, cli, finished);
@@ -527,7 +546,7 @@ function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
 	
-	this.titaniumIosSdkPath = afs.resolvePath(path.dirname(module.filename), '..', '..');
+	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
 	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
 	
 	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
@@ -543,9 +562,9 @@ function build(logger, config, cli, finished) {
 	this.keychain = cli.argv.keychain;
 	
 	if (cli.argv.xcode) {
-		this.deployType = process.env.CURRENT_ARCH === 'i386' ? 'development' : process.env.CONFIGURATION === 'Debug' ? 'test' : 'production';
+		this.deployType = process.env.CURRENT_ARCH === 'i386' ? 'development' : process.env.CONFIGURATION === 'Debug' ? (cli.argv['deploy-type'] || 'test') : 'production';
 	} else {
-		this.deployType = this.target == 'simulator' && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
+		this.deployType = /device|simulator/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
 	}
 	this.xcodeTarget = process.env.CONFIGURATION || (/device|simulator/.test(this.target) ? 'Debug' : 'Release');
 	this.iosSdkVersion = cli.argv['ios-version'];
@@ -566,7 +585,7 @@ function build(logger, config, cli, finished) {
 		}
 	}, this);
 	
-	this.logger.info(__('Build type: %s', this.deployType));
+	this.logger.info(__('Build type: %s', this.deployType.cyan));
 	this.logger.debug(__('Titanium iOS SDK directory: %s', this.titaniumIosSdkPath.cyan));
 	this.logger.info(__('Building for target: %s', this.target.cyan));
 	this.logger.info(__('Building using iOS SDK: %s', version.format(this.iosSdkVersion, 2).cyan));
@@ -1409,11 +1428,13 @@ build.prototype = {
 	writeBuildManifest: function (callback) {
 		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = {
 			target: this.target,
+			deployType: this.deployType,
 			iosSdkPath: this.titaniumIosSdkPath,
 			appGuid: this.tiapp.guid,
 			tiCoreHash: this.libTiCoreHash,
 			modulesHash: this.modulesHash,
-			gitHash: ti.manifest.githash
+			gitHash: ti.manifest.githash,
+			outputDir: this.cli.argv['output-dir']
 		}, null, '\t'), callback);
 	},
 	
@@ -1998,8 +2019,8 @@ build.prototype = {
 		], function () {
 			parallel(this, [
 				function (next) {
-					// if development, then we're symlinking files and there's no need to anything below
-					if (this.deployType == 'development') {
+					// if development and the simulator, then we're symlinking files and there's no need to anything below
+					if (this.deployType == 'development' && this.target == 'simulator') {
 						return next();
 					}
 					
@@ -2012,6 +2033,11 @@ build.prototype = {
 						this.tiModules.forEach(function (name) {
 							this.compileResources(path.join(this.titaniumIosSdkPath, 'modules', name, 'images'), path.join(this.xcodeAppDir, 'modules', name, 'images'));
 						}, this);
+					}
+					
+					// if development, then we stop here
+					if (this.deployType == 'development') {
+						return next();
 					}
 					
 					this.commonJsModules.forEach(function (m) {

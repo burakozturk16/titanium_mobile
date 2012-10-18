@@ -160,7 +160,7 @@ NSArray* listenerArray = nil;
 
 DEFINE_EXCEPTIONS
 
-@synthesize proxy,touchDelegate,backgroundImage;
+@synthesize proxy,touchDelegate,backgroundImage,oldSize;
 
 #pragma mark Internal Methods
 
@@ -772,12 +772,6 @@ DEFINE_EXCEPTIONS
 -(BOOL)animating
 {
 	return animating;
-}
-
--(void)setAccessibilityHidden_:(id)hidden
-{
-	// self and NOT self.accessibilityElement
-    self.accessibilityElementsHidden = [TiUtils boolValue:hidden def:NO];
 }
 
 #pragma mark Property Change Support
