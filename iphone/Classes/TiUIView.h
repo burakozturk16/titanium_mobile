@@ -69,6 +69,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	BOOL animating;
 
 	BOOL touchPassThrough;
+	BOOL clipChildren;
 	
 	UITapGestureRecognizer*			singleTapRecognizer;
 	UITapGestureRecognizer*			doubleTapRecognizer;
@@ -236,6 +237,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(UIView *)gradientWrapperView;
 -(void)checkBounds;
+
+-(BOOL)clipChildren;
+-(void)updateShadowPath;
 
 @property (nonatomic, readonly) id accessibilityElement;
 

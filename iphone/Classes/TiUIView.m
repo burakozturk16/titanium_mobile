@@ -217,7 +217,7 @@ DEFINE_EXCEPTIONS
 	if (self != nil)
 	{
 		touchPassThrough = false;
-        self.clipsToBounds = YES;
+        self.clipsToBounds = clipChildren = YES;
 	}
 	return self;
 }
@@ -637,6 +637,7 @@ DEFINE_EXCEPTIONS
 	}
 	else if (gradientLayer == nil)
 	{
+        
 		gradientLayer = [[TiGradientLayer alloc] init];
 		[(TiGradientLayer *)gradientLayer setGradient:arg];
 		[gradientLayer setNeedsDisplayOnBoundsChange:YES];
@@ -655,12 +656,13 @@ DEFINE_EXCEPTIONS
 
 -(void)setClipChildren_:(id)arg
 {
-    self.clipsToBounds = [TiUtils boolValue:arg];
+    clipChildren = [TiUtils boolValue:arg];
+    self.clipsToBounds = [self clipChildren];
 }
 
 -(BOOL)clipChildren
 {
-    return self.clipsToBounds;
+    return (clipChildren && ([self shadowLayer].shadowOpacity == 0));
 }
 
 
@@ -703,6 +705,8 @@ DEFINE_EXCEPTIONS
 		color = [TiUtils colorValue:color];
         CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
         
+        [[self shadowLayer] setShadowOpacity:alpha];
+		[[self shadowLayer] setShadowColor:[color _color].CGColor];
         if (alpha == 0.0f)
         {
             [self shadowLayer].masksToBounds = YES;
@@ -713,16 +717,15 @@ DEFINE_EXCEPTIONS
             [self shadowLayer].shouldRasterize =YES;
             [self updateShadowPath];
         }
-		[[self shadowLayer] setShadowOpacity:alpha];
-		[[self shadowLayer] setShadowColor:[color _color].CGColor];
+		
 	}
 }
 
 -(void)didAddSubview:(UIView*)view
 {
 	// So, it turns out that adding a subview places it beneath the gradient layer.
-	// Every time we add a new subview, we have to make sure the gradient stays where it belongs...
-	if (gradientLayer != nil) {
+	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
+    if (gradientLayer != nil) {
 		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
 	}
     if ([self backgroundImageLayer] != nil) {

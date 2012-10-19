@@ -152,6 +152,9 @@
 			[children addObject:arg];
 		}
         
+        //Turn on clipping because I have children
+        [[self view] updateShadowPath];
+        
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
 		[self contentsWillChange];
