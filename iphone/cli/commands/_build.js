@@ -106,9 +106,9 @@ exports.config = function (logger, config, cli) {
 				},
 				options: {
 					'debug-host': {
-						abbr: 'H',
-						desc: __('debug connection info; airkey and hosts required for %s and %s, ignored for %s', 'device'.cyan, 'dist-adhoc'.cyan, 'dist-appstore'.cyan),
-						hint: 'host:port[:airkey:hosts]',
+						//abbr: 'H',
+						//desc: __('debug connection info; airkey and hosts required for %s and %s, ignored for %s', 'device'.cyan, 'dist-adhoc'.cyan, 'dist-appstore'.cyan),
+						//hint: 'host:port[:airkey:hosts]',
 						hidden: true
 					},
 					'deploy-type': {
@@ -639,7 +639,7 @@ function build(logger, config, cli, finished) {
 		this.logger.info(__('Setting non-production device build version to %s', this.tiapp.version));
 	}
 	
-	Array.isArray(this.tiapp.modules) && (this.tiapp.modules = []);
+	Array.isArray(this.tiapp.modules) || (this.tiapp.modules = []);
 	
 	if (cli.argv.xcode) {
 		this.logger.info(__('Performing Xcode pre-compile phase'));

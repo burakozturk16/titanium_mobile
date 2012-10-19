@@ -14,6 +14,7 @@
 #import "TiUITabGroupProxy.h"
 #import "TiUtils.h"
 #import "ImageLoader.h"
+#import "TiApp.h"
 
 
 //NOTE: this proxy is a little different than normal Proxy/View pattern
@@ -95,29 +96,31 @@
 
 -(void) cleanNavStack:(BOOL)removeTab
 {
-    [controller setDelegate:nil];
-    if ([[controller viewControllers] count] > 1) {
-        NSMutableArray* doomedVcs = [[NSMutableArray arrayWithArray:[controller viewControllers]] retain];
-        [doomedVcs removeObject:rootController];
-        [controller setViewControllers:[NSArray arrayWithObject:rootController]];
-        if (current != nil) {
+    TiThreadPerformOnMainThread(^{
+        [controller setDelegate:nil];
+        if ([[controller viewControllers] count] > 1) {
+            NSMutableArray* doomedVcs = [[NSMutableArray arrayWithArray:[controller viewControllers]] retain];
+            [doomedVcs removeObject:rootController];
+            [controller setViewControllers:[NSArray arrayWithObject:rootController]];
+            if (current != nil) {
+                RELEASE_TO_NIL(current);
+                current = [rootController retain];
+            }
+            for (TiUITabController* doomedVc in doomedVcs) {
+                [self closeWindow:(TiWindowProxy *)[doomedVc proxy] animated:NO];
+            }
+            RELEASE_TO_NIL(doomedVcs);
+        }
+        if (removeTab) {
+            [self closeWindow:[rootController window] animated:NO];
+            RELEASE_TO_NIL(rootController);
+            RELEASE_TO_NIL(controller);
             RELEASE_TO_NIL(current);
-            current = [rootController retain];
         }
-        for (TiUITabController* doomedVc in doomedVcs) {
-            [self closeWindow:(TiWindowProxy *)[doomedVc proxy] animated:NO];
+        else {
+            [controller setDelegate:self];
         }
-        RELEASE_TO_NIL(doomedVcs);
-    }
-    if (removeTab) {
-        [self closeWindow:[rootController window] animated:NO];
-        RELEASE_TO_NIL(rootController);
-        RELEASE_TO_NIL(controller);
-        RELEASE_TO_NIL(current);
-    }
-    else {
-       [controller setDelegate:self];
-    }
+    },YES);
 }
 
 -(void)removeFromTabGroup
@@ -277,7 +280,7 @@
 	[window setParentOrientationController:self];
 	// TODO: Slap patch.  Views, when opening/added, should check parent visibility (and parent/parent visibility, if possible)
 	[window parentWillShow];
-
+	[[[TiApp app] controller] dismissKeyboard];
 	TiThreadPerformOnMainThread(^{
 		[self openOnUIThread:args];
 	}, YES);
