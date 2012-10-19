@@ -21,6 +21,7 @@
     BOOL scrollingEnabled;
     BOOL pagingControlOnTop;
     BOOL overlayEnabled;
+    
     // Have to correct for an apple goof; rotation stops scrolling, AND doesn't move to the next page.
     BOOL rotatedWhileScrolling;
 
@@ -30,6 +31,7 @@
     int cacheSize;
     
 }
+@property(nonatomic,readwrite,assign)CGFloat switchPageAnimationDuration;
 
 -(void)manageRotation;
 -(UIScrollView*)scrollview;
@@ -37,5 +39,6 @@
 -(void)setScrollingEnabled_:(id)enabled;
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd;
 @end
+
 
 #endif

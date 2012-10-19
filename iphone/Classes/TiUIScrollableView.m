@@ -16,7 +16,7 @@
 @end
 
 @implementation TiUIScrollableView
-
+@synthesize switchPageAnimationDuration;
 #pragma mark Internal 
 
 -(void)dealloc
@@ -30,6 +30,7 @@
 -(id)init
 {
 	if (self = [super init]) {
+        switchPageAnimationDuration = 250;
         cacheSize = 3;
         pageControlHeight=20;
         pageControlBackgroundColor = [[UIColor blackColor] retain];
@@ -502,7 +503,21 @@
 	int pageNum = [self pageNumFromArg:data];
 	if (anim != nil)
 		animated = [anim boolValue];
-	[[self scrollview] setContentOffset:CGPointMake([self bounds].size.width * pageNum, 0) animated:animated];
+    
+    CGPoint offset = CGPointMake([self bounds].size.width * pageNum, 0);
+    if (animated)
+    {
+        [UIView animateWithDuration:switchPageAnimationDuration/1000
+                              delay:0.00
+                            options:UIViewAnimationCurveLinear
+                         animations:^{[[self scrollview] setContentOffset: offset ];}
+                         completion:^(BOOL finished){
+                             [self scrollViewDidEndDecelerating:[self scrollview]];
+                            } ];
+    }
+    else{
+        [[self scrollview] setContentOffset: offset];
+    }
     [pageControl setCurrentPage:pageNum];
 	currentPage = pageNum;
 	

@@ -230,6 +230,16 @@
 	[self makeViewPerformSelector:@selector(movePrevious:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
+-(void)setScrollAnimationDuration:(id)value
+{
+    [(TiUIScrollableView*)[self view] setSwitchPageAnimationDuration:[TiUtils intValue:value]];
+}
+
+-(NSNumber*)scrollAnimationDuration
+{
+	return NUMINT([(TiUIScrollableView*)[self view]switchPageAnimationDuration]);
+}
+
 @end
 
 #endif
