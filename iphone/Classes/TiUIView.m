@@ -444,6 +444,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setOpacity_:(id)opacity
 {
+ 	ENSURE_UI_THREAD_1_ARG(opacity);
 	self.alpha = [TiUtils floatValue:opacity];
 }
 
@@ -595,6 +596,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setVisible_:(id)visible
 {
+  	ENSURE_UI_THREAD_1_ARG(visible);
     BOOL oldVal = self.hidden;
     self.hidden = ![TiUtils boolValue:visible];
     //Redraw ourselves if changing from invisible to visible, to handle any changes made
