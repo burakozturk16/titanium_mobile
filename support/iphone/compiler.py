@@ -20,7 +20,7 @@ try:
 except:
 	import simplejson as json
 
-ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store',,'_svn','CVS'];
+ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store','_svn','CVS'];
 ignoreDirs = ['iphone', 'android','mobileweb','.svn' '.git'];
 
 HEADER = """/**
