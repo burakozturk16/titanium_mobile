@@ -2854,4 +2854,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	[self replaceValue:accessibilityHidden forKey:@"accessibilityHidden" notification:NO];
 }
 
+-(void)hideKeyboard:(id)arg
+{
+	ENSURE_UI_THREAD_1_ARG(arg);
+	if (view != nil)
+		[self.view endEditing:YES];
+}
+
 @end
