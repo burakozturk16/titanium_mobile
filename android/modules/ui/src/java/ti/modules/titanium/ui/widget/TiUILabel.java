@@ -33,6 +33,7 @@ public class TiUILabel extends TiUIView
 	private int shadowColor;
 	private int shadowDx;
 	private int shadowDy;
+	private float shadowRadius;
 	private Rect textPadding;
 
 
@@ -57,6 +58,7 @@ public class TiUILabel extends TiUIView
 			}
 		};
 		shadowColor = 0;
+		shadowRadius = 1;
 		shadowDx = 0;
 		shadowDy = 0;
 		textPadding = new Rect();
@@ -129,13 +131,17 @@ public class TiUILabel extends TiUIView
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
-			tv.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		}
+		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(d, TiC.PROPERTY_SHADOW_RADIUS);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			KrollDict value = d.getKrollDict(TiC.PROPERTY_SHADOW_OFFSET);
 			shadowDx = value.getInt(TiC.PROPERTY_X);
 			shadowDy = value.getInt(TiC.PROPERTY_Y);
-			tv.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		}
 		// This needs to be the last operation.
 		TiUIHelper.linkifyIfEnabled(tv, d.get(TiC.PROPERTY_AUTO_LINK));
@@ -195,11 +201,14 @@ public class TiUILabel extends TiUIView
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor((String) newValue);
-			tv.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(newValue);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			shadowDx = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_X));
 			shadowDy = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_Y));
-			tv.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 			tv.requestLayout();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
