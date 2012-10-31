@@ -403,8 +403,6 @@ typedef enum {
 
 +(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment;
 
-+(NSString*)exceptionMessage:(id)arg;
-
 /**
  Whether or not the current device orientation is portrait.
  @return _YES_ is the current device orientation is portrait, _NO_ otherwise.
