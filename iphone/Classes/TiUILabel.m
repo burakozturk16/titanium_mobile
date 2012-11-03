@@ -232,16 +232,21 @@
 
 }
 
--(void) updateBackgroundImageFrameWithPadding
+-(void)setBackgroundImageLayerBounds:(CGRect)bounds
 {
     if ([self backgroundImageLayer] != nil)
     {
-        CGRect backgroundFrame = CGRectMake(self.bounds.origin.x - padding.origin.x,
-               self.bounds.origin.y - padding.origin.y,
-               self.bounds.size.width + padding.origin.x + padding.size.width,
-                                        self.bounds.size.height + padding.origin.y + padding.size.height);
+        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
+                                            bounds.origin.y - padding.origin.y,
+                                            bounds.size.width + padding.origin.x + padding.size.width,
+                                            bounds.size.height + padding.origin.y + padding.size.height);
         [self backgroundImageLayer].frame = backgroundFrame;
     }
+}
+
+-(void) updateBackgroundImageFrameWithPadding
+{
+    [self setBackgroundImageLayerBounds:self.bounds];
 }
 
 -(void)setBackgroundImage_:(id)url

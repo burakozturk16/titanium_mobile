@@ -336,6 +336,11 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+-(void)setBackgroundImageLayerBounds:(CGRect)bounds
+{
+    [[self backgroundImageLayer] setFrame:bounds];
+}
+
 -(void)checkBounds
 {
 	CGRect newBounds = [self bounds];
@@ -349,7 +354,7 @@ DEFINE_EXCEPTIONS
                          forKey:kCATransactionDisableActions];
         }
 		[gradientLayer setFrame:newBounds];
-		[[self backgroundImageLayer] setFrame:newBounds];
+		[self setBackgroundImageLayerBounds:newBounds];
         if (!animating)
         {
             [CATransaction commit];
@@ -358,6 +363,8 @@ DEFINE_EXCEPTIONS
 		[self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
 	}
 }
+
+
 
 -(void)setBounds:(CGRect)bounds
 {
