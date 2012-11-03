@@ -18,7 +18,6 @@
 -(id)init
 {
     if (self = [super init]) {
-        bgdLayer = nil;
         padding = CGRectZero;
         textPadding = CGRectZero;
         initialLabelFrame = CGRectZero;
@@ -30,7 +29,6 @@
 -(void)dealloc
 {
     RELEASE_TO_NIL(label);
-    RELEASE_TO_NIL(bgdLayer);
     [super dealloc];
 }
 
@@ -116,7 +114,7 @@
         [label setFrame:initFrame];
     }
 
-    if (bgdLayer != nil && !CGRectIsEmpty(initialLabelFrame))
+    if ([self backgroundImageLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
     {
         [self updateBackgroundImageFrameWithPadding];
     }
@@ -234,23 +232,16 @@
 
 }
 
--(CALayer *)backgroundImageLayer
-{
-    if (bgdLayer == nil)
-    {
-        bgdLayer = [[CALayer alloc]init];
-        bgdLayer.frame = self.layer.bounds;
-        [self.layer insertSublayer:bgdLayer atIndex:0];
-    }
-	return bgdLayer;
-}
 -(void) updateBackgroundImageFrameWithPadding
 {
-    CGRect backgroundFrame = CGRectMake(self.bounds.origin.x - padding.origin.x,
+    if ([self backgroundImageLayer] != nil)
+    {
+        CGRect backgroundFrame = CGRectMake(self.bounds.origin.x - padding.origin.x,
                self.bounds.origin.y - padding.origin.y,
                self.bounds.size.width + padding.origin.x + padding.size.width,
                                         self.bounds.size.height + padding.origin.y + padding.size.height);
-    [self backgroundImageLayer].frame = backgroundFrame;
+        [self backgroundImageLayer].frame = backgroundFrame;
+    }
 }
 
 -(void)setBackgroundImage_:(id)url
@@ -258,6 +249,7 @@
     [super setBackgroundImage_:url];
     //if using padding we must not mask to bounds.
     [self backgroundImageLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
+    [self updateBackgroundImageFrameWithPadding];
 }
 
 -(void)setBackgroundPaddingLeft_:(id)left
