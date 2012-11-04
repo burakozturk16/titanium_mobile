@@ -316,7 +316,7 @@ DEFINE_EXCEPTIONS
     if (backgroundRepeat) {
         [self renderRepeatedBackground:backgroundImage];
     }
-    [self updateShadowPath];
+    [self updateViewShadowPath];
 }
 
 
@@ -581,7 +581,7 @@ DEFINE_EXCEPTIONS
     if (gradientLayer) {
         gradientLayer.cornerRadius = self.layer.cornerRadius;
     }
-    [self updateShadowPath];
+    [self updateViewShadowPath];
 }
 
 -(void)setAnchorPoint_:(id)point
@@ -681,18 +681,18 @@ DEFINE_EXCEPTIONS
 }
 
 
--(void)setShadowOffset_:(id)arg
+-(void)setViewShadowOffset_:(id)arg
 {
 	CGPoint p = [TiUtils pointValue:arg];
     [[self shadowLayer] setShadowOffset:CGSizeMake(p.x, p.y)];
 }
 
--(void)setShadowRadius_:(id)arg
+-(void)setViewShadowRadius_:(id)arg
 {
     [[self shadowLayer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
--(void)updateShadowPath
+-(void)updateViewShadowPath
 {
     if ([self shadowLayer].shadowOpacity > 0.0f)
     {
@@ -701,7 +701,7 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)setShadowColor_:(id)color
+-(void)setViewShadowColor_:(id)color
 {
 	if (color==nil)
 	{
@@ -724,7 +724,7 @@ DEFINE_EXCEPTIONS
         {
             [self shadowLayer].masksToBounds = NO;
             [self shadowLayer].shouldRasterize =YES;
-            [self updateShadowPath];
+            [self updateViewShadowPath];
         }
 		
 	}
