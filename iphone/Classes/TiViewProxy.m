@@ -153,7 +153,7 @@
 		}
         
         //Turn on clipping because I have children
-        [[self view] updateShadowPath];
+        [[self view] updateViewShadowPath];
         
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];

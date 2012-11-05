@@ -249,7 +249,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)checkBounds;
 
 -(BOOL)clipChildren;
--(void)updateShadowPath;
+-(void)updateViewShadowPath;
 
 @property (nonatomic, readonly) id accessibilityElement;
 
