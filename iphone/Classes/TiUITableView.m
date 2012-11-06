@@ -97,6 +97,8 @@
 	if (proxy.callbackCell == self) {
 		[proxy prepareTableRowForReuse];
 	}
+    //first let s say we gonna disappear!
+    [proxy fireEvent:@"reuse" withObject:[proxy createEventObject:nil] propagate:YES];
 	[self setProxy:nil];
 	[super prepareForReuse];
 	
@@ -2108,6 +2110,7 @@ return result;	\
 	if(CGColorGetAlpha([cellColor CGColor])<1.0) {
 		[[cell textLabel] setBackgroundColor:[UIColor clearColor]];
 	}
+	[self triggerActionForIndexPath:index fromPath:nil tableView:ourTableView wasAccessory:NO search:NO name:@"rowappear"];
 }
 
 - (NSString *)tableView:(UITableView *)ourTableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
