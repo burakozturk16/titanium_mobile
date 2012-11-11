@@ -21,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
+import android.widget.Switch;
 
 public class TiUISwitch extends TiUIView
 	implements OnCheckedChangeListener
@@ -143,6 +144,20 @@ public class TiUISwitch extends TiUIView
 			case AndroidModule.SWITCH_STYLE_TOGGLEBUTTON:
 				if (!(currentButton instanceof ToggleButton)) {
 					button = new ToggleButton(proxy.getActivity())
+					{
+						@Override
+						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+						{
+							super.onLayout(changed, left, top, right, bottom);
+							TiUIHelper.firePostLayoutEvent(proxy);
+						}
+					};
+				}
+				break;
+
+			case AndroidModule.SWITCH_STYLE_SWITCH:
+				if (!(currentButton instanceof Switch)) {
+					button = new Switch(proxy.getActivity())
 					{
 						@Override
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
