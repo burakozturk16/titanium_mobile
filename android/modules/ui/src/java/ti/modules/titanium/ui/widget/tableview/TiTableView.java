@@ -250,7 +250,7 @@ public class TiTableView extends FrameLayout
             }
             else
             {
-                Log.w(LCAT, "getView for the same data, no need to set data again");
+                Log.w(TAG, "getView for the same data, no need to set data again", Log.DEBUG_MODE);
             }
 
 			return v;
