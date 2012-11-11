@@ -118,6 +118,7 @@ public class Ti2DMatrix extends KrollProxy
 	public Ti2DMatrix translate(double x, double y)
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_TRANSLATE);
+		newMatrix.handleAnchorPoint(this.getProperties());
 		newMatrix.op.translateX = (float) x;
 		newMatrix.op.translateY = (float) y;
 		return newMatrix;
@@ -127,6 +128,7 @@ public class Ti2DMatrix extends KrollProxy
 	public Ti2DMatrix scale(Object args[])
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_SCALE);
+		newMatrix.handleAnchorPoint(this.getProperties());
 		newMatrix.op.scaleFromX = newMatrix.op.scaleFromY = VALUE_UNSPECIFIED;
 		newMatrix.op.scaleToX = newMatrix.op.scaleToY = 1.0f;
 		// varargs for API backwards compatibility
@@ -156,6 +158,7 @@ public class Ti2DMatrix extends KrollProxy
 	public Ti2DMatrix rotate(Object[] args)
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_ROTATE);
+		newMatrix.handleAnchorPoint(this.getProperties());
 
 		if (args.length == 1) {
 			newMatrix.op.rotationFromValueSpecified = false;
@@ -180,6 +183,7 @@ public class Ti2DMatrix extends KrollProxy
 	public Ti2DMatrix multiply(Ti2DMatrix other)
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(other, Operation.TYPE_MULTIPLY);
+		newMatrix.handleAnchorPoint(this.getProperties());
 		newMatrix.op.multiplyWith = this;
 		return newMatrix;
 	}
