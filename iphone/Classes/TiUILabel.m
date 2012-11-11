@@ -44,7 +44,7 @@
 	NSString *value = [label text];
 	UIFont *font = [label font];
 	CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
-	CGSize shadowOffset = [label shadowOffset];
+	CGSize shadowOffset = [label.layer shadowOffset];
 	requiresLayout = YES;
 	if ((suggestedWidth > 0) && [value hasSuffix:@" "]) {
 		// (CGSize)sizeWithFont:(UIFont *)font constrainedToSize:(CGSize)size lineBreakMode:(UILineBreakMode)lineBreakMode method truncates
@@ -57,6 +57,12 @@
 		// if we have a shadow and auto, we need to adjust to prevent
 		// font from clipping
 		size.width += shadowOffset.width + 10;
+	}
+    if (shadowOffset.height > 0)
+	{
+		// if we have a shadow and auto, we need to adjust to prevent
+		// font from clipping
+		size.height += shadowOffset.height + 10;
 	}
 	size.width += textPadding.origin.x + textPadding.size.width;
 	size.height += textPadding.origin.y + textPadding.size.height;
@@ -146,6 +152,8 @@
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;
         label.lineBreakMode = UILineBreakModeWordWrap; //default wordWrap to True
+        label.layer.shadowRadius = 0; //for backward compatibility
+        label.layer.shadowOffset = CGSizeZero;
         [self addSubview:label];
 //        self.clipsToBounds = YES;
 	}
@@ -291,20 +299,26 @@
 {
 	if (color==nil)
 	{
-		[[self label] setShadowColor:nil];
+		[[[self label] layer]setShadowColor:nil];
 	}
 	else
 	{
 		color = [TiUtils colorValue:color];
-		[[self label] setShadowColor:[color _color]];
+        CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
+		[[[self label] layer] setShadowColor:[color _color].CGColor];
+		[[[self label] layer] setShadowOpacity:alpha];
 	}
 }
 
+-(void)setShadowRadius_:(id)arg
+{
+    [[[self label] layer] setShadowRadius:[TiUtils floatValue:arg]];
+}
 -(void)setShadowOffset_:(id)value
 {
 	CGPoint p = [TiUtils pointValue:value];
 	CGSize size = {p.x,p.y};
-	[[self label] setShadowOffset:size];
+	[[[self label] layer] setShadowOffset:size];
 }
 
 -(void)setTextPaddingLeft_:(id)left
