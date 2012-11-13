@@ -346,30 +346,30 @@ exports.run = function (logger, config, cli, finished) {
 };
 
 function sendAnalytics(cli) {
-	var eventName = 'android.' + cli.argv.target;
+	// var eventName = 'android.' + cli.argv.target;
 
-	if (cli.argv.target == 'dist-playstore') {
-		eventName = "android.distribute.playstore";
-	} else if(cli.argv['debug-host']) {
-		eventName += '.debug';
-	} else {
-		eventName += '.run';
-	}
+	// if (cli.argv.target == 'dist-playstore') {
+	// 	eventName = "android.distribute.playstore";
+	// } else if(cli.argv['debug-host']) {
+	// 	eventName += '.debug';
+	// } else {
+	// 	eventName += '.run';
+	// }
 
-	cli.addAnalyticsEvent(eventName, {
-		dir: cli.argv['project-dir'],
-		name: cli.tiapp.name,
-		publisher: cli.tiapp.publisher,
-		url: cli.tiapp.url,
-		image: cli.tiapp.image,
-		appid: cli.tiapp.id,
-		description: cli.tiapp.description,
-		type: cli.argv.type,
-		guid: cli.tiapp.guid,
-		version: cli.tiapp.version,
-		copyright: cli.tiapp.copyright,
-		date: (new Date()).toDateString()
-	});
+	// cli.addAnalyticsEvent(eventName, {
+	// 	dir: cli.argv['project-dir'],
+	// 	name: cli.tiapp.name,
+	// 	publisher: cli.tiapp.publisher,
+	// 	url: cli.tiapp.url,
+	// 	image: cli.tiapp.image,
+	// 	appid: cli.tiapp.id,
+	// 	description: cli.tiapp.description,
+	// 	type: cli.argv.type,
+	// 	guid: cli.tiapp.guid,
+	// 	version: cli.tiapp.version,
+	// 	copyright: cli.tiapp.copyright,
+	// 	date: (new Date()).toDateString()
+	// });
 }
 
 function build(logger, config, cli, finished) {
