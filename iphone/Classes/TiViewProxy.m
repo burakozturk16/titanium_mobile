@@ -1886,15 +1886,17 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 -(BOOL) widthIsAutoFill
 {
     BOOL isAutoFill = NO;
+    BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]);
+    
     if (TiDimensionIsAutoFill(layoutProperties.width))
     {
         isAutoFill = YES;
     }
-    else if (TiDimensionIsAuto(layoutProperties.width) && TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]) )
+    else if (TiDimensionIsAuto(layoutProperties.width))
     {
-        isAutoFill = YES;
+        isAutoFill = followsFillBehavior;
     }
-    else if (TiDimensionIsUndefined(layoutProperties.width) && TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]))
+    else if (TiDimensionIsUndefined(layoutProperties.width))
     {
         BOOL centerDefined = NO;
         int pinCount = 0;
@@ -1909,7 +1911,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             pinCount ++;
         }
         if ( (pinCount < 2) || (!centerDefined) ){
-            isAutoFill = YES;
+            isAutoFill = followsFillBehavior;
         }
     }
     return isAutoFill;
@@ -1918,15 +1920,17 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 -(BOOL) heightIsAutoFill
 {
     BOOL isAutoFill = NO;
+    BOOL followsFillBehavior = TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]);
+    
     if (TiDimensionIsAutoFill(layoutProperties.height))
     {
         isAutoFill = YES;
     }
-    else if (TiDimensionIsAuto(layoutProperties.height) && TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]) )
+    else if (TiDimensionIsAuto(layoutProperties.height))
     {
-        isAutoFill = YES;
+        isAutoFill = followsFillBehavior;
     }
-    else if (TiDimensionIsUndefined(layoutProperties.height) && TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]))
+    else if (TiDimensionIsUndefined(layoutProperties.height))
     {
         BOOL centerDefined = NO;
         int pinCount = 0;
@@ -1941,7 +1945,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             pinCount ++;
         }
         if ( (pinCount < 2) || (!centerDefined) ) {
-            isAutoFill = YES;
+            isAutoFill = followsFillBehavior;
         }
     }
     return isAutoFill;
