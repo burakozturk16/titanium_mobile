@@ -110,12 +110,17 @@ exports.init = function (logger, config, cli) {
 						}
 						
 						var ipa = path.join(path.dirname(build.xcodeAppDir), build.tiapp.name + '.ipa'),
-							dest = ipa;
+							dest = ipa,
+							dsym = path.join(path.dirname(build.xcodeAppDir), build.tiapp.name + '.app.dSYM');
 						
 						if (cli.argv['output-dir']) {
 							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.ipa');
 							afs.exists(dest) && fs.unlink(dest);
 							afs.copyFileSync(ipa, cli.argv['output-dir'], { logger: logger.debug });
+
+							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.app.dSYM');
+							afs.exists(dest) && fs.unlink(dest);
+							afs.copyFileSync(dsym, cli.argv['output-dir'], { logger: logger.debug });
 						}
 						
 						logger.info(__('Packaging complete'));
