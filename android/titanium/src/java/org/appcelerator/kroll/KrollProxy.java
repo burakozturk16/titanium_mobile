@@ -625,6 +625,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireEvent(String event, Object data)
 	{
+		if (!hierarchyHasListener(events)) return;
 		Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT, data);
 		message.getData().putString(PROPERTY_NAME, event);
 		message.sendToTarget();
@@ -660,6 +661,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireSyncEvent(String event, Object data)
 	{
+		if (!hierarchyHasListener(events)) return;
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
 			return doFireEvent(event, data);
 
