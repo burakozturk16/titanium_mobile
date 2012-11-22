@@ -14,6 +14,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiProperties;
 
+import org.appcelerator.titanium.util.TiConvert;
+
 import ti.modules.titanium.app.AppModule;
 
 import android.content.SharedPreferences;
@@ -45,27 +47,39 @@ public class PropertiesModule extends KrollModule {
 	}
 
 	@Kroll.method
-	public boolean getBool(String key)
+	public boolean getBool(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getBool(key, false);
+		Boolean defaultValue = false;
+		if (obj != null) {
+			defaultValue = TiConvert.toBoolean(obj);
+		}
+		return appProperties.getBool(key, defaultValue);
 	}
 
 	@Kroll.method
-	public double getDouble(String key)
+	public double getDouble(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getDouble(key, 0D);
+		double defaultValue = 0D;
+		if (obj != null) {
+			defaultValue = TiConvert.toDouble(obj);
+		}
+		return appProperties.getDouble(key, defaultValue);
 	}
 
 	@Kroll.method
-	public int getInt(String key)
+	public int getInt(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getInt(key, 0);
+		int defaultValue = 0;
+		if (obj != null) {
+			defaultValue = TiConvert.toInt(obj);
+		}
+		return appProperties.getInt(key, defaultValue);
 	}
 
 	@Kroll.method
-	public String getString(String key)
+	public String getString(String key, @Kroll.argument(optional=true) String defaultValue)
 	{
-		return appProperties.getString(key, null);
+		return appProperties.getString(key, defaultValue);
 	}
 
 	@Kroll.method
