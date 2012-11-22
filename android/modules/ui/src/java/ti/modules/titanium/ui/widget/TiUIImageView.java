@@ -581,7 +581,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			animator = new Animator(loader);
 			if (!animating.get() && !loaderThread.isAlive()) {
 				isStopping.set(false);
-				loaderThread.start();
+				if (loaderThread.getState() == Thread.State.NEW)
+					loaderThread.start();
 			}
 
 			currentDuration = (int) getDuration();
