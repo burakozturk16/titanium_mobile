@@ -7,6 +7,7 @@
 package ti.modules.titanium.network;
 
 import ti.modules.titanium.network.TiHTTPClient;
+import org.appcelerator.kroll.KrollProxy;
 
 public class TiPersistentHTTPClient extends TiHTTPClient
 {
@@ -15,6 +16,6 @@ public class TiPersistentHTTPClient extends TiHTTPClient
 		super(proxy);
 
 		//to make sure if someone used System.setProperty("http.keepAlive", "false");
-		this.setRequestHeader("Connection","Keep-Alive");
+		// this.setRequestHeader("Connection","Keep-Alive");
 	}
 }
