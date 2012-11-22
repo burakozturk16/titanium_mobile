@@ -663,11 +663,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireSyncEvent(String event, Object data)
 	{
-		Boolean hasListeners = hierarchyHasListener(event);
-		if (!hasListeners)
-			return hasListeners;
-		
-		if (!hierarchyHasListener(events)) return;
+		if (!hierarchyHasListener(event)) return false;
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
 			return doFireEvent(event, data);
 
