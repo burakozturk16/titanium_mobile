@@ -847,6 +847,7 @@ public abstract class TiUIView
 	private void setVisibility(int visibility)
 	{
 		this.visibility = visibility;
+		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
 		if (borderView != null) {
 			borderView.setVisibility(this.visibility);
 		}
