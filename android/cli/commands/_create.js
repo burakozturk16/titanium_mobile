@@ -27,7 +27,7 @@ exports.run = function (logger, config, cli, projectConfig) {
 		if (cli.argv.type == 'app') {
 			afs.copyDirSyncRecursive(templatePath, projectDir, {
 				ignoreDirs: ['.git','.svn', 'CVS'],
-				ignoreFiles: ['.gitignore', '.cvsignore'],
+				ignoreFiles: ['.gitignore', '.cvsignore', '.git', '.gitmodules'],
 				logger: logger.debug,
 				preserve: true
 			});
@@ -50,7 +50,7 @@ exports.run = function (logger, config, cli, projectConfig) {
 					return result;
 				},
 				ignoreDirs: ['.git','.svn', 'CVS'],
-				ignoreFiles: ['.gitignore', '.cvsignore'],
+				ignoreFiles: ['.gitignore', '.cvsignore', '.git', '.gitmodules'],
 				logger: logger.debug,
 				preserve: true
 			});
