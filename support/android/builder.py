@@ -37,7 +37,7 @@ import localecompiler
 import fastdev
 import requireIndex
 
-ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store'];
+ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store', '.gitmodules', '.git'];
 ignoreDirs = ['.git','.svn','_svn', 'CVS'];
 android_avd_hw = {'hw.camera': 'yes', 'hw.gps':'yes'}
 res_skips = ['style']
