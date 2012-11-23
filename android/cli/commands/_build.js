@@ -373,6 +373,32 @@ function sendAnalytics(cli) {
 }
 
 function build(logger, config, cli, finished) {
+
+	this.logger = logger;
+	this.cli = cli;
+	
+	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
+	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
+	
+	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
+	
+	this.projectDir = cli.argv['project-dir'];
+	this.buildDir = path.join(this.projectDir, 'build', this.platformName);
+	this.assetsDir = path.join(this.buildDir, 'assets');
+	this.buildBinDir = path.join(this.buildDir, 'bin');
+
+	logger.info(__('__dirname ' + this.__dirname));
+	logger.info(__('titaniumIosSdkPath ' + this.titaniumIosSdkPath));
+	logger.info(__('titaniumSdkVersion ' + this.titaniumSdkVersion));
+	logger.info(__('platformName ' + this.platformName));
+	logger.info(__('projectDir ' + this.projectDir));
+	logger.info(__('buildDir ' + this.buildDir));
+	logger.info(__('assetsDir ' + this.assetsDir));
+	logger.info(__('buildBinDir ' + this.buildBinDir));
+
+	this.tiapp = cli.tiapp;
+	this.target = cli.argv.target;
+
 	cli.fireHook('build.pre.compile', this, function (e) {
 		var emulatorCmd = [],
 			cmd = [],
@@ -405,34 +431,44 @@ function build(logger, config, cli, finished) {
 		
 		cmdSpawn.on('exit', function(code) {
 			var err;
+
+
 			if (code) {
 				err = 'An error occurred while running the command: ' + ('python ' + cmd.join(' ')).cyan + '\n';
-			} else if (cli.argv['target'] == 'emulator') {
-				// Call the logcat command in the old builder.py after the emulator, so we get logcat output
-				spawn('python', [
-					path.join(path.resolve(cli.env.sdks[cli.tiapp['sdk-version']].path), cli.argv.platform, 'builder.py'),
-					'logcat',
-					cli.argv['android-sdk'],
-					'-e'
-				], options);
-			} else if (cli.argv['target'] == 'device') {
-				// Since installing on device does not run
-				// the application we must send the "intent" ourselves.
-				// We will launch the MAIN activity for the application.
-				logger.info(__('Launching appliation on device.'));
-				spawn('adb', [
-					'shell', 'am', 'start',
-					'-a', 'android.intent.action.MAIN',
-					'-c', 'android.intent.category.LAUNCHER',
-					'-n', cli.tiapp.id + '/.' + appnameToClassname(cli.tiapp.name) + 'Activity',
-					'-f', '0x10200000'
-				], options).on('exit', function (code) {
-					if (code) {
-						err = __('Failed to launch application.');
-					}
+			} 
+			else 
+			{
+				if (cli.argv['build-only']) {
 					finished && finished.call(this, err);
-				});
-				return; // Do not finish until the app is running.
+					return;
+				}
+				if (cli.argv['target'] == 'emulator') {
+					// Call the logcat command in the old builder.py after the emulator, so we get logcat output
+					spawn('python', [
+						path.join(path.resolve(cli.env.sdks[cli.tiapp['sdk-version']].path), cli.argv.platform, 'builder.py'),
+						'logcat',
+						cli.argv['android-sdk'],
+						'-e'
+					], options);
+				} else if (cli.argv['target'] == 'device') {
+					// Since installing on device does not run
+					// the application we must send the "intent" ourselves.
+					// We will launch the MAIN activity for the application.
+					logger.info(__('Launching appliation on device.'));
+					spawn('adb', [
+						'shell', 'am', 'start',
+						'-a', 'android.intent.action.MAIN',
+						'-c', 'android.intent.category.LAUNCHER',
+						'-n', cli.tiapp.id + '/.' + appnameToClassname(cli.tiapp.name) + 'Activity',
+						'-f', '0x10200000'
+					], options).on('exit', function (code) {
+						if (code) {
+							err = __('Failed to launch application.');
+						}
+						finished && finished.call(this, err);
+					});
+					return; // Do not finish until the app is running.
+				}
 			}
 			finished && finished.call(this, err);
 		}.bind(this));
