@@ -119,14 +119,20 @@ exports.init = function (logger, config, cli) {
 							afs.copyFileSync(ipa, cli.argv['output-dir'], { logger: logger.debug });
 
 							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.app.dSYM');
-							afs.exists(dest) && fs.unlink(dest);
-							afs.copyFileSync(dsym, cli.argv['output-dir'], { logger: logger.debug });
+							exec('cp -fr "' + dsym + '" "' + dest +  '"', function (err, stdout, stderr) {
+								exec('cd "' + path.dirname(dest) + '"; /usr/bin/zip -r  "' + dest +  '.zip" "' + dest +  '"', function (err, stdout, stderr) {
+									logger.info(__('Packaging complete'));
+									logger.info(__('Package location: %s', dest.cyan));
+									finished();
+								});
+							});
 						}
+						else {
+							logger.info(__('Packaging complete'));
+							logger.info(__('Package location: %s', dest.cyan));
 						
-						logger.info(__('Packaging complete'));
-						logger.info(__('Package location: %s', dest.cyan));
-						
-						finished();
+							finished();
+						}
 					});
 					break;
 			}

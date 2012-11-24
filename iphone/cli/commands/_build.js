@@ -321,6 +321,7 @@ exports.validate = function (logger, config, cli) {
 			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
 			cli.argv.target = buildManifest.target;
 			cli.argv['deploy-type'] = buildManifest.deployType;
+			cli.argv['distribution-name'] = buildManifest.distributionName;
 			cli.argv['output-dir'] = buildManifest.outputDir;
 			conf.options['output-dir'].required = false;
 		} catch (e) {}
@@ -876,7 +877,7 @@ build.prototype = {
 			preserve: true,
 			logger: this.logger.debug,
 			ignoreDirs: ['.git','.svn', 'CVS'],
-			ignoreFiles: ['.gitignore', '.cvsignore']
+			ignoreFiles: ['.gitignore', '.cvsignore', '.gitmodules', '.git']
 		});
 	},
 	
@@ -885,7 +886,7 @@ build.prototype = {
 			preserve: true,
 			logger: this.logger.debug,
 			ignoreDirs: ['.git','.svn', 'CVS'],
-			ignoreFiles: ['.gitignore', '.cvsignore']
+			ignoreFiles: ['.gitignore', '.cvsignore', '.gitmodules', '.git']
 		});
 	},
 	
@@ -1136,7 +1137,7 @@ build.prototype = {
 		proj = injectCompileShellScript(
 			proj,
 			'Pre-Compile',
-			(process.execPath || 'node') + ' \\"' + this.cli.argv.$0.replace(/^node /, '') + '\\" build --platform ' +
+			(process.execPath || 'node') + ' \\"' + this.cli.argv.$0.replace(/^.*\/node /, '') + '\\" build --platform ' +
 				this.platformName + ' --sdk ' + this.titaniumSdkVersion + ' --no-prompt --no-banner --xcode\\nexit $?'
 		);
 		proj = injectCompileShellScript(
@@ -1479,6 +1480,7 @@ build.prototype = {
 		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = {
 			target: this.target,
 			deployType: this.deployType,
+			distributionName: this.cli.argv['distribution-name'],
 			iosSdkPath: this.titaniumIosSdkPath,
 			appGuid: this.tiapp.guid,
 			tiCoreHash: this.libTiCoreHash,
