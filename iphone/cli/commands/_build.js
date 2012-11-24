@@ -985,7 +985,8 @@ build.prototype = {
 			});
 			
 			plist.CFBundleIdentifier = this.tiapp.id;
-			plist.CFBundleVersion = appc.version.format(this.tiapp.version || 1, 2);
+			if (!plist.CFBundleVersion  || this.target == 'dist-appstore')
+				plist.CFBundleVersion = appc.version.format(this.tiapp.version || 1, 2);
 			plist.CFBundleShortVersionString = appc.version.format(this.tiapp.version || 1, 2, 3);
 			
 			plist.CFBundleIconFiles = [];
