@@ -319,7 +319,7 @@ exports.validate = function (logger, config, cli) {
 		
 		try {
 			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
-			cli.argv.target = buildManifest.target;
+			cli.argv.target = process.env.PLATFORM_NAME === 'iphoneos' ? 'device' : buildManifest.target;
 			cli.argv['deploy-type'] = buildManifest.deployType;
 			cli.argv['distribution-name'] = buildManifest.distributionName;
 			cli.argv['output-dir'] = buildManifest.outputDir;
@@ -1137,7 +1137,7 @@ build.prototype = {
 		proj = injectCompileShellScript(
 			proj,
 			'Pre-Compile',
-			(process.execPath || 'node') + ' \\"' + this.cli.argv.$0.replace(/^.*\/node /, '') + '\\" build --platform ' +
+			(process.execPath || 'node') + ' \\"' + this.cli.argv.$0.replace(/^.*node /, '') + '\\" build --platform ' +
 				this.platformName + ' --sdk ' + this.titaniumSdkVersion + ' --no-prompt --no-banner --xcode\\nexit $?'
 		);
 		proj = injectCompileShellScript(
