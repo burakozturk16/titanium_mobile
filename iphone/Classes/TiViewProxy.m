@@ -2823,11 +2823,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	ENSURE_UI_THREAD(setAccessibilityLabel, accessibilityLabel);
 	if ([self viewAttached]) {
-		id accessibilityElement = [self view].accessibilityElement;
-		if (accessibilityElement != nil) {
-			[accessibilityElement setIsAccessibilityElement:YES];
-			[accessibilityElement setAccessibilityLabel:[TiUtils stringValue:accessibilityLabel]];
-		}
+		[[self view] setAccessibilityLabel_:accessibilityLabel];
 	}
 	[self replaceValue:accessibilityLabel forKey:@"accessibilityLabel" notification:NO];
 }
@@ -2836,11 +2832,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	ENSURE_UI_THREAD(setAccessibilityValue, accessibilityValue);
 	if ([self viewAttached]) {
-		id accessibilityElement = [self view].accessibilityElement;
-		if (accessibilityElement != nil) {
-			[accessibilityElement setIsAccessibilityElement:YES];
-			[accessibilityElement setAccessibilityValue:[TiUtils stringValue:accessibilityValue]];
-		}
+		[[self view] setAccessibilityValue_:accessibilityValue];
 	}
 	[self replaceValue:accessibilityValue forKey:@"accessibilityValue" notification:NO];
 }
@@ -2849,11 +2841,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	ENSURE_UI_THREAD(setAccessibilityHint, accessibilityHint);
 	if ([self viewAttached]) {
-		id accessibilityElement = [self view].accessibilityElement;
-		if (accessibilityElement != nil) {
-			[accessibilityElement setIsAccessibilityElement:YES];
-			[accessibilityElement setAccessibilityHint:[TiUtils stringValue:accessibilityHint]];
-		}		
+		[[self view] setAccessibilityHint_:accessibilityHint];
 	}
 	[self replaceValue:accessibilityHint forKey:@"accessibilityHint" notification:NO];
 }
@@ -2861,8 +2849,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 - (void)setAccessibilityHidden:(id)accessibilityHidden
 {
 	ENSURE_UI_THREAD(setAccessibilityHidden, accessibilityHidden);
-	if ([self viewAttached] && [TiUtils isIOS5OrGreater]) {
-		[self view].accessibilityElementsHidden = [TiUtils boolValue:accessibilityHidden def:NO];
+	if ([self viewAttached]) {
+		[[self view] setAccessibilityHidden_:accessibilityHidden];
 	}
 	[self replaceValue:accessibilityHidden forKey:@"accessibilityHidden" notification:NO];
 }
