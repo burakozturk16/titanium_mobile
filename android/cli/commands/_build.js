@@ -114,15 +114,13 @@ exports.config = function (logger, config, cli) {
 						//hint: 'host:port',
 						hidden: true
 					},
-					/* not actually used, yet
 					'deploy-type': {
 						abbr: 'D',
-						desc: __('the type of deployment; only used with target is %s', 'emulator'.cyan),
+						desc: __('the type of deployment'),
 						hint: __('type'),
-						values: ['test', 'development'],
-						default: 'development'
+						values: ['test', 'development', 'production']
 					},
-					*/
+					
 					'keystore': {
 						abbr: 'K',
 						desc: __('the location of the keystore file'),

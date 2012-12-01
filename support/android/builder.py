@@ -1944,8 +1944,8 @@ class Builder(object):
 			finally:
 				res_zip_file.close()
 
-	def build_and_run(self, install, avd_id, keystore=None, keystore_pass='tirocks', keystore_alias='tidev', dist_dir=None, build_only=False, device_args=None, debugger_host=None):
-		deploy_type = 'development'
+	def build_and_run(self, install, avd_id, keystore=None, keystore_pass='tirocks', keystore_alias='tidev', dist_dir=None, build_only=False, device_args=None, debugger_host=None, deploy_type=None):
+		
 		self.build_only = build_only
 		self.device_args = device_args
 		self.postbuild_modules = []
@@ -1954,10 +1954,14 @@ class Builder(object):
 		if install:
 			if self.device_args == None:
 				self.device_args = ['-d']
-			if keystore == None:
-				deploy_type = 'test'
-			else:
-				deploy_type = 'production'
+			if deploy_type == None:
+				if keystore == None:
+					deploy_type = 'test'
+				else:
+					deploy_type = 'production'
+		else:
+			if deploy_type == None:
+				deploy_type = 'development'
 		if self.device_args == None:
 			self.device_args = ['-e']
 
@@ -2477,7 +2481,10 @@ if __name__ == "__main__":
 			output_dir = dequote(sys.argv[9])
 			builder.build_and_run(True, None, key, password, alias, output_dir)
 		elif command == 'build':
-			builder.build_and_run(False, 1, build_only=True)
+			if len(sys.argv) >= 7
+				builder.build_and_run(False, 1, build_only=True, deploy_type=sys.argv[6])
+			else
+				builder.build_and_run(False, 1, build_only=True)
 		else:
 			error("Unknown command: %s" % command)
 			usage()
