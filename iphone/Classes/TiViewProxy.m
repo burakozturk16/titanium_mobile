@@ -1789,7 +1789,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	if(dirtyflags)
 	{//If we have any need for changes, let's enroll ourselves.
-		[self refreshView:nil];
+        [self willEnqueue];
+        [self relayout];
+		[self layoutChildren:NO];
 	}
 
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
