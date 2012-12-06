@@ -778,11 +778,6 @@ public abstract class TiUIView
 			});
 			proxy.fireEvent(TiC.EVENT_FOCUS, getFocusEventObject(hasFocus));
 		} else {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					TiUIHelper.showSoftKeyboard(v, false);
-				}
-			});
 			proxy.fireEvent(TiC.EVENT_BLUR, getFocusEventObject(hasFocus));
 		}
 	}
@@ -815,6 +810,7 @@ public abstract class TiUIView
 	public void blur()
 	{
 		if (nativeView != null) {
+			TiUIHelper.showSoftKeyboard(nativeView, false);
 			nativeView.clearFocus();
 		}
 	}
