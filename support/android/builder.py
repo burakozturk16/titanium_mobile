@@ -2481,9 +2481,9 @@ if __name__ == "__main__":
 			output_dir = dequote(sys.argv[9])
 			builder.build_and_run(True, None, key, password, alias, output_dir)
 		elif command == 'build':
-			if len(sys.argv) >= 7
+			if len(sys.argv) >= 7:
 				builder.build_and_run(False, 1, build_only=True, deploy_type=sys.argv[6])
-			else
+			else:
 				builder.build_and_run(False, 1, build_only=True)
 		else:
 			error("Unknown command: %s" % command)
