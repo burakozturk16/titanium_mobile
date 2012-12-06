@@ -321,8 +321,9 @@ exports.validate = function (logger, config, cli) {
 			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
 			cli.argv.target = process.env.PLATFORM_NAME === 'iphoneos' ? 'device' : buildManifest.target;
 			cli.argv['deploy-type'] = buildManifest.deployType;
-			cli.argv['distribution-name'] = buildManifest.distributionName;
 			cli.argv['output-dir'] = buildManifest.outputDir;
+			cli.argv['developer-name'] = buildManifest.developerName;
+			cli.argv['distribution-name'] = buildManifest.distributionName;
 			conf.options['output-dir'].required = false;
 		} catch (e) {}
 	}
@@ -367,7 +368,7 @@ exports.validate = function (logger, config, cli) {
 				process.exit(1);
 			}
 			
-			var devNames = iosEnv.certs.devNames.map(function (name) {
+			var devNames = /\([0-9A-Za-z]*\)$/.test(cli.argv['developer-name']) ? iosEnv.certs.devNames : iosEnv.certs.devNames.map(function (name) {
 					var m = name.match(/^([^(]+?)*/);
 					return m && m[0].trim();
 				}),
@@ -602,6 +603,9 @@ function build(logger, config, cli, finished) {
 	this.xcodeAppDir = cli.argv.xcode ? path.join(process.env.TARGET_BUILD_DIR, process.env.CONTENTS_FOLDER_PATH) : path.join(this.iosBuildDir, this.tiapp.name + '.app');
 	this.xcodeProjectConfigFile = path.join(this.buildDir, 'project.xcconfig');
 	
+	this.certDeveloperName = cli.argv['developer-name'];
+	this.certDistributionName = cli.argv['distribution-name'];
+	
 	this.forceRebuild = false;
 	this.forceXcode = false;
 	
@@ -625,9 +629,9 @@ function build(logger, config, cli, finished) {
 	this.logger.debug(__('Xcode installation: %s', this.xcodeEnv.path.cyan));
 	this.logger.debug(__('iOS WWDR certificate: %s', iosEnv.certs.wwdr ? __('installed').cyan : __('not found').cyan));
 	if (this.target == 'device') {
-		this.logger.info(__('iOS Development Certificate: %s', cli.argv['developer-name'].cyan));
+		this.logger.info(__('iOS Development Certificate: %s', this.certDeveloperName.cyan));
 	} else if (/dist-appstore|dist\-adhoc/.test(this.target)) {
-		this.logger.info(__('iOS Distribution Certificate: %s', cli.argv['distribution-name'].cyan));
+		this.logger.info(__('iOS Distribution Certificate: %s', this.certDistributionName.cyan));
 	}
 	
 	// validate the min-ios-ver from the tiapp.xml
@@ -799,11 +803,11 @@ function build(logger, config, cli, finished) {
 				}
 				
 				if (this.target == 'device') {
-					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Developer: ' + cli.argv['developer-name']);
+					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Developer: ' + this.certDeveloperName);
 				}
 				
 				if (/dist-appstore|dist\-adhoc/.test(this.target)) {
-					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Distribution: ' + cli.argv['distribution-name']);
+					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Distribution: ' + this.certDistributionName);
 				}
 				
 				if (this.target == 'dist-appstore') {
@@ -1479,7 +1483,8 @@ build.prototype = {
 		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = {
 			target: this.target,
 			deployType: this.deployType,
-			distributionName: this.cli.argv['distribution-name'],
+			developerName: this.certDeveloperName,
+			distributionName: this.certDistributionName,
 			iosSdkPath: this.titaniumIosSdkPath,
 			appGuid: this.tiapp.guid,
 			tiCoreHash: this.libTiCoreHash,

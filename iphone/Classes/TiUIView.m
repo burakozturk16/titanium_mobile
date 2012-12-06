@@ -539,6 +539,11 @@ DEFINE_EXCEPTIONS
     
     UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, bgImage.scale);
     CGContextRef background = UIGraphicsGetCurrentContext();
+    if (background == nil) {
+        //TIMOB-11564. Either width or height of the bounds is zero
+        UIGraphicsEndImageContext();
+        return;
+    }
     CGRect imageRect = CGRectMake(0, 0, bgImage.size.width, bgImage.size.height);
     CGContextDrawTiledImage(background, imageRect, [translatedImage CGImage]);
     UIImage* renderedBg = UIGraphicsGetImageFromCurrentImageContext();
@@ -1262,20 +1267,6 @@ DEFINE_EXCEPTIONS
 			[proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
 			[self handleControlEvents:UIControlEventTouchDown];
 		}
-        // Click handling is special; don't propagate if we have a delegate,
-        // but DO invoke the touch delegate.
-		// clicks should also be handled by any control the view is embedded in.
-		if ([touch tapCount] == 2 && [proxy _hasListeners:@"dblclick"]) {
-			[proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
-			return;
-		}
-		else if ([proxy _hasListeners:@"click"]) //tapCount != 2, it s a click
-		{
-			if (touchDelegate == nil) {
-				[proxy fireEvent:@"click" withObject:evt propagate:YES];
-				return;
-			} 
-		}  
 	}
 }
 
@@ -1321,6 +1312,21 @@ DEFINE_EXCEPTIONS
 			[proxy fireEvent:@"touchend" withObject:evt propagate:YES];
 			[self handleControlEvents:UIControlEventTouchCancel];
 		}
+
+		// Click handling is special; don't propagate if we have a delegate,
+        // but DO invoke the touch delegate.
+		// clicks should also be handled by any control the view is embedded in.
+		if ([touch tapCount] == 2 && [proxy _hasListeners:@"dblclick"]) {
+			[proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+			return;
+		}
+		else if ([proxy _hasListeners:@"click"]) //tapCount != 2, it s a click
+		{
+			if (touchDelegate == nil) {
+				[proxy fireEvent:@"click" withObject:evt propagate:YES];
+				return;
+			} 
+		}  
 	}
 }
 
