@@ -1733,9 +1733,9 @@ class Builder(object):
 		webview_js_files = []
 
 		pkg_assets_dir = self.assets_dir
-		if self.deploy_type == "test":
+		if self.deploy_type == "development":
 			compile_js = False
-		if self.deploy_type == "production" and compile_js:
+		if self.deploy_type != "development" and compile_js:
 			webview_js_files = get_js_referenced_in_html()
 			non_js_assets = os.path.join(self.project_dir, 'bin', 'non-js-assets')
 			if not os.path.exists(non_js_assets):
@@ -2148,7 +2148,7 @@ class Builder(object):
 				if self.tiapp.to_bool(self.tiapp.get_app_property('ti.android.compilejs')):
 					self.compile_js = True
 			elif self.tiapp.has_app_property('ti.deploytype'):
-				if self.tiapp.get_app_property('ti.deploytype') == 'production':
+				if self.tiapp.get_app_property('ti.deploytype') != 'development':
 					self.compile_js = True
 
 			include_all_ti_modules = self.fastdev 
@@ -2156,7 +2156,7 @@ class Builder(object):
 				if self.tiapp.to_bool(self.tiapp.get_app_property('ti.android.include_all_modules')):
 					include_all_ti_modules = True
 			if self.tiapp_changed or (self.js_changed and not self.fastdev) or \
-					self.force_rebuild or self.deploy_type == "production" or \
+					self.force_rebuild or self.deploy_type != "development" or \
 					(self.fastdev and not built_all_modules) or \
 					(not self.fastdev and built_all_modules):
 				self.android.config['compile_js'] = self.compile_js
