@@ -2130,7 +2130,7 @@ build.prototype = {
 				for (var i = 0; i < n.length; i++) {
 					if (Array.isArray(n[i])) {
 						walk(n[i]);
-					} else if (n[i] == 'dot') {
+					} else if (n[i] == 'dot' && (i == 0 || n[i-1] != 'name')) {
 						var s = walkdot(n[++i]);
 						s && s.length > 3 && s != 'dot' && this.addSymbol(s.substring(3) + '.' + n[++i]);
 					}
