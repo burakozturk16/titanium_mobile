@@ -117,15 +117,17 @@ exports.init = function (logger, config, cli) {
 						
 						var ipa = path.join(path.dirname(build.xcodeAppDir), build.tiapp.name + '.ipa'),
 							dest = ipa,
-							dsym = path.join(path.dirname(build.xcodeAppDir), build.tiapp.name + '.app.dSYM');
+							dsymfilename=build.tiapp.name + '.app.dSYM'
+							dsym = path.join(path.dirname(build.xcodeAppDir), dsymfilename);
 						
 						if (cli.argv['output-dir']) {
 							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.ipa');
 							afs.exists(dest) && fs.unlink(dest);
 							afs.copyFileSync(ipa, cli.argv['output-dir'], { logger: logger.debug });
 
-							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.app.dSYM');
-							exec('cd "' + path.dirname(dsym) + '"; /usr/bin/zip -rj  "' + dest +  '.zip" "' + dsym +  '"', function (err, stdout, stderr) {
+							dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.app.dSYM.zip');
+							afs.exists(dest) && fs.unlink(dest);
+							exec('cd "' + path.dirname(dsym) + '"; /usr/bin/zip -r  "' + dest +  '" "' + dsymfilename +  '"', function (err, stdout, stderr) {
 								logger.info(__('Packaging complete'));
 								logger.info(__('Package location: %s', dest.cyan));
 								finished();
