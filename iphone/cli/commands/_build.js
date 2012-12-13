@@ -726,7 +726,8 @@ function build(logger, config, cli, finished) {
 	if (cli.argv.xcode) {
 		this.deployType = process.env.CURRENT_ARCH === 'i386' ? 'development' : process.env.CONFIGURATION === 'Debug' ? (cli.argv['deploy-type'] || 'test') : 'production';
 	} else {
-		this.deployType = /device|simulator/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
+		this.deployType = cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
+		// this.deployType = /device|simulator/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
 	}
 	this.xcodeTarget = process.env.CONFIGURATION || (/device|simulator/.test(this.target) ? 'Debug' : 'Release');
 	this.iosSdkVersion = cli.argv['ios-version'];
@@ -799,8 +800,9 @@ function build(logger, config, cli, finished) {
 		this.tiapp.icon = 'appicon.png';
 	}
 	
+	var ios = this.tiapp.ios;
 	// if installing a non-production build on device, add a timestamp to the version
-	if (this.target != 'simulator' && this.deployType != 'production') {
+	if (this.target != 'simulator' && this.deployType != 'production' && !(ios && ios.plist && ios.plist.CFBundleVersion)) {
 		this.tiapp.version = appc.version.format(this.tiapp.version || 1, 2, 3) + '.' + (new Date).getTime();
 		this.logger.info(__('Setting non-production device build version to %s', this.tiapp.version));
 	}
