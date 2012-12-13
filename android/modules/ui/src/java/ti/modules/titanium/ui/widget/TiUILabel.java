@@ -113,6 +113,9 @@ public class TiUILabel extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
 			tv.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP));
 		}
+		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
+			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
+		}
 		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_LEFT)) {
 			textPadding.left = TiConvert.toInt(d, TiC.PROPERTY_TEXT_PADDING_LEFT);
 			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
@@ -181,6 +184,8 @@ public class TiUILabel extends TiUIView
 			}
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
 			tv.setSingleLine(!TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_MAX_LINES)) {
+			tv.setMaxLines(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
 			Linkify.addLinks(tv, TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_LEFT)) {

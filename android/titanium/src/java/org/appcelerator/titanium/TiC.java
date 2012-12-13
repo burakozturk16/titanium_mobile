@@ -1337,6 +1337,10 @@ public class TiC
 	 */
 	public static final String PROPERTY_MAX_LENGTH = "maxLength";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MAX_LINES = "maxLines";
 
 	/**
 	 * @module.api

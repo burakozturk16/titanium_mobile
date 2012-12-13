@@ -360,6 +360,11 @@
 	[(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
+-(void)setMaxLines_:(id)value
+{
+	[[self label] setNumberOfLines:[TiUtils intValue:value]];
+}
+
 @end
 
 #endif
