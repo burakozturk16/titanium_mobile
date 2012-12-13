@@ -51,19 +51,16 @@
 		// the string having trailing spaces when given size parameter width is equal to the expected return width, so we adjust it here.
 		maxSize.width += 0.00001;
 	}
-	CGSize size = [value sizeWithFont:font constrainedToSize:maxSize lineBreakMode:[[self label] lineBreakMode]];
-	if (shadowOffset.width > 0)
-	{
-		// if we have a shadow and auto, we need to adjust to prevent
-		// font from clipping
-		size.width += shadowOffset.width + 10;
-	}
-    if (shadowOffset.height > 0)
-	{
-		// if we have a shadow and auto, we need to adjust to prevent
-		// font from clipping
-		size.height += shadowOffset.height + 10;
-	}
+	CGSize size;
+	if ([label numberOfLines] == 1)
+		size = [value sizeWithFont:font forWidth:maxSize.width lineBreakMode:[[self label] lineBreakMode]];
+	else
+		size = [value sizeWithFont:font constrainedToSize:maxSize lineBreakMode:[[self label] lineBreakMode]];
+
+	//shadow handling
+	size.width += fabs(shadowOffset.width);
+	size.height += fabs(shadowOffset.height);
+
 	size.width += textPadding.origin.x + textPadding.size.width;
 	size.height += textPadding.origin.y + textPadding.size.height;
 	return size;
