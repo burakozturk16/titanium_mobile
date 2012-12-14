@@ -413,7 +413,8 @@ exports.validate = function (logger, config, cli) {
 		
 		try {
 			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
-			cli.argv.target = process.env.PLATFORM_NAME === 'iphoneos' ? 'device' : buildManifest.target;
+			// cli.argv.target = process.env.PLATFORM_NAME === 'iphoneos' ? 'device' : buildManifest.target;
+			cli.argv.target = buildManifest.target;
 			cli.argv['deploy-type'] = buildManifest.deployType;
 			cli.argv['output-dir'] = buildManifest.outputDir;
 			cli.argv['developer-name'] = buildManifest.developerName;
