@@ -725,7 +725,7 @@ function build(logger, config, cli, finished) {
 	this.keychain = cli.argv.keychain;
 	
 	if (cli.argv.xcode) {
-		this.deployType = process.env.CURRENT_ARCH === 'i386' ? 'development' : process.env.CONFIGURATION === 'Debug' ? (cli.argv['deploy-type'] || 'test') : 'production';
+		this.deployType = process.env.CURRENT_ARCH === 'i386' ? 'development' : process.env.CONFIGURATION === 'Debug' ? (cli.argv['deploy-type'] || 'test') : (cli.argv['deploy-type'] || 'production');
 	} else {
 		this.deployType = cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
 		// this.deployType = /device|simulator/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
