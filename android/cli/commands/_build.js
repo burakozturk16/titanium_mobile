@@ -370,10 +370,24 @@ function sendAnalytics(cli) {
 	// });
 }
 
-function build(logger, config, cli, finished) {
 
+
+function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
+	this.config = config || {};
+
+	this.writeBuildManifest = function(callback) {
+		var buildManifest = {};
+		if (this.config['plugins'])
+			buildManifest['config-plugins'] = this.config.plugins;
+		
+		fs.writeFile(this.buildManifestFile, JSON.stringify(buildManifest, null, '\t'), callback);
+	}
+
+	
+
+	
 	
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
 	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
@@ -398,6 +412,10 @@ function build(logger, config, cli, finished) {
 	this.target = cli.argv.target;
 
 	cli.fireHook('build.pre.compile', this, function (e) {
+		
+		this.buildManifestFile = path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
+		this.writeBuildManifest();
+
 		var emulatorCmd = [],
 			cmd = [],
 			cmdSpawn,

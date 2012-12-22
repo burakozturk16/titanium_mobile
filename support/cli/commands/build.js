@@ -93,7 +93,11 @@ exports.config = function (logger, config, cli) {
 exports.validate = function (logger, config, cli) {
 	// TODO: set the type to 'app' for now, but we'll need to determine if the project is an app or a module
 	cli.argv.type = 'app';
-	
+
+	// Regexp format
+	cli.ignoreFiles = ['\\.gitignore', '\\.cvsignore', '\\.gitmodules', '\\.git', '\\.DS_Store', '_svn'];
+	cli.ignoreDirs = ['\\.git', '\\.svn', 'CVS'];
+
 	ti.validatePlatform(logger, cli.argv, 'platform');
 	if (ti.validatePlatformOptions(logger, config, cli, 'build') === false) {
 		return false;
@@ -143,5 +147,4 @@ exports.run = function (logger, config, cli) {
 			logger.info(__('Project built successfully in %s', delta) + '\n');
 		}
 	});
-
 };

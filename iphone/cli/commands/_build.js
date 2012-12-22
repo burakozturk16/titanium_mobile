@@ -403,6 +403,7 @@ exports.validate = function (logger, config, cli) {
 	}
 	
 	if (cli.argv.xcode) {
+			logger.log(__('building through xcode'));
 		// for xcode pre-compile builds only, read the manifest file and inject the cli args
 		var buildManifestFile = path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
 		if (!afs.exists(buildManifestFile)) {
@@ -413,13 +414,16 @@ exports.validate = function (logger, config, cli) {
 		
 		try {
 			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
+			logger.log(__('buildManifest: ' + JSON.stringify(buildManifest)));
 			// cli.argv.target = process.env.PLATFORM_NAME === 'iphoneos' ? 'device' : buildManifest.target;
 			cli.argv.target = buildManifest.target;
 			cli.argv['deploy-type'] = buildManifest.deployType;
 			cli.argv['output-dir'] = buildManifest.outputDir;
 			cli.argv['developer-name'] = buildManifest.developerName;
 			cli.argv['distribution-name'] = buildManifest.distributionName;
+			config.plugins = buildManifest['config-plugins'] || {};
 			conf.options['output-dir'].required = false;
+			
 		} catch (e) {}
 	}
 	
@@ -703,6 +707,8 @@ function sendAnalytics(cli) {
 function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
+	this.config = config;
+	this.logger.info(__('this.config: %s', JSON.stringify(this.config)));
 	
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
 	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
@@ -867,6 +873,7 @@ function build(logger, config, cli, finished) {
 	}
 	
 	cli.fireHook('build.pre.compile', this, function () {
+		logger.log(__("This is my test '%s'.", this.config.plugins.ignoreFiles.join("|")) + '\n');
 		// let's start building some apps!
 		parallel(this, [
 			'createInfoPlist',
@@ -1017,8 +1024,8 @@ build.prototype = {
 		afs.copyDirSyncRecursive(src, dest, opts || {
 			preserve: true,
 			logger: this.logger.debug,
-			ignoreDirs: ['.git','.svn', 'CVS'],
-			ignoreFiles: ['.gitignore', '.cvsignore', '.gitmodules', '.git']
+			ignoreDirs: ['\\.git','\\.svn', 'CVS'],
+			ignoreFiles: ['\\.gitignore', '\\.cvsignore', '\\.gitmodules', '\\.git']
 		});
 	},
 	
@@ -1026,8 +1033,8 @@ build.prototype = {
 		afs.copyDirRecursive(src, dest, callback, opts || {
 			preserve: true,
 			logger: this.logger.debug,
-			ignoreDirs: ['.git','.svn', 'CVS'],
-			ignoreFiles: ['.gitignore', '.cvsignore', '.gitmodules', '.git']
+			ignoreDirs: ['\\.git','\\.svn', 'CVS'],
+			ignoreFiles: ['\\.gitignore', '\\.cvsignore', '\\.gitmodules', '\\.git']
 		});
 	},
 	
@@ -1626,7 +1633,7 @@ build.prototype = {
 	},
 	
 	writeBuildManifest: function (callback) {
-		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = {
+		this.buildManifest = {
 			target: this.target,
 			deployType: this.deployType,
 			deviceFamily: this.deviceFamily,
@@ -1638,7 +1645,11 @@ build.prototype = {
 			modulesHash: this.modulesHash,
 			gitHash: ti.manifest.githash,
 			outputDir: this.cli.argv['output-dir']
-		}, null, '\t'), callback);
+		};
+		if (this.config['plugins'])
+			this.buildManifest['config-plugins'] = this.config.plugins;
+		
+		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest, null, '\t'), callback);
 	},
 	
 	compileI18N: function (callback) {
@@ -2002,10 +2013,16 @@ build.prototype = {
 		}.bind(this));
 	},
 	
-	compileResources: function (src, dest) {
+	compileResources: function (src, dest, ignoreRegExp2) {
 		if (afs.exists(src)) {
+			var ignoreFiles = [].concat(this.cli.ignoreFiles).concat(this.cli.ignoreDirs);
+			if (this.config.plugins['ignoreFiles'])
+				ignoreFiles = ignoreFiles.concat(this.config.plugins.ignoreFiles);
+			var ignoreRegExpStr = "^" + ignoreFiles.join("|") + "$";
+			this.logger.info(__('ignoreRegExpStr: %s', ignoreRegExpStr.cyan));
+			var ignoreRegExp = new RegExp(ignoreRegExpStr);
+
 			var compiledTargets = {},
-				ignoreRegExp = /^\.gitignore|\.cvsignore|\.DS_Store|\.git|\.svn|_svn|CVS$/,
 				recursivelyCopy = function (from, to, rel, ignore) {
 					wrench.mkdirSyncRecursive(to);
 					fs.readdirSync(from).forEach(function (file) {
@@ -2013,7 +2030,7 @@ build.prototype = {
 							t = f.replace(from, to),
 							fstat = fs.lstatSync(f),
 							p = rel ? rel + '/' + file : file;
-						if (ignoreRegExp.test(file) || (ignore && ignore.indexOf(file) != -1)) {
+						if (file.match(ignoreRegExp) ||  (ignore && ignore.indexOf(file) != -1)) {
 							this.logger.debug(__('Ignoring %s', f.cyan));
 						} else if (fstat.isDirectory()) {
 							recursivelyCopy(f, t, p);
@@ -2030,6 +2047,8 @@ build.prototype = {
 							// only copy the file for test/production and if it's not a js file, otherwise
 							// it will get compiled below
 							if ((this.deployType == 'development' || !m || !/css|js/.test(m[1])) && (!afs.exists(t) || fstat.size != fs.lstatSync(t).size)) {
+								
+								this.logger.info(__('Copy: %s ==> %s', f.cyan,t.cyan));
 								afs.copyFileSync(f, t, { logger: this.logger.debug });
 							}
 						}

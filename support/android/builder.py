@@ -310,6 +310,10 @@ def resource_drawable_folder(path):
 		else:
 			return 'drawable-%s' % folder.replace('res-', '')
 
+def loadJSONFile(file):
+	json_data=open(file).read()
+	return simplejson.loads(json_data)
+
 class Builder(object):
 
 	def __init__(self, name, sdk, project_dir, support_dir, app_id):
@@ -332,6 +336,16 @@ class Builder(object):
 		self.compile_js = False
 		self.tool_api_level = MIN_API_LEVEL
 		self.abis = list(KNOWN_ABIS)
+
+		buildManifest = loadJSONFile(os.path.join(self.project_dir, 'build-manifest.json'))
+		if 'config-plugins' in buildManifest:
+			self.config_plugins = buildManifest['config-plugins']		
+
+		ignoreRegExpStr = "^" + '|'.join(ignoreFiles).replace('.', '\\.')
+		if 'ignoreFiles' in self.config_plugins:
+			ignoreRegExpStr += '|' + '|'.join(self.config_plugins['ignoreFiles'])
+		ignoreRegExpStr += "$";
+		self.ignoreFilesRegex = re.compile(ignoreRegExpStr)
 		
 		# don't build if a java keyword in the app id would cause the build to fail
 		tok = self.app_id.split('.')
@@ -370,8 +384,7 @@ class Builder(object):
 
 		self.tiappxml = temp_tiapp
 
-		json_contents = open(os.path.join(template_dir,'dependency.json')).read()
-		self.depends_map = simplejson.loads(json_contents)
+		self.depends_map = loadJSONFile(os.path.join(template_dir,'dependency.json'))
 		self.runtime = self.tiappxml.app_properties.get('ti.android.runtime', self.depends_map['runtimes']['defaultRuntime'])
 
 		self.set_java_commands()
@@ -677,7 +690,7 @@ class Builder(object):
 	
 	def include_path(self, path, isfile):
 		if not isfile and os.path.basename(path) in ignoreDirs: return False
-		elif isfile and os.path.basename(path) in ignoreFiles: return False
+		elif isfile and re.search(self.ignoreFilesRegex, os.path.basename(path)): return False
 		return True
 
 	def warn_dupe_drawable_folders(self):
@@ -2001,7 +2014,7 @@ class Builder(object):
 				info("plugin=%s" % plugin_file)
 				if not os.path.exists(local_plugin_file) and not os.path.exists(plugin_file):
 					error("Build Failed (Missing plugin for %s)" % plugin['name'])
-					sys.exit(1)
+					continue
 				info("Detected compiler plugin: %s/%s" % (plugin['name'],plugin['version']))
 				code_path = plugin_file
 				if os.path.exists(local_plugin_file):	
