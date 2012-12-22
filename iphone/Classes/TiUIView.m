@@ -712,7 +712,8 @@ DEFINE_EXCEPTIONS
 
 -(BOOL)clipChildren
 {
-    return (clipChildren && ([self shadowLayer].shadowOpacity == 0));
+    return (clipChildren && ([[self shadowLayer] shadowOpacity] == 0));
+
 }
 
 
@@ -735,7 +736,7 @@ DEFINE_EXCEPTIONS
 
 -(void)updateViewShadowPath
 {
-    if ([self shadowLayer].shadowOpacity > 0.0f)
+    if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
         //to speedup things
         [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
