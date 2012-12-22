@@ -591,6 +591,14 @@ enum
  */
 -(void)childWillResize:(TiViewProxy *)child;	//Todo: Replace
 
+
+/**
+ get the next children of a certain class starting from a child
+ @param class The child class looked for
+ @param child The child view
+ */
+-(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
+
 @end
 
 

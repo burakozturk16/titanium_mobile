@@ -42,31 +42,31 @@
 
 -(void)setTouchHandler:(TiUIView*)handler
 {
-    //Assign only. No retain
-    touchHandler = handler;
+	//Assign only. No retain
+	touchHandler = handler;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [touchHandler processTouchesBegan:touches withEvent:event];
-    [super touchesBegan:touches withEvent:event];
+	[touchHandler processTouchesBegan:touches withEvent:event];
+	[super touchesBegan:touches withEvent:event];
 }
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [touchHandler processTouchesMoved:touches withEvent:event];
-    [super touchesMoved:touches withEvent:event];
+	[touchHandler processTouchesMoved:touches withEvent:event];
+	[super touchesMoved:touches withEvent:event];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [touchHandler processTouchesEnded:touches withEvent:event];
-    [super touchesEnded:touches withEvent:event];
+	[touchHandler processTouchesEnded:touches withEvent:event];
+	[super touchesEnded:touches withEvent:event];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [touchHandler processTouchesCancelled:touches withEvent:event];
-    [super touchesCancelled:touches withEvent:event];
+	[touchHandler processTouchesCancelled:touches withEvent:event];
+	[super touchesCancelled:touches withEvent:event];
 }
 
 -(UIView*)newPadView:(CGFloat)width height:(CGFloat)height
@@ -192,7 +192,7 @@
 
 -(BOOL)canBecomeFirstResponder
 {
-    return self.isEnabled;
+	return self.isEnabled;
 }
 
 -(BOOL)resignFirstResponder
@@ -209,15 +209,15 @@
 
 -(BOOL)becomeFirstResponder
 {
-    if (self.canBecomeFirstResponder) {
-        if ([super becomeFirstResponder])
-        {
-            becameResponder = YES;
-            [self repaintMode];
-            return YES;
-        }
-    }
-    return NO;
+	if (self.canBecomeFirstResponder) {
+		if ([super becomeFirstResponder])
+		{
+			becameResponder = YES;
+			[self repaintMode];
+			return YES;
+		}
+	}
+	return NO;
 }
 
 
@@ -275,7 +275,7 @@
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
 	[TiUtils setView:textWidgetView positionRect:bounds];
-    [super frameSizeChanged:frame bounds:bounds];
+	[super frameSizeChanged:frame bounds:bounds];
 }
 
 - (void) dealloc
@@ -331,14 +331,14 @@
 
 -(void)setEditable_:(id)value
 {
-    BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
-    [[self textWidgetView] setEnabled:_trulyEnabled];
+	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
+	[[self textWidgetView] setEnabled:_trulyEnabled];
 }
 
 -(void)setEnabled_:(id)value
 {
-    BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
-    [[self textWidgetView] setEnabled:_trulyEnabled];
+	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
+	[[self textWidgetView] setEnabled:_trulyEnabled];
 }
 
 
@@ -353,7 +353,7 @@
 		[tf setBorderStyle:UITextBorderStyleNone];
 	}
 	[tf setBackground:[self loadImage:image]];
-    self.backgroundImage = image;
+	self.backgroundImage = image;
 }
 
 -(void)setBackgroundDisabledImage_:(id)image
@@ -368,15 +368,15 @@
 
 -(void)setMinimumFontSize_:(id)value
 {
-    CGFloat newSize = [TiUtils floatValue:value];
-    if (newSize < 4) {
-        [[self textWidgetView] setAdjustsFontSizeToFitWidth:NO];
-        [[self textWidgetView] setMinimumFontSize:0.0];
-    }
-    else {
-        [[self textWidgetView] setAdjustsFontSizeToFitWidth:YES];
-        [[self textWidgetView] setMinimumFontSize:newSize];
-    }
+	CGFloat newSize = [TiUtils floatValue:value];
+	if (newSize < 4) {
+		[[self textWidgetView] setAdjustsFontSizeToFitWidth:NO];
+		[[self textWidgetView] setMinimumFontSize:0.0];
+	}
+	else {
+		[[self textWidgetView] setAdjustsFontSizeToFitWidth:YES];
+		[[self textWidgetView] setMinimumFontSize:newSize];
+	}
 }
 
 -(void)setClearOnEdit_:(id)value
@@ -466,25 +466,25 @@
 
 -(void)setSelectionFrom:(id)start to:(id)end 
 {
-    if([TiUtils isIOS5OrGreater]) {
-        UITextField *textField = [self textWidgetView];
-        if ([textField conformsToProtocol:@protocol(UITextInput)]) {
-            if([self becomeFirstResponder]){
-                UITextPosition *beginning = textField.beginningOfDocument;
-                UITextPosition *startPos = [textField positionFromPosition:beginning offset:[TiUtils intValue: start]];
-                UITextPosition *endPos = [textField positionFromPosition:beginning offset:[TiUtils intValue: end]];
-                UITextRange *textRange;
-                textRange = [textField textRangeFromPosition:startPos toPosition:endPos];
-                [textField setSelectedTextRange:textRange];
-            }
-            
-        } else {
-            DebugLog(@"UITextField does not conform with UITextInput protocol. Ignore");
-        }
-    } else {
-        DebugLog(@"Selecting text is only supported with iOS5+");
-    }
-    
+	if([TiUtils isIOS5OrGreater]) {
+		UITextField *textField = [self textWidgetView];
+		if ([textField conformsToProtocol:@protocol(UITextInput)]) {
+			if([self becomeFirstResponder]){
+				UITextPosition *beginning = textField.beginningOfDocument;
+				UITextPosition *startPos = [textField positionFromPosition:beginning offset:[TiUtils intValue: start]];
+				UITextPosition *endPos = [textField positionFromPosition:beginning offset:[TiUtils intValue: end]];
+				UITextRange *textRange;
+				textRange = [textField textRangeFromPosition:startPos toPosition:endPos];
+				[textField setSelectedTextRange:textRange];
+			}
+			
+		} else {
+			DebugLog(@"UITextField does not conform with UITextInput protocol. Ignore");
+		}
+	} else {
+		DebugLog(@"Selecting text is only supported with iOS5+");
+	}
+	
 }
 
 #pragma mark UITextFieldDelegate
@@ -500,17 +500,17 @@
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField;        // return NO to disallow editing.
 {
-    return YES;
+	return YES;
 }
 
 - (BOOL)textField:(UITextField *)tf shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
 {
-    NSString *curText = [[tf text] stringByReplacingCharactersInRange:range withString:string];
+	NSString *curText = [[tf text] stringByReplacingCharactersInRange:range withString:string];
    
-    if ( (maxLength > -1) && ([curText length] > maxLength) ) {
-        [self setValue_:curText];
-        return NO;
-    }
+	if ( (maxLength > -1) && ([curText length] > maxLength) ) {
+		[self setValue_:curText];
+		return NO;
+	}
 
 	[(TiUITextFieldProxy *)self.proxy noteValueChange:curText];
 	return YES;
@@ -544,13 +544,19 @@
 	{
 		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"]];
 	}
-
+    
+    if ([self textWidgetView].returnKeyType == UIReturnKeyNext)
+    {
+        return ![(TiUITextWidgetProxy *)self.proxy selectNextTextWidget];
+    }
 
 	if (suppressReturn)
 	{
 		[tf resignFirstResponder];
 		return NO;
 	}
+    
+    
 
 	return YES;
 }

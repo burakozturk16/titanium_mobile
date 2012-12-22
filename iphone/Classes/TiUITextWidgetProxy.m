@@ -262,6 +262,14 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     return TiDimensionAutoSize;
 }
 
+
+-(BOOL)selectNextTextWidget
+{
+    TiUITextWidgetProxy* nextOne = (TiUITextWidgetProxy*)[[self parent] getNextChildrenOfClass:[TiUITextWidgetProxy class] afterChild:self];
+    
+    return(nextOne != nil && [[nextOne view] becomeFirstResponder]);
+}
+
 USE_VIEW_FOR_CONTENT_HEIGHT
 USE_VIEW_FOR_CONTENT_WIDTH
 

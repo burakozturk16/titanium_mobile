@@ -31,6 +31,8 @@
 
 -(BOOL)focused;
 
+-(BOOL)selectNextTextWidget;
+
 @property(nonatomic,readwrite,assign)	BOOL suppressFocusEvents;
 
 @end
