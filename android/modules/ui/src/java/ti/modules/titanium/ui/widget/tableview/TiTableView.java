@@ -239,7 +239,7 @@ public class TiTableView extends FrameLayout
                 TableViewRowProxy reusedRow = (TableViewRowProxy)v.getRowData().proxy;
                 KrollDict event = new KrollDict();
                 TableViewRowProxy.fillClickEvent(event, viewModel, v.getRowData());
-                reusedRow.fireEvent("reuse", event);
+                proxy.fireSyncEvent("reuse", event);
 
             }
             if (v.getRowData() != item)
