@@ -336,10 +336,13 @@ class Builder(object):
 		self.compile_js = False
 		self.tool_api_level = MIN_API_LEVEL
 		self.abis = list(KNOWN_ABIS)
+		self.config_plugins = {}
 
-		buildManifest = loadJSONFile(os.path.join(self.project_dir, 'build-manifest.json'))
-		if 'config-plugins' in buildManifest:
-			self.config_plugins = buildManifest['config-plugins']		
+		buildManifestFile = os.path.join(self.project_dir, 'build-manifest.json')
+		if (os.path.isfile(buildManifestFile)):
+			buildManifest = loadJSONFile(buildManifestFile)
+			if 'config-plugins' in buildManifest:
+				self.config_plugins = buildManifest['config-plugins']
 
 		ignoreRegExpStr = "^" + '|'.join(ignoreFiles).replace('.', '\\.')
 		if 'ignoreFiles' in self.config_plugins:

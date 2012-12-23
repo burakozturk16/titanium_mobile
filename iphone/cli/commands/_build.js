@@ -873,7 +873,6 @@ function build(logger, config, cli, finished) {
 	}
 	
 	cli.fireHook('build.pre.compile', this, function () {
-		logger.log(__("This is my test '%s'.", this.config.plugins.ignoreFiles.join("|")) + '\n');
 		// let's start building some apps!
 		parallel(this, [
 			'createInfoPlist',
