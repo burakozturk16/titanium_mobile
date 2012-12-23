@@ -71,7 +71,7 @@ public class TiUITableView extends TiUIView
 
 	public void scrollToIndex(final int index)
 	{
-		tableView.getListView().setSelection(index);
+		tableView.getListView().smoothScrollToPosition(index);
 	}
 
 	public void scrollToTop(final int index)
