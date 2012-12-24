@@ -357,20 +357,20 @@ function sendAnalytics(cli) {
 	// 	eventName += '.run';
 	// }
 
-	cli.addAnalyticsEvent(eventName, {
-		dir: cli.argv['project-dir'],
-		name: cli.tiapp.name,
-		publisher: cli.tiapp.publisher,
-		url: cli.tiapp.url,
-		image: cli.tiapp.icon,
-		appid: cli.tiapp.id,
-		description: cli.tiapp.description,
-		type: cli.argv.type,
-		guid: cli.tiapp.guid,
-		version: cli.tiapp.version,
-		copyright: cli.tiapp.copyright,
-		date: (new Date()).toDateString()
-	});
+	// cli.addAnalyticsEvent(eventName, {
+	// 	dir: cli.argv['project-dir'],
+	// 	name: cli.tiapp.name,
+	// 	publisher: cli.tiapp.publisher,
+	// 	url: cli.tiapp.url,
+	// 	image: cli.tiapp.icon,
+	// 	appid: cli.tiapp.id,
+	// 	description: cli.tiapp.description,
+	// 	type: cli.argv.type,
+	// 	guid: cli.tiapp.guid,
+	// 	version: cli.tiapp.version,
+	// 	copyright: cli.tiapp.copyright,
+	// 	date: (new Date()).toDateString()
+	// });
 }
 
 
