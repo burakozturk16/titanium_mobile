@@ -390,7 +390,7 @@ DEFINE_EXCEPTIONS
             [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
         }
         [gradientLayer setFrame:newBounds];
-        [self bsetBackgroundImageLayerBounds:newBounds];
+        [self setBackgroundImageLayerBounds:newBounds];
         if (!animating) {
             [CATransaction commit];
         }
