@@ -47,6 +47,8 @@ public class TableViewRowProxy extends TiViewProxy
 
 	private static final int MSG_SET_DATA = TiViewProxy.MSG_LAST_ID + 5001;
 
+	public Boolean needsAnimation = false;
+
 	public TableViewRowProxy()
 	{
 		super();

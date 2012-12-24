@@ -42,6 +42,9 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+
 public class TiTableView extends FrameLayout
 	implements OnSearchChangeListener
 {
@@ -255,6 +258,14 @@ public class TiTableView extends FrameLayout
                 Log.w(TAG, "getView for the same data, no need to set data again", Log.DEBUG_MODE);
             }
 
+            if (item.proxy instanceof TableViewRowProxy) {
+				TableViewRowProxy row = (TableViewRowProxy)item.proxy;
+				if (row.needsAnimation == true){
+					row.needsAnimation = false;
+					Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
+    				v.startAnimation(animation);
+				}
+			}
 			return v;
 		}
 
