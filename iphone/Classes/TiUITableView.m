@@ -1819,8 +1819,23 @@ return result;	\
 	return sectionProxy.rowCount;
 }
 
+-(Class)cellClass
+{
+    return [TiUITableViewCell class];
+}
+
+
 // Row display. Implementers should *always* try to reuse cells by setting each cell's reuseIdentifier and querying for available reusable cells with dequeueReusableCellWithIdentifier:
 // Cell gets various attributes set automatically based on table (separators) and data source (accessory views, editing controls)
+
+- (UITableViewCell *) createCellForRow:(TiUITableViewRowProxy*)row
+{
+    UITableViewCell *cell = [[[[self cellClass] alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:row.tableClass row:row] autorelease];
+    CGSize cellSize = [(TiUITableViewCell*)cell computeCellSize];
+    [cell setBounds:CGRectMake(0, 0, cellSize.width,cellSize.height)];
+    [[cell contentView] setBounds:[cell bounds]];
+    return cell;
+}
 
 - (UITableViewCell *)tableView:(UITableView *)ourTableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
@@ -1837,10 +1852,7 @@ return result;	\
 	UITableViewCell *cell = [ourTableView dequeueReusableCellWithIdentifier:row.tableClass];
 	if (cell == nil)
 	{
-		cell = [[[TiUITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:row.tableClass row:row] autorelease];
-        CGSize cellSize = [(TiUITableViewCell*)cell computeCellSize];
-		[cell setBounds:CGRectMake(0, 0, cellSize.width,cellSize.height)];
-        [[cell contentView] setBounds:[cell bounds]];
+		cell = [self createCellForRow:row];
 	}
 	else
 	{
