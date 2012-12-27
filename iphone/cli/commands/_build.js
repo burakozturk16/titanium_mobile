@@ -1172,13 +1172,11 @@ build.prototype = {
 		
 		if (!plist.CFBundleVersion  || this.target == 'dist-appstore'){
 			// device builds require an additional token to ensure uniquiness so that iTunes will detect an updated app to sync
-			if (this.target == 'device') {
-				plist.CFBundleVersion = appc.version.format(this.tiapp.version, 3, 3) + '.' + (new Date).getTime();
-			} else {
-				plist.CFBundleVersion = appc.version.format(this.tiapp.version, 3, 3);
-			}
+			plist.CFBundleVersion = (new Date).getTime();
 		}
-		plist.CFBundleShortVersionString = plist.CFBundleVersion;
+		
+		plist.CFBundleShortVersionString = appc.version.format(this.tiapp.version, 3, 3);
+
 		
 		Array.isArray(plist.CFBundleIconFiles) || (plist.CFBundleIconFiles = []);
 		['.png', '@2x.png', '-72.png', '-Small-50.png', '-72@2x.png', '-Small-50@2x.png', '-Small.png', '-Small@2x.png'].forEach(function (name) {
