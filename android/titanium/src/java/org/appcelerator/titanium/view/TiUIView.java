@@ -428,7 +428,12 @@ public abstract class TiUIView
 
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		if (key.equals(TiC.PROPERTY_LEFT)) {
+		if (key.equals(TiC.PROPERTY_LAYOUT)) {
+			String layout = TiConvert.toString(newValue);
+			if (nativeView instanceof TiCompositeLayout) {
+				((TiCompositeLayout)nativeView).setLayoutArrangement(layout);
+			}
+		} else if (key.equals(TiC.PROPERTY_LEFT)) {
 			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionLeft = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
