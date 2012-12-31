@@ -496,16 +496,6 @@
 	};
 	[_tagStartHandlers setObject:[bigBlock copy] forKey:@"big"];
 	
-	void (^backgroundColorBlock)(void) = ^
-	{
-		NSString *color = [_currentTag attributeForKey:@"color"];
-		
-		if (color)
-		{
-			_currentTag.backgroundColor = [DTColor colorWithHTMLName:color];
-		}
-	};
-	[_tagStartHandlers setObject:[backgroundColorBlock copy] forKey:@"backgroundColor"];
 	
 	void (^fontBlock)(void) = ^
 	{

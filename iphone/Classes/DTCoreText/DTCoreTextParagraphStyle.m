@@ -120,7 +120,7 @@
 		_defaultTabInterval = 36.0;
 		_baseWritingDirection = kCTWritingDirectionNatural;
 		_alignment = kCTNaturalTextAlignment;
-		_linebreak = kCTLineBreakByCharWrapping;
+		_linebreak = kCTLineBreakByWordWrapping;
 		_lineHeightMultiple = 0.0;
 		_minimumLineHeight = 0.0;
 		_maximumLineHeight = 0.0;
