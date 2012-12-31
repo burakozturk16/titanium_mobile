@@ -268,6 +268,9 @@ self.p = v;\
             animatedViewProxy = [(TiViewProxy*)v.proxy retain];
         }
     }
+    else{
+        [self updateViewProxyProperties];
+    }
     
 	if (animation.delegate!=nil && [animation.delegate respondsToSelector:@selector(animationWillComplete:)])
 	{
@@ -297,6 +300,30 @@ self.p = v;\
 	
     RELEASE_TO_NIL(animatedViewProxy);
 	RELEASE_TO_NIL(animation.animatedView);
+}
+
+-(void)updateViewProxyProperties
+{
+#define UPDATE_PROXY_PROP(p,d) \
+{\
+if (self.d != nil)\
+[p replaceValue:self.d forKey:@#d notification:NO];\
+}\
+
+        
+    if (animatedViewProxy == nil) return;
+    UPDATE_PROXY_PROP(animatedViewProxy, zIndex)
+    UPDATE_PROXY_PROP(animatedViewProxy, left)
+    UPDATE_PROXY_PROP(animatedViewProxy, right)
+    UPDATE_PROXY_PROP(animatedViewProxy, bottom)
+    UPDATE_PROXY_PROP(animatedViewProxy, top)
+    UPDATE_PROXY_PROP(animatedViewProxy, width)
+    UPDATE_PROXY_PROP(animatedViewProxy, height)
+    UPDATE_PROXY_PROP(animatedViewProxy, color)
+    UPDATE_PROXY_PROP(animatedViewProxy, backgroundColor)
+    UPDATE_PROXY_PROP(animatedViewProxy, visible)
+    UPDATE_PROXY_PROP(animatedViewProxy, opacity)
+    UPDATE_PROXY_PROP(animatedViewProxy, transform)
 }
 
 -(BOOL)isTransitionAnimation
