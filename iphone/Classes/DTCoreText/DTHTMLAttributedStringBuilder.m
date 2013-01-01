@@ -484,18 +484,18 @@
 	};
 	[_tagStartHandlers setObject:[h6Block copy] forKey:@"h6"];
 	
-    void (^smallBlock)(void) = ^
-	{
-		_currentTag.fontDescriptor.pointSize -= _textScale * 1;
-	};
-	[_tagStartHandlers setObject:[smallBlock copy] forKey:@"small"];
-	
-    void (^bigBlock)(void) = ^
-	{
-		_currentTag.fontDescriptor.pointSize += _textScale * 1;
-	};
-	[_tagStartHandlers setObject:[bigBlock copy] forKey:@"big"];
-	
+//    void (^smallBlock)(void) = ^
+//	{
+//		_currentTag.fontDescriptor.pointSize -= _textScale * 1;
+//	};
+//	[_tagStartHandlers setObject:[smallBlock copy] forKey:@"small"];
+//	
+//    void (^bigBlock)(void) = ^
+//	{
+//		_currentTag.fontDescriptor.pointSize += _textScale * 1;
+//	};
+//	[_tagStartHandlers setObject:[bigBlock copy] forKey:@"big"];
+//	
 	
 	void (^fontBlock)(void) = ^
 	{
