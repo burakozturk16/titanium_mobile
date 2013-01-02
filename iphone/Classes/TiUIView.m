@@ -278,6 +278,7 @@ DEFINE_EXCEPTIONS
 {
 	// can be used to trigger things after all properties are set
     configurationSet = YES;
+    [self setBackgroundImage_:[[self proxy] valueForKey:@"backgroundImage"]];
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -558,6 +559,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundImage_:(id)image
 {
+    if (!configurationSet) return;
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
     
     if (bgImage == nil)
@@ -582,6 +584,7 @@ DEFINE_EXCEPTIONS
         backgroundImageLayer.contents = (id)bgImage.CGImage;
         backgroundImageLayer.contentsScale = [bgImage scale];
         backgroundImageLayer.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [bgImage size]);
+        NSLog(@"backgroundImageLayer.contentsCenter %@", NSStringFromCGRect(backgroundImageLayer.contentsCenter));
     }
     self.backgroundImage = bgImage;
 }

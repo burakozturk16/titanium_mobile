@@ -28,6 +28,19 @@
 	[super dealloc];
 }
 
+-(void)configurationSet
+{
+    [super configurationSet];
+    
+    // to prevent multiple calls because of topCap and leftCap
+    if ([[self proxy] valueForKey:@"backgroundSelectedImage"])
+        [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
+    if ([[self proxy] valueForKey:@"backgroundFocusedImage"])
+        [self setBackgroundFocusedImage_:[[self proxy] valueForKey:@"backgroundFocusedImage"]];
+    if ([[self proxy] valueForKey:@"backgroundDisabledImage"])
+        [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
+}
+
 -(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
 	UIView *superResult = [super hitTest:point withEvent:event];
 	
@@ -233,6 +246,7 @@
 
 -(void)setBackgroundImage_:(id)value
 {
+    if (!configurationSet) return;
 	[backgroundImageCache release];
 	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	backgroundImageCache = [[self loadImage:value] retain];
@@ -242,16 +256,19 @@
 
 -(void)setBackgroundSelectedImage_:(id)value
 {
+    if (!configurationSet) return;
 	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateHighlighted];
 }
 
 -(void)setBackgroundDisabledImage_:(id)value
 {
+    if (!configurationSet) return;
 	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateDisabled];
 }
 
 -(void)setBackgroundFocusedImage_:(id)value
 {
+    if (!configurationSet) return;
 	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateSelected];
 }
 
