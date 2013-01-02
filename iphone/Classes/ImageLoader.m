@@ -144,7 +144,9 @@
                 stretchableImage = [[theImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:1] retain];
             }
             else {
-                stretchableImage = [[theImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right)] retain];
+                //prior to ios 6. We use stretchableImageWithLeftCapWidth instead of resizableImageWithCapInsets to get
+                // the same resize mode (stretch)
+                stretchableImage = [[theImage stretchableImageWithLeftCapWidth:left topCapHeight:top] retain];
             }
         }
         else
