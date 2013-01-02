@@ -139,7 +139,7 @@
             if ((top + bottom) >= maxHeight) {
                 bottom = maxHeight - (top + 1);
             }
-                stretchableImage = [[theImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:UIImageResizingModeStretch] retain];
+            stretchableImage = [[theImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:UIImageResizingModeStretch] retain];
         }
         else
         {
