@@ -1171,8 +1171,11 @@ build.prototype = {
 		plist.CFBundleIdentifier = this.tiapp.id;
 		
 		if (!plist.CFBundleVersion  || this.target == 'dist-appstore'){
-			// device builds require an additional token to ensure uniquiness so that iTunes will detect an updated app to sync
-			plist.CFBundleVersion = (new Date).getTime();
+			if (this.target == 'device') {
+				plist.CFBundleVersion = (new Date).getTime();
+			} else {
+				plist.CFBundleVersion = appc.version.format(this.tiapp.version, 3, 3);
+			}
 		}
 		
 		plist.CFBundleShortVersionString = appc.version.format(this.tiapp.version, 3, 3);
