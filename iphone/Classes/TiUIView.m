@@ -584,7 +584,6 @@ DEFINE_EXCEPTIONS
         backgroundImageLayer.contents = (id)bgImage.CGImage;
         backgroundImageLayer.contentsScale = [bgImage scale];
         backgroundImageLayer.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [bgImage size]);
-        NSLog(@"backgroundImageLayer.contentsCenter %@", NSStringFromCGRect(backgroundImageLayer.contentsCenter));
     }
     self.backgroundImage = bgImage;
 }
