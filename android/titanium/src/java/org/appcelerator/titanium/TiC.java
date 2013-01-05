@@ -962,7 +962,7 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ELLIPSIZE = "ellipsize";
-	
+
 	/**
 	 * @module.api
 	 */
@@ -1414,6 +1414,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MOTHER = "mother";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MULTILINE_ELLIPSIZE = "multiLineEllipsize";
 
 	/**
 	 * @module.api
