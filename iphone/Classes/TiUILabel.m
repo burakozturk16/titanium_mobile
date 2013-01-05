@@ -144,7 +144,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 {
 	if (label==nil)
 	{
-        _htmlBreakMode = UILineBreakModeWordWrap;
+        _multilineBreakMode = UILineBreakModeWordWrap;
         label = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;//default wordWrap to True
@@ -179,7 +179,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             [options setValue:self.label.textColor forKey:DTDefaultLinkColor];
             [options setValue:[NSNumber numberWithInt:UITextAlignmentToCTTextAlignment(self.label.textAlignment)] forKey:DTDefaultTextAlignment];
 
-            [options setValue:[NSNumber numberWithInt:UILineBreakModeToCTLineBreakMode(_htmlBreakMode)]  forKey:DTDefaultLineBreakMode];
+            [options setValue:[NSNumber numberWithInt:UILineBreakModeToCTLineBreakMode(_multilineBreakMode)]  forKey:DTDefaultLineBreakMode];
             
             int traitsDefault = 0;
             if (webFont.isItalicStyle)
@@ -441,10 +441,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 }
 
 
--(void)setHtmlEllipsize_:(id)value
+-(void)setMultiLineEllipsize_:(id)value
 {
-    _htmlBreakMode = [TiUtils intValue:value];
-    if (_htmlBreakMode != UILineBreakModeWordWrap)
+    _multilineBreakMode = [TiUtils intValue:value];
+    if (_multilineBreakMode != UILineBreakModeWordWrap)
         [[self label] setLineBreakMode:UILineBreakModeWordWrap];
 
     //we need to update the text
