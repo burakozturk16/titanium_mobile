@@ -104,8 +104,8 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	public TiViewProxy()
 	{
 		pendingAnimationLock = new Object();
-
 		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
 	}
 
 	@Override
