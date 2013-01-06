@@ -7,8 +7,6 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -21,19 +19,14 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
-import android.graphics.Rect;
-
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.MotionEvent;
 import android.widget.Button;
-import android.app.Activity;
 
 public class TiUIButton extends TiUIView
 {
 	private static final String TAG = "TiUIButton";
-	private static final int BUTTON_PRESSED_DELAY = 200;
 
 	private int shadowColor;
 	private int shadowDx;
@@ -44,9 +37,6 @@ public class TiUIButton extends TiUIView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
-		titlePadding = new Rect();
-		titlePadding.left = 8;
-		titlePadding.right = 8;
 		Log.d(TAG, "Creating a button", Log.DEBUG_MODE);
 		Button btn = new Button(proxy.getActivity())
 		{
@@ -55,35 +45,6 @@ public class TiUIButton extends TiUIView
 			{
 				super.onLayout(changed, left, top, right, bottom);
 				TiUIHelper.firePostLayoutEvent(proxy);
-			}
-
-			@Override
-			public boolean onTouchEvent(MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_DOWN) {
-					if (proxy.hasProperty(TiC.PROPERTY_SELECTED_COLOR)) {
-						pressedTimer = new Timer();
-						pressedTimer.schedule(new TimerTask(){
-							public void run(){
-								proxy.getActivity().runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										((Button) nativeView).setTextColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_SELECTED_COLOR))));
-									}
-								});
-							}
-						},BUTTON_PRESSED_DELAY);
-					}
-				} else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_OUTSIDE) {
-					if(pressedTimer != null) {
-						pressedTimer.cancel();
-						pressedTimer.purge();
-						pressedTimer = null;
-					}
-					if (proxy.hasProperty(TiC.PROPERTY_COLOR)) {
-						((Button) nativeView).setTextColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_COLOR))));
-					}
-				}
-				return super.onTouchEvent(event);
 			}
 		};
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
