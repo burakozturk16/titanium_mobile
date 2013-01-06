@@ -335,7 +335,7 @@ public class TiUIText extends TiUIView
 		if (hasFocus) {
 			Boolean clearOnEdit = (Boolean) proxy.getProperty(TiC.PROPERTY_CLEAR_ON_EDIT);
 			if (clearOnEdit != null && clearOnEdit) {
-				((EditText) nativeView).setText("");
+				tv.setText("");
 			}
 			Rect r = new Rect();
 			nativeView.getFocusedRect(r);
