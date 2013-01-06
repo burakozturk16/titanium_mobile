@@ -849,7 +849,7 @@ public abstract class TiUIView
 		}
 	}
 
-	private void setVisibility(int visibility)
+	public void setVisibility(int visibility)
 	{
 		this.visibility = visibility;
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));

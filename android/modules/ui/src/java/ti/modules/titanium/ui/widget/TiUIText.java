@@ -32,6 +32,8 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
@@ -73,6 +75,7 @@ public class TiUIText extends TiUIView
 	private boolean field;
 	private int maxLength = -1;
 
+	private LinearLayout layout;
 	protected TiEditText tv;
 	
 	public class TiEditText extends EditText 
@@ -108,10 +111,20 @@ public class TiUIText extends TiUIView
 
 	}
 
-	public TiUIText(TiViewProxy proxy, boolean field)
+	public TiUIText(final TiViewProxy proxy, boolean field)
 	{
 		super(proxy);
 		Log.d(TAG, "Creating a text field", Log.DEBUG_MODE);
+
+		layout = new LinearLayout(proxy.getActivity())
+		{
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(proxy);
+			}
+		};
 		
 		this.field = field;
 		tv = new TiEditText(getProxy().getActivity());
@@ -128,7 +141,9 @@ public class TiUIText extends TiUIView
 		} else {
 			tv.setGravity(Gravity.TOP | Gravity.LEFT);
 		}
-		setNativeView(tv);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
+		layout.addView(tv, params);
+		setNativeView(layout);
 	}
 
 	@Override
@@ -289,6 +304,14 @@ public class TiUIText extends TiUIView
 			proxy.setProperty(TiC.PROPERTY_VALUE, newValue);
 			proxy.fireEvent(TiC.EVENT_CHANGE, data);
 		}
+	}
+
+	@Override
+	public void setVisibility(int visibility)
+	{
+		if (visibility == View.INVISIBLE)
+			this.blur();
+		super.setVisibility(visibility);
 	}
 	
 	@Override
