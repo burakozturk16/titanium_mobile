@@ -991,6 +991,7 @@ public abstract class TiUIView
 						borderView.setBorderWidth(TiConvert.toFloat(d, TiC.PROPERTY_BORDER_WIDTH, 0f));
 					}
 				}
+				borderView.invalidate();
 			}
 		}
 	}
@@ -1008,6 +1009,7 @@ public abstract class TiUIView
 		} else if (TiC.PROPERTY_BORDER_WIDTH.equals(property)) {
 			borderView.setBorderWidth(TiConvert.toFloat(value, 0f));
 		}
+		borderView.invalidate();
 	}
 
 	private static SparseArray<String> motionEvents = new SparseArray<String>();
