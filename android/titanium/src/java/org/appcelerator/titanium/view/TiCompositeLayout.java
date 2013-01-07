@@ -10,6 +10,8 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.TreeSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
@@ -287,10 +289,31 @@ public class TiCompositeLayout extends ViewGroup
 		int horizontalRowWidth = 0;
 		int horizontalRowHeight = 0;
 
+		//we need to first get the list/number of autoFillsWidth views
+		List<View> autoFillWidthViews=new ArrayList<View>();
+		List<View> autoFillHeightViews=new ArrayList<View>();
+
 		for(int i = 0; i < childCount; i++) {
 			View child = getChildAt(i);
+			TiCompositeLayout.LayoutParams params =
+				(TiCompositeLayout.LayoutParams) child.getLayoutParams();
+
+
+			Boolean needsProcessing = true;
+			if (isHorizontalArrangement() && enableHorizontalWrap == false && params.autoFillsWidth == true && child.getVisibility() != View.GONE) {
+				autoFillWidthViews.add(child);
+				needsProcessing = false;
+			}
+			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap)) && params.autoFillsHeight && child.getVisibility() != View.GONE) {
+				autoFillHeightViews.add(child);
+				needsProcessing = false;
+			}
+
+			if (!needsProcessing)
+				continue;
+
 			if (child.getVisibility() != View.GONE) {
-				constrainChild(child, w, wMode, h, hMode);
+				constrainChild(child, (w-horizontalRowWidth), wMode, h, hMode);
 			}
 
 			int childWidth = child.getMeasuredWidth();
@@ -314,6 +337,7 @@ public class TiCompositeLayout extends ViewGroup
 					}
 
 				} else {
+
 					// For horizontal layout without wrap, just keep on adding the widths since it doesn't wrap
 					maxWidth += childWidth;
 				}
@@ -327,6 +351,35 @@ public class TiCompositeLayout extends ViewGroup
 				} else {
 					maxHeight = Math.max(maxHeight, childHeight);
 				}
+			}
+		}
+
+		if (autoFillWidthViews.size() > 0){
+			w = (w-maxWidth)/autoFillWidthViews.size();
+			for(int i = 0; i < autoFillWidthViews.size(); i++) {
+				View child = autoFillWidthViews.get(i);
+				constrainChild(child, w, wMode, h, hMode);
+
+				int childWidth = child.getMeasuredWidth();
+				int childHeight = child.getMeasuredHeight();
+				childWidth += getViewWidthPadding(child, w);
+				childHeight += getViewHeightPadding(child, h);
+				maxWidth += childWidth;
+				horizontalRowHeight = Math.max(horizontalRowHeight, childHeight);
+			}
+		}
+
+		if (autoFillHeightViews.size() > 0){
+			h = (h-maxHeight)/autoFillHeightViews.size();
+			for(int i = 0; i < autoFillHeightViews.size(); i++) {
+				View child = autoFillHeightViews.get(i);
+				constrainChild(child, w, wMode, h, hMode);
+
+				int childWidth = child.getMeasuredWidth();
+				int childHeight = child.getMeasuredHeight();
+				childWidth += getViewWidthPadding(child, w);
+				childHeight += getViewHeightPadding(child, h);
+				maxHeight += childHeight;
 			}
 		}
 
@@ -918,11 +971,15 @@ public class TiCompositeLayout extends ViewGroup
 		} else {
 			arrangement = LayoutArrangement.DEFAULT;
 		}
+		requestLayout();
+		invalidate();
 	}
 
 	public void setEnableHorizontalWrap(boolean enable)
 	{
 		enableHorizontalWrap = enable;
+		requestLayout();
+		invalidate();
 	}
 
 	public void setProxy(TiViewProxy proxy)
