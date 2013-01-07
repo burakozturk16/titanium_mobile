@@ -31,7 +31,7 @@ import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.content.res.TypedArray;
 
-import android.annotation.SuppressLint;
+// import android.annotation.SuppressLint;
 
 import android.graphics.Typeface;
 import android.text.Layout;
@@ -45,7 +45,7 @@ import android.text.style.BackgroundColorSpan;
 import android.text.style.BulletSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
-import android.text.style.LocaleSpan;
+// import android.text.style.LocaleSpan;
 import android.text.style.MaskFilterSpan;
 import android.text.style.QuoteSpan;
 import android.text.style.RasterizerSpan;
@@ -280,7 +280,7 @@ public class TiUILabel extends TiUIView
 			}
 		}
 		
-		@SuppressLint("NewApi")
+		// @SuppressLint("NewApi")
 		private Object duplicateSpan(Object span){
 			if (span instanceof ForegroundColorSpan){
 				return new ForegroundColorSpan(((ForegroundColorSpan)span).getForegroundColor());
@@ -339,9 +339,9 @@ public class TiUILabel extends TiUIView
 			else if (span instanceof MaskFilterSpan){
 				return new MaskFilterSpan(((MaskFilterSpan)span).getMaskFilter());
 			}
-			else if (span instanceof LocaleSpan){
-				return new LocaleSpan(((LocaleSpan)span).getLocale());
-			}
+			// else if (span instanceof LocaleSpan){
+			// 	return new LocaleSpan(((LocaleSpan)span).getLocale());
+			// }
 			
 			return null;
 		}
