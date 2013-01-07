@@ -2366,7 +2366,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     
     
     CGFloat widthNonFill = 0;
-    int nbAutoFill = 0;
+    CGFloat heightNonFill = 0;
+    int nbWidthAutoFill = 0;
+    int nbHeightAutoFill = 0;
     //First measure the sandbox bounds
     for (id child in childArray) 
     {
@@ -2385,13 +2387,23 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             
             TiDimension constraint = [child layoutProperties]->width;
-           if (TiDimensionIsAutoSize(constraint) ||
+            if (TiDimensionIsAutoSize(constraint) ||
                 !TiDimensionIsAutoFill(constraint))
             {
                 widthNonFill += bounds.size.width;
             }
             else{
-                nbAutoFill += 1;
+                nbWidthAutoFill += 1;
+            }
+            
+            constraint = [child layoutProperties]->height;
+            if (TiDimensionIsAutoSize(constraint) ||
+                !TiDimensionIsAutoFill(constraint))
+            {
+                heightNonFill += bounds.size.height;
+            }
+            else{
+                nbHeightAutoFill += 1;
             }
 
             
@@ -2419,7 +2431,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 if (TiDimensionIsAutoFill([child layoutProperties]->width))
                 {
                     CGRect bounds = [ourView bounds];
-                    [(TiRect*)[measuredBounds objectAtIndex:i] setWidth:[NSNumber numberWithInt:(([ourView bounds].size.width - widthNonFill) / nbAutoFill)]];
+                    [(TiRect*)[measuredBounds objectAtIndex:i] setWidth:[NSNumber numberWithInt:(([ourView bounds].size.width - widthNonFill) / nbWidthAutoFill)]];
 
                 }
                 [(TiRect*)[measuredBounds objectAtIndex:i] setX:[NSNumber numberWithInt:currentLeft]];
@@ -2428,6 +2440,26 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			[(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
 		}
 	}
+    else if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle) && (count > 1) )
+    {
+        int currentTop = 0;
+		for (i=0; i<count; i++)
+		{
+            id child = [childArray objectAtIndex:i];
+            UIView * ourView = [self parentViewForChild:child];
+            if (ourView != nil)
+            {
+                if (TiDimensionIsAutoFill([child layoutProperties]->height))
+                {
+                    CGRect bounds = [ourView bounds];
+                    [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:(([ourView bounds].size.height - heightNonFill) / nbHeightAutoFill)]];
+                    
+                }
+                [(TiRect*)[measuredBounds objectAtIndex:i] setY:[NSNumber numberWithInt:currentTop]];
+                currentTop += [[(TiRect*)[measuredBounds objectAtIndex:i] height] integerValue];
+            }
+		}
+    }
 	else if(TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle) && (count > 1) )
     {
         int startIndex,endIndex, currentTop;
