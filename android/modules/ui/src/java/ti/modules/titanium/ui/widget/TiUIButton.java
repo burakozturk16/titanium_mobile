@@ -19,6 +19,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
@@ -32,11 +33,13 @@ public class TiUIButton extends TiUIView
 	private int shadowDx;
 	private int shadowDy;
 	private Rect titlePadding;
-	private Timer pressedTimer;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
+		titlePadding = new Rect();
+		titlePadding.left = 8;
+		titlePadding.right = 8;
 		Log.d(TAG, "Creating a button", Log.DEBUG_MODE);
 		Button btn = new Button(proxy.getActivity())
 		{
