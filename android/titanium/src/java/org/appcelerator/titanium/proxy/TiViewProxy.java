@@ -53,7 +53,7 @@ import android.view.View;
 	"borderColor", "borderRadius", "borderWidth",
 
 	// layout / dimension (size/width/height have custom accessors)
-	"left", "top", "right", "bottom", "layout", "zIndex",
+	"left", "top", "right", "bottom", "layout", "zIndex", TiC.PROPERTY_HORIZONTAL_WRAP,
 
 	// accessibility
 	TiC.PROPERTY_ACCESSIBILITY_HINT, TiC.PROPERTY_ACCESSIBILITY_LABEL, TiC.PROPERTY_ACCESSIBILITY_VALUE,
