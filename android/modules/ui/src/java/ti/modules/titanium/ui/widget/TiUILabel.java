@@ -77,7 +77,7 @@ public class TiUILabel extends TiUIView
 		private boolean isEllipsized;
 		private boolean needsEllipsing;
 		private boolean singleline = false;
-		private boolean readToEllipsize = true;
+		private boolean readyToEllipsize = true;
 		private boolean programmaticChange;
 		private Spanned fullText;
 		private int maxLines;
@@ -93,8 +93,8 @@ public class TiUILabel extends TiUIView
 		}
 
 		public void SetReadyToEllipsize(Boolean value){
-			readToEllipsize = value;
-			if (readToEllipsize == true)
+			readyToEllipsize = value;
+			if (readyToEllipsize == true)
 				updateEllipsize();
 		}
 
@@ -107,7 +107,7 @@ public class TiUILabel extends TiUIView
 		
 		public void updateEllipsize(){
 			needsEllipsing = true;
-			if (readToEllipsize == true) ellipseText();
+			if (readyToEllipsize == true) ellipseText();
 		}
 
 		public int getMaxLines() {
@@ -268,6 +268,7 @@ public class TiUILabel extends TiUIView
 			else {
 				SpannableStringBuilder newText = ellipsisWithStyle(text, realWhere);
 				while (createWorkingLayout(newText).getLineCount() > maxlines) {
+					if (text.length() < 3) return newText;
 					int lastSpace = text.toString().lastIndexOf(' ');
 					if (lastSpace == -1) {
 						lastSpace = text.length() - 4;
@@ -347,7 +348,8 @@ public class TiUILabel extends TiUIView
 		}
 
 		private void ellipseText() {
-			if (fullText == null) return;
+			if (fullText == null || (ellipsize == null && multiLineEllipsize == null)
+				|| (getWidth() - getPaddingLeft() - getPaddingRight() < 0)) return;
 			SpannableStringBuilder workingText = new SpannableStringBuilder(fullText);
 			boolean ellipsized = false;
 			Layout layout = createWorkingLayout(workingText);
