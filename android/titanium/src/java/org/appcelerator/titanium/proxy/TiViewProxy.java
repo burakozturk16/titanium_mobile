@@ -757,7 +757,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	}
 
 	@Kroll.method
-	public boolean hasFocus()
+	public boolean focused()
 	{
 		if (view != null) {
 			return view.hasFocus();
