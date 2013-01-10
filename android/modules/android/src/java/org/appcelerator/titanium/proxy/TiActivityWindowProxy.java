@@ -9,6 +9,7 @@ package org.appcelerator.titanium.proxy;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.view.TiUIActivityWindow;
 import org.appcelerator.titanium.view.TiUIView;
@@ -43,8 +44,8 @@ public class TiActivityWindowProxy extends TiWindowProxy
 	@Override
 	protected void handleClose(KrollDict options)
 	{
-		Log.d(TAG, "handleClose", Log.DEBUG_MODE);
-		fireEvent("close", null);
+		Log.w(TAG, "handleClose", Log.DEBUG_MODE);
+		fireEvent(TiC.EVENT_CLOSE, null);
 
 		if (view != null) {
 			((TiUIActivityWindow)view).close();
