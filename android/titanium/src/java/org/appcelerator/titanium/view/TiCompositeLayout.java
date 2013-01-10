@@ -300,11 +300,11 @@ public class TiCompositeLayout extends ViewGroup
 
 
 			Boolean needsProcessing = true;
-			if (isHorizontalArrangement() && enableHorizontalWrap == false && params.autoFillsWidth == true && child.getVisibility() != View.GONE) {
+			if (isHorizontalArrangement() && !enableHorizontalWrap && params.sizeOrFillWidthEnabled && params.autoFillsWidth && child.getVisibility() != View.GONE) {
 				autoFillWidthViews.add(child);
 				needsProcessing = false;
 			}
-			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap)) && params.autoFillsHeight && child.getVisibility() != View.GONE) {
+			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap)) && params.sizeOrFillHeightEnabled && params.autoFillsHeight && child.getVisibility() != View.GONE) {
 				autoFillHeightViews.add(child);
 				needsProcessing = false;
 			}
