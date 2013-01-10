@@ -2997,4 +2997,33 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     return result;
 }
 
+-(void)blur:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	if ([self viewAttached])
+	{
+		[[self view] resignFirstResponder];
+	}
+}
+
+-(void)focus:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	if ([self viewAttached])
+	{
+		[[self view] becomeFirstResponder];
+	}
+}
+
+-(BOOL)focused
+{
+	BOOL result=NO;
+	if ([self viewAttached])
+	{
+		result = [[self view] isFirstResponder];
+	}
+    
+	return result;
+}
+
 @end
