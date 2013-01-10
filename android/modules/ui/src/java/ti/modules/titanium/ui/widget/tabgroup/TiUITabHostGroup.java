@@ -78,13 +78,24 @@ public class TiUITabHostGroup extends TiUIAbstractTabGroup
 		TabWidget tabWidget = new TabWidget(context);
 		tabWidget.setId(android.R.id.tabs);
 		tabWidget.setOrientation(LinearLayout.HORIZONTAL);
-		params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-		container.addView(tabWidget, params);
 
 		FrameLayout tabcontent = new FrameLayout(context);
 		tabcontent.setId(android.R.id.tabcontent);
-		params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		container.addView(tabcontent, params);
+
+		if (proxy.hasProperty(TiC.PROPERTY_TABS_BOTTOM)
+				&& TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TABS_BOTTOM))) {
+			params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+			container.addView(tabcontent, params);
+			params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			container.addView(tabWidget, params);
+		}
+		else{
+			params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
+			container.addView(tabWidget, params);
+			params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+			container.addView(tabcontent, params);
+		}
+
 
 		tabHost.setup();
 
