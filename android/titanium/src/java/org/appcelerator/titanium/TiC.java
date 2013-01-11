@@ -1906,11 +1906,6 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_TABS_BACKGROUND_COLOR = "tabsBackgroundColor";
-	
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TABS_ACCENT_COLOR = "tabsAccentColor";
 
 	/**
 	 * @module.api

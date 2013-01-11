@@ -69,9 +69,6 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 		if (proxy.hasProperty(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
 			actionBar.setBackgroundDrawable(TiConvert.toColorDrawable(proxy.getProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR).toString()));
 		}
-		if (proxy.hasProperty(TiC.PROPERTY_TABS_ACCENT_COLOR)) {
-			actionBar.setStackedBackgroundDrawable(TiConvert.toColorDrawable(proxy.getProperty(TiC.PROPERTY_TABS_ACCENT_COLOR).toString()));
-		}
 
 		// The tab content view will act as the "native" view for the group.
 		// Note: since the tab bar is NOT part of the content, animations
@@ -190,8 +187,6 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
 		if (key.equals(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
 			actionBar.setBackgroundDrawable(TiConvert.toColorDrawable(newValue.toString()));
-		} else if (key.equals(TiC.PROPERTY_TABS_ACCENT_COLOR)) {
-			actionBar.setStackedBackgroundDrawable(TiConvert.toColorDrawable(newValue.toString()));
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
