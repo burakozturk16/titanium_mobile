@@ -471,7 +471,7 @@ public class TiUIText extends TiUIView
 				actionId == EditorInfo.IME_ACTION_NEXT || 
 				actionId == EditorInfo.IME_ACTION_DONE ) {
 			Log.d(TAG, "onEditorAction for textview with text " + v.getText(), Log.DEBUG_MODE);
-		tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
 			proxy.fireEvent("return", data);
 		}
 
