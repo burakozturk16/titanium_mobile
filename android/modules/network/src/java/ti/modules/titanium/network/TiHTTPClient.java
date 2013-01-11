@@ -482,6 +482,7 @@ public class TiHTTPClient
 		this.parts = new HashMap<String,ContentBody>();
 		this.maxBufferSize = TiApplication.getInstance()
 				.getSystemProperties().getInt(PROPERTY_MAX_BUFFER_SIZE, DEFAULT_MAX_BUFFER_SIZE);
+		this.setRequestHeader("Connection","close");
 	}
 
 	public int getReadyState()
@@ -734,12 +735,12 @@ public class TiHTTPClient
 	
 	public void setRequestHeader(String header, String value)
 	{
-		if (readyState == READY_STATE_OPENED) {
+		// if (readyState == READY_STATE_OPENED) {
 			headers.put(header, value);
 
-		} else {
-			throw new IllegalStateException("setRequestHeader can only be called before invoking send.");
-		}
+		// } else {
+		// 	throw new IllegalStateException("setRequestHeader can only be called before invoking send.");
+		// }
 	}
 
 	public String getResponseHeader(String headerName)

@@ -16,6 +16,6 @@ public class TiPersistentHTTPClient extends TiHTTPClient
 		super(proxy);
 
 		//to make sure if someone used System.setProperty("http.keepAlive", "false");
-		// this.setRequestHeader("Connection","Keep-Alive");
+		this.setRequestHeader("Connection","Keep-Alive");
 	}
 }
