@@ -379,7 +379,7 @@ public class TiUILabel extends TiUIView
 							int end2 = workingText.getSpanEnd(spans[j]);
 							int mystart = newStart + Math.max(0, start2 - start);
 							int spanlengthonline = Math.min(end2, start + linestr.length()) - Math.max(start2, start);
-							int myend = Math.min(newStart + spanlengthonline, newStart + lineSpanned.length());
+							int myend = Math.min(mystart + spanlengthonline, newStart + lineSpanned.length());
 							int flags = workingText.getSpanFlags(spans[j]);
 							if (myend > mystart){
 								Object newSpan = duplicateSpan(spans[j]);
