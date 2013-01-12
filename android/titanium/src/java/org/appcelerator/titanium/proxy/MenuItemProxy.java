@@ -6,7 +6,10 @@
  */
 package org.appcelerator.titanium.proxy;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -23,7 +26,17 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
 
-@Kroll.proxy
+@Kroll.proxy(propertyAccessors={
+	TiC.PROPERTY_VISIBLE,
+	TiC.PROPERTY_ENABLED,
+	TiC.PROPERTY_CHECKED,
+	TiC.PROPERTY_CHECKABLE,
+	TiC.PROPERTY_TITLE,
+	TiC.PROPERTY_TITLE_CONDENSED,
+	TiC.PROPERTY_ICON,
+	TiC.PROPERTY_ACTION_VIEW,
+	TiC.PROPERTY_SHOW_AS_ACTION
+})
 public class MenuItemProxy extends KrollProxy
 {
 	private static final String TAG = "MenuItem";
@@ -51,6 +64,83 @@ public class MenuItemProxy extends KrollProxy
 		}
 	}
 
+	@Override
+	public void handleCreationDict(KrollDict options)
+	{
+		super.handleCreationDict(options);
+		if (options.containsKey(TiC.PROPERTY_VISIBLE)) {
+			item.setVisible(TiConvert.toBoolean(options, TiC.PROPERTY_VISIBLE));
+		}
+		if (options.containsKey(TiC.PROPERTY_ENABLED)) {
+			item.setEnabled(TiConvert.toBoolean(options, TiC.PROPERTY_ENABLED));
+		}
+		if (options.containsKey(TiC.PROPERTY_CHECKED)) {
+			item.setChecked(TiConvert.toBoolean(options, TiC.PROPERTY_CHECKED));
+		}
+		if (options.containsKey(TiC.PROPERTY_CHECKABLE)) {
+			item.setCheckable(TiConvert.toBoolean(options, TiC.PROPERTY_CHECKABLE));
+		}
+		if (options.containsKey(TiC.PROPERTY_TITLE)) {
+			item.setTitle(TiConvert.toString(options, TiC.PROPERTY_TITLE));
+		}
+		if (options.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
+			item.setTitleCondensed(TiConvert.toString(options, TiC.PROPERTY_TITLE_CONDENSED));
+		}
+		if (options.containsKey(TiC.PROPERTY_ICON)) {
+			item.setIcon(TiUIHelper.getResourceDrawable(options.get(TiC.PROPERTY_ICON)));
+		}
+		if (options.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(options.get(TiC.PROPERTY_ACTION_VIEW));
+		}
+		if (options.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(options, TiC.PROPERTY_SHOW_AS_ACTION));
+		}
+	}
+
+	public void onPropertyChanged(String name, Object value){
+		final String fname = name;
+		final Object fvalue = value;
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				handlePropertyChange(fname, fvalue);
+			}
+		});
+	}
+
+	private void handlePropertyChange(String name, Object value) {
+		if (name.equals(TiC.PROPERTY_VISIBLE)) {
+			item.setVisible(TiConvert.toBoolean(value));
+		}
+		else if (name.equals(TiC.PROPERTY_CHECKED)) {
+			item.setChecked(TiConvert.toBoolean(value));
+		}
+		else if (name.equals(TiC.PROPERTY_CHECKABLE)) {
+			item.setCheckable(TiConvert.toBoolean(value));
+		}
+		else if (name.equals(TiC.PROPERTY_ENABLED)) {
+			item.setEnabled(TiConvert.toBoolean(value));
+		}
+		else if (name.equals(TiC.PROPERTY_TITLE)) {
+			item.setTitle(value.toString());
+		}
+		else if (name.equals(TiC.PROPERTY_TITLE_CONDENSED)) {
+			item.setTitleCondensed(value.toString());
+		}
+		else if (name.equals(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(value);
+		}
+		else if (name.equals(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(value));
+		}
+		else if (name.equals(TiC.PROPERTY_ICON)) {
+			item.setIcon(value != null ? TiUIHelper.getResourceDrawable(value) : null);
+		}
+		else
+		{
+			super.onPropertyChanged(name, value);
+		}
+	}
+
 	@Kroll.method @Kroll.getProperty
 	public int getGroupId() {
 		return item.getGroupId();
@@ -66,103 +156,12 @@ public class MenuItemProxy extends KrollProxy
 		return item.getOrder();
 	}
 	
-	@Kroll.method @Kroll.getProperty
-	public String getTitle() {
-		return (String) item.getTitle();
-	}
-	
-	@Kroll.method @Kroll.getProperty
-	public String getTitleCondensed() {
-		return (String) item.getTitleCondensed();
-	}
-	
 	@Kroll.method
 	public boolean hasSubMenu() {
 		return item.hasSubMenu();
 	}
-	
-	@Kroll.method @Kroll.getProperty
-	public boolean isChecked() {
-		return item.isChecked();
-	}
-	
-	@Kroll.method @Kroll.getProperty
-	public boolean isCheckable() {
-		return item.isCheckable();
-	}
-	
-	@Kroll.method @Kroll.getProperty
-	public boolean isEnabled() {
-		return item.isEnabled();
-	}
-	
-	@Kroll.method @Kroll.getProperty
-	public boolean isVisible() {
-		return item.isVisible();
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setCheckable(boolean checkable) {
-		item.setCheckable(checkable);
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setChecked(boolean checked) {
-		item.setChecked(checked);
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setEnabled(boolean enabled) {
-		item.setEnabled(enabled);
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setIcon(Object icon) 
-	{
-		if (icon != null) {
-			if (icon instanceof String) {
-				String iconPath = TiConvert.toString(icon);
-				TiUrl iconUrl = new TiUrl(iconPath);
-				if (iconPath != null) {
-					TiFileHelper tfh = new TiFileHelper(TiApplication.getInstance());
-					Drawable d = tfh.loadDrawable(iconUrl.resolve(), false);
-					if (d != null) {
-						item.setIcon(d);
-					}
-				}
-			} else if (icon instanceof Number) {
-				Drawable d = TiUIHelper.getResourceDrawable(TiConvert.toInt(icon));
-				if (d != null) {
-					item.setIcon(d);
-				}
-			}
-		}
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setTitle(String title) {
-		item.setTitle(title);
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setTitleCondensed(String title) {
-		item.setTitleCondensed(title);
-		return this;
-	}
-	
-	@Kroll.method @Kroll.setProperty
-	public MenuItemProxy setVisible(boolean visible) {
-		item.setVisible(visible);
-		return this;
-	}
 
-	@Kroll.method @Kroll.setProperty
-	public void setActionView(Object view)
+	private void setActionView(Object view)
 	{
 		if (view instanceof TiViewProxy) {
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -177,8 +176,7 @@ public class MenuItemProxy extends KrollProxy
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
-	public void setShowAsAction(int flag) {
+	private void setShowAsAction(int flag) {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 			item.setShowAsAction(flag);
 

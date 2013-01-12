@@ -137,31 +137,7 @@ public class MenuProxy extends KrollProxy
 		synchronized(menuMap) {
 			menuMap.put(item, mip);
 		}
-		
-		if (d.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
-			mip.setActionView(d.get(TiC.PROPERTY_ACTION_VIEW));
-		}
-		if (d.containsKey(TiC.PROPERTY_CHECKABLE)) {
-			mip.setCheckable(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKABLE));
-		}
-		if (d.containsKey(TiC.PROPERTY_CHECKED)) {
-			mip.setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKED));
-		}
-		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
-			mip.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
-		}
-		if (d.containsKey(TiC.PROPERTY_ICON)) {
-			mip.setIcon(d.get(TiC.PROPERTY_ICON));
-		}
-		if (d.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
-			mip.setShowAsAction(TiConvert.toInt(d, TiC.PROPERTY_SHOW_AS_ACTION));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
-			mip.setTitleCondensed(TiConvert.toString(d, TiC.PROPERTY_TITLE_CONDENSED));
-		}
-		if (d.containsKey(TiC.PROPERTY_VISIBLE)) {
-			mip.setVisible(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE));
-		}
+		mip.handleCreationDict(d);
 		return mip;
 	}
 
