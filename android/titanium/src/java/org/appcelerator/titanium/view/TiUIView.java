@@ -809,6 +809,14 @@ public abstract class TiUIView
 		}
 	}
 
+	public boolean hasFocus()
+	{
+		if (nativeView != null) {
+			return nativeView.hasFocus();
+		}
+		return false;
+	}
+
 	/**
 	 * Blurs the view.
 	 */
