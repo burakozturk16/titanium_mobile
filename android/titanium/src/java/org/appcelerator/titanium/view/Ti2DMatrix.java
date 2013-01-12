@@ -34,7 +34,7 @@ public class Ti2DMatrix extends KrollProxy
 		protected static final int TYPE_INVERT = 4;
 
 		protected float scaleFromX, scaleFromY, scaleToX, scaleToY;
-		protected float translateX, translateY;
+		protected float translateFromX, translateFromY, translateToX, translateToY;
 		protected float rotateFrom, rotateTo;
 		protected float anchorX = 0.5f, anchorY = 0.5f;
 		protected Ti2DMatrix multiplyWith;
@@ -60,7 +60,7 @@ public class Ti2DMatrix extends KrollProxy
 						anchorY * childHeight);
 					break;
 				case TYPE_TRANSLATE:
-					matrix.preTranslate(interpolatedTime * translateX, interpolatedTime * translateY); break;
+					matrix.preTranslate((interpolatedTime *  (translateToX - translateFromX)) + translateFromX, (interpolatedTime * (translateToY - translateFromY)) + translateFromY); break;
 				case TYPE_ROTATE:
 					matrix.preRotate((interpolatedTime * (rotateTo - rotateFrom)) + rotateFrom, anchorX * childWidth, anchorY * childHeight); break;
 				case TYPE_MULTIPLY:
@@ -115,12 +115,23 @@ public class Ti2DMatrix extends KrollProxy
 	}
 
 	@Kroll.method
-	public Ti2DMatrix translate(double x, double y)
+	public Ti2DMatrix translate(Object args[])
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_TRANSLATE);
 		newMatrix.handleAnchorPoint(this.getProperties());
-		newMatrix.op.translateX = (float) x;
-		newMatrix.op.translateY = (float) y;
+		newMatrix.op.translateFromX = newMatrix.op.translateFromY = newMatrix.op.translateToX = newMatrix.op.translateToY = 0;
+		if (args.length == 4) {
+			// translate(fromX, fromY, toX, toY)
+			newMatrix.op.translateFromX = TiConvert.toFloat(args[0]);
+			newMatrix.op.translateFromY = TiConvert.toFloat(args[1]);
+			newMatrix.op.translateToX = TiConvert.toFloat(args[2]);
+			newMatrix.op.translateToY = TiConvert.toFloat(args[3]);
+		}
+		if (args.length == 2) {
+			// translate(toX, toY)
+			newMatrix.op.translateToX = TiConvert.toFloat(args[0]);
+			newMatrix.op.translateToY = TiConvert.toFloat(args[1]);
+		}
 		return newMatrix;
 	}
 
