@@ -83,6 +83,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	private static final int MSG_GETRECT = MSG_FIRST_ID + 111;
 	private static final int MSG_FINISH_LAYOUT = MSG_FIRST_ID + 112;
 	private static final int MSG_UPDATE_LAYOUT = MSG_FIRST_ID + 113;
+	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 114;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -96,6 +97,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	// TODO: Deprecated since Release 3.0.0
 	@Deprecated private AtomicBoolean layoutStarted = new AtomicBoolean();
+	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
 
 	/**
 	 * Constructs a new TiViewProxy instance.
@@ -302,6 +304,10 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 			case MSG_FINISH_LAYOUT : {
 				handleFinishLayout();
+				return true;
+			}
+			case MSG_FINISH_APPLY_PROPS : {
+				handleFinishBatchPropertyApply();
 				return true;
 			}
 			case MSG_UPDATE_LAYOUT : {
@@ -1064,6 +1070,27 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		layoutStarted.set(false);
 	}
 
+	public boolean inBatchPropertyApply()
+	{
+		return batchPropertyApply.get();
+	}
+
+	@Override
+	public void applyPropertiesInternal(Object arg)
+	{
+		batchPropertyApply.set(true);
+		super.applyPropertiesInternal(arg);
+		if (!isLayoutStarted()) {
+			return;
+		}
+		if (TiApplication.isUIThread()) {
+			handleFinishBatchPropertyApply();
+		} else {
+			getMainHandler().sendEmptyMessage(MSG_FINISH_APPLY_PROPS);
+		}
+		batchPropertyApply.set(false);
+	}
+
 	// TODO: Deprecated since Release 3.0.0
 	@Kroll.method @Deprecated
 	public void updateLayout(Object params)
@@ -1085,6 +1112,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			getMainHandler().obtainMessage(MSG_UPDATE_LAYOUT, paramsMap).sendToTarget();
 		}
 		layoutStarted.set(false);
+	}
+
+	protected void handleFinishBatchPropertyApply()
+	{
+		if (view.iszIndexChanged()) {
+			view.forceLayoutNativeView(true);
+			view.setzIndexChanged(false);
+		} else {
+			view.forceLayoutNativeView(false);
+		}
 	}
 
 	private void handleFinishLayout()
@@ -1125,4 +1162,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 		}
 	}
+
+
 }
