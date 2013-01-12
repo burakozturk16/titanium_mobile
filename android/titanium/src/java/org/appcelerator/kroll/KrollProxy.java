@@ -572,8 +572,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 
-	@Kroll.method
-	public void applyProperties(Object arg)
+	public void applyPropertiesInternal(Object arg)
 	{
 		if (arg instanceof HashMap) {
 			HashMap props = (HashMap) arg;
@@ -583,6 +582,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		} else {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
 		}
+	}
+
+	@Kroll.method
+	public void applyProperties(Object arg)
+	{
+		applyPropertiesInternal(arg);
 	}
 
 	/**
