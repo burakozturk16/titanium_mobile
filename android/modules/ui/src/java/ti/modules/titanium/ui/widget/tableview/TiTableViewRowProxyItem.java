@@ -143,7 +143,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				// on a layout pass (i.e. when onLayout() gets called).
 				//
 				clearChildViews(proxy);
-				view = proxy.forceCreateView(false);  // false means don't set modelListener
+				view = proxy.forceCreateView(false, false);  // false means don't set modelListener, second false not to process Properties
 				if (i >= views.size()) {
 					views.add(view);
 				} else {
@@ -211,6 +211,8 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 
 	public void setRowData(TableViewRowProxy rp) {
 //		hasControls = rp.hasControls();
+
+		rp.setTableViewItem(this);
 		
 		Object newSelectorSource = null;
 		if (rp.hasProperty(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
@@ -393,17 +395,17 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
 		// Make these associations here to avoid doing them on measurement passes
-		TableViewRowProxy rp = getRowProxy();
-		rp.setTableViewItem(this);
-		if (this.item.proxy.getChildren().length == 0) {
-			// old-style row
-			TiUIView childView = views.get(0);
-			childView.processProperties(filterProperties(rp.getProperties()));
-			childView.setProxy(rp);
-		}
-		else {
-			associateProxies(this.item.proxy.getChildren(), views);
-		}
+		// TableViewRowProxy rp = getRowProxy();
+		// rp.setTableViewItem(this);
+		// if (this.item.proxy.getChildren().length == 0) {
+		// 	// old-style row
+		// 	TiUIView childView = views.get(0);
+		// 	childView.processProperties(filterProperties(rp.getProperties()));
+		// 	childView.setProxy(rp);
+		// }
+		// else {
+		// 	associateProxies(this.item.proxy.getChildren(), views);
+		// }
 		
 		int contentLeft = left;
 		int contentRight = right;
