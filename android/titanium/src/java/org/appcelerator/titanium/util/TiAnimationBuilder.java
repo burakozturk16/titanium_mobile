@@ -7,6 +7,9 @@
 package org.appcelerator.titanium.util;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Iterator;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
@@ -163,6 +166,20 @@ public class TiAnimationBuilder
 		}
 
 		this.options = options;
+	}
+
+	private void applyCompletionProperties()
+	{
+
+		if (this.options == null || viewProxy == null) {
+			return;
+		}
+
+		Iterator it = this.options.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			viewProxy.setProperty((String)pairs.getKey(), pairs.getValue());
+		}
 	}
 
 	public void applyAnimation(TiAnimation anim)
@@ -636,16 +653,17 @@ public class TiAnimationBuilder
 					}
 					// this is apparently the only way to apply an opacity to
 					// the entire view and have it stick
-					AlphaAnimation aa = new AlphaAnimation(toOpacity.floatValue(), toOpacity.floatValue());
-					aa.setDuration(1);
-					aa.setFillAfter(true);
-					view.setLayoutParams(view.getLayoutParams());
-					view.startAnimation(aa);
+					// AlphaAnimation aa = new AlphaAnimation(toOpacity.floatValue(), toOpacity.floatValue());
+					// aa.setDuration(1);
+					// aa.setFillAfter(true);
+					// view.setLayoutParams(view.getLayoutParams());
+					// view.startAnimation(aa);
+					viewProxy.peekView().setOpacity(toOpacity.floatValue());
 				}
-
 				applyOpacity = false;
 			}
 
+			applyCompletionProperties();
 			if (a instanceof AnimationSet) {
 				if (callback != null) {
 					callback.callAsync(viewProxy.getKrollObject(), new Object[] { new KrollDict() });
@@ -680,6 +698,16 @@ public class TiAnimationBuilder
 		{
 			if (animationProxy != null) {
 				animationProxy.fireEvent(TiC.EVENT_START, null);
+			}
+			if (applyOpacity) {
+				// There is an android bug where animations still occur after
+				// this method. We clear it from the view to
+				// correct this.
+				if (toOpacity.floatValue() > 0) {
+					if (view.getVisibility() == View.INVISIBLE) {
+						view.setVisibility(View.VISIBLE);
+					}
+				}
 			}
 		}
 	}
