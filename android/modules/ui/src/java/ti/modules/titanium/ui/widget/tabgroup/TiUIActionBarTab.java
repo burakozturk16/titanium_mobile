@@ -56,12 +56,24 @@ public class TiUIActionBarTab extends TiUIAbstractTab {
 		if (title != null) {
 			tab.setText(title.toString());
 		}
+
+		Object icon = proxy.getProperty(TiC.PROPERTY_ICON);
+		if (icon != null) {
+			tab.setIcon(TiUIHelper.getResourceDrawable(icon));
+		}
 	}
 
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			tab.setText(newValue.toString());
+		}
+		else if (key.equals(TiC.PROPERTY_ICON)) {
+			tab.setIcon(newValue != null ? TiUIHelper.getResourceDrawable(newValue) : null);
+		}
+		else
+		{
+			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
 
