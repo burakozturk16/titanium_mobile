@@ -204,7 +204,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		switch(msg.what) {
 			case MSG_GETVIEW : {
 				AsyncResult result = (AsyncResult) msg.obj;
-				result.setResult(handleGetView());
+				result.setResult(handleGetView((msg.arg1 == 1),(msg.arg2 == 1)));
 				return true;
 			}
 			case MSG_ADD_CHILD : {
@@ -401,11 +401,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		this.view = view;
 	}
+
+	public TiUIView forceCreateView(boolean enableModelListener, boolean processProperties)
+	{
+		view = null;
+		return getOrCreateView(enableModelListener, processProperties);
+	}
 	
 	public TiUIView forceCreateView(boolean enableModelListener)
 	{
-		view = null;
-		return getOrCreateView(enableModelListener);
+		return forceCreateView(enableModelListener, true);
 	}
 
 	public TiUIView forceCreateView()
@@ -415,15 +420,20 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	public TiUIView getOrCreateView(boolean enableModelListener)
 	{
+		return getOrCreateView(enableModelListener, true);
+	}
+
+	public TiUIView getOrCreateView(boolean enableModelListener, boolean processProperties)
+	{
 		if (activity == null || view != null) {
 			return view;
 		}
 
 		if (TiApplication.isUIThread()) {
-			return handleGetView(enableModelListener);
+			return handleGetView(enableModelListener, processProperties);
 		}
 
-		return (TiUIView) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEW), 0);
+		return (TiUIView) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEW, (enableModelListener) ? 1 : 0, (processProperties) ? 1 : 0), 0);
 	}
 	
 	/**
@@ -438,6 +448,11 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	protected TiUIView handleGetView(boolean enableModelListener)
 	{
+		return handleGetView(enableModelListener, true);
+	}
+
+	protected TiUIView handleGetView(boolean enableModelListener, boolean processProperties)
+	{
 		if (view == null) {
 			Log.d(TAG, "getView: " + getClass().getSimpleName(), Log.DEBUG_MODE);
 
@@ -450,7 +465,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 					Log.w(TAG, "Activity is null", Log.DEBUG_MODE);
 				}
 			}
-			realizeViews(view, enableModelListener);
+			realizeViews(view, enableModelListener, processProperties);
 			view.registerForTouch();
 			view.registerForKeyPress();
 		}
@@ -464,11 +479,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	public void realizeViews(TiUIView view, boolean enableModelListener)
 	{
+		realizeViews(view, enableModelListener, true);
+	}
+
+	public void realizeViews(TiUIView view, boolean enableModelListener, boolean processProperties)
+	{
 		if (enableModelListener)
 		{
 			setModelListener(view);
 		}
-		else
+		else if (processProperties)
 		{
 			// Just call processProperties() to set them on this view.
 			// Note that this is done in setModelListener() when it is
@@ -482,7 +502,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (children != null) {
 			try {
 				for (TiViewProxy p : children) {
-					TiUIView cv = p.getOrCreateView();
+					TiUIView cv = p.getOrCreateView(enableModelListener, processProperties);
 					view.add(cv);
 				}
 			} catch (ConcurrentModificationException e) {
