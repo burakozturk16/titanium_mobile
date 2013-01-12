@@ -89,10 +89,12 @@ public class TiUILabel extends TiUIView
 		{
 			super.onLayout(changed, left, top, right, bottom);
 			// this.SetReadyToEllipsize(true);
-			updateEllipsize();
+			if (changed){
+				updateEllipsize();
 
-			if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
-				proxy.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
+				if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
+					proxy.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
+				}
 			}
 		}
 		
@@ -544,9 +546,9 @@ public class TiUILabel extends TiUIView
 	{
 
 		super.processProperties(d);
-
 		TextView tv = (TextView) getNativeView();
-		
+		if (tv == null) return;
+
 		// Clear any text style left over here if view is recycled
 		TiUIHelper.styleText(tv, null, null, null);
 		
@@ -641,7 +643,7 @@ public class TiUILabel extends TiUIView
 		Log.i(TAG, "processProperties " + tv.getText());
 
 		((EllipsizingTextView)tv).SetReadyToEllipsize(true);
-		tv.invalidate();
+		// tv.invalidate();
 	}
 	
 	@Override
