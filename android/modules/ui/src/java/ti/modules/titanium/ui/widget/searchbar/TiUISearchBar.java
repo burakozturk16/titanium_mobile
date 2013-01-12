@@ -11,6 +11,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.TiC;
 
 import ti.modules.titanium.ui.widget.TiUIText;
 import android.view.Gravity;
@@ -23,6 +24,7 @@ import android.widget.RelativeLayout;
 public class TiUISearchBar extends TiUIText
 {
 	protected ImageButton cancelBtn;
+	protected TiUIText textfield;
 	
 	public interface OnSearchChangeListener {
 		public void filterBy(String text);
@@ -33,6 +35,7 @@ public class TiUISearchBar extends TiUIText
 	public TiUISearchBar(final TiViewProxy proxy)
 	{
 		super(proxy, true);
+		textfield = this;
 
 		// TODO Add Filter support
 
@@ -55,6 +58,7 @@ public class TiUISearchBar extends TiUIText
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
+				proxy.setProperty(TiC.PROPERTY_VALUE, "", true);
 				proxy.fireEvent("cancel", null);
 			}
 		});
@@ -77,7 +81,7 @@ public class TiUISearchBar extends TiUIText
 		params.addRule(RelativeLayout.CENTER_VERTICAL);
 		params.addRule(RelativeLayout.LEFT_OF, 101);
 //		params.setMargins(4, 4, 4, 4);
-		layout.addView(tv, params);
+		layout.addView(nativeView, params);
 
 		params = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
