@@ -646,8 +646,6 @@ public class TiUILabel extends TiUIView
 		// This needs to be the last operation.
 		TiUIHelper.linkifyIfEnabled(tv, d.get(TiC.PROPERTY_AUTO_LINK));
 
-		Log.i(TAG, "processProperties " + tv.getText());
-
 		((EllipsizingTextView)tv).SetReadyToEllipsize(true);
 		// tv.invalidate();
 	}
