@@ -161,6 +161,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				content.addView(v, view.getLayoutParams());
 			}
 		}
+		getRowProxy().setTableViewItem(null); //to make sure we associateProxies in the onLayout first call
 	}
 
 	protected void clearChildViews(TiViewProxy parent)
