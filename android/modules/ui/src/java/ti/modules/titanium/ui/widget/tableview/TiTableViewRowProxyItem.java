@@ -152,8 +152,11 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			}
 
 			View v = view.getOuterView();
-			view.processProperties(proxy.getProperties());
-			applyChildProperties(proxy, view);
+
+			//applying properties will be done in the first layout
+			// view.processProperties(proxy.getProperties());
+			// applyChildProperties(proxy, view);
+
 			if (v.getParent() == null) {
 				content.addView(v, view.getLayoutParams());
 			}
@@ -211,8 +214,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 
 	public void setRowData(TableViewRowProxy rp) {
 //		hasControls = rp.hasControls();
-
-		rp.setTableViewItem(this);
 		
 		Object newSelectorSource = null;
 		if (rp.hasProperty(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
@@ -394,18 +395,22 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
-		// Make these associations here to avoid doing them on measurement passes
-		// TableViewRowProxy rp = getRowProxy();
-		// rp.setTableViewItem(this);
-		// if (this.item.proxy.getChildren().length == 0) {
-		// 	// old-style row
-		// 	TiUIView childView = views.get(0);
-		// 	childView.processProperties(filterProperties(rp.getProperties()));
-		// 	childView.setProxy(rp);
-		// }
-		// else {
-		// 	associateProxies(this.item.proxy.getChildren(), views);
-		// }
+		TableViewRowProxy rp = getRowProxy();
+		if (rp.getTableViewRowProxyItem() != this){
+			Log.d(TAG, "onLayout: associateProxies ", Log.DEBUG_MODE);
+			// Make these associations here to avoid doing them on measurement passes
+			rp.setTableViewItem(this);
+			if (this.item.proxy.getChildren().length == 0) {
+				// old-style row
+				TiUIView childView = views.get(0);
+				childView.processProperties(filterProperties(rp.getProperties()));
+				childView.setProxy(rp);
+			}
+			else {
+				associateProxies(this.item.proxy.getChildren(), views);
+			}
+		}
+		
 		
 		int contentLeft = left;
 		int contentRight = right;
@@ -518,7 +523,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			TiViewProxy proxy = proxies[i];
 			proxy.setView(view);
 			view.setProxy(proxy);
-			proxy.setModelListener(view);
+			proxy.setModelListener(view); //applying proxy properties
 			associateProxies(proxy.getChildren(), view.getChildren());
 			i++;
 		}
