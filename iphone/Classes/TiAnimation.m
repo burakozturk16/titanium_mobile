@@ -349,6 +349,17 @@ if (self.d != nil)\
     return animationDuration;
 }
 
+-(CAMediaTimingFunction*) timingFunction
+{
+    switch ([curve intValue]) {
+        case UIViewAnimationOptionCurveEaseInOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        case UIViewAnimationOptionCurveEaseIn: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+        case UIViewAnimationOptionCurveEaseOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+        case UIViewAnimationOptionCurveLinear: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        default: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
+    }
+}
+
 -(void)animate:(id)args
 {
 	ENSURE_UI_THREAD(animate,args);
@@ -410,16 +421,6 @@ if (self.d != nil)\
 		LayoutConstraint *contraints = [ourProxy layoutProperties];
 		ApplyConstraintToViewWithBounds(contraints, view_, transitionView.bounds);
 		[ourProxy layoutChildren:NO];
-	}
-	else
-	{
-		CALayer * modelLayer = [view_ layer];
-		CALayer * transitionLayer = [modelLayer presentationLayer];
-		NSArray * animationKeys = [transitionLayer animationKeys];
-		for (NSString * thisKey in animationKeys)
-		{
-			[modelLayer setValue:[transitionLayer valueForKey:thisKey] forKey:thisKey];
-		}
 	}
 
 	animatedView = [theview retain];
@@ -528,23 +529,39 @@ doReposition = YES;\
                     [(TiViewProxy *)[uiview proxy] setVzIndex:[zIndex intValue]];
                 }
                 
-//                if (doReposition)
-//                {
-//                    [(TiViewProxy *)[uiview proxy] reposition];
-//                }
                 if (doReposition)
                 {
-                    CABasicAnimation *theAnimation = [CABasicAnimation animationWithKeyPath:@"shadowPath"];
-                    theAnimation.fromValue = (id)[UIBezierPath bezierPathWithRoundedRect:[uiview bounds] cornerRadius:uiview.layer.cornerRadius].CGPath;
-                    theAnimation.duration = animationDuration;
-                    theAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-                    [(TiViewProxy *)[uiview proxy] reposition];
-                    theAnimation.toValue = (id)[UIBezierPath bezierPathWithRoundedRect:[uiview bounds] cornerRadius:uiview.layer.cornerRadius].CGPath;
-                    if (repeatCount > 0) {
-                        theAnimation.autoreverses = (reverseAnimation != nil);
-                        theAnimation.repeatCount = repeatCount;
+                    CABasicAnimation *boundsAnimation = nil;
+                    CABasicAnimation *positionAnimation = nil;
+                    bool hasGradient = ([uiview gradientLayer] != nil);
+                    if (hasGradient) {
+                        boundsAnimation = [CABasicAnimation animationWithKeyPath:@"bounds"];
+                        boundsAnimation.fromValue = [NSValue valueWithCGRect:[uiview bounds]];
+                        boundsAnimation.duration = animationDuration;
+                        boundsAnimation.timingFunction = [self timingFunction];
+                    
+                        positionAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
+                        positionAnimation.fromValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
+                        positionAnimation.duration = animationDuration;
+                        positionAnimation.timingFunction = [self timingFunction];
                     }
-                    [[uiview layer] addAnimation:theAnimation forKey:@"animateShadowPath"];
+                    
+                    [(TiViewProxy *)[uiview proxy] reposition];
+                    
+                    if (hasGradient) {
+                        boundsAnimation.toValue = [NSValue valueWithCGRect:[uiview bounds]];
+                        positionAnimation.toValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
+                        if (repeatCount > 0) {
+                            boundsAnimation.autoreverses = (reverseAnimation != nil);
+                            boundsAnimation.repeatCount = repeatCount;
+                            
+                            positionAnimation.autoreverses = (reverseAnimation != nil);
+                            positionAnimation.repeatCount = repeatCount;
+                        }
+                    
+                        [[uiview gradientLayer] addAnimation:boundsAnimation forKey:@"animateBounds"];
+                        [[uiview gradientLayer] addAnimation:positionAnimation forKey:@"animatePosition"];
+                    }
                 }
             }
             
@@ -554,7 +571,6 @@ doReposition = YES;\
                 TiColor *color_ = [TiUtils colorValue:backgroundColor];
                 [view_ setBackgroundColor:[color_ _color]];
             }
-            
             
             if (color!=nil && [view_ respondsToSelector:@selector(setColor_:)])
             {
