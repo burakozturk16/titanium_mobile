@@ -16,7 +16,9 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 
+import android.os.Build;
 import android.content.Context;
 import android.graphics.Rect;
 import android.text.Editable;
@@ -137,6 +139,15 @@ public class TiUIText extends TiUIView
 	public class FocusFixedEditText extends LinearLayout {
 		TiEditText editText;
 		LinearLayout layout;
+		protected TiCompositeLayout leftPane;
+		protected TiCompositeLayout rightPane;
+		private TiViewProxy leftView;
+		private TiViewProxy rightView;
+
+		private LinearLayout.LayoutParams createBaseParams()
+		{
+			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT);
+		}
 
 		private void init(Context context) {
 			layout = this;
@@ -144,16 +155,81 @@ public class TiUIText extends TiUIView
 			this.setFocusable(true);
 			this.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
 			this.requestFocus();
-			android.view.ViewGroup.LayoutParams params = new LayoutParams(
-					LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+			this.setOrientation(LinearLayout.HORIZONTAL);
+
+			LinearLayout.LayoutParams params;
+
+			leftPane = new TiCompositeLayout(context);
+			leftPane.setId(100);
+			leftPane.setTag("leftPane");
+			params = createBaseParams();
+			params.gravity = Gravity.CENTER;
+			this.addView(leftPane, params);
+
 			editText = new TiEditText(context);
-			editText.setSingleLine(true);
+			editText.setId(200);
+			params = new LinearLayout.LayoutParams(0, LayoutParams.FILL_PARENT, 1.0f);
 			this.addView(editText, params);
+
+			rightPane = new TiCompositeLayout(context);
+			rightPane.setId(300);
+			rightPane.setTag("rightPane");
+			params = createBaseParams();
+			params.gravity = Gravity.CENTER;
+			layout.addView(rightPane, params);
+
 		}
 
 		public FocusFixedEditText(Context context) {
 			super(context);
 			init(context);
+		}
+
+		public void setLeftView(Object leftView) {
+			Log.i(TAG, "setLeftView ");
+			leftPane.removeAllViews();
+			if (leftView == null){
+				leftPane.setVisibility(View.GONE);
+				this.leftView = null;
+			} else if (leftView instanceof TiViewProxy) {
+				this.leftView = (TiViewProxy)leftView;
+				leftPane.addView((this.leftView.getOrCreateView()).getNativeView());
+				leftPane.setVisibility(View.VISIBLE);
+			} else if (leftView instanceof View) {
+				leftPane.addView((View)leftView);
+				leftPane.setVisibility(View.VISIBLE);
+			} else {
+				leftPane.setVisibility(View.GONE);
+				Log.e(TAG, "Invalid type for rightView");
+			}
+		}
+
+		public TiViewProxy getLeftView()
+		{
+			return leftView;
+		}
+
+		public void setRightView(Object rightView) {
+			Log.i(TAG, "setRightView ");
+			rightPane.removeAllViews();
+			if (rightView == null){
+				rightPane.setVisibility(View.GONE);
+			} else if (rightView instanceof TiViewProxy) {
+				this.rightView = (TiViewProxy)rightView;
+				rightPane.addView((this.rightView.getOrCreateView()).getNativeView());
+				rightPane.setVisibility(View.VISIBLE);
+			} else if (rightView instanceof View) {
+				rightPane.addView((View)rightView);
+				rightPane.setVisibility(View.VISIBLE);
+			} else {
+				rightPane.setVisibility(View.GONE);
+				Log.e(TAG, "Invalid type for rightView");
+			}
+		}
+
+		public TiViewProxy getRightView()
+		{
+			return rightView;
 		}
 
 		public void onFocusChange(View v, boolean hasFocus)
@@ -289,6 +365,14 @@ public class TiUIText extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
 			TiUIHelper.linkifyIfEnabled(realtv, d.get(TiC.PROPERTY_AUTO_LINK));
 		}
+
+		if (d.containsKey(TiC.PROPERTY_LEFT_BUTTON)) {
+			tv.setLeftView(d.get(TiC.PROPERTY_LEFT_BUTTON));
+		}
+
+		if (d.containsKey(TiC.PROPERTY_RIGHT_BUTTON)) {
+			tv.setRightView(d.get(TiC.PROPERTY_RIGHT_BUTTON));
+		}
 	}
 
 
@@ -348,6 +432,10 @@ public class TiUIText extends TiUIView
 			TiUIHelper.styleText(realtv, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)){
 			TiUIHelper.linkifyIfEnabled(realtv, newValue);
+		} else if (key.equals(TiC.PROPERTY_LEFT_BUTTON)){
+			tv.setLeftView(newValue);
+		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
+			tv.setRightView(newValue);
 		} else {
 		
 			super.propertyChanged(key, oldValue, newValue, proxy);
