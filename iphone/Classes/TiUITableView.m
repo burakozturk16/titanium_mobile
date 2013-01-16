@@ -125,7 +125,9 @@
         || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.currentRowContainerView] count]> 0 )) {
         if ([proxy _hasListeners:@"touchstart"])
         {
-            [proxy fireEvent:@"touchstart" withObject:[proxy createEventObject:nil] propagate:YES];
+        	UITouch *touch = [touches anyObject];
+            NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+            [proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
         }
     }
         
@@ -152,7 +154,9 @@
         || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.currentRowContainerView] count]> 0 )) {
         if ([proxy _hasListeners:@"touchend"])
         {
-            [proxy fireEvent:@"touchend" withObject:[proxy createEventObject:nil] propagate:YES];
+            UITouch *touch = [touches anyObject];
+            NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+            [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
         }
     }
     [super touchesEnded:touches withEvent:event];
