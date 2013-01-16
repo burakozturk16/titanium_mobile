@@ -316,19 +316,25 @@ public class TiAnimationBuilder
 		}
 
 		if (tdm != null) {
+			Ti2DMatrix realTdm = tdm;
+			// Ti2DMatrix fromTdm = null;
+			// if (viewProxy.hasProperty(TiC.PROPERTY_TRANSFORM)) {
+			// 	fromTdm = (Ti2DMatrix)viewProxy.getProperty(TiC.PROPERTY_TRANSFORM);
+			// 	realTdm = fromTdm.invert().multiply(tdm);
+			// }
 
 			Animation anim;
-			if (tdm.hasScaleOperation() && tiView != null) {
-				tiView.setAnimatedScaleValues(tdm.verifyScaleValues(tiView,
+			if (realTdm.hasScaleOperation() && tiView != null) {
+				tiView.setAnimatedScaleValues(realTdm.verifyScaleValues(tiView,
 					(autoreverse != null && autoreverse.booleanValue())));
 			}
 
-			if (tdm.hasRotateOperation() && tiView != null) {
-				tiView.setAnimatedRotationDegrees(tdm.verifyRotationValues(tiView,
+			if (realTdm.hasRotateOperation() && tiView != null) {
+				tiView.setAnimatedRotationDegrees(realTdm.verifyRotationValues(tiView,
 					(autoreverse != null && autoreverse.booleanValue())));
 			}
 
-			anim = new TiMatrixAnimation(tdm, anchorX, anchorY);
+			anim = new TiMatrixAnimation(realTdm, anchorX, anchorY);
 
 			addAnimation(as, anim);
 
