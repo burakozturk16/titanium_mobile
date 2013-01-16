@@ -12,6 +12,7 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 
 import ti.modules.titanium.ui.widget.TiUIText;
 import android.view.Gravity;
@@ -19,7 +20,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageButton;
-import android.widget.RelativeLayout;
 
 public class TiUISearchBar extends TiUIText
 {
@@ -36,13 +36,14 @@ public class TiUISearchBar extends TiUIText
 	{
 		super(proxy, true);
 		textfield = this;
+		TiCompositeLayout.LayoutParams params = getLayoutParams();
+		params.autoFillsWidth = true;
 
 		// TODO Add Filter support
 
 		// Steal the Text's nativeView. We're going to replace it with our layout.
 		cancelBtn = new ImageButton(proxy.getActivity());
 		cancelBtn.isFocusable();
-		cancelBtn.setId(101);
 		cancelBtn.setImageResource(android.R.drawable.ic_input_delete);
 		// set some minimum dimensions for the cancel button, in a density-independent way.
 		final float scale = cancelBtn.getContext().getResources().getDisplayMetrics().density;
@@ -62,34 +63,8 @@ public class TiUISearchBar extends TiUIText
 				proxy.fireEvent("cancel", null);
 			}
 		});
+		((FocusFixedEditText)getNativeView()).setRightView(cancelBtn);
 
-		RelativeLayout layout = new RelativeLayout(proxy.getActivity())
-		{
-			@Override
-			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-			{
-				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
-			}
-		};
-
-		layout.setGravity(Gravity.NO_GRAVITY);
-		layout.setPadding(0,0,0,0);
-
-		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
-		params.addRule(RelativeLayout.CENTER_VERTICAL);
-		params.addRule(RelativeLayout.LEFT_OF, 101);
-//		params.setMargins(4, 4, 4, 4);
-		layout.addView(nativeView, params);
-
-		params = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-		params.addRule(RelativeLayout.CENTER_VERTICAL);
-//		params.setMargins(0, 4, 4, 4);
-		layout.addView(cancelBtn, params);
-
-		setNativeView(layout);
 	}
 	
 	@Override
