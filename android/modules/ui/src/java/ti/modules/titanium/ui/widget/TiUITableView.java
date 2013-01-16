@@ -40,6 +40,15 @@ public class TiUITableView extends TiUIView
 		super(proxy);
 		getLayoutParams().autoFillsHeight = true;
 		getLayoutParams().autoFillsWidth = true;
+
+		Log.d(TAG, "Creating a tableView", Log.DEBUG_MODE);
+		tableView = new TiTableView((TableViewProxy) proxy);
+		Activity activity = proxy.getActivity();
+		if (activity instanceof TiBaseActivity) {
+			((TiBaseActivity) activity).addOnLifecycleEventListener(this);
+		}
+		tableView.setOnItemClickListener(this);
+		tableView.setOnItemLongClickListener(this);
 	}
 
 	@Override
@@ -97,18 +106,6 @@ public class TiUITableView extends TiUIView
 	@Override
 	public void processProperties(KrollDict d)
 	{
-		// Don't create a new table view if one already exists
-		if (tableView == null) {
-			tableView = new TiTableView((TableViewProxy) proxy);
-		}
-		Activity activity = proxy.getActivity();
-		if (activity instanceof TiBaseActivity) {
-			((TiBaseActivity) activity).addOnLifecycleEventListener(this);
-		}
-
-		tableView.setOnItemClickListener(this);
-		tableView.setOnItemLongClickListener(this);
-
 		if (d.containsKey(TiC.PROPERTY_SEARCH)) {
 			RelativeLayout layout = new RelativeLayout(proxy.getActivity());
 			layout.setGravity(Gravity.NO_GRAVITY);
