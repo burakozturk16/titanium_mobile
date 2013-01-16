@@ -187,6 +187,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             if (webFont.isBoldWeight)
                 traitsDefault |= kCTFontBoldTrait;
             [options setValue:[NSNumber numberWithInt:traitsDefault] forKey:DTDefaultFontStyle];
+            [options setValue:webFont.family forKey:DTDefaultFontFamily];
 
             [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
             
