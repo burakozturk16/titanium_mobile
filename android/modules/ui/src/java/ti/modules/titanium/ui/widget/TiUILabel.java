@@ -89,7 +89,7 @@ public class TiUILabel extends TiUIView
 		{
 			super.onLayout(changed, left, top, right, bottom);
 			// this.SetReadyToEllipsize(true);
-			if (changed){
+			if (changed || (isEllipsized && needsEllipsing)){
 				updateEllipsize();
 
 				if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
