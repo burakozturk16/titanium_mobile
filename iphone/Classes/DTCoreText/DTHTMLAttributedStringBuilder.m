@@ -165,10 +165,10 @@
 	{
 		_defaultFontDescriptor.fontFamily = defaultFontFamily;
 	}
-	else
-	{
-		_defaultFontDescriptor.fontFamily = @"Times New Roman";
-	}
+//	else
+//	{
+//		_defaultFontDescriptor.fontFamily = @"Times New Roman";
+//	}
     
     NSNumber *traitsDefault = [_options objectForKey:DTDefaultFontStyle];
 	if (traitsDefault)
