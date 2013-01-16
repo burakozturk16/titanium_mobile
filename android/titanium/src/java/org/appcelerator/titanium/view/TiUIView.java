@@ -749,7 +749,7 @@ public abstract class TiUIView
 		applyCustomBackground(true);
 	}
 
-	private void applyCustomBackground(boolean reuseCurrentDrawable)
+	public void applyCustomBackground(boolean reuseCurrentDrawable)
 	{
 		if (nativeView != null) {
 			if (background == null) {
@@ -976,6 +976,10 @@ public abstract class TiUIView
 					LayoutParams params = new LayoutParams();
 					params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
 					params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+
+					if (nativeView.getParent() != null) {
+						((ViewGroup)nativeView.getParent()).removeView(nativeView);
+					}
 					borderView.addView(nativeView, params);
 					borderView.setVisibility(this.visibility);
 				}
