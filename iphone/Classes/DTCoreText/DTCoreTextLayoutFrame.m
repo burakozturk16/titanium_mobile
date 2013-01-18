@@ -32,8 +32,13 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 	
 	//NSInteger _tag;
 	
+	int _numberLinesFitInFrame;
 	DTCoreTextLayoutFrameTextBlockHandler _textBlockHandler;
 }
+
+@synthesize numberOfLines = _numberOfLines;
+@synthesize lineBreakMode = _lineBreakMode;
+@synthesize truncationString = _truncationString;
 
 // makes a frame for a specific part of the attributed string of the layouter
 - (id)initWithFrame:(CGRect)frame layouter:(DTCoreTextLayouter *)layouter range:(NSRange)range
@@ -235,8 +240,49 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 			CTParagraphStyleGetValueForSpecifier(paragraphStyle, kCTParagraphStyleSpecifierParagraphSpacing, sizeof(currentParaMetrics.paragraphSpacing), &currentParaMetrics.paragraphSpacing);
 		}
 		
-		// create a line to fit
-		CTLineRef line = CTTypesetterCreateLine(typesetter, CFRangeMake(lineRange.location, lineRange.length));
+		BOOL truncateLine = ((self.numberOfLines>0 && [typesetLines count]+1==self.numberOfLines) ||
+							 (_numberLinesFitInFrame>0 && _numberLinesFitInFrame==[typesetLines count]+1));
+		CTLineRef line;
+		if(!truncateLine)
+		{
+			// create a line to fit
+			line = CTTypesetterCreateLine(typesetter, CFRangeMake(lineRange.location, lineRange.length));
+		}
+		else
+		{
+			NSRange oldLineRange = lineRange;
+			lineRange.length = maxIndex-lineRange.location;
+			line = CTTypesetterCreateLine(typesetter, CFRangeMake(lineRange.location, lineRange.length));
+
+			CTLineTruncationType truncationType = kCTLineTruncationEnd;
+			if (self.lineBreakMode == UILineBreakModeHeadTruncation)
+			{
+				truncationType = kCTLineTruncationStart;
+			}
+			else if (self.lineBreakMode == UILineBreakModeMiddleTruncation)
+			{
+				truncationType = kCTLineTruncationMiddle;
+			}
+
+			NSAttributedString * attribStr = self.truncationString;
+			if(attribStr == nil)
+			{
+				NSRange range;
+				int index = oldLineRange.location;
+				if (self.lineBreakMode == UILineBreakModeTailTruncation)
+				{
+					index += oldLineRange.length;
+				}
+				else if (self.lineBreakMode == UILineBreakModeMiddleTruncation)
+				{
+					index += oldLineRange.length/2.0;
+				}
+				NSDictionary * attributes = [_attributedStringFragment attributesAtIndex:index effectiveRange:&range];
+				attribStr = [[NSAttributedString alloc] initWithString:@"…" attributes:attributes];
+			}
+			CTLineRef elipsisLineRef = CTLineCreateWithAttributedString((__bridge  CFAttributedStringRef)(attribStr));
+			line = CTLineCreateTruncatedLine(line, availableSpace, truncationType, elipsisLineRef);
+		}
 		
 		// we need all metrics so get the at once
 		currentLineMetrics.width = CTLineGetTypographicBounds(line, &currentLineMetrics.ascent, &currentLineMetrics.descent, &currentLineMetrics.leading);
@@ -350,6 +396,8 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 			textAlignment = kCTNaturalTextAlignment;
 		}
 		
+		BOOL isRTL = NO;
+		
 		switch (textAlignment) 
 		{
 			case kCTLeftTextAlignment:
@@ -368,6 +416,10 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 				if (baseWritingDirection != kCTWritingDirectionRightToLeft)
 				{
 					break;
+				}
+				else
+				{
+					isRTL = YES;
 				}
 				
 				// right alignment falls through
@@ -408,24 +460,50 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 			}
 		}
 		
-		CGFloat lineBottom = lineOrigin.y + currentLineMetrics.descent;
-		
-		// abort layout if we left the configured frame
-		if (lineBottom>maxY)
-		{
-			// doesn't fit any more
-			CFRelease(line);
-			break;
-		}
-		
 		// wrap it
 		DTCoreTextLayoutLine *newLine = [[DTCoreTextLayoutLine alloc] initWithLine:line];
 		CFRelease(line);
+		
+		newLine.writingDirectionIsRightToLeft = isRTL;
+		
+		// prevent overlap of a line with small font size with line before it
+		if (previousLine && !usesForcedLineHeight)
+		{
+			// only if there IS a line before it AND the line height is not fixed
+			CGFloat previousLineBottom = CGRectGetMaxY(previousLine.frame);
+			
+			if (lineOrigin.y - newLine.ascent < previousLineBottom)
+			{
+				// move baseline origin down far enough
+				lineOrigin.y = previousLineBottom + newLine.ascent;
+			}
+		}
 		
 		// baseline origin is rounded
 		lineOrigin.y = ceilf(lineOrigin.y);
 		
 		newLine.baselineOrigin = lineOrigin;
+		
+		// abort layout if we left the configured frame
+		CGFloat lineBottom = lineOrigin.y + currentLineMetrics.descent;
+		
+		if (lineBottom>maxY)
+		{
+			if([typesetLines count] &&
+			   (self.lineBreakMode == UILineBreakModeHeadTruncation ||
+				self.lineBreakMode == UILineBreakModeMiddleTruncation ||
+				self.lineBreakMode == UILineBreakModeTailTruncation))
+			{
+				_numberLinesFitInFrame = [typesetLines count];
+				[self _buildLinesWithTypesetter];
+				return;
+			}
+			else
+			{
+				// doesn't fit any more
+				break;
+			}
+		}
 		
 		[typesetLines addObject:newLine];
 		fittingLength += lineRange.length;
@@ -979,73 +1057,70 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 			
 			NSInteger superscriptStyle = [[oneRun.attributes objectForKey:(id)kCTSuperscriptAttributeName] integerValue];
 			
-			switch (superscriptStyle) 
+			switch (superscriptStyle)
 			{
 				case 1:
 				{
 					textPosition.y += oneRun.ascent * 0.47f;
 					break;
-				}	
+				}
 				case -1:
 				{
 					textPosition.y -= oneRun.ascent * 0.25f;
 					break;
-				}	
+				}
 				default:
 					break;
 			}
 			
 			CGContextSetTextPosition(context, textPosition.x, textPosition.y);
 			
-			NSArray *shadows = [oneRun.attributes objectForKey:DTShadowsAttribute];
+			DTTextAttachment *attachment = oneRun.attachment;
 			
-			if (shadows)
+			if (attachment)
 			{
-				CGContextSaveGState(context);
-				
-				for (NSDictionary *shadowDict in shadows)
+				if (drawImages)
 				{
-					[self _setShadowInContext:context fromDictionary:shadowDict];
-					
-					// draw once per shadow
-					[oneRun drawInContext:context];
+					if (attachment.contentType == DTTextAttachmentTypeImage)
+					{
+						DTImage *image = (id)attachment.contents;
+						
+						// frame might be different due to image vertical alignment
+						CGFloat ascender = [attachment ascentForLayout];
+						CGFloat descender = [attachment descentForLayout];
+						
+						CGPoint origin = oneRun.frame.origin;
+						origin.y = self.frame.size.height - origin.y - ascender - descender;
+						CGRect flippedRect = CGRectMake(roundf(origin.x), roundf(origin.y), attachment.displaySize.width, attachment.displaySize.height);
+						
+						CGContextDrawImage(context, flippedRect, image.CGImage);
+					}
 				}
-				
-				CGContextRestoreGState(context);
 			}
 			else
 			{
-				DTTextAttachment *attachment = oneRun.attachment;
+				NSArray *shadows = [oneRun.attributes objectForKey:DTShadowsAttribute];
 				
-				if (attachment)
+				if (shadows)
 				{
-					if (drawImages)
+					CGContextSaveGState(context);
+					
+					for (NSDictionary *shadowDict in shadows)
 					{
-						if (attachment.contentType == DTTextAttachmentTypeImage)
-						{
-							DTImage *image = (id)attachment.contents;
-							
-							// frame might be different due to image vertical alignment
-							CGFloat ascender = [attachment ascentForLayout];
-							CGFloat descender = [attachment descentForLayout];
-							 
-							CGPoint origin = oneRun.frame.origin;
-							origin.y = self.frame.size.height - origin.y - ascender - descender;
-							CGRect flippedRect = CGRectMake(roundf(origin.x), roundf(origin.y), attachment.displaySize.width, attachment.displaySize.height);
-							
-							CGContextDrawImage(context, flippedRect, image.CGImage);
-						}
+						[self _setShadowInContext:context fromDictionary:shadowDict];
+						
+						// draw once per shadow
+						[oneRun drawInContext:context];
 					}
+					
+					CGContextRestoreGState(context);
 				}
-				else
-				{
-					// regular text
-					[oneRun drawInContext:context];
-				}
+				
+				// regular text
+				[oneRun drawInContext:context];
 			}
 		}
 	}
-	
 	
 	if (_textFrame)
 	{
@@ -1261,7 +1336,6 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 // finds the appropriate baseline origin for a line to position it at the correct distance from a previous line
 - (CGPoint)baselineOriginToPositionLine:(DTCoreTextLayoutLine *)line afterLine:(DTCoreTextLayoutLine *)previousLine
 {
-	
 	CGPoint lineOrigin = previousLine.baselineOrigin;
 	
 	NSInteger lineStartIndex = line.stringRange.location;
@@ -1302,6 +1376,7 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 	CGFloat lineHeight = 0;
 	CGFloat minLineHeight = 0;
 	CGFloat maxLineHeight = 0;
+	BOOL usesForcedLineHeight = NO;
 	
 	CGFloat usedLeading = line.leading;
 	
@@ -1325,6 +1400,8 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 	
 	if (CTParagraphStyleGetValueForSpecifier(lineParagraphStyle, kCTParagraphStyleSpecifierMinimumLineHeight, sizeof(minLineHeight), &minLineHeight))
 	{
+		usesForcedLineHeight = YES;
+		
 		if (lineHeight<minLineHeight)
 		{
 			lineHeight = minLineHeight;
@@ -1383,6 +1460,19 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 	
 	// preserve own baseline x
 	lineOrigin.x = line.baselineOrigin.x;
+	
+	// prevent overlap of a line with small font size with line before it
+	if (!usesForcedLineHeight)
+	{
+		// only if there IS a line before it AND the line height is not fixed
+		CGFloat previousLineBottom = CGRectGetMaxY(previousLine.frame);
+		
+		if (lineOrigin.y - line.ascent < previousLineBottom)
+		{
+			// move baseline origin down far enough
+			lineOrigin.y = previousLineBottom + line.ascent;
+		}
+	}
 	
 	// origins are rounded
 	lineOrigin.y = ceilf(lineOrigin.y);

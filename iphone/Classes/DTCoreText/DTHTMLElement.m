@@ -14,6 +14,7 @@
 #import "DTHTMLElementLI.h"
 #import "DTHTMLElementStylesheet.h"
 #import "DTHTMLElementText.h"
+#import "NSString+DTUtilities.h"
 
 @interface DTHTMLElement ()
 
@@ -72,14 +73,6 @@ NSDictionary *_classesForNames = nil;
 	self = [super initWithName:name attributes:attributes];
 	if (self)
 	{
-        if ([self.name isEqualToString:@"body"])
-        {
-            NSString *bgColor = [attributes objectForKey:@"bgcolor"];
-            if (bgColor)
-            {
-                self.backgroundColor = [DTColor colorWithHTMLName:bgColor];
-            }
-        }
 	}
 	
 	return self;
@@ -407,12 +400,15 @@ NSDictionary *_classesForNames = nil;
 			
 			if (nodeString)
 			{
-				// we already have a white space in the string so far
-				if ([[tmpString string] hasSuffixCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]])
+				if (!oneChild.containsAppleConvertedSpace)
 				{
-					while ([[nodeString string] hasPrefix:@" "])
+					// we already have a white space in the string so far
+					if ([[tmpString string] hasSuffixCharacterFromSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]])
 					{
-						nodeString = [nodeString attributedSubstringFromRange:NSMakeRange(1, [nodeString length]-1)];
+						while ([[nodeString string] hasPrefix:@" "])
+						{
+							nodeString = [nodeString attributedSubstringFromRange:NSMakeRange(1, [nodeString length]-1)];
+						}
 					}
 				}
 				
@@ -474,26 +470,26 @@ NSDictionary *_classesForNames = nil;
 				// set new
 				[tmpString addAttribute:NSParagraphStyleAttributeName value:newParaStyle range:paragraphRange];
 			}
-			else
+		}
+		else
 #endif
+		{
+			CTParagraphStyleRef paraStyle = (__bridge CTParagraphStyleRef)[tmpString attribute:(id)kCTParagraphStyleAttributeName atIndex:paragraphRange.location effectiveRange:NULL];
+			
+			DTCoreTextParagraphStyle *paragraphStyle = [DTCoreTextParagraphStyle paragraphStyleWithCTParagraphStyle:paraStyle];
+			
+			if (paragraphStyle.paragraphSpacing < self.paragraphStyle.paragraphSpacing)
 			{
-				CTParagraphStyleRef paraStyle = (__bridge CTParagraphStyleRef)[tmpString attribute:(id)kCTParagraphStyleAttributeName atIndex:paragraphRange.location effectiveRange:NULL];
+				paragraphStyle.paragraphSpacing = self.paragraphStyle.paragraphSpacing;
 				
-				DTCoreTextParagraphStyle *paragraphStyle = [DTCoreTextParagraphStyle paragraphStyleWithCTParagraphStyle:paraStyle];
+				// make new paragraph style
+				CTParagraphStyleRef newParaStyle = [paragraphStyle createCTParagraphStyle];
 				
-				if (paragraphStyle.paragraphSpacing < self.paragraphStyle.paragraphSpacing)
-				{
-					paragraphStyle.paragraphSpacing = self.paragraphStyle.paragraphSpacing;
-					
-					// make new paragraph style
-					CTParagraphStyleRef newParaStyle = [paragraphStyle createCTParagraphStyle];
-					
-					// remove old (works around iOS 4.3 leak)
-					[tmpString removeAttribute:(id)kCTParagraphStyleAttributeName range:paragraphRange];
-					
-					// set new
-					[tmpString addAttribute:(id)kCTParagraphStyleAttributeName value:(__bridge_transfer id)newParaStyle range:paragraphRange];
-				}
+				// remove old (works around iOS 4.3 leak)
+				[tmpString removeAttribute:(id)kCTParagraphStyleAttributeName range:paragraphRange];
+				
+				// set new
+				[tmpString addAttribute:(id)kCTParagraphStyleAttributeName value:(__bridge_transfer id)newParaStyle range:paragraphRange];
 			}
 		}
 	}
@@ -899,17 +895,24 @@ NSDictionary *_classesForNames = nil;
 	if (widthString && ![widthString isEqualToString:@"auto"])
 	{
 		_size.width = [widthString pixelSizeOfCSSMeasureRelativeToCurrentTextSize:self.fontDescriptor.pointSize textScale:_textScale];
+
+		// if this has an attachment set its size too
+		CGSize displaySize = _textAttachment.displaySize;
+		displaySize.width = _size.width;
+		_textAttachment.displaySize = displaySize;
 	}
 	
 	NSString *heightString = [styles objectForKey:@"height"];
 	if (heightString && ![heightString isEqualToString:@"auto"])
 	{
 		_size.height = [heightString pixelSizeOfCSSMeasureRelativeToCurrentTextSize:self.fontDescriptor.pointSize textScale:_textScale];
+
+		// if this has an attachment set its size too
+		CGSize displaySize = _textAttachment.displaySize;
+		displaySize.height = _size.height;
+		_textAttachment.displaySize = displaySize;
 	}
-	
-	// if this has an attachment set its size too
-	_textAttachment.displaySize = _size;
-	
+
 	NSString *whitespaceString = [styles objectForKey:@"white-space"];
 	if ([whitespaceString hasPrefix:@"pre"])
 	{
@@ -1164,8 +1167,6 @@ NSDictionary *_classesForNames = nil;
 	_anchorName = [element.anchorName copy];
 	_linkGUID = element.linkGUID;
 	
-	_tagContentInvisible = element.tagContentInvisible;
-	
 	_textColor = element.textColor;
 	_isColorInherited = YES;
 	
@@ -1176,6 +1177,48 @@ NSDictionary *_classesForNames = nil;
 	if (element.displayStyle == DTHTMLElementDisplayStyleInline)
 	{
 		self.backgroundColor = element.backgroundColor;
+	}
+	
+	_containsAppleConvertedSpace = element.containsAppleConvertedSpace;
+}
+
+- (void)interpretAttributes
+{
+	if (!_attributes)
+	{
+		// nothing to interpret
+		return;
+	}
+	
+	// transfer Apple Converted Space tag
+	if ([[self attributeForKey:@"class"] isEqualToString:@"Apple-converted-space"])
+	{
+		_containsAppleConvertedSpace = YES;
+	}
+	
+	// detect writing direction if set
+	NSString *directionStr = [self attributeForKey:@"dir"];
+	
+	if (directionStr)
+	{
+		NSAssert(_paragraphStyle, @"Found dir attribute, but missing paragraph style on element");
+		
+		if ([directionStr isEqualToString:@"rtl"])
+		{
+			_paragraphStyle.baseWritingDirection = NSWritingDirectionRightToLeft;
+		}
+		else if ([directionStr isEqualToString:@"ltr"])
+		{
+			_paragraphStyle.baseWritingDirection = NSWritingDirectionLeftToRight;
+		}
+		else if ([directionStr isEqualToString:@"auto"])
+		{
+			_paragraphStyle.baseWritingDirection = NSWritingDirectionNatural; // that's also default
+		}
+		else
+		{
+			// other values are invalid and will be ignored
+		}
 	}
 }
 
@@ -1228,7 +1271,7 @@ NSDictionary *_classesForNames = nil;
 
 - (void)setLink:(NSURL *)link
 {
-	_linkGUID = [NSString guid];
+	_linkGUID = [NSString stringWithUUID];
 	_link = [link copy];
 	
 	if (_textAttachment)
@@ -1246,7 +1289,6 @@ NSDictionary *_classesForNames = nil;
 @synthesize anchorName = _anchorName;
 @synthesize underlineStyle = _underlineStyle;
 @synthesize textAttachment = _textAttachment;
-@synthesize tagContentInvisible = _tagContentInvisible;
 @synthesize strikeOut = _strikeOut;
 @synthesize superscriptStyle = _superscriptStyle;
 @synthesize headerLevel = _headerLevel;
@@ -1259,6 +1301,7 @@ NSDictionary *_classesForNames = nil;
 @synthesize textScale = _textScale;
 @synthesize size = _size;
 @synthesize linkGUID = _linkGUID;
+@synthesize containsAppleConvertedSpace = _containsAppleConvertedSpace;
 
 @end
 

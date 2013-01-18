@@ -75,22 +75,22 @@
     switch(paragraphStyle.lineBreakMode)
 	{
 		case NSLineBreakByCharWrapping:
-			retStyle.linebreak = kCTLineBreakByCharWrapping;
+			retStyle.alignment = kCTLineBreakByCharWrapping;
 			break;
 		case NSLineBreakByClipping:
-			retStyle.linebreak = kCTLineBreakByClipping;
+			retStyle.alignment = kCTLineBreakByClipping;
 			break;
 		case NSLineBreakByTruncatingHead:
-			retStyle.linebreak = kCTLineBreakByTruncatingHead;
+			retStyle.alignment = kCTLineBreakByTruncatingHead;
 			break;
 		case NSLineBreakByTruncatingMiddle:
-			retStyle.linebreak = kCTLineBreakByTruncatingMiddle;
+			retStyle.alignment = kCTLineBreakByTruncatingMiddle;
 			break;
 		case NSLineBreakByTruncatingTail:
-			retStyle.linebreak = kCTLineBreakByTruncatingTail;
+			retStyle.alignment = kCTLineBreakByTruncatingTail;
 			break;
         case NSLineBreakByWordWrapping:
-			retStyle.linebreak = kCTLineBreakByWordWrapping;
+			retStyle.alignment = kCTLineBreakByWordWrapping;
 			break;
 	}
 	
@@ -120,7 +120,7 @@
 		_defaultTabInterval = 36.0;
 		_baseWritingDirection = kCTWritingDirectionNatural;
 		_alignment = kCTNaturalTextAlignment;
-		_linebreak = kCTLineBreakByWordWrapping;
+		_linebreak = kCTLineBreakByCharWrapping;
 		_lineHeightMultiple = 0.0;
 		_minimumLineHeight = 0.0;
 		_maximumLineHeight = 0.0;
