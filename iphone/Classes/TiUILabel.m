@@ -190,7 +190,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             if (webFont.family)
                 [options setValue:webFont.family forKey:DTDefaultFontFamily];
             else
-                [options setValue:[UIFont systemFontOfSize:12].fontName forKey:DTDefaultFontFamily];
+                [options setValue:@"Helvetica" forKey:DTDefaultFontFamily];
 
             [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
             
