@@ -44,6 +44,9 @@
 #ifdef USE_TI_UITABBEDBAR
     #import "TiUIiOSTabbedBarProxy.h"
 #endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+#import "TiUIActivityIndicatorStyleProxy.h"
+#endif
 #import "TiApp.h"
 #import "ImageLoader.h"
 #import "Webcolor.h"
@@ -65,9 +68,13 @@
     [self forgetProxy:ios];
     RELEASE_TO_NIL(ios);
 #endif
-#ifdef USE_TI_UICLIPBOARD	
+#ifdef USE_TI_UICLIPBOARD
     [self forgetProxy:clipboard];
     RELEASE_TO_NIL(clipboard);
+#endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+    [self forgetProxy:activityIndicatorStyle];
+    RELEASE_TO_NIL(activityIndicatorStyle);
 #endif
 	[super dealloc];
 }
@@ -378,6 +385,18 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
     return [[[TiUIiOSTabbedBarProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
+
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+-(id)ActivityIndicatorStyle
+{
+	if (activityIndicatorStyle==nil)
+	{
+		activityIndicatorStyle = [[TiUIActivityIndicatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:activityIndicatorStyle];
+	}
+	return activityIndicatorStyle;
+}
+#endif
 #pragma mark Internal Memory Management
 
 -(void)didReceiveMemoryWarning:(NSNotification*)notification
@@ -392,6 +411,9 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 	RELEASE_TO_NIL(ios);
 #endif
 #ifdef USE_TI_UICLIPBOARD
+	RELEASE_TO_NIL(clipboard);
+#endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 	RELEASE_TO_NIL(clipboard);
 #endif
 	[super didReceiveMemoryWarning:notification];

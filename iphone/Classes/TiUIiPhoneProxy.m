@@ -29,9 +29,6 @@
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	#import "TiUIiPhoneProgressBarStyleProxy.h"
 #endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	#import "TiUIActivityIndicatorStyleProxy.h"
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	#import "TiUIiPhoneSystemIconProxy.h"
 #endif
@@ -94,9 +91,6 @@ RELEASE_TO_NIL(x); \
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	FORGET_AND_RELEASE(progressBarStyle);
 #endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	FORGET_AND_RELEASE(activityIndicatorStyle);
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	FORGET_AND_RELEASE(systemIcon);
 #endif
@@ -149,9 +143,6 @@ RELEASE_TO_NIL(x); \
 #endif
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	DEFINE_SUBPROXY(ProgressBarStyle,progressBarStyle);
-#endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	DEFINE_SUBPROXY(ActivityIndicatorStyle,activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	DEFINE_SUBPROXY(SystemIcon,systemIcon);
@@ -331,9 +322,6 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT,UIModalPresentationCurrentCo
 #endif
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	FORGET_AND_RELEASE(progressBarStyle);
-#endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	FORGET_AND_RELEASE(activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	FORGET_AND_RELEASE(systemIcon);

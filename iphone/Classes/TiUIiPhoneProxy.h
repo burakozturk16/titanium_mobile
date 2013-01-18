@@ -28,9 +28,6 @@
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	TiProxy *progressBarStyle;
 #endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	TiProxy *activityIndicatorStyle;
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	TiProxy *systemIcon;
 #endif
@@ -71,9 +68,6 @@
 #endif
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 @property(nonatomic,readonly) TiProxy* ProgressBarStyle;
-#endif
-#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-@property(nonatomic,readonly) TiProxy* ActivityIndicatorStyle;
 #endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 @property(nonatomic,readonly) TiProxy* SystemIcon;

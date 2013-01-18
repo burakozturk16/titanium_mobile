@@ -28,6 +28,9 @@
 #ifdef USE_TI_UICLIPBOARD	
 	TiProxy *clipboard;
 #endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+	TiProxy *activityIndicatorStyle;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -195,6 +198,10 @@
 
 #ifdef USE_TI_UICLIPBOARD
 @property(nonatomic,readonly)			TiProxy* Clipboard;
+#endif
+
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+@property(nonatomic,readonly)           TiProxy* ActivityIndicatorStyle;
 #endif
 
 @end
