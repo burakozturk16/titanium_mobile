@@ -158,7 +158,7 @@
 		24CA8BAA111161FE0084E2DE /* TiUIButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A94111161FD0084E2DE /* TiUIButton.m */; };
 		24CA8BAB111161FE0084E2DE /* TiUIiPhoneAnimationStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A96111161FD0084E2DE /* TiUIiPhoneAnimationStyleProxy.m */; };
 		24CA8BAC111161FE0084E2DE /* TiUIAlertDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A98111161FD0084E2DE /* TiUIAlertDialogProxy.m */; };
-		24CA8BAD111161FE0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m */; };
+		24CA8BAD111161FE0084E2DE /* TiUIActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */; };
 		24CA8BAE111161FE0084E2DE /* TiUIActivityIndicatorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9C111161FD0084E2DE /* TiUIActivityIndicatorProxy.m */; };
 		24CA8BAF111161FE0084E2DE /* TiUIActivityIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9E111161FD0084E2DE /* TiUIActivityIndicator.m */; };
 		24CA8BB5111161FE0084E2DE /* TiRect.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8AAC111161FD0084E2DE /* TiRect.m */; };
@@ -318,7 +318,7 @@
 		24D8E420119B9D8A00F8CAA6 /* TiUIButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A94111161FD0084E2DE /* TiUIButton.m */; };
 		24D8E421119B9D8A00F8CAA6 /* TiUIiPhoneAnimationStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A96111161FD0084E2DE /* TiUIiPhoneAnimationStyleProxy.m */; };
 		24D8E422119B9D8A00F8CAA6 /* TiUIAlertDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A98111161FD0084E2DE /* TiUIAlertDialogProxy.m */; };
-		24D8E423119B9D8A00F8CAA6 /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m */; };
+		24D8E423119B9D8A00F8CAA6 /* TiUIActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */; };
 		24D8E424119B9D8A00F8CAA6 /* TiUIActivityIndicatorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9C111161FD0084E2DE /* TiUIActivityIndicatorProxy.m */; };
 		24D8E425119B9D8A00F8CAA6 /* TiUIActivityIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9E111161FD0084E2DE /* TiUIActivityIndicator.m */; };
 		24D8E426119B9D8A00F8CAA6 /* TiRect.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8AAC111161FD0084E2DE /* TiRect.m */; };
@@ -1017,7 +1017,7 @@
 		DABB36FB12E8CB280026A6EA /* TiUIButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A94111161FD0084E2DE /* TiUIButton.m */; };
 		DABB36FC12E8CB280026A6EA /* TiUIiPhoneAnimationStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A96111161FD0084E2DE /* TiUIiPhoneAnimationStyleProxy.m */; };
 		DABB36FD12E8CB280026A6EA /* TiUIAlertDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A98111161FD0084E2DE /* TiUIAlertDialogProxy.m */; };
-		DABB36FE12E8CB280026A6EA /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m */; };
+		DABB36FE12E8CB280026A6EA /* TiUIActivityIndicatorStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */; };
 		DABB36FF12E8CB280026A6EA /* TiUIActivityIndicatorProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9C111161FD0084E2DE /* TiUIActivityIndicatorProxy.m */; };
 		DABB370012E8CB280026A6EA /* TiUIActivityIndicator.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A9E111161FD0084E2DE /* TiUIActivityIndicator.m */; };
 		DABB370112E8CB280026A6EA /* TiRect.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8AAC111161FD0084E2DE /* TiRect.m */; };
@@ -1530,8 +1530,8 @@
 		24CA8A97111161FD0084E2DE /* TiUIiPhoneAnimationStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIiPhoneAnimationStyleProxy.h; path = ../Classes/TiUIiPhoneAnimationStyleProxy.h; sourceTree = SOURCE_ROOT; };
 		24CA8A98111161FD0084E2DE /* TiUIAlertDialogProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIAlertDialogProxy.m; path = ../Classes/TiUIAlertDialogProxy.m; sourceTree = SOURCE_ROOT; };
 		24CA8A99111161FD0084E2DE /* TiUIAlertDialogProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIAlertDialogProxy.h; path = ../Classes/TiUIAlertDialogProxy.h; sourceTree = SOURCE_ROOT; };
-		24CA8A9A111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIiPhoneActivityIndicatorStyleProxy.m; path = ../Classes/TiUIiPhoneActivityIndicatorStyleProxy.m; sourceTree = SOURCE_ROOT; };
-		24CA8A9B111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIiPhoneActivityIndicatorStyleProxy.h; path = ../Classes/TiUIiPhoneActivityIndicatorStyleProxy.h; sourceTree = SOURCE_ROOT; };
+		24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIActivityIndicatorStyleProxy.m; path = ../Classes/TiUIActivityIndicatorStyleProxy.m; sourceTree = SOURCE_ROOT; };
+		24CA8A9B111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIActivityIndicatorStyleProxy.h; path = ../Classes/TiUIActivityIndicatorStyleProxy.h; sourceTree = SOURCE_ROOT; };
 		24CA8A9C111161FD0084E2DE /* TiUIActivityIndicatorProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIActivityIndicatorProxy.m; path = ../Classes/TiUIActivityIndicatorProxy.m; sourceTree = SOURCE_ROOT; };
 		24CA8A9D111161FD0084E2DE /* TiUIActivityIndicatorProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIActivityIndicatorProxy.h; path = ../Classes/TiUIActivityIndicatorProxy.h; sourceTree = SOURCE_ROOT; };
 		24CA8A9E111161FD0084E2DE /* TiUIActivityIndicator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIActivityIndicator.m; path = ../Classes/TiUIActivityIndicator.m; sourceTree = SOURCE_ROOT; };
@@ -2940,8 +2940,8 @@
 				24CA8A97111161FD0084E2DE /* TiUIiPhoneAnimationStyleProxy.h */,
 				24CA8A76111161FD0084E2DE /* TiUIiPhoneProxy.m */,
 				24CA8A77111161FD0084E2DE /* TiUIiPhoneProxy.h */,
-				24CA8A9A111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m */,
-				24CA8A9B111161FD0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.h */,
+				24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */,
+				24CA8A9B111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.h */,
 				24CA8A66111161FD0084E2DE /* TiUIiPhoneRowAnimationStyleProxy.m */,
 				24CA8A67111161FD0084E2DE /* TiUIiPhoneRowAnimationStyleProxy.h */,
 				24CA8A68111161FD0084E2DE /* TiUIiPhoneProgressBarStyleProxy.m */,
@@ -4068,7 +4068,7 @@
 				24CA8BAA111161FE0084E2DE /* TiUIButton.m in Sources */,
 				24CA8BAB111161FE0084E2DE /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24CA8BAC111161FE0084E2DE /* TiUIAlertDialogProxy.m in Sources */,
-				24CA8BAD111161FE0084E2DE /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */,
+				24CA8BAD111161FE0084E2DE /* TiUIActivityIndicatorStyleProxy.m in Sources */,
 				24CA8BAE111161FE0084E2DE /* TiUIActivityIndicatorProxy.m in Sources */,
 				24CA8BAF111161FE0084E2DE /* TiUIActivityIndicator.m in Sources */,
 				24CA8BB5111161FE0084E2DE /* TiRect.m in Sources */,
@@ -4453,7 +4453,7 @@
 				24D8E420119B9D8A00F8CAA6 /* TiUIButton.m in Sources */,
 				24D8E421119B9D8A00F8CAA6 /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24D8E422119B9D8A00F8CAA6 /* TiUIAlertDialogProxy.m in Sources */,
-				24D8E423119B9D8A00F8CAA6 /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */,
+				24D8E423119B9D8A00F8CAA6 /* TiUIActivityIndicatorStyleProxy.m in Sources */,
 				24D8E424119B9D8A00F8CAA6 /* TiUIActivityIndicatorProxy.m in Sources */,
 				24D8E425119B9D8A00F8CAA6 /* TiUIActivityIndicator.m in Sources */,
 				24D8E426119B9D8A00F8CAA6 /* TiRect.m in Sources */,
@@ -4836,7 +4836,7 @@
 				DABB36FB12E8CB280026A6EA /* TiUIButton.m in Sources */,
 				DABB36FC12E8CB280026A6EA /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				DABB36FD12E8CB280026A6EA /* TiUIAlertDialogProxy.m in Sources */,
-				DABB36FE12E8CB280026A6EA /* TiUIiPhoneActivityIndicatorStyleProxy.m in Sources */,
+				DABB36FE12E8CB280026A6EA /* TiUIActivityIndicatorStyleProxy.m in Sources */,
 				DABB36FF12E8CB280026A6EA /* TiUIActivityIndicatorProxy.m in Sources */,
 				DABB370012E8CB280026A6EA /* TiUIActivityIndicator.m in Sources */,
 				DABB370112E8CB280026A6EA /* TiRect.m in Sources */,
