@@ -414,7 +414,7 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 	RELEASE_TO_NIL(clipboard);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	RELEASE_TO_NIL(clipboard);
+	RELEASE_TO_NIL(activityIndicatorStyle);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }
