@@ -94,6 +94,15 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	}
 }
 
+-(id)init
+{
+	if ((self = [super init]))
+	{
+        readyToCreateView = YES;
+	}
+	return self;
+}
+
 -(void) dealloc {
     
 	RELEASE_TO_NIL(navController);

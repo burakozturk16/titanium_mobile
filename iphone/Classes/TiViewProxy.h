@@ -96,7 +96,9 @@ enum
 	LayoutConstraint layoutProperties;
 	int vzIndex;
 	BOOL hidden;	//This is the boolean version of ![TiUtils boolValue:visible def:yes]
-		//And has nothing to do with whether or not it's onscreen or 
+		//And has nothing to do with whether or not it's onscreen or
+    
+    BOOL readyToCreateView;
 
 #pragma mark Parent/Children relationships
 	TiViewProxy *parent;
@@ -249,6 +251,8 @@ enum
 
 //NOTE: DO NOT SET VIEW UNLESS IN A TABLE VIEW, AND EVEN THEN.
 @property(nonatomic,readwrite,retain)TiUIView * view;
+
+-(TiUIView*)forceView;
 
 /**
  Returns language conversion table.
