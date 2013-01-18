@@ -412,24 +412,38 @@ exports.validate = function (logger, config, cli) {
 	
 	if (cli.argv.xcode) {
 			logger.log(__('building through xcode'));
-		// for xcode pre-compile builds only, read the manifest file and inject the cli args
-		var buildManifestFile = process.env.PROJECT_DIR ? path.join(process.env.PROJECT_DIR, 'build-manifest.json') : path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
-		if (!afs.exists(buildManifestFile)) {
-			logger.error(__('Build manifest does not exist: %s', buildManifestFile) + '\n');
-			logger.log(__('Clean your project, then rebuild it'));
-			process.exit(1);
+			// logger.log(__('env ' + JSON.stringify(process.env)));
+
+		//building directly from xcode, dont use buildManifest but environment variables
+		if (!process.env.TITANIUM_CLI_XCODEBUILD) {
+				cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : 'device';
+				cli.argv['deploy-type'] = process.env.CURRENT_ARCH === 'i386' ? 'development' : 'test';
+				cli.argv['developer-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Developer\: /, '');
+				cli.argv['distribution-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Distribution\: /, '');
+				cli.argv['skip-js-minify'] = true;
+				// conf.options['output-dir'].required = false;
+		}
+		else {
+			// for xcode pre-compile builds only, read the manifest file and inject the cli args
+			var buildManifestFile = process.env.PROJECT_DIR ? path.join(process.env.PROJECT_DIR, 'build-manifest.json') : path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
+			if (!afs.exists(buildManifestFile)) {
+				logger.error(__('Build manifest does not exist: %s', buildManifestFile) + '\n');
+				logger.log(__('Clean your project, then rebuild it'));
+				process.exit(1);
+			}
+			
+			try {
+				var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
+				cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : (buildManifest.target != 'simulator' ? buildManifest.target : 'device');
+				cli.argv['deploy-type'] = buildManifest.deployType;
+				cli.argv['output-dir'] = buildManifest.outputDir;
+				cli.argv['developer-name'] = buildManifest.developerName;
+				cli.argv['distribution-name'] = buildManifest.distributionName;
+				cli.argv['skip-js-minify'] = buildManifest.skipJSMinification;
+				conf.options['output-dir'].required = false;
+			} catch (e) {}
 		}
 		
-		try {
-			var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
-			cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : (buildManifest.target != 'simulator' ? buildManifest.target : 'device');
-			cli.argv['deploy-type'] = process.env.TITANIUM_CLI_XCODEBUILD ? buildManifest.deployType : (process.env.CURRENT_ARCH === 'i386' ? 'development' : 'test');
-			cli.argv['output-dir'] = buildManifest.outputDir;
-			cli.argv['developer-name'] = process.env.CODE_SIGN_IDENTITY ? process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Developer\: /, '') : buildManifest.developerName;
-			cli.argv['distribution-name'] = process.env.CODE_SIGN_IDENTITY ? process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Distribution\: /, '') : buildManifest.distributionName;
-			cli.argv['skip-js-minify'] = buildManifest.skipJSMinification;
-			conf.options['output-dir'].required = false;
-		} catch (e) {}
 	}
 	
 	if (targets.indexOf(cli.argv.target) == -1) {
@@ -2179,7 +2193,7 @@ build.prototype = {
 	compileResources: function (src, dest, ignoreRegExp2) {
 		if (afs.exists(src)) {
 			var ignoreFiles = [].concat(this.cli.ignoreFiles).concat(this.cli.ignoreDirs);
-			if (this.config.plugins['ignoreFiles'])
+			if (this.config && this.config.plugins && this.config.plugins['ignoreFiles'])
 				ignoreFiles = ignoreFiles.concat(this.config.plugins.ignoreFiles);
 			var ignoreRegExpStr = "^" + ignoreFiles.join("|") + "$";
 			this.logger.info(__('ignoreRegExpStr: %s', ignoreRegExpStr.cyan));
