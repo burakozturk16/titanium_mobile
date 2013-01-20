@@ -783,12 +783,23 @@ withTextCheckingResult:(NSTextCheckingResult *)result
 #pragma mark - TTTAttributedLabel
 
 - (void)setText:(id)text {
-    if ([text isKindOfClass:[NSString class]]) {
-        [self setText:text afterInheritingLabelAttributesAndConfiguringWithBlock:nil];
+    if (text == nil) {
+        [super setText:nil];
+        self.attributedText = nil;
         return;
     }
     
-    self.attributedText = text;
+    if ([text isKindOfClass:[NSString class]]) {
+        if (self.dataDetectorTypes != UIDataDetectorTypeNone) {
+            [self setText:text afterInheritingLabelAttributesAndConfiguringWithBlock:nil];
+            return;
+        }
+        self.attributedText = nil;
+        [super setText:text];
+        return;
+    }
+    
+    self.attributedText = (NSAttributedString*)text;
 
     self.links = [NSArray array];
     if (self.dataDetectorTypes != UIDataDetectorTypeNone) {
@@ -808,9 +819,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         mutableAttributedString = [[NSMutableAttributedString alloc] initWithString:text attributes:NSAttributedStringAttributesFromLabel(self)];
     } else {
         mutableAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:text];
-        NSLog(@"test %@", mutableAttributedString);
         [mutableAttributedString addAttributes:NSAttributedStringAttributesFromLabel(self) range:NSMakeRange(0, [mutableAttributedString length])];
-        NSLog(@"test %@", mutableAttributedString);
     }
     
     if (block) {
