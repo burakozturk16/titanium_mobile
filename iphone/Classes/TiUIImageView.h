@@ -38,6 +38,7 @@
 	NSInteger readyCount;
 	NSInteger loadTotal;
 	UIImageView * imageView;
+    UIViewContentMode scaleType;
 }
 
 -(void)start;

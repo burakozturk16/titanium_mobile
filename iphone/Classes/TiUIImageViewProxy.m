@@ -50,6 +50,7 @@ static NSArray* imageKeySequence;
 
 -(void)_configure
 {
+    [self replaceValue:NUMINT(UIViewContentModeScaleToFill) forKey:@"scaleType" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"reverse" notification:NO];
@@ -175,6 +176,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
     {
         image = nil;
     }
+	[self cancelPendingImageLoads];
     [self replaceValue:image forKey:@"image" notification:YES];
 }
 

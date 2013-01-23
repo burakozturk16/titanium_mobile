@@ -33,6 +33,14 @@
 
 DEFINE_EXCEPTIONS
 
+-(id)init
+{
+    if (self = [super init]) {
+        scaleType = UIViewContentModeScaleToFill;
+    }
+    return self;
+}
+
 -(void)dealloc
 {
 	if (timer!=nil)
@@ -263,7 +271,7 @@ DEFINE_EXCEPTIONS
         return UIViewContentModeScaleAspectFit;
     }
     else {
-        return UIViewContentModeScaleToFill;
+        return scaleType;
     }
 }
 
@@ -438,7 +446,7 @@ DEFINE_EXCEPTIONS
 -(void)cancelPendingImageLoads
 {
 	// cancel a pending request if we have one pending
-	[(TiUIImageViewProxy *)[self proxy] cancelPendingImageLoads];
+//	[(TiUIImageViewProxy *)[self proxy] cancelPendingImageLoads];
 	placeholderLoading = NO;
 }
 
@@ -650,6 +658,12 @@ DEFINE_EXCEPTIONS
 -(void)setHeight_:(id)height_
 {
     height = TiDimensionFromObject(height_);
+    [self updateContentMode];
+}
+
+-(void)setScaleType_:(id)arg
+{
+	scaleType = [TiUtils intValue:arg];
     [self updateContentMode];
 }
 
