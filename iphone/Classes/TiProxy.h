@@ -87,6 +87,7 @@ typedef enum {
 
 @end
 
+NSString * SetterStringForKrollProperty(NSString * key);
 SEL SetterForKrollProperty(NSString * key);
 SEL SetterWithObjectForKrollProperty(NSString * key);
 
@@ -110,6 +111,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 	NSString *krollDescription;
 	pthread_rwlock_t listenerLock;
 	BOOL reproxying;
+    BOOL initPropertiesOnCreation;
 @protected
 	NSMutableDictionary *dynprops; 
 	pthread_rwlock_t dynpropsLock; // NOTE: You must respect the dynprops lock when accessing dynprops elsewhere!
@@ -142,6 +144,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context;
 -(id)_initWithPageContext:(id<TiEvaluator>)context args:(NSArray*)args;
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args withPropertiesInit:(BOOL)init;
 -(void)_initWithProperties:(NSDictionary*)properties;
 
 /**

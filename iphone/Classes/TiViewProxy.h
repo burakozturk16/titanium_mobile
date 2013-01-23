@@ -223,6 +223,12 @@ enum
 -(void)setBackgroundGradient:(id)arg;
 -(TiBlob*)toImage:(id)args;
 
+//this is for the tableview magic. For any other view, will be set when
+//added to a parent which is already ready
+-(void)setReadyToCreateView:(BOOL)ready;
+-(void)clearView:(BOOL)recurse;
+-(TiUIView*)getOrCreateView;
+
 #pragma mark nonpublic accessors not related to Housecleaning
 
 /**
@@ -251,8 +257,6 @@ enum
 
 //NOTE: DO NOT SET VIEW UNLESS IN A TABLE VIEW, AND EVEN THEN.
 @property(nonatomic,readwrite,retain)TiUIView * view;
-
--(TiUIView*)forceView;
 
 /**
  Returns language conversion table.
@@ -602,6 +606,8 @@ enum
  @param child The child view
  */
 -(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
+
++(NSArray*)layoutProperties;
 
 @end
 

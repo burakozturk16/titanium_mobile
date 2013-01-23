@@ -164,9 +164,6 @@
 
 -(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    if ([proxy _hasListeners:@"touchcancel"]) {
-        [proxy fireEvent:@"touchcancel" withObject:[proxy createEventObject:nil] propagate:YES];
-    }
     [super touchesCancelled:touches withEvent:event];
 }
 
@@ -304,6 +301,7 @@
 {
 	if (self = [super init])
 	{
+        settingData = NO;
         hideOnSearch = YES; // Legacy behavior
 		filterCaseInsensitive = YES; // defaults to true on search
 		searchString = @"";
@@ -405,6 +403,7 @@
 			NSLog(@"[WARN] No style object!");
 		}
 #endif
+        NSLog(@"test1 %@", NSStringFromCGRect([self bounds]));
 		tableview = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
 		tableview.delegate = self;
 		tableview.dataSource = self;
@@ -424,6 +423,10 @@
         }
         if (initBackGround) {
             [self setBackgroundColor:[TiUtils colorValue:bgInitValue] onTable:tableview];
+        }
+        if (tableController)
+        {
+            tableController.tableView = tableview;
         }
 		
 		[self updateSearchView];
@@ -463,6 +466,9 @@
 
 -(void)reloadDataFromCount:(int)oldCount toCount:(int)newCount animation:(UITableViewRowAnimation)animation
 {
+    if (tableview == nil) {
+        return;
+    }
 	UITableView *table = [self tableView];
     
     // Apple kindly forces animations whenever we're inserting/deleting in a no-animation
@@ -504,6 +510,7 @@
 
 -(void)replaceData:(NSMutableArray*)data animation:(UITableViewRowAnimation)animation
 { 
+    settingData = YES;
 	//Technically, we should assert that sections is non-nil, but this code
 	//won't have any problems in the case that it is actually nil.	
 	TiUITableViewProxy * ourProxy = (TiUITableViewProxy *)[self proxy];
@@ -541,7 +548,8 @@
 			row.parent = section;
 		}
 	}
-
+    
+    settingData = NO;
 	[self reloadDataFromCount:oldCount toCount:newCount animation:animation];
 }
 
@@ -816,6 +824,12 @@
             reloadSearch = YES;
 			break;
 		}
+        case TiUITableViewActionReloadData:
+		{
+			[[self tableView] reloadData];
+            reloadSearch = YES;
+			break;
+		}
 		case TiUITableViewActionAppendRow:
 		{
 			TiUITableViewRowProxy* row = (TiUITableViewRowProxy*)action.obj;
@@ -889,7 +903,7 @@
 	return [(TiUITableViewProxy *)[self proxy] indexForIndexPath:path];
 }
 
-- (void)triggerActionForIndexPath:(NSIndexPath *)indexPath 
+- (void)triggerActionForIndexPath:(NSIndexPath *)indexPath
                          fromPath:(NSIndexPath*)fromPath 
                         tableView:(UITableView*)ourTableView 
                      wasAccessory:(BOOL)accessoryTapped 
@@ -940,9 +954,8 @@
 	
 	// fire it to our row since the row, section and table are
 	// in a hierarchy and it will bubble up from there...
-
 	UITableViewCell * thisCell = [ourTableView cellForRowAtIndexPath:indexPath];
-	
+
 	CGPoint point = [(TiUITableViewCell*)thisCell hitPoint];
 	TiProxy * target = [row touchedViewProxyInCell:thisCell atPoint:&point];
 
@@ -1267,7 +1280,7 @@
 {
 	// check to make sure we're not in the middle of a layout, in which case we 
 	// want to try later or we'll get weird drawing animation issues
-	if (tableview.frame.size.width==0)
+	if (tableview.bounds.size.width==0)
 	{
 		[self performSelector:@selector(hideSearchScreen:) withObject:sender afterDelay:0.1];
 		return;
@@ -1295,7 +1308,8 @@
     // because of where the hide might be triggered from.
     
     NSArray* visibleRows = [tableview indexPathsForVisibleRows];
-    [tableview reloadRowsAtIndexPaths:visibleRows withRowAnimation:UITableViewRowAnimationNone];
+    if ([visibleRows count] > 0)
+        [tableview reloadRowsAtIndexPaths:visibleRows withRowAnimation:UITableViewRowAnimationNone];
     
     // We only want to scroll if the following conditions are met:
     // 1. The top row of the first section (and hence searchbar) are visible (or there are no rows)
@@ -1586,14 +1600,18 @@
 		[searchField windowWillOpen];
 		[searchField setDelegate:self];
 		tableController = [[UITableViewController alloc] init];
-		tableController.tableView = [self tableView];
+        
 		[tableController setClearsSelectionOnViewWillAppear:!allowsSelectionSet];
 		searchController = [[UISearchDisplayController alloc] initWithSearchBar:[search searchBar] contentsController:tableController];
 		searchController.searchResultsDataSource = self;
 		searchController.searchResultsDelegate = self;
 		searchController.delegate = self;
-		
-		[self updateSearchView];
+		if (tableview)
+        {
+            tableController.tableView = tableview;
+        }
+        [self updateSearchView];
+        
 
 		if (searchHidden)
 		{
@@ -1761,7 +1779,7 @@
         }
 		tableHeaderPullView = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f - self.tableView.bounds.size.height, self.tableView.bounds.size.width, self.tableView.bounds.size.height)];
 		tableHeaderPullView.backgroundColor = [UIColor lightGrayColor];
-		UIView *view = [value view];
+		UIView *view = [value getOrCreateView];
 		[[self tableView] addSubview:tableHeaderPullView];
 		[tableHeaderPullView addSubview:view];
 		[TiUtils setView:view positionRect:[tableHeaderPullView bounds]];
@@ -1812,6 +1830,8 @@ return result;	\
 		}
 		return rowCount;
 	}
+    
+    if (settingData) return 0;
 	
 	TiUITableViewSectionProxy *sectionProxy = [self sectionForIndex:section];
 	return sectionProxy.rowCount;
@@ -1843,7 +1863,6 @@ return result;	\
 	}
 	
 	TiUITableViewRowProxy *row = [self rowForIndexPath:index];
-	[row triggerAttach];
 	
 	// the classname for all rows that have the same substainal layout will be the same
 	// we reuse them for speed
@@ -1859,6 +1878,7 @@ return result;	\
         [row setCallbackCell:(TiUITableViewCell*)cell];
 	}
 	[row initializeTableViewCell:cell];
+    [row triggerAttach];
 	
 	return cell;
 }

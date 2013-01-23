@@ -47,7 +47,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 {
 @protected
     BOOL configurationSet;
-
+	BOOL needsToSetBackgroundImage;
+    NSMutableArray* childViews;
 @private
 	TiProxy *proxy;
 	TiAnimation *animation;
@@ -89,6 +90,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
     BOOL backgroundRepeat;
     TiDimension leftCap;
     TiDimension topCap;
+	NSRecursiveLock *transferLock;
 }
 
 /**
@@ -183,6 +185,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(id)proxyValueForKey:(NSString *)key;
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys;
 
+-(NSArray*) childViews;
 /*
  Tells the view to change its proxy to the new one provided.
  @param newProxy The new proxy to set on the view.

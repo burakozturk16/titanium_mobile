@@ -38,15 +38,20 @@ NSString * const TiExceptionUnimplementedFunction = @"Subclass did not implement
 NSString * const TiExceptionMemoryFailure = @"Memory allocation failed";
 
 
+NSString * SetterStringForKrollProperty(NSString * key)
+{
+    return [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+}
+
 SEL SetterForKrollProperty(NSString * key)
 {
-	NSString *method = [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	NSString *method = SetterStringForKrollProperty(key);
 	return NSSelectorFromString(method);
 }
 
 SEL SetterWithObjectForKrollProperty(NSString * key)
 {
-	NSString *method = [NSString stringWithFormat:@"set%@%@_:withObject:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	NSString *method = [SetterStringForKrollProperty(key) stringByAppendingString:@"withObject:"];
 	return NSSelectorFromString(method);
 }
 
@@ -130,14 +135,14 @@ void DoProxyDelegateReadKeyFromProxy(UIView<TiProxyDelegate> * target, NSString 
 	{
 		value = nil;
 	}
-
-	SEL sel = SetterWithObjectForKrollProperty(key);
+    NSString* method = SetterStringForKrollProperty(key);
+	SEL sel = NSSelectorFromString([method stringByAppendingString:@"withObject:"]);
 	if ([target respondsToSelector:sel])
 	{
 		DoProxyDispatchToSecondaryArg(target,sel,key,value,proxy);
 		return;
 	}
-	sel = SetterForKrollProperty(key);
+	sel = NSSelectorFromString(method);
 	if (![target respondsToSelector:sel])
 	{
 		return;
@@ -341,7 +346,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 	// for subclasses
 }
 
--(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
+
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args withPropertiesInit:(BOOL)init
 {
 	if (self = [self _initWithPageContext:context_])
 	{
@@ -361,11 +367,16 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 		{
 			[self _initWithCallback:[args objectAtIndex:1]];
 		}
-		
-		[self _initWithProperties:a];
+		if (init)
+            [self _initWithProperties:a];
 		executionContext = nil;
 	}
 	return self;
+}
+
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
+{
+    return [self _initWithPageContext:context_ args:args withPropertiesInit:YES];
 }
 
 -(void)_destroy

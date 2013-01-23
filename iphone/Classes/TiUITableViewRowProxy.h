@@ -12,6 +12,7 @@
 @class TiUITableViewCell;
 @class TiUITableView;
 @class TiUITableViewSectionProxy;
+@class TiUITableViewRowContainer;
 
 typedef enum  
 {
@@ -33,7 +34,7 @@ typedef enum
 	BOOL configuredChildren;
 	int dirtyRowFlags;
 	BOOL subviewIsAnimating;
-	UIView * rowContainerView;
+	TiUITableViewRowContainer * rowContainerView;
 	BOOL modifyingRow;
 	BOOL attaching;
 	NSInteger row;
@@ -43,7 +44,7 @@ typedef enum
 #pragma mark Public APIs
 
 @property(nonatomic,readonly)	NSString *tableClass;
-@property(nonatomic, readonly) BOOL reusable; // Readonly until reproxy/reuse implemented properly
+@property(nonatomic) BOOL reusable; // Readonly until reproxy/reuse implemented properly
 
 #pragma mark Framework
 

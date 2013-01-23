@@ -180,6 +180,8 @@ DEFINE_EXCEPTIONS
 
 -(void)dealloc
 {
+    [childViews release];
+    [transferLock release];
 	[transformMatrix release];
 	[animation release];
 	[backgroundImage release];
@@ -216,6 +218,8 @@ DEFINE_EXCEPTIONS
 	self = [super init];
 	if (self != nil)
 	{
+        childViews  =[[NSMutableArray alloc] init];
+		transferLock = [[NSRecursiveLock alloc] init];
 		touchPassThrough = false;
         self.clipsToBounds = clipChildren = YES;
 	}
@@ -274,11 +278,17 @@ DEFINE_EXCEPTIONS
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
+-(void)configurationStart
+{
+    configurationSet = needsToSetBackgroundImage = NO;
+}
+
 -(void)configurationSet
 {
 	// can be used to trigger things after all properties are set
     configurationSet = YES;
-    [self setBackgroundImage_:[[self proxy] valueForKey:@"backgroundImage"]];
+    if (needsToSetBackgroundImage)
+        [self setBackgroundImage_:[[self proxy] valueForKey:@"backgroundImage"]];
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -564,7 +574,10 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundImage_:(id)image
 {
-    if (!configurationSet) return;
+    if (!configurationSet) {
+        needsToSetBackgroundImage = YES;
+        return;
+    }
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
     
     if (bgImage == nil)
@@ -777,8 +790,17 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+-(NSArray*) childViews
+{
+    return [NSArray arrayWithArray:childViews];
+}
+
 -(void)didAddSubview:(UIView*)view
 {
+    if ([view isKindOfClass:[TiUIView class]])
+    {
+        [childViews addObject:view];
+    }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
     if (gradientLayer != nil) {
@@ -787,6 +809,15 @@ DEFINE_EXCEPTIONS
     if ([self backgroundImageLayer] != nil) {
 		[[[self backgroundImageWrapperView] layer] insertSublayer:[self backgroundImageLayer] atIndex:0];
 	}
+}
+
+- (void)willRemoveSubview:(UIView *)subview
+{
+    
+    if ([subview isKindOfClass:[TiUIView class]])
+    {
+        [childViews removeObject:subview];
+    }
 }
 
 -(void)animate:(TiAnimation *)newAnimation
@@ -841,6 +872,12 @@ DEFINE_EXCEPTIONS
 	return NSSelectorFromString(method);
 }
 
+-(SEL)selectorForlayoutProperty:(NSString*)key
+{
+	NSString *method = [NSString stringWithFormat:@"set%@%@:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	return NSSelectorFromString(method);
+}
+
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys
 {
 	DoProxyDelegateReadValuesWithKeysFromProxy(self, keys, proxy);
@@ -860,18 +897,31 @@ DEFINE_EXCEPTIONS
 		value = nil;
 	}
 
-	SEL method = SetterWithObjectForKrollProperty(key);
-	if([self respondsToSelector:method])
+	NSString *method = SetterStringForKrollProperty(key);
+    
+	SEL methodSel = NSSelectorFromString([method stringByAppendingString:@"withObject:"]);
+	if([self respondsToSelector:methodSel])
 	{
-		[self performSelector:method withObject:value withObject:props];
+		[self performSelector:methodSel withObject:value withObject:props];
 		return;
 	}		
 
-	method = SetterForKrollProperty(key);
-	if([self respondsToSelector:method])
+	methodSel = NSSelectorFromString(method);
+	if([self respondsToSelector:methodSel])
 	{
-		[self performSelector:method withObject:value];
-	}	
+//        NSLog(@"performing selector %@", method);
+		[self performSelector:methodSel withObject:value];
+	}
+}
+
+- (void)detachViewProxy {
+    if(!proxy) return;
+//    [(TiViewProxy*)[self proxy] setView:nil];
+    self.proxy = nil;
+    for (UIView *subview in self.subviews) {
+        if ([subview isKindOfClass:[TiUIView class]])
+            [(TiUIView*)subview detachViewProxy];
+    }
 }
 
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
@@ -880,20 +930,33 @@ DEFINE_EXCEPTIONS
 	
 	// We can safely skip everything if we're transferring to ourself.
 	if (oldProxy != newProxy) {
-		NSArray * oldProperties = (NSArray *)[oldProxy allKeys];
-		NSArray * newProperties = (NSArray *)[newProxy allKeys];
-		NSArray * keySequence = [newProxy keySequence];
+        [transferLock lock];
+        NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
+        NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
+        NSMutableSet* keySequence = [NSMutableSet setWithArray:[newProxy keySequence]];
+        NSMutableSet* layoutProps = [NSMutableSet setWithArray:[TiViewProxy layoutProperties]];
+        [oldProperties minusSet:newProperties];
+        [oldProperties minusSet:layoutProps];
+        [newProperties minusSet:keySequence];
+        [newProperties minusSet:layoutProps];
+        
+        id<NSFastEnumeration> keySeq = keySequence;
+        id<NSFastEnumeration> oldProps = oldProperties;
+        id<NSFastEnumeration> props = newProperties;
+        id<NSFastEnumeration> fastLayoutProps = layoutProps;
+        
 		[oldProxy retain];
-		[self retain];
 		
+        [self configurationStart];
 		[newProxy setReproxying:YES];
-		
-		[oldProxy setView:nil];
+
 		[newProxy setView:self];
-		[self setProxy:[newProxy retain]];
-		
-		//The important sequence first:
-		for (NSString * thisKey in keySequence)
+        
+        
+		[self setProxy:newProxy];
+
+        //The important sequence first:
+		for (NSString * thisKey in keySeq)
 		{
 			id newValue = [newProxy valueForKey:thisKey];
 			id oldValue = [oldProxy valueForKey:thisKey];
@@ -901,30 +964,38 @@ DEFINE_EXCEPTIONS
 				[self setKrollValue:newValue forKey:thisKey withObject:nil];
 			}
 		}
-		
-		for (NSString * thisKey in oldProperties)
+        
+		for (NSString * thisKey in fastLayoutProps)
 		{
-			if([newProperties containsObject:thisKey] || [keySequence containsObject:thisKey])
-			{
-				continue;
+			id newValue = [newProxy valueForKey:thisKey];
+			id oldValue = [oldProxy valueForKey:thisKey];
+			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
+                SEL selector = [self selectorForlayoutProperty:thisKey];
+				if([[self proxy] respondsToSelector:selector])
+                {
+                    [[self proxy] performSelector:selector withObject:newValue];
+                }
 			}
+		}
+
+		for (NSString * thisKey in oldProps)
+		{
 			[self setKrollValue:nil forKey:thisKey withObject:nil];
 		}
-		
-		for (NSString * thisKey in newProperties)
+
+		for (NSString * thisKey in props)
 		{
-			if ([keySequence containsObject:thisKey])
-			{
-				continue;
-			}
-			
 			// Always set the new value, even if 'equal' - some view setters (as in UIImageView)
 			// use internal voodoo to determine what to display.
 			// TODO: We may be able to take this out once the imageView.url property is taken out, and change it back to an equality test.
-			id newValue = [newProxy valueForUndefinedKey:thisKey];
-			[self setKrollValue:newValue forKey:thisKey withObject:nil];
+			id newValue = [newProxy valueForKey:thisKey];
+			id oldValue = [oldProxy valueForKey:thisKey];
+			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
+				[self setKrollValue:newValue forKey:thisKey withObject:nil];
+			}
 		}
-		
+
+        [self configurationSet];
 		if (deep) {
 			NSArray *subProxies = [newProxy children];
 			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
@@ -935,7 +1006,7 @@ DEFINE_EXCEPTIONS
 		[oldProxy release];
 		
 		[newProxy setReproxying:NO];
-		[self release];
+        [transferLock unlock];
 	}
 }
 
@@ -945,10 +1016,17 @@ DEFINE_EXCEPTIONS
 	
 	if (oldProxy == newProxy) {
 		return YES;
-	}
+	}    
 	if (![newProxy isMemberOfClass:[oldProxy class]]) {
 		return NO;
 	}
+    
+    UIView * ourView = [[oldProxy parent] parentViewForChild:oldProxy];
+    UIView *parentView = [self superview];
+    if (parentView!=ourView)
+    {
+        return NO;
+    }
 	
 	__block BOOL result = YES;
 	if (deep) {
@@ -959,7 +1037,13 @@ DEFINE_EXCEPTIONS
 		}
 		[oldSubProxies enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
 			TiViewProxy *newSubProxy = [subProxies objectAtIndex:idx];
-			result = [[oldSubProxy view] validateTransferToProxy:newSubProxy deep:YES];
+            TiUIView* view = [oldSubProxy view];
+            if (!view){
+                result = NO;
+                *stop = YES;
+            }
+            else
+                result = [view validateTransferToProxy:newSubProxy deep:YES]; //we assume that the view is already created
 			if (!result) {
 				*stop = YES;
 			}

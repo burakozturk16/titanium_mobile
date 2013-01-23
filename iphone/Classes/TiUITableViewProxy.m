@@ -78,16 +78,27 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 -(void)viewDidAttach
 {
 	TiUITableView * ourView = (TiUITableView *)[self view];
-    for (TiUITableViewSectionProxy* section in sections) {
+    int newCount = 0;	//Since we're iterating anyways, we might as well not get count.
+    
+    for (TiUITableViewSectionProxy* section in sections)
+	{
 		[section setTable:ourView];
-    }
+		[section setSection:newCount ++];
+		[self rememberSection:section];
+		//TODO: Shouldn't this be done by Section itself? Doesn't it already?
+		for (TiUITableViewRowProxy *row in section)
+		{
+			row.section = section;
+			row.parent = section;
+		}
+	}
 }
 
 -(NSArray *)keySequence
 {
 	if (tableKeySequence == nil)
 	{
-		tableKeySequence = [[NSArray arrayWithObjects:@"style",@"search",@"data",@"backgroundColor",nil] retain];
+		tableKeySequence = [[NSArray arrayWithObjects:@"style",@"data",@"search",@"backgroundColor",nil] retain];
 	}
 	return tableKeySequence;
 }
@@ -788,9 +799,16 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 			[section add:row];
 		}
 	}
-	
-	TiUITableViewAction *action = [[[TiUITableViewAction alloc] initWithObject:data animation:properties type:TiUITableViewActionSetData] autorelease];
-	[self makeViewPerformSelector:@selector(dispatchAction:) withObject:action createIfNeeded:YES waitUntilDone:immediate];
+    
+    if (![self view])
+    {
+        self.internalSections = data;
+        needsReloadOnAttach = YES;
+    }
+	else{
+        TiUITableViewAction *action = [[[TiUITableViewAction alloc] initWithObject:data animation:properties type:TiUITableViewActionSetData] autorelease];
+        [self makeViewPerformSelector:@selector(dispatchAction:) withObject:action createIfNeeded:YES waitUntilDone:immediate];
+    }
 }
 
 -(void)setData:(id)args withObject:(id)properties

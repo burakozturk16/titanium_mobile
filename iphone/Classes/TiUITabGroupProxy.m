@@ -174,14 +174,14 @@ static NSArray* tabGroupKeySequence;
 
 -(BOOL)_handleOpen:(id)args
 {
-	TiUITabGroup *tg = (TiUITabGroup*)self.view;
+	TiUITabGroup *tg = (TiUITabGroup*)[self getOrCreateView];
 	[tg open:args];
 	return YES;
 }
 
 -(BOOL)_handleClose:(id)args
 {
-	TiUITabGroup *tabGroup = (TiUITabGroup*)self.view;
+	TiUITabGroup *tabGroup = (TiUITabGroup*)[self getOrCreateView];
 	if (tabGroup!=nil)
 	{
 		[tabGroup close:args];

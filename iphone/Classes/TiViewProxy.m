@@ -24,6 +24,8 @@
 
 @implementation TiViewProxy
 
+static NSArray* layoutProps = nil;
+
 #pragma mark public API
 
 @synthesize vzIndex, parentVisible;
@@ -142,6 +144,8 @@
 	
 	if ([NSThread isMainThread])
 	{
+        if (readyToCreateView)
+            [arg setReadyToCreateView:YES]; //tableview magic not to create view on proxy creation
 		pthread_rwlock_wrlock(&childrenLock);
 		if (children==nil)
 		{
@@ -152,11 +156,15 @@
 			[children addObject:arg];
 		}
         
+        
         //Turn on clipping because I have children
         [[self view] updateViewShadowPath];
         
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
+        
+        if (!readyToCreateView) return;
+        
 		[self contentsWillChange];
 		if(parentVisible && !hidden)
 		{
@@ -426,6 +434,15 @@ LAYOUTPROPERTIES_SETTER_IGNORES_AUTO(setRight,right,TiDimensionFromObject,[self 
 
 LAYOUTPROPERTIES_SETTER(setWidth,width,TiDimensionFromObject,[self willChangeSize])
 LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeSize])
+
+
++(NSArray*)layoutProperties
+{
+    if (layoutProps == nil) {
+        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", nil];
+    }
+    return layoutProps;
+}
 
 // See below for how we handle setLayout
 //LAYOUTPROPERTIES_SETTER(setLayout,layoutStyle,TiLayoutRuleFromObject,[self willChangeLayout])
@@ -941,12 +958,12 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         }
         else {
             recheckForFill = followsFillBehavior;
-            result += [self autoHeightForSize:CGSizeMake(desiredWidth - offset, size.height - offset2)];
+            result += [self autoHeightForSize:CGSizeMake(size.width - offset, size.height - offset2)];
         }       
     }
 	else
 	{
-		result += [self autoHeightForSize:CGSizeMake(desiredWidth - offset, size.height - offset2)];
+		result += [self autoHeightForSize:CGSizeMake(size.width - offset, size.height - offset2)];
 	}
     if (recheckForFill && (result < suggestedHeight) ) {
         result = suggestedHeight;
@@ -968,7 +985,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 - (TiUIView *)barButtonViewForSize:(CGSize)bounds
 {
-	TiUIView * barButtonView = [self view];
+	TiUIView * barButtonView = [self getOrCreateView];
 	//TODO: This logic should have a good place in case that refreshLayout is used.
 	LayoutConstraint barButtonLayout = layoutProperties;
 	if (TiDimensionIsUndefined(barButtonLayout.width))
@@ -1026,9 +1043,26 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     }
 }
 
+-(void)setReadyToCreateView:(BOOL)ready
+{
+    readyToCreateView = ready;
+    pthread_rwlock_rdlock(&childrenLock);
+	if (children != nil) {
+		for (TiViewProxy* child in children) {
+			[child setReadyToCreateView:ready];
+		}
+	}
+	pthread_rwlock_unlock(&childrenLock);
+}
+
+-(TiUIView*)getOrCreateView
+{
+    readyToCreateView = YES;
+    return [self view];
+}
 -(TiUIView*)view
 {
-	if (view == nil)
+	if (view == nil && readyToCreateView)
 	{
 		WARN_IF_BACKGROUND_THREAD_OBJ
 #ifdef VERBOSE
@@ -1039,7 +1073,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 #endif		
 		// on open we need to create a new view
 		[self viewWillAttach];
-		view = [self newView];
+		view = [[self newView] retain];
 
         // check listeners dictionary to see if we need gesture recognizers
         if ([self _hasListeners:@"pinch"]) {
@@ -1070,7 +1104,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		
 		for (id child in childrenArray)
 		{
-			TiUIView *childView = [(TiViewProxy*)child view];
+			TiUIView *childView = [(TiViewProxy*)child getOrCreateView];
 			[self insertSubview:childView forProxy:child];
 		}
 		
@@ -1101,22 +1135,33 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 }
 
 //CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
+-(void)clearView:(BOOL)recurse
+{
+    [self setView:nil];
+    if (recurse)
+    pthread_rwlock_rdlock(&childrenLock);
+    for (TiViewProxy* child in [self children]) {
+        [child clearView:recurse];
+    }
+    pthread_rwlock_unlock(&childrenLock);
+}
+
+//CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
 -(void)setView:(TiUIView *)newView
 {
-	if (view != newView) {
-		[view removeFromSuperview];
-		[view release];
-		view = [newView retain];
-	}
+    if (view == newView) return;
+    
+    RELEASE_TO_NIL(view)
+    view = [newView retain];
+    if (view == nil)
+        readyToCreateView = NO;
 	
-	if (self.modelDelegate != newView) {
-		if (self.modelDelegate!=nil && [self.modelDelegate respondsToSelector:@selector(detachProxy)])
-		{
-			[self.modelDelegate detachProxy];
-			self.modelDelegate=nil;
-		}
-		self.modelDelegate = newView;
-	}
+    if (self.modelDelegate!=nil && [self.modelDelegate respondsToSelector:@selector(detachProxy)])
+    {
+        [self.modelDelegate detachProxy];
+        self.modelDelegate=nil;
+    }
+    self.modelDelegate = newView;
 }
 
 -(NSMutableDictionary*)langConversionTable
@@ -1181,7 +1226,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	
 	windowOpened = YES;
 	windowOpening = YES;
-	
+    	
 	// If the window was previously opened, it may need to have
 	// its existing children redrawn
 	// Maybe need to call layout children instead for non absolute layout
@@ -1382,6 +1427,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		destroyLock = [[NSRecursiveLock alloc] init];
 		pthread_rwlock_init(&childrenLock, NULL);
 		bubbleParent = YES;
+        viewInitialized = NO;
+        readyToCreateView = NO;
 	}
 	return self;
 }
@@ -1519,28 +1566,26 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 -(void)detachView
 {
 	[destroyLock lock];
+    
+    pthread_rwlock_rdlock(&childrenLock);
+    [[self children] makeObjectsPerformSelector:@selector(detachView)];
+    pthread_rwlock_unlock(&childrenLock);
+    
 	if (view!=nil)
 	{
 		[self viewWillDetach];
-		// hold the view during detachment -- but we can't release it immediately.
-        // What if it (or a superview or subview) is in the middle of an animation?
-        // We probably need to be even MORE careful here.
-		[[view retain] autorelease];
+		[view removeFromSuperview];
 		view.proxy = nil;
+        readyToCreateView = NO;
 		if (self.modelDelegate!=nil && [self.modelDelegate respondsToSelector:@selector(detachProxy)])
 		{
 			[self.modelDelegate detachProxy];
 		}
 		self.modelDelegate = nil;
-		[view removeFromSuperview];
 		RELEASE_TO_NIL(view);
 		[self viewDidDetach];
 	}
-
-    pthread_rwlock_rdlock(&childrenLock);
-    [[self children] makeObjectsPerformSelector:@selector(detachView)];
-    pthread_rwlock_unlock(&childrenLock);
-	[destroyLock unlock];
+	[destroyLock unlock];    
 }
 
 -(void)_destroy
@@ -1675,10 +1720,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	}
 	// check our parent since we optimize the fire with
 	// the check
-	if (parent!=nil)
+	if ([self parentForBubbling]!=nil)
 	{
 		// walk up the chain
-		return [parent _hasListeners:type];
+		return [[self parentForBubbling] _hasListeners:type];
 	}
 	return NO;
 }
@@ -2065,11 +2110,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	
 	if(hidden)
 	{
-		VerboseLog(@"Removing from superview");
-		if([self viewAttached])
-		{
-			[[self view] removeFromSuperview];
-		}
+//		VerboseLog(@"Removing from superview");
+//		if([self viewAttached])
+//		{
+////			[[self view] removeFromSuperview];
+//		}
 		return;
 	}
 
@@ -2167,11 +2212,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)insertSubview:(UIView *)childView forProxy:(TiViewProxy *)childProxy
 {
-	
 	int result = 0;
 	int childZindex = [childProxy vzIndex];
 	BOOL earlierSibling = YES;
 	UIView * ourView = [self parentViewForChild:childProxy];
+	if (ourView == nil)
 
     if (![self optimizeSubviewInsertion]) {
         for (UIView* subview in [ourView subviews]) 
@@ -2203,8 +2248,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		}
 	}
 	pthread_rwlock_unlock(&childrenLock);
+    if ([[ourView subviews] indexOfObject:childView] != NSNotFound) return;
     if (result == 0) {
-        [ourView insertSubview:childView atIndex:result];
+        [ourView addSubview:childView];
     }
     else {
         //Doing a blind insert at index messes up the underlying sublayer indices
@@ -2824,8 +2870,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	if (optimize==NO)
 	{
 		TiUIView *childView = [child view];
-		if ([childView superview]!=ourView)
-		{	
+		TiUIView *parentView = (TiUIView*)[childView superview];
+		if (parentView!=ourView)
+		{
+            NSLog(@"different %p and %p", parentView, ourView);
+
 			//TODO: Optimize!
 			int insertPosition = 0;
 			int childZIndex = [child vzIndex];
@@ -2859,6 +2908,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 				insertPosition ++;
 			}
 			
+//            [childView removeFromSuperview];
 			[ourView insertSubview:childView atIndex:insertPosition];
 			pthread_rwlock_unlock(&childrenLock); // must release before calling resize
 			

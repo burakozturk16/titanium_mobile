@@ -50,6 +50,7 @@
     BOOL animateHide;
 	BOOL editable;
 	BOOL moveable;
+	BOOL settingData;
 	NSMutableArray * sectionIndex;
 	NSMutableDictionary * sectionIndexMap;
 	TiDimension rowHeight;
