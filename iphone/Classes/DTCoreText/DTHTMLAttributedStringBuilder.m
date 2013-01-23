@@ -303,7 +303,7 @@
 		[self _buildString];
 	}
 	
-	return _tmpString;
+	return [[NSAttributedString alloc] initWithAttributedString:_tmpString];
 }
 
 #pragma mark GCD
