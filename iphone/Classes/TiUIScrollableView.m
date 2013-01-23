@@ -166,8 +166,8 @@
 	if ([[wrapper subviews] count]==0)
 	{
 		// we need to realize this view
+		TiUIView *uiview = [viewproxy getOrCreateView];
 		[viewproxy windowWillOpen];
-		TiUIView *uiview = [viewproxy view];
 		[wrapper addSubview:uiview];
 		[viewproxy reposition];
 	}
@@ -504,6 +504,8 @@
 	if (anim != nil)
 		animated = [anim boolValue];
     
+    [self manageCache:pageNum];
+
     CGPoint offset = CGPointMake([self bounds].size.width * pageNum, 0);
     if (animated)
     {
@@ -518,11 +520,7 @@
     else{
         [[self scrollview] setContentOffset: offset];
     }
-    [pageControl setCurrentPage:pageNum];
 	currentPage = pageNum;
-	
-    [self manageCache:pageNum];
-	
 	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
 }
 
@@ -693,7 +691,8 @@
 													   [[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
 	}
 	currentPage=pageNum;
-	[pageControl setCurrentPage:pageNum];
+	[pageControl setCurrentPage:currentPage];
+	[self manageCache:currentPage];
 }
 
 @end
