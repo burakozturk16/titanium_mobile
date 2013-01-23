@@ -115,6 +115,8 @@
     UITouch *touch = [[event allTouches] anyObject];
     NSString *fireEvent;
     NSString * fireActionEvent = nil;
+    NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+
     switch (touch.phase) {
         case UITouchPhaseBegan:
             if (touchStarted) {
@@ -144,7 +146,6 @@
             return;
     }
     [self setHighlighting:button.highlighted];
-    NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
     if ((fireActionEvent != nil) && [self.proxy _hasListeners:fireActionEvent]) {
         [self.proxy fireEvent:fireActionEvent withObject:evt];
     }
