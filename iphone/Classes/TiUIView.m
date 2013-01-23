@@ -1299,7 +1299,7 @@ DEFINE_EXCEPTIONS
 			[proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
 			return;
 		}
-		else if ([proxy _hasListeners:@"click"]) //tapCount != 2, it s a click
+		if ([proxy _hasListeners:@"click"])
 		{
 			if (touchDelegate == nil) {
 				[proxy fireEvent:@"click" withObject:evt propagate:YES];
