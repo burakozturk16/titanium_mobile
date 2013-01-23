@@ -1161,6 +1161,21 @@ DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
 		} forceReload:NO];
 	}, NO);
 }
+
+-(id)createEventObject:(id)initialObject
+{
+    if (initialObject && [initialObject objectForKey:@"row"])
+        return initialObject; //row property already there
+    
+    TiUITableViewRowProxy* rowProxy = [self getRowAtPoint:initialObject];
+    if (rowProxy != nil)
+    {
+        return [rowProxy createEventObject:initialObject];
+    }
+    NSLog(@"%@", initialObject);
+	return initialObject;
+}
+
 @end 
 
 #endif

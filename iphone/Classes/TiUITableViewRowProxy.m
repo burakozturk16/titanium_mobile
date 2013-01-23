@@ -901,6 +901,9 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(id)createEventObject:(id)initialObject
 {
+    if (initialObject && [initialObject objectForKey:@"row"])
+        return initialObject; //row property already there
+    
 	NSMutableDictionary *dict = nil;
 	if (initialObject == nil)
 	{

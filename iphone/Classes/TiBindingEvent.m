@@ -114,8 +114,8 @@ TiProxy * TiBindingEventNextBubbleTargetProxy(TiBindingEvent event, TiProxy * cu
         if ([currentTarget respondsToSelector:@selector(createEventObject:)]) {
             NSDictionary *curPayload = event->payloadDictionary;
             NSDictionary *modifiedPayload = [currentTarget createEventObject:curPayload];
-            [event->payloadDictionary release];
             event->payloadDictionary = [modifiedPayload copy];
+            [curPayload release];
         }
 	}
 	return currentTarget;
@@ -124,7 +124,16 @@ TiProxy * TiBindingEventNextBubbleTargetProxy(TiBindingEvent event, TiProxy * cu
 void TiBindingEventFire(TiBindingEvent event)
 {
 	pthread_once(&jsBindingRunOnce,TiBindingInitialize);
+    
+    
 	TiProxy * targetProxy = TiBindingEventNextBubbleTargetProxy(event, event->targetProxy, false);
+    
+    if ([targetProxy respondsToSelector:@selector(createEventObject:)]) {
+        NSDictionary *curPayload = event->payloadDictionary;
+        NSDictionary *modifiedPayload = [targetProxy createEventObject:curPayload];
+        event->payloadDictionary = [modifiedPayload copy];
+        [curPayload release];
+    }
 	
 	if (targetProxy == nil) { //Nobody to target, we're done here.
 		TiBindingEventDispose(event);
