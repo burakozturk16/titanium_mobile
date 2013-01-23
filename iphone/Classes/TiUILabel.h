@@ -9,33 +9,21 @@
 #import "TiUIView.h"
 #import "TTTAttributedLabel.h"
 
-typedef enum {
-    kContentTypeText,
-    kContentTypeHTML
-} ContentType;
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
+//@interface TiUILabel : TiUIView<LayoutAutosizing> {
 @private
 	TTTAttributedLabel *label;
-	BOOL requiresLayout;
     CGRect padding;
     CGRect textPadding;
     CGRect initialLabelFrame;
-    
-    ContentType contentType;
-    NSString * content;
-    
-    NSMutableDictionary * options;
-    
-    UILineBreakMode _multilineBreakMode;
-    
-    WebFont* webFont;
-    
-    BOOL configSet;
 }
 
 @property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
 
+-(void)setAttributedTextViewContent;
+
 @end
+
 
 #endif

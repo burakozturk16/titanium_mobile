@@ -9,43 +9,6 @@
 #import "TiUILabel.h"
 #import "TiUILabelProxy.h"
 #import "TiUtils.h"
-#import "UIImage+Resize.h"
-#import "DTCoreText.h"
-
-#define kDefaultFontSize 12.0
-
-static inline CTTextAlignment UITextAlignmentToCTTextAlignment(UITextAlignment alignment)
-{
-    switch (alignment) {
-        case UITextAlignmentLeft:
-            return kCTLeftTextAlignment;
-        case UITextAlignmentRight:
-            return kCTRightTextAlignment;
-        default:
-            return kCTCenterTextAlignment;
-            break;
-    }
-}
-
-static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode linebreak)
-{
-    switch (linebreak) {
-        case UILineBreakModeClip:
-            return kCTLineBreakByClipping;
-        case UILineBreakModeCharacterWrap:
-            return kCTLineBreakByCharWrapping;
-        case UILineBreakModeHeadTruncation:
-            return kCTLineBreakByTruncatingHead;
-        case UILineBreakModeTailTruncation:
-            return kCTLineBreakByTruncatingTail;
-        case UILineBreakModeMiddleTruncation:
-            return kCTLineBreakByTruncatingMiddle;
-        case UILineBreakModeWordWrap:
-        default:
-            return kCTLineBreakByWordWrapping;
-            break;
-    }
-}
 
 @implementation TiUILabel
 
@@ -54,12 +17,9 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(id)init
 {
     if (self = [super init]) {
-        options = [[NSMutableDictionary dictionary] retain];
         padding = CGRectZero;
         textPadding = CGRectZero;
         initialLabelFrame = CGRectZero;
-        webFont = [[WebFont defaultFont] retain];
-        webFont.size = 17; //to get the same default font size as UILabel
     }
     return self;
 }
@@ -67,9 +27,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)dealloc
 {
     RELEASE_TO_NIL(label);
-    RELEASE_TO_NIL(options);
-    RELEASE_TO_NIL(content);
-    RELEASE_TO_NIL(webFont);
     [super dealloc];
 }
 
@@ -84,6 +41,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth
 {
     CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
+    maxSize.width -= textPadding.origin.x + textPadding.size.width;
     CGFloat textWidth = [[self label] sizeThatFits:maxSize].width;
     textWidth = MIN(textWidth,  maxSize.width);
     CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,textWidth, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
@@ -105,10 +63,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(void)padLabel
 {
+    if (!configurationSet) return; // lazy init
 	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.origin.x
                                    , initialLabelFrame.origin.y + textPadding.origin.y
                                    , initialLabelFrame.size.width - textPadding.origin.x - textPadding.size.width
                                    , initialLabelFrame.size.height - textPadding.origin.y - textPadding.size.height);
+    
+//    if(CGRectEqualToRect (label.frame, initFrame)); return;
     [label setFrame:initFrame];
     
     if ([self backgroundImageLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
@@ -136,17 +97,19 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 - (void)configurationSet {
     [super configurationSet];
-    configSet = YES;
+    [self padLabel];
+    [self updateBackgroundImageFrameWithPadding];
     [self setAttributedTextViewContent];
+    
 }
 
 -(TTTAttributedLabel*)label
 {
 	if (label==nil)
 	{
-        _multilineBreakMode = UILineBreakModeWordWrap;
         label = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
+//        label.textAlignment = UITextAlignmentCenter;
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
         label.layer.shadowRadius = 0; //for backward compatibility
@@ -163,48 +126,14 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 }
 
 - (void)setAttributedTextViewContent {
-    if (!configSet) return; // lazy init
+    ENSURE_UI_THREAD_0_ARGS
+    if (!configurationSet) return; // lazy init
     
-    if (content == nil) {
-        [[self label] setText:nil];
-        [(TiViewProxy *)[self proxy] contentsWillChange];
-        return;
-    }
-    
-    switch (contentType) {
-        case kContentTypeHTML:
-        {
-            //we need to set default values
-            [options setValue:self.label.textColor forKey:DTDefaultTextColor];
-            [options setValue:self.label.textColor forKey:DTDefaultLinkColor];
-            [options setValue:[NSNumber numberWithInt:UITextAlignmentToCTTextAlignment(self.label.textAlignment)] forKey:DTDefaultTextAlignment];
-
-            [options setValue:[NSNumber numberWithInt:UILineBreakModeToCTLineBreakMode(_multilineBreakMode)]  forKey:DTDefaultLineBreakMode];
-            
-            int traitsDefault = 0;
-            if (webFont.isItalicStyle)
-                traitsDefault |= kCTFontItalicTrait;
-            if (webFont.isBoldWeight)
-                traitsDefault |= kCTFontBoldTrait;
-            [options setValue:[NSNumber numberWithInt:traitsDefault] forKey:DTDefaultFontStyle];
-            if (webFont.family)
-                [options setValue:webFont.family forKey:DTDefaultFontFamily];
-            else
-                [options setValue:@"Helvetica" forKey:DTDefaultFontFamily];
-
-            [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
-            
-            NSAttributedString * astr = [[NSAttributedString alloc] initWithHTMLData:[content dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
-            [[self label] setText:astr];
-            break;
-        }
-        default:
-        {
-            [[self label] setText:content];
-            break;
-        }
-    }
-    [(TiViewProxy *)[self proxy] contentsWillChange];
+    id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
+    if ([attr isKindOfClass:[NSAttributedString class]])
+        [[self label] setText:attr];
+    else
+        [[self label] setText:attr];
 }
 
 -(void)setHighlighted:(BOOL)newValue
@@ -228,27 +157,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)setVerticalAlign_:(id)value
 {
     UIControlContentVerticalAlignment verticalAlign = [TiUtils contentVerticalAlignmentValue:value];
-    
     [[self label] setVerticalAlignment:(TTTAttributedLabelVerticalAlignment)verticalAlign];
 }
--(void)setText_:(id)text
-{
-    ENSURE_STRING_OR_NIL(text)
-    RELEASE_TO_NIL(content)
-    contentType = kContentTypeText;
-    content = [text retain];
-    [self setAttributedTextViewContent];
-}
-
-
-- (void)setHtml_:(id)html {
-    ENSURE_STRING_OR_NIL(html)
-    RELEASE_TO_NIL(content)
-    contentType = kContentTypeHTML;
-    content = [html retain];
-    [self setAttributedTextViewContent];
-}
-
 -(void)setAutoLink_:(id)value
 {
     [[self label] setDataDetectorTypes:[TiUtils intValue:value]];
@@ -259,29 +169,21 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)setColor_:(id)color
 {
 	UIColor * newColor = [[TiUtils colorValue:color] _color];
-	[[self label] setTextColor:(newColor != nil)?newColor:[UIColor darkTextColor]];
-    
-    //we need to reset the text to update default paragraph settings
-    [self setAttributedTextViewContent];
+    if (newColor == nil)
+        newColor = [UIColor darkTextColor];
+	[[self label] setTextColor:newColor];
 }
 
 -(void)setHighlightedColor_:(id)color
 {
 	UIColor * newColor = [[TiUtils colorValue:color] _color];
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
-    
-    //we need to reset the text to update default paragraph settings
-    [self setAttributedTextViewContent];
 }
 
 -(void)setFont_:(id)font
 {
-    RELEASE_TO_NIL(content);
-    webFont =[[TiUtils fontValue:font] retain];
+    WebFont* webFont =[TiUtils fontValue:font];
 	[[self label] setFont:[webFont font]];
-    
-    //we need to reset the text to update default paragraph settings
-    [self setAttributedTextViewContent];
 }
 
 -(void)setMinimumFontSize_:(id)size
@@ -312,6 +214,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(void) updateBackgroundImageFrameWithPadding
 {
+    if (!configurationSet) return; // lazy init
     [self setBackgroundImageLayerBounds:self.bounds];
 }
 
@@ -350,9 +253,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)setTextAlign_:(id)alignment
 {
 	[[self label] setTextAlignment:[TiUtils textAlignmentValue:alignment]];
-    
-    //we need to reset the text to update default paragraph settings
-    [self setAttributedTextViewContent];
 }
 
 -(void)setShadowColor_:(id)color
@@ -423,8 +323,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             [[self label] setNumberOfLines:1];
         }
     }
-
-    [self setAttributedTextViewContent];
 }
 
 -(void)setWordWrap_:(id)value
@@ -440,19 +338,16 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)setEllipsize_:(id)value
 {
     [[self label] setLineBreakMode:[TiUtils intValue:value]];
-    //we need to update the text
-    [self setAttributedTextViewContent];
 }
 
 
 -(void)setMultiLineEllipsize_:(id)value
 {
-    _multilineBreakMode = [TiUtils intValue:value];
-    if (_multilineBreakMode != UILineBreakModeWordWrap)
+    int multilineBreakMode = [TiUtils intValue:value];
+    if (multilineBreakMode != UILineBreakModeWordWrap)
+    {
         [[self label] setLineBreakMode:UILineBreakModeWordWrap];
-
-    //we need to update the text
-    [self setAttributedTextViewContent];
+    }
 }
 
 
