@@ -103,50 +103,55 @@ USE_VIEW_FOR_CONTENT_WIDTH
 
 -(CGFloat)contentHeightForWidth:(CGFloat)suggestedWidth
 {
-//    if ([self view])
+    if ([self view])
         return [[self view] contentHeightForWidth:suggestedWidth];
-//    else
-//    {
-//        if (realLabelContent != nil)
-//        {
-//            CGSize resultSize = CGSizeZero;
-//            CGRect textPadding = CGRectZero;
-//            if ([self valueForKey:@"textPaddingLeft"])
-//                textPadding.origin.x = [TiUtils intValue:[self valueForKey:@"textPaddingLeft"]];
-//            if ([self valueForKey:@"textPaddingRight"])
-//                textPadding.size.width = [TiUtils intValue:[self valueForKey:@"textPaddingRight"]];
-//            if ([self valueForKey:@"textPaddingTop"])
-//                textPadding.origin.y = [TiUtils intValue:[self valueForKey:@"textPaddingTop"]];
-//            if ([self valueForKey:@"textPaddingBottom"])
-//                textPadding.size.height = [TiUtils intValue:[self valueForKey:@"textPaddingBottom"]];
-//            
-//            CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
-//            maxSize.width -= textPadding.origin.x + textPadding.size.width;
-//            if ([realLabelContent isKindOfClass:[NSAttributedString class]])
-//                resultSize = [(NSAttributedString*)realLabelContent boundingRectWithSize:maxSize options:0 context:nil].size;
-//            else
-//            {
-//                UILineBreakMode breakMode = UILineBreakModeWordWrap;
-//                if ([self valueForKey:@"ellipsize"])
-//                    breakMode = [TiUtils intValue:[self valueForKey:@"ellipsize"]];
-//                id fontValue = [self valueForKey:@"font"];
-//                UIFont * font;
-//                if (fontValue!=nil)
-//                {
-//                    font = [[TiUtils fontValue:fontValue] font];
-//                }
-//                else
-//                {
-//                    font = [UIFont systemFontOfSize:17];
-//                }
-//                resultSize = [(NSString*)realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
-//            }
-//            resultSize.width += textPadding.origin.x + textPadding.size.width;
-//            resultSize.height += textPadding.origin.y + textPadding.size.height;
-//            return resultSize.height;
-//        }
-//    }
-//    return 0;
+    else
+    {
+        if (realLabelContent != nil)
+        {
+            CGSize resultSize = CGSizeZero;
+            CGRect textPadding = CGRectZero;
+            if ([self valueForKey:@"textPaddingLeft"])
+                textPadding.origin.x = [TiUtils intValue:[self valueForKey:@"textPaddingLeft"]];
+            if ([self valueForKey:@"textPaddingRight"])
+                textPadding.size.width = [TiUtils intValue:[self valueForKey:@"textPaddingRight"]];
+            if ([self valueForKey:@"textPaddingTop"])
+                textPadding.origin.y = [TiUtils intValue:[self valueForKey:@"textPaddingTop"]];
+            if ([self valueForKey:@"textPaddingBottom"])
+                textPadding.size.height = [TiUtils intValue:[self valueForKey:@"textPaddingBottom"]];
+            
+            CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
+            maxSize.width -= textPadding.origin.x + textPadding.size.width;
+            if ([realLabelContent isKindOfClass:[NSAttributedString class]])
+            {
+                if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
+                {
+                    resultSize = [(NSAttributedString*)realLabelContent boundingRectWithSize:maxSize options:0 context:nil].size;
+                }
+            }
+            else
+            {
+                UILineBreakMode breakMode = UILineBreakModeWordWrap;
+                if ([self valueForKey:@"ellipsize"])
+                    breakMode = [TiUtils intValue:[self valueForKey:@"ellipsize"]];
+                id fontValue = [self valueForKey:@"font"];
+                UIFont * font;
+                if (fontValue!=nil)
+                {
+                    font = [[TiUtils fontValue:fontValue] font];
+                }
+                else
+                {
+                    font = [UIFont systemFontOfSize:17];
+                }
+                resultSize = [(NSString*)realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+            }
+            resultSize.width += textPadding.origin.x + textPadding.size.width;
+            resultSize.height += textPadding.origin.y + textPadding.size.height;
+            return resultSize.height;
+        }
+    }
+    return 0;
 }
 
 -(CGFloat) verifyWidth:(CGFloat)suggestedWidth
