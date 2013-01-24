@@ -719,6 +719,16 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 @synthesize parent, barButtonItem;
 
+-(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check
+{
+	parent = parent_;
+	
+	if (check && parent_!=nil && [parent windowHasOpened])
+	{
+		[self windowWillOpen];
+	}
+}
+
 -(void)setParent:(TiViewProxy*)parent_
 {
 	parent = parent_;

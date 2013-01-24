@@ -229,6 +229,8 @@ enum
 -(void)clearView:(BOOL)recurse;
 -(TiUIView*)getOrCreateView;
 
+-(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;
+
 #pragma mark nonpublic accessors not related to Housecleaning
 
 /**

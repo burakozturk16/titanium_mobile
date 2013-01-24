@@ -1531,7 +1531,7 @@
 	ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
 	if (args!=nil)
 	{
-		TiUIView *view = (TiUIView*) [args view];
+		TiUIView *view = (TiUIView*) [args getOrCreateView];
 		UITableView *table = [self tableView];
 		[table setTableHeaderView:view];
         if (headerViewProxy != nil) {
@@ -1559,7 +1559,7 @@
 	if (args!=nil)
 	{
 		[args windowWillOpen];
-		UIView *view = [args view];
+		UIView *view = [args getOrCreateView];
 		[[self tableView] setTableFooterView:view];
         if (footerViewProxy != nil) {
             [footerViewProxy setProxyObserver:nil];
@@ -1597,6 +1597,7 @@
 		//doing our own custom search screen since the controller gives this to us
 		//for free
 		searchField = [search retain];
+        [searchField getOrCreateView]; //make sure the view is created
 		[searchField windowWillOpen];
 		[searchField setDelegate:self];
 		tableController = [[UITableViewController alloc] init];

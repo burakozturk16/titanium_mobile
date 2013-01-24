@@ -164,7 +164,7 @@ static void addRoundedRectToPath(CGContextRef context, CGRect rect,
 
 // used as a marker interface
 
-@interface TiUITableViewRowContainer : UIView
+@interface TiUITableViewRowContainer : TiUIView
 {
 	TiProxy * hitTarget;
 	CGPoint hitPoint;
@@ -710,7 +710,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(UIView*)view
 {
-	return nil;
+	return rowContainerView;
 }
 
 //Private method : For internal use only
@@ -762,6 +762,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	// to be initialized. on subsequent repaints of a re-used
 	// table cell, the updateChildren below will be called instead
 	configuredChildren = NO;
+    [self setReadyToCreateView:NO];
 	if ([[self children] count] > 0)
 	{
 		UIView *contentView = cell.contentView;
@@ -845,13 +846,10 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 				[proxy setReproxying:YES];
                 if (uiview == nil) {
                     [proxy detachView];
-                    [(TiViewProxy*)proxy setReadyToCreateView:YES];
-					[rowContainerView addSubview:[proxy view]];
+					[rowContainerView addSubview:[proxy getOrCreateView]];
 				}
                 else{
                     [uiview transferProxy:proxy deep:YES];
-                    UIView * ourView = [[proxy parent] parentViewForChild:proxy];
-                    TiUIView *parentView = (TiUIView*)[uiview superview];
                 }
                 [self redelegateViews:proxy toView:contentView];
 				[proxy setReproxying:NO];
@@ -862,6 +860,8 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 		}
 	}
 	configuredChildren = YES;
+    [self setReadyToCreateView:YES];
+    [self windowWillOpen];
     [self refreshView:nil];
 }
 

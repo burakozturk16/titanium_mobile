@@ -89,7 +89,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 		for (TiUITableViewRowProxy *row in section)
 		{
 			row.section = section;
-			row.parent = section;
+            [row setParent:section checkForOpen:NO];
 		}
 	}
 }
