@@ -25,6 +25,7 @@ for (var i in images) {
 
 	var imgView = Ti.UI.createImageView({
 		image: images[i],
+		scaleType:Ti.UI.SCALE_TYPE_ASPECT_FIT,
 		width: 128,
 		height: 100,
 		row: idx++
