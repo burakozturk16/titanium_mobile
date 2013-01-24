@@ -251,6 +251,7 @@ enum
 @property(nonatomic,readwrite,assign) CGRect sandboxBounds;
 	//This is unaffected by parentVisible. So if something is truely visible, it'd be [self visible] && parentVisible.
 -(void)setHidden:(BOOL)newHidden withArgs:(id)args;
+-(BOOL)isHidden;
 
 @property(nonatomic,retain) UIBarButtonItem * barButtonItem;
 -(TiUIView *)barButtonViewForSize:(CGSize)bounds;

@@ -759,6 +759,12 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	}
 }
 
+-(BOOL)isHidden
+{
+    return hidden;
+}
+
+
 -(CGFloat)autoWidthForSize:(CGSize)size
 {
     CGFloat suggestedWidth = size.width;
@@ -1429,6 +1435,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		bubbleParent = YES;
         viewInitialized = NO;
         readyToCreateView = NO;
+        hidden = NO;
 	}
 	return self;
 }
@@ -2421,7 +2428,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         TiRect * childRect = [[TiRect alloc] init];
         CGRect childBounds = CGRectZero;
         UIView * ourView = [self parentViewForChild:child];
-        if (ourView != nil)
+        if (ourView != nil && ![(TiViewProxy*)child isHidden])
         {
             CGRect bounds = [ourView bounds];
 			if (horizontalNoWrap) {
@@ -2873,8 +2880,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		TiUIView *parentView = (TiUIView*)[childView superview];
 		if (parentView!=ourView)
 		{
-            NSLog(@"different %p and %p", parentView, ourView);
-
 			//TODO: Optimize!
 			int insertPosition = 0;
 			int childZIndex = [child vzIndex];
