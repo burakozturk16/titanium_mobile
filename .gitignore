@@ -23,3 +23,5 @@ support/mobileweb/dependencyAnalyzer/node_modules/*
 anvil/driver/node_modules/*
 
 .metadata
+*/gen
+*/bin
