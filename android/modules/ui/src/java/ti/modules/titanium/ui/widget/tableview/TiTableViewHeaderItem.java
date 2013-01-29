@@ -73,6 +73,11 @@ public class TiTableViewHeaderItem extends TiBaseTableViewItem
 			return item;
 		}
 	}
+	
+	@Override
+	public View getView() {
+		return headerView.getNativeView();
+	}
 
 	public TiTableViewHeaderItem(Activity activity)
 	{

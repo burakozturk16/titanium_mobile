@@ -7,8 +7,9 @@
 package ti.modules.titanium.ui.widget.tableview;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.common.Log;
@@ -76,15 +77,37 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	{
 		this(tiContext.getActivity());
 	}
-
+	
 	protected TableViewRowProxy getRowProxy() {
+		if (item == null) return null;
 		return (TableViewRowProxy)item.proxy;
 	}
+	
+	@Override
+	public View getView() {
+		return content;
+	}
+	
+	@Override
+	public void clearViews()
+	{
+		TableViewRowProxy rowProxy = getRowProxy();
+		if (rowProxy != null)
+			rowProxy.clearViews();
+	}
 
+	
 	public void setRowData(Item item) {
-		this.item = item;
-		TableViewRowProxy rp = getRowProxy();
+		TableViewRowProxy rp = (TableViewRowProxy)item.proxy;
 		setRowData(rp);
+		if (getRowProxy() != null)
+		{
+			//we are reusing its view so make sure it doesnt think it still has views!
+			getRowProxy().clearViews();
+			getRowProxy().setTableViewItem(null);
+		}
+		this.item = item; //we do it after so that we can compare with old proxy
+		rp.setTableViewItem(this);
 	}
 
 	public Item getRowData() {
@@ -103,14 +126,43 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		views.add(newViewProxy.getOrCreateView());
 		return label;
 	}
+	
+	public void addControl(TiViewProxy proxy)
+	{
+		clearChildViews(proxy);
+		TiUIView view = proxy.forceCreateView(); 
+		views.add(view);
+		View v = view.getOuterView();
+
+		if (v.getParent() == null) {
+			content.addView(v, view.getLayoutParams());
+			if (v instanceof TiCompositeLayout) {
+				((TiCompositeLayout) v).resort();
+			}
+			v.requestLayout();
+		}
+	}
+	
+	public void removeControl(TiViewProxy proxy)
+	{
+		if (proxy.peekView() == null) return;
+		TiUIView view = proxy.peekView(); 
+		int index = views.indexOf(view);
+		if (index != -1)
+		{
+			View v = view.getOuterView();
+			content.removeView(v);
+			views.remove(index);
+		}
+	}
 
 	/*
 	 * Create views for measurement or for layout.  For each view, apply the
 	 * properties from the appropriate proxy to the view.
 	 */
-	protected void createControls()
+	protected void createControls(TableViewRowProxy rp)
 	{
-		ArrayList<TiViewProxy> proxies = getRowProxy().getControls();
+		ArrayList<TiViewProxy> proxies = rp.getControls();
 		int len = proxies.size();
 
 		if (views == null) {
@@ -126,42 +178,43 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 
 		for (int i = 0; i < len; i++) {
+			
+			Boolean needsTransfer = true;
 			TiUIView view = views.size() > i ? views.get(i) : null;
 			TiViewProxy proxy = proxies.get(i);
 			if (view != null && view.getProxy() instanceof TableViewRowProxy) {
 				proxy = addViewToOldRow(i, view, proxy);
+				needsTransfer = false;
 				len++;
 			}
-			if (view == null) {
-				// In some cases the TiUIView for this proxy has been reassigned to another proxy
-				// We don't want to actually release it though, just reassign by creating a new view.
-				//
-				// Not setting modelListener from here because this could be a measurement pass or
-				// a layout pass through getView(), which means that the view we have here may
-				// not be the one that gets displayed on the screen.  So we don't want to make
-				// any view-proxy association at this point.   We only want to make that association
-				// on a layout pass (i.e. when onLayout() gets called).
-				//
+			else if (view == null) {
 				clearChildViews(proxy);
-				view = proxy.forceCreateView(false, false);  // false means don't set modelListener, second false not to process Properties
+				view = proxy.forceCreateView();  // false means don't set modelListener, second false not to process Properties
 				if (i >= views.size()) {
 					views.add(view);
 				} else {
 					views.set(i, view);
 				}
+				needsTransfer = false;
 			}
 
 			View v = view.getOuterView();
 
-			//applying properties will be done in the first layout
-			// view.processProperties(proxy.getProperties());
-			// applyChildProperties(proxy, view);
-
 			if (v.getParent() == null) {
 				content.addView(v, view.getLayoutParams());
 			}
+			
+			if (!needsTransfer) continue;
+			
+			TiViewProxy oldProxy = view.getProxy();
+			proxy.setView(view);
+			view.setProxy(proxy);
+			proxy.setModelListener(view, false); //applying proxy properties
+			view.registerForTouch();
+			view.registerForKeyPress();
+			view.processProperties(getOnlyChangedProperties(oldProxy, proxy));
+			associateProxies(proxy.getChildren(), view.getChildren());
 		}
-		getRowProxy().setTableViewItem(null); //to make sure we associateProxies in the onLayout first call
 	}
 
 	protected void clearChildViews(TiViewProxy parent)
@@ -184,9 +237,10 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 	}
 
-	protected void refreshOldStyleRow()
+	protected void refreshOldStyleRow(TableViewRowProxy rp)
 	{
-		TableViewRowProxy rp = getRowProxy();
+		// old-style row
+		
 		if (!rp.hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
 			// We have traditionally always made the label untouchable, but since
 			// version 3.0.0 we support explore-by-touch on ICS and above, so for
@@ -211,105 +265,123 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			params.autoFillsWidth = true;
 			content.addView(v, params);
 		}
+		TiUIView childView = views.get(0);
+		childView.processProperties(filterProperties(rp.getProperties()));
+		childView.setProxy(rp);
+	}
+	
+	public void processProperties(KrollDict p)
+	{
+		
 	}
 
 	public void setRowData(TableViewRowProxy rp) {
-//		hasControls = rp.hasControls();
+		KrollDict  p = rp.getProperties();
+		KrollDict  oldProps;
+		if (getRowProxy() != null)
+			oldProps = getRowProxy().getProperties();
+		else
+			oldProps = new KrollDict();
 		
 		Object newSelectorSource = null;
-		if (rp.hasProperty(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
-			newSelectorSource = rp.getProperty(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE);
-		} else if (rp.hasProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
-			newSelectorSource = rp.getProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR);
+		if (p.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
+			newSelectorSource = p.get(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE);
+		} else if (p.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)){
+			newSelectorSource = p.get(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR);
 		}
-		if (newSelectorSource == null || selectorSource != null && !selectorSource.equals(newSelectorSource)) {
+		if (selectorSource != newSelectorSource){
 			selectorDrawable = null;
+			selectorSource = newSelectorSource;
+			if (selectorSource != null) {
+				rp.getTable().getTableView().getTableView().enableCustomSelector();
+			}
+			setBackgroundFromProxy(rp);
 		}
-		selectorSource = newSelectorSource;
-		if (selectorSource != null) {
-			rp.getTable().getTableView().getTableView().enableCustomSelector();
-		}
+		
 
-		setBackgroundFromProxy(rp);
 		// Handle right image
 		boolean clearRightImage = true;
 		// It's one or the other, check or child.  If you set them both, child's gonna win.
-		HashMap<String, Object> props = rp.getProperties();
-		if (props.containsKey(TiC.PROPERTY_HAS_CHECK)) {
-			if (TiConvert.toBoolean(props, TiC.PROPERTY_HAS_CHECK)) {
-				if (hasCheckDrawable == null) {
-					hasCheckDrawable = createHasCheckDrawable();
-				}
+		if (p.containsKey(TiC.PROPERTY_HAS_CHECK)) {
+			if (TiConvert.toBoolean(p, TiC.PROPERTY_HAS_CHECK) && hasCheckDrawable == null) {
+				hasCheckDrawable = createHasCheckDrawable();
 				rightImage.setImageDrawable(hasCheckDrawable);
 				rightImage.setVisibility(VISIBLE);
 				clearRightImage = false;
 			}
 		}
-		if (props.containsKey(TiC.PROPERTY_HAS_CHILD)) {
-			if (TiConvert.toBoolean(props, TiC.PROPERTY_HAS_CHILD)) {
-				if (hasChildDrawable == null) {
-					hasChildDrawable = createHasChildDrawable();
-				}
+
+		if (p.containsKey(TiC.PROPERTY_HAS_CHILD)) {
+			if (TiConvert.toBoolean(p, TiC.PROPERTY_HAS_CHILD) && hasChildDrawable == null) {
+				hasChildDrawable = createHasChildDrawable();
 				rightImage.setImageDrawable(hasChildDrawable);
 				rightImage.setVisibility(VISIBLE);
 				clearRightImage = false;
 			}
 		}
-		if (props.containsKey(TiC.PROPERTY_RIGHT_IMAGE)) {
-			String path = TiConvert.toString(props, TiC.PROPERTY_RIGHT_IMAGE);
-			String url = rp.resolveUrl(null, path);
-			Drawable d = loadDrawable(url);
-			if (d != null) {
-				rightImage.setImageDrawable(d);
-				rightImage.setVisibility(VISIBLE);
-				clearRightImage = false;
+		if (p.containsKey(TiC.PROPERTY_RIGHT_IMAGE)) {
+			String path = TiConvert.toString(p, TiC.PROPERTY_RIGHT_IMAGE);
+			if (path.compareTo(TiConvert.toString(oldProps, TiC.PROPERTY_RIGHT_IMAGE)) != 0)
+			{
+				String url = getRowProxy().resolveUrl(null, path);
+				Drawable d = loadDrawable(url);
+				if (d != null) {
+					rightImage.setImageDrawable(d);
+					rightImage.setVisibility(VISIBLE);
+					clearRightImage = false;
+				}
 			}
+			
 		}
 
-		if (clearRightImage) {
+		if (clearRightImage && rightImage.getVisibility() == VISIBLE) {
+			hasCheckDrawable = null;
+			hasChildDrawable = null;
 			rightImage.setImageDrawable(null);
 			rightImage.setVisibility(GONE);
 		}
 
 		// Handle left image
-		if (props.containsKey(TiC.PROPERTY_LEFT_IMAGE)) {
-			String path = TiConvert.toString(props, TiC.PROPERTY_LEFT_IMAGE);
-			String url = rp.resolveUrl(null, path);
-
-			Drawable d = loadDrawable(url);
-			if (d != null) {
-				leftImage.setImageDrawable(d);
-				leftImage.setVisibility(VISIBLE);
+		boolean clearleftImage = true;
+		if (p.containsKey(TiC.PROPERTY_LEFT_IMAGE)) {
+			String path = TiConvert.toString(p, TiC.PROPERTY_LEFT_IMAGE);
+			if (path.compareTo(TiConvert.toString(oldProps, TiC.PROPERTY_LEFT_IMAGE)) != 0)
+			{
+				String url = getRowProxy().resolveUrl(null, path);
+	
+				Drawable d = loadDrawable(url);
+				if (d != null) {
+					leftImage.setImageDrawable(d);
+					leftImage.setVisibility(VISIBLE);
+					clearleftImage = false;
+				}
 			}
-		} else {
+		}
+		if (clearleftImage && leftImage.getVisibility() == VISIBLE) 
+		{
 			leftImage.setImageDrawable(null);
 			leftImage.setVisibility(GONE);
 		}
-
-		if (props.containsKey(TiC.PROPERTY_HEIGHT)) {
-			if (!props.get(TiC.PROPERTY_HEIGHT).equals(TiC.SIZE_AUTO)
-				&& !props.get(TiC.PROPERTY_HEIGHT).equals(TiC.LAYOUT_SIZE)) {
-				height = TiConvert.toTiDimension(TiConvert.toString(props, TiC.PROPERTY_HEIGHT), TiDimension.TYPE_HEIGHT);
+		
+		if (p.containsKey(TiC.PROPERTY_HEIGHT)) {
+			if (!p.get(TiC.PROPERTY_HEIGHT).equals(TiC.SIZE_AUTO)
+				&& !p.get(TiC.PROPERTY_HEIGHT).equals(TiC.LAYOUT_SIZE)) {
+				height = TiConvert.toTiDimension(TiConvert.toString(p, TiC.PROPERTY_HEIGHT), TiDimension.TYPE_HEIGHT);
 			}
 		}
+		else height = null;
 
-		if (props.containsKey(TiC.PROPERTY_LAYOUT)) {
-			content.setLayoutArrangement(TiConvert.toString(props, TiC.PROPERTY_LAYOUT));
+		if (p.containsKey(TiC.PROPERTY_LAYOUT)) {
+				content.setLayoutArrangement(TiConvert.toString(p, TiC.PROPERTY_LAYOUT));
 		}
-		if (props.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
-			content.setEnableHorizontalWrap(TiConvert.toBoolean(props, TiC.PROPERTY_HORIZONTAL_WRAP));
+		else content.setLayoutArrangement(null);
+		
+		if (p.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
+			content.setEnableHorizontalWrap(TiConvert.toBoolean(p, TiC.PROPERTY_HORIZONTAL_WRAP));
 		}
-
-		// hasControls() means that the proxy has children
-		if (rp.hasControls()) {
-			createControls();
-		} else {
-			// no children means that this is an old-style row
-			refreshOldStyleRow();
-		}
-
+		
 		if (ICS_OR_GREATER) {
-			Object accessibilityHiddenVal = rp.getProperty(TiC.PROPERTY_ACCESSIBILITY_HIDDEN);
+			Object accessibilityHiddenVal = p.get(TiC.PROPERTY_ACCESSIBILITY_HIDDEN);
 			if (accessibilityHiddenVal != null) {
 				boolean hidden = TiConvert.toBoolean(accessibilityHiddenVal);
 				if (hidden) {
@@ -318,6 +390,15 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 					ViewCompat.setImportantForAccessibility(this, ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
 				}
 			}
+		}
+		
+		Boolean oldStyleRow = !rp.hasControls();
+		// hasControls() means that the proxy has children
+		if (oldStyleRow) {
+			// no children means that this is an old-style row
+			refreshOldStyleRow(rp);
+		} else {
+			createControls(rp);
 		}
 	}
 
@@ -366,9 +447,9 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			// If there is a child view, we don't set a minimum height for the row.
 			// Otherwise, we set a minimum height.
 			if (((TableViewRowProxy)item.proxy).hasControls()) {
-				content.setMinimumHeight(0);
+				content.setMinimumHeight(200);
 			} else {
-				content.setMinimumHeight(48);
+				content.setMinimumHeight(208);
 			}
 			
 			measureChild(content, MeasureSpec.makeMeasureSpec(adjustedWidth, wMode), heightMeasureSpec);
@@ -396,23 +477,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
-		TableViewRowProxy rp = getRowProxy();
-		if (rp.getTableViewRowProxyItem() != this){
-			Log.d(TAG, "onLayout: associateProxies ", Log.DEBUG_MODE);
-			// Make these associations here to avoid doing them on measurement passes
-			rp.setTableViewItem(this);
-			if (this.item.proxy.getChildren().length == 0) {
-				// old-style row
-				TiUIView childView = views.get(0);
-				childView.processProperties(filterProperties(rp.getProperties()));
-				childView.setProxy(rp);
-			}
-			else {
-				associateProxies(this.item.proxy.getChildren(), views);
-			}
-		}
-		
-		
 		int contentLeft = left;
 		int contentRight = right;
 		bottom = bottom - top;
@@ -511,7 +575,24 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			hasChildDrawable.setCallback(null);
 			hasChildDrawable = null;
 		}
-		
+	}
+	
+	KrollDict getOnlyChangedProperties(TiViewProxy oldProxy, TiViewProxy newProxy)
+	{
+		KrollDict realProps = new KrollDict();
+		KrollDict oldprops = oldProxy.getProperties();
+		KrollDict newprops = newProxy.getProperties();
+		Set<String> goneProps = oldprops.minusKeys(newprops);
+		for(String key:goneProps) {
+			realProps.put(key, newProxy.getDefaultValue(key));
+		}
+		for(Entry<String, Object> e: newprops.entrySet()){
+			String key = e.getKey();
+			Object newvalue = e.getValue();
+			if (oldprops.containsKeyWithValue(key, newvalue) == false)
+				realProps.put(key, newvalue);
+		}
+		return realProps;
 	}
 	
 	protected void associateProxies(TiViewProxy[] proxies, List<TiUIView> views)
@@ -522,9 +603,13 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				break;
 			}
 			TiViewProxy proxy = proxies[i];
+			TiViewProxy oldProxy = view.getProxy();
 			proxy.setView(view);
 			view.setProxy(proxy);
-			proxy.setModelListener(view); //applying proxy properties
+			proxy.setModelListener(view, false); //applying proxy properties
+			view.registerForTouch();
+			view.registerForKeyPress();
+			view.processProperties(getOnlyChangedProperties(oldProxy, proxy));
 			associateProxies(proxy.getChildren(), view.getChildren());
 			i++;
 		}

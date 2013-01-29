@@ -29,6 +29,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.util.DisplayMetrics;
+import android.view.View;
 import android.view.ViewGroup;
 
 public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.Callback
@@ -84,9 +85,16 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 	{
 		this(activity);
 	}
+	
+	public View getView() {
+		return null;
+	}
 
 	public abstract void setRowData(Item item);
 	public abstract Item getRowData();
+	public void clearViews(){
+		
+	};
 	
 	public boolean handleMessage(Message msg) {
 		return false;

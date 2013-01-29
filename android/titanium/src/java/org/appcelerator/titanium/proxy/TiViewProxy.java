@@ -425,6 +425,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		this.view = view;
 	}
 
+	//only for tableview magic
+	public void clearViews()
+	{
+		this.view = null;
+		//we must use getChildren because of the controls trick in TableViewRowProxy
+		for (TiViewProxy child:getChildren()) { 
+			child.clearViews();
+		}
+	}
+
 	public TiUIView forceCreateView(boolean enableModelListener, boolean processProperties)
 	{
 		view = null;
@@ -1218,6 +1228,56 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 		}
 	}
-
-
+	
+	public View parentViewForChild(TiViewProxy child)
+	{
+		return peekView().getNativeView();
+	}
+	
+	public Boolean validateTransferToProxy(TiViewProxy newProxy, Boolean deep)
+	{
+		TiViewProxy oldProxy = this;
+		
+		if (oldProxy == newProxy) {
+			return true;
+		}    
+		if (newProxy.getClass() != oldProxy.getClass()) {
+			return false;
+		}
+		
+		if (peekView() == null){
+			return false;
+		}
+	    
+		View ourView = oldProxy.getParent().parentViewForChild(oldProxy);
+		View parentView = (View)peekView().getNativeView().getParent();
+	    if (parentView!=ourView)
+	    {
+	        return false;
+	    }
+		
+	    if (deep) {
+			try {
+				TiViewProxy[] oldproxies = getChildren();
+				TiViewProxy[] newproxies = newProxy.getChildren();
+				if (oldproxies.length != newproxies.length) {
+					return false;
+				}
+				for (int i = 0; i < oldproxies.length; i++) {
+					TiViewProxy newSubProxy = newproxies[i];
+					TiViewProxy oldSubProxy = oldproxies[i];
+		            TiUIView oldview = oldSubProxy.peekView();
+		            if (oldview == null){
+		                return false;
+		            }
+					if (!oldSubProxy.validateTransferToProxy(newSubProxy, true)) //we assume that the view is already created)
+						return false;
+				}
+			} catch (ConcurrentModificationException e) {
+				Log.e(TAG, e.getMessage(), e);
+				return false;
+			}
+		}
+		return true;
+	}
 }

@@ -179,14 +179,16 @@ public class TiTableView extends FrameLayout
 		 */
 		public View getView(int position, View convertView, ViewGroup parent) {
 			Item item = (Item) getItem(position);
+			TiViewProxy newProxy = item.proxy;
 			TiBaseTableViewItem v = null;
 			boolean sameView = false;
+			//we have a conversion view, first lets check if it s compatible with our proxy
 			if (convertView != null) {
 				v = (TiBaseTableViewItem) convertView;
 				// Default creates view for each Item
 				
-				if (item.proxy instanceof TableViewRowProxy) {
-					TableViewRowProxy row = (TableViewRowProxy)item.proxy;
+				if (newProxy instanceof TableViewRowProxy) {
+					TableViewRowProxy row = (TableViewRowProxy)newProxy;
 					if (row.getTableViewRowProxyItem() != null) {
 						sameView = row.getTableViewRowProxyItem().equals(convertView);
 					}
@@ -203,6 +205,39 @@ public class TiTableView extends FrameLayout
 								+ item.className, Log.DEBUG_MODE);
 							v = null;
 						}
+					}
+				}
+				if (v!= null)
+				{
+					TiViewProxy oldProxy = v.getRowData().proxy;
+					//last check, verify that we can transfer proxy
+					Boolean canreproxy = true;
+					TiViewProxy[] oldproxies = oldProxy.getChildren();
+					TiViewProxy[] newproxies = newProxy.getChildren();
+					if (oldproxies.length != newproxies.length)
+					{
+						canreproxy = false;
+					}
+					else
+					{
+						for (int i = 0; i < oldproxies.length; i++) {
+							TiViewProxy newSubProxy = newproxies[i];
+							TiViewProxy oldSubProxy = oldproxies[i];
+							if (!oldSubProxy.validateTransferToProxy(newSubProxy, true))
+							{
+								canreproxy = false;
+								break;
+							}
+						}
+					}
+					
+					if (!canreproxy && ((ViewGroup)v.getView()).getChildCount() > 0)
+					{
+						Log.w(TAG, "We cant reuse that view, will create a new one", Log.DEBUG_MODE);
+						
+						//we must remote the views from the old proxy as the native view will be removed
+						v.clearViews();
+						v = null;
 					}
 				}
 			}
@@ -236,10 +271,9 @@ public class TiTableView extends FrameLayout
 				v.setLayoutParams(new AbsListView.LayoutParams(
 					AbsListView.LayoutParams.FILL_PARENT, AbsListView.LayoutParams.FILL_PARENT));
 			}
-            else if (!sameView) 
+            else if (sameView == false && proxy.hasListeners("reuse")) 
             {
                 //we are reusing a cell
-                TableViewRowProxy reusedRow = (TableViewRowProxy)v.getRowData().proxy;
                 KrollDict event = new KrollDict();
                 TableViewRowProxy.fillClickEvent(event, viewModel, v.getRowData());
                 proxy.fireSyncEvent("reuse", event);
@@ -248,23 +282,21 @@ public class TiTableView extends FrameLayout
             if (v.getRowData() != item)
             {
                 v.setRowData(item);
-                //now it means the view will appear
-                KrollDict event = new KrollDict();
-                TableViewRowProxy.fillClickEvent(event, viewModel, item);
-                proxy.fireEvent("rowappear", event);
-            }
-            else
-            {
-                Log.w(TAG, "getView for the same data, no need to set data again", Log.DEBUG_MODE);
+                if (proxy.hasListeners("rowappear"))
+                {
+                	 //now it means the view will appear
+                    KrollDict event = new KrollDict();
+                    TableViewRowProxy.fillClickEvent(event, viewModel, item);
+                    proxy.fireEvent("rowappear", event);
+                }
+               
             }
 
-            if (item.proxy instanceof TableViewRowProxy) {
+            if (item.proxy instanceof TableViewRowProxy && ((TableViewRowProxy)item.proxy).needsAnimation == true) {
 				TableViewRowProxy row = (TableViewRowProxy)item.proxy;
-				if (row.needsAnimation == true){
-					row.needsAnimation = false;
-					Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
-    				v.startAnimation(animation);
-				}
+				row.needsAnimation = false;
+				Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
+    			v.startAnimation(animation);
 			}
 			return v;
 		}
@@ -448,6 +480,10 @@ public class TiTableView extends FrameLayout
 	
 	public Item getItemAtPosition(int position) {
 		return viewModel.getViewModel().get(adapter.index.get(position));
+	}
+	
+	public int getPositionForView(View view) {
+		return listView.getPositionForView(view);
 	}
 
 	public int getIndexFromXY(double x, double y) {
