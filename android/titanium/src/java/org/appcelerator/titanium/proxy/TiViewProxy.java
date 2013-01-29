@@ -1047,14 +1047,19 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (!point.containsKey(TiC.PROPERTY_Y)) {
 			throw new IllegalArgumentException("convertPointToView: required property \"y\" not found in point");
 		}
+		
+		TiUIView view = peekView();
+		TiUIView destView = dest.peekView();
+		
+		if (view == destView)
+			return point;
 
 		// The spec says to throw an exception if x or y cannot be converted to numbers.
 		// TiConvert does that automatically for us.
 		int x = TiConvert.toInt(point, TiC.PROPERTY_X);
 		int y = TiConvert.toInt(point, TiC.PROPERTY_Y);
 
-		TiUIView view = peekView();
-		TiUIView destView = dest.peekView();
+		
 		if (view == null) {
 			Log.w(TAG, "convertPointToView: View has not been attached, cannot convert point");
 			return null;
