@@ -216,8 +216,8 @@ public class TiCompositeLayout extends ViewGroup
 		params.optionTop = null;
 		params.optionBottom = null;
 		params.optionZIndex = NOT_SET;
-		params.sizeOrFillHeightEnabled = true;
-		params.sizeOrFillWidthEnabled = true;
+		params.sizeOrFillHeightEnabled = false;
+		params.sizeOrFillWidthEnabled = false;
 
 		return params;
 	}
@@ -918,8 +918,8 @@ public class TiCompositeLayout extends ViewGroup
 		public Ti2DMatrix optionTransform = null;
 
 		// This are flags to determine whether we are using fill or size behavior
-		public boolean sizeOrFillHeightEnabled = true;
-		public boolean sizeOrFillWidthEnabled = true;
+		public boolean sizeOrFillHeightEnabled = false;
+		public boolean sizeOrFillWidthEnabled = false;
 
 		/**
 		 * If this is true, and {@link #sizeOrFillWidthEnabled} is true, then the current view will follow the fill

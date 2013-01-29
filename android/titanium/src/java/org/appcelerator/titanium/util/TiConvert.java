@@ -170,11 +170,6 @@ public class TiConvert
 		Object width = null;
 		Object height = null;
 
-		// Don't use fill or size by default to trigger the undefined behavior. When we have undefined behavior, we try
-		// to calculate the height/width from the pins if possible.
-		layoutParams.sizeOrFillWidthEnabled = false;
-		layoutParams.sizeOrFillHeightEnabled = false;
-
 		if (hashMap.containsKey(TiC.PROPERTY_SIZE)) {
 			HashMap<String, Object> size = (HashMap<String, Object>) hashMap.get(TiC.PROPERTY_SIZE);
 			width = size.get(TiC.PROPERTY_WIDTH);
