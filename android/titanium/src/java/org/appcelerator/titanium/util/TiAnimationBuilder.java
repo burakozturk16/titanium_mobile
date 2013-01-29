@@ -319,11 +319,6 @@ public class TiAnimationBuilder
 
 		if (tdm != null) {
 			Ti2DMatrix realTdm = tdm;
-			// Ti2DMatrix fromTdm = null;
-			// if (viewProxy.hasProperty(TiC.PROPERTY_TRANSFORM)) {
-			// 	fromTdm = (Ti2DMatrix)viewProxy.getProperty(TiC.PROPERTY_TRANSFORM);
-			// 	realTdm = fromTdm.invert().multiply(tdm);
-			// }
 
 			Animation anim;
 			if (realTdm.hasScaleOperation() && tiView != null) {
@@ -337,6 +332,10 @@ public class TiAnimationBuilder
 			}
 
 			anim = new TiMatrixAnimation(realTdm, anchorX, anchorY);
+			
+			 if (viewProxy.hasProperty(TiC.PROPERTY_TRANSFORM)) {
+			 	((TiMatrixAnimation)anim).setFrom((Ti2DMatrix)viewProxy.getProperty(TiC.PROPERTY_TRANSFORM));
+			 }
 
 			addAnimation(as, anim);
 
@@ -533,6 +532,7 @@ public class TiAnimationBuilder
 	public static class TiMatrixAnimation extends Animation
 	{
 		protected Ti2DMatrix matrix;
+		protected Ti2DMatrix from;
 		protected int childWidth, childHeight;
 		protected float anchorX = -1, anchorY = -1;
 
@@ -543,6 +543,11 @@ public class TiAnimationBuilder
 			this.matrix = matrix;
 			this.anchorX = anchorX;
 			this.anchorY = anchorY;
+		}
+		
+		public void setFrom(Ti2DMatrix from)
+		{
+			this.from = from;
 		}
 
 		@Override
@@ -559,10 +564,15 @@ public class TiAnimationBuilder
 			super.applyTransformation(interpolatedTime, transformation);
 			if (interpolate) {
 				Matrix m = matrix.interpolate(interpolatedTime, childWidth, childHeight, anchorX, anchorY);
+				if (from != null){
+					Matrix mFrom = from.interpolate((1 - interpolatedTime), childWidth, childHeight, anchorX, anchorY);
+					m.preConcat(mFrom);
+				}
 				transformation.getMatrix().set(m);
 
 			} else {
-				transformation.getMatrix().set(getFinalMatrix(childWidth, childHeight));
+				Matrix m = getFinalMatrix(childWidth, childHeight);
+				transformation.getMatrix().set(m);
 			}
 		}
 
