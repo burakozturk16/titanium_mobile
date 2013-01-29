@@ -375,116 +375,102 @@ public class TiAnimationBuilder
 			addAnimation(as, anim);
 
 		}
+		
+		//let s deal with position and size now
+		int toWidth = w;
+		int toHeight = h;
+		
+		int toLeft = x;
+		int toTop = y;
+		
+		boolean needsSizeAnim = false;
+		
+		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams(tiView.getLayoutParams());
+		if (width != null) {
+			params.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
+			needsSizeAnim = true;
+		}
+		if (height != null) {
+			params.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
+			needsSizeAnim = true;
+		}
+		if (top != null) {
+			params.optionTop = new TiDimension(top, TiDimension.TYPE_TOP);
+		}
+		if (bottom != null) {
+			params.optionBottom = new TiDimension(bottom, TiDimension.TYPE_BOTTOM);
+		}
+		if (left != null) {
+			params.optionLeft = new TiDimension(left, TiDimension.TYPE_LEFT);
+		}
+		if (right != null) {
+			params.optionRight = new TiDimension(right, TiDimension.TYPE_RIGHT);
+		}
+		if (centerX != null) {
+			params.optionCenterX = new TiDimension(centerX, TiDimension.TYPE_CENTER_X);
+		}
+		if (centerY != null) {
+			params.optionCenterY = new TiDimension(centerY, TiDimension.TYPE_CENTER_Y);
+		}
+				
+		int horizontal[] = new int[2];
+		int vertical[] = new int[2];		
+		ViewParent parent = view.getParent();
+		if (parent instanceof TiCompositeLayout) {
+			TiCompositeLayout parentView = (TiCompositeLayout) parent;
+			parentView.simulateLayoutToGetChildSize(view, params, horizontal, vertical);
+			toLeft = horizontal[0];
+			toTop = vertical[0];
+			toWidth = horizontal[1] - toLeft;
+			toHeight = vertical[1] - toTop;
+		}
+		else if (parent instanceof View)
+		{
+			View parentView = (View) parent;
 
-		if (top != null || bottom != null || left != null || right != null || centerX != null || centerY != null) {
-			TiDimension optionTop = null, optionBottom = null;
-			TiDimension optionLeft = null, optionRight = null;
-			TiDimension optionCenterX = null, optionCenterY = null;
-
-			// Note that we're stringifying the values to make sure we
-			// use the correct TiDimension constructor, except when
-			// we know the values are expressed for certain in pixels.
-			if (top != null) {
-				optionTop = new TiDimension(top, TiDimension.TYPE_TOP);
-			} else if (bottom == null && centerY == null) {
-				// Fix a top value since no other y-axis value is being set.
-				optionTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
-				optionTop.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
-			if (bottom != null) {
-				optionBottom = new TiDimension(bottom, TiDimension.TYPE_BOTTOM);
-			}
-
-			if (left != null) {
-				optionLeft = new TiDimension(left, TiDimension.TYPE_LEFT);
-			} else if (right == null && centerX == null) {
-				// Fix a left value since no other x-axis value is being set.
-				optionLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
-				optionLeft.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
-			if (right != null) {
-				optionRight = new TiDimension(right, TiDimension.TYPE_RIGHT);
-			}
-
-			if (centerX != null) {
-				optionCenterX = new TiDimension(centerX, TiDimension.TYPE_CENTER_X);
-			}
-
-			if (centerY != null) {
-				optionCenterY = new TiDimension(centerY, TiDimension.TYPE_CENTER_Y);
-			}
-
-			int horizontal[] = new int[2];
-			int vertical[] = new int[2];
-			ViewParent parent = view.getParent();
-			View parentView = null;
-
-			if (parent instanceof View) {
-				parentView = (View) parent;
-			}
-
-			TiCompositeLayout.computePosition(parentView, optionLeft, optionCenterX, optionRight, w, 0, parentWidth,
+			TiCompositeLayout.computePosition(parentView, params.optionLeft, params.optionCenterX, params.optionRight, toWidth, 0, parentWidth,
 				horizontal);
-			TiCompositeLayout.computePosition(parentView, optionTop, optionCenterY, optionBottom, h, 0, parentHeight,
+			TiCompositeLayout.computePosition(parentView, params.optionTop, params.optionCenterY, params.optionBottom, toHeight, 0, parentHeight,
 				vertical);
-
+			
+			toLeft = horizontal[0];
+			toTop = vertical[0];
+			toWidth = horizontal[1] - toLeft;
+			toHeight = vertical[1] - toTop;
+		}
+		
+		if (toLeft != x || toTop != y)
+		{
+			int tx = toLeft - x;
+			int ty = toTop - y;
 			Animation animation = new TranslateAnimation(Animation.ABSOLUTE, 0, Animation.ABSOLUTE,
-				horizontal[0] - x, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, vertical[0] - y);
+					tx, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, ty);
 
 			animation.setAnimationListener(animationListener);
 			addAnimation(as, animation);
-
-			// Will need to update layout params at end of animation
-			// so that touch events will be recognized at new location,
-			// and so that view will stay at new location after changes in
-			// orientation. But if autoreversing to original layout, no
-			// need to re-layout.
-			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
 
 			Log.d(TAG, "animate " + viewProxy + " relative to self: " + (horizontal[0] - x) + ", " + (vertical[0] - y),
 				Log.DEBUG_MODE);
 
 		}
 
-		if (tdm == null && (width != null || height != null)) {
-			TiDimension optionWidth, optionHeight;
-
-			if (width != null) {
-				optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
-			} else {
-				optionWidth = new TiDimension(w, TiDimension.TYPE_WIDTH);
-				optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
-			if (height != null) {
-				optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
-			} else {
-				optionHeight = new TiDimension(w, TiDimension.TYPE_HEIGHT);
-				optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
-			int toWidth = optionWidth.getAsPixels(view);
-			int toHeight = optionHeight.getAsPixels(view);
+		if (toWidth != w || toHeight != h) {
 
 			SizeAnimation sizeAnimation = new SizeAnimation(view, w, h, toWidth, toHeight);
-
 			if (duration != null) {
 				sizeAnimation.setDuration(duration.longValue());
 			}
-
 			sizeAnimation.setInterpolator(new LinearInterpolator());
 			sizeAnimation.setAnimationListener(animationListener);
 			addAnimation(as, sizeAnimation);
-
-			// Will need to update layout params at end of animation
-			// so that touch events will be recognized within new
-			// size rectangle, and so that new size will survive
-			// any changes in orientation. But if autoreversing
-			// to original layout, no need to re-layout.
-			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
 		}
+		
+		// Will need to update layout params at end of animation
+		// so that touch events will be recognized within new
+		// size rectangle, and so that new size will survive
+		// any changes in orientation. But if autoreversing
+		// to original layout, no need to re-layout.
+		relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
 
 		// Set duration, repeatMode and fillAfter only after adding children.
 		// The values are pushed down to the child animations.
@@ -517,6 +503,13 @@ public class TiAnimationBuilder
 
 		public SizeAnimation(View view, float fromWidth, float fromHeight, float toWidth, float toHeight)
 		{
+			// Will need to update layout params at end of animation
+			// so that touch events will be recognized at new location,
+			// and so that view will stay at new location after changes in
+			// orientation. But if autoreversing to original layout, no
+			// need to re-layout.
+			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
+
 			this.view = view;
 			this.fromWidth = fromWidth;
 			this.fromHeight = fromHeight;
