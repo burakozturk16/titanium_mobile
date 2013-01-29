@@ -226,6 +226,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 		}
 	}
+	
+	public Object getDefaultValue(String key)
+	{
+		return defaultValues.get(key);
+	}
 
 	/**
 	 * @return the language conversion table used to load localized values for certain properties from the locale files.
@@ -983,13 +988,18 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public void setModelListener(KrollProxyListener modelListener)
 	{
+		setModelListener(modelListener, true);
+	}
+	
+	public void setModelListener(KrollProxyListener modelListener , Boolean applyProps)
+	{
 		// Double-setting the same modelListener can potentially have weird side-effects.
 		if (this.modelListener != null && this.modelListener.equals(modelListener)) {
 			return;
 		}
 
 		this.modelListener = modelListener;
-		if (modelListener != null) {
+		if (modelListener != null && applyProps) {
 			if (TiApplication.isUIThread()) {
 				modelListener.processProperties(properties);
 			} else {
