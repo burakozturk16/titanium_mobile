@@ -5,6 +5,7 @@
  */
 package com.titanium.test;
 
+import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.runtime.v8.V8Runtime;
 
 import org.appcelerator.kroll.KrollModule;
@@ -45,10 +46,7 @@ public final class TitaniumtestApplication extends TiApplication
 
 //		stylesheet = new ApplicationStylesheet();
 		postOnCreate();
-
-		
-
-		 		 		 		 		 		 		 
+		TiConfig.DEBUG = TiConfig.LOGD = true;
 
 	}
 
