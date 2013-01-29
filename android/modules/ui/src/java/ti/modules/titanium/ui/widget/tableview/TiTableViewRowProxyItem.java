@@ -276,12 +276,13 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	}
 
 	public void setRowData(TableViewRowProxy rp) {
-		KrollDict  p = rp.getProperties();
-		KrollDict  oldProps;
+		KrollDict  p;
 		if (getRowProxy() != null)
-			oldProps = getRowProxy().getProperties();
+			p = getOnlyChangedProperties(getRowProxy(), rp);
 		else
-			oldProps = new KrollDict();
+			p = rp.getProperties();
+		
+		
 		
 		Object newSelectorSource = null;
 		if (p.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
@@ -295,9 +296,12 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			if (selectorSource != null) {
 				rp.getTable().getTableView().getTableView().enableCustomSelector();
 			}
+		}
+		if (p.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE) ||
+				p.containsKey(TiC.PROPERTY_BACKGROUND_COLOR))
+		{
 			setBackgroundFromProxy(rp);
 		}
-		
 
 		// Handle right image
 		boolean clearRightImage = true;
@@ -321,8 +325,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 		if (p.containsKey(TiC.PROPERTY_RIGHT_IMAGE)) {
 			String path = TiConvert.toString(p, TiC.PROPERTY_RIGHT_IMAGE);
-			if (path.compareTo(TiConvert.toString(oldProps, TiC.PROPERTY_RIGHT_IMAGE)) != 0)
-			{
 				String url = getRowProxy().resolveUrl(null, path);
 				Drawable d = loadDrawable(url);
 				if (d != null) {
@@ -330,7 +332,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 					rightImage.setVisibility(VISIBLE);
 					clearRightImage = false;
 				}
-			}
 			
 		}
 
@@ -345,17 +346,13 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		boolean clearleftImage = true;
 		if (p.containsKey(TiC.PROPERTY_LEFT_IMAGE)) {
 			String path = TiConvert.toString(p, TiC.PROPERTY_LEFT_IMAGE);
-			if (path.compareTo(TiConvert.toString(oldProps, TiC.PROPERTY_LEFT_IMAGE)) != 0)
-			{
 				String url = getRowProxy().resolveUrl(null, path);
-	
 				Drawable d = loadDrawable(url);
 				if (d != null) {
 					leftImage.setImageDrawable(d);
 					leftImage.setVisibility(VISIBLE);
 					clearleftImage = false;
 				}
-			}
 		}
 		if (clearleftImage && leftImage.getVisibility() == VISIBLE) 
 		{
@@ -369,7 +366,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				height = TiConvert.toTiDimension(TiConvert.toString(p, TiC.PROPERTY_HEIGHT), TiDimension.TYPE_HEIGHT);
 			}
 		}
-		else height = null;
 
 		if (p.containsKey(TiC.PROPERTY_LAYOUT)) {
 				content.setLayoutArrangement(TiConvert.toString(p, TiC.PROPERTY_LAYOUT));
@@ -447,9 +443,9 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			// If there is a child view, we don't set a minimum height for the row.
 			// Otherwise, we set a minimum height.
 			if (((TableViewRowProxy)item.proxy).hasControls()) {
-				content.setMinimumHeight(200);
+				content.setMinimumHeight(0);
 			} else {
-				content.setMinimumHeight(208);
+				content.setMinimumHeight(48);
 			}
 			
 			measureChild(content, MeasureSpec.makeMeasureSpec(adjustedWidth, wMode), heightMeasureSpec);
