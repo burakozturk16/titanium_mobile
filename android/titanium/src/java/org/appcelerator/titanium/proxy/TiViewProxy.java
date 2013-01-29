@@ -753,7 +753,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	public void handlePendingAnimation(boolean forceQueue)
 	{
-		if (pendingAnimation != null && peekView() != null) {
+		if (pendingAnimation != null) {
 			if (forceQueue || !(TiApplication.isUIThread())) {
 				if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
 					// Even this very small delay can help eliminate the bug
