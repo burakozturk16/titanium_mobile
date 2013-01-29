@@ -7,8 +7,11 @@
 package org.appcelerator.kroll;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.appcelerator.titanium.util.TiConvert;
 import org.json.JSONArray;
@@ -102,6 +105,31 @@ public class KrollDict
 		return false;
 	}
 	
+	public boolean equalsKrollDict(KrollDict otherDict)
+	{
+		if (otherDict.size() != size()) return false;
+		for(Entry<String, Object> e: entrySet()){
+			String key = e.getKey();
+			Object newvalue = e.getValue();
+			if (!otherDict.containsKeyWithValue(key, newvalue))
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean containsKeyWithValue(String key, Object value) {
+		
+		Object myValue = get(key);
+		boolean result;
+		if (myValue instanceof KrollDict && value instanceof KrollDict)
+			result = ((KrollDict)myValue).equalsKrollDict((KrollDict)value);
+		else
+		{
+			result = value.equals(myValue);
+		}
+		return result;
+	}
+	
 	public boolean getBoolean(String key) {
 		return TiConvert.toBoolean(get(key));
 	}
@@ -167,4 +195,11 @@ public class KrollDict
 	public String toString() {
 		return new JSONObject(this).toString();
 	}
+	
+	public Set<String> minusKeys(final KrollDict that) {
+		Set<String> keys = new HashSet<String>(keySet());
+		Set<String> thatkeys = that.keySet();
+		keys.removeAll(thatkeys);
+		return keys;
+    }
 }
