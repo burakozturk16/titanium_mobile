@@ -178,7 +178,9 @@ public class TiAnimationBuilder
 		Iterator it = this.options.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry)it.next();
-			viewProxy.setProperty((String)pairs.getKey(), pairs.getValue());
+			String key = (String)pairs.getKey();
+			if (key.compareTo("duration") != 0)
+				viewProxy.setPropertyAndFire((String)pairs.getKey(), pairs.getValue());
 		}
 	}
 
