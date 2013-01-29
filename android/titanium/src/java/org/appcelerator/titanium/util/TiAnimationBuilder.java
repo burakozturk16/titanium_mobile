@@ -552,14 +552,6 @@ public class TiAnimationBuilder
 			params.width = width;
 			params.height = height;
 
-			if (params instanceof TiCompositeLayout.LayoutParams) {
-				TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-				tiParams.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
-				tiParams.optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
-				tiParams.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
-				tiParams.optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
 			view.setLayoutParams(params);
 		}
 	}
