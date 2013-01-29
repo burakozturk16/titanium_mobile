@@ -816,6 +816,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_CLIP_CHILDREN = "clipChildren";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_CODE = "code";
 
 	/**
@@ -1007,6 +1012,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FILE = "file";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FILTER = "filter";
 
 	/**
 	 * @module.api
