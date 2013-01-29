@@ -776,6 +776,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (tiv != null) {
 			tiv.animate();
 		}
+		else
+		{
+			//let s deal with callback and completion properties
+			if (pendingAnimation != null) {
+				pendingAnimation.simulateFinish(this);
+				pendingAnimation = null;
+			}
+		}
 	}
 
 	@Kroll.method
