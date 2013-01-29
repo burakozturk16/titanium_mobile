@@ -167,6 +167,41 @@ public class TiAnimationBuilder
 
 		this.options = options;
 	}
+	
+	
+	public void simulateFinish(TiViewProxy proxy)
+	{
+		this.viewProxy = proxy;
+		handleFinish();
+		this.viewProxy = null;
+	}
+	
+	private void handleFinish()
+	{
+		applyCompletionProperties();
+		if (callback != null) {
+			callback.callAsync(viewProxy.getKrollObject(), new Object[] { new KrollDict() });
+		}
+
+		if (animationProxy != null) {
+			// In versions prior to Honeycomb, don't fire the event
+			// until the message queue is empty. There appears to be
+			// a bug in versions before Honeycomb where this
+			// onAnimationEnd listener can be called even before the
+			// animation is really complete.
+			if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+				animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
+			} else {
+				Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+					public boolean queueIdle()
+					{
+						animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
+						return false;
+					}
+				});
+			}
+		}
+	}
 
 	private void applyCompletionProperties()
 	{
@@ -681,30 +716,9 @@ public class TiAnimationBuilder
 				applyOpacity = false;
 			}
 
-			applyCompletionProperties();
 			if (a instanceof AnimationSet) {
-				if (callback != null) {
-					callback.callAsync(viewProxy.getKrollObject(), new Object[] { new KrollDict() });
-				}
-
-				if (animationProxy != null) {
-					// In versions prior to Honeycomb, don't fire the event
-					// until the message queue is empty. There appears to be
-					// a bug in versions before Honeycomb where this
-					// onAnimationEnd listener can be called even before the
-					// animation is really complete.
-					if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-						animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
-					} else {
-						Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
-							public boolean queueIdle()
-							{
-								animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
-								return false;
-							}
-						});
-					}
-				}
+				applyCompletionProperties();
+				handleFinish();
 			}
 		}
 
