@@ -556,7 +556,7 @@ public class TiUILabel extends TiUIView
 		if (tv == null) return;
 
 		// Clear any text style left over here if view is recycled
-		TiUIHelper.styleText(tv, null, null, null);
+//		TiUIHelper.styleText(tv, null, null, null);
 		
 		// Only accept one, prefer text to title.
 		if (d.containsKey(TiC.PROPERTY_HTML)) {
