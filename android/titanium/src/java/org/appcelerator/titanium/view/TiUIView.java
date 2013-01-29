@@ -266,6 +266,12 @@ public abstract class TiUIView
 	public void animate()
 	{
 		if (nativeView == null) {
+			//let s deal with callback and completion properties
+			TiAnimationBuilder builder = proxy.getPendingAnimation();
+			if (builder != null) {
+				proxy.clearAnimation(builder);
+				builder.simulateFinish(proxy);
+			}
 			return;
 		}
 
