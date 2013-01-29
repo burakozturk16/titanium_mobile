@@ -44,25 +44,48 @@ import android.view.View;
  */
 @Kroll.proxy(propertyAccessors={
 	// background properties
-	"backgroundImage", "backgroundRepeat", "backgroundSelectedImage",
-	"backgroundFocusedImage", "backgroundDisabledImage", "backgroundColor",
-	"backgroundSelectedColor", "backgroundFocusedColor", "backgroundDisabledColor",
-	"backgroundPadding", "backgroundGradient",
+	TiC.PROPERTY_BACKGROUND_COLOR,
+	TiC.PROPERTY_BACKGROUND_IMAGE,
+	TiC.PROPERTY_BACKGROUND_REPEAT,
+	TiC.PROPERTY_BACKGROUND_SELECTED_COLOR,
+	TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE,
+	TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR,
+	TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE,
+	TiC.PROPERTY_BACKGROUND_DISABLED_COLOR,
+	TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE,
+	TiC.PROPERTY_BACKGROUND_PADDING,
+	TiC.PROPERTY_BACKGROUND_GRADIENT,
 
 	// border properties
-	"borderColor", "borderRadius", "borderWidth",
+	TiC.PROPERTY_BORDER_COLOR,
+	TiC.PROPERTY_BORDER_RADIUS,
+	TiC.PROPERTY_BORDER_WIDTH,
 
 	// layout / dimension (size/width/height have custom accessors)
-	"left", "top", "right", "bottom", "layout", "zIndex", TiC.PROPERTY_HORIZONTAL_WRAP,
+	TiC.PROPERTY_LEFT,
+	TiC.PROPERTY_TOP,
+	TiC.PROPERTY_RIGHT,
+	TiC.PROPERTY_BOTTOM,
+	TiC.PROPERTY_LAYOUT,
+	TiC.PROPERTY_ZINDEX,
+	TiC.PROPERTY_HORIZONTAL_WRAP,
 
 	// accessibility
-	TiC.PROPERTY_ACCESSIBILITY_HINT, TiC.PROPERTY_ACCESSIBILITY_LABEL, TiC.PROPERTY_ACCESSIBILITY_VALUE,
+	TiC.PROPERTY_ACCESSIBILITY_HINT, 
+	TiC.PROPERTY_ACCESSIBILITY_LABEL, 
+	TiC.PROPERTY_ACCESSIBILITY_VALUE,
 	TiC.PROPERTY_ACCESSIBILITY_HIDDEN,
 
 	// others
-	"focusable", "touchEnabled", "visible", "enabled", "opacity",
-	"softKeyboardOnFocus", "transform",
-	TiC.PROPERTY_TOUCH_PASSTHROUGH
+	TiC.PROPERTY_VISIBLE,
+	TiC.PROPERTY_ENABLED,
+	TiC.PROPERTY_OPACITY,
+	TiC.PROPERTY_TOUCH_ENABLED,
+	TiC.PROPERTY_FOCUSABLE,
+	TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS,
+	TiC.PROPERTY_TRANSFORM,
+	TiC.PROPERTY_TOUCH_PASSTHROUGH,
+	TiC.PROPERTY_CLIP_CHILDREN
 })
 public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 {
