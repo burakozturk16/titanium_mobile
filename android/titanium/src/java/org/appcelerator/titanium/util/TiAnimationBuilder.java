@@ -20,7 +20,6 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Color;
@@ -670,8 +669,9 @@ public class TiAnimationBuilder
 		public void onAnimationEnd(Animation a)
 		{
 			if (relayoutChild) {
-				LayoutParams params = (LayoutParams) view.getLayoutParams();
-				TiConvert.fillLayout(options, params);
+				ViewGroup.LayoutParams params = view.getLayoutParams();
+				if (params instanceof TiCompositeLayout.LayoutParams)
+					TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
 				view.setLayoutParams(params);
 				view.clearAnimation();
 				relayoutChild = false;
