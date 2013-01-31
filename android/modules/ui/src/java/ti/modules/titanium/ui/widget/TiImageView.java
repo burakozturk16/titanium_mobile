@@ -17,7 +17,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -55,19 +54,19 @@ public class TiImageView extends ViewGroup
 	private float scaleIncrement;
 	private float scaleMin;
 	private float scaleMax;
-
+	
 	private Matrix baseMatrix;
 	private Matrix changeMatrix;
 	
-	public interface OnSizeChangeListener {
-		public void sizeChanged(int w, int h, int oldWidth, int oldHeight);
-	};
+//	public interface OnSizeChangeListener {
+//		public void sizeChanged(int w, int h, int oldWidth, int oldHeight);
+//	};
 
 	public class NoLayoutImageView extends ImageView
 	{
 
 		public boolean allowLayoutRequest;
-		public SoftReference<OnSizeChangeListener> listener;
+//		public SoftReference<OnSizeChangeListener> listener;
 
 		public NoLayoutImageView(Context context) {
 			super(context);
@@ -82,33 +81,33 @@ public class TiImageView extends ViewGroup
 			}
 		}
 
-		@Override
-		protected void onSizeChanged(int w, int h, int oldw, int oldh) 
-		{
-			super.onSizeChanged(w, h, oldw, oldh);
-			Log.d(TAG, "ImageView size change: w: " + w + " h: " + h + " oldw: " + oldw + " oldh: " + oldh, Log.DEBUG_MODE);
-			if (listener != null) {
-				OnSizeChangeListener l = listener.get();
-				if (l != null) {
-					l.sizeChanged(w, h, oldw, oldh);
-				}
-			}
-		}
+//		@Override
+//		protected void onSizeChanged(int w, int h, int oldw, int oldh) 
+//		{
+//			super.onSizeChanged(w, h, oldw, oldh);
+//			Log.d(TAG, "ImageView size change: w: " + w + " h: " + h + " oldw: " + oldw + " oldh: " + oldh, Log.DEBUG_MODE);
+//			if (listener != null) {
+//				OnSizeChangeListener l = listener.get();
+//				if (l != null) {
+//					l.sizeChanged(w, h, oldw, oldh);
+//				}
+//			}
+//		}
 		
-		public void setOnSizeChangeListener(OnSizeChangeListener listener) {
-			if (listener != null) {
-				this.listener = new SoftReference<OnSizeChangeListener>(listener);
-			} else {
-				listener = null;
-			}
-		}
-		
-		public OnSizeChangeListener getOnSizeChangeListener() {
-			if (listener != null) {
-				return listener.get();
-			}
-			return null;
-		}
+//		public void setOnSizeChangeListener(OnSizeChangeListener listener) {
+//			if (listener != null) {
+//				this.listener = new SoftReference<OnSizeChangeListener>(listener);
+//			} else {
+//				listener = null;
+//			}
+//		}
+//		
+//		public OnSizeChangeListener getOnSizeChangeListener() {
+//			if (listener != null) {
+//				return listener.get();
+//			}
+//			return null;
+//		}
 	}
 
 	public TiImageView(Context context) {
@@ -130,8 +129,9 @@ public class TiImageView extends ViewGroup
 		changeMatrix = new Matrix();
 
 		imageView = new NoLayoutImageView(context);
+		((NoLayoutImageView) imageView).allowLayoutRequest = true;
+		imageView.setScaleType(ScaleType.FIT_XY); //default behavior
 		addView(imageView);
-		setCanScaleImage(false);
 
 		gestureDetector = new GestureDetector(getContext(),
 				new GestureDetector.SimpleOnGestureListener()
@@ -189,27 +189,16 @@ public class TiImageView extends ViewGroup
 
 			super.setOnClickListener(this);
 	}
+//	
+//	public void setOnSizeChangeListener(OnSizeChangeListener listener) {
+//		if (imageView != null) {
+//			((NoLayoutImageView) imageView).setOnSizeChangeListener(listener);
+//		}
+//	}
 	
-	public void setOnSizeChangeListener(OnSizeChangeListener listener) {
-		if (imageView != null) {
-			((NoLayoutImageView) imageView).setOnSizeChangeListener(listener);
-		}
-	}
-
 	public void setCanScaleImage(boolean canScaleImage)
 	{
 		this.canScaleImage = canScaleImage;
-
-		if (canScaleImage) {
-			imageView.setAdjustViewBounds(true);
-			if (Integer.parseInt(Build.VERSION.SDK) > 3) {
-				imageView.setScaleType(ScaleType.MATRIX);
-			} else {
-				imageView.setScaleType(ScaleType.FIT_CENTER);
-			}
-		} else {
-			imageView.setScaleType(ScaleType.FIT_CENTER); // Android default and our iOS implementation
-		}
 		((NoLayoutImageView) imageView).allowLayoutRequest = true;
 		requestLayout();
 	}
@@ -254,6 +243,7 @@ public class TiImageView extends ViewGroup
 			imageView.setImageResource(0);
 		}
 		else {
+			Log.i(TAG, "test " + bitmap.getWidth());
 			imageView.setImageBitmap(bitmap);
 		}
 	}
@@ -454,5 +444,12 @@ public class TiImageView extends ViewGroup
 	
 	public void setColorFilter(ColorFilter filter) {
 		imageView.setColorFilter(filter);
+	}
+	
+	public void setScaleType(ScaleType type) {
+		imageView.setScaleType(type);
+	}
+	public void setAdjustViewBounds(boolean adjustViewBounds) {
+		imageView.setAdjustViewBounds(adjustViewBounds);
 	}
 }

@@ -29,7 +29,8 @@ import android.graphics.Bitmap;
 	TiC.PROPERTY_IMAGE,
 	TiC.PROPERTY_IMAGES,
 	TiC.PROPERTY_REPEAT_COUNT,
-	TiC.PROPERTY_URL
+	TiC.PROPERTY_URL,
+	TiC.PROPERTY_SCALE_TYPE
 })
 public class ImageViewProxy extends ViewProxy
 {
@@ -39,6 +40,7 @@ public class ImageViewProxy extends ViewProxy
 	public ImageViewProxy()
 	{
 		super();
+		defaultValues.put(TiC.PROPERTY_SCALE_TYPE, UIModule.SCALE_TYPE_SCALE_TO_FIL);
 	}
 
 	public ImageViewProxy(TiContext tiContext)

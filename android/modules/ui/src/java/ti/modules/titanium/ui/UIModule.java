@@ -30,6 +30,7 @@ import android.os.Message;
 import android.text.util.Linkify;
 import android.view.View;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 @Kroll.module
@@ -83,6 +84,13 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int MAP_VIEW_STANDARD = 1;
 	@Kroll.constant public static final int MAP_VIEW_SATELLITE = 2;
 	@Kroll.constant public static final int MAP_VIEW_HYBRID = 3;
+	
+	@Kroll.constant public static final int SCALE_TYPE_SCALE_TO_FIL = 0; //ImageView.ScaleType.FIT_XY
+	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FIT = 1; //ImageView.ScaleType.FIT_CENTER
+	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FILL = 2; //ImageView.ScaleType.CENTER_CROP
+	@Kroll.constant public static final int SCALE_TYPE_CENTER = 3; //ImageView.ScaleType.CENTER
+	@Kroll.constant public static final int SCALE_TYPE_TOPLEFT = 4; //ImageView.ScaleType.FIT_START
+	@Kroll.constant public static final int SCALE_TYPE_BOTTOMRIGHT = 5; //ImageView.ScaleType.FIT_END
 
 	@Kroll.constant public static final int TABLEVIEW_POSITION_ANY = 0;
 	@Kroll.constant public static final int TABLEVIEW_POSITION_TOP = 1;
