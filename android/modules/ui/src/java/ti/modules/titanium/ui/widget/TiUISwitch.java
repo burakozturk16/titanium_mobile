@@ -16,6 +16,9 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.android.AndroidModule;
+import android.annotation.SuppressLint;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -23,6 +26,7 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ToggleButton;
 import android.widget.Switch;
 
+@SuppressLint("NewApi")
 public class TiUISwitch extends TiUIView
 	implements OnCheckedChangeListener
 {
@@ -51,6 +55,7 @@ public class TiUISwitch extends TiUIView
 	}
 	
 	protected void updateButton(CompoundButton cb, KrollDict d) {
+		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		if (d.containsKey(TiC.PROPERTY_TITLE) && cb instanceof CheckBox) {
 			cb.setText(TiConvert.toString(d, TiC.PROPERTY_TITLE));
 		}
@@ -76,6 +81,18 @@ public class TiUISwitch extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			String verticalAlign = d.getString(TiC.PROPERTY_VERTICAL_ALIGN);
 			TiUIHelper.setAlignment(cb, null, verticalAlign);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, colorDrawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
+			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE), backgroundRepeat, proxy);
+			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, d.getKrollDict(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT));
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		}
 		cb.invalidate();
 	}
@@ -107,6 +124,16 @@ public class TiUISwitch extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(cb, null, TiConvert.toString(newValue));
 			cb.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
+			ColorDrawable drawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(newValue), repeat, proxy);
+			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, (KrollDict)newValue);
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
