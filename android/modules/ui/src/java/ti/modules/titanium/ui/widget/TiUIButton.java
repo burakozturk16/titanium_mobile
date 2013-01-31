@@ -32,6 +32,7 @@ public class TiUIButton extends TiUIView
 	private int shadowColor;
 	private int shadowDx;
 	private int shadowDy;
+	private float shadowRadius;
 	private Rect titlePadding;
 
 	public TiUIButton(final TiViewProxy proxy)
@@ -113,16 +114,23 @@ public class TiUIButton extends TiUIView
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
-			btn.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		}
+		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(d, TiC.PROPERTY_SHADOW_RADIUS);
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			KrollDict value = d.getKrollDict(TiC.PROPERTY_SHADOW_OFFSET);
 			shadowDx = value.getInt(TiC.PROPERTY_X);
 			shadowDy = value.getInt(TiC.PROPERTY_Y);
-			btn.setShadowLayer(1, shadowDx, shadowDy, shadowColor);
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
 			btn.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP));
+		}
+		if (d.containsKey(TiC.PROPERTY_SELECTED)) {
+			btn.setPressed(TiConvert.toBoolean(d, TiC.PROPERTY_SELECTED));
 		}
 		btn.invalidate();
 	}
@@ -143,6 +151,40 @@ public class TiUIButton extends TiUIView
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(btn, null, TiConvert.toString(newValue));
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_LEFT)) {
+			titlePadding.left = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_RIGHT)) {
+			titlePadding.right = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_TOP)) {
+			titlePadding.top = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_BOTTOM)) {
+			titlePadding.bottom = TiConvert.toInt(newValue);
+			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
+			shadowColor = TiConvert.toColor((String) newValue);
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(newValue);
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
+			KrollDict dict = (KrollDict) newValue;
+			shadowDx = TiConvert.toInt(dict.get(TiC.PROPERTY_X));
+			shadowDy = TiConvert.toInt(dict.get(TiC.PROPERTY_Y));
+			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
+			btn.setSingleLine(!TiConvert.toBoolean(newValue));
+			btn.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_SELECTED)) {
+			btn.setPressed(TiConvert.toBoolean(newValue));
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
 			TiDrawableReference drawableRef = null;

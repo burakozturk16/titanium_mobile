@@ -32,13 +32,15 @@ import android.app.Activity;
 	TiC.PROPERTY_TITLE_PADDING_BOTTOM,
 	TiC.PROPERTY_WORD_WRAP,
 	TiC.PROPERTY_SHADOW_COLOR,
-	TiC.PROPERTY_SHADOW_OFFSET
+	TiC.PROPERTY_SHADOW_OFFSET,
+	TiC.PROPERTY_SELECTED
 })
 public class ButtonProxy extends TiViewProxy
 {
 	public ButtonProxy()
 	{
 		defaultValues.put(TiC.PROPERTY_TITLE, "");
+		defaultValues.put(TiC.PROPERTY_SELECTED, false);
 	}
 
 	public ButtonProxy(TiContext tiContext)
