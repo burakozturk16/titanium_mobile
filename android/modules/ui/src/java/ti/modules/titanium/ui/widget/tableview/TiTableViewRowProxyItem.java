@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
@@ -99,15 +100,25 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	
 	public void setRowData(Item item) {
 		TableViewRowProxy rp = (TableViewRowProxy)item.proxy;
+		TableViewRowProxy oldProxy = getRowProxy();
 		setRowData(rp);
-		if (getRowProxy() != null)
+		this.item = item;
+		
+		if (oldProxy != null)
 		{
 			//we are reusing its view so make sure it doesnt think it still has views!
-			getRowProxy().clearViews();
-			getRowProxy().setTableViewItem(null);
+			oldProxy.clearViews();
+			oldProxy.setTableViewItem(null);
 		}
-		this.item = item; //we do it after so that we can compare with old proxy
+		
 		rp.setTableViewItem(this);
+		
+		KrollDict  p;
+		if (oldProxy != null)
+			p = getOnlyChangedProperties(oldProxy, rp);
+		else
+			p = rp.getProperties();
+		processProperties(p);
 	}
 
 	public Item getRowData() {
@@ -270,20 +281,9 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		childView.setProxy(rp);
 	}
 	
+	@Override
 	public void processProperties(KrollDict p)
 	{
-		
-	}
-
-	public void setRowData(TableViewRowProxy rp) {
-		KrollDict  p;
-		if (getRowProxy() != null)
-			p = getOnlyChangedProperties(getRowProxy(), rp);
-		else
-			p = rp.getProperties();
-		
-		
-		
 		Object newSelectorSource = null;
 		if (p.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
 			newSelectorSource = p.get(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE);
@@ -294,13 +294,13 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			selectorDrawable = null;
 			selectorSource = newSelectorSource;
 			if (selectorSource != null) {
-				rp.getTable().getTableView().getTableView().enableCustomSelector();
+				getRowProxy().getTable().getTableView().getTableView().enableCustomSelector();
 			}
 		}
 		if (p.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE) ||
 				p.containsKey(TiC.PROPERTY_BACKGROUND_COLOR))
 		{
-			setBackgroundFromProxy(rp);
+			setBackgroundFromProxy(getRowProxy());
 		}
 
 		// Handle right image
@@ -387,7 +387,21 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				}
 			}
 		}
-		
+	}
+	
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
+	{
+		if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE) || 
+				key.equals(TiC.PROPERTY_BACKGROUND_COLOR) ) {
+			setBackgroundFromProxy(getRowProxy());
+		}
+		else {
+			super.propertyChanged(key, oldValue, newValue, proxy);
+		}
+	}
+
+	public void setRowData(TableViewRowProxy rp) {
 		Boolean oldStyleRow = !rp.hasControls();
 		// hasControls() means that the proxy has children
 		if (oldStyleRow) {

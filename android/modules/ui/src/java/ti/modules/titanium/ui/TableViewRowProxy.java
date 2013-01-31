@@ -150,6 +150,7 @@ public class TableViewRowProxy extends TiViewProxy
 
 	public void setTableViewItem(TiTableViewRowProxyItem item) {
 		this.tableViewItem = item;
+		setModelListener(item, false);
 	}
 
 	public TableViewProxy getTable() {

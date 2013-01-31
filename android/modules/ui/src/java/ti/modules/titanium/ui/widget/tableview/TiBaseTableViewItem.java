@@ -6,8 +6,12 @@
  */
 package ti.modules.titanium.ui.widget.tableview;
 
+import java.util.List;
+
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
@@ -32,7 +36,7 @@ import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.ViewGroup;
 
-public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.Callback
+public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.Callback, KrollProxyListener
 {
 	private static final String TAG = "TiBaseTableViewItem";
 	
@@ -208,5 +212,35 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 	
 	public void release() {
 		handler = null;
+	}
+	
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
+	{
+	}
+
+	@Override
+	public void processProperties(KrollDict properties) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void propertiesChanged(List<KrollPropertyChange> changes,
+			KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerAdded(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerRemoved(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
 	}
 }
