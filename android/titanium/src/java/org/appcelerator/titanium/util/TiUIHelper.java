@@ -38,7 +38,9 @@ import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy.PostOpenListener;
 import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiDrawableReference;
+import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -460,28 +462,54 @@ public class TiUIHelper
 		textView.setPadding(rawHPadding, rawVPadding, rawHPadding, rawVPadding);
 	}
 
-	private static Drawable buildBackgroundDrawable(String color, String image, boolean tileImage, Drawable gradientDrawable)
-	{
-		// Create an array of the layers that will compose this background.
-		// Note that the order in which the layers is important to get the
-		// correct rendering behavior.
-		ArrayList<Drawable> layers = new ArrayList<Drawable>(3);
-
+	public static final int[] BACKGROUND_DEFAULT_STATE_1 = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_DEFAULT_STATE_2 = {
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_SELECTED_STATE = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled,
+		android.R.attr.state_pressed
+	};
+	public static final int[] BACKGROUND_CHECKED_STATE = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled,
+		android.R.attr.state_checked
+	};
+	public static final int[] BACKGROUND_FOCUSED_STATE = {
+		android.R.attr.state_focused,
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_DISABLED_STATE = {
+		-android.R.attr.state_enabled
+	};
+	
+	public static ColorDrawable buildColorDrawable(String color) {
+		ColorDrawable colorDrawable = null;
 		if (color != null) {
-			Drawable colorDrawable = new ColorDrawable(TiColorHelper.parseColor(color));
-			layers.add(colorDrawable);
+			colorDrawable = new ColorDrawable(TiColorHelper.parseColor(color));
+		}			
+		return colorDrawable;
+	}
+	
+	private static String resolveImageUrl(String path, KrollProxy proxy) {
+		return path.length() > 0 ? proxy.resolveUrl(null, path) : null;
+	}
+	
+	public static Drawable buildImageDrawable(String image, boolean tile, KrollProxy proxy) {
+		if (image != null) {
+			image = resolveImageUrl(image, proxy);
 		}
-
-		if (gradientDrawable != null) {
-			layers.add(gradientDrawable);
-		}
-
 		Drawable imageDrawable = null;
 		if (image != null) {
 			TiFileHelper tfh = TiFileHelper.getInstance();
 			Context appContext = TiApplication.getInstance();
 
-			if (tileImage) {
+			if (tile) {
 				InputStream inputStream;
 				try {
 					inputStream = tfh.openInputStream(image, false);
@@ -500,72 +528,26 @@ public class TiUIHelper
 			} else {
 				imageDrawable = tfh.loadDrawable(image, false, true);
 			}
-
-			if (imageDrawable != null) {
-				layers.add(imageDrawable);
+		}
+		return imageDrawable;
+	}
+	
+	public static TiGradientDrawable buildGradientDrawable(View view, KrollDict gradientProperties) {
+		TiGradientDrawable gradientDrawable = null;
+		if (gradientProperties != null) {
+			try {
+				gradientDrawable = new TiGradientDrawable(view, gradientProperties);
+				if (gradientDrawable.getGradientType() == GradientType.RADIAL_GRADIENT) {
+					// TODO: Remove this once we support radial gradients.
+					Log.w(TAG, "Android does not support radial gradients.");
+					gradientDrawable = null;
+				}
+			}
+			catch (IllegalArgumentException e) {
+				gradientDrawable = null;
 			}
 		}
-
-		return new LayerDrawable(layers.toArray(new Drawable[layers.size()]));
-	}
-
-	private static final int[] BACKGROUND_DEFAULT_STATE_1 = {
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_DEFAULT_STATE_2 = {
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_SELECTED_STATE = {
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled,
-		android.R.attr.state_pressed
-	};
-	private static final int[] BACKGROUND_FOCUSED_STATE = {
-		android.R.attr.state_focused,
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_DISABLED_STATE = {
-		-android.R.attr.state_enabled
-	};
-
-	public static StateListDrawable buildBackgroundDrawable(
-		String image,
-		boolean tileImage,
-		String color,
-		String selectedImage,
-		String selectedColor,
-		String disabledImage,
-		String disabledColor,
-		String focusedImage,
-		String focusedColor,
-		Drawable gradientDrawable)
-	{
-		StateListDrawable sld = new StateListDrawable();
-
-		Drawable bgSelectedDrawable = buildBackgroundDrawable(selectedColor, selectedImage, tileImage, gradientDrawable);
-		if (bgSelectedDrawable != null) {
-			sld.addState(BACKGROUND_SELECTED_STATE, bgSelectedDrawable);
-		}
-
-		Drawable bgFocusedDrawable = buildBackgroundDrawable(focusedColor, focusedImage, tileImage, gradientDrawable);
-		if (bgFocusedDrawable != null) {
-			sld.addState(BACKGROUND_FOCUSED_STATE, bgFocusedDrawable);
-		}
-
-		Drawable bgDisabledDrawable = buildBackgroundDrawable(disabledColor, disabledImage, tileImage, gradientDrawable);
-		if (bgDisabledDrawable != null) {
-			sld.addState(BACKGROUND_DISABLED_STATE, bgDisabledDrawable);
-		}
-
-		Drawable bgDrawable = buildBackgroundDrawable(color, image, tileImage, gradientDrawable);
-		if (bgDrawable != null) {
-			sld.addState(BACKGROUND_DEFAULT_STATE_1, bgDrawable);
-			sld.addState(BACKGROUND_DEFAULT_STATE_2, bgDrawable);
-		}
-
-		return sld;
+		return gradientDrawable;
 	}
 
 	public static KrollDict createDictForImage(int width, int height, byte[] data)

@@ -481,9 +481,9 @@ public class TiUIText extends TiUIView
 	}
 
 	@Override
-	public void applyCustomBackground(boolean reuseCurrentDrawable)
+	public void applyCustomBackground()
 	{
-		super.applyCustomBackground(reuseCurrentDrawable);
+		super.applyCustomBackground();
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
 	}

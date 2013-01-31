@@ -1,44 +1,280 @@
-/*
- * Single Window Application Template:
- * A basic starting point for your application.  Mostly a blank canvas.
- * 
- * In app.js, we generally take care of a few things:
- * - Bootstrap the application with any data we need
- * - Check for dependencies like device type, platform version or network connection
- * - Require and open our top-level UI component
- *  
- */
+// This is a test harness for your module
+// You should do something interesting in this harness
+// to test out the module and to provide instructions
+// to users on how to use it by example.
 
-//bootstrap and check dependencies
-if (Ti.version < 1.8 ) {
-	alert('Sorry - this application template requires Titanium Mobile SDK 1.8 or later');	  	
+
+// open a single window
+var win = Ti.UI.createWindow({
+    backgroundColor:'gray'
+});
+win.barColor = '#385292';
+
+//
+// CREATE SEARCH BAR
+//
+var search = Titanium.UI.createSearchBar({
+	barColor:'#385292',
+	showCancel:false
+});
+search.addEventListener('change', function(e)
+{
+	e.value; // search string as user types
+});
+search.addEventListener('return', function(e)
+{
+	search.blur();
+});
+search.addEventListener('cancel', function(e)
+{
+	search.blur();
+});
+
+var tableView;
+var data = [];
+var menuWidth = 200;
+
+// create first row
+//var row = Ti.UI.createTableViewRow();
+//row.backgroundColor = '#576996';
+//row.selectedBackgroundColor = '#385292';
+//row.height = 40;
+//var clickLabel = Titanium.UI.createLabel({
+//	text:'Click different parts of the row',
+//	color:'#fff',
+//	textAlign:'center',
+//	font:{fontSize:14},
+//	width:'auto',
+//	height:'auto'
+//});
+//row.className = 'header';
+//row.add(clickLabel);
+//data.push(row);
+
+// when you click the header, scroll to the bottom
+//row.addEventListener('click',function()
+//{
+//	tableView.scrollToIndex(40,{animated:true,position:Ti.UI.iPhone.TableViewScrollPosition.TOP});
+//});
+
+// create update row (used when the user clicks on the row)
+function createUpdateRow(text)
+{
+	var updateRow = Ti.UI.createTableViewRow();
+	updateRow.backgroundColor = '#13386c';
+	updateRow.selectedBackgroundColor = 'transparent';
+
+	// add custom property to identify this row
+	updateRow.isUpdateRow = true;
+	var updateRowText = Ti.UI.createLabel({
+		color:'#fff',
+		font:{fontSize:20, fontWeight:'bold'},
+		text:text,
+		width:'auto',
+		height:'auto'
+	});
+	updateRow.className = 'updated_row';
+	updateRow.add(updateRowText);
+	return updateRow;
+}
+// create a var to track the active row
+var currentRow = null;
+var currentRowIndex = null;
+
+// create the rest of the rows
+for (var c=1;c<50;c++)
+{
+	var row = Ti.UI.createTableViewRow({
+		selectionStyle: Titanium.UI.iPhone.TableViewCellSelectionStyle.NONE,
+		backgroundColor:"#222"
+	});
+
+	row.selectedBackgroundColor = '#fff';
+	row.height = 100;
+	row.className = 'datarow';
+	row.clickName = 'row';
+
+	row.container = Ti.UI.createView({
+		left:0,
+		right:0,
+		top:0,
+		bottom:0,
+		backgroundColor:"#666",
+		clipChildren:false
+	})
+
+	var photo = Ti.UI.createView({
+		backgroundImage:'/images/custom_tableview/user.png',
+		top:5,
+		left:10,
+		width:50,
+		height:50,
+		clickName:'photo'
+	});
+	row.container.add(photo);
+
+	var text = 'Fred Smith '+c;
+	var user = Ti.UI.createLabel({
+		color:'white',
+		font:{fontSize:16,fontWeight:'bold', fontFamily:'Arial'},
+		left:70,
+		top:2,
+		height:30,
+		width:200,
+		clickName:'user',
+		text:text
+	});
+
+	row.name = text;
+	row.container.add(user);
+
+	var fontSize = 16;
+	if (Titanium.Platform.name == 'android') {
+		fontSize = 14;
+	}
+	var comment = Ti.UI.createLabel({
+		color:'silver',
+		font:{fontSize:fontSize,fontWeight:'normal', fontFamily:'Arial'},
+		left:70,
+		top:21,
+		height:50,
+		width:200,
+		clickName:'comment',
+		text:'Got some fresh fruit, conducted some business, took a nap'
+	});
+	row.container.add(comment);
+
+	var calendar = Ti.UI.createView({
+		backgroundImage:'/images/custom_tableview/eventsButton.png',
+		bottom:2,
+		left:70,
+		width:32,
+		clickName:'calendar',
+		height:32
+	});
+	row.container.add(calendar);
+
+	var button = Ti.UI.createView({
+		backgroundImage:'/images/custom_tableview/commentButton.png',
+		top:35,
+		right:5,
+		width:36,
+		clickName:'button',
+		height:34
+	});
+	row.container.add(button);
+
+	var date = Ti.UI.createLabel({
+		color:'#999',
+		font:{fontSize:13,fontWeight:'normal', fontFamily:'Arial'},
+		left:105,
+		bottom:5,
+		height:20,
+		width:100,
+		clickName:'date',
+		text:'posted on 3/11'
+	});
+	row.container.add(date);
+
+	row.add(row.container);
+	data.push(row);
 }
 
-// This is a single context application with multiple windows in a stack
-(function() {
-	//render appropriate components based on the platform and form factor
-	var osname = Ti.Platform.osname,
-		version = Ti.Platform.version,
-		height = Ti.Platform.displayCaps.platformHeight,
-		width = Ti.Platform.displayCaps.platformWidth;
-	
-	//considering tablet to have one dimension over 900px - this is imperfect, so you should feel free to decide
-	//yourself what you consider a tablet form factor for android
-	var isTablet = osname === 'ipad' || (osname === 'android' && (width > 899 || height > 899));
-	
-	var Window;
-	if (isTablet) {
-		Window = require('ui/tablet/ApplicationWindow');
+
+//
+// create table view (
+//
+tableView = Titanium.UI.createTableView({
+	data:data,
+	search:search,
+	filterAttribute:'name',
+	backgroundColor:'white'
+});
+
+var currentRowMenu = null;
+var currentMenu = null;
+var oldMenu = null;
+var oldRowMenu = null;
+
+var animShow = Ti.UI.createAnimation({
+	duration:200,
+	transform:Ti.UI.create2DMatrix().translate(menuWidth,0)
+})
+
+var animHide = Ti.UI.createAnimation({
+	duration:200,
+	transform:Ti.UI.create2DMatrix()
+})
+animHide.addEventListener('complete', function(){
+	if (oldRowMenu === null) return;
+	oldRowMenu.container.remove(oldMenu);
+	oldMenu = null;
+	oldRowMenu = null;
+})
+function hideMenu()
+{
+	if (currentRowMenu!=null)
+	{
+		oldMenu = currentMenu;
+		oldRowMenu = currentRowMenu;
+		oldRowMenu.container.animate(animHide);
+		currentMenu = null;
+		currentRowMenu = null;
+		return true;
 	}
-	else {
-		// Android uses platform-specific properties to create windows.
-		// All other platforms follow a similar UI pattern.
-		if (osname === 'android') {
-			Window = require('ui/handheld/android/ApplicationWindow');
-		}
-		else {
-			Window = require('ui/handheld/ApplicationWindow');
-		}
+	return false;
+}
+
+function showMenuForRow(_row)
+{
+	if (hideMenu()) return;
+
+	var menu = Ti.UI.createView({
+		width:menuWidth,
+		layout:'horizontal',
+		horizontalWrap:false,
+		left:-menuWidth,
+		top:0,
+		bottom:0,
+		backgroundColor:"#3ff"
+	})
+	menu.add(Ti.UI.createView({
+		width:Ti.UI.FILL
+	}));
+	menu.add(Ti.UI.createButton({
+		title:'1',
+		right:10
+	}));
+	menu.add(Ti.UI.createButton({
+		title:'2',
+		right:10
+	}));
+	menu.add(Ti.UI.createButton({
+		title:'3',
+		right:10
+	}));
+	_row.container.add(menu);
+	_row.container.animate(animShow);
+	currentRowMenu = _row;
+	currentMenu = menu;
+	menu = null;
+}
+
+tableView.addEventListener('swipe', function(e)
+{
+	if(e.row && e.direction == 'right')
+	{
+		if (e.row.isUpdateRow) return;
+		showMenuForRow(e.row);
 	}
-	new Window().open();
-})();
+});
+
+
+tableView.addEventListener('click', function(e)
+{
+	Ti.API.info('click ' + JSON.stringify(e.source));
+});
+
+win.add(tableView);
+
+win.open();

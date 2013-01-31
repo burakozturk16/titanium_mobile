@@ -89,6 +89,11 @@ public class TiGradientDrawable extends ShapeDrawable {
 
 		setShaderFactory(new GradientShaderFactory());
 	}
+	
+	public void setView(View view)
+	{
+		this.view = view;
+	}
 
 	public GradientType getGradientType() {
 		return gradientType;

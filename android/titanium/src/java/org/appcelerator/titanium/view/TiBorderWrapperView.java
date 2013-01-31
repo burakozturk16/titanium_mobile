@@ -19,6 +19,7 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.view.View;
 import android.widget.FrameLayout;
 
 /**
@@ -46,14 +47,10 @@ public class TiBorderWrapperView extends FrameLayout
 		innerRect = new RectF();
 		paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		setWillNotDraw(false);
-	}
-
-	@Override
-	protected void onDraw(Canvas canvas)
-	{
 		updateBorderPath();
-		drawBorder(canvas);
-
+	}
+	
+	protected void clipCanvas(Canvas canvas) {
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -64,6 +61,18 @@ public class TiBorderWrapperView extends FrameLayout
 		} else {
 			canvas.clipRect(innerRect);
 		}
+	}
+
+	@Override
+	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+		updateBorderPath();
+	}
+
+	@Override
+	protected void onDraw(Canvas canvas)
+	{
+ 		drawBorder(canvas);
+ 		clipCanvas(canvas);
 	}
 
 	private void updateBorderPath()
@@ -102,6 +111,7 @@ public class TiBorderWrapperView extends FrameLayout
 			borderPath.addRect(innerRect, Direction.CW);
 			borderPath.setFillType(FillType.EVEN_ODD);
 		}
+		invalidate();
 	}
 
 	private void drawBorder(Canvas canvas)
@@ -131,6 +141,7 @@ public class TiBorderWrapperView extends FrameLayout
 	public void setRadius(float radius)
 	{
 		this.radius = radius;
+		updateBorderPath();
 	}
 
 	public float getBorderWidth()
@@ -141,6 +152,7 @@ public class TiBorderWrapperView extends FrameLayout
 	public void setBorderWidth(float borderWidth)
 	{
 		this.borderWidth = borderWidth;
+		updateBorderPath();
 	}
 
 	public void setBorderAlpha(int alpha)

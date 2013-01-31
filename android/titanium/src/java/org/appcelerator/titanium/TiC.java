@@ -631,7 +631,22 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_COLOR = "backgroundColor";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_COLOR = "backgroundCheckedColor";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_IMAGE = "backgroundCheckedImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_GRADIENT = "backgroundCheckedGradient";
+	
 	/**
 	 * @module.api
 	 */
@@ -645,6 +660,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_DISABLED_GRADIENT = "backgroundDisabledGradient";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_FOCUSED_COLOR = "backgroundFocusedColor";
 
 	/**
@@ -652,6 +672,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_BACKGROUND_FOCUSED_IMAGE = "backgroundFocusedImage";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_FOCUSED_GRADIENT = "backgroundFocusedGradient";
+	
 	/**
 	 * @module.api
 	 */
@@ -683,6 +708,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_SELECTED_IMAGE = "backgroundSelectedImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_SELECTED_GRADIENT = "backgroundSelectedGradient";
 
 	/**
 	 * @module.api
@@ -788,6 +818,8 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CHECKED = "checked";
+	
+
 	/**
 	 * @module.api
 	 */
@@ -1731,6 +1763,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SECTION = "section";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SELECTED = "selected";
 
 	/**
 	 * @module.api
