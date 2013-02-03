@@ -96,12 +96,14 @@
 {
 	if (proxy.callbackCell == self) {
 		[proxy prepareTableRowForReuse];
+        [proxy setCallbackCell:nil];
 	}
     //first let s say we gonna disappear!
-    [proxy fireEvent:@"reuse" withObject:[proxy createEventObject:nil] propagate:YES];
+    if ([[self proxy] _hasListeners:@"reuse"])
+        [proxy fireEvent:@"reuse" withObject:[proxy createEventObject:nil] propagate:YES];
 	[self setProxy:nil];
 	[super prepareForReuse];
-	
+
 	// TODO: HACK: In the case of abnormally large table view cells, we have to reset the size.
 	// This is because the view drawing subsystem takes the cell frame to be the sandbox bounds when drawing views,
 	// and if its frame is too big... the view system allocates way too much memory/pixels and doesn't appear to let
@@ -122,7 +124,7 @@
 -(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if ( ([[event touchesForView:self.contentView] count] > 0) || ([[event touchesForView:self.accessoryView] count] > 0) 
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.currentRowContainerView] count]> 0 )) {
+        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
         if ([proxy _hasListeners:@"touchstart"])
         {
         	UITouch *touch = [touches anyObject];
@@ -137,7 +139,7 @@
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if ([[event touchesForView:self.contentView] count] > 0 || ([[event touchesForView:self.accessoryView] count] > 0)
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.currentRowContainerView] count]> 0 )) {
+        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
         if ([proxy _hasListeners:@"touchmove"])
         {
             UITouch *touch = [touches anyObject];
@@ -151,7 +153,7 @@
 -(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if ( ([[event touchesForView:self.contentView] count] > 0) || ([[event touchesForView:self.accessoryView] count] > 0) 
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.currentRowContainerView] count]> 0 )) {
+        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
         if ([proxy _hasListeners:@"touchend"])
         {
             UITouch *touch = [touches anyObject];
@@ -235,28 +237,46 @@
 	[gradientLayer setNeedsDisplay];
 }
 
+-(void)unHighlight:(NSArray*)views
+{    
+    for (UIView *subview in views) {
+        if ([subview isKindOfClass:[UIButton class] ])
+        {
+            [(UIButton*)subview setHighlighted:NO];
+        }
+        // Get the subviews of the view
+        NSArray *subviews = [subview subviews];
+        if ([subviews count] > 0)
+            [self unHighlightAndUnselect:subviews];
+    }
+}
+
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
     [self updateGradientLayer:yn|[self isHighlighted] withAnimation:animated];
+    [self unHighlight:[self subviews]];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
     [self updateGradientLayer:yn|[self isSelected] withAnimation:animated];
+    [self unHighlight:[self subviews]];
 }
 
 -(void)setHighlighted:(BOOL)yn
 {
     [super setHighlighted:yn];
     [self updateGradientLayer:yn|[self isSelected] withAnimation:NO];
+    [self unHighlight:[self subviews]];
 }
 
 -(void)setSelected:(BOOL)yn
 {
     [super setSelected:yn];
     [self updateGradientLayer:yn|[self isHighlighted] withAnimation:NO];
+    [self unHighlight:[self subviews]];
 }
 
 -(void) setBackgroundGradient_:(TiGradient *)newGradient
@@ -1436,7 +1456,7 @@
 	if (viewproxy!=nil && [viewproxy isKindOfClass:[TiViewProxy class]])
 	{
 		[viewproxy windowWillOpen];
-		return [viewproxy view];
+		return [viewproxy getOrCreateView];
 	}
 	return nil;
 }
@@ -2137,25 +2157,12 @@ return result;	\
 	}
 	
 	TiUITableViewRowProxy *row = [self rowForIndexPath:index];
-	
-	NSString *color = [row valueForKey:@"backgroundColor"];
-	if (color==nil)
-	{
-		color = [self.proxy valueForKey:@"rowBackgroundColor"];
-		if (color==nil)
-		{
-			color = [self.proxy valueForKey:@"backgroundColor"];
-		}
-	}
-	UIColor * cellColor = [Webcolor webColorNamed:color];
-	if (cellColor == nil) {
-		cellColor = [UIColor whiteColor];
-	}
-	cell.backgroundColor = cellColor;
-	if(CGColorGetAlpha([cellColor CGColor])<1.0) {
-		[[cell textLabel] setBackgroundColor:[UIColor clearColor]];
-	}
-	[self triggerActionForIndexPath:index fromPath:nil tableView:ourTableView wasAccessory:NO search:NO name:@"rowappear"];
+    
+    //needs to be done here or it wont work
+    [row configureBackgroundColor];
+
+    if ([[self proxy] _hasListeners:@"rowappear"])
+        [self triggerActionForIndexPath:index fromPath:nil tableView:ourTableView wasAccessory:NO search:NO name:@"rowappear"];
 }
 
 - (NSString *)tableView:(UITableView *)ourTableView titleForDeleteConfirmationButtonForRowAtIndexPath:(NSIndexPath *)indexPath
