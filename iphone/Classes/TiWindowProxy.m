@@ -138,7 +138,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 		frame = navController.view.frame;
 	}
 	TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
-	return win;
+	return [win autorelease];
 }
 
 

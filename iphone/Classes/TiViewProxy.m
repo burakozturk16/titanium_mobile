@@ -1594,7 +1594,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	{
 		DeveloperLog(@"[WARN] No TiView for Proxy: %@, couldn't find class: %@",self,proxyName);
 	}
-	return [[TiUIView alloc] initWithFrame:[self appFrame]];
+	return [[[TiUIView alloc] initWithFrame:[self appFrame]] autorelease];
 }
 
 
