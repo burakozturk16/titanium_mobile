@@ -263,6 +263,22 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 }
 
 
+-(void)setBackgroundColor_:(id)color
+{
+    if ([self proxy])
+        [(TiUITableViewRowProxy*)[self proxy] configureBackgroundColor];
+//	if ([color isKindOfClass:[UIColor class]])
+//	{
+//		super.backgroundColor = color;
+//	}
+//	else
+//	{
+//		TiColor *ticolor = [TiUtils colorValue:color];
+//		super.backgroundColor = [ticolor _color];
+//	}
+}
+
+
 @end
 
 @implementation TiUITableViewRowProxy
@@ -282,7 +298,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 -(void)_destroy
 {
 	RELEASE_TO_NIL(tableClass);
-    NSLog(@"changing rowContainerView");
 	TiThreadRemoveFromSuperviewOnMainThread(rowContainerView, NO);
 	TiThreadReleaseOnMainThread(rowContainerView, NO);
 	rowContainerView = nil;
@@ -299,7 +314,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 -(void)_initWithProperties:(NSDictionary *)properties
 {
 	[super _initWithProperties:properties];
-	self.modelDelegate = self;
+//	self.modelDelegate = self;
 }
 
 -(void)layoutChildren:(BOOL)optimize
@@ -464,6 +479,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 -(void)configureTitle:(UITableViewCell*)cell
 {
 	UILabel * textLabel = [cell textLabel];
+    [textLabel setBackgroundColor:[UIColor clearColor]];
 
 	NSString *title = [self valueForKey:@"title"];
 	if (title!=nil)
@@ -484,7 +500,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 		}
 		else
 		{
-			font = [UIFont systemFontOfSize:0];
+			font = [UIFont boldSystemFontOfSize:20.0]; //seems to be the default
 		}
 		[textLabel setFont:font];
 	}
@@ -795,8 +811,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 				__block BOOL canReproxy = YES;
 				NSArray *existingSubviews = [newcontainer subviews];
 				if ([rowChildren count] != [existingSubviews count]) {
-                    [existingSubviews makeObjectsPerformSelector:@selector(detachViewProxy)];
-                    newcontainer = nil;
+					DebugLog(@"[ERROR] Cannot reproxy not same number of childs");
 					canReproxy = NO;
 				} else {
 					[rowChildren enumerateObjectsUsingBlock:^(TiViewProxy *proxy, NSUInteger idx, BOOL *stop) {
@@ -809,21 +824,24 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 				}
 				if (!canReproxy && ([existingSubviews count] > 0)) {
 					DebugLog(@"[ERROR] TableViewRow structures for className %@ does not match", self.tableClass);
-                    [existingSubviews makeObjectsPerformSelector:@selector(detachViewProxy)];
+                    [newcontainer detach];
                     newcontainer = nil;
 				}
 			}
             
             if (newcontainer != nil)
             {
+                RELEASE_TO_NIL(rowContainerView);
                 rowContainerView = [newcontainer retain];
             }
-            else{
-                if (rowContainerView != nil){
-                    RELEASE_TO_NIL(rowContainerView);
-                    
-                    [self clearView:YES];
-                }
+            else if (rowContainerView != nil){
+                //we cant reuse so in any case we have to clear the rowContainerView. The question is do we really remove the views
+                //associated. They might actually be used by another cell
+                if ([rowContainerView proxy] == self || [rowContainerView proxy] == nil)
+                    [self detachView];
+                else
+                    [self clearView:YES];//our currentRowContainer might be used by someone else, lets just set view to nil
+                RELEASE_TO_NIL(rowContainerView);
             }
             
 			if (rowContainerView == nil) {
@@ -831,14 +849,12 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 rowContainerView.tag = kRowContainerTag;
                 [rowContainerView setBackgroundColor:[UIColor clearColor]];
                 [rowContainerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-                
-                [[contentView subviews] makeObjectsPerformSelector:@selector(removeFromSuperview)];
 				[contentView addSubview:rowContainerView];
 			} else {
 				[rowContainerView setFrame:rect];
 			}
             
-            rowContainerView.index = self.row;
+            rowContainerView.proxy = self;
 			
 			NSArray *existingSubviews = [rowContainerView subviews];
 			[rowChildren enumerateObjectsUsingBlock:^(TiViewProxy *proxy, NSUInteger idx, BOOL *stop) {
@@ -857,6 +873,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 }
                 [self redelegateViews:proxy toView:contentView];
 				[proxy setReproxying:NO];
+                uiview = nil;
 			}];
 		} else {
 			[rowContainerView setFrame:rect];
@@ -879,9 +896,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	[self configureBackground:cell];
 	[self configureIndentionLevel:cell];
 	[self configureChildren:cell];
-	cell.accessibilityLabel = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityLabel"]];
-	cell.accessibilityValue = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityValue"]];
-	cell.accessibilityHint = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityHint"]];
+	[self configureAccessibility:cell];
 	modifyingRow = NO;
 }
 
@@ -892,15 +907,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 // TODO: SUPER MEGA UGLY but it's the only workaround for now.  zindex does NOT work with table rows.
 // TODO: Add child locking methods for whenever we have to touch children outside TiViewProxy
--(void)willShow
-{
-	pthread_rwlock_rdlock(&childrenLock);
-    NSArray* subproxies = [self children];
-	for (TiViewProxy* child in subproxies) {
-		[child setParentVisible:YES];
-	}
-	pthread_rwlock_unlock(&childrenLock);
-}
+//-(void)willShow
+//{
+//	pthread_rwlock_rdlock(&childrenLock);
+//    NSArray* subproxies = [self children];
+//	for (TiViewProxy* child in subproxies) {
+//		[child setParentVisible:YES];
+//	}
+//	pthread_rwlock_unlock(&childrenLock);
+//}
 
 -(void)triggerAttach
 {
@@ -950,7 +965,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(void)childWillResize:(TiViewProxy *)child
 {
-//	[self triggerRowUpdate];
+	[self triggerRowUpdate];
 }
 
 -(TiProxy *)touchedViewProxyInCell:(UITableViewCell *)targetCell atPoint:(CGPoint*)point
@@ -964,18 +979,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
             return result;
         }
     }
-//	for (TiUITableViewRowContainer * thisContainer in [[targetCell contentView] subviews])
-//	{
-//		if ([thisContainer isKindOfClass:[TiUITableViewRowContainer class]])
-//		{
-//			TiProxy * result = [thisContainer hitTarget];
-//			*point = [thisContainer hitPoint];
-//			if (result != nil)
-//			{
-//				return result;
-//			}
-//		}
-//	}
 	return self;
 }
 
@@ -1018,63 +1021,59 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	[super fireEvent:type withObject:obj withSource:source propagate:propagate];
 }
 
--(void)setSelectedBackgroundColor:(id)arg
+-(void)configureAccessibility:(UITableViewCell*)cell
 {
-	[self replaceValue:arg forKey:@"selectedBackgroundColor" notification:NO];	
-	if (callbackCell != nil) {
-		[self configureBackground:callbackCell];
+    cell.accessibilityLabel = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityLabel"]];
+	cell.accessibilityValue = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityValue"]];
+	cell.accessibilityHint = [TiUtils stringValue:[self valueForUndefinedKey:@"accessibilityHint"]];
+}
+
+-(void)configureBackgroundColor
+{
+	if (callbackCell == nil) return;
+    NSString *color = [self valueForKey:@"backgroundColor"];
+	if (color==nil)
+	{
+		color = [table.proxy valueForKey:@"rowBackgroundColor"];
 	}
-}
-
--(void)setBackgroundImage:(id)arg
-{
-	[self replaceValue:arg forKey:@"backgroundImage" notification:NO];	
-	if (callbackCell != nil) {
-		[self configureBackground:callbackCell];
+    if (color==nil)
+	{
+		color = [table.proxy valueForKey:@"backgroundColor"];
 	}
-}
-
--(void)setSelectedBackgroundImage:(id)arg
-{
-	[self replaceValue:arg forKey:@"selectedBackgroundImage" notification:NO];	
-	if (callbackCell != nil) {
-		[self configureBackground:callbackCell];
+	UIColor * cellColor = [Webcolor webColorNamed:color];
+	if (cellColor == nil) {
+		cellColor = [UIColor whiteColor];
 	}
+    [callbackCell setBackgroundColor:cellColor];
 }
-
--(void)setBackgroundGradient:(id)arg
-{
-	TiGradient * newGradient = [TiGradient gradientFromObject:arg proxy:self];
-	[self replaceValue:newGradient forKey:@"backgroundGradient" notification:NO];
-	TiThreadPerformOnMainThread(^{[callbackCell setBackgroundGradient_:newGradient];}, NO);
-}
-
--(void)setSelectedBackgroundGradient:(id)arg
-{
-	TiGradient * newGradient = [TiGradient gradientFromObject:arg proxy:self];
-	[self replaceValue:newGradient forKey:@"selectedBackgroundGradient" notification:NO];
-	TiThreadPerformOnMainThread(^{[callbackCell setSelectedBackgroundGradient_:newGradient];}, NO);
-}
-
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy
 {
-	// these properties should trigger a re-paint for the row
-	static NSSet * TableViewRowProperties = nil;
-	if (TableViewRowProperties==nil)
-	{
-		TableViewRowProperties = [[NSSet alloc] initWithObjects:
-					@"title", @"accessibilityLabel", @"backgroundImage",
-					@"leftImage",@"hasDetail",@"hasCheck",@"hasChild",	
-					@"indentionLevel",@"selectionStyle",@"color",@"selectedColor",
-					@"height",@"width",@"backgroundColor",@"rightImage",
-					nil];
-	}
-	
-	if ([TableViewRowProperties member:key]!=nil)
-	{
-		[self triggerRowUpdate];
-	}
+	if (callbackCell == nil) return;
+    else if ([key isEqualToString:@"hasDetail"] ||
+             [key isEqualToString:@"hasChild"] ||
+             [key isEqualToString:@"rightImage"] ||
+             [key isEqualToString:@"hasCheck"])
+		TiThreadPerformOnMainThread(^{[self configureRightSide:callbackCell];}, NO);
+    else if ([key isEqualToString:@"leftImage"])
+		TiThreadPerformOnMainThread(^{[self configureLeftSide:callbackCell];}, NO);
+    else if ([key isEqualToString:@"selectedBackgroundImage"] ||
+             [key isEqualToString:@"selectedBackgroundColor"] ||
+             [key isEqualToString:@"selectedBackgroundGradient"] ||
+             [key isEqualToString:@"backgroundImage"] ||
+             [key isEqualToString:@"backgroundGradient"] ||
+             [key isEqualToString:@"selectionStyle"])
+		TiThreadPerformOnMainThread(^{[self configureBackground:callbackCell];}, NO);
+    else if ([key isEqualToString:@"indentionLevel"])
+		TiThreadPerformOnMainThread(^{[self configureIndentionLevel:callbackCell];}, NO);
+    else if ([key isEqualToString:@"color"] ||
+                  [key isEqualToString:@"selectedColor"] ||
+                  [key isEqualToString:@"title"])
+		TiThreadPerformOnMainThread(^{[self configureTitle:callbackCell];}, YES);
+    else if ([key isEqualToString:@"accessibilityLabel"] ||
+             [key isEqualToString:@"accessibilityValue"] ||
+             [key isEqualToString:@"accessibilityHint"])
+		TiThreadPerformOnMainThread(^{[self configureAccessibility:callbackCell];}, YES);
 }
 
 -(TiDimension)defaultAutoHeightBehavior:(id)unused
