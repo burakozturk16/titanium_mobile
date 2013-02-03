@@ -241,6 +241,12 @@ USE_VIEW_FOR_CONTENT_HEIGHT
     return TiDimensionAutoSize;
 }
 
+- (void)prepareForReuse
+{
+    [self cancelPendingImageLoads];
+    [super prepareForReuse];
+}
+
 @end
 
 #endif

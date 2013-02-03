@@ -1150,6 +1150,15 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return view;
 }
 
+- (void)prepareForReuse
+{
+    pthread_rwlock_rdlock(&childrenLock);
+    for (TiViewProxy* child in [self children]) {
+        [child prepareForReuse];
+    }
+    pthread_rwlock_unlock(&childrenLock);
+}
+
 //CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
 -(void)clearView:(BOOL)recurse
 {

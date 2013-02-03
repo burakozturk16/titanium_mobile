@@ -713,48 +713,52 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	return rowContainerView;
 }
 
-//Private method : For internal use only
--(UIView*) currentRowContainerView
-{
-    return rowContainerView;
-}
-
 - (void)prepareTableRowForReuse
 {
-	if (!self.reusable) {
-        NSLog(@"rowContainerView removeFromSuperview");
-		[rowContainerView removeFromSuperview];
+    [super prepareForReuse];
+    
+	if (self.reusable) {
 		return;
 	}
-    else return;
     
 	if (![self.tableClass isEqualToString:defaultRowTableClass]) {
 		return;
 	}
     
-    [self clearRowContainerView];
+    [self detachView];
 }
 
--(void)clearRowContainerView
+-(void)detachView
 {
-    if (rowContainerView == nil) return;
-    RELEASE_TO_NIL(rowContainerView);
+    [destroyLock lock];
     
-    // ... But that's not enough. We need to detatch the views
-    // for all children of the row, to clean up memory.
-    for (TiViewProxy* child in [self children]) {
-        [child detachView];
-    }
+    pthread_rwlock_rdlock(&childrenLock);
+    [[self children] makeObjectsPerformSelector:@selector(detachView)];
+    pthread_rwlock_unlock(&childrenLock);
+    
+	if (rowContainerView!=nil)
+	{
+		[self viewWillDetach];
+		[rowContainerView removeFromSuperview];
+		rowContainerView.proxy = nil;
+        readyToCreateView = NO;
+		if (self.modelDelegate!=nil)
+		{
+            if ([self.modelDelegate respondsToSelector:@selector(detachProxy)])
+                [self.modelDelegate detachProxy];
+            self.modelDelegate = nil;
+		}
+		RELEASE_TO_NIL(rowContainerView);
+		[self viewDidDetach];
+	}
+	[destroyLock unlock];
 }
 
 - (void)didReceiveMemoryWarning:(NSNotification *)notification
 {
-	if (self.viewAttached) {
-		return;
-	}
-    
-    [self clearRowContainerView];
+    [super didReceiveMemoryWarning:notification];
 }
+
 
 -(void)configureChildren:(UITableViewCell*)cell
 {
