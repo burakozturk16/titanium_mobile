@@ -247,7 +247,7 @@
         // Get the subviews of the view
         NSArray *subviews = [subview subviews];
         if ([subviews count] > 0)
-            [self unHighlightAndUnselect:subviews];
+            [self unHighlight:subviews];
     }
 }
 
