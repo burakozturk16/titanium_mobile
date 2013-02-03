@@ -201,6 +201,20 @@ DEFINE_EXCEPTIONS
 	[super dealloc];
 }
 
+-(void)detach
+{
+    if (proxy != nil && [(TiViewProxy*)proxy view] == self)
+    {
+        [(TiViewProxy*)proxy detachView];
+    }
+    else {
+        
+        [[self subviews] makeObjectsPerformSelector:@selector(detach)];
+        [self removeFromSuperview];
+        self.proxy = nil;
+    }
+}
+
 -(void)removeFromSuperview
 {
 	if ([NSThread isMainThread])
@@ -916,7 +930,6 @@ DEFINE_EXCEPTIONS
 
 - (void)detachViewProxy {
     if(!proxy) return;
-//    [(TiViewProxy*)[self proxy] setView:nil];
     self.proxy = nil;
     for (UIView *subview in self.subviews) {
         if ([subview isKindOfClass:[TiUIView class]])
@@ -938,7 +951,7 @@ DEFINE_EXCEPTIONS
         [oldProperties minusSet:newProperties];
         [oldProperties minusSet:layoutProps];
         [newProperties minusSet:keySequence];
-        [newProperties minusSet:layoutProps];
+        [layoutProps intersectSet:newProperties];
         
         id<NSFastEnumeration> keySeq = keySequence;
         id<NSFastEnumeration> oldProps = oldProperties;
@@ -949,9 +962,9 @@ DEFINE_EXCEPTIONS
 		
         [self configurationStart];
 		[newProxy setReproxying:YES];
-
-		[newProxy setView:self];
         
+		[oldProxy setView:nil];
+		[newProxy setView:self];
         
 		[self setProxy:newProxy];
 
@@ -1018,6 +1031,7 @@ DEFINE_EXCEPTIONS
 		return YES;
 	}    
 	if (![newProxy isMemberOfClass:[oldProxy class]]) {
+        DebugLog(@"[ERROR] Cannot reproxy not same proxy class");
 		return NO;
 	}
     
@@ -1025,6 +1039,7 @@ DEFINE_EXCEPTIONS
     UIView *parentView = [self superview];
     if (parentView!=ourView)
     {
+        DebugLog(@"[ERROR] Cannot reproxy not same parent view");
         return NO;
     }
 	
@@ -1033,12 +1048,14 @@ DEFINE_EXCEPTIONS
 		NSArray *subProxies = [newProxy children];
 		NSArray *oldSubProxies = [oldProxy children];
 		if ([subProxies count] != [oldSubProxies count]) {
+            DebugLog(@"[ERROR] Cannot reproxy not same number of subproxies");
 			return NO;
 		}
 		[oldSubProxies enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
 			TiViewProxy *newSubProxy = [subProxies objectAtIndex:idx];
             TiUIView* view = [oldSubProxy view];
             if (!view){
+                DebugLog(@"[ERROR] Cannot reproxy no subproxy view");
                 result = NO;
                 *stop = YES;
             }
