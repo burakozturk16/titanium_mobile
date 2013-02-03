@@ -1186,16 +1186,20 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     if (view == newView) return;
     
     RELEASE_TO_NIL(view)
-    view = [newView retain];
-    if (view == nil)
-        readyToCreateView = NO;
-	
-    if (self.modelDelegate!=nil && [self.modelDelegate respondsToSelector:@selector(detachProxy)])
+    
+    if (self.modelDelegate!=nil)
     {
-        [self.modelDelegate detachProxy];
-        self.modelDelegate=nil;
+        if ([self.modelDelegate respondsToSelector:@selector(detachProxy)])
+            [self.modelDelegate detachProxy];
+        self.modelDelegate = nil;
     }
-    self.modelDelegate = newView;
+    
+    if (newView == nil)
+        readyToCreateView = NO;
+    else {
+        view = [newView retain];
+        self.modelDelegate = newView;
+    }
 }
 
 -(NSMutableDictionary*)langConversionTable
@@ -1468,6 +1472,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return self;
 }
 
+-(void)_configure
+{
+    [self replaceValue:NUMBOOL(YES) forKey:@"visible" notification:YES];
+}
+
 -(void)_initWithProperties:(NSDictionary*)properties
 {
     updateStarted = YES;
@@ -1611,16 +1620,18 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		[self viewWillDetach];
 		[view removeFromSuperview];
 		view.proxy = nil;
+        view.touchDelegate = nil;
         readyToCreateView = NO;
-		if (self.modelDelegate!=nil && [self.modelDelegate respondsToSelector:@selector(detachProxy)])
-		{
-			[self.modelDelegate detachProxy];
-		}
-		self.modelDelegate = nil;
 		RELEASE_TO_NIL(view);
 		[self viewDidDetach];
 	}
-	[destroyLock unlock];    
+    if (self.modelDelegate!=nil)
+    {
+        if ([self.modelDelegate respondsToSelector:@selector(detachProxy)])
+            [self.modelDelegate detachProxy];
+        self.modelDelegate = nil;
+    }
+	[destroyLock unlock];
 }
 
 -(void)_destroy

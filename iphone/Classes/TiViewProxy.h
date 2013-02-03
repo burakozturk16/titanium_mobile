@@ -612,6 +612,8 @@ enum
 
 +(NSArray*)layoutProperties;
 
+- (void)prepareForReuse;
+
 @end
 
 
