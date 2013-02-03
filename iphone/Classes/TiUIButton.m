@@ -35,11 +35,22 @@
     if (needsToSetBackgroundImage)
     {
         // to prevent multiple calls because of topCap and leftCap
-        [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
-        [self setBackgroundFocusedImage_:[[self proxy] valueForKey:@"backgroundFocusedImage"]];
-        [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
+        id value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
+        if (value)
+            [self setBackgroundSelectedImage_:value];
+        
+        value = [[self proxy] valueForKey:@"backgroundHighlightedImage"];
+        if (value)
+            [self setBackgroundHighlightedImage_:value];
+        
+        value = [[self proxy] valueForKey:@"backgroundFocusedImage"];
+        if (value)
+            [self setBackgroundFocusedImage_:value];
+
+        value = [[self proxy] valueForKey:@"backgroundDisabledImage"];
+        if (value)
+            [self setBackgroundDisabledImage_:value];
     }
-   
 }
 
 -(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
@@ -244,6 +255,13 @@
 	[[self button] setEnabled:[TiUtils boolValue:value]];
 }
 
+
+-(void)setSelected_:(id)value
+{
+	[[self button] setSelected:[TiUtils boolValue:value]];
+}
+
+
 -(void)setTitle_:(id)value
 {
 	[[self button] setTitle:[TiUtils stringValue:value] forState:UIControlStateNormal];
@@ -259,13 +277,24 @@
 	[self updateBackgroundImage];
 }
 
--(void)setBackgroundSelectedImage_:(id)value
+-(void)setBackgroundHighlightedImage_:(id)value
 {
     if (!configurationSet) {
         needsToSetBackgroundImage = YES;
         return;
     }
 	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateHighlighted];
+}
+
+-(void)setBackgroundSelectedImage_:(id)value
+{
+    if (!configurationSet) {
+        needsToSetBackgroundImage = YES;
+        return;
+    }
+    UIImage* image = [self loadImage:value];
+	[[self button] setBackgroundImage:image forState:UIControlStateHighlighted];
+	[[self button] setBackgroundImage:image forState:UIControlStateSelected];
 }
 
 -(void)setBackgroundDisabledImage_:(id)value
@@ -321,7 +350,7 @@
 	}
 }
 
--(void)setSelectedColor_:(id)color
+-(void)setHighlightedColor_:(id)color
 {
 	if (color!=nil)
 	{
@@ -334,6 +363,27 @@
 		else if (b.buttonType==UIButtonTypeCustom)
 		{
 			[b setTitleColor:[UIColor whiteColor] forState:UIControlStateHighlighted];
+		}
+	}
+}
+
+-(void)setSelectedColor_:(id)color
+{
+	if (color!=nil)
+	{
+		TiColor *selColor = [TiUtils colorValue:color];
+		UIButton *b = [self button];
+		if (selColor!=nil)
+		{
+            UIColor* uicolor = [selColor _color];
+			[b setTitleColor:uicolor forState:UIControlStateSelected];
+			[b setTitleColor:uicolor forState:UIControlStateHighlighted];
+		}
+		else if (b.buttonType==UIButtonTypeCustom)
+		{
+            UIColor* uicolor = [UIColor whiteColor];
+			[b setTitleColor:uicolor forState:UIControlStateSelected];
+			[b setTitleColor:uicolor forState:UIControlStateHighlighted];
 		}
 	}
 }

@@ -22,7 +22,8 @@
 
 -(void)_configure
 {	
-	[self replaceValue:NUMBOOL(YES) forKey:@"enabled" notification:NO];
+	[self setValue:NUMBOOL(YES) forKey:@"enabled"];
+	[self setValue:NUMBOOL(NO) forKey:@"selected"];
 	[super _configure];
 }
 
