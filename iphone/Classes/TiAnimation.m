@@ -310,15 +310,20 @@ if (self.d != nil)\
 [p replaceValue:self.d forKey:@#d notification:NO];\
 }\
 
-        
+#define UPDATE_PROXY_LAYOUT_PROP(p,methodName, value) \
+{\
+if (self.value != nil)\
+[p methodName:value];\
+}\
+
     if (animatedViewProxy == nil) return;
     UPDATE_PROXY_PROP(animatedViewProxy, zIndex)
-    UPDATE_PROXY_PROP(animatedViewProxy, left)
-    UPDATE_PROXY_PROP(animatedViewProxy, right)
-    UPDATE_PROXY_PROP(animatedViewProxy, bottom)
-    UPDATE_PROXY_PROP(animatedViewProxy, top)
-    UPDATE_PROXY_PROP(animatedViewProxy, width)
-    UPDATE_PROXY_PROP(animatedViewProxy, height)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setLeft, left)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setRight, right)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setBottom, bottom)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setTop, top)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setWidth, width)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setHeight, height)
     UPDATE_PROXY_PROP(animatedViewProxy, color)
     UPDATE_PROXY_PROP(animatedViewProxy, backgroundColor)
     UPDATE_PROXY_PROP(animatedViewProxy, visible)
@@ -676,6 +681,37 @@ doReposition = YES;\
 #if ANIMATION_DEBUG==1	
 	NSLog(@"[DEBUG] ANIMATION: committed %@, %@",self,args);
 #endif
+}
+
+-(void)simulateFinish:(TiViewProxy*)proxy
+{
+    animatedViewProxy = [proxy retain];
+    
+    [self updateViewProxyProperties];
+        
+	if (self.delegate!=nil && [self.delegate respondsToSelector:@selector(animationWillComplete:)])
+	{
+		[self.delegate animationWillComplete:self];
+	}
+	
+	// fire the event and call the callback
+	if ([self _hasListeners:@"complete"])
+	{
+		[self fireEvent:@"complete" withObject:nil];
+	}
+	
+	// tell our view that we're done
+	if (animatedViewProxy != nil) {
+		[animatedViewProxy animationCompleted:self];
+	}
+	
+	if (self.delegate!=nil && [self.delegate respondsToSelector:@selector(animationDidComplete:)])
+	{
+		[self.delegate animationDidComplete:self];
+	}
+	
+    RELEASE_TO_NIL(animatedViewProxy);
+	RELEASE_TO_NIL(self.animatedView);
 }
 
 @end

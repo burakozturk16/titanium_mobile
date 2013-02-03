@@ -351,18 +351,27 @@ static NSArray* layoutProps = nil;
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
-	[self rememberProxy:newAnimation];
-	TiThreadPerformOnMainThread(^{
-		[parent contentsWillChange];
-		if ([view superview]==nil)
-		{
-			VerboseLog(@"Entering animation without a superview Parent is %@, props are %@",parent,dynprops);
-			[parent childWillResize:self];
-		}
-		[self windowWillOpen]; // we need to manually attach the window if you're animating
-		[parent layoutChildrenIfNeeded];
-		[[self view] animate:newAnimation];
-	}, NO);
+    
+    if ([self view])
+    {
+        [self rememberProxy:newAnimation];
+        TiThreadPerformOnMainThread(^{
+            [parent contentsWillChange];
+            if ([view superview]==nil)
+            {
+                VerboseLog(@"Entering animation without a superview Parent is %@, props are %@",parent,dynprops);
+                [parent childWillResize:self];
+            }
+            [self windowWillOpen]; // we need to manually attach the window if you're animating
+            [parent layoutChildrenIfNeeded];
+            [[self view] animate:newAnimation];
+        }, NO);
+    }
+    else
+    {
+        //in tableview magic the view might not exist so let s go directly to the finish line!
+        [newAnimation simulateFinish:self];
+    }
 }
 
 -(void)setAnimation:(id)arg
