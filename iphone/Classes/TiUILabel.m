@@ -109,7 +109,6 @@
 	{
         label = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
-//        label.textAlignment = UITextAlignmentCenter;
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
         label.layer.shadowRadius = 0; //for backward compatibility
@@ -180,10 +179,18 @@
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
 }
 
--(void)setFont_:(id)font
+-(void)setFont_:(id)fontValue
 {
-    WebFont* webFont =[TiUtils fontValue:font];
-	[[self label] setFont:[webFont font]];
+    UIFont * font;
+    if (fontValue!=nil)
+    {
+        font = [[TiUtils fontValue:fontValue] font];
+    }
+    else
+    {
+        font = [UIFont systemFontOfSize:[UIFont labelFontSize]];
+    }
+	[[self label] setFont:font];
 }
 
 -(void)setMinimumFontSize_:(id)size
