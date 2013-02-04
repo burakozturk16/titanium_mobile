@@ -34,7 +34,7 @@ typedef enum
 	BOOL configuredChildren;
 	int dirtyRowFlags;
 	BOOL subviewIsAnimating;
-	TiUITableViewRowContainer * rowContainerView;
+//	TiUITableViewRowContainer * rowContainerView;
 	BOOL modifyingRow;
 	BOOL attaching;
 	NSInteger row;

@@ -298,9 +298,9 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 -(void)_destroy
 {
 	RELEASE_TO_NIL(tableClass);
-	TiThreadRemoveFromSuperviewOnMainThread(rowContainerView, NO);
-	TiThreadReleaseOnMainThread(rowContainerView, NO);
-	rowContainerView = nil;
+	TiThreadRemoveFromSuperviewOnMainThread(view, NO);
+	TiThreadReleaseOnMainThread(view, NO);
+	view = nil;
 	[callbackCell setProxy:nil];
 	callbackCell = nil;
 	[super _destroy];
@@ -696,7 +696,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(UIView *)parentViewForChild:(TiViewProxy *)child
 {
-	return rowContainerView;
+	return view;
 }
 
 -(BOOL)viewAttached
@@ -726,7 +726,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(UIView*)view
 {
-	return rowContainerView;
+	return view;
 }
 
 - (void)prepareTableRowForReuse
@@ -744,31 +744,37 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     [self detachView];
 }
 
--(void)detachView
-{
-    [destroyLock lock];
-    
-    pthread_rwlock_rdlock(&childrenLock);
-    [[self children] makeObjectsPerformSelector:@selector(detachView)];
-    pthread_rwlock_unlock(&childrenLock);
-    
-	if (rowContainerView!=nil)
-	{
-		[self viewWillDetach];
-		[rowContainerView removeFromSuperview];
-		rowContainerView.proxy = nil;
-        readyToCreateView = NO;
-		if (self.modelDelegate!=nil)
-		{
-            if ([self.modelDelegate respondsToSelector:@selector(detachProxy)])
-                [self.modelDelegate detachProxy];
-            self.modelDelegate = nil;
-		}
-		RELEASE_TO_NIL(rowContainerView);
-		[self viewDidDetach];
-	}
-	[destroyLock unlock];
-}
+//we dont want the force create view to work. We want to handle this ourselves
+//-(TiUIView*)getOrCreateView
+//{
+//    return view;
+//}
+
+//-(void)detachView
+//{
+//    [destroyLock lock];
+//    
+//    pthread_rwlock_rdlock(&childrenLock);
+//    [[self children] makeObjectsPerformSelector:@selector(detachView)];
+//    pthread_rwlock_unlock(&childrenLock);
+//    
+//	if (view!=nil)
+//	{
+//		[self viewWillDetach];
+//		[view removeFromSuperview];
+//		view.proxy = nil;
+//        readyToCreateView = NO;
+//		if (self.modelDelegate!=nil)
+//		{
+//            if ([self.modelDelegate respondsToSelector:@selector(detachProxy)])
+//                [self.modelDelegate detachProxy];
+//            self.modelDelegate = nil;
+//		}
+//		RELEASE_TO_NIL(view);
+//		[self viewDidDetach];
+//	}
+//	[destroyLock unlock];
+//}
 
 - (void)didReceiveMemoryWarning:(NSNotification *)notification
 {
@@ -801,7 +807,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
             [contentView setFrame:rect];
         }
 		rect.origin = CGPointZero;
-		if (self.reusable || (rowContainerView == nil)) {
+		if (self.reusable || (view == nil)) {
             TiUITableViewRowContainer* newcontainer = nil;
 			if (self.reusable) {
                 newcontainer = (TiUITableViewRowContainer*)[[cell contentView] viewWithTag:kRowContainerTag];
@@ -831,32 +837,32 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
             
             if (newcontainer != nil)
             {
-                RELEASE_TO_NIL(rowContainerView);
-                rowContainerView = [newcontainer retain];
+                RELEASE_TO_NIL(view);
+                view = [newcontainer retain];
             }
-            else if (rowContainerView != nil){
-                //we cant reuse so in any case we have to clear the rowContainerView. The question is do we really remove the views
+            else if (view != nil){
+                //we cant reuse so in any case we have to clear the view. The question is do we really remove the views
                 //associated. They might actually be used by another cell
-                if ([rowContainerView proxy] == self || [rowContainerView proxy] == nil)
+                if ([view proxy] == self || [view proxy] == nil)
                     [self detachView];
                 else
                     [self clearView:YES];//our currentRowContainer might be used by someone else, lets just set view to nil
-                RELEASE_TO_NIL(rowContainerView);
+                RELEASE_TO_NIL(view);
             }
             
-			if (rowContainerView == nil) {
-				rowContainerView = [[TiUITableViewRowContainer alloc] initWithFrame:rect];
-                rowContainerView.tag = kRowContainerTag;
-                [rowContainerView setBackgroundColor:[UIColor clearColor]];
-                [rowContainerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-				[contentView addSubview:rowContainerView];
+			if (view == nil) {
+				view = [[TiUITableViewRowContainer alloc] initWithFrame:rect];
+                view.tag = kRowContainerTag;
+                [view setBackgroundColor:[UIColor clearColor]];
+                [view setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+				[contentView addSubview:view];
 			} else {
-				[rowContainerView setFrame:rect];
+				[view setFrame:rect];
 			}
             
-            rowContainerView.proxy = self;
+            view.proxy = self;
 			
-			NSArray *existingSubviews = [rowContainerView subviews];
+			NSArray *existingSubviews = [view subviews];
 			[rowChildren enumerateObjectsUsingBlock:^(TiViewProxy *proxy, NSUInteger idx, BOOL *stop) {
 				TiUIView *uiview = idx < [existingSubviews count] ? [existingSubviews objectAtIndex:idx] : nil;
 				if (!CGRectEqualToRect([proxy sandboxBounds], rect)) {
@@ -866,7 +872,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 				[proxy setReproxying:YES];
                 if (uiview == nil) {
                     [proxy detachView];
-					[rowContainerView addSubview:[proxy getOrCreateView]];
+					[view addSubview:[proxy getOrCreateView]];
 				}
                 else{
                     [uiview transferProxy:proxy deep:YES];
@@ -876,8 +882,8 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 uiview = nil;
 			}];
 		} else {
-			[rowContainerView setFrame:rect];
-			[contentView addSubview:rowContainerView];
+			[view setFrame:rect];
+			[contentView addSubview:view];
 		}
 	}
 	configuredChildren = YES;
@@ -963,17 +969,17 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	}
 }
 
--(void)childWillResize:(TiViewProxy *)child
-{
-	[self triggerRowUpdate];
-}
+//-(void)childWillResize:(TiViewProxy *)child
+//{
+//	[self triggerRowUpdate];
+//}
 
 -(TiProxy *)touchedViewProxyInCell:(UITableViewCell *)targetCell atPoint:(CGPoint*)point
 {
-    if (rowContainerView != nil)
+    if (view != nil)
     {
-        TiProxy * result = [rowContainerView hitTarget];
-        *point = [rowContainerView hitPoint];
+        TiProxy * result = [(TiUITableViewRowContainer*)view hitTarget];
+        *point = [(TiUITableViewRowContainer*)view hitPoint];
         if (result != nil)
         {
             return result;
