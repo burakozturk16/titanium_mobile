@@ -1596,7 +1596,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		viewClass = NSClassFromString(className);
 		if (viewClass != nil)
 		{
-			return [[viewClass alloc] init];
 		}
 	}
 	else
