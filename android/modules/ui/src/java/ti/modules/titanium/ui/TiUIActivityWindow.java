@@ -25,12 +25,14 @@ import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.OneStateDrawable;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -361,18 +363,19 @@ public class TiUIActivityWindow extends TiUIView
 	private void handleActivityBackgroundDrawable(Object bgColor, Object bgImage, Object opacityValue, boolean tile, boolean post)
 	{
 		//Maximum of 2 drawables, color and image
+		OneStateDrawable drawable = new OneStateDrawable();
 		String colorString = null;
 		if (bgColor != null) {
 			colorString = TiConvert.toString(bgColor);
+			drawable.setColorDrawable(TiUIHelper.buildColorDrawable(colorString));
 		}
 		
 		String path = null;
 		if (bgImage != null) {
 			path = proxy.resolveUrl(null, TiConvert.toString(bgImage));
+			drawable.setBitmapDrawable(TiUIHelper.buildImageDrawable(path, tile, proxy));
 		}
-		
-		Drawable bd = TiUIHelper.buildBackgroundDrawable(colorString, path, tile, null);
-		handleBackground(bd,opacityValue,post);
+		handleBackground(drawable,opacityValue,post);
 	}
 	
 	@Override
