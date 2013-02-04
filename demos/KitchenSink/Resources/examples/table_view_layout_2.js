@@ -23,6 +23,7 @@ search.addEventListener('cancel', function(e)
 
 var tableView;
 var data = [];
+var menuWidth = 200;
 
 // create first row
 var row = Ti.UI.createTableViewRow();
@@ -52,7 +53,7 @@ function createUpdateRow(text)
 {
 	var updateRow = Ti.UI.createTableViewRow();
 	updateRow.backgroundColor = '#13386c';
-	updateRow.selectedBackgroundColor = '#13386c';
+	updateRow.selectedBackgroundColor = 'transparent';
 
 	// add custom property to identify this row
 	updateRow.isUpdateRow = true;
@@ -68,17 +69,145 @@ function createUpdateRow(text)
 	return updateRow;
 }
 // create a var to track the active row
-var currentRow = null;
-var currentRowIndex = null;
+var menuWidth = 200;
+var currentRowMenu = null;
+var currentMenu = null;
+var oldMenu = null;
+var oldRowMenu = null;
+ 
+var animShow = Ti.UI.createAnimation({
+    duration:200,
+    left:0,
+    right:-menuWidth
+})
+ 
+var animHide = Ti.UI.createAnimation({
+    duration:200,
+    left:-menuWidth,
+    right:0
+})
+animHide.addEventListener('complete', function(){
+    if (oldRowMenu === null) return;
+    oldRowMenu.container.remove(oldMenu);
+    oldMenu = null;
+    oldRowMenu = null;
+})
+function hideMenu()
+{
+    if (currentRowMenu!=null)
+    {
+        oldMenu = currentMenu;
+        oldRowMenu = currentRowMenu;
+        oldRowMenu.container.animate(animHide);
+        currentMenu = null;
+        currentRowMenu = null;
+        return true;
+    }
+    return false;
+}
+ 
+var fontname = 'Iconminia';
+function showMenuForRow(_row)
+{
+	if (currentRowMenu == _row) {
+		hideMenu();
+		return;
+	}
+    hideMenu();
+ 
+    var menu = Ti.UI.createView({
+        width:menuWidth,
+        layout:'horizontal',
+        horizontalWrap:false,
+        left:0,
+        top:0,
+        bottom:0,
+        backgroundImage:'/images/menubgd.png'
+    })
+    menu.add(Ti.UI.createView({
+        width:Ti.UI.FILL
+    }));
+
+    var btn1 = Ti.UI.createButton({
+    	style:'none',
+		font:{fontSize:40, fontFamily:fontname},
+		color:'white',
+		selectedColor:'yellow',
+		shadowColor:'black',
+		shadowOffset:{x:0,y:1},
+		shadowRadius:10,
+        title:'1',
+        right:15
+    })
+    btn1.addEventListener('click', function(e){
+    	var oldselected = e.source.selected
+    	e.source.selected = !oldselected;
+    	e.source.title = (oldselected?'1':'2');
+    })
+
+    var btn2 = Ti.UI.createButton({
+    	style:'none',
+		font:{fontSize:40, fontFamily:fontname},
+		color:'white',
+		selectedColor:'red',
+		shadowColor:'black',
+		shadowOffset:{x:0,y:1},
+		shadowRadius:10,
+        title:'3',
+        right:15
+    })
+    btn2.addEventListener('click', function(e){
+    	e.source.selected = !e.source.selected;
+    })
+
+    var btn3 = Ti.UI.createButton({
+    	style:'none',
+		font:{fontSize:40, fontFamily:fontname},
+		color:'white',
+		selectedColor:'gray',
+		shadowColor:'black',
+		shadowOffset:{x:0,y:1},
+		shadowRadius:10,
+        title:'4',
+        right:15
+    })
+    menu.add(btn1);
+    menu.add(btn2);
+    menu.add(btn3);
+
+    _row.container.add(menu);
+    _row.container.animate(animShow);
+    currentRowMenu = _row;
+    currentMenu = menu;
+    menu = null;
+}
+
 
 // create the rest of the rows
-for (var c=1;c<50;c++)
+for (var c=1;c<200;c++)
 {
-	var row = Ti.UI.createTableViewRow();
+	var row = Ti.UI.createTableViewRow({
+		selectionStyle: Titanium.UI.iPhone.TableViewCellSelectionStyle.NONE,
+		backgroundColor:"#222"
+	});
+
 	row.selectedBackgroundColor = '#fff';
 	row.height = 100;
 	row.className = 'datarow';
 	row.clickName = 'row';
+
+	row.container = Ti.UI.createView({
+		left:-menuWidth,
+		right:0,
+		top:0,
+		bottom:0
+	});
+
+	var rowrealcontainer =  Ti.UI.createView({
+		left:menuWidth,
+		right:0,
+		backgroundColor:"#666"
+	});
 
 	var photo = Ti.UI.createView({
 		backgroundImage:'../images/custom_tableview/user.png',
@@ -88,11 +217,11 @@ for (var c=1;c<50;c++)
 		height:50,
 		clickName:'photo'
 	});
-	row.add(photo);
+	rowrealcontainer.add(photo);
 
 
 	var user = Ti.UI.createLabel({
-		color:'#576996',
+		color:'white',
 		font:{fontSize:16,fontWeight:'bold', fontFamily:'Arial'},
 		left:70,
 		top:2,
@@ -103,23 +232,23 @@ for (var c=1;c<50;c++)
 	});
 
 	row.filter = user.text;
-	row.add(user);
+	rowrealcontainer.add(user);
 
 	var fontSize = 16;
 	if (Titanium.Platform.name == 'android') {
 		fontSize = 14;
 	}
 	var comment = Ti.UI.createLabel({
-		color:'#222',
+		color:'silver',
 		font:{fontSize:fontSize,fontWeight:'normal', fontFamily:'Arial'},
 		left:70,
 		top:21,
 		height:50,
 		width:200,
 		clickName:'comment',
-		text:'Got some fresh fruit, conducted some business, took a nap'
+		text:'Got some fresh fruit, conducted some business, took a nap'+c
 	});
-	row.add(comment);
+	rowrealcontainer.add(comment);
 
 	var calendar = Ti.UI.createView({
 		backgroundImage:'../images/custom_tableview/eventsButton.png',
@@ -129,7 +258,7 @@ for (var c=1;c<50;c++)
 		clickName:'calendar',
 		height:32
 	});
-	row.add(calendar);
+	rowrealcontainer.add(calendar);
 
 	var button = Ti.UI.createView({
 		backgroundImage:'../images/custom_tableview/commentButton.png',
@@ -139,7 +268,7 @@ for (var c=1;c<50;c++)
 		clickName:'button',
 		height:34
 	});
-	row.add(button);
+	rowrealcontainer.add(button);
 
 	var date = Ti.UI.createLabel({
 		color:'#999',
@@ -149,10 +278,11 @@ for (var c=1;c<50;c++)
 		height:20,
 		width:100,
 		clickName:'date',
-		text:'posted on 3/11'
+		text:'posted on 3/11'+c
 	});
-	row.add(date);
-
+	rowrealcontainer.add(date);
+	row.container.add(rowrealcontainer);
+	row.add(row.container);
 	data.push(row);
 }
 
@@ -167,9 +297,31 @@ tableView = Titanium.UI.createTableView({
 	backgroundColor:'white'
 });
 
-tableView.addEventListener('click', function(e)
+
+tableView.addEventListener('swipe', function(e)
 {
+    if(e.row)
+    {
+    	if (e.row.isUpdateRow) return;
+    	if (e.direction == 'right') {
+        	showMenuForRow(e.row);
+    	}
+    	else if (e.direction == 'left') {
+        	if (currentRowMenu == e.row)
+				hideMenu();
+    	}
+        
+    }
+});
+ 
+
+
+
+tableView.addEventListener('singletap', function(e)
+{
+	if (e.source.toString() == '[object TiUIButton]') return;
 	Ti.API.info('table view row clicked - source ' + e.source);
+	if (e.row.isUpdateRow) return;
 	// use rowNum property on object to get row number
 	var rowNum = e.index;
 	var updateRow = createUpdateRow('You clicked on the '+e.source.clickName);

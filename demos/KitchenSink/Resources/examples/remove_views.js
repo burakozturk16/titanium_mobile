@@ -56,7 +56,7 @@ win.add(b2);
 
 b2.addEventListener('click', function()
 {
-	win.remove(v2);
+	win.add(v3);
 });
 var b3 = Ti.UI.createButton({
 	height:40,

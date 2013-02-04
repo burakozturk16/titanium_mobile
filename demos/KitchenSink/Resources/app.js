@@ -256,7 +256,7 @@ function showIndicator()
 
 	// loading indicator
 	actInd = Titanium.UI.createActivityIndicator({
-		style:Titanium.UI.iPhone && Titanium.UI.iPhone.ActivityIndicatorStyle.BIG,
+		style:Titanium.UI.iPhone && Titanium.UI.ActivityIndicatorStyle.BIG,
 		height:30,
 		width:30
 	});
