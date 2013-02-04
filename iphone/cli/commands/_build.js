@@ -14,9 +14,7 @@ var ti = require('titanium-sdk'),
 	Buffer = require('buffer').Buffer,
 	wrench = require('wrench'),
 	cleanCSS = require('clean-css'),
-	uglify = require('uglify-js'),
-	uglifyProcessor = uglify.uglify,
-	uglifyParser = uglify.parser,
+	UglifyJS = require('uglify-js'),
 	DOMParser = require('xmldom').DOMParser,
 	uuid = require('node-uuid'),
 	appc = require('node-appc'),
@@ -61,7 +59,18 @@ var ti = require('titanium-sdk'),
 		device: 'test',
 		'dist-appstore': 'production',
 		'dist-adhoc': 'production'
-	};
+	},
+	blacklistDirectories = [
+		'contents',
+		'resources'
+	],
+	graylistDirectories = [
+		'frameworks',
+		'plugins'
+	];
+
+// silence uglify's default warn mechanism
+UglifyJS.AST_Node.warn_function = function () {};
 
 exports.config = function (logger, config, cli) {
 	return function (callback) {
@@ -74,7 +83,9 @@ exports.config = function (logger, config, cli) {
 				conf,
 				devName,
 				lowerCasedDevNames = iosEnv.certs.devNames.map(function (s) { return s.toLowerCase(); }),
-				lowerCasedDistNames = iosEnv.certs.distNames.map(function (s) { return s.toLowerCase(); });
+				lowerCasedDistNames = iosEnv.certs.distNames.map(function (s) { return s.toLowerCase(); }),
+				humanize = require('humanize'),
+				libTiCoreSize = humanize.filesize(fs.lstatSync(afs.resolvePath(__dirname, '..', '..', 'libTiCore.a')).size, 1024, 1).toUpperCase();
 			
 			// attempt to resolve a default ios developer cert name (used for device builds)
 			if (process.env.CODE_SIGN_IDENTITY) {
@@ -98,8 +109,8 @@ exports.config = function (logger, config, cli) {
 			}
 			
 			Object.keys(iosEnv.xcode).forEach(function (key) {
-				iosEnv.xcode[key].sdks.forEach(function (sdk, i) {
-					if (iosEnv.xcode[key].selected && i == 0) {
+				iosEnv.xcode[key].sdks.forEach(function (sdk) {
+					if (iosEnv.xcode[key].selected && !defaultSdk || version.gt(sdk, defaultSdk)) {
 						defaultSdk = sdk;
 					}
 					sdks[sdk] = 1;
@@ -116,10 +127,24 @@ exports.config = function (logger, config, cli) {
 			
 			callback(conf = {
 				flags: {
-					/* commented out until the ios-sim tool support launching a retina iOS Simulator instance...
 					retina: {
+						desc: __('use the retina version of the iOS Simulator'),
+						hidden: version.lte(ti.manifest.version, '3.0.2')
+					},
+					tall: {
+						desc: __('in combination with %s flag, start the tall version of the retina device', '--retina'),
+						hidden: version.lte(ti.manifest.version, '3.0.2')
+					},
+					'force-copy': {
+						default: false,
+						desc: __('forces files to be copied instead of symlinked for %s builds only', 'simulator'.cyan)
+					},
+					'force-copy-all': {
+						default: false,
+						desc: __('identical to the %s flag, except this will also copy the %s libTiCore.a file', '--force-copy', libTiCoreSize.cyan)
+					},
 						desc: __('use the retina version of the iOS Simulator')
-					},*/
+					},
 					'skip-js-minify': {
 						default: false,
 						desc: __('bypasses JavaScript minification; %s builds are never minified', 'simulator'.cyan)
@@ -356,7 +381,52 @@ exports.validate = function (logger, config, cli) {
 	var sdks = {},
 		sims = {};
 	
+	// if we're running from Xcode, we want to use the PROJECT_DIR environment variable
+	if (process.env.PROJECT_DIR) {
+		cli.argv['project-dir'] = path.dirname(process.env.PROJECT_DIR);
+	}
+	
 	ti.validateProjectDir(logger, cli, cli.argv, 'project-dir');
+	
+	var resourcesDir = path.join(cli.argv['project-dir'], 'Resources');
+	
+	// make sure we have an app.js
+	if (!afs.exists(resourcesDir, 'app.js')) {
+		logger.error(__('No app.js found') + '\n');
+		logger.log(__("Ensure the app.js file exists in your project's \"Resources\" directory.") + '\n');
+		process.exit(1);
+	}
+	
+	// make sure the app doesn't have any blacklisted directories in the Resources directory and warn about graylisted names
+	fs.readdirSync(resourcesDir).forEach(function (filename) {
+		var lcaseFilename = filename.toLowerCase(),
+			isDir = fs.lstatSync(path.join(resourcesDir, filename)).isDirectory();
+		
+		if (blacklistDirectories.indexOf(lcaseFilename) != -1) {
+			if (isDir) {
+				logger.error(__('Found blacklisted directory in the Resources directory') + '\n');
+				logger.log(__('The directory "%s" is a reserved word.', filename));
+				logger.log(__('You must rename this directory to something else.') + '\n');
+			} else {
+				logger.error(__('Found blacklisted file in the Resources directory') + '\n');
+				logger.log(__('The file "%s" is a reserved word.', filename));
+				logger.log(__('You must rename this file to something else.') + '\n');
+			}
+			process.exit(1);
+		} else if (graylistDirectories.indexOf(lcaseFilename) != -1) {
+			if (isDir) {
+				logger.warn(__('Found graylisted directory in the Resources directory'));
+				logger.warn(__('The directory "%s" is potentially a reserved word.', filename));
+				logger.warn(__('There is a good chance your app will be rejected by Apple.'));
+				logger.warn(__('It is highly recommended you rename this directory to something else.'));
+			} else {
+				logger.warn(__('Found graylisted file in the Resources directory'));
+				logger.warn(__('The file "%s" is potentially a reserved word.', filename));
+				logger.warn(__('There is a good chance your app will be rejected by Apple.'));
+				logger.warn(__('It is highly recommended you rename this file to something else.'));
+			}
+		}
+	});
 	
 	ti.validateTiappXml(logger, cli.tiapp);
 	
@@ -410,40 +480,40 @@ exports.validate = function (logger, config, cli) {
 		process.exit(1);
 	}
 	
+	// check if this is the Xcode pre-compile phase
 	if (cli.argv.xcode) {
-			logger.log(__('building through xcode'));
-			// logger.log(__('env ' + JSON.stringify(process.env)));
-
-		//building directly from xcode, dont use buildManifest but environment variables
-		if (!process.env.TITANIUM_CLI_XCODEBUILD) {
-				cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : 'device';
-				cli.argv['deploy-type'] = process.env.CURRENT_ARCH === 'i386' ? 'development' : 'test';
-				cli.argv['developer-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Developer\: /, '');
-				cli.argv['distribution-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Distribution\: /, '');
-				cli.argv['skip-js-minify'] = true;
-				// conf.options['output-dir'].required = false;
-		}
-		else {
-			// for xcode pre-compile builds only, read the manifest file and inject the cli args
-			var buildManifestFile = process.env.PROJECT_DIR ? path.join(process.env.PROJECT_DIR, 'build-manifest.json') : path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
-			if (!afs.exists(buildManifestFile)) {
-				logger.error(__('Build manifest does not exist: %s', buildManifestFile) + '\n');
-				logger.log(__('Clean your project, then rebuild it'));
+		if (process.env.TITANIUM_CLI_XCODEBUILD) {
+			// we are being built from the CLI, so we must have a valid buildManifest.json
+			var buildManifestFile = path.join(cli.argv['project-dir'], 'build', path.basename(afs.resolvePath(__dirname, '..', '..')), 'build-manifest.json');
+			try {
+				var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile));
+				cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : (buildManifest.target != 'simulator' ? buildManifest.target : 'device');
+				cli.argv['deploy-type']			= buildManifest.deployType;
+				cli.argv['output-dir']			= buildManifest.outputDir;
+				cli.argv['developer-name']		= buildManifest.developerName;
+				cli.argv['distribution-name']	= buildManifest.distributionName;
+				cli.argv['skip-js-minify']		= buildManifest.skipJSMinification;
+				cli.argv['force-copy']			= buildManifest.forceCopy;
+				cli.argv['force-copy-all']		= buildManifest.forceCopyAll;
+			} catch (e) {
+				if (afs.exists(buildManifestFile)) {
+					logger.error(__('Build manifest is invalid: %s', buildManifestFile));
+				} else {
+					logger.error(__('Build manifest does not exist: %s', buildManifestFile));
+				}
+				logger.error(__('Clean your project, then rebuild it'));
 				process.exit(1);
 			}
-			
-			try {
-				var buildManifest = JSON.parse(fs.readFileSync(buildManifestFile)) || {};
-				cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : (buildManifest.target != 'simulator' ? buildManifest.target : 'device');
-				cli.argv['deploy-type'] = buildManifest.deployType;
-				cli.argv['output-dir'] = buildManifest.outputDir;
-				cli.argv['developer-name'] = buildManifest.developerName;
-				cli.argv['distribution-name'] = buildManifest.distributionName;
-				cli.argv['skip-js-minify'] = buildManifest.skipJSMinification;
-				conf.options['output-dir'].required = false;
-			} catch (e) {}
+		} else {
+			// we are being build from Xcode
+			cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : 'device';
+			cli.argv['deploy-type']			= process.env.CURRENT_ARCH === 'i386' ? 'development' : 'test';
+			cli.argv['developer-name']		= process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Developer\: /, '');
+			cli.argv['distribution-name']	= process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Distribution\: /, '');
+			cli.argv['skip-js-minify']		= true; // never minify Xcode builds
+			cli.argv['force-copy']			= true; // if building from xcode, we'll force files to be copied instead of symlinked
+			cli.argv['force-copy-all']		= false; // we don't want to copy the big libTiCore.a file around by default
 		}
-		
 	}
 	
 	if (targets.indexOf(cli.argv.target) == -1) {
@@ -685,16 +755,17 @@ exports.run = function (logger, config, cli, finished) {
 	} else {
 		cli.fireHook('build.pre.construct', function () {
 			new build(logger, config, cli, function (err) {
-				cli.fireHook('build.post.compile', this, function (e) {
-					if (e && e.type == 'AppcException') {
-						logger.error(e.message);
-						e.details.forEach(function (line) {
+				cli.fireHook('build.post.compile', this, function (postHookErr) {
+					sendAnalytics(cli);
+					if (postHookErr && postHookErr.type == 'AppcException') {
+						logger.error(postHookErr.message);
+						postHookErr.details.forEach(function (line) {
 							line && logger.error(line);
 						});
+						logger.error();
 					}
-					sendAnalytics(cli);
 					cli.fireHook('build.finalize', this, function () {
-						finished(err);
+						finished(err || postHookErr);
 					});
 				}.bind(this));
 			});
@@ -732,8 +803,6 @@ function sendAnalytics(cli) {
 function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
-	this.config = config;
-	this.logger.info(__('this.config: %s', JSON.stringify(this.config)));
 	
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
 	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
@@ -775,7 +844,6 @@ function build(logger, config, cli, finished) {
 	this.certDistributionName = cli.argv['distribution-name'];
 	
 	this.forceRebuild = false;
-	this.forceXcode = false; // TODO: is this even necessary? it's not used anywhere and used to be for simulator builds
 	
 	// the ios sdk version is not in the selected xcode version, need to find the version that does have it
 	Object.keys(iosEnv.xcode).forEach(function (sdk) {
@@ -814,11 +882,16 @@ function build(logger, config, cli, finished) {
 		this.logger.info(__('The %s of the iOS section in the tiapp.xml is greater than the specified %s: Using %s as minimum', 'min-ios-ver'.cyan, 'ios-version'.cyan, version.format(this.iosSdkVersion, 2).cyan));
 		this.minIosVer = this.iosSdkVersion;
 	}
-	this.logger.debug(__('Minimum iOS version: %s', version.format(this.minIosVer, 2, 3).cyan));
+	this.logger.info(__('Minimum iOS version: %s', version.format(this.minIosVer, 2, 3).cyan));
 	
-	if (this.keychain) {
-		this.logger.info(__('Using keychain: %s', this.keychain));
+	if (/device|dist\-appstore|dist\-adhoc/.test(this.target)) {
+		if (this.keychain) {
+			this.logger.info(__('Using keychain: %s', this.keychain));
+		} else {
+			this.logger.info(__('Using default keychain'));
+		}
 	}
+	
 	if (this.debugHost && this.target != 'dist-appstore') {
 		this.logger.info(__('Debugging enabled via debug host: %s', this.debugHost.cyan));
 	} else {
@@ -827,8 +900,8 @@ function build(logger, config, cli, finished) {
 	
 	// make sure we have an icon
 	if (!this.tiapp.icon || !['Resources', 'Resources/iphone', 'Resources/ios'].some(function (p) {
-		return afs.exists(this.projectDir, p, this.tiapp.icon);
-	}, this)) {
+			return afs.exists(this.projectDir, p, this.tiapp.icon);
+		}, this)) {
 		this.tiapp.icon = 'appicon.png';
 	}
 	
@@ -842,206 +915,12 @@ function build(logger, config, cli, finished) {
 	!Array.isArray(this.tiapp.modules) && (this.tiapp.modules = []);
 	
 	if (cli.argv.xcode) {
-		this.logger.info(__('Performing Xcode pre-compile phase'));
-		return this.xcodePrecompilePhase(finished);
+		this.logger.info(__('Initiating Xcode pre-compile phase'));
+		this.xcodePrecompilePhase(finished);
+	} else {
+		this.logger.info(__('Initiating prepare phase'));
+		this.preparePhase(finished);
 	}
-	
-	this.architectures = 'armv6 armv7 i386';
-	// no armv6 support above 4.3 or with 6.0+ SDK
-	if (version.gte(cli.argv['ios-version'], '6.0')) {
-		this.architectures = 'armv7 armv7s i386';
-	} else if (version.gte(this.minIosVer, '4.3')) {
-		this.architectures = 'armv7 i386';
-	}
-	this.logger.debug(__('Building for the following architectures: %s', this.architectures.cyan));
-	
-	// create the build directory (<project dir>/build/[iphone|ios]) if it doesn't already exist
-	wrench.mkdirSyncRecursive(this.assetsDir);
-	
-	// read the build manifest from the last time we built, if exists
-	this.buildManifest = {};
-	this.buildManifestFile = path.join(this.buildDir, 'build-manifest.json');
-	if (afs.exists(this.buildManifestFile)) {
-		try {
-			this.buildManifest = JSON.parse(fs.readFileSync(this.buildManifestFile)) || {};
-		} catch (e) {}
-	}
-	
-	// determine the libTiCore hash
-	var libTiCoreFD = fs.openSync(path.join(this.titaniumIosSdkPath, 'libTiCore.a'), 'r');
-	if (libTiCoreFD) {
-		try {
-			var buffer = new Buffer(1024);
-			fs.readSync(libTiCoreFD, buffer, 0, 1024, 0);
-			this.libTiCoreHash = crypto.createHash('md5').update(buffer).digest('hex');
-		} finally {
-			fs.closeSync(libTiCoreFD);
-		}
-	}
-	
-	// figure out all of the modules currently in use
-	this.modulesHash = crypto.createHash('md5').update(this.tiapp.modules.filter(function (m) {
-		return !m.platform || /^iphone|ipad|commonjs$/.test(m.platform);
-	}).map(function (m) {
-		return m.id + ',' + m.platform + ',' + m.version;
-	}).join('|')).digest('hex');
-	
-	// check if we need to do a rebuild
-	this.forceRebuild = this.checkIfShouldForceRebuild();
-	
-	// if certain tiapp.xml settings changed or the target changed, then nuke the app directory
-	if (this.forceRebuild || this.target != this.buildManifest.target) {
-		this.logger.info(__('Cleaning old build directory'));
-		// wipe the actual Xcode build dir, not the Titanium build dir
-		wrench.rmdirSyncRecursive(path.join(this.buildDir, 'build'), true);
-		wrench.mkdirSyncRecursive(path.join(this.buildDir, 'build'));
-	}
-	
-	cli.fireHook('build.pre.compile', this, function () {
-		// let's start building some apps!
-		parallel(this, [
-			'createInfoPlist',
-			'createDebuggerPlist',
-			'createEntitlementsPlist',
-			'detectModules'
-		], function () {
-			if (this.forceRebuild) {
-				this.logger.info(__('Performing full rebuild'));
-				this.forceXcode = true;
-				this.createXcodeProject();
-				this.populateIosFiles();
-			}
-			
-			// create the actual .app dir if it doesn't exist
-			wrench.mkdirSyncRecursive(this.xcodeAppDir);
-			
-			parallel(this, [
-				function (next) {
-					if (this.target == 'simulator') {
-						this.createSymlinks(next);
-					} else {
-						next();
-					}
-				},
-				'injectModulesIntoXcodeProject',
-				'injectApplicationDefaults',
-				'compileJSS',
-				'compileI18N',
-				'copyTitaniumLibraries',
-				'copySimulatorSpecificFiles',
-				'copyModuleResources',
-				'copyCommonJSModules',
-				'copyItunesArtwork',
-				'copyGraphics',
-				'copyLocalizedSplashScreens',
-				'writeBuildManifest'
-			], function () {
-				var xcodeArgs = [
-						'-target', this.tiapp.name + xcodeTargetSuffixes[this.deviceFamily],
-						'-configuration', this.xcodeTarget,
-						'-sdk', this.xcodeTargetOS,
-						'IPHONEOS_DEPLOYMENT_TARGET=' + appc.version.format(this.minIosVer, 2),
-						'TARGETED_DEVICE_FAMILY=' + deviceFamilies[this.deviceFamily],
-						'VALID_ARCHS=' + this.architectures
-					],
-					gccDefs = [ 'DEPLOYTYPE=' + this.deployType ];
-				
-				// Note: There is no evidence that TI_DEVELOPMENT, TI_TEST, TI_DEVELOPMENT, or
-				//       DEBUGGER_ENABLED are used anymore.
-				
-				if (this.target == 'simulator') {
-					gccDefs.push('__LOG__ID__=' + this.tiapp.guid);
-					gccDefs.push('TI_DEVELOPMENT=1');
-					gccDefs.push('DEBUG=1');
-					gccDefs.push('TI_VERSION=' + this.titaniumSdkVersion);
-				} else if (this.target == 'dist-appstore') {
-					gccDefs.push('TI_PRODUCTION=1');
-				} else if (this.target == 'dist-adhoc' || this.target == 'device') {
-					gccDefs.push('TI_TEST=1');
-				}
-				
-				if (/simulator|device|dist\-adhoc/.test(this.target)) {
-					this.tiapp.ios && this.tiapp.ios.enablecoverage && gccDefs.push('KROLL_COVERAGE=1');
-					this.debugHost && gccDefs.push('DEBUGGER_ENABLED=1');
-				}
-				
-				xcodeArgs.push('GCC_PREPROCESSOR_DEFINITIONS=' + gccDefs.join(' '));
-				
-				if (/device|dist\-appstore|dist\-adhoc/.test(this.target)) {
-					xcodeArgs.push('PROVISIONING_PROFILE=' + this.provisioningProfileUUID);
-					xcodeArgs.push('DEPLOYMENT_POSTPROCESSING=YES');
-					if (this.keychain) {
-						xcodeArgs.push('OTHER_CODE_SIGN_FLAGS=--keychain ' + this.keychain);
-					}
-					this.codeSignEntitlements && xcodeArgs.push('CODE_SIGN_ENTITLEMENTS=Resources/Entitlements.plist');
-				}
-				
-				if (this.target == 'device') {
-					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Developer: ' + this.certDeveloperName);
-				}
-				
-				if (/dist-appstore|dist\-adhoc/.test(this.target)) {
-					xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Distribution: ' + this.certDistributionName);
-				}
-				
-				var p = spawn(this.xcodeEnv.xcodebuild, xcodeArgs, {
-						cwd: this.buildDir,
-						env: {
-							DEVELOPER_DIR: this.xcodeEnv.path,
-							HOME: process.env.HOME,
-							PATH: process.env.PATH,
-							TITANIUM_CLI_XCODEBUILD: 'yeah baby'
-						}
-					}),
-					out = [],
-					err = [];
-				
-				p.stdout.on('data', function (data) {
-					data.toString().split('\n').forEach(function (line) {
-						if (line.length) {
-							out.push(line);
-							this.logger.trace(line);
-						}
-					}, this);
-				}.bind(this));
-				
-				p.stderr.on('data', function (data) {
-					data.toString().split('\n').forEach(function (line) {
-						if (line.length) {
-							err.push(line);
-							this.logger.error(line);
-						}
-					}, this);
-				}.bind(this));
-				
-				p.on('exit', function (code, signal) {
-					if (code) {
-						err = err.join('\n');
-						if (err.indexOf('Check dependencies') != -1) {
-							var len = out.length;
-							for (var i = len - 1; i >= 0; i--) {
-								if (out[i].indexOf('Check dependencies') != -1) {
-									for (var j = i + 1; j < len; j++) {
-										this.logger.error('Error details: ' + out[j]);
-									}
-									break;
-								}
-							}
-						}
-						process.exit(1);
-					}
-					
-					if (!cli.argv['build-only']) {
-						var delta = appc.time.prettyDiff(cli.startTime, Date.now());
-						this.logger.info(__('Finished building the application in %s', delta));
-					}
-					
-					// end of the line
-					finished.call(this, code);
-				}.bind(this));
-			});
-		});
-	}.bind(this));
 }
 
 build.prototype = {
@@ -1064,13 +943,125 @@ build.prototype = {
 		});
 	},
 	
+	hashFile: function (file, limit) {
+		var result = '';
+		if (afs.exists(file)) {
+			var size = limit || fs.lstatSync(file).size,
+				buffer = new Buffer(size),
+				fd = fs.openSync(file, 'r');
+			if (fd) {
+				try {
+					fs.readSync(fd, buffer, 0, size, 0);
+					result = crypto.createHash('md5').update(buffer).digest('hex');
+				} finally {
+					fs.closeSync(fd);
+				}
+			}
+		}
+		return result;
+	},
+	
+	preparePhase: function (finished) {
+		this.architectures = 'armv6 armv7 i386';
+		// no armv6 support above 4.3 or with 6.0+ SDK
+		if (version.gte(this.cli.argv['ios-version'], '6.0')) {
+			this.architectures = 'armv7 armv7s i386';
+		} else if (version.gte(this.minIosVer, '4.3')) {
+			this.architectures = 'armv7 i386';
+		}
+		this.logger.debug(__('Building for the following architectures: %s', this.architectures.cyan));
+		
+		// create the build directory (<project dir>/build/[iphone|ios]) if it doesn't already exist
+		wrench.mkdirSyncRecursive(this.assetsDir);
+		
+		// read the build manifest from the last time we built, if exists
+		this.buildManifest = {};
+		this.buildManifestFile = path.join(this.buildDir, 'build-manifest.json');
+		if (afs.exists(this.buildManifestFile)) {
+			try {
+				this.buildManifest = JSON.parse(fs.readFileSync(this.buildManifestFile)) || {};
+			} catch (e) {}
+		}
+		
+		// determine the libTiCore hash
+		this.libTiCoreHash = this.hashFile(path.join(this.titaniumIosSdkPath, 'libTiCore.a'));
+		
+		// figure out all of the modules currently in use
+		this.modulesHash = crypto.createHash('md5').update(this.tiapp.modules.filter(function (m) {
+			return !m.platform || /^iphone|ipad|commonjs$/.test(m.platform);
+		}).map(function (m) {
+			return m.id + ',' + m.platform + ',' + m.version;
+		}).join('|')).digest('hex');
+		
+		// check if we need to do a rebuild
+		this.forceRebuild = this.checkIfShouldForceRebuild();
+		
+		this.cli.fireHook('build.pre.compile', this, function () {
+			// let's start building some apps!
+			parallel(this, [
+				'createInfoPlist',
+				'createDebuggerPlist',
+				'createEntitlementsPlist',
+				'detectModules'
+			], function () {
+				if (this.forceRebuild) {
+					var xcodeBuildDir = path.join(this.buildDir, 'build');
+					if (afs.exists(xcodeBuildDir)) {
+						this.logger.info(__('Cleaning old build directory'));
+						// wipe the actual Xcode build dir, not the Titanium build dir
+						wrench.rmdirSyncRecursive(xcodeBuildDir, true);
+						wrench.mkdirSyncRecursive(xcodeBuildDir);
+					}
+					this.logger.info(__('Performing full rebuild'));
+					this.createXcodeProject();
+					this.populateIosFiles();
+				}
+				
+				// create the actual .app dir if it doesn't exist
+				wrench.mkdirSyncRecursive(this.xcodeAppDir);
+				
+				parallel(this, [
+					function (next) {
+						if (this.target == 'simulator') {
+							if (this.cli.argv['force-copy']) {
+								this.logger.info(__('Forcing copying of files instead of creating symlinks'));
+							} else {
+								return this.createSymlinks(next);
+							}
+						}
+						next();
+					},
+					'injectModulesIntoXcodeProject',
+					'injectApplicationDefaults', // if ApplicationDefaults.m was modified, forceRebuild will be set to true
+					'copyTitaniumLibraries',
+					'copySimulatorSpecificFiles',
+					'copyModuleResources',
+					'copyCommonJSModules',
+					'copyItunesArtwork',
+					'copyGraphics',
+					'writeBuildManifest'
+				], function () {
+					if (this.forceRebuild || !afs.exists(this.xcodeAppDir, this.tiapp.name)) {
+						this.logger.info(__('Invoking xcodebuild'));
+						this.invokeXcodeBuild(finished);
+					} else {
+						this.logger.info(__('Skipping xcodebuild'));
+						var delta = appc.time.prettyDiff(this.cli.startTime, Date.now());
+						this.logger.info(__('Finished building the application in %s', delta));
+						finished.call(this);
+					}
+				});
+			});
+		}.bind(this));
+	},
+	
 	createInfoPlist: function (callback) {
 		var src = this.projectDir + '/Info.plist',
 			dest = this.buildDir + '/Info.plist',
 			plist = new appc.plist(),
 			iphone = this.tiapp.iphone,
 			ios = this.tiapp.ios,
-			fbAppId = this.tiapp.properties && this.tiapp.properties['ti.facebook.appid'],
+			fbAppId = this.tiapp.properties && this.tiapp.properties['ti.facebook.appid'] && this.tiapp.properties['ti.facebook.appid']['value'],
 			iconName = this.tiapp.icon.replace(/(.+)(\..*)$/, '$1'), // note: this is basically stripping the file extension
 			consts = {
 				'__APPICON__': iconName,
@@ -1106,7 +1097,8 @@ build.prototype = {
 			
 			var custom = new appc.plist().parse(fs.readFileSync(src).toString());
 			if (custom.CFBundleIdentifier != this.tiapp.id) {
-				this.forceXcode = true;
+				this.logger.info(__('Forcing rebuild: custom Info.plist CFBundleIdentifier not equal to tiapp.xml <id>'));
+				this.forceRebuild = true;
 			}
 			
 			merge(custom, plist);
@@ -1223,11 +1215,16 @@ build.prototype = {
 						.replace(/__DEBUGGER_PORT__/g, parts.length > 1 ? parts[1] : '')
 						.replace(/__DEBUGGER_AIRKEY__/g, parts.length > 2 ? parts[2] : '')
 						.replace(/__DEBUGGER_HOSTS__/g, parts.length > 3 ? parts[3] : ''),
-			dest = path.join(this.buildDir, 'Resources', 'debugger.plist');
+			dest = path.join(this.buildDir, 'debugger.plist'),
+			plistExists = afs.exists(dest);
 		
-		if (!afs.exists(dest) || fs.readFileSync(dest).toString() != plist) {
-			this.forceXcode = true;
-			wrench.mkdirSyncRecursive(path.dirname(dest));
+		if (!plistExists || fs.readFileSync(dest).toString() != plist) {
+			if (!plistExists) {
+				this.logger.info(__('Forcing rebuild: debugger.plist does not exist'));
+			} else {
+				this.logger.info(__('Forcing rebuild: debugger settings changed since last build'));
+			}
+			this.forceRebuild = true;
 			fs.writeFile(dest, plist, callback());
 		} else {
 			callback();
@@ -1252,7 +1249,7 @@ build.prototype = {
 				contents = plist.toString('xml');
 			}
 			this.codeSignEntitlements = true;
-			fs.writeFile(path.join(this.buildDir, 'Resources', 'Entitlements.plist'), contents, callback);
+			fs.writeFile(path.join(this.buildDir, 'Entitlements.plist'), contents, callback);
 		} else {
 			callback();
 		}
@@ -1295,7 +1292,7 @@ build.prototype = {
 			};
 		
 		this.logger.info(__('Copying Xcode iOS files'));
-		['Classes', 'headers', 'Resources'].forEach(function (dir) {
+		['Classes', 'headers'].forEach(function (dir) {
 			afs.copyDirSyncRecursive(
 				path.join(this.titaniumIosSdkPath, dir),
 				path.join(this.buildDir, dir),
@@ -1376,13 +1373,13 @@ build.prototype = {
 		var manifest = this.buildManifest;
 		
 		if (this.cli.argv.force) {
-			this.logger.debug(__('Forcing rebuild: %s flag was set', '--force'.cyan));
+			this.logger.info(__('Forcing rebuild: %s flag was set', '--force'.cyan));
 			return true;
 		}
 		
 		if (!afs.exists(this.buildManifestFile)) {
 			// if no .version file, rebuild!
-			this.logger.debug(__('Forcing rebuild: %s does not exist', this.buildManifestFile.cyan));
+			this.logger.info(__('Forcing rebuild: %s does not exist', this.buildManifestFile.cyan));
 			return true;
 		}
 		
@@ -1393,135 +1390,143 @@ build.prototype = {
 				idMatch = conf.match(/TI_APPID\=([^\n]*)/);
 			
 			if (versionMatch && !appc.version.eq(versionMatch[1], this.titaniumSdkVersion)) {
-				this.logger.debug(__("Forcing rebuild: last build was under Titanium SDK version %s and we're compiling for version %s", versionMatch[1].cyan, this.titaniumSdkVersion.cyan));
+				this.logger.info(__("Forcing rebuild: last build was under Titanium SDK version %s and we're compiling for version %s", versionMatch[1].cyan, this.titaniumSdkVersion.cyan));
 				return true;
 			}
 			
 			if (idMatch && idMatch[1] != this.tiapp.id) {
-				this.logger.debug(__("Forcing rebuild: app id changed from %s to %s", idMatch[1].cyan, this.tiapp.id.cyan));
+				this.logger.info(__("Forcing rebuild: app id changed from %s to %s", idMatch[1].cyan, this.tiapp.id.cyan));
 				return true;
 			}
 		}
 		
 		if (!afs.exists(this.xcodeAppDir)) {
-			this.logger.debug(__('Forcing rebuild: %s does not exist', this.xcodeAppDir.cyan));
+			this.logger.info(__('Forcing rebuild: %s does not exist', this.xcodeAppDir.cyan));
 			return true;
 		}
 		
 		// check that we have a libTiCore hash
 		if (!manifest.tiCoreHash) {
-			this.logger.debug(__('Forcing rebuild: incomplete version file %s', this.buildVersionFile.cyan));
+			this.logger.info(__('Forcing rebuild: incomplete version file %s', this.buildVersionFile.cyan));
+			return true;
+		}
+		
+		// check if the target changed
+		if (this.libTiCoreHash != manifest.tiCoreHash) {
+			this.logger.info(__('Forcing rebuild: libTiCore hash changed since last build'));
+			this.logger.info('  ' + __('Was: %s', this.buildManifest.target));
+			this.logger.info('  ' + __('Now: %s', this.target));
 			return true;
 		}
 		
 		// check if the libTiCore hashes are different
 		if (this.libTiCoreHash != manifest.tiCoreHash) {
-			this.logger.debug(__('Forcing rebuild: libTiCore hash changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.tiCoreHash));
-			this.logger.debug('  ' + __('Now: %s', this.libTiCoreHash));
+			this.logger.info(__('Forcing rebuild: libTiCore hash changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.tiCoreHash));
+			this.logger.info('  ' + __('Now: %s', this.libTiCoreHash));
 			return true;
 		}
 		
 		// check if the titanium sdk paths are different
 		if (manifest.iosSdkPath != this.titaniumIosSdkPath) {
-			this.logger.debug(__('Forcing rebuild: Titanium SDK path changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.iosSdkPath));
-			this.logger.debug('  ' + __('Now: %s', this.titaniumIosSdkPath));
+			this.logger.info(__('Forcing rebuild: Titanium SDK path changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.iosSdkPath));
+			this.logger.info('  ' + __('Now: %s', this.titaniumIosSdkPath));
 			return true;
 		}
 		
 		// check if the device family has changed (i.e. was universal, now iphone)
 		if (manifest.deviceFamily != this.deviceFamily) {
-			this.logger.debug(__('Forcing rebuild: device family changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.deviceFamily));
-			this.logger.debug('  ' + __('Now: %s', this.deviceFamily));
+			this.logger.info(__('Forcing rebuild: device family changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.deviceFamily));
+			this.logger.info('  ' + __('Now: %s', this.deviceFamily));
 			return true;
 		}
 		
 		// check the git hashes are different
 		if (!manifest.gitHash || manifest.gitHash != ti.manifest.githash) {
-			this.logger.debug(__('Forcing rebuild: githash changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.gitHash));
-			this.logger.debug('  ' + __('Now: %s', ti.manifest.githash));
+			this.logger.info(__('Forcing rebuild: githash changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.gitHash));
+			this.logger.info('  ' + __('Now: %s', ti.manifest.githash));
 			return true;
 		}
 		
 		// check if the app guids are different
 		if (this.tiapp.guid != manifest.appGuid) {
-			this.logger.debug(__('Forcing rebuild: githash changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.appGuid));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.guid));
+			this.logger.info(__('Forcing rebuild: githash changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.appGuid));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.guid));
 			return true;
 		}
 		
 		// check if the modules hashes are different
 		if (this.modulesHash != manifest.modulesHash) {
-			this.logger.debug(__('Forcing rebuild: modules hash changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.modulesHash));
-			this.logger.debug('  ' + __('Now: %s', this.modulesHash));
+			this.logger.info(__('Forcing rebuild: modules hash changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.modulesHash));
+			this.logger.info('  ' + __('Now: %s', this.modulesHash));
 			return true;
 		}
 		
 		// next we check if any tiapp.xml values changed so we know if we need to reconstruct the main.m
 		if (this.tiapp.name != manifest.name) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml project name changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.name));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.name));
+			this.logger.info(__('Forcing rebuild: tiapp.xml project name changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.name));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.name));
 			return true;
 		}
 		
 		if (this.tiapp.id != manifest.id) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml app id changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.id));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.id));
+			this.logger.info(__('Forcing rebuild: tiapp.xml app id changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.id));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.id));
 			return true;
 		}
 		
 		if (!this.tiapp.analytics != !manifest.analytics) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml analytics flag changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', !!manifest.analytics));
-			this.logger.debug('  ' + __('Now: %s', !!this.tiapp.analytics));
+			this.logger.info(__('Forcing rebuild: tiapp.xml analytics flag changed since last build'));
+			this.logger.info('  ' + __('Was: %s', !!manifest.analytics));
+			this.logger.info('  ' + __('Now: %s', !!this.tiapp.analytics));
 			return true;
 		}
 		if (this.tiapp.publisher != manifest.publisher) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml publisher changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.publisher));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.publisher));
+			this.logger.info(__('Forcing rebuild: tiapp.xml publisher changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.publisher));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.publisher));
 			return true;
 		}
 		
 		if (this.tiapp.url != manifest.url) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml url changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.url));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.url));
+			this.logger.info(__('Forcing rebuild: tiapp.xml url changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.url));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.url));
 			return true;
 		}
 		
 		if (this.tiapp.version != manifest.version) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml version changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.version));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.version));
+			this.logger.info(__('Forcing rebuild: tiapp.xml version changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.version));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.version));
 			return true;
 		}
 		
 		if (this.tiapp.description != manifest.description) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml description changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.description));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.description));
+			this.logger.info(__('Forcing rebuild: tiapp.xml description changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.description));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.description));
 			return true;
 		}
 		
 		if (this.tiapp.copyright != manifest.copyright) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml copyright changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.copyright));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.copyright));
+			this.logger.info(__('Forcing rebuild: tiapp.xml copyright changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.copyright));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.copyright));
 			return true;
 		}
 		
 		if (this.tiapp.guid != manifest.guid) {
-			this.logger.debug(__('Forcing rebuild: tiapp.xml guid changed since last build'));
-			this.logger.debug('  ' + __('Was: %s', manifest.guid));
-			this.logger.debug('  ' + __('Now: %s', this.tiapp.guid));
+			this.logger.info(__('Forcing rebuild: tiapp.xml guid changed since last build'));
+			this.logger.info('  ' + __('Was: %s', manifest.guid));
+			this.logger.info('  ' + __('Now: %s', this.tiapp.guid));
 			return true;
 		}
 		
@@ -1532,6 +1537,7 @@ build.prototype = {
 		this.modules = [];
 		this.commonJsModules = [];
 		this.nativeLibModules = [];
+		this.nativeLibModuleHashes = '';
 		
 		if (!this.tiapp.modules || !this.tiapp.modules.length) {
 			this.logger.info(__('No Titanium Modules required, continuing'));
@@ -1543,7 +1549,7 @@ build.prototype = {
 			if (modules.missing.length) {
 				this.logger.error(__('Could not find all required Titanium Modules:'))
 				modules.missing.forEach(function (m) {
-					this.logger.error('   id: ' + m.id + '\t version: ' + (m.version || 'latest') + '\t platform: ' + m.platform);
+					this.logger.error('   id: ' + m.id + '\t version: ' + (m.version || 'latest') + '\t platform: ' + m.platform + '\t deploy-type: ' + m.deployType);
 				}, this);
 				this.logger.log();
 				process.exit(1);
@@ -1558,14 +1564,26 @@ build.prototype = {
 				process.exit(1);
 			}
 			
+			if (modules.conflict.length) {
+				this.logger.error(__('Found conflicting Titanium modules:'));
+				modules.conflict.forEach(function (m) {
+					this.logger.error('   ' + __('Titanium module "%s" requested for both iOS and CommonJS platforms, but only one may be used at a time.', m.id));
+				}, this);
+				this.logger.log();
+				process.exit(1);
+			}
+			
 			this.modules = modules.found;
 			
+			var hashes = [];
+			
 			modules.found.forEach(function (module) {
-				if (module.platform == 'commonjs') {
+				if (module.platform.indexOf('commonjs') != -1) {
 					this.commonJsModules.push(module);
 				} else {
 					module.libName = 'lib' + module.id.toLowerCase() + '.a',
 					module.libFile = path.join(module.modulePath, module.libName);
+					hashes.push(module.hash = this.hashFile(module.libFile));
 					
 					if (!afs.exists(module.libFile)) {
 						this.logger.error(__('Module %s version %s is missing library file: %s', module.id.cyan, (module.manifest.version || 'latest').cyan, libFile.cyan));
@@ -1574,11 +1592,19 @@ build.prototype = {
 					
 					this.logger.info(__('Detected third-party native iOS module: %s version %s', module.id.cyan, (module.manifest.version || 'latest').cyan));
 					this.nativeLibModules.push(module);
-					
-					// since we have native modules, let's force a rebuild of the Xcode project
-					this.forceXcode = true;
 				}
 			}, this);
+			
+			// check if any native modules were added, updated, or removed
+			if (this.buildManifest) {
+				this.nativeModulesHash = crypto.createHash('md5').update(hashes.sort().join(',')).digest('hex');
+				if (this.nativeModulesHash != this.buildManifest.nativeModulesHash) {
+					this.logger.info(__('Forcing rebuild: native modules hash changed since last build'));
+					this.logger.info('  ' + __('Was: %s', this.buildManifest.nativeModulesHash));
+					this.logger.info('  ' + __('Now: %s', this.nativeModulesHash));
+					this.forceRebuild = true;
+				}
+			}
 			
 			callback();
 		}.bind(this));
@@ -1588,9 +1614,7 @@ build.prototype = {
 		if (this.target == 'simulator') {
 			// during simulator we need to copy in standard built-in module files
 			// since we might not run the compiler on subsequent launches
-			['facebook', 'ui'].forEach(function (name) {
-				this.copyDirSync(path.join(this.titaniumIosSdkPath, 'modules', name, 'images'), path.join(this.xcodeAppDir, 'modules', name, 'images'));
-			}, this);
+			this.copyDirSync(path.join(this.titaniumIosSdkPath, 'modules'), path.join(this.xcodeAppDir, 'modules'));
 			
 			// when in simulator since we point to the resources directory, we need
 			// to explicitly copy over any files
@@ -1619,7 +1643,8 @@ build.prototype = {
 	
 	injectApplicationDefaults: function (callback) {
 		var props = this.tiapp.properties || {},
-			dest = path.join(this.buildDir, 'Classes', 'ApplicationDefaults.m');
+			dest = path.join(this.buildDir, 'Classes', 'ApplicationDefaults.m'),
+			exists = afs.exists(dest),
 			contents = [
 				'/**',
 				' * Appcelerator Titanium Mobile',
@@ -1671,8 +1696,13 @@ build.prototype = {
 		contents.push('@end');
 		contents = contents.join('\n');
 		
-		if (!afs.exists(dest) || fs.readFileSync(dest).toString() != contents) {
-			this.forceXcode = true;
+		if (!exists || fs.readFileSync(dest).toString() != contents) {
+			if (!exists) {
+				this.logger.info(__('Forcing rebuild: ApplicationDefaults.m does not exist'));
+			} else {
+				this.logger.info(__('Forcing rebuild: ApplicationDefaults.m has changed since last build'));
+			}
+			this.forceRebuild = true;
 			this.logger.info(__('Writing properties to %s', 'ApplicationDefaults.m'.cyan));
 			fs.writeFile(dest, contents, callback);
 		} else {
@@ -1737,31 +1767,25 @@ build.prototype = {
 		var paths = [
 				path.join(this.projectDir, 'Resources', 'iphone'),
 				path.join(this.projectDir, 'Resources', 'ios'),
-				path.join(this.titaniumIosSdkPath, 'resources'),
+				path.join(this.titaniumIosSdkPath, 'resources')
 			],
-			i = 0,
-			src,
-			dest = path.join(this.buildDir, 'Resources'),
-			copyOpts = {
-				logger: this.logger.debug
-			};
+			len = paths.length,
+			i, src;
 		
-		for (; i < paths.length; i++) {
+		for (i = 0; i < len; i++) {
 			if (afs.exists(src = path.join(paths[i], this.tiapp.icon))) {
-				afs.copyFileSync(src, this.xcodeAppDir, copyOpts);
+				afs.copyFileSync(src, this.xcodeAppDir, {
+					logger: this.logger.debug
+				});
 				break;
 			}
 		}
-		
-		fs.readdirSync(src = path.join(this.titaniumIosSdkPath, 'resources'), function (file) {
-			afs.copyFileSync(path.join(src, file), dest, copyOpts);
-		});
 		
 		callback();
 	},
 	
 	writeBuildManifest: function (callback) {
-		this.buildManifest = {
+		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest = {
 			target: this.target,
 			deployType: this.deployType,
 			deviceFamily: this.deviceFamily,
@@ -1771,6 +1795,7 @@ build.prototype = {
 			appGuid: this.tiapp.guid,
 			tiCoreHash: this.libTiCoreHash,
 			modulesHash: this.modulesHash,
+			nativeModulesHash: this.nativeModulesHash,
 			gitHash: ti.manifest.githash,
 			outputDir: this.cli.argv['output-dir'],
 			name: this.tiapp.name,
@@ -1782,12 +1807,10 @@ build.prototype = {
 			description: this.tiapp.description,
 			copyright: this.tiapp.copyright,
 			guid: this.tiapp.guid,
-			skipJSMinification: !!this.cli.argv['skip-js-minify']
-		};
-		if (this.config['plugins'])
-			this.buildManifest['config-plugins'] = this.config.plugins;
-		
-		fs.writeFile(this.buildManifestFile, JSON.stringify(this.buildManifest, null, '\t'), callback);
+			skipJSMinification: !!this.cli.argv['skip-js-minify'],
+			forceCopy: !!this.cli.argv['force-copy'],
+			forceCopyAll: this.cli.argv['force-copy-all']
+		}, null, '\t'), callback);
 	},
 	
 	compileI18N: function (callback) {
@@ -1835,45 +1858,30 @@ build.prototype = {
 		);
 	},
 	
-	copyLocalizedSplashScreens: function (callback) {
-		
-		var copyOpts = {
-				logger: this.logger.debug
-			};
+	copyLocalizedSplashScreens: function () {
 		ti.i18n.splashScreens(this.projectDir, this.logger).forEach(function (splashImage) {
 			var token = splashImage.split('/'),
-				lang = token[token.length-2],
+				file = token.pop(),
+				lang = token.pop(),
 				lprojDir = path.join(this.xcodeAppDir, lang + '.lproj'),
-				file = token[token.length-1],
-				globalFile = path.join(this.xcodeAppDir, file),
-				resourcesDir = path.join(this.buildDir, 'Resources'),
-				projFile = path.join(resourcesDir, file);
+				globalFile = path.join(this.xcodeAppDir, file);
 			
-			//This would never need to run. But just to be safe.
+			// this would never need to run. But just to be safe
 			if (!afs.exists(lprojDir)) {
 				this.logger.debug(__('Creating lproj folder %s', lprojDir.cyan));
 				wrench.mkdirSyncRecursive(lprojDir);
 			}
 			
-			afs.copyFileSync(splashImage, lprojDir, copyOpts);
-			
-			this.logger.debug(__('Checking if %s exists in global space', file.cyan));
-			
-			// Check for it in the root of the xcode build folder.
+			// check for it in the root of the xcode build folder
 			if (afs.exists(globalFile)) {
 				this.logger.debug(__('Removing File %s, as it is being localized', globalFile.cyan));
 				fs.unlinkSync(globalFile);
 			}
 			
-			// Check in the Resources of Ti-build folder.
-			if (afs.exists(projFile)) {
-				this.logger.debug(__('Removing File %s, as it is being localized', projFile.cyan));
-				fs.unlinkSync(projFile);
-			}
-			
+			afs.copyFileSync(splashImage, lprojDir, {
+				logger: this.logger.debug
+			});
 		}, this);
-		
-		callback();
 	},
 	
 	injectModulesIntoXcodeProject: function (callback) {
@@ -2099,11 +2107,15 @@ build.prototype = {
 		wrench.mkdirSyncRecursive(dir);
 		
 		dest = path.join(dir, 'libTiCore.a');
-		if (!afs.exists(dest) || !fs.lstatSync(dest).isSymbolicLink() || fs.readlinkSync(dest).indexOf(this.titaniumSdkVersion) == -1) {
-			try {
-				fs.unlinkSync(dest);
-			} catch (e) {}
-			fs.symlinkSync(path.join(this.titaniumIosSdkPath, 'libTiCore.a'), dest);
+		if (this.cli.argv['force-copy-all']) {
+			afs.exists(dest) || afs.copyFileSync(path.join(this.titaniumIosSdkPath, 'libTiCore.a'), dest, { logger: this.logger.debug });
+		} else {
+			if (!afs.exists(dest) || !fs.lstatSync(dest).isSymbolicLink() || fs.readlinkSync(dest).indexOf(this.titaniumSdkVersion) == -1) {
+				try {
+					fs.unlinkSync(dest);
+				} catch (e) {}
+				fs.symlinkSync(path.join(this.titaniumIosSdkPath, 'libTiCore.a'), dest);
+			}
 		}
 		
 		dest = path.join(dir, 'libtiverify.a');
@@ -2176,12 +2188,12 @@ build.prototype = {
 	
 	compileJSS: function (callback) {
 		ti.jss.load(path.join(this.projectDir, 'Resources'), deviceFamilyNames[this.deviceFamily], this.logger, function (results) {
-			var appStylesheet = path.join(this.buildDir, 'Resources', 'stylesheet.plist'),
+			var appStylesheet = path.join(this.xcodeAppDir, 'stylesheet.plist'),
 				plist = new appc.plist();
 			appc.util.mix(plist, results);
 			fs.writeFile(appStylesheet, plist.toString('xml'), function () {
 				if (this.target != 'simulator') {
-					// compile plist into binary format so it's faster to load we can be slow on simulator
+					// compile plist into binary format so it's faster to load, we can be slow on simulator
 					exec('/usr/bin/plutil -convert binary1 "' + appStylesheet + '"', callback);
 				} else {
 					callback();
@@ -2190,7 +2202,113 @@ build.prototype = {
 		}.bind(this));
 	},
 	
-	compileResources: function (src, dest, ignoreRegExp2) {
+	invokeXcodeBuild: function (finished) {
+		var xcodeArgs = [
+				'-target', this.tiapp.name + xcodeTargetSuffixes[this.deviceFamily],
+				'-configuration', this.xcodeTarget,
+				'-sdk', this.xcodeTargetOS,
+				'IPHONEOS_DEPLOYMENT_TARGET=' + appc.version.format(this.minIosVer, 2),
+				'TARGETED_DEVICE_FAMILY=' + deviceFamilies[this.deviceFamily],
+				'VALID_ARCHS=' + this.architectures
+			],
+			gccDefs = [ 'DEPLOYTYPE=' + this.deployType ];
+		
+		// Note: There is no evidence that TI_DEVELOPMENT, TI_TEST, TI_DEVELOPMENT, or
+		//       DEBUGGER_ENABLED are used anymore.
+		
+		if (this.target == 'simulator') {
+			gccDefs.push('__LOG__ID__=' + this.tiapp.guid);
+			gccDefs.push('TI_DEVELOPMENT=1');
+			gccDefs.push('DEBUG=1');
+			gccDefs.push('TI_VERSION=' + this.titaniumSdkVersion);
+		} else if (this.target == 'dist-appstore') {
+			gccDefs.push('TI_PRODUCTION=1');
+		} else if (this.target == 'dist-adhoc' || this.target == 'device') {
+			gccDefs.push('TI_TEST=1');
+		}
+		
+		if (/simulator|device|dist\-adhoc/.test(this.target)) {
+			this.tiapp.ios && this.tiapp.ios.enablecoverage && gccDefs.push('KROLL_COVERAGE=1');
+			this.debugHost && gccDefs.push('DEBUGGER_ENABLED=1');
+		}
+		
+		xcodeArgs.push('GCC_PREPROCESSOR_DEFINITIONS=' + gccDefs.join(' '));
+		
+		if (/device|dist\-appstore|dist\-adhoc/.test(this.target)) {
+			xcodeArgs.push('PROVISIONING_PROFILE=' + this.provisioningProfileUUID);
+			xcodeArgs.push('DEPLOYMENT_POSTPROCESSING=YES');
+			if (this.keychain) {
+				xcodeArgs.push('OTHER_CODE_SIGN_FLAGS=--keychain ' + this.keychain);
+			}
+			this.codeSignEntitlements && xcodeArgs.push('CODE_SIGN_ENTITLEMENTS=Entitlements.plist');
+		}
+		
+		if (this.target == 'device') {
+			xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Developer: ' + this.certDeveloperName);
+		}
+		
+		if (/dist-appstore|dist\-adhoc/.test(this.target)) {
+			xcodeArgs.push('CODE_SIGN_IDENTITY=iPhone Distribution: ' + this.certDistributionName);
+		}
+		
+		var p = spawn(this.xcodeEnv.xcodebuild, xcodeArgs, {
+				cwd: this.buildDir,
+				env: {
+					DEVELOPER_DIR: this.xcodeEnv.path,
+					HOME: process.env.HOME,
+					PATH: process.env.PATH,
+					TITANIUM_CLI_XCODEBUILD: 'Enjoy hacking? http://jobs.appcelerator.com/'
+				}
+			}),
+			out = [],
+			err = [];
+		
+		p.stdout.on('data', function (data) {
+			data.toString().split('\n').forEach(function (line) {
+				if (line.length) {
+					out.push(line);
+					this.logger.trace(line);
+				}
+			}, this);
+		}.bind(this));
+		
+		p.stderr.on('data', function (data) {
+			data.toString().split('\n').forEach(function (line) {
+				if (line.length) {
+					err.push(line);
+					this.logger.error(line);
+				}
+			}, this);
+		}.bind(this));
+		
+		p.on('exit', function (code, signal) {
+			if (code) {
+				err = err.join('\n');
+				if (err.indexOf('Check dependencies') != -1) {
+					var len = out.length;
+					for (var i = len - 1; i >= 0; i--) {
+						if (out[i].indexOf('Check dependencies') != -1) {
+							for (var j = i + 1; j < len; j++) {
+								this.logger.error('Error details: ' + out[j]);
+							}
+							break;
+						}
+					}
+				}
+				process.exit(1);
+			}
+			
+			if (!this.cli.argv['build-only']) {
+				var delta = appc.time.prettyDiff(this.cli.startTime, Date.now());
+				this.logger.info(__('Finished building the application in %s', delta));
+			}
+			
+			// end of the line
+			finished.call(this, code);
+		}.bind(this));
+	},
+	
+	compileResources: function (src, dest) {
 		if (afs.exists(src)) {
 			var ignoreFiles = [].concat(this.cli.ignoreFiles).concat(this.cli.ignoreDirs);
 			if (this.config && this.config.plugins && this.config.plugins['ignoreFiles'])
@@ -2237,7 +2355,7 @@ build.prototype = {
 			/*
 			The following code scans all html files for script tags referencing app:// js files, however in
 			production/test, we actually want this files minified and prepared. In development builds, we
-			don't care if it's minified and we don't want to prepare the file anwyays.
+			don't care if it's minified and we don't want to prepare the file anyways.
 			
 			So, long story short, I don't think we need the following code, but I'm gonna keep it around for
 			a bit since it took me a while to code.
@@ -2277,15 +2395,7 @@ build.prototype = {
 					this.logger.debug(__('Writing minifying JavaScript file: %s', c.to.cyan));
 					fs.writeFileSync(
 						c.to,
-						uglifyProcessor.gen_code(
-							uglifyProcessor.ast_squeeze(
-								uglifyProcessor.ast_mangle(
-									uglifyParser.parse(
-										fs.readFileSync(c.from).toString().replace(/Titanium\./g,'Ti.')
-									)
-								)
-							)
-						)
+						UglifyJS.minify(c.from).code.replace(/Titanium\./g,'Ti.')
 					);
 				}, this);
 			}
@@ -2311,22 +2421,27 @@ build.prototype = {
 	},
 	
 	findSymbols: function (ast) {
-		function scan(node) {
-			if (node[0] == 'name') {
-				return node[1] == 'Ti' ? node[1] : '';
-			} else if (node[0] == 'dot') {
-				var s = scan(node[1]);
-				return s && node.length > 2 ? s + '.' + node[2] : '';
-			}
-		}
+		var walker = new UglifyJS.TreeWalker(function (node, descend) {
+				if (node instanceof UglifyJS.AST_SymbolRef && node.name == 'Ti') {
+					var p = walker.stack,
+						buffer = [],
+						i = p.length - 1; // we already know the top of the stack is Ti
+					
+					// loop until 2nd from bottom of stack since the bottom is the toplevel node which we don't care about
+					while (--i) {
+						if (p[i] instanceof UglifyJS.AST_Dot) {
+							buffer.push(p[i].property);
+						} else if (p[i] instanceof UglifyJS.AST_Symbol || p[i] instanceof UglifyJS.AST_SymbolRef) {
+							buffer.push(p[i].name);
+						} else {
+							break;
+						}
+					}
+					buffer.length && this.addSymbol(buffer.join('.'));
+				}
+			}.bind(this));
 		
-		appc.astwalker(ast, {
-			dot: function (node, next) {
-				var s = scan(node);
-				s && this.addSymbol(s.substring(3));
-				next();
-			}.bind(this)
-		});
+		ast.walk(walker);
 	},
 	
 	addSymbol: function (symbol) {
@@ -2347,37 +2462,27 @@ build.prototype = {
 	},
 	
 	compileJsFile: function (id, file) {
-		var contents = fs.readFileSync(file).toString().replace(/Titanium\./g,'Ti.');
+		var original = fs.readFileSync(file).toString(),
+			contents = original.replace(/Titanium\./g,'Ti.'),
+			ast;
+		
 		try {
-			var ast = uglifyParser.parse(contents);
-			
-			if (!this.cli.argv['skip-js-minify'] && this.deployType != 'development') {
-				contents = uglifyProcessor.gen_code(
-					uglifyProcessor.ast_squeeze(
-						uglifyProcessor.ast_mangle(ast)
-					)
-				);
-			}
-			
-			this.logger.info(__('Finding Titanium symbols in file %s', file.cyan));
-			this.findSymbols(ast);
-			
-			id = path.join(this.assetsDir, id);
-			wrench.mkdirSyncRecursive(path.dirname(id));
-			
-			this.logger.debug(__('Writing JavaScript file: %s', id.cyan));
-			fs.writeFileSync(id, contents);
+			ast = UglifyJS.parse(contents, { filename: file })
 		} catch (ex) {
 			this.logger.error(__('Failed to minify %s', file));
-			this.logger.error(__('%s [line %s, column %s]', ex.message, ex.line, ex.col));
+			if (ex.line) {
+				this.logger.error(__('%s [line %s, column %s]', ex.message, ex.line, ex.col));
+			} else {
+				this.logger.error(__('%s', ex.message));
+			}
 			try {
-				contents = contents.split('\n');
-				if (ex.line && ex.line <= contents.length) {
+				original = original.split('\n');
+				if (ex.line && ex.line <= original.length) {
 					this.logger.error('');
-					this.logger.error('    ' + contents[ex.line-1]);
+					this.logger.error('    ' + original[ex.line-1]);
 					if (ex.col) {
 						var i = 0,
-							len = ex.col - 1;
+							len = ex.col;
 							buffer = '    ';
 						for (; i < len; i++) {
 							buffer += '-';
@@ -2389,6 +2494,26 @@ build.prototype = {
 			} catch (ex2) {}
 			process.exit(1);
 		}
+		
+		this.logger.info(__('Finding Titanium symbols in file %s', file.cyan));
+		this.findSymbols(ast);
+		
+		if (!this.cli.argv['skip-js-minify'] && this.deployType != 'development') {
+			ast.figure_out_scope();
+			ast = ast.transform(UglifyJS.Compressor());
+			ast.figure_out_scope();
+			ast.compute_char_frequency();
+			ast.mangle_names();
+			var stream = UglifyJS.OutputStream();
+			ast.print(stream);
+			contents = stream.toString();
+		}
+		
+		id = path.join(this.assetsDir, id);
+		wrench.mkdirSyncRecursive(path.dirname(id));
+		
+		this.logger.debug(__('Writing JavaScript file: %s', id.cyan));
+		fs.writeFileSync(id, contents);
 	},
 	
 	xcodePrecompilePhase: function (finished) {
@@ -2397,6 +2522,8 @@ build.prototype = {
 		this.jsFilesToPrepare = [];
 		
 		parallel(this, [
+			'compileJSS',
+			'compileI18N',
 			function (next) {
 				this.compileResources(path.join(this.projectDir, 'Resources', 'ios'), this.xcodeAppDir);
 				this.compileResources(path.join(this.projectDir, 'Resources', 'iphone'), this.xcodeAppDir);
@@ -2425,18 +2552,31 @@ build.prototype = {
 				}.bind(this));
 			},
 			function (next) {
-				var debuggerPlist = path.join(this.xcodeAppDir, 'debugger.plist');
-				if (this.deployType == 'production' && afs.exists(debuggerPlist)) {
-					this.logger.info(__('Removing %s from production build', 'debugger.plist'.cyan));
-					fs.unlinkSync(debuggerPlist);
+				var src = path.join(this.buildDir, 'debugger.plist'),
+					dest = path.join(this.xcodeAppDir, 'debugger.plist');
+				
+				// we only copy the debugger.plist dev/test when building from Studio (via the Ti CLI), otherwise make sure the file doesn't exist
+				if (this.deployType != 'production' && process.env.TITANIUM_CLI_XCODEBUILD) {
+					afs.copyFileSync(
+						src,
+						dest,
+						{ logger: this.logger.debug }
+					);
+				} else if (afs.exists(dest)) {
+					this.logger.info(__('Removing unwanted %s from build', 'debugger.plist'.cyan));
+					fs.unlinkSync(dest);
 				}
+				
 				next();
 			}
 		], function () {
+			// localize the splash screen after the resources files have been copied
+			this.copyLocalizedSplashScreens();
+			
 			parallel(this, [
 				function (next) {
 					// if development and the simulator, then we're symlinking files and there's no need to anything below
-					if (this.deployType == 'development' && this.target == 'simulator') {
+					if (this.deployType == 'development' && this.target == 'simulator' && !this.cli.argv['force-copy']) {
 						return next();
 					}
 					
