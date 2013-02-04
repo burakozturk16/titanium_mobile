@@ -228,14 +228,6 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 	}
 
-	protected void clearChildViews(TiViewProxy parent)
-	{
-		for (TiViewProxy childProxy : parent.getChildren()) {
-			childProxy.setView(null);
-			clearChildViews(childProxy);
-		}
-	}
-
 	protected void applyChildProperties(TiViewProxy viewProxy, TiUIView view)
 	{
 		int i = 0;
