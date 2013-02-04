@@ -39,6 +39,7 @@
 	NSInteger loadTotal;
 	UIImageView * imageView;
     UIViewContentMode scaleType;
+	BOOL alwaysLoadAsync;
 }
 
 -(void)start;

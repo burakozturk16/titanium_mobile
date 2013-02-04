@@ -36,6 +36,7 @@ DEFINE_EXCEPTIONS
 -(id)init
 {
     if (self = [super init]) {
+        alwaysLoadAsync = NO;
         scaleType = UIViewContentModeScaleToFill;
     }
     return self;
@@ -495,26 +496,30 @@ DEFINE_EXCEPTIONS
 			imageSize.width *= 2;
 			imageSize.height *= 2;
 		}
+        UIImage *image = nil;
+        if (!alwaysLoadAsync)
+        {
+            // Skip the imageloader completely if this is obviously a file we can load off the fileystem.
+            // why were we ever doing that in the first place...?
+            if ([url_ isFileURL]) {
+                UIImage* image = [UIImage imageWithContentsOfFile:[url_ path]];
+                if (image != nil) {
+                    UIImage *imageToUse = [self rotatedImage:image];
+                    autoWidth = imageToUse.size.width;
+                    autoHeight = imageToUse.size.height;
+                    [self imageView].image = imageToUse;
+                    [self fireLoadEventWithState:@"image"];
+                }
+                else {
+                    [self loadDefaultImage:imageSize];
+                }
+                return;
+            }
         
-        // Skip the imageloader completely if this is obviously a file we can load off the fileystem.
-        // why were we ever doing that in the first place...?
-        if ([url_ isFileURL]) {
-            UIImage* image = [UIImage imageWithContentsOfFile:[url_ path]];
-            if (image != nil) {
-                UIImage *imageToUse = [self rotatedImage:image];
-                autoWidth = imageToUse.size.width;
-                autoHeight = imageToUse.size.height;
-                [self imageView].image = imageToUse;
-                [self fireLoadEventWithState:@"image"];
-            }
-            else {
-                [self loadDefaultImage:imageSize];
-            }
-            return;
+        
+            image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
         }
         
-        
-		UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
 		if (image==nil)
 		{
             [self loadDefaultImage:imageSize];
@@ -667,6 +672,11 @@ DEFINE_EXCEPTIONS
     [self updateContentMode];
 }
 
+-(void)setAlwaysLoadAsync_:(id)arg
+{
+	alwaysLoadAsync = [TiUtils boolValue:arg];
+}
+
 -(void)setImage_:(id)arg
 {
 	id currentImage = [self.proxy valueForUndefinedKey:@"image"];
@@ -684,7 +694,9 @@ DEFINE_EXCEPTIONS
 	BOOL replaceProperty = YES;
 	UIImage *image = nil;
     NSURL* imageURL = nil;
-    image = [self convertToUIImage:arg];
+    
+    if (!alwaysLoadAsync)
+        image = [self convertToUIImage:arg];
 	
 	if (image == nil) 
 	{
