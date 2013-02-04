@@ -236,30 +236,37 @@ static NSArray* layoutProps = nil;
 	pthread_rwlock_unlock(&childrenLock);
 		
 	[arg setParent:nil];
-	
-	if (view!=nil)
-	{
-		TiUIView *childView = [(TiViewProxy *)arg view];
-		BOOL layoutNeedsRearranging = !TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle);
-		if ([NSThread isMainThread])
-		{
-			[childView removeFromSuperview];
-			if (layoutNeedsRearranging)
-			{
-				[self layoutChildren:NO];
-			}
-		}
-		else
-		{
-			TiThreadPerformOnMainThread(^{
-				[childView removeFromSuperview];
-				if (layoutNeedsRearranging)
-				{
-					[self layoutChildren:NO];
-				}
-			}, NO);
-		}
-	}
+    
+    [(TiViewProxy *)arg detachView];
+    BOOL layoutNeedsRearranging = !TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle);
+    if (layoutNeedsRearranging)
+    {
+        [self layoutChildren:NO];
+    }
+//	
+//	if (view!=nil)
+//	{
+//		TiUIView *childView = [(TiViewProxy *)arg view];
+//		BOOL layoutNeedsRearranging = !TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle);
+//		if ([NSThread isMainThread])
+//		{
+//			[childView removeFromSuperview];
+//			if (layoutNeedsRearranging)
+//			{
+//				[self layoutChildren:NO];
+//			}
+//		}
+//		else
+//		{
+//			TiThreadPerformOnMainThread(^{
+//				[childView removeFromSuperview];
+//				if (layoutNeedsRearranging)
+//				{
+//					[self layoutChildren:NO];
+//				}
+//			}, NO);
+//		}
+//	}
 	//Yes, we're being really lazy about letting this go. This is intentional.
 	[self forgetProxy:arg];
 }
@@ -1596,6 +1603,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		viewClass = NSClassFromString(className);
 		if (viewClass != nil)
 		{
+			return [[[viewClass alloc] init] autorelease];
 		}
 	}
 	else
