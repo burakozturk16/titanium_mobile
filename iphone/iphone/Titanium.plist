@@ -41,6 +41,7 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>comic_zine_ot.otf</string>
+		<string>fonts/iconminia.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>
