@@ -208,10 +208,20 @@ DEFINE_EXCEPTIONS
         [(TiViewProxy*)proxy detachView];
     }
     else {
-        
-        [[self subviews] makeObjectsPerformSelector:@selector(detach)];
+        NSArray* subviews = [self subviews];
+        for (UIView* subview in subviews) {
+            if([subview isKindOfClass:[TiUIView class]])
+            {
+                [(TiUIView*)subview detach];
+                
+            }
+            else {
+                [subview removeFromSuperview];
+            }
+        }
         [self removeFromSuperview];
         self.proxy = nil;
+        self.touchDelegate = nil;
     }
 }
 

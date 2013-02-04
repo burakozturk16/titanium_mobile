@@ -275,6 +275,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 - (void)processTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
+
+-(void)detach;
+
 @end
 
 #pragma mark TO REMOVE, used only during transition.
