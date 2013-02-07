@@ -500,33 +500,22 @@ public class TiUIHelper
 		return path.length() > 0 ? proxy.resolveUrl(null, path) : null;
 	}
 	
-	public static Drawable buildImageDrawable(String image, boolean tile, KrollProxy proxy) {
+	public static Drawable buildImageDrawable(String image, boolean tileImage, KrollProxy proxy) {
 		if (image != null) {
 			image = resolveImageUrl(image, proxy);
 		}
 		Drawable imageDrawable = null;
 		if (image != null) {
 			TiFileHelper tfh = TiFileHelper.getInstance();
-			Context appContext = TiApplication.getInstance();
+			imageDrawable = tfh.loadDrawable(image, false, true);
 
-			if (tile) {
-				InputStream inputStream;
-				try {
-					inputStream = tfh.openInputStream(image, false);
-					if (inputStream != null) {
-						BitmapDrawable tiledBackground = new BitmapDrawable(appContext.getResources(), inputStream);
-						tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
-						tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
-
-						imageDrawable = tiledBackground;
-					}
-
-				} catch (IOException e) {
-					Log.e(TAG, "Exception occured when trying to open stream to specified background image: ", e);
+			if (tileImage) {
+				if (imageDrawable instanceof BitmapDrawable) {
+					BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+					tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+					tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+					imageDrawable = tiledBackground;
 				}
-
-			} else {
-				imageDrawable = tfh.loadDrawable(image, false, true);
 			}
 		}
 		return imageDrawable;
