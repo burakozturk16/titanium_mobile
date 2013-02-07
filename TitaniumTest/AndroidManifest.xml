@@ -6,9 +6,9 @@
 
 	<!-- TI_MANIFEST -->
 
-	<application
+	<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-		android:debuggable="false">
+		android:debuggable="true">
 
 		<!-- TI_APPLICATION -->
 
@@ -37,10 +37,21 @@
 
 		<service android:name="org.appcelerator.titanium.analytics.TiAnalyticsService"
 			android:exported="false" />
+		
+		<service android:name="ti.modules.titanium.android.ToyVpnService"
+                android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService"/>
+            </intent-filter>
+        </service>
 		<!-- TI_SERVICES -->
 
 	</application>
 
 	<!-- TI_PERMISSIONS -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
 
 </manifest>
