@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-network"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-ui/bin/titanium-ui.jar"/>
-	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-v8"/>
+	<classpathentry exported="true" kind="lib" path="/kroll-v8/bin/kroll-v8.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
 	<classpathentry exported="true" kind="lib" path="/kroll-common/bin/kroll-common.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-ui/bin/titanium-ui.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-network/bin/titanium-network.jar"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

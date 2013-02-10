@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.titanium.test" android:versionCode="1"
-	android:versionName="1">
-	<uses-sdk android:minSdkVersion="8" />
+	package="com.titanium.test" android:versionCode="1" android:versionName="1">
+	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="17"/>
 
 	<!-- TI_MANIFEST -->
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
 
 	<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-		android:debuggable="true">
+		android:debuggable="false" android:allowBackup="false">
 
 		<!-- TI_APPLICATION -->
 
@@ -34,24 +37,10 @@
 		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
 			android:configChanges="keyboardHidden|orientation" />
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
-
-		<service android:name="org.appcelerator.titanium.analytics.TiAnalyticsService"
-			android:exported="false" />
-		
-		<service android:name="ti.modules.titanium.android.ToyVpnService"
-                android:permission="android.permission.BIND_VPN_SERVICE">
-            <intent-filter>
-                <action android:name="android.net.VpnService"/>
-            </intent-filter>
-        </service>
 		<!-- TI_SERVICES -->
 
 	</application>
 
 	<!-- TI_PERMISSIONS -->
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-	<uses-permission android:name="android.permission.INTERNET"/>
-
+	
 </manifest>
