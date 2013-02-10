@@ -558,6 +558,22 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		realizeViews(view, true);
 	}
+	
+	public void reloadProperties()
+	{
+		view.processProperties(getProperties());
+		// Use a copy so bundle can be modified as it passes up the inheritance
+		// tree. Allows defaults to be added and keys removed.
+		if (children != null) {
+			try {
+				for (TiViewProxy p : children) {
+					p.reloadProperties();
+				}
+			} catch (ConcurrentModificationException e) {
+				Log.e(TAG, e.getMessage(), e);
+			}
+		}
+	}
 
 	public void releaseViews()
 	{
@@ -637,6 +653,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	@Kroll.method
 	public void remove(TiViewProxy child)
 	{
+		Log.w(TAG, "Removing view");
 		if (child == null) {
 			Log.e(TAG, "Add called with null child");
 			return;
@@ -1255,7 +1272,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	    
 		View ourView = oldProxy.getParent().parentViewForChild(oldProxy);
 		View parentView = (View)peekView().getNativeView().getParent();
-	    if (parentView!=ourView)
+	    if (parentView != ourView)
 	    {
 	        return false;
 	    }
@@ -1274,7 +1291,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		            if (oldview == null){
 		                return false;
 		            }
-					if (!oldSubProxy.validateTransferToProxy(newSubProxy, true)) //we assume that the view is already created)
+					if (!oldSubProxy.validateTransferToProxy(newSubProxy, true))
 						return false;
 				}
 			} catch (ConcurrentModificationException e) {
