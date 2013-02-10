@@ -240,7 +240,7 @@ public class TiImageView extends ViewGroup
 
 	public void setImageBitmap(Bitmap bitmap) {
 		if (bitmap == null) {
-			imageView.setImageResource(0);
+			imageView.setImageBitmap(null);
 		}
 		else {
 			Log.i(TAG, "test " + bitmap.getWidth());
