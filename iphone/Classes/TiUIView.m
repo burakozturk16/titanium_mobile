@@ -534,11 +534,6 @@ DEFINE_EXCEPTIONS
     return gradientLayer;
 }
 
--(CALayer *)gradientLayer
-{
-    return gradientLayer;
-}
-
 // You might wonder why we don't just use the native feature of -[UIColor colorWithPatternImage:].
 // Here's why:
 // * It doesn't properly handle alpha channels
@@ -938,7 +933,6 @@ DEFINE_EXCEPTIONS
 	methodSel = NSSelectorFromString(method);
 	if([self respondsToSelector:methodSel])
 	{
-//        NSLog(@"performing selector %@", method);
 		[self performSelector:methodSel withObject:value];
 	}
 }
@@ -954,11 +948,13 @@ DEFINE_EXCEPTIONS
 
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
 {
+
 	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
 	
 	// We can safely skip everything if we're transferring to ourself.
 	if (oldProxy != newProxy) {
-        [transferLock lock];
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+       [transferLock lock];
         NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
         NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
         NSMutableSet* keySequence = [NSMutableSet setWithArray:[newProxy keySequence]];
@@ -1013,17 +1009,18 @@ DEFINE_EXCEPTIONS
 
 		for (NSString * thisKey in props)
 		{
-			// Always set the new value, even if 'equal' - some view setters (as in UIImageView)
-			// use internal voodoo to determine what to display.
-			// TODO: We may be able to take this out once the imageView.url property is taken out, and change it back to an equality test.
 			id newValue = [newProxy valueForKey:thisKey];
 			id oldValue = [oldProxy valueForKey:thisKey];
 			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
 				[self setKrollValue:newValue forKey:thisKey withObject:nil];
 			}
 		}
+        
+        [pool release];
+        pool = nil;
 
         [self configurationSet];
+
 		if (deep) {
 			NSArray *subProxies = [newProxy children];
 			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
@@ -1035,7 +1032,9 @@ DEFINE_EXCEPTIONS
 		
 		[newProxy setReproxying:NO];
         [transferLock unlock];
+        
 	}
+    
 }
 
 -(BOOL)validateTransferToProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
