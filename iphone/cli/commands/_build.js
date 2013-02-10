@@ -143,8 +143,6 @@ exports.config = function (logger, config, cli) {
 						default: false,
 						desc: __('identical to the %s flag, except this will also copy the %s libTiCore.a file', '--force-copy', libTiCoreSize.cyan)
 					},
-						desc: __('use the retina version of the iOS Simulator')
-					},
 					xcode: {
 						// secret flag to perform Xcode pre-compile build step
 						hidden: true
