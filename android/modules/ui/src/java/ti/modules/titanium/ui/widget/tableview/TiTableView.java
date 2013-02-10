@@ -223,7 +223,8 @@ public class TiTableView extends FrameLayout
 						for (int i = 0; i < oldproxies.length; i++) {
 							TiViewProxy newSubProxy = newproxies[i];
 							TiViewProxy oldSubProxy = oldproxies[i];
-							if (!oldSubProxy.validateTransferToProxy(newSubProxy, true))
+							
+							if (oldSubProxy.validateTransferToProxy(newSubProxy, true) == false)
 							{
 								canreproxy = false;
 								break;
@@ -231,13 +232,12 @@ public class TiTableView extends FrameLayout
 						}
 					}
 					
-					if (!canreproxy && ((ViewGroup)v.getView()).getChildCount() > 0)
+					if (canreproxy == false && ((ViewGroup)v.getView()).getChildCount() > 0)
 					{
 						Log.w(TAG, "We cant reuse that view, will create a new one", Log.DEBUG_MODE);
 						
-						//we must remote the views from the old proxy as the native view will be removed
+						//we must clear this viewItem. As a consequence it will be as creating a new one
 						v.clearViews();
-						v = null;
 					}
 				}
 			}
@@ -271,15 +271,19 @@ public class TiTableView extends FrameLayout
 				v.setLayoutParams(new AbsListView.LayoutParams(
 					AbsListView.LayoutParams.FILL_PARENT, AbsListView.LayoutParams.FILL_PARENT));
 			}
-            else if (sameView == false && proxy.hasListeners("reuse")) 
+            else if (sameView == false) 
             {
-                //we are reusing a cell
-                KrollDict event = new KrollDict();
-                TableViewRowProxy.fillClickEvent(event, viewModel, v.getRowData());
-                proxy.fireSyncEvent("reuse", event);
+            	
+            	if (proxy.hasListeners("reuse"))
+            	{
+	                //we are reusing a cell
+	                KrollDict event = new KrollDict();
+	                TableViewRowProxy.fillClickEvent(event, viewModel, v.getRowData());
+	                proxy.fireSyncEvent("reuse", event);
+            	}
 
             }
-            if (v.getRowData() != item)
+            if (v.getRowData() != item || sameView == false)
             {
                 v.setRowData(item);
                 if (proxy.hasListeners("rowappear"))
@@ -292,12 +296,12 @@ public class TiTableView extends FrameLayout
                
             }
 
-            if (item.proxy instanceof TableViewRowProxy && ((TableViewRowProxy)item.proxy).needsAnimation == true) {
-				TableViewRowProxy row = (TableViewRowProxy)item.proxy;
-				row.needsAnimation = false;
-				Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
-    			v.startAnimation(animation);
-			}
+//            if (item.proxy instanceof TableViewRowProxy && ((TableViewRowProxy)item.proxy).needsAnimation == true) {
+//				TableViewRowProxy row = (TableViewRowProxy)item.proxy;
+//				row.needsAnimation = false;
+//				Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
+//    			v.startAnimation(animation);
+//			}
 			return v;
 		}
 
@@ -483,7 +487,13 @@ public class TiTableView extends FrameLayout
 	}
 	
 	public int getPositionForView(View view) {
-		return listView.getPositionForView(view);
+		int result = -1;
+		try {
+			result = listView.getPositionForView(view);
+		} catch(NullPointerException e){
+			
+		}
+		return result;
 	}
 
 	public int getIndexFromXY(double x, double y) {

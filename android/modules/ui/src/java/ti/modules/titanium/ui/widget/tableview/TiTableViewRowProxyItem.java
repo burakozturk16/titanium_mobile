@@ -95,26 +95,31 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		TableViewRowProxy rowProxy = getRowProxy();
 		if (rowProxy != null)
 			rowProxy.clearViews();
+		content.removeAllViews();
+		views = null;
+		
 	}
 
 	
 	public void setRowData(Item item) {
 		TableViewRowProxy rp = (TableViewRowProxy)item.proxy;
 		TableViewRowProxy oldProxy = getRowProxy();
-		setRowData(rp);
-		this.item = item;
+		boolean changingProxy = (oldProxy != null && oldProxy != rp);
 		
-		if (oldProxy != null)
+		if (changingProxy)
 		{
 			//we are reusing its view so make sure it doesnt think it still has views!
 			oldProxy.clearViews();
 			oldProxy.setTableViewItem(null);
 		}
 		
+		setRowData(rp);
+
 		rp.setTableViewItem(this);
+		this.item = item;
 		
 		KrollDict  p;
-		if (oldProxy != null)
+		if (changingProxy)
 			p = getOnlyChangedProperties(oldProxy, rp);
 		else
 			p = rp.getProperties();
@@ -223,7 +228,10 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			proxy.setModelListener(view, false); //applying proxy properties
 			view.registerForTouch();
 			view.registerForKeyPress();
-			view.processProperties(getOnlyChangedProperties(oldProxy, proxy));
+			if (oldProxy != proxy)
+				view.processProperties(getOnlyChangedProperties(oldProxy, proxy));
+			else
+				view.processProperties(proxy.getProperties());
 			associateProxies(proxy.getChildren(), view.getChildren());
 		}
 	}
