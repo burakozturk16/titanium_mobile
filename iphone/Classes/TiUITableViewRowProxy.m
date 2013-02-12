@@ -306,6 +306,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	[super _destroy];
 }
 
+-(void)setTable:(TiUITableView *)newTable
+{
+	if ([self isAttached])
+    {
+        [self detachView];
+    }
+	table = newTable;
+}
+
 -(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
 {
     return [self _initWithPageContext:context_ args:args withPropertiesInit:YES];
