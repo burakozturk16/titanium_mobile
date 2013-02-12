@@ -198,6 +198,7 @@ DEFINE_EXCEPTIONS
 	[longPressRecognizer release];
 	proxy = nil;
 	touchDelegate = nil;
+	childViews = nil;
 	[super dealloc];
 }
 
@@ -838,7 +839,7 @@ DEFINE_EXCEPTIONS
 - (void)willRemoveSubview:(UIView *)subview
 {
     
-    if ([subview isKindOfClass:[TiUIView class]])
+    if ([subview isKindOfClass:[TiUIView class]] && childViews)
     {
         [childViews removeObject:subview];
     }
