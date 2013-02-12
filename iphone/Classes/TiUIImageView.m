@@ -267,8 +267,11 @@ DEFINE_EXCEPTIONS
 
 -(UIViewContentMode)contentModeForImageView
 {
-    if (TiDimensionIsAuto(width) || TiDimensionIsAutoSize(width) || TiDimensionIsUndefined(width) ||
-        TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height)) {
+    LayoutConstraint* constraints = [(TiViewProxy*)[self proxy] layoutProperties];
+    if (((TiDimensionIsAuto(width) || TiDimensionIsAutoSize(width) || TiDimensionIsUndefined(width)) &&
+         (TiDimensionIsUndefined(constraints->left) || TiDimensionIsUndefined(constraints->right))) ||
+        ((TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height)) &&
+         (TiDimensionIsUndefined(constraints->top) || TiDimensionIsUndefined(constraints->bottom)))) {
         return UIViewContentModeScaleAspectFit;
     }
     else {
