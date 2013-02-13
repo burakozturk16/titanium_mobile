@@ -58,6 +58,24 @@ static NSArray* layoutProps = nil;
 	return ((copy != nil) ? [copy autorelease] : [NSMutableArray array]);
 }
 
+-(NSArray*)visibleChildren
+{
+    NSArray* copy = nil;
+    
+	pthread_rwlock_rdlock(&childrenLock);
+    NSPredicate *pred = [NSPredicate predicateWithFormat:@"isHidden = FALSE"];
+    if (windowOpened==NO && children==nil && pendingAdds!=nil)
+	{
+        
+		copy = [pendingAdds filteredArrayUsingPredicate:pred];
+	}
+    else {
+        copy = [children filteredArrayUsingPredicate:pred];
+    }
+	pthread_rwlock_unlock(&childrenLock);
+	return ((copy != nil) ? copy : [NSMutableArray array]);
+}
+
 -(void)setVisible:(NSNumber *)newVisible withObject:(id)args
 {
 	[self setHidden:![TiUtils boolValue:newVisible def:YES] withArgs:args];
@@ -163,14 +181,14 @@ static NSArray* layoutProps = nil;
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
         
-        if (!readyToCreateView) return;
+        if (!readyToCreateView || [arg isHidden]) return;
         
 		[self contentsWillChange];
 		if(parentVisible && !hidden)
 		{
 			[arg parentWillShow];
 		}
-		
+        
 		//If layout is non absolute push this into the layout queue
 		//else just layout the child with current bounds
 		if (!TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle) ) {
@@ -764,11 +782,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)setHidden:(BOOL)newHidden withArgs:(id)args
 {
+	hidden = newHidden;
 	if([self view].hidden == newHidden)
 	{
 		return;
 	}
-	hidden = newHidden;
 	
 	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
 	
@@ -815,9 +833,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     CGFloat thisWidth = 0.0;
 
 	pthread_rwlock_rdlock(&childrenLock);
-    NSArray* subproxies = [self children];
+    NSArray* subproxies = [self visibleChildren];
 	for (TiViewProxy * thisChildProxy in subproxies)
-	{
+	{        
         if (isHorizontal) {
             sandBox = CGRectZero;
             sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
@@ -870,10 +888,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     CGFloat thisHeight = 0.0;
 
 	pthread_rwlock_rdlock(&childrenLock);
-	NSArray* array = windowOpened ? children : pendingAdds;
-    
-	for (TiViewProxy * thisChildProxy in array)
+	NSArray* subproxies = [self visibleChildren];
+	for (TiViewProxy * thisChildProxy in subproxies)
 	{
+        if ([thisChildProxy isHidden]) continue;
         if (!isAbsolute) {
             sandBox = CGRectZero;
             sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
@@ -1122,6 +1140,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		view.proxy = self;
 		view.layer.transform = CATransform3DIdentity;
 		view.transform = CGAffineTransformIdentity;
+        view.hidden = hidden;
 
 		[view initializeState];
 
@@ -1275,12 +1294,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// If the window was previously opened, it may need to have
 	// its existing children redrawn
 	// Maybe need to call layout children instead for non absolute layout
-	if (children != nil) {
-		for (TiViewProxy* child in children) {
-			[self layoutChild:child optimize:NO withMeasuredBounds:[[self size] rect]];
-			[child windowWillOpen];
-		}
-	}
+    NSArray* subproxies = [self visibleChildren];
+    for (TiViewProxy* child in subproxies) {
+        [self layoutChild:child optimize:NO withMeasuredBounds:[[self size] rect]];
+        [child windowWillOpen];
+    }
 	
 	pthread_rwlock_unlock(&childrenLock);
 	
@@ -2129,6 +2147,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	
 	if(hidden)
 	{
+        //This code messes with tableview magic
 //		VerboseLog(@"Removing from superview");
 //		if([self viewAttached])
 //		{
@@ -2440,7 +2459,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         TiRect * childRect = [[TiRect alloc] init];
         CGRect childBounds = CGRectZero;
         UIView * ourView = [self parentViewForChild:child];
-        if (ourView != nil && ![(TiViewProxy*)child isHidden])
+        if (ourView != nil)
         {
             CGRect bounds = [ourView bounds];
 			if (horizontalNoWrap) {
@@ -2881,7 +2900,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	
 	UIView * ourView = [self parentViewForChild:child];
 
-	if (ourView==nil)
+	if (ourView==nil || [child isHidden])
 	{
 		return;
 	}
@@ -2965,7 +2984,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 //TODO: This is really expensive, but what can you do? Laying out the child needs the lock again.
 	pthread_rwlock_rdlock(&childrenLock);
-	NSArray * childrenArray = [[self children] retain];
+	NSArray * childrenArray = [[self visibleChildren] retain];
 	pthread_rwlock_unlock(&childrenLock);
     
     NSUInteger childCount = [childrenArray count];
