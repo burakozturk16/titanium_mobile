@@ -63,6 +63,11 @@ USE_VIEW_FOR_CONTENT_WIDTH
                     @"Helvetica", DTDefaultFontFamily,
                      [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
                      kCTLineBreakByWordWrapping, DTDefaultLineBreakMode, nil] retain];
+        
+        if ([TiUtils isIOS6OrGreater])
+        {
+            [options setObject:[NSNumber numberWithBool:YES] forKey:DTUseiOS6Attributes];
+        }
     }
     return self;
 }
