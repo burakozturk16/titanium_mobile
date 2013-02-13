@@ -17,6 +17,9 @@
     CGRect padding;
     CGRect textPadding;
     CGRect initialLabelFrame;
+    BOOL needsUpdateBackgroundImageFrame;
+    BOOL needsPadLabel;
+    BOOL needsSetText;
 }
 
 @property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO

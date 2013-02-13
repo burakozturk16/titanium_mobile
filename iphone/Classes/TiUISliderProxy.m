@@ -12,6 +12,21 @@ NSArray* sliderKeySequence;
 
 @implementation TiUISliderProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"min",
+                                              @"max",@"value",@"enabled",@"leftTrackLeftCap",
+                                              @"leftTrackTopCap",@"rightTrackLeftCap",
+                                              @"rightTrackTopCap", @"thumbImage",
+                                              @"selectedThumbImage",@"highlightedThumbImage",
+                                              @"disabledThumbImage", @"leftTrackImage",
+                                              @"selectedLeftTrackImage",@"highlightedLeftTrackImage",
+                                              @"disabledLeftTrackImage", @"rightTrackImage",
+                                              @"selectedRightTrackImage",@"highlightedRightTrackImage",
+                                              @"disabledRightTrackImage", nil]];
+}
+
 -(NSArray *)keySequence
 {
 	if (sliderKeySequence == nil)

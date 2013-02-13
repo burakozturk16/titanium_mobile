@@ -11,6 +11,12 @@
 
 @implementation TiUICanvasViewProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return common;
+}
+
 -(void)begin:(id)args
 {
 	TiUICanvasView *canvas = (TiUICanvasView*)[self view];

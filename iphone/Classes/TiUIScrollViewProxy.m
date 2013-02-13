@@ -13,6 +13,17 @@
 
 @implementation TiUIScrollViewProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"contentOffset",
+                                              @"minZoomScale",@"maxZoomScale",@"zoomScale",
+                                              @"canCancelEvents",@"contentWidth",@"contentHeight",
+                                              "showHorizontalScrollIndicator",@"showVerticalScrollIndicator",
+                                              @"scrollIndicatorStyle", @"scrollsToTop", @"horizontalBounce",
+                                              @"verticalBounce", @"scrollingEnabled", @"disableBounce", nil]];
+}
+
 static NSArray* scrollViewKeySequence;
 -(NSArray *)keySequence
 {

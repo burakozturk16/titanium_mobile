@@ -15,6 +15,16 @@
 @synthesize suppressFocusEvents;
 DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"color",
+                                              @"font",@"textAlign",@"value",@"returnKeyType",
+                                              @"enableReturnKey",@"keyboardType",
+                                              @"autocorrect", @"passwordMask",
+                                              @"appearance",@"autocapitalization", nil]];
+}
+
 - (void)windowWillClose
 {
 	if([self viewInitialized])

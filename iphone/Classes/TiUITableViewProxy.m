@@ -30,6 +30,22 @@ NSArray * tableKeySequence;
 @implementation TiUITableViewProxy
 @synthesize internalSections=sections;
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"scrollsToTop",
+                                              @"selectedBackgroundGradient",@"data",@"allowSelection",
+                                              "allowSelectionDuringEditing",@"separatorStyle",
+                                              @"search", @"scrollIndicatorStyle", @"showVerticalScrollIndicator",
+                                              @"searchHidden", @"hideSearchOnSelection", @"filterAttribute",
+                                              @"index", @"filterCaseInsensitive", @"editable",
+                                              @"moveable", @"scrollable", @"editing",
+                                              @"moving", @"rowHeight", @"minRowHeight", @"maxRowHeight",
+                                              @"headerPullView", @"contentInsets",
+                                              @"separatorColor", @"headerTitle", @"headerView",
+                                              @"footerTitle", @"footerView", nil]];
+}
+
 USE_VIEW_FOR_CONTENT_HEIGHT
 
 #pragma mark Internal

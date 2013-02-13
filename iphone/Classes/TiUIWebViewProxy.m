@@ -14,6 +14,14 @@
 
 @implementation TiUIWebViewProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"autoDetect",
+                                              @"html",@"data",@"scalesPageToFit",
+                                              "url",@"scrollsToTop",@"disableBounce", nil]];
+}
+
 static NSArray* webKeySequence;
 
 #ifdef DEBUG_MEMORY

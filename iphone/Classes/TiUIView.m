@@ -956,6 +956,7 @@ DEFINE_EXCEPTIONS
 	if (oldProxy != newProxy) {
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
        [transferLock lock];
+        NSSet* transferableProperties = [[oldProxy class] transferableProperties];
         NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
         NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
         NSMutableSet* keySequence = [NSMutableSet setWithArray:[newProxy keySequence]];
@@ -964,6 +965,8 @@ DEFINE_EXCEPTIONS
         [oldProperties minusSet:layoutProps];
         [newProperties minusSet:keySequence];
         [layoutProps intersectSet:newProperties];
+        [newProperties intersectSet:transferableProperties];
+        [oldProperties intersectSet:transferableProperties];
         
         id<NSFastEnumeration> keySeq = keySequence;
         id<NSFastEnumeration> oldProps = oldProperties;

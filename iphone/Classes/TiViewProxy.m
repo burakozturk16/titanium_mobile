@@ -25,6 +25,7 @@
 @implementation TiViewProxy
 
 static NSArray* layoutProps = nil;
+static NSSet* transferableProps = nil;
 
 #pragma mark public API
 
@@ -476,6 +477,16 @@ LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeS
         layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", nil];
     }
     return layoutProps;
+}
+
++(NSSet*)transferableProperties
+{
+    if (transferableProps == nil) {
+        transferableProps = [[NSSet alloc] initWithObjects:@"visible", @"backgroundImage", @"backgroundGradient", @"backgroundColor", @"backgroundRepeat", @"backgroundLeftCap", @"backgroundTopCap", @"focusable", @"touchEnabled", @"viewShadowOffset", @"viewShadowRadius", @"viewShadowColor", @"accessibilityLabel", @"accessibilityValue", @"accessibilityHint", @"accessibilityHidden",
+            @"opacity", @"borderWidth", @"borderColor", @"borderRadius", @"tileBackground",
+            @"transform", @"center", @"anchorPoint", @"clipChildren", @"touchPassThrough", @"transform", nil];
+    }
+    return transferableProps;
 }
 
 // See below for how we handle setLayout

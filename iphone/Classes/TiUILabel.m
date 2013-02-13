@@ -63,7 +63,10 @@
 
 -(void)padLabel
 {
-    if (!configurationSet) return; // lazy init
+    if (!configurationSet) {
+        needsPadLabel = YES;
+        return; // lazy init
+    }
 	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.origin.x
                                    , initialLabelFrame.origin.y + textPadding.origin.y
                                    , initialLabelFrame.size.width - textPadding.origin.x - textPadding.size.width
@@ -94,13 +97,22 @@
     [super frameSizeChanged:frame bounds:bounds];
 }
 
+- (void)configurationStart {
+    [super configurationStart];
+    needsUpdateBackgroundImageFrame = needsPadLabel = needsSetText = NO;
+}
 
 - (void)configurationSet {
-    [super configurationSet];
-    [self padLabel];
-    [self updateBackgroundImageFrameWithPadding];
-    [self setAttributedTextViewContent];
     
+    [super configurationSet];
+    if (needsPadLabel)
+        [self padLabel];
+    
+    if (needsUpdateBackgroundImageFrame)
+        [self updateBackgroundImageFrameWithPadding];
+    
+    if (needsSetText)
+        [self setAttributedTextViewContent];
 }
 
 -(TTTAttributedLabel*)label
@@ -125,8 +137,11 @@
 }
 
 - (void)setAttributedTextViewContent {
+    if (!configurationSet) {
+        needsSetText = YES;
+        return; // lazy init
+    }
     ENSURE_UI_THREAD_0_ARGS
-    if (!configurationSet) return; // lazy init
     
     id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
     if ([attr isKindOfClass:[NSAttributedString class]])
@@ -172,6 +187,17 @@
         newColor = [UIColor darkTextColor];
 	[[self label] setTextColor:newColor];
 }
+
+-(void)setText_:(id)value
+{
+	[self setAttributedTextViewContent];
+}
+
+-(void)setHtml_:(id)value
+{
+	[self setAttributedTextViewContent];
+}
+
 
 -(void)setHighlightedColor_:(id)color
 {
@@ -221,7 +247,10 @@
 
 -(void) updateBackgroundImageFrameWithPadding
 {
-    if (!configurationSet) return; // lazy init
+    if (!configurationSet){
+        needsUpdateBackgroundImageFrame = YES;
+        return; // lazy init
+    }
     [self setBackgroundImageLayerBounds:self.bounds];
 }
 

@@ -166,6 +166,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 /**
  Performs view's configuration procedure.
  */
+-(void)configurationStart;
 -(void)configurationSet;
 
 /**

@@ -10,6 +10,13 @@
 
 @implementation TiUISwitchProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"enabled",
+                                              @"value", nil]];
+}
+
 -(UIViewAutoresizing)verifyAutoresizing:(UIViewAutoresizing)suggestedResizing
 {
 	return suggestedResizing & ~(UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth);

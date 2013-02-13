@@ -13,6 +13,24 @@
 
 @implementation TiUIButtonProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"title",
+                                              @"color", @"highlightedColor", @"selectedColor",
+                                              @"enabled", @"selected", @"style",
+                                              @"image", @"backgroundHighlightedImage",
+                                              @"backgroundDisabledImage", @"backgroundSelectedImage",
+                                              @"backgroundFocusedImage", @"verticalAlign",
+                                              @"textAlign", @"font", @"backgroundPaddingLeft",
+                                              @"backgroundPaddingRight",
+                                              @"backgroundPaddingBottom", @"backgroundPaddingTop",
+                                              @"shadowOffset", @"shadowRadius", @"shadowColor",
+                                              @"titlePaddingLeft", @"titlePaddingRight",
+                                              @"titlePaddingTop", @"titlePaddingBottom",
+                                              @"wordWrap", @"borderWidth", nil]];
+}
+
 -(void)_destroy
 {
 	RELEASE_TO_NIL(button);

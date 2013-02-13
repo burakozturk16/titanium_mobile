@@ -11,6 +11,14 @@
 
 @implementation TiUITextAreaProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiUITextWidgetProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"enabled",
+                                              @"scrollable",@"editable",@"autoLink",
+                                              @"borderStyle", nil]];
+}
+
 #pragma mark Defaults
 
 DEFINE_DEF_PROP(value,@"");

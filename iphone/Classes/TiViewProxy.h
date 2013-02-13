@@ -591,6 +591,7 @@ enum
 -(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
 
 +(NSArray*)layoutProperties;
++(NSSet*)transferableProperties;
 
 - (void)prepareForReuse;
 

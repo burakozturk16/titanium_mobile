@@ -50,6 +50,21 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 USE_VIEW_FOR_CONTENT_WIDTH
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"text",@"html",
+                                              @"color", @"highlightedColor", @"autoLink",
+                                              @"verticalAlign", @"textAlign", @"font",
+                                              @"minimumFontSize", @"backgroundPaddingLeft",
+                                              @"backgroundPaddingRight", @"backgroundPaddingBottom", @"backgroundPaddingTop", @"shadowOffset",
+                                              @"shadowRadius", @"shadowColor",
+                                              @"textPaddingLeft", @"textPaddingRight",
+                                              @"textPaddingTop", @"textPaddingBottom",
+                                              @"wordWrap", @"borderWidth", @"maxLines",
+                                              @"ellipsize", @"multiLineEllipsize", nil]];
+}
+
 -(id)init
 {
     if (self = [super init]) {
@@ -92,9 +107,11 @@ USE_VIEW_FOR_CONTENT_WIDTH
             break;
         }
     }
-    [(TiUILabel*)[self view] setAttributedTextViewContent];
+    if ([self view]) {
+        [(TiUILabel*)[self view] setAttributedTextViewContent];
+        [self contentsWillChange];
+    }
     attributeTextNeedsUpdate = NO;
-    [self contentsWillChange];
 }
 
 -(void)_initWithProperties:(NSDictionary *)properties
