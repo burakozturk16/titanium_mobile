@@ -176,7 +176,7 @@
 		style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:defaultType];
 		UIView *btn = [TiButtonUtil buttonWithType:style];
 		button = (UIButton*)[btn retain];
-		button.lineBreakMode = UILineBreakModeWordWrap; //default wordWrap to True
+		[button titleLabel].lineBreakMode = UILineBreakModeWordWrap; //default wordWrap to True
 		[self addSubview:button];
 		if (style==UIButtonTypeCustom)
 		{
@@ -403,8 +403,10 @@
 	}
 	else
 	{
-		color = [TiUtils colorValue:color];
-		[b setTitleShadowColor:[color _color] forState:UIControlStateNormal];
+        color = [TiUtils colorValue:color];
+        CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
+		[[[b titleLabel] layer] setShadowColor:[color _color].CGColor];
+		[[[b titleLabel] layer] setShadowOpacity:alpha];
 	}
 }
 
@@ -413,7 +415,13 @@
 	UIButton *b = [self button];
 	CGPoint p = [TiUtils pointValue:value];
 	CGSize size = {p.x,p.y};
-	[[b titleLabel] setShadowOffset:size];
+	[[[b titleLabel] layer] setShadowOffset:size];
+}
+
+-(void)setShadowRadius_:(id)arg
+{
+	UIButton *b = [self button];
+	[[[b titleLabel] layer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
 -(void)setTitlePaddingLeft_:(id)left
