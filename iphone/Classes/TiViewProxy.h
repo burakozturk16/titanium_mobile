@@ -228,8 +228,12 @@ enum
 -(void)setReadyToCreateView:(BOOL)ready;
 -(void)clearView:(BOOL)recurse;
 -(TiUIView*)getOrCreateView;
+-(void)processPendingAdds;
+-(void)fakeOpening;
 
 -(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;
+-(void)runBlock:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
+-(void)runBlockOnMainThread:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
 
 #pragma mark nonpublic accessors not related to Housecleaning
 
@@ -436,6 +440,7 @@ enum
  Tells the view proxy to detach its view.
  */
 -(void)detachView;
+-(void)detachView:(BOOL)recursive;
 
 -(void)destroy;
 

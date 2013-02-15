@@ -59,6 +59,35 @@ static NSSet* transferableProps = nil;
 	return ((copy != nil) ? [copy autorelease] : [NSMutableArray array]);
 }
 
+-(void)runBlockOnMainThread:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive
+{
+    if ([NSThread isMainThread])
+	{
+        [self runBlock:block onlyVisible:onlyVisible recursive:recursive];
+    }
+    else
+    {
+        TiThreadPerformOnMainThread(^{
+            [self runBlock:block onlyVisible:onlyVisible recursive:recursive];
+        }, NO);
+    }
+}
+
+-(void)runBlock:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive
+{
+    if (recursive)
+    {
+        pthread_rwlock_rdlock(&childrenLock);
+        NSArray* subproxies = onlyVisible?[self visibleChildren]:[self children];
+        for (TiViewProxy * thisChildProxy in subproxies)
+        {
+            [thisChildProxy runBlock:block onlyVisible:onlyVisible recursive:recursive];
+        }
+        pthread_rwlock_unlock(&childrenLock);
+    }
+    block(self);
+}
+
 -(NSArray*)visibleChildren
 {
     NSArray* copy = nil;
@@ -1223,6 +1252,32 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     }
 }
 
+//USED WITH TABLEVIEW MAGIC
+-(void)processPendingAdds
+{
+    pthread_rwlock_rdlock(&childrenLock);
+    for (TiViewProxy* child in [self children]) {
+        [child processPendingAdds];
+    }
+    
+    pthread_rwlock_unlock(&childrenLock);
+    if (pendingAdds != nil)
+    {
+        for (id child in pendingAdds)
+        {
+            [(TiViewProxy*)child processPendingAdds];
+            [self add:child];
+        }
+		RELEASE_TO_NIL(pendingAdds);
+    }
+}
+
+//CAUTION: TO BE USED ONLY WITH TABLEVIEW MAGIC
+-(void)fakeOpening
+{
+    windowOpened = parentVisible = YES;
+}
+
 -(NSMutableDictionary*)langConversionTable
 {
     return nil;
@@ -1266,10 +1321,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)windowWillOpen
 {
-	//TODO: This should be properly handled and moved, but for now, let's force it (Redundantly, I know.)
-	if (parent != nil) {
-		[self parentWillShow];
-	}
 
 	pthread_rwlock_rdlock(&childrenLock);
 	
@@ -1600,11 +1651,19 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)detachView
 {
+	[self detachView:YES];
+}
+
+-(void)detachView:(BOOL)recursive
+{
 	[destroyLock lock];
     
-    pthread_rwlock_rdlock(&childrenLock);
-    [[self children] makeObjectsPerformSelector:@selector(detachView)];
-    pthread_rwlock_unlock(&childrenLock);
+    if(recursive)
+    {
+        pthread_rwlock_rdlock(&childrenLock);
+        [[self children] makeObjectsPerformSelector:@selector(detachView)];
+        pthread_rwlock_unlock(&childrenLock);
+    }
     
 	if (view!=nil)
 	{

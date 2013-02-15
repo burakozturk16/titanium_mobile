@@ -212,14 +212,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	return self;
 }
 
-- (void)addSubview:(UIView *)view{
-    const char* className = class_getName([view class]);
-    
-    NSArray* views = [self subviews];
-    int count = [views count];
-    [super addSubview:view];
-}
-
 -(void)clearHitTarget
 {
 	[hitTarget autorelease];
@@ -313,6 +305,15 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
         [self detachView];
     }
 	table = newTable;
+    
+    //use that time to make sure we dont have pendingAdds (would make scrolling a lot slower)
+    [self processPendingAdds];
+}
+
+-(void)processPendingAdds
+{
+    ENSURE_UI_THREAD_0_ARGS
+    [super processPendingAdds];
 }
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
@@ -798,6 +799,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	// table cell, the updateChildren below will be called instead
 	configuredChildren = NO;
     [self setReadyToCreateView:NO];
+    [self fakeOpening];
 	if ([[self children] count] > 0)
 	{
 		UIView *contentView = cell.contentView;
@@ -880,13 +882,25 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 
 				[proxy setReproxying:YES];
                 if (uiview == nil) {
-                    [proxy detachView];
+                    [proxy runBlock:^(TiViewProxy *blockproxy) {
+                        [blockproxy detachView:NO];
+                    } onlyVisible:NO recursive:YES];
+                    
 					[view addSubview:[proxy getOrCreateView]];
+//                    [proxy windowWillOpen];
+                    
+                    [proxy runBlock:^(TiViewProxy *blockproxy) {
+                        [blockproxy fakeOpening];
+                        [[blockproxy view] setTouchDelegate:contentView];
+                    } onlyVisible:NO recursive:YES];
 				}
                 else{
-                    [uiview transferProxy:proxy deep:YES];
+                    [uiview transferProxy:proxy withBlockBefore:^(TiViewProxy *blockproxy) {
+                        [blockproxy fakeOpening];
+                    } withBlockAfter:^(TiViewProxy *blockproxy) {
+                        [[blockproxy view] setTouchDelegate:contentView];
+                    } deep:YES];
                 }
-                [self redelegateViews:proxy toView:contentView];
 				[proxy setReproxying:NO];
                 uiview = nil;
 			}];
@@ -897,8 +911,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	}
 	configuredChildren = YES;
     [self setReadyToCreateView:YES];
-    [self windowWillOpen];
-    [self refreshView:nil];
+//    [self windowWillOpen];
 }
 
 -(void)initializeTableViewCell:(UITableViewCell*)cell

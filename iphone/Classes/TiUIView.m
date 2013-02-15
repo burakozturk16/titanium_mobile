@@ -967,15 +967,40 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(void)transferProxy:(TiViewProxy*)newProxy
+{
+    [self transferProxy:newProxy deep:NO];
+}
+
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
 {
+    [self transferProxy:newProxy withBlockBefore:nil withBlockAfter:nil deep:deep];
+}
 
+-(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
+                withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep
+{
 	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
 	
 	// We can safely skip everything if we're transferring to ourself.
 	if (oldProxy != newProxy) {
+        
+        if(blockBefore)
+        {
+            blockBefore(newProxy);
+        }
+        
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-       [transferLock lock];
+        [transferLock lock];
+        
+        if (deep) {
+			NSArray *subProxies = [newProxy children];
+			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
+				TiViewProxy *newSubProxy = idx < [subProxies count] ? [subProxies objectAtIndex:idx] : nil;
+				[[oldSubProxy view] transferProxy:newSubProxy withBlockBefore:blockBefore withBlockAfter:blockAfter deep:deep];
+			}];
+		}
+        
         NSSet* transferableProperties = [[oldProxy class] transferableProperties];
         NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
         NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
@@ -990,7 +1015,7 @@ DEFINE_EXCEPTIONS
         
         id<NSFastEnumeration> keySeq = keySequence;
         id<NSFastEnumeration> oldProps = oldProperties;
-        id<NSFastEnumeration> props = newProperties;
+        id<NSFastEnumeration> newProps = newProperties;
         id<NSFastEnumeration> fastLayoutProps = layoutProps;
         
 		[oldProxy retain];
@@ -1031,7 +1056,7 @@ DEFINE_EXCEPTIONS
 			[self setKrollValue:nil forKey:thisKey withObject:nil];
 		}
 
-		for (NSString * thisKey in props)
+		for (NSString * thisKey in newProps)
 		{
 			id newValue = [newProxy valueForKey:thisKey];
 			id oldValue = [oldProxy valueForKey:thisKey];
@@ -1044,17 +1069,17 @@ DEFINE_EXCEPTIONS
         pool = nil;
 
         [self configurationSet];
-
-		if (deep) {
-			NSArray *subProxies = [newProxy children];
-			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
-				TiViewProxy *newSubProxy = idx < [subProxies count] ? [subProxies objectAtIndex:idx] : nil;
-				[[oldSubProxy view] transferProxy:newSubProxy deep:YES];
-			}];
-		}
+        
 		[oldProxy release];
 		
 		[newProxy setReproxying:NO];
+
+ 
+        if(blockAfter)
+        {
+          blockAfter(newProxy);  
+        }
+
         [transferLock unlock];
         
 	}

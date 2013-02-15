@@ -193,7 +193,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  @param deep true for deep transfer
  */
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep;
-
+-(void)transferProxy:(TiViewProxy*)newProxy;
+-(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
+      withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep;
 /*
  Returns whether the view tree matches proxy tree for later transfer.
  @param proxy The proxy to validate view tree with.
