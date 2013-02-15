@@ -689,12 +689,32 @@ DEFINE_EXCEPTIONS
 {
   	ENSURE_UI_THREAD_1_ARG(visible);
     BOOL oldVal = self.hidden;
-    self.hidden = ![TiUtils boolValue:visible];
-    //Redraw ourselves if changing from invisible to visible, to handle any changes made
-	if (!self.hidden && oldVal) {
-        TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
-        [viewProxy willEnqueue];
-    }
+    BOOL newVal = ![TiUtils boolValue:visible];
+    
+    
+    if (newVal == oldVal) return;
+    
+    self.hidden = newVal;
+	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
+    TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
+	
+	if(viewProxy.parentVisible)
+	{
+		if (newVal)
+		{
+			[viewProxy willHide];
+		}
+		else
+		{
+			[viewProxy willShow];
+            //Redraw ourselves if changing from invisible to visible, to handle any changes made
+		}
+	}
+    
+//    //Redraw ourselves if changing from invisible to visible, to handle any changes made
+//	if (!self.hidden && oldVal) {
+//        [viewProxy willEnqueue];
+//    }
 }
 
 -(void)setTouchEnabled_:(id)arg

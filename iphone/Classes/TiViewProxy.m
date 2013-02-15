@@ -174,15 +174,13 @@ static NSSet* transferableProps = nil;
 		{
 			[children addObject:arg];
 		}
-        
-        
-        //Turn on clipping because I have children
-        [[self view] updateViewShadowPath];
-        
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
         
         if (!readyToCreateView || [arg isHidden]) return;
+        
+        //Turn on clipping because I have children
+        [[self view] updateViewShadowPath];
         
 		[self contentsWillChange];
 		if(parentVisible && !hidden)
@@ -798,20 +796,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	{
 		return;
 	}
-	
-	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
-	
-	if(parentVisible)
-	{
-		if (hidden)
-		{
-			[self willHide];
-		}
-		else
-		{
-			[self willShow];
-		}
-	}
 }
 
 -(BOOL)isHidden
@@ -1305,9 +1289,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// If the window was previously opened, it may need to have
 	// its existing children redrawn
 	// Maybe need to call layout children instead for non absolute layout
-    NSArray* subproxies = [self visibleChildren];
+    NSArray* subproxies = [self children];
     for (TiViewProxy* child in subproxies) {
-        [self layoutChild:child optimize:NO withMeasuredBounds:[[self size] rect]];
+//        [self layoutChild:child optimize:NO withMeasuredBounds:[[self size] rect]];
         [child windowWillOpen];
     }
 	
@@ -1321,6 +1305,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 			[child windowWillOpen];
 		}
 		RELEASE_TO_NIL(pendingAdds);
+	}
+    
+    //TODO: This should be properly handled and moved, but for now, let's force it (Redundantly, I know.)
+	if (parent != nil) {
+		[self parentWillShow];
 	}
 }
 
