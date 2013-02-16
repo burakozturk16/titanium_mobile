@@ -259,15 +259,16 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
     if ([self proxy])
         [(TiUITableViewRowProxy*)[self proxy] configureBackgroundColor];
-//	if ([color isKindOfClass:[UIColor class]])
-//	{
-//		super.backgroundColor = color;
-//	}
-//	else
-//	{
-//		TiColor *ticolor = [TiUtils colorValue:color];
-//		super.backgroundColor = [ticolor _color];
-//	}
+}
+
+
+-(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy
+{
+    [super propertyChanged:key oldValue:oldValue newValue:newValue proxy:proxy];
+    if ([self proxy])
+    {
+        [(TiUITableViewRowProxy*)[self proxy] propertyChanged:key oldValue:oldValue newValue:newValue proxy:proxy];
+    }
 }
 
 
@@ -882,23 +883,43 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
                 
 				[proxy setReproxying:YES];
                 if (uiview == nil) {
-                    [proxy runBlock:^(TiViewProxy *blockproxy) {
-                        [blockproxy detachView:NO];
-                    } onlyVisible:NO recursive:YES];
                     
+                    //1 detach view if necessary
+//                    [proxy runBlock:^(TiViewProxy *blockproxy) {
+//                        [blockproxy detachView:NO];
+//                    } onlyVisible:NO recursive:YES];
+                    
+                    //First case no reusable cell container
+                    
+                    // 1 create view recursively
 					[view addSubview:[proxy getOrCreateView]];
-//                    [proxy windowWillOpen];
                     
+                    // we use on recursion to optimize
                     [proxy runBlock:^(TiViewProxy *blockproxy) {
+                        //we dont really want to use willOpenWindow so we fake opening
                         [blockproxy fakeOpening];
+                        
+                        //we update touchDelegate
                         [[blockproxy view] setTouchDelegate:contentView];
+                        
+                        //now we are ready to create sub added views
+                        [blockproxy setReadyToCreateView:YES recursive:NO];
                     } onlyVisible:NO recursive:YES];
 				}
                 else{
+                    //reusable cell container
+                    
+                    //we transfer proxy and use its recursion to apply blocks
                     [uiview transferProxy:proxy withBlockBefore:^(TiViewProxy *blockproxy) {
+                        //we dont really want to use willOpenWindow so we fake opening
                         [blockproxy fakeOpening];
                     } withBlockAfter:^(TiViewProxy *blockproxy) {
+                        
+                        //we update touchDelegate
                         [[blockproxy view] setTouchDelegate:contentView];
+                        
+                        //now we are ready to create sub added views
+                        [blockproxy setReadyToCreateView:YES recursive:NO];
                     } deep:YES];
                 }
 				[proxy setReproxying:NO];
@@ -910,8 +931,8 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 		}
 	}
 	configuredChildren = YES;
-    [self setReadyToCreateView:YES];
-//    [self windowWillOpen];
+    //now we are ready to create views!
+    [self setReadyToCreateView:YES recursive:NO];
 }
 
 -(void)initializeTableViewCell:(UITableViewCell*)cell
@@ -932,18 +953,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
 	return (table!=nil) && ([self parent]!=nil);
 }
-
-// TODO: SUPER MEGA UGLY but it's the only workaround for now.  zindex does NOT work with table rows.
-// TODO: Add child locking methods for whenever we have to touch children outside TiViewProxy
-//-(void)willShow
-//{
-//	pthread_rwlock_rdlock(&childrenLock);
-//    NSArray* subproxies = [self children];
-//	for (TiViewProxy* child in subproxies) {
-//		[child setParentVisible:YES];
-//	}
-//	pthread_rwlock_unlock(&childrenLock);
-//}
 
 -(void)triggerAttach
 {
