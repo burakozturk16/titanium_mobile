@@ -423,7 +423,6 @@
 			NSLog(@"[WARN] No style object!");
 		}
 #endif
-        NSLog(@"test1 %@", NSStringFromCGRect([self bounds]));
 		tableview = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
 		tableview.delegate = self;
 		tableview.dataSource = self;
