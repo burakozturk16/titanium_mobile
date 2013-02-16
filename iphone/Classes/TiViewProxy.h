@@ -226,6 +226,7 @@ enum
 //this is for the tableview magic. For any other view, will be set when
 //added to a parent which is already ready
 -(void)setReadyToCreateView:(BOOL)ready;
+-(void)setReadyToCreateView:(BOOL)ready recursive:(BOOL)recursive;
 -(void)clearView:(BOOL)recurse;
 -(TiUIView*)getOrCreateView;
 -(void)processPendingAdds;

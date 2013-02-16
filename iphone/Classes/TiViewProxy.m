@@ -727,8 +727,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// if you pass a callback function, we'll run the render asynchronously, if you
 	// don't, we'll do it synchronously
 	TiThreadPerformOnMainThread(^{
+		TiUIView *myview = [self getOrCreateView];
 		[self windowWillOpen];
-		TiUIView *myview = [self view];
 		CGSize size = myview.bounds.size;
 		if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
 		{
@@ -1119,7 +1119,14 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)setReadyToCreateView:(BOOL)ready
 {
+    [self setReadyToCreateView:YES recursive:YES];
+}
+
+-(void)setReadyToCreateView:(BOOL)ready recursive:(BOOL)recursive
+{
     readyToCreateView = ready;
+    if (!recursive) return;
+    
     pthread_rwlock_rdlock(&childrenLock);
 	if (children != nil) {
 		for (TiViewProxy* child in children) {
