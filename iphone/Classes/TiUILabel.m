@@ -141,13 +141,21 @@
         needsSetText = YES;
         return; // lazy init
     }
-    ENSURE_UI_THREAD_0_ARGS
+    if (![NSThread isMainThread])
+    {
+        TiThreadPerformOnMainThread(^{
+            [self setAttributedTextViewContent];
+        }, NO);
+        return;
+    }
     
     id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
     if ([attr isKindOfClass:[NSAttributedString class]])
         [[self label] setText:attr];
     else
         [[self label] setText:attr];
+    
+    
 }
 
 -(void)setHighlighted:(BOOL)newValue
