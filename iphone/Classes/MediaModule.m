@@ -445,7 +445,7 @@ static NSDictionary* TI_filterableItemProperties;
 		{
 			ENSURE_TYPE(cameraViewProxy,TiViewProxy);
             cameraView = [cameraViewProxy retain];
-			UIView *view = [cameraView view];
+			UIView *view = [cameraView getOrCreateView];
 			if (editable)
 			{
 				// turn off touch enablement if image editing is enabled since it will
