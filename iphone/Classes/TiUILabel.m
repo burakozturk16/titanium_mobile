@@ -131,6 +131,16 @@
 	return label;
 }
 
+-(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+	UIView *superResult = [super hitTest:point withEvent:event];
+	
+	if(superResult == [self label]) {
+		return self;
+	}
+    
+	return superResult;
+}
+
 - (id)accessibilityElement
 {
 	return [self label];
