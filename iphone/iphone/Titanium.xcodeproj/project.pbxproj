@@ -562,6 +562,12 @@
 		B4F97B73111A41C800E2F72C /* TiUIScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = B4F97B72111A41C800E2F72C /* TiUIScrollView.m */; };
 		D4AB36F5123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
 		D4AB36F6123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
+		D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
+		D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
+		D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
+		D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
+		D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
+		D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
 		D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -1753,6 +1759,10 @@
 		B4F97C57111BAD4700E2F72C /* TiUIiPhoneScrollIndicatorStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiPhoneScrollIndicatorStyleProxy.m; sourceTree = "<group>"; };
 		D4AB36F3123DE20200DED4A0 /* TiUIClipboardProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIClipboardProxy.h; sourceTree = "<group>"; };
 		D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIClipboardProxy.m; sourceTree = "<group>"; };
+		D522FE0B16D2AC8D008C6CC4 /* JRSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JRSwizzle.h; path = ../Classes/JRSwizzle/JRSwizzle.h; sourceTree = "<group>"; };
+		D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JRSwizzle.m; path = ../Classes/JRSwizzle/JRSwizzle.m; sourceTree = "<group>"; };
+		D522FE1016D2AD55008C6CC4 /* UIButton+BackgroundColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIButton+BackgroundColors.h"; sourceTree = "<group>"; };
+		D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+BackgroundColors.m"; sourceTree = "<group>"; };
 		D5691303168F0F4200C3F89F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		D56914E2168F15C200C3F89F /* DTActionSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTActionSheet.h; path = ../Classes/DTFoundation/DTActionSheet.h; sourceTree = "<group>"; };
 		D56914E3168F15C200C3F89F /* DTActionSheet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTActionSheet.m; path = ../Classes/DTFoundation/DTActionSheet.m; sourceTree = "<group>"; };
@@ -2198,6 +2208,7 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D522FE0A16D2AC7B008C6CC4 /* JRSwizzle */,
 				D56915D2168F536700C3F89F /* TTTAttributedLabel */,
 				D5691305168F127400C3F89F /* DTFoundation */,
 				D569123A168F0DA300C3F89F /* DTCoreText */,
@@ -2996,6 +3007,8 @@
 		24CA8C701111672E0084E2DE /* Button */ = {
 			isa = PBXGroup;
 			children = (
+				D522FE1016D2AD55008C6CC4 /* UIButton+BackgroundColors.h */,
+				D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */,
 				24CA8A8E111161FD0084E2DE /* TiUIButtonProxy.m */,
 				24CA8A8F111161FD0084E2DE /* TiUIButtonProxy.h */,
 				24CA8A94111161FD0084E2DE /* TiUIButton.m */,
@@ -3361,6 +3374,15 @@
 				B4F97B72111A41C800E2F72C /* TiUIScrollView.m */,
 			);
 			name = "Scroll View";
+			sourceTree = "<group>";
+		};
+		D522FE0A16D2AC7B008C6CC4 /* JRSwizzle */ = {
+			isa = PBXGroup;
+			children = (
+				D522FE0B16D2AC8D008C6CC4 /* JRSwizzle.h */,
+				D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */,
+			);
+			name = JRSwizzle;
 			sourceTree = "<group>";
 		};
 		D569123A168F0DA300C3F89F /* DTCoreText */ = {
@@ -4165,6 +4187,8 @@
 				D5E45FE416919EBD00C0FAFF /* NSString+Paragraphs.m in Sources */,
 				D5E45FE716919EBD00C0FAFF /* NSString+UTF8Cleaner.m in Sources */,
 				D5E45FEA16919EBD00C0FAFF /* UIFont+DTCoreText.m in Sources */,
+				D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
+				D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4531,6 +4555,8 @@
 				D5E45FE516919EBD00C0FAFF /* NSString+Paragraphs.m in Sources */,
 				D5E45FE816919EBD00C0FAFF /* NSString+UTF8Cleaner.m in Sources */,
 				D5E45FEB16919EBD00C0FAFF /* UIFont+DTCoreText.m in Sources */,
+				D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
+				D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4897,6 +4923,8 @@
 				D5E45FE616919EBD00C0FAFF /* NSString+Paragraphs.m in Sources */,
 				D5E45FE916919EBD00C0FAFF /* NSString+UTF8Cleaner.m in Sources */,
 				D5E45FEC16919EBD00C0FAFF /* UIFont+DTCoreText.m in Sources */,
+				D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
+				D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5051,12 +5079,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					armv7,
-				);
-				"ARCHS[sdk=iphoneos*]" = (
-					armv7,
-				);
+				ARCHS = armv7;
+				"ARCHS[sdk=iphoneos*]" = armv7;
 				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -5095,12 +5119,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					armv7,
-				);
-				"ARCHS[sdk=iphoneos*]" = (
-					armv7,
-				);
+				ARCHS = armv7;
+				"ARCHS[sdk=iphoneos*]" = armv7;
 				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -5136,12 +5156,8 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = (
-					armv7,
-				);
-				"ARCHS[sdk=iphoneos*]" = (
-					armv7,
-				);
+				ARCHS = armv7;
+				"ARCHS[sdk=iphoneos*]" = armv7;
 				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";

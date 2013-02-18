@@ -51,8 +51,21 @@
 #import "ImageLoader.h"
 #import "Webcolor.h"
 #import "TiUtils.h"
+#import "UIButton+BackgroundColors.h"
 
 @implementation UIModule
+
++(void)swizzle
+{
+    [UIButton swizzle];
+}
+
+-(void)startup
+{
+    //should be done only once. And must be done before any TiUIButton is allocated
+    [UIModule swizzle];
+	[super startup];
+}
 
 -(void)dealloc
 {
