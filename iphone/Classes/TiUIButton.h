@@ -8,6 +8,14 @@
 
 #import "TiUIView.h"
 
+@interface UIButton (backgroundColors)
+@property(nonatomic,retain)	UIColor* backgroundSelectedColor;
+@property(nonatomic,retain)	UIColor* backgroundDisabledColor;
+@property(nonatomic,retain)	UIColor* backgroundHighlightedColor;
+
+-(void)updateBackgroundColor;
+@end
+
 @interface TiUIButton : TiUIView {
 @private
 	UIButton *button;
@@ -23,6 +31,7 @@
     BOOL touchStarted;
 
 	CGRect titlePadding;
+    
 }
 
 -(UIButton*)button;

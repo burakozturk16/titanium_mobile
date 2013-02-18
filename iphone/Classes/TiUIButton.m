@@ -13,6 +13,99 @@
 #import "ImageLoader.h"
 #import "TiButtonUtil.h"
 #import "TiUIView.h"
+#import <objc/runtime.h>
+
+NSString * const kDefaultColorKey = @"kDefaultBackgroundColorKey";
+NSString * const kHighlightedColorKey = @"kBackgroundHighlightedColorKey";
+NSString * const kSelectedColorKey = @"kBackgroundSelectedColorKey";
+NSString * const kDisabledColorKey = @"kBackgroundDisabledColorKey";
+
+@implementation UIButton (backgroundColors)
+
+- (void)setDefaultBackgroundColor:(UIColor *)color
+{
+	objc_setAssociatedObject(self, kDefaultColorKey, color, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    [super setBackgroundColor:color];
+}
+
+- (void)setBackgroundHighlightedColor:(UIColor *)color
+{
+	objc_setAssociatedObject(self, kHighlightedColorKey, color, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void)setBackgroundSelectedColor:(UIColor *)color
+{
+	objc_setAssociatedObject(self, kSelectedColorKey, color, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (void)setBackgroundDisabledColor:(UIColor *)color
+{
+	objc_setAssociatedObject(self, kDisabledColorKey, color, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (UIColor*)backgroundHighlightedColor
+{
+	return objc_getAssociatedObject(self, kHighlightedColorKey);
+}
+
+- (UIColor*)backgroundSelectedColor
+{
+	return objc_getAssociatedObject(self, kSelectedColorKey);
+}
+
+- (UIColor*)backgroundDisabledColor
+{
+	return objc_getAssociatedObject(self, kDisabledColorKey);
+}
+
+- (UIColor*)defaultBackgroundColor
+{
+	return objc_getAssociatedObject(self, kDefaultColorKey);
+}
+
+-(void)updateBackgroundColor
+{
+    if (self.enabled)
+    {
+        if(self.highlighted && [self backgroundHighlightedColor])
+            self.backgroundColor = [self backgroundHighlightedColor];
+        else if(self.selected && [self backgroundSelectedColor])
+            self.backgroundColor = [self backgroundSelectedColor];
+        else if([self defaultBackgroundColor])
+            self.backgroundColor = [self defaultBackgroundColor];
+        else
+            self.backgroundColor = [UIColor clearColor];
+    }
+    else
+    {
+        if ([self backgroundDisabledColor])
+            self.backgroundColor = [self backgroundDisabledColor];
+        else if([self defaultBackgroundColor])
+            self.backgroundColor = [self defaultBackgroundColor];
+        else
+            self.backgroundColor = [UIColor clearColor];
+    }
+}
+
+-(void)setSelected:(BOOL)selected
+{
+    [super setSelected:selected];
+    [self updateBackgroundColor];
+}
+
+-(void)setHighlighted:(BOOL)highlighted
+{
+    [super setHighlighted:highlighted];
+    [self updateBackgroundColor];
+}
+
+-(void)setEnabled:(BOOL)enabled
+{
+    [super setEnabled:enabled];
+    [self updateBackgroundColor];
+}
+
+@end
 
 @implementation TiUIButton
 
@@ -321,8 +414,38 @@
 	if (value!=nil)
 	{
 		TiColor *color = [TiUtils colorValue:value];
-		[[self button] setBackgroundColor:[color _color]];
+		[[self button] setDefaultBackgroundColor:[color _color]];
 	}
+}
+
+-(void)setBackgroundSelectedColor_:(id)value
+{
+    if (value!=nil)
+    {
+        TiColor *color = [TiUtils colorValue:value];
+        [[self button] setBackgroundSelectedColor:[color _color]];
+        [[self button] updateBackgroundColor];
+    }
+}
+
+-(void)setBackgroundHighlightedColor_:(id)value
+{
+    if (value!=nil)
+    {
+        TiColor *color = [TiUtils colorValue:value];
+        [[self button] setBackgroundHighlightedColor:[color _color]];
+        [[self button] updateBackgroundColor];
+    }
+}
+
+-(void)setBackgroundDisabledColor_:(id)value
+{
+    if (value!=nil)
+    {
+        TiColor *color = [TiUtils colorValue:value];
+        [[self button] setBackgroundDisabledColor:[color _color]];
+        [[self button] updateBackgroundColor];
+    }
 }
 
 -(void)setFont_:(id)font
