@@ -821,10 +821,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 -(void)setHidden:(BOOL)newHidden withArgs:(id)args
 {
 	hidden = newHidden;
-	if([self view].hidden == newHidden)
-	{
-		return;
-	}
 }
 
 -(BOOL)isHidden
@@ -1523,7 +1519,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)_configure
 {
-    [self replaceValue:NUMBOOL(YES) forKey:@"visible" notification:YES];
+//    [self replaceValue:NUMBOOL(YES) forKey:@"visible" notification:YES];
 }
 
 -(void)_initWithProperties:(NSDictionary*)properties
@@ -1533,9 +1529,13 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// Set horizontal layout wrap:true as default 
 	layoutProperties.layoutFlags.horizontalWrap = YES;
 	[self initializeProperty:@"horizontalWrap" defaultValue:NUMBOOL(YES)];
+	[self initializeProperty:@"visible" defaultValue:NUMBOOL(YES)];
 	
 	if (properties!=nil)
 	{
+        NSNumber* isVisible = [properties objectForKey:@"visible"];
+        hidden = ![TiUtils boolValue:isVisible def:YES];
+        
 		NSString *objectId = [properties objectForKey:@"id"];
 		NSString* className = [properties objectForKey:@"className"];
 		NSMutableArray* classNames = [properties objectForKey:@"classNames"];
