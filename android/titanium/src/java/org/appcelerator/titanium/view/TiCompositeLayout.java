@@ -183,6 +183,8 @@ public class TiCompositeLayout extends ViewGroup
 	
 	public void resort()
 	{
+		if (getVisibility() == View.INVISIBLE || getVisibility() == View.GONE)
+			return;
 		needsSort = true;
 		requestLayout();
 		invalidate();
@@ -535,8 +537,11 @@ public class TiCompositeLayout extends ViewGroup
 	
 	public int getChidSize(View child, TiCompositeLayout.LayoutParams params, int left, int top, int bottom, int right , int currentHeight, int[] horizontal, int[] vertical)
 	{
-		int i = indexOfChild(child);
 		
+		if (child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
+			return currentHeight;
+		
+		int i = indexOfChild(child);
 		// Dimension is required from Measure. Positioning is determined here.
 
 		int childMeasuredHeight = child.getMeasuredHeight();
@@ -593,7 +598,6 @@ public class TiCompositeLayout extends ViewGroup
 			int[] vertical = new int[2];
 			View child = getChildAt(i);
 			
-			if (child.getVisibility() != View.GONE && child.getVisibility() != View.INVISIBLE) {
 				
 				currentHeight = getChidSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
 				
@@ -612,7 +616,6 @@ public class TiCompositeLayout extends ViewGroup
 				if (((TiCompositeLayout.LayoutParams)child.getLayoutParams()).optionTop != null) {
 					currentHeight += ((TiCompositeLayout.LayoutParams)child.getLayoutParams()).optionTop.getAsPixels(this);
 				}
-			}
 		}
 	}
 
@@ -656,7 +659,8 @@ public class TiCompositeLayout extends ViewGroup
 
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
-			if (child.getVisibility() != View.GONE && child.getVisibility() != View.INVISIBLE) {
+			if (child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
+				continue;
 				
 				currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams) child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
 				
@@ -686,7 +690,6 @@ public class TiCompositeLayout extends ViewGroup
 				if (((TiCompositeLayout.LayoutParams)child.getLayoutParams()).optionTop != null) {
 					currentHeight += ((TiCompositeLayout.LayoutParams)child.getLayoutParams()).optionTop.getAsPixels(this);
 				}
-			}
 		}
 
 		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
