@@ -423,7 +423,7 @@ DEFINE_EXCEPTIONS
         //TIMOB-11197, TC-1264
         if (!animating) {
             [CATransaction begin];
-            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+            [CATransaction setDisableActions:YES];
         }
         [gradientLayer setFrame:newBounds];
         [self setBackgroundImageLayerBounds:newBounds];
