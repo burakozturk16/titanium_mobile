@@ -64,7 +64,6 @@ public class TiUISearchBar extends TiUIText
 			}
 		});
 		((FocusFixedEditText)getNativeView()).setRightView(cancelBtn);
-
 	}
 	
 	@Override
@@ -82,7 +81,10 @@ public class TiUISearchBar extends TiUIText
 
 		if (d.containsKey("showCancel")) {
 			boolean showCancel = TiConvert.toBoolean(d, "showCancel");
-			cancelBtn.setVisibility(showCancel ? View.VISIBLE : View.GONE);
+			if (showCancel)
+				((FocusFixedEditText)getNativeView()).showRightView();
+			else
+				((FocusFixedEditText)getNativeView()).hideRightView();
 		} else if (d.containsKey("barColor")) {
 			nativeView.setBackgroundColor(TiConvert.toColor(d, "barColor"));
 		}
@@ -93,7 +95,10 @@ public class TiUISearchBar extends TiUIText
 	{
 		if (key.equals("showCancel")) {
 			boolean showCancel = TiConvert.toBoolean(newValue);
-			cancelBtn.setVisibility(showCancel ? View.VISIBLE : View.GONE);
+			if (showCancel)
+				((FocusFixedEditText)getNativeView()).showRightView();
+			else
+				((FocusFixedEditText)getNativeView()).hideRightView();
 		} else if (key.equals("barColor")) {
 			nativeView.setBackgroundColor(TiConvert.toColor(TiConvert.toString(newValue)));
 		} else {

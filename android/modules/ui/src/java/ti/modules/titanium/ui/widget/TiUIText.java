@@ -209,6 +209,11 @@ public class TiUIText extends TiUIView
 			return leftView;
 		}
 
+		public TiViewProxy getRightView()
+		{
+			return rightView;
+		}
+
 		public void setRightView(Object rightView) {
 			Log.i(TAG, "setRightView ");
 			rightPane.removeAllViews();
@@ -227,9 +232,28 @@ public class TiUIText extends TiUIView
 			}
 		}
 
-		public TiViewProxy getRightView()
+		public void hideLeftView()
 		{
-			return rightView;
+			leftPane.setVisibility(View.GONE);
+		}
+
+		public void showLeftView()
+		{
+			if (leftView != null){
+				leftPane.setVisibility(View.VISIBLE);
+			}
+		}
+
+		public void hideRightView()
+		{
+			rightPane.setVisibility(View.GONE);
+		}
+
+		public void showRightView()
+		{
+			if (rightView != null){
+				rightPane.setVisibility(View.VISIBLE);
+			}
 		}
 
 		public void onFocusChange(View v, boolean hasFocus)
