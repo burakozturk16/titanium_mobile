@@ -392,7 +392,14 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE) || 
+		if (key.equals(TiC.PROPERTY_HEIGHT))
+		{
+			height = null;
+			if (!newValue.equals(TiC.SIZE_AUTO) && !newValue.equals(TiC.LAYOUT_SIZE)) {
+				height = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_HEIGHT);
+			}
+		}
+		else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE) || 
 				key.equals(TiC.PROPERTY_BACKGROUND_COLOR) ) {
 			setBackgroundFromProxy(getRowProxy());
 		}
@@ -476,6 +483,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				} else {
 					h = Math.max(minRowHeight, height.getAsPixels(this));
 				}
+				hMode = MeasureSpec.EXACTLY;
 				Log.d(TAG, "Row content measure (" + adjustedWidth + "x" + h + ")", Log.DEBUG_MODE);
 				measureChild(content, MeasureSpec.makeMeasureSpec(adjustedWidth, wMode), MeasureSpec.makeMeasureSpec(h, hMode));
 			}
