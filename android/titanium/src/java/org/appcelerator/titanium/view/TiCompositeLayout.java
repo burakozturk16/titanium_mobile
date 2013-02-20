@@ -424,13 +424,13 @@ public class TiCompositeLayout extends ViewGroup
 			}
 		} else {
 			if (p.autoFillsWidth) {
-				childDimension = LayoutParams.FILL_PARENT;
+				childDimension = LayoutParams.MATCH_PARENT;
 			} else {
 				// Look for sizeFill conflicts
 				hasSizeFillConflict(child, sizeFillConflicts, true);
 				checkedForConflict = true;
 				if (sizeFillConflicts[0] == HAS_SIZE_FILL_CONFLICT) {
-					childDimension = LayoutParams.FILL_PARENT;
+					childDimension = LayoutParams.MATCH_PARENT;
 				}
 			}
 		}
@@ -449,11 +449,11 @@ public class TiCompositeLayout extends ViewGroup
 		} else {
 			// If we already checked for conflicts before, we don't need to again
 			if (p.autoFillsHeight || (checkedForConflict && sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT)) {
-				childDimension = LayoutParams.FILL_PARENT;
+				childDimension = LayoutParams.MATCH_PARENT;
 			} else if (!checkedForConflict) {
 				hasSizeFillConflict(child, sizeFillConflicts, true);
 				if (sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT) {
-					childDimension = LayoutParams.FILL_PARENT;
+					childDimension = LayoutParams.MATCH_PARENT;
 				}
 			}
 		}
