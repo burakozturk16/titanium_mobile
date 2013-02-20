@@ -440,6 +440,16 @@ public abstract class TiUIView
 
 	protected void layoutNativeView(boolean informParent)
 	{
+		if (parent != null) {
+			TiUIView uiv = parent.peekView();
+			if (uiv != null) {
+				View v = uiv.getNativeView();
+				if (v.getVisibility() == View.INVISIBLE || v.getVisibility() == View.GONE) {
+					//if we have a parent which is hidden, we are hidden, so no need to layout
+					return;
+				}
+			}
+		}
 		if (nativeView != null) {
 			Animation a = nativeView.getAnimation();
 			if (a != null && a instanceof TiMatrixAnimation) {
@@ -917,7 +927,10 @@ public abstract class TiUIView
 
 	public void setVisibility(int visibility)
 	{
+		if (visibility == View.VISIBLE && this.visibility != visibility)
+			forceLayoutNativeView(true);
 		this.visibility = visibility;
+		
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
 		if (borderView != null) {
 			borderView.setVisibility(this.visibility);
