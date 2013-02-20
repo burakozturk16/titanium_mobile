@@ -169,7 +169,7 @@
 	[self makeViewPerformSelector:@selector(scrollToView:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
--(void)childWillResize:(TiViewProxy *)child
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
 {
 	BOOL hasChild = [[self children] containsObject:child];
 
@@ -178,7 +178,7 @@
 		return;
 		//In the case of views added with addView, as they are not part of children, they should be ignored.
 	}
-	[super childWillResize:child];
+	[super childWillResize:child withinAnimation:animating];
 }
 
 -(TiViewProxy *)viewAtIndex:(int)index

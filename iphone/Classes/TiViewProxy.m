@@ -2202,6 +2202,12 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)refreshView:(TiUIView *)transferView
 {
+    [self refreshView:transferView withinAnimation:NO];
+}
+
+
+-(void)refreshView:(TiUIView *)transferView withinAnimation:(BOOL)animating
+{
 	WARN_IF_BACKGROUND_THREAD_OBJ;
 	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
 	
@@ -2239,7 +2245,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         [self relayout];
 		[self layoutChildren:NO];
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
-			[parent childWillResize:self];
+			[parent childWillResize:self withinAnimation:animating];
 		}
 	}
 
@@ -2458,6 +2464,16 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)childWillResize:(TiViewProxy *)child
 {
+    [self childWillResize:child withinAnimation:NO];
+}
+
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
+{
+    if ([[child view] animating] || animating) {
+        [self refreshView:nil withinAnimation:YES];
+        return;
+    }
+    
 	[self contentsWillChange];
 
 	IGNORE_IF_NOT_OPENED
@@ -2480,6 +2496,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)reposition
 {
+    [self repositionWithinAnimation:NO];
+}
+
+-(void)repositionWithinAnimation:(BOOL)animating
+{
 	IGNORE_IF_NOT_OPENED
 	
 	UIView* superview = [[self view] superview];
@@ -2493,7 +2514,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		[self willChangeSize];
 		[self willChangePosition];
 	
-		[self refreshView:nil];
+		[self refreshView:nil withinAnimation:animating];
 	}
 	else 
 	{

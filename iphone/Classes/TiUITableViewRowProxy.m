@@ -1000,10 +1000,10 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	}
 }
 
-//-(void)childWillResize:(TiViewProxy *)child
-//{
-//	[self triggerRowUpdate];
-//}
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
+{
+	[super childWillResize:child withinAnimation:animating];
+}
 
 -(TiProxy *)touchedViewProxyInCell:(UITableViewCell *)targetCell atPoint:(CGPoint*)point
 {

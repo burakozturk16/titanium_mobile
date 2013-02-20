@@ -325,9 +325,9 @@ static NSArray* scrollViewKeySequence;
     }
 }
 
--(void)childWillResize:(TiViewProxy *)child
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
 {
-	[super childWillResize:child];
+	[super childWillResize:child withinAnimation:animating];
 	[(TiUIScrollView *)[self view] setNeedsHandleContentSizeIfAutosizing];
 }
 

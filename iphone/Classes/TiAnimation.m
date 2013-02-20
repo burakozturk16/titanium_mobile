@@ -551,7 +551,7 @@ doReposition = YES;\
                         positionAnimation.timingFunction = [self timingFunction];
                     }
                     
-                    [(TiViewProxy *)[uiview proxy] reposition];
+                    [(TiViewProxy *)[uiview proxy] repositionWithinAnimation:YES];
                     
                     if (hasGradient) {
                         boundsAnimation.toValue = [NSValue valueWithCGRect:[uiview bounds]];
