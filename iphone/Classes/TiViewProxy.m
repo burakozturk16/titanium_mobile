@@ -2670,7 +2670,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
 
         //Ensure that autoHeightForSize is called with the lowest limiting bound
-        CGFloat desiredWidth = MIN([child minimumParentWidthForSize:bounds.size],bounds.size.width);
+        CGFloat desiredWidth = MAX([child minimumParentWidthForSize:bounds.size],bounds.size.width);
 
         //TOP + BOTTOM
         CGFloat offsetV = TiDimensionCalculateValue([child layoutProperties]->top, bounds.size.height)
