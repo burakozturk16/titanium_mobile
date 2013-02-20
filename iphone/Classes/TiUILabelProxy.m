@@ -48,7 +48,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 @implementation TiUILabelProxy
 
-USE_VIEW_FOR_CONTENT_WIDTH
+//USE_VIEW_FOR_CONTENT_WIDTH
 
 +(NSSet*)transferableProperties
 {
@@ -123,10 +123,10 @@ USE_VIEW_FOR_CONTENT_WIDTH
         [self updateAttributeText];
 }
 
--(CGFloat)contentHeightForWidth:(CGFloat)suggestedWidth
+-(CGSize) suggestedSizeForWidth:(CGFloat)suggestedWidth
 {
     if ([self view])
-        return [[self view] contentHeightForWidth:suggestedWidth];
+        return [(TiUILabel*)[self view] suggestedFrameSizeToFitEntireStringConstraintedToWidth:suggestedWidth];
     else
     {
         if (realLabelContent != nil)
@@ -170,10 +170,20 @@ USE_VIEW_FOR_CONTENT_WIDTH
             }
             resultSize.width += textPadding.origin.x + textPadding.size.width;
             resultSize.height += textPadding.origin.y + textPadding.size.height;
-            return resultSize.height;
+            return resultSize;
         }
     }
-    return 0;
+    return CGSizeZero;
+}
+
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
+{
+	return [self suggestedSizeForWidth:suggestedWidth].width;
+}
+
+-(CGFloat)contentHeightForWidth:(CGFloat)suggestedWidth
+{
+ 	return [self suggestedSizeForWidth:suggestedWidth].height;
 }
 
 -(CGFloat) verifyWidth:(CGFloat)suggestedWidth
