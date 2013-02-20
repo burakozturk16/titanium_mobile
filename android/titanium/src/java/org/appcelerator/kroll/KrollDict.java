@@ -120,6 +120,8 @@ public class KrollDict
 	public boolean containsKeyWithValue(String key, Object value) {
 		
 		Object myValue = get(key);
+		
+		if (myValue == null || value == null) return (myValue == value);
 		boolean result;
 		if (myValue instanceof KrollDict && value instanceof KrollDict)
 			result = ((KrollDict)myValue).equalsKrollDict((KrollDict)value);
