@@ -823,7 +823,12 @@ public class TableViewProxy extends TiViewProxy
 
 		return found;
 	}
-
+	
+	@Kroll.method
+	public void reloadData()
+	{
+		updateView();
+	}
 	public void updateView()
 	{
 		if (TiApplication.isUIThread()) {
