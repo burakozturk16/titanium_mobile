@@ -296,16 +296,19 @@ public class TiCompositeLayout extends ViewGroup
 
 		for(int i = 0; i < childCount; i++) {
 			View child = getChildAt(i);
+			if (child.getVisibility() == View.INVISIBLE || child.getVisibility() == View.GONE) {
+				continue;
+			}
 			TiCompositeLayout.LayoutParams params =
 				(TiCompositeLayout.LayoutParams) child.getLayoutParams();
 
 
 			Boolean needsProcessing = true;
-			if (isHorizontalArrangement() && !enableHorizontalWrap && params.sizeOrFillWidthEnabled && params.autoFillsWidth && child.getVisibility() != View.GONE) {
+			if (isHorizontalArrangement() && !enableHorizontalWrap && params.sizeOrFillWidthEnabled && params.autoFillsWidth) {
 				autoFillWidthViews.add(child);
 				needsProcessing = false;
 			}
-			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap)) && params.sizeOrFillHeightEnabled && params.autoFillsHeight && child.getVisibility() != View.GONE) {
+			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap)) && params.sizeOrFillHeightEnabled && params.autoFillsHeight) {
 				autoFillHeightViews.add(child);
 				needsProcessing = false;
 			}
@@ -313,16 +316,12 @@ public class TiCompositeLayout extends ViewGroup
 			if (!needsProcessing)
 				continue;
 
-			if (child.getVisibility() != View.GONE) {
-				constrainChild(child, (w-horizontalRowWidth), wMode, h, hMode);
-			}
+			constrainChild(child, (w-horizontalRowWidth), wMode, h, hMode);
 
 			int childWidth = child.getMeasuredWidth();
 			int childHeight = child.getMeasuredHeight();
-			if (child.getVisibility() != View.GONE) {
-				childWidth += getViewWidthPadding(child, w);
-				childHeight += getViewHeightPadding(child, h);
-			}
+			childWidth += getViewWidthPadding(child, w);
+			childHeight += getViewHeightPadding(child, h);
 
 			if (isHorizontalArrangement()) {
 				if (enableHorizontalWrap) {
@@ -594,7 +593,7 @@ public class TiCompositeLayout extends ViewGroup
 			int[] vertical = new int[2];
 			View child = getChildAt(i);
 			
-			if (child.getVisibility() != View.GONE) {
+			if (child.getVisibility() != View.GONE && child.getVisibility() != View.INVISIBLE) {
 				
 				currentHeight = getChidSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
 				
@@ -657,7 +656,7 @@ public class TiCompositeLayout extends ViewGroup
 
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
-			if (child.getVisibility() != View.GONE) {
+			if (child.getVisibility() != View.GONE && child.getVisibility() != View.INVISIBLE) {
 				
 				currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams) child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
 				
