@@ -1224,13 +1224,17 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		TiImageView view = getView();
 		if (view == null) return;
 		
-		ScaleType result = ScaleType.FIT_XY;
+		Boolean adjust = canScaleImage || ((autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)) ||
+				(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 		
+		ScaleType result = ScaleType.FIT_XY;
+
 		if (canScaleImage && Integer.parseInt(Build.VERSION.SDK) > 3) {
 			result = ScaleType.MATRIX;
 		}
-		else if (autoSizeWidth() || autoSizeHeight())
+		else if (adjust) {
 			result = ScaleType.CENTER_CROP;
+		}
 		else {
 			switch (type)
 			{
@@ -1255,7 +1259,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			}
 		}
 		view.setScaleType(result);
-		boolean adjust = (autoSizeWidth() || autoSizeHeight() || canScaleImage);
 		view.setAdjustViewBounds(adjust);
 	}
 }
