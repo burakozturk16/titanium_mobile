@@ -1414,10 +1414,8 @@ public abstract class TiUIView
 
 	public void clearOpacity(View view)
 	{
-//		Drawable d = view.getBackground();
-//		if (d != null) {
+		if (background != null)
 			background.clearColorFilter();
-//		}
 	}
 
 	public KrollDict toImage()
