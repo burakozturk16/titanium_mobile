@@ -19,6 +19,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.text.Html;
 import android.text.InputType;
@@ -27,6 +28,7 @@ import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Canvas;
 import android.content.res.TypedArray;
@@ -39,6 +41,7 @@ import android.text.Layout.Alignment;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.text.TextUtils.TruncateAt;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
@@ -69,6 +72,39 @@ public class TiUILabel extends TiUIView
 	private int shadowDy;
 	private float shadowRadius;
 	private Rect textPadding;
+	
+	public class CustomTypefaceSpan extends TypefaceSpan {
+        private final Typeface newType;
+        private final String fontFamily;
+
+        public CustomTypefaceSpan(String family, Typeface type) {
+            super(family);
+        	this.fontFamily = family;
+            newType = type;
+        }
+        
+        public CustomTypefaceSpan(String family) {
+            super(family);
+            this.fontFamily = family;
+            newType = null;
+        }
+
+        @Override
+        public void updateDrawState(TextPaint ds) {
+            applyCustomTypeFace(ds, newType);
+        }
+
+        @Override
+        public void updateMeasureState(TextPaint paint) {
+            applyCustomTypeFace(paint, newType);
+        }
+
+        private void applyCustomTypeFace(Paint paint, Typeface tf) {
+    		TextView tv = (TextView) getNativeView();
+    		tf = TiUIHelper.toTypeface(tv.getContext(), fontFamily);
+            paint.setTypeface(tf);
+        }
+    }
 
 	public class EllipsizingTextView extends TextView {
 
@@ -124,6 +160,7 @@ public class TiUILabel extends TiUIView
 			if (readyToEllipsize == true) ellipseText();
 		}
 
+		@SuppressLint("Override")
 		public int getMaxLines() {
 			return maxLines;
 		}
@@ -354,6 +391,9 @@ public class TiUILabel extends TiUIView
 			else if (span instanceof TypefaceSpan){
 				return new TypefaceSpan(((TypefaceSpan)span).getFamily());
 			}
+			else if (span instanceof CustomTypefaceSpan){
+				return new CustomTypefaceSpan(((TypefaceSpan)span).getFamily());
+			}
 			else if (span instanceof ImageSpan){
 				return new ImageSpan(((ImageSpan)span).getDrawable());
 			}
@@ -371,6 +411,11 @@ public class TiUILabel extends TiUIView
 			// }
 			
 			return null;
+		}
+		
+		private void updateSpans()
+		{
+			
 		}
 
 		private void ellipseText() {
@@ -546,6 +591,25 @@ public class TiUILabel extends TiUIView
 		tv.setFocusable(false);
 		setNativeView(tv);
 	}
+	
+	private Spanned fromHtml(String str)
+	{
+		SpannableStringBuilder htmlText = new SpannableStringBuilder(Html.fromHtml(str));
+		Object[] spans = htmlText.getSpans(0, htmlText.length(), Object.class);
+		for (int j = 0; j < spans.length; j++) {
+			Object span = spans[j];
+			if (span instanceof TypefaceSpan){
+				String family = ((TypefaceSpan)span).getFamily();
+				CustomTypefaceSpan newSpan = new CustomTypefaceSpan(family);
+				int flags = htmlText.getSpanFlags(span);
+				int start = htmlText.getSpanStart(span);
+				int end = htmlText.getSpanEnd(span);
+				htmlText.setSpan(newSpan, start, end, flags);
+			}
+		}
+		
+		return htmlText;
+	}
 
 	@Override
 	public void processProperties(KrollDict d)
@@ -560,7 +624,7 @@ public class TiUILabel extends TiUIView
 		
 		// Only accept one, prefer text to title.
 		if (d.containsKey(TiC.PROPERTY_HTML)) {
-			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_HTML)), TextView.BufferType.SPANNABLE);
+			tv.setText(fromHtml(TiConvert.toString(d, TiC.PROPERTY_HTML)), TextView.BufferType.SPANNABLE);
 		} else if (d.containsKey(TiC.PROPERTY_TEXT)) {
 			tv.setText(TiConvert.toString(d, TiC.PROPERTY_TEXT));
 		} else if (d.containsKey(TiC.PROPERTY_TITLE)) { //TODO this may not need to be supported.
@@ -655,7 +719,7 @@ public class TiUILabel extends TiUIView
 	{
 		TextView tv = (TextView) getNativeView();
 		if (key.equals(TiC.PROPERTY_HTML)) {
-			tv.setText(Html.fromHtml(TiConvert.toString(newValue)), TextView.BufferType.SPANNABLE);
+			tv.setText(fromHtml(TiConvert.toString(newValue)), TextView.BufferType.SPANNABLE);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
