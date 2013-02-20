@@ -243,7 +243,6 @@ public class TiImageView extends ViewGroup
 			imageView.setImageBitmap(null);
 		}
 		else {
-			Log.i(TAG, "test " + bitmap.getWidth());
 			imageView.setImageBitmap(bitmap);
 		}
 	}
