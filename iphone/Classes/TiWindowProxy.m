@@ -435,6 +435,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 		// ensure on open that we've created our view before we start to use it
 		[self getOrCreateView];
 		[self windowWillOpen];
+        [self layoutChildren:NO];
 		[self windowReady];
 		//This flag will track if window was opened with an animation to resolve the edge case 
 		//that the animation completes before the method ends. TIMOB-8030
