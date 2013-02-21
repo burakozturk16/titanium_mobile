@@ -819,6 +819,12 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 
 #pragma mark Animation Delegates
 
+//called when animating a child view
+-(id)animationDelegate
+{
+    return nil;
+}
+
 -(BOOL)animationShouldTransition:(id)sender
 {
 	UIView *rootView = [[TiApp app] controller].view;
