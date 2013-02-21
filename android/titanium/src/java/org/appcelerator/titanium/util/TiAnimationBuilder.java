@@ -24,6 +24,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
@@ -167,6 +168,58 @@ public class TiAnimationBuilder
 		this.options = options;
 	}
 	
+	public void animateOnView(View view, TiViewProxy proxy) {
+		
+		// Pre-honeycomb, if one animation clobbers another you get a problem whereby the background of the
+		// animated view's parent (or the grandparent) bleeds through.  It seems to improve if you cancel and clear
+		// the older animation.  So here we cancel and clear, then re-queue the desired animation.
+		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+			Animation currentAnimation = view.getAnimation();
+			if (currentAnimation != null && currentAnimation.hasStarted() && !currentAnimation.hasEnded()) {
+				// Cancel existing animation and
+				// re-queue desired animation.
+				currentAnimation.cancel();
+				view.clearAnimation();
+				proxy.handlePendingAnimation(true);
+				return;
+			}
+
+		}		
+		
+		proxy.clearAnimation(this);
+		AnimationSet as = this.render(proxy, view);
+
+		// If a view is "visible" but not currently seen (such as because it's covered or
+		// its position is currently set to be fully outside its parent's region),
+		// then Android might not animate it immediately because by default it animates
+		// "on first frame" and apparently "first frame" won't happen right away if the
+		// view has no visible rectangle on screen.  In that case invalidate its parent, which will
+		// kick off the pending animation.
+		boolean invalidateParent = false;
+		ViewParent viewParent = view.getParent();
+
+		if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+			int width = view.getWidth();
+			int height = view.getHeight();
+
+			if (width == 0 || height == 0) {
+				// Could be animating from nothing to something
+				invalidateParent = true;
+			} else {
+				Rect r = new Rect(0, 0, width, height);
+				Point p = new Point(0, 0);
+				invalidateParent = !(viewParent.getChildVisibleRect(view, r, p));
+			}
+		}
+
+		Log.d(TAG, "starting animation: " + as, Log.DEBUG_MODE);
+		view.startAnimation(as);
+
+		if (invalidateParent) {
+			((View) viewParent).postInvalidate();
+		}
+	}
+	
 	
 	public void simulateFinish(TiViewProxy proxy)
 	{
@@ -278,9 +331,8 @@ public class TiAnimationBuilder
 
 		AnimationSet as = new AnimationSet(false);
 		AnimationListener animationListener = new AnimationListener();
-		if (callback != null || animationProxy != null) {
-			as.setAnimationListener(animationListener);
-		}
+		as.setAnimationListener(animationListener);
+
 		TiUIView tiView = viewProxy.peekView();
 
 		if (toOpacity != null) {
@@ -375,90 +427,104 @@ public class TiAnimationBuilder
 
 		}
 		
-		//let s deal with position and size now
-		int toWidth = w;
-		int toHeight = h;
-		
-		int toLeft = x;
-		int toTop = y;
-		
-		boolean needsSizeAnim = false;
-		
-		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams(tiView.getLayoutParams());
-		if (width != null) {
-			params.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
-			needsSizeAnim = true;
-		}
-		if (height != null) {
-			params.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
-			needsSizeAnim = true;
-		}
-		if (top != null) {
-			params.optionTop = new TiDimension(top, TiDimension.TYPE_TOP);
-		}
-		if (bottom != null) {
-			params.optionBottom = new TiDimension(bottom, TiDimension.TYPE_BOTTOM);
-		}
-		if (left != null) {
-			params.optionLeft = new TiDimension(left, TiDimension.TYPE_LEFT);
-		}
-		if (right != null) {
-			params.optionRight = new TiDimension(right, TiDimension.TYPE_RIGHT);
-		}
-		if (centerX != null) {
-			params.optionCenterX = new TiDimension(centerX, TiDimension.TYPE_CENTER_X);
-		}
-		if (centerY != null) {
-			params.optionCenterY = new TiDimension(centerY, TiDimension.TYPE_CENTER_Y);
-		}
-				
-		int horizontal[] = new int[2];
-		int vertical[] = new int[2];		
-		ViewParent parent = view.getParent();
-		if (parent instanceof TiCompositeLayout) {
-			TiCompositeLayout parentView = (TiCompositeLayout) parent;
-			parentView.simulateLayoutToGetChildSize(view, params, horizontal, vertical);
-			toLeft = horizontal[0];
-			toTop = vertical[0];
-			toWidth = horizontal[1] - toLeft;
-			toHeight = vertical[1] - toTop;
-		}
-		else if (parent instanceof View)
-		{
-			View parentView = (View) parent;
+		if (top != null || bottom != null || left != null || right != null || centerX != null || centerY != null) {
+			TiDimension optionTop = null, optionBottom = null;
+			TiDimension optionLeft = null, optionRight = null;
+			TiDimension optionCenterX = null, optionCenterY = null;
 
-			TiCompositeLayout.computePosition(parentView, params.optionLeft, params.optionCenterX, params.optionRight, toWidth, 0, parentWidth,
+			// Note that we're stringifying the values to make sure we
+			// use the correct TiDimension constructor, except when
+			// we know the values are expressed for certain in pixels.
+			if (top != null) {
+				optionTop = new TiDimension(top, TiDimension.TYPE_TOP);
+			} else if (bottom == null && centerY == null) {
+				// Fix a top value since no other y-axis value is being set.
+				optionTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
+				optionTop.setUnits(TypedValue.COMPLEX_UNIT_PX);
+			}
+
+			if (bottom != null) {
+				optionBottom = new TiDimension(bottom, TiDimension.TYPE_BOTTOM);
+			}
+
+			if (left != null) {
+				optionLeft = new TiDimension(left, TiDimension.TYPE_LEFT);
+			} else if (right == null && centerX == null) {
+				// Fix a left value since no other x-axis value is being set.
+				optionLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
+				optionLeft.setUnits(TypedValue.COMPLEX_UNIT_PX);
+			}
+
+			if (right != null) {
+				optionRight = new TiDimension(right, TiDimension.TYPE_RIGHT);
+			}
+
+			if (centerX != null) {
+				optionCenterX = new TiDimension(centerX, TiDimension.TYPE_CENTER_X);
+			}
+
+			if (centerY != null) {
+				optionCenterY = new TiDimension(centerY, TiDimension.TYPE_CENTER_Y);
+			}
+
+			int horizontal[] = new int[2];
+			int vertical[] = new int[2];
+			ViewParent parent = view.getParent();
+			View parentView = null;
+
+			if (parent instanceof View) {
+				parentView = (View) parent;
+			}
+
+			TiCompositeLayout.computePosition(parentView, optionLeft, optionCenterX, optionRight, w, 0, parentWidth,
 				horizontal);
-			TiCompositeLayout.computePosition(parentView, params.optionTop, params.optionCenterY, params.optionBottom, toHeight, 0, parentHeight,
+			TiCompositeLayout.computePosition(parentView, optionTop, optionCenterY, optionBottom, h, 0, parentHeight,
 				vertical);
-			
-			toLeft = horizontal[0];
-			toTop = vertical[0];
-			toWidth = horizontal[1] - toLeft;
-			toHeight = vertical[1] - toTop;
-		}
-		
-		if (toLeft != x || toTop != y)
-		{
-			int tx = toLeft - x;
-			int ty = toTop - y;
+
 			Animation animation = new TranslateAnimation(Animation.ABSOLUTE, 0, Animation.ABSOLUTE,
-					tx, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, ty);
+				horizontal[0] - x, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, vertical[0] - y);
 
 			animation.setAnimationListener(animationListener);
 			addAnimation(as, animation);
+
+			// Will need to update layout params at end of animation
+			// so that touch events will be recognized at new location,
+			// and so that view will stay at new location after changes in
+			// orientation. But if autoreversing to original layout, no
+			// need to re-layout.
+			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
 
 			Log.d(TAG, "animate " + viewProxy + " relative to self: " + (horizontal[0] - x) + ", " + (vertical[0] - y),
 				Log.DEBUG_MODE);
 
 		}
 
-		if (toWidth != w || toHeight != h) {
+		if (tdm == null && (width != null || height != null)) {
+			TiDimension optionWidth, optionHeight;
+
+			if (width != null) {
+				optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
+			} else {
+				optionWidth = new TiDimension(w, TiDimension.TYPE_WIDTH);
+				optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
+			}
+
+			if (height != null) {
+				optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
+			} else {
+				optionHeight = new TiDimension(w, TiDimension.TYPE_HEIGHT);
+				optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
+			}
+
+			int toWidth = optionWidth.getAsPixels(view);
+			int toHeight = optionHeight.getAsPixels(view);
 
 			SizeAnimation sizeAnimation = new SizeAnimation(view, w, h, toWidth, toHeight);
+
 			if (duration != null) {
 				sizeAnimation.setDuration(duration.longValue());
 			}
+
 			sizeAnimation.setInterpolator(new LinearInterpolator());
 			sizeAnimation.setAnimationListener(animationListener);
 			addAnimation(as, sizeAnimation);
@@ -502,13 +568,6 @@ public class TiAnimationBuilder
 
 		public SizeAnimation(View view, float fromWidth, float fromHeight, float toWidth, float toHeight)
 		{
-			// Will need to update layout params at end of animation
-			// so that touch events will be recognized at new location,
-			// and so that view will stay at new location after changes in
-			// orientation. But if autoreversing to original layout, no
-			// need to re-layout.
-			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
-
 			this.view = view;
 			this.fromWidth = fromWidth;
 			this.fromHeight = fromHeight;
@@ -543,6 +602,14 @@ public class TiAnimationBuilder
 			ViewGroup.LayoutParams params = view.getLayoutParams();
 			params.width = width;
 			params.height = height;
+
+			if (params instanceof TiCompositeLayout.LayoutParams) {
+				TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+				tiParams.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
+				tiParams.optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
+				tiParams.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
+				tiParams.optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
+			}
 
 			view.setLayoutParams(params);
 		}

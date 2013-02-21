@@ -423,6 +423,13 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		return view;
 	}
+	
+	public View viewToAnimate()
+	{
+		if (view  != null)
+			return view.getOuterView();
+		return null;
+	}
 
 	public void setView(TiUIView view)
 	{
@@ -777,7 +784,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	@Kroll.method
 	public void cancelAllAnimations()
 	{
-		View nativeView = view.getNativeView();
+		View nativeView = viewToAnimate();
 		nativeView.clearAnimation();
 		pendingAnimation = null;
 	}
@@ -802,19 +809,20 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	protected void handleAnimate()
 	{
-		TiUIView tiv = peekView();
-
-		if (tiv != null) {
-			tiv.animate();
-		}
-		else
-		{
+		View view = viewToAnimate();
+		if (view == null) {
 			//let s deal with callback and completion properties
 			if (pendingAnimation != null) {
 				pendingAnimation.simulateFinish(this);
 				pendingAnimation = null;
 			}
+			return;
 		}
+		
+		if (pendingAnimation == null) {
+			return;
+		}
+		pendingAnimation.animateOnView(view, this);
 	}
 
 	@Kroll.method

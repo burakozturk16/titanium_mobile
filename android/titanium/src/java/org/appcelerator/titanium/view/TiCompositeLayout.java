@@ -597,17 +597,19 @@ public class TiCompositeLayout extends ViewGroup
 			int[] horizontal = new int[2];
 			int[] vertical = new int[2];
 			View child = getChildAt(i);
-			
-				
-				currentHeight = getChidSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
-				
+							
 				if (targetChild == child)
 				{
+					currentHeight = getChidSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
 					childH[0] = horizontal[0];
 					childH[1]= horizontal[1];
 					childV[0] = vertical[0];
 					childV[1]= vertical[1];
 					return;
+				}
+				else
+				{
+					currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams)child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
 				}
 				int newWidth = horizontal[1] - horizontal[0];
 				int newHeight = vertical[1] - vertical[0];
