@@ -364,8 +364,8 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(void)setHeight:(id)value
 {
-	height = [TiUtils dimensionValue:value];
-	[self replaceValue:value forKey:@"height" notification:YES];
+    [super setHeight:value];
+    [self update];
 }
 
 -(id) backgroundLeftCap
@@ -397,25 +397,25 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 }
 
 // Special handling to try and avoid Apple's detection of private API 'layout'
--(void)setValue:(id)value forUndefinedKey:(NSString *)key
-{
-    if ([key isEqualToString:[@"lay" stringByAppendingString:@"out"]]) {
-        //CAN NOT USE THE MACRO 
-        if (ENFORCE_BATCH_UPDATE) {
-            if (updateStarted) {
-                [self setTempProperty:value forKey:key]; \
-                return;
-            }
-            else if(!allowLayoutUpdate){
-                return;
-            }
-        }
-        layoutProperties.layoutStyle = TiLayoutRuleFromObject(value);
-        [self replaceValue:value forKey:[@"lay" stringByAppendingString:@"out"] notification:YES];
-        return;
-    }
-    [super setValue:value forUndefinedKey:key];
-}
+//-(void)setValue:(id)value forUndefinedKey:(NSString *)key
+//{
+//    if ([key isEqualToString:[@"lay" stringByAppendingString:@"out"]]) {
+//        //CAN NOT USE THE MACRO 
+//        if (ENFORCE_BATCH_UPDATE) {
+//            if (updateStarted) {
+//                [self setTempProperty:value forKey:key]; \
+//                return;
+//            }
+//            else if(!allowLayoutUpdate){
+//                return;
+//            }
+//        }
+//        layoutProperties.layoutStyle = TiLayoutRuleFromObject(value);
+//        [self replaceValue:value forKey:[@"lay" stringByAppendingString:@"out"] notification:YES];
+//        return;
+//    }
+//    [super setValue:value forUndefinedKey:key];
+//}
 
 -(CGFloat)sizeWidthForDecorations:(CGFloat)oldWidth forceResizing:(BOOL)force
 {
@@ -451,6 +451,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(CGFloat)rowHeight:(CGFloat)width
 {
+    TiDimension height = layoutProperties.height;
 	if (TiDimensionIsDip(height))
 	{
 		return height.value;
@@ -971,6 +972,32 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	[table dispatchAction:action];
 }
 
+-(void)update
+{
+    if ([self isAttached] && !modifyingRow && !attaching)
+	{
+        TiThreadPerformOnMainThread(^{
+			[UIView setAnimationsEnabled:NO];
+            [[[self table] tableView] beginUpdates];
+            [[[self table] tableView] endUpdates];
+            [UIView setAnimationsEnabled:YES];
+        }, NO);
+    }
+}
+
+-(void)updateAnimated:(TiAnimation*)animation
+{
+    if ([self isAttached] && !modifyingRow && !attaching)
+	{
+        TiThreadPerformOnMainThread(^{
+            [CATransaction begin];
+            [[[self table] tableView] beginUpdates];
+            [[[self table] tableView] endUpdates];
+            [CATransaction commit];
+        }, NO);
+    }
+}
+
 -(void)triggerRowUpdate
 {	
 	if ([self isAttached] && !modifyingRow && !attaching)
@@ -997,13 +1024,28 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
 	if (attaching==NO)
 	{
-//		[self triggerRowUpdate];
+//		[self update];
 	}
 }
 
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
+-(void)repositionWithinAnimation:(TiAnimation*)animation
 {
-	[super childWillResize:child withinAnimation:animating];
+    if (animation)
+    {
+        [self updateAnimated:animation];
+    }
+    else
+        [self update];
+    [super repositionWithinAnimation:animation];
+}
+
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
+{
+    if (animation)
+        [self updateAnimated:animation];
+    else
+        [self update];
+	[super childWillResize:child withinAnimation:animation];
 }
 
 -(TiProxy *)touchedViewProxyInCell:(UITableViewCell *)targetCell atPoint:(CGPoint*)point
@@ -1118,6 +1160,31 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
     return TiDimensionAutoSize;
 }
+
+#pragma mark Animation Delegates
+
+-(id)animationDelegate
+{
+    return self;
+}
+
+-(void)animationWillStart:(id)sender
+{
+    TiAnimation* anim = (TiAnimation*)sender;
+//    CABasicAnimation *positionAnimation = nil;
+//        
+//    positionAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
+//    positionAnimation.fromValue = [NSValue valueWithCGPoint:CGPointMake([view bounds].size.width / 2, [view bounds].size.height / 2)];
+//    positionAnimation.duration = [anim animationDuration];
+    
+}
+
+-(void)animationDidComplete:(id)sender
+{
+    
+}
+
+
 @end
 
 #endif

@@ -573,7 +573,7 @@ enum
 -(void)relayout;
 
 -(void)reposition;	//Todo: Replace
--(void)repositionWithinAnimation:(BOOL)animating;
+-(void)repositionWithinAnimation:(TiAnimation*)animation;
 
 -(BOOL)willBeRelaying;	//Todo: Replace
 
@@ -588,7 +588,7 @@ enum
  @param child The child view
  */
 -(void)childWillResize:(TiViewProxy *)child;	//Todo: Replace
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating;
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation;
 
 /**
  get the next children of a certain class starting from a child

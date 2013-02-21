@@ -401,12 +401,20 @@ static NSSet* transferableProps = nil;
     }, NO);
 }
 
+-(id)animationDelegate
+{
+    if (parent)
+        return [parent animationDelegate];
+    return nil;
+}
+
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
     
     if ([self view])
     {
+        newAnimation.delegate = [self animationDelegate];
         [self rememberProxy:newAnimation];
         TiThreadPerformOnMainThread(^{
             [parent contentsWillChange];
@@ -2202,11 +2210,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)refreshView:(TiUIView *)transferView
 {
-    [self refreshView:transferView withinAnimation:NO];
+    [self refreshView:transferView withinAnimation:nil];
 }
 
 
--(void)refreshView:(TiUIView *)transferView withinAnimation:(BOOL)animating
+-(void)refreshView:(TiUIView *)transferView withinAnimation:(TiAnimation*)animation
 {
 	WARN_IF_BACKGROUND_THREAD_OBJ;
 	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
@@ -2245,7 +2253,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         [self relayout];
 		[self layoutChildren:NO];
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
-			[parent childWillResize:self withinAnimation:animating];
+			[parent childWillResize:self withinAnimation:animation];
 		}
 	}
 
@@ -2464,13 +2472,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)childWillResize:(TiViewProxy *)child
 {
-    [self childWillResize:child withinAnimation:NO];
+    [self childWillResize:child withinAnimation:nil];
 }
 
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
 {
-    if ([[child view] animating] || animating) {
-        [self refreshView:nil withinAnimation:YES];
+    if (animation != nil) {
+        [self refreshView:nil withinAnimation:animation];
         return;
     }
     
@@ -2496,10 +2504,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)reposition
 {
-    [self repositionWithinAnimation:NO];
+    [self repositionWithinAnimation:nil];
 }
 
--(void)repositionWithinAnimation:(BOOL)animating
+-(void)repositionWithinAnimation:(TiAnimation*)animation
 {
 	IGNORE_IF_NOT_OPENED
 	
@@ -2514,7 +2522,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		[self willChangeSize];
 		[self willChangePosition];
 	
-		[self refreshView:nil withinAnimation:animating];
+		[self refreshView:nil withinAnimation:animation];
 	}
 	else 
 	{

@@ -22,13 +22,13 @@ typedef enum
 	TiCellBackgroundViewPositionSingleLine
 } TiCellBackgroundViewPosition;
 
-@interface TiUITableViewRowProxy : TiViewProxy <TiProxyDelegate>
+@interface TiUITableViewRowProxy : TiViewProxy <TiAnimationDelegate, TiProxyDelegate>
 {
 @private
 	NSString *tableClass;
 	TiUITableView *table;
 	TiUITableViewSectionProxy *section;
-	TiDimension height;
+//	TiDimension height;
 	TiDimension leftCap;
 	TiDimension topCap;
 	BOOL configuredChildren;
