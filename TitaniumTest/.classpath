@@ -5,8 +5,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-v8"/>
-	<classpathentry exported="true" kind="lib" path="/kroll-v8/bin/kroll-v8.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
 	<classpathentry exported="true" kind="lib" path="/kroll-common/bin/kroll-common.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
