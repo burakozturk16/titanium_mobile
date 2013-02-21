@@ -927,7 +927,7 @@ public abstract class TiUIView
 
 	public void setVisibility(int visibility)
 	{
-		if (visibility == View.VISIBLE && this.visibility != visibility)
+		if (this.visibility != visibility)
 			forceLayoutNativeView(true);
 		this.visibility = visibility;
 		
