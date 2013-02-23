@@ -334,7 +334,7 @@ public class TiUIText extends TiUIView
 		super.processProperties(d);
 
 		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
-			realtv.setEnabled(d.getBoolean(TiC.PROPERTY_ENABLED), true);
+			realtv.setEnabled(d.optBoolean(TiC.PROPERTY_ENABLED, true));
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_MAX_LENGTH) && field) {
