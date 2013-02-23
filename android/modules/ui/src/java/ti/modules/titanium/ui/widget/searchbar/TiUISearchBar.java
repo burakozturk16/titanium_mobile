@@ -80,7 +80,7 @@ public class TiUISearchBar extends TiUIText
 		super.processProperties(d);
 
 		if (d.containsKey("showCancel")) {
-			boolean showCancel = TiConvert.toBoolean(d, "showCancel");
+			boolean showCancel = TiConvert.toBoolean(d, "showCancel", false);
 			if (showCancel)
 				((FocusFixedEditText)getNativeView()).showRightView();
 			else

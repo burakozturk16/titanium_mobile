@@ -286,7 +286,7 @@ public abstract class TiUIView
 		boolean clickable = true;
 		
 		if (proxy.hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
-			clickable = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED));
+			clickable = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED), true);
 		}
 		doSetClickable(nativeView, clickable);
 		nativeView.setOnFocusChangeListener(this);
@@ -483,7 +483,7 @@ public abstract class TiUIView
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(newValue));
+				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(newValue,true));
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_WIDTH)) {
@@ -515,7 +515,7 @@ public abstract class TiUIView
 				setzIndexChanged(true);
 			}
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
-			registerForKeyPress(nativeView, TiConvert.toBoolean(newValue));
+			registerForKeyPress(nativeView, TiConvert.toBoolean(newValue, false));
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			doSetClickable(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
@@ -642,7 +642,7 @@ public abstract class TiUIView
 
 		if (d.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(d, TiC.PROPERTY_HORIZONTAL_WRAP));
+				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
 			}
 		}
 
@@ -739,10 +739,10 @@ public abstract class TiUIView
 		} 
 
 		if (d.containsKey(TiC.PROPERTY_VISIBLE) && !nativeViewNull) {
-			this.setVisibility(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE) ? View.VISIBLE : View.INVISIBLE);
+			this.setVisibility(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE, true) ? View.VISIBLE : View.INVISIBLE);
 		}
 		if (d.containsKey(TiC.PROPERTY_ENABLED) && !nativeViewNull) {
-			nativeView.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
+			nativeView.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED, true));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_TRANSFORM)) {
@@ -753,7 +753,7 @@ public abstract class TiUIView
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
-			nativeView.setKeepScreenOn(TiConvert.toBoolean(d, TiC.PROPERTY_KEEP_SCREEN_ON));
+			nativeView.setKeepScreenOn(TiConvert.toBoolean(d, TiC.PROPERTY_KEEP_SCREEN_ON, false));
 			
 		}
 
@@ -1265,7 +1265,7 @@ public abstract class TiUIView
 
 		Object focusable = proxy.getProperty(TiC.PROPERTY_FOCUSABLE);
 		if (focusable != null) {
-			registerForKeyPress(v, TiConvert.toBoolean(focusable));
+			registerForKeyPress(v, TiConvert.toBoolean(focusable, false));
 		}
 	}
 
@@ -1626,7 +1626,7 @@ public abstract class TiUIView
 
 		int importanceMode = ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_AUTO;
 
-		if (hiddenPropertyValue != null && TiConvert.toBoolean(hiddenPropertyValue)) {
+		if (hiddenPropertyValue != null && TiConvert.toBoolean(hiddenPropertyValue, false)) {
 				importanceMode = ViewCompat.IMPORTANT_FOR_ACCESSIBILITY_NO;
 		}
 

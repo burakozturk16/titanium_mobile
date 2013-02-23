@@ -21,6 +21,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Html;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -66,6 +67,8 @@ import android.text.style.UnderlineSpan;
 public class TiUILabel extends TiUIView
 {
 	private static final String TAG = "TiUILabel";
+	
+	private int defaultColor;
 
 	private int shadowColor;
 	private int shadowDx;
@@ -589,7 +592,9 @@ public class TiUILabel extends TiUIView
 		tv.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		tv.setKeyListener(null);
 		tv.setFocusable(false);
+		defaultColor = tv.getCurrentTextColor();
 		setNativeView(tv);
+		
 	}
 	
 	private Spanned fromHtml(String str)
@@ -624,15 +629,28 @@ public class TiUILabel extends TiUIView
 		
 		// Only accept one, prefer text to title.
 		if (d.containsKey(TiC.PROPERTY_HTML)) {
-			tv.setText(fromHtml(TiConvert.toString(d, TiC.PROPERTY_HTML)), TextView.BufferType.SPANNABLE);
+			String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
+			if (html == null) {
+				html = "";
+			}
+			tv.setText(fromHtml(html), TextView.BufferType.SPANNABLE);
 		} else if (d.containsKey(TiC.PROPERTY_TEXT)) {
-			tv.setText(TiConvert.toString(d, TiC.PROPERTY_TEXT));
+			String text = TiConvert.toString(d, TiC.PROPERTY_TEXT);
+			if (text == null) {
+				text = "";
+			}
+			tv.setText(text);
 		} else if (d.containsKey(TiC.PROPERTY_TITLE)) { //TODO this may not need to be supported.
 			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_TITLE)), TextView.BufferType.SPANNABLE);
 		}
 
 		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			tv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
+			Object color = d.get(TiC.PROPERTY_COLOR);
+			if (color == null) {
+				tv.setTextColor(defaultColor);
+			} else {
+				tv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
+			}
 		}
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			tv.setHighlightColor(TiConvert.toColor(d, TiC.PROPERTY_HIGHLIGHTED_COLOR));
@@ -672,7 +690,7 @@ public class TiUILabel extends TiUIView
 			}
 		}
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
-			tv.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP));
+			tv.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP, true));
 		}
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
@@ -719,11 +737,19 @@ public class TiUILabel extends TiUIView
 	{
 		TextView tv = (TextView) getNativeView();
 		if (key.equals(TiC.PROPERTY_HTML)) {
-			tv.setText(fromHtml(TiConvert.toString(newValue)), TextView.BufferType.SPANNABLE);
+			String html = TiConvert.toString(newValue);
+			if (html == null) {
+				html = "";
+			}
+			tv.setText(fromHtml(html), TextView.BufferType.SPANNABLE);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
-			tv.setText(TiConvert.toString(newValue));
+			String text = TiConvert.toString(newValue);
+			if (text == null) {
+				text = "";
+			}
+			tv.setText(text);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
@@ -762,7 +788,7 @@ public class TiUILabel extends TiUIView
 					((EllipsizingTextView)tv).setMultiLineEllipsize(null);
 			}
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
-			tv.setSingleLine(!TiConvert.toBoolean(newValue));
+			tv.setSingleLine(!TiConvert.toBoolean(newValue, true));
 		} else if (key.equals(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {

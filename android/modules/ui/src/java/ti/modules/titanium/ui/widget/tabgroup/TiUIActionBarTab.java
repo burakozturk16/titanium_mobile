@@ -7,12 +7,14 @@
 package ti.modules.titanium.ui.widget.tabgroup;
 
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiUIHelper;
 
 import ti.modules.titanium.ui.TabProxy;
 import android.app.ActionBar;
 import android.app.Fragment;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +22,7 @@ import android.view.ViewGroup;
 
 public class TiUIActionBarTab extends TiUIAbstractTab {
 
+	private static final String TAG = "TiUIActionBarTab";
 	public static class TabFragment extends Fragment {
 		private View contentView;
 
@@ -57,11 +60,12 @@ public class TiUIActionBarTab extends TiUIAbstractTab {
 		if (title != null) {
 			tab.setText(title.toString());
 		}
-
-		Object icon = proxy.getProperty(TiC.PROPERTY_ICON);
-		if (icon != null) {
-			tab.setIcon(TiUIHelper.getResourceDrawable(icon));
+		Object url = proxy.getProperty(TiC.PROPERTY_ICON);
+		if (url != null) {
+			Drawable icon = getDrawableFromUrl(url);
+			tab.setIcon(icon);
 		}
+		
 	}
 
 	@Override
@@ -69,15 +73,25 @@ public class TiUIActionBarTab extends TiUIAbstractTab {
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			tab.setText(newValue.toString());
 		}
-		else if (key.equals(TiC.PROPERTY_ICON)) {
-			tab.setIcon(newValue != null ? TiUIHelper.getResourceDrawable(newValue) : null);
-		}
-		else
-		{
-			super.propertyChanged(key, oldValue, newValue, proxy);
+		if (key.equals(TiC.PROPERTY_ICON)) {
+			Drawable icon = null;
+			if (newValue != null){
+				icon = getDrawableFromUrl(newValue);
+			}
+			tab.setIcon(icon);
 		}
 	}
 
+	private Drawable getDrawableFromUrl(Object url)
+	{
+		try {
+			return TiUIHelper.getResourceDrawable(url);
+		} catch (Exception e) {
+			Log.w(TAG, "Could not load drawable "+e.getMessage(), Log.DEBUG_MODE);
+			return null;
+		}
+	}
+	
 	/**
 	 * Initialize this tab's fragment. Called by the tab group
 	 * when the tab is first selected to create the fragment which
