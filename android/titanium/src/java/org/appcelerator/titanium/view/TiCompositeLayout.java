@@ -661,7 +661,7 @@ public class TiCompositeLayout extends ViewGroup
 
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
-			if (child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
+			if (child == null || child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
 				continue;
 				
 				currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams) child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
