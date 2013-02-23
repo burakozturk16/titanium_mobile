@@ -703,9 +703,11 @@ DEFINE_EXCEPTIONS
 		if (newVal)
 		{
 			[viewProxy willHide];
+            [viewProxy refreshView:nil];
 		}
 		else
 		{
+            [viewProxy refreshView:nil];
 			[viewProxy willShow];
             //Redraw ourselves if changing from invisible to visible, to handle any changes made
 		}
