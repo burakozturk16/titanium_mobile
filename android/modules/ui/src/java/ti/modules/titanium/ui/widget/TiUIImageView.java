@@ -195,6 +195,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		super(proxy);
 		imageViewProxy = (ImageViewProxy) proxy;
 
+		requestedWidth = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_WIDTH);
+		requestedHeight = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_HEIGHT);
+
 		Log.d(TAG, "Creating an ImageView", Log.DEBUG_MODE);
 
 		TiImageView view = new TiImageView(proxy.getActivity());
