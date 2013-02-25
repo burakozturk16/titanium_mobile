@@ -863,9 +863,11 @@ public abstract class TiUIView
 		
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
 		if (borderView != null) {
+			borderView.clearAnimation();
 			borderView.setVisibility(this.visibility);
 		}
 		if (nativeView != null) {
+			nativeView.clearAnimation();
 			nativeView.setVisibility(this.visibility);
 		}
 	}
