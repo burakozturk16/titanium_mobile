@@ -582,6 +582,12 @@ public class TiTableView extends FrameLayout
 		listView.setDivider(new ColorDrawable(sepColor));
 		listView.setDividerHeight(dividerHeight);
 	}
+	
+	public void setSeparatorStyle(int separatorHeight) {
+		Drawable drawable = listView.getDivider();
+		listView.setDivider(drawable);
+		listView.setDividerHeight(separatorHeight);
+	}
 
 	public TableViewModel getTableViewModel() {
 		return this.viewModel;

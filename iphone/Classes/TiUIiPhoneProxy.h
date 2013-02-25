@@ -37,9 +37,6 @@
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	TiProxy *tableViewStyle;
 #endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	TiProxy *tableViewSeparatorStyle;
-#endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	TiProxy *tableViewScrollPosition;
 #endif
@@ -77,9 +74,6 @@
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 @property(nonatomic,readonly) TiProxy* TableViewStyle;
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-@property(nonatomic,readonly) TiProxy* TableViewSeparatorStyle;
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 @property(nonatomic,readonly) TiProxy* TableViewScrollPosition;

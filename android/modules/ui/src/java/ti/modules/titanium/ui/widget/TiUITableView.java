@@ -36,6 +36,9 @@ public class TiUITableView extends TiUIView
 	implements OnItemClickedListener, OnItemLongClickedListener, OnLifecycleEvent
 {
 	private static final String TAG = "TitaniumTableView";
+	
+	public static final int SEPARATOR_NONE = 0;
+	public static final int SEPARATOR_SINGLE_LINE = 1;
 
 	protected TiTableView tableView;
 
@@ -173,6 +176,14 @@ public class TiUITableView extends TiUIView
 				getListView().setOverScrollMode(TiConvert.toInt(d.get(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
 			}
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			tableView.setSeparatorColor(TiConvert.toString(d, TiC.PROPERTY_SEPARATOR_COLOR));
+		}
+		if (d.containsKey(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			tableView.setSeparatorStyle(TiConvert.toInt(d, TiC.PROPERTY_SEPARATOR_STYLE));
+		}
+		
 		boolean filterCaseInsensitive = true;
 		if (d.containsKey(TiC.PROPERTY_FILTER_CASE_INSENSITIVE)) {
 			filterCaseInsensitive = TiConvert.toBoolean(d, TiC.PROPERTY_FILTER_CASE_INSENSITIVE);
@@ -220,6 +231,8 @@ public class TiUITableView extends TiUIView
 		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			tableView.setSeparatorColor(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			tableView.setSeparatorStyle(TiConvert.toInt(newValue));
 		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)){
 			if (Build.VERSION.SDK_INT >= 9) {
 				getListView().setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));

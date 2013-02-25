@@ -31,6 +31,9 @@
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 	TiProxy *activityIndicatorStyle;
 #endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+	TiProxy *tableViewSeparatorStyle;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -209,6 +212,10 @@
 
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 @property(nonatomic,readonly)           TiProxy* ActivityIndicatorStyle;
+#endif
+
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+@property(nonatomic,readonly) TiProxy* TableViewSeparatorStyle;
 #endif
 
 @end

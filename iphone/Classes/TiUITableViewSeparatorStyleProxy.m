@@ -4,11 +4,11 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
 
-#import "TiUIiPhoneTableViewSeparatorStyleProxy.h"
+#import "TiUITableViewSeparatorStyleProxy.h"
 
-@implementation TiUIiPhoneTableViewSeparatorStyleProxy
+@implementation TiUITableViewSeparatorStyleProxy
 
 MAKE_SYSTEM_PROP(NONE,UITableViewCellSeparatorStyleNone);
 MAKE_SYSTEM_PROP(SINGLE_LINE,UITableViewCellSeparatorStyleSingleLine);

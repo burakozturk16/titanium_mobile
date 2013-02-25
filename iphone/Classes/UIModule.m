@@ -47,6 +47,9 @@
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 #import "TiUIActivityIndicatorStyleProxy.h"
 #endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+#import "TiUITableViewSeparatorStyleProxy.h"
+#endif
 #import "TiApp.h"
 #import "ImageLoader.h"
 #import "Webcolor.h"
@@ -88,6 +91,10 @@
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
     [self forgetProxy:activityIndicatorStyle];
     RELEASE_TO_NIL(activityIndicatorStyle);
+#endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+    [self forgetProxy:tableViewSeparatorStyle];
+    RELEASE_TO_NIL(tableViewSeparatorStyle);
 #endif
 	[super dealloc];
 }
@@ -416,6 +423,17 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 	}
 	return activityIndicatorStyle;
 }
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+-(id)TableViewSeparatorStyle
+{
+	if (tableViewSeparatorStyle==nil)
+	{
+		tableViewSeparatorStyle = [[TiUITableViewSeparatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:tableViewSeparatorStyle];
+	}
+	return tableViewSeparatorStyle;
+}
+#endif
 #endif
 #pragma mark Internal Memory Management
 
@@ -435,6 +453,9 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 	RELEASE_TO_NIL(activityIndicatorStyle);
+#endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+	RELEASE_TO_NIL(tableViewSeparatorStyle);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }

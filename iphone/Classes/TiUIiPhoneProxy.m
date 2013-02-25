@@ -38,9 +38,6 @@
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	#import "TiUIiPhoneTableViewStyleProxy.h"
 #endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	#import "TiUIiPhoneTableViewSeparatorStyleProxy.h"
-#endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	#import "TiUIiPhoneTableViewScrollPositionProxy.h"
 #endif
@@ -100,9 +97,6 @@ RELEASE_TO_NIL(x); \
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	FORGET_AND_RELEASE(tableViewStyle);
 #endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(tableViewSeparatorStyle);
-#endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	FORGET_AND_RELEASE(tableViewScrollPosition);
 #endif
@@ -152,9 +146,6 @@ RELEASE_TO_NIL(x); \
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	DEFINE_SUBPROXY(TableViewStyle,tableViewStyle);
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	DEFINE_SUBPROXY(TableViewSeparatorStyle,tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	DEFINE_SUBPROXY(TableViewScrollPosition,tableViewScrollPosition);
@@ -331,9 +322,6 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT,UIModalPresentationCurrentCo
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	FORGET_AND_RELEASE(tableViewStyle);
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	FORGET_AND_RELEASE(tableViewScrollPosition);

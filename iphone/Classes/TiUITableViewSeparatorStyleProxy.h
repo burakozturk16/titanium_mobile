@@ -4,11 +4,11 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
 
 #import "TiProxy.h"
 
-@interface TiUIiPhoneTableViewSeparatorStyleProxy : TiProxy {
+@interface TiUITableViewSeparatorStyleProxy : TiProxy {
 
 }
 

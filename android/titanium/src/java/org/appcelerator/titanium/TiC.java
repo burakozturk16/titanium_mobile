@@ -1838,6 +1838,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_SEPARATOR_STYLE = "separatorStyle";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_SHADOW_COLOR = "shadowColor";
 
 	/**
