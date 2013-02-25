@@ -685,6 +685,18 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	}
 
 	/**
+	 * tries to remove this view from it parent
+	 * @module.api
+	 */
+	@Kroll.method
+	public void removeFromParent()
+	{
+		if (parent != null) {
+			getParent().remove(this);
+		}
+	}
+
+	/**
 	 * Removes all children views.
 	 * @module.api
 	 */

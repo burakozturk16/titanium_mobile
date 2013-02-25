@@ -317,6 +317,12 @@ static NSSet* transferableProps = nil;
 	[self forgetProxy:arg];
 }
 
+-(void)removeFromParent:(id)arg
+{
+    if (parent)
+        [parent remove:self];
+}
+
 -(void)removeAllChildren:(id)arg
 {
 	ENSURE_UI_THREAD_1_ARG(arg);
