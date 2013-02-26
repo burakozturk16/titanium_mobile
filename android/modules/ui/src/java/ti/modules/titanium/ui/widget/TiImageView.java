@@ -58,15 +58,15 @@ public class TiImageView extends ViewGroup
 	private Matrix baseMatrix;
 	private Matrix changeMatrix;
 	
-//	public interface OnSizeChangeListener {
-//		public void sizeChanged(int w, int h, int oldWidth, int oldHeight);
-//	};
+	public interface OnSizeChangeListener {
+		public void sizeChanged(int w, int h, int oldWidth, int oldHeight);
+	};
 
 	public class NoLayoutImageView extends ImageView
 	{
 
 		public boolean allowLayoutRequest;
-//		public SoftReference<OnSizeChangeListener> listener;
+		public SoftReference<OnSizeChangeListener> listener;
 
 		public NoLayoutImageView(Context context) {
 			super(context);
@@ -81,33 +81,33 @@ public class TiImageView extends ViewGroup
 			}
 		}
 
-//		@Override
-//		protected void onSizeChanged(int w, int h, int oldw, int oldh) 
-//		{
-//			super.onSizeChanged(w, h, oldw, oldh);
-//			Log.d(TAG, "ImageView size change: w: " + w + " h: " + h + " oldw: " + oldw + " oldh: " + oldh, Log.DEBUG_MODE);
-//			if (listener != null) {
-//				OnSizeChangeListener l = listener.get();
-//				if (l != null) {
-//					l.sizeChanged(w, h, oldw, oldh);
-//				}
-//			}
-//		}
+		@Override
+		protected void onSizeChanged(int w, int h, int oldw, int oldh) 
+		{
+			super.onSizeChanged(w, h, oldw, oldh);
+			Log.d(TAG, "ImageView size change: w: " + w + " h: " + h + " oldw: " + oldw + " oldh: " + oldh, Log.DEBUG_MODE);
+			if (listener != null) {
+				OnSizeChangeListener l = listener.get();
+				if (l != null) {
+					l.sizeChanged(w, h, oldw, oldh);
+				}
+			}
+		}
 		
-//		public void setOnSizeChangeListener(OnSizeChangeListener listener) {
-//			if (listener != null) {
-//				this.listener = new SoftReference<OnSizeChangeListener>(listener);
-//			} else {
-//				listener = null;
-//			}
-//		}
-//		
-//		public OnSizeChangeListener getOnSizeChangeListener() {
-//			if (listener != null) {
-//				return listener.get();
-//			}
-//			return null;
-//		}
+		public void setOnSizeChangeListener(OnSizeChangeListener listener) {
+			if (listener != null) {
+				this.listener = new SoftReference<OnSizeChangeListener>(listener);
+			} else {
+				listener = null;
+			}
+		}
+		
+		public OnSizeChangeListener getOnSizeChangeListener() {
+			if (listener != null) {
+				return listener.get();
+			}
+			return null;
+		}
 	}
 
 	public TiImageView(Context context) {
@@ -189,12 +189,12 @@ public class TiImageView extends ViewGroup
 
 			super.setOnClickListener(this);
 	}
-//	
-//	public void setOnSizeChangeListener(OnSizeChangeListener listener) {
-//		if (imageView != null) {
-//			((NoLayoutImageView) imageView).setOnSizeChangeListener(listener);
-//		}
-//	}
+	
+	public void setOnSizeChangeListener(OnSizeChangeListener listener) {
+		if (imageView != null) {
+			((NoLayoutImageView) imageView).setOnSizeChangeListener(listener);
+		}
+	}
 	
 	public void setCanScaleImage(boolean canScaleImage)
 	{
@@ -448,6 +448,11 @@ public class TiImageView extends ViewGroup
 	public void setScaleType(ScaleType type) {
 		imageView.setScaleType(type);
 	}
+	
+	public ScaleType getScaleType() {
+		return imageView.getScaleType();
+	}
+	
 	public void setAdjustViewBounds(boolean adjustViewBounds) {
 		imageView.setAdjustViewBounds(adjustViewBounds);
 	}

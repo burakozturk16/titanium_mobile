@@ -472,10 +472,16 @@ public class TiDrawableReference
 		}
 
 		float origAspectRatio = (float) srcWidth / (float) srcHeight;
+		float containerAspectRatio = (float) containerWidth / (float) containerHeight;
 
 		if (widthSpecified && heightSpecified) {
-			destWidth = containerWidth;
-			destHeight = containerHeight;
+			if (origAspectRatio < containerAspectRatio) {
+				destWidth = containerWidth;
+				destHeight = (int) ((float) destWidth / origAspectRatio);
+			} else {
+				destHeight = containerHeight;
+				destWidth = (int) ((float) destHeight * origAspectRatio);
+			}
 		} else if (widthSpecified) {
 			destWidth = containerWidth;
 			destHeight = (int) ((float) destWidth / origAspectRatio);
@@ -483,7 +489,7 @@ public class TiDrawableReference
 			destHeight = containerHeight;
 			destWidth = (int) ((float) destHeight * origAspectRatio);
 		} else {
-			if (origAspectRatio > 1f) {
+			if (origAspectRatio < containerAspectRatio) {
 				destWidth = containerWidth;
 				destHeight = (int) ((float) destWidth / origAspectRatio);
 			} else {
@@ -530,6 +536,7 @@ public class TiDrawableReference
 		Bounds destBounds = calcDestSize(srcWidth, srcHeight, destWidthDimension, destHeightDimension, parent);
 		destWidth = destBounds.width;
 		destHeight = destBounds.height;
+		Log.d(TAG, "computed destSize: " + destWidth + "x" + destHeight);
 
 		// If src and dest width/height are same, no need to go through all the sampling and scaling jazz.
 		if (srcWidth == destWidth && srcHeight == destHeight) {

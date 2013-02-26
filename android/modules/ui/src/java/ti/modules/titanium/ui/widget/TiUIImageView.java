@@ -38,7 +38,8 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.filesystem.FileProxy;
 import ti.modules.titanium.ui.ImageViewProxy;
-//import ti.modules.titanium.ui.widget.TiImageView.OnSizeChangeListener;
+import ti.modules.titanium.ui.widget.TiImageView.OnSizeChangeListener;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -195,35 +196,35 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		super(proxy);
 		imageViewProxy = (ImageViewProxy) proxy;
 
-		requestedWidth = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_WIDTH);
-		requestedHeight = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_HEIGHT);
+//		requestedWidth = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_WIDTH);
+//		requestedHeight = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_HEIGHT);
 
 		Log.d(TAG, "Creating an ImageView", Log.DEBUG_MODE);
 
 		TiImageView view = new TiImageView(proxy.getActivity());
-//		view.setOnSizeChangeListener(new OnSizeChangeListener()
-//		{
-//
-//			@Override
-//			public void sizeChanged(int w, int h, int oldWidth, int oldHeight)
-//			{
-//				// By the time this hits, we've already set the drawable in the view.
-//				// And this runs even the first time the view is drawn (in which
-//				// case oldWidth and oldHeight are 0.) This was leading to
-//				// setImage running twice unnecessarily, so the if block here
-//				// will avoid a second, unnecessary call to setImage.
-//				if (oldWidth == 0 && oldHeight == 0) {
-//					TiImageView view = getView();
-//					if (view != null) {
-//						Drawable drawable = view.getImageDrawable();
-//						if (drawable != null && drawable.getIntrinsicHeight() == h && drawable.getIntrinsicWidth() == w) {
-//							return;
-//						}
-//					}
-//				}
-//				setImage(true);
-//			}
-//		});
+		view.setOnSizeChangeListener(new OnSizeChangeListener()
+		{
+
+			@Override
+			public void sizeChanged(int w, int h, int oldWidth, int oldHeight)
+			{
+				// By the time this hits, we've already set the drawable in the view.
+				// And this runs even the first time the view is drawn (in which
+				// case oldWidth and oldHeight are 0.) This was leading to
+				// setImage running twice unnecessarily, so the if block here
+				// will avoid a second, unnecessary call to setImage.
+				if (oldWidth == 0 && oldHeight == 0) {
+					TiImageView view = getView();
+					if (view != null) {
+						Drawable drawable = view.getImageDrawable();
+						if (drawable != null && drawable.getIntrinsicHeight() == h && drawable.getIntrinsicWidth() == w) {
+							return;
+						}
+					}
+				}
+				setImage(true);
+			}
+		});
 		
 		setNativeView(view);
 		// TODO proxy.getActivity().addOnLifecycleEventListener(this);
@@ -975,22 +976,22 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		}
 		super.processProperties(d);
 
-//		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
-//			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_WIDTH)) && parentView != null) {
-//				// Use the parent's width when it's fill
-//				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
-//			} else {
-//				requestedWidth = TiConvert.toTiDimension(d, TiC.PROPERTY_WIDTH, TiDimension.TYPE_WIDTH);
-//			}
-//		}
-//		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
-//			// Use the parent's height when it's fill
-//			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_HEIGHT)) && parentView != null) {
-//				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
-//			} else {
-//				requestedHeight = TiConvert.toTiDimension(d, TiC.PROPERTY_HEIGHT, TiDimension.TYPE_HEIGHT);
-//			}
-//		}
+		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
+			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_WIDTH)) && parentView != null) {
+				// Use the parent's width when it's fill
+				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
+			} else {
+				requestedWidth = TiConvert.toTiDimension(d, TiC.PROPERTY_WIDTH, TiDimension.TYPE_WIDTH);
+			}
+		}
+		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
+			// Use the parent's height when it's fill
+			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_HEIGHT)) && parentView != null) {
+				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
+			} else {
+				requestedHeight = TiConvert.toTiDimension(d, TiC.PROPERTY_HEIGHT, TiDimension.TYPE_HEIGHT);
+			}
+		}
 
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
 			setImageSource(d.get(TiC.PROPERTY_IMAGES));
@@ -1069,22 +1070,22 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (view == null) {
 			return;
 		}
-//		View parentView = getParentView();
-//		if (key.equals(TiC.PROPERTY_WIDTH)) {
-//			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-//				// Use the parent's width when it's fill
-//				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
-//			} else {
-//				requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
-//			}
-//		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
-//			// Use the parent's height when it's fill
-//			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-//				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
-//			} else {
-//				requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
-//			}
-//		}
+		View parentView = getParentView();
+		if (key.equals(TiC.PROPERTY_WIDTH)) {
+			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
+				// Use the parent's width when it's fill
+				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
+			} else {
+				requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			}
+		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
+			// Use the parent's height when it's fill
+			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
+				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
+			} else {
+				requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+			}
+		}
 
 		if (key.equals(TiC.PROPERTY_CAN_SCALE)) {
 			boolean canScaleImage = TiConvert.toBoolean(newValue);
@@ -1109,23 +1110,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				}
 			}
 		} else {
-			// Update requestedWidth / requestedHeight when width / height is changed.
-//			if (key.equals(TiC.PROPERTY_WIDTH)) {
-//				if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-//					// Use the parent's width when it's fill
-//					requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
-//				} else {
-//					requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
-//				}
-//			} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
-//				// Use the parent's height when it's fill
-//				if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-//					requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
-//				} else {
-//					requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
-//				}
-//			}
-
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
