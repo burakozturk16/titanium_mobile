@@ -129,7 +129,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 							false);
 					BackgroundImageTask task = new BackgroundImageTask();
 					try {
-						task.execute(imageArgs);
+						runTask(task, imageArgs);
 					} catch (RejectedExecutionException e) {
 						Log.e(TAG, "Cannot load the image. Loading too many images at the same time.");
 					}
@@ -848,6 +848,17 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			}
 		}
 	}
+	
+	@SuppressLint("NewApi")
+	private void runTask(BackgroundImageTask task, ImageArgs args)
+	{
+		if (Build.VERSION.SDK_INT>=Build.VERSION_CODES.HONEYCOMB) {
+				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, args);
+			}
+			else {
+				task.execute(args);
+			}
+	}
 
 	private void setImage(boolean recycle) {
 		
@@ -887,7 +898,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					
 				BackgroundImageTask task = new BackgroundImageTask();
 				try {
-					task.execute(imageArgs);
+					runTask(task, imageArgs);
 				} catch (RejectedExecutionException e) {
 					Log.e(TAG, "Cannot load the image. Loading too many images at the same time.");
 				}
@@ -900,7 +911,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				
 				BackgroundImageTask task = new BackgroundImageTask();
 				try {
-					task.execute(imageArgs);
+					runTask(task, imageArgs);
 				} catch (RejectedExecutionException e) {
 					Log.e(TAG, "Cannot load the image. Loading too many images at the same time.");
 				}
