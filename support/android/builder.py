@@ -1899,7 +1899,7 @@ class Builder(object):
 		# Quick check: the existence of /sdcard/Android,
 		# which really should be there on all phones and emulators.
 		output = self.run_adb('shell', 'cd /sdcard/Android && echo SDCARD READY')
-		if 'SDCARD READY' in output:
+		if output is not None and "SDCARD READY" in output:
 			return True
 
 		# Our old way of checking in case the above
