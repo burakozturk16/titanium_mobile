@@ -128,7 +128,7 @@
         if ([proxy _hasListeners:@"touchstart"])
         {
         	UITouch *touch = [touches anyObject];
-            NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
             [proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
         }
     }
@@ -143,7 +143,7 @@
         if ([proxy _hasListeners:@"touchmove"])
         {
             UITouch *touch = [touches anyObject];
-            NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
             [proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
         }
     }
@@ -157,7 +157,7 @@
         if ([proxy _hasListeners:@"touchend"])
         {
             UITouch *touch = [touches anyObject];
-            NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
             [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
         }
     }

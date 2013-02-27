@@ -990,6 +990,36 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [self dimensionValue:name properties:properties def:TiDimensionUndefined exists:NULL];
 }
 
++(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
+{
+    CGPoint localPoint = [touch locationInView:view];
+    CGPoint globalPoint = [touch locationInView:nil];
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSNumber numberWithDouble:localPoint.x],@"x",
+                         [NSNumber numberWithDouble:localPoint.y],@"y",
+                         [NSDictionary dictionaryWithObjectsAndKeys:
+                            [NSNumber numberWithDouble:globalPoint.x],@"x",
+                            [NSNumber numberWithDouble:globalPoint.y],@"y",
+                             nil], @"globalPoint",
+                         nil];
+    return evt;
+}
+
++(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view
+{
+    CGPoint localPoint = [gesture locationInView:view];
+    CGPoint globalPoint = [gesture locationInView:nil];
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSNumber numberWithDouble:localPoint.x],@"x",
+                         [NSNumber numberWithDouble:localPoint.y],@"y",
+                         [NSDictionary dictionaryWithObjectsAndKeys:
+                          [NSNumber numberWithDouble:globalPoint.x],@"x",
+                          [NSNumber numberWithDouble:globalPoint.y],@"y",
+                          nil], @"globalPoint",
+                         nil];
+    return evt;
+}
+
 +(NSDictionary*)pointToDictionary:(CGPoint)point
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:

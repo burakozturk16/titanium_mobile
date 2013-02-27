@@ -400,6 +400,8 @@ typedef enum {
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
++(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
++(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view;
 
 +(NSDictionary*)rectToDictionary:(CGRect)rect;
 
