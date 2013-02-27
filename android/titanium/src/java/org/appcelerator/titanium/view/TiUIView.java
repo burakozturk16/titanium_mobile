@@ -525,19 +525,10 @@ public abstract class TiUIView
 		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PADDING)) {
 			Log.i(TAG, key + " not yet implemented.");
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
-//			if (nativeView != null){
-//				String color = TiConvert.toString(newValue);
-//				Integer bgColor = TiConvert.toColor(color);
-//				nativeView.setBackgroundColor(bgColor);
-//			}
-//			if (background != null) {
 				TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 				ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
-//				background.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, colorDrawable);
 				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
 				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
-//			}
-//			redrawNativeView();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
 			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
 			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, colorDrawable);
@@ -551,7 +542,6 @@ public abstract class TiUIView
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(newValue), repeat, proxy);
-//			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, drawable);
 			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
@@ -578,7 +568,6 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, (KrollDict)newValue);
-//			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
