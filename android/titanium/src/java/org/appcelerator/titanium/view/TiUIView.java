@@ -1007,6 +1007,10 @@ public abstract class TiUIView
 		KrollDict data = new KrollDict();
 		data.put(TiC.EVENT_PROPERTY_X, (double)e.getX());
 		data.put(TiC.EVENT_PROPERTY_Y, (double)e.getY());
+		KrollDict globalPoint = new KrollDict();
+		globalPoint.put(TiC.EVENT_PROPERTY_X, (double)e.getRawX());
+		globalPoint.put(TiC.EVENT_PROPERTY_Y, (double)e.getRawY());
+		data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
 		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 		return data;
 	}

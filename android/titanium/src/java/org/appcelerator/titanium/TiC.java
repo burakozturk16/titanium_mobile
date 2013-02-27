@@ -237,6 +237,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PROPERTY_GLOBALPOINT = "globalPoint";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PROPERTY_INDEX = "index";
 
 	/**
