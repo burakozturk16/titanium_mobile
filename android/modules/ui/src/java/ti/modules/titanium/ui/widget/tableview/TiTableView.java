@@ -273,7 +273,8 @@ public class TiTableView extends FrameLayout
 			}
             else if (sameView == false) 
             {
-            	
+            	v.getRowData().proxy.prepareForReuse();
+
             	if (proxy.hasListeners("reuse"))
             	{
 	                //we are reusing a cell
