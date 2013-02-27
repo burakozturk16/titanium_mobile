@@ -1,6 +1,5 @@
 var win = Titanium.UI.currentWindow;
 win.barColor = '#385292';
-
 //
 // CREATE SEARCH BAR
 //
@@ -85,6 +84,11 @@ var animHide = Ti.UI.createAnimation({
     duration:200,
     left:-menuWidth,
     right:0
+})
+
+var animClearTransform = Ti.UI.createAnimation({
+    duration:200,
+    transform:Ti.UI.create2DMatrix()
 })
 animHide.addEventListener('complete', function(){
     if (oldRowMenu === null) return;
@@ -200,7 +204,8 @@ for (var c=1;c<200;c++)
 		left:-menuWidth,
 		right:0,
 		top:0,
-		bottom:0
+		bottom:0,
+		backgroundColor:"#222"
 	});
 
 	var rowrealcontainer =  Ti.UI.createView({
@@ -298,34 +303,96 @@ tableView = Titanium.UI.createTableView({
 });
 
 
-tableView.addEventListener('swipe', function(e)
-{
-    if(e.row)
-    {
-    	if (e.row.isUpdateRow) return;
-    	if (e.direction == 'right') {
-        	showMenuForRow(e.row);
-    	}
-    	else if (e.direction == 'left') {
-        	if (currentRowMenu == e.row)
-				hideMenu();
-    	}
+// tableView.addEventListener('swipe', function(e)
+// {
+//     if(e.row)
+//     {
+//     	if (e.row.isUpdateRow) return;
+//     	if (e.direction == 'right') {
+//         	showMenuForRow(e.row);
+//     	}
+//     	else if (e.direction == 'left') {
+//         	if (currentRowMenu == e.row)
+// 				hideMenu();
+//     	}
         
+//     }
+// });
+
+var percentColors = [
+    { pct: 0.0, color: { r: 0x22, g: 0x22, b: 0x22 } },
+    { pct: 1.0, color: { r: 0xff, g: 0x00, b: 0 } } ];
+
+var getColorForPercentage = function(pct) {
+    for (var i = 0; i < percentColors.length; i++) {
+        if (pct <= percentColors[i].pct) {
+
+            var lower = (i>0)?percentColors[i - 1]:percentColors[i];
+            var upper = percentColors[i];
+            var range = upper.pct - lower.pct;
+            var rangePct = (pct - lower.pct) / range;
+            var pctLower = 1 - rangePct;
+            var pctUpper = rangePct;
+            var color = {
+                r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+                g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+                b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+            };
+            var rgb = color.b | (color.g << 8) | (color.r << 16);
+    		return '#' + rgb.toString(16);
+            // or output as hex if preferred
+        }
+    }
+}
+
+var touchDecaleMax = 80;
+var currentDelta = 0;
+
+var touchRow = null;
+var touchRowPoint = null;
+function handleTouchEnd(e)
+{
+    if(touchRow)
+    {
+    	if (e.type === 'touchend' && currentDelta >= (touchDecaleMax*0.92))
+    		alert('action success');
+    	touchRow.container.animate(animClearTransform);
+    	touchRow = null;
+    	currentDelta = 0;
+    }
+}
+tableView.addEventListener('touchstart', function(e)
+{
+    if(e.row && currentRowMenu != e.row)
+    {
+    	touchRow = e.row;
+    	touchRowPoint = e.globalPoint;
     }
 });
- 
-
+tableView.addEventListener('touchend', handleTouchEnd);
+tableView.addEventListener('touchcancel', handleTouchEnd);
+tableView.addEventListener('touchmove', function(e)
+{
+    if(touchRow)
+    {
+    	var delta = Math.max(0, Math.min(Math.floor(e.globalPoint.x - touchRowPoint.x), touchDecaleMax));
+    	if (delta != currentDelta) 
+    	{
+    		currentDelta = delta;
+    		touchRow.container.backgroundColor = getColorForPercentage(currentDelta/touchDecaleMax);
+        	touchRow.container.transform  = Ti.UI.create2DMatrix().translate(currentDelta, 0);
+    	}
+    }
+});
 
 
 tableView.addEventListener('singletap', function(e)
 {
-	if (e.source.toString() == '[object TiUIButton]') return;
-	Ti.API.info('table view row clicked - source ' + e.source);
-	if (e.row.isUpdateRow) return;
-	// use rowNum property on object to get row number
-	var rowNum = e.index;
-	var updateRow = createUpdateRow('You clicked on the '+e.source.clickName);
-	tableView.updateRow(rowNum,updateRow,{animationStyle:Titanium.UI.iPhone.RowAnimationStyle.LEFT});
+	if (e.source.toString().indexOf('Button') != -1 ) return;
+	if (currentRowMenu == e.row)
+		hideMenu();
+	else if (e.row)
+		showMenuForRow(e.row);
 });
 
 win.add(tableView);
