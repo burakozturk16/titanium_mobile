@@ -26,6 +26,7 @@ import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.OneStateDrawable;
+import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
@@ -62,6 +63,7 @@ public class TiUIActivityWindow extends TiUIView
 	protected Messenger messenger;
 	protected int messageId;
 	protected int lastWidth, lastHeight;
+	protected TiBackgroundDrawable background;
 
 	public TiUIActivityWindow(ActivityWindowProxy proxy, KrollDict options, Messenger messenger, int messageId)
 	{
@@ -319,31 +321,13 @@ public class TiUIActivityWindow extends TiUIView
 					 *on the same thread.
 					 */
 					if (windowActivity != null) {
-						windowActivity.getWindow().setBackgroundDrawable(drawable);
+						windowActivity.getWindow().getDecorView().setBackgroundDrawable(drawable);
 					}
 				}
 			});
 
 		} else {
-			windowActivity.getWindow().setBackgroundDrawable(drawable);
-		}
-	}
-
-	private void handleBackground(Drawable drawable, Object opacityValue, boolean post)
-	{
-		if (drawable != null) {
-			float opacity = 1f;
-			
-			if (opacityValue != null) { // lightweight opacity will get handled via super because nativeView won't be null.
-				try {
-					opacity = TiConvert.toFloat(opacityValue);
-				} catch (NumberFormatException e) {
-					opacity = 1f;
-				}
-			}
-
-			setActivityOpacity(drawable, opacity, true);
-			setActivityBackground(drawable, post);
+			windowActivity.getWindow().getDecorView().setBackgroundDrawable(drawable);
 		}
 	}
 
@@ -359,41 +343,52 @@ public class TiUIActivityWindow extends TiUIView
 
 		background.setAlpha(alpha);
 	}
-
-	private void handleActivityBackgroundDrawable(Object bgColor, Object bgImage, Object opacityValue, boolean tile, boolean post)
+	
+	protected void applyCustomBackground()
 	{
-		//Maximum of 2 drawables, color and image
-		OneStateDrawable drawable = new OneStateDrawable();
-		String colorString = null;
-		if (bgColor != null) {
-			colorString = TiConvert.toString(bgColor);
-			drawable.setColorDrawable(TiUIHelper.buildColorDrawable(colorString));
+		if (background == null) {
+			background = new TiBackgroundDrawable();
+			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+				setActivityOpacity(background, TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)), true);
+			else
+				setActivityOpacity(background, 1, true);
+			setActivityBackground(background, true);
 		}
-		
-		String path = null;
-		if (bgImage != null) {
-			path = proxy.resolveUrl(null, TiConvert.toString(bgImage));
-			drawable.setBitmapDrawable(TiUIHelper.buildImageDrawable(path, tile, proxy));
+	}
+	
+	protected TiBackgroundDrawable getOrCreateBackground()
+	{
+		if (background == null)
+		{
+			applyCustomBackground();
 		}
-		handleBackground(drawable,opacityValue,post);
+		return background;
 	}
 	
 	@Override
 	public void processProperties(KrollDict d)
 	{
-		// Prefer image to color.
-		
-		if (d.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE) || d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR) || d.containsKey(TiC.PROPERTY_OPACITY)) {
-			boolean tile = false;
-			if (d.containsKey(TiC.PROPERTY_BACKGROUND_REPEAT)) {
-				tile = TiConvert.toBoolean(d.get(TiC.PROPERTY_BACKGROUND_REPEAT));
-			}
-			handleActivityBackgroundDrawable(d.get(TiC.PROPERTY_BACKGROUND_COLOR), d.get(TiC.PROPERTY_BACKGROUND_IMAGE), d.get(TiC.PROPERTY_OPACITY), tile, true);
-
-			// Don't allow default processing.
+		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+		d.remove(TiC.PROPERTY_BACKGROUND_REPEAT);
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+				ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
+				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+				d.remove(TiC.PROPERTY_BACKGROUND_COLOR);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_IMAGE), backgroundRepeat, proxy);
+			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 			d.remove(TiC.PROPERTY_BACKGROUND_IMAGE);
-			d.remove(TiC.PROPERTY_BACKGROUND_COLOR);
-			d.remove(TiC.PROPERTY_BACKGROUND_REPEAT);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
@@ -444,26 +439,25 @@ public class TiUIActivityWindow extends TiUIView
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			boolean tile = false;
-			Object prop = proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT);
-			if (prop != null) {
-				tile = TiConvert.toBoolean(prop);
-			}
-			handleActivityBackgroundDrawable(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR), newValue, proxy.getProperty(TiC.PROPERTY_OPACITY), tile, false);
-			
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
-			boolean tile = false;
-			Object prop = proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT);
-			if (prop != null) {
-				tile = TiConvert.toBoolean(prop);
-			}
-			handleActivityBackgroundDrawable(newValue, proxy.getProperty(TiC.PROPERTY_BACKGROUND_IMAGE), proxy.getProperty(TiC.PROPERTY_OPACITY), tile, false);
-			
+		if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(newValue), repeat, proxy);
+			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setImageDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, (KrollDict)newValue);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
-			boolean tile = TiConvert.toBoolean(newValue);
-			handleActivityBackgroundDrawable(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR), proxy.getProperty(TiC.PROPERTY_BACKGROUND_IMAGE), proxy.getProperty(TiC.PROPERTY_OPACITY), tile, false);
-			
+			if (background != null)
+				background.setImageRepeat(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_HEIGHT)) {
 			Window w = windowActivity.getWindow();
 			int width = lastWidth;
