@@ -114,7 +114,7 @@ TiUIiPadPopoverProxy * currentlyDisplaying = nil;
  *	strange reason, UIPopoverController doesn't like that. So we must explicitly set the view
  *	variable so that the UIViewController mojo isn't thrown off for sizing.
  */
-		[viewController setView:[self view]];
+		[viewController setView:[self getOrCreateView]];
 	}
 	return viewController;
 }

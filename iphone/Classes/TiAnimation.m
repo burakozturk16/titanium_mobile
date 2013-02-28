@@ -407,13 +407,14 @@ if (self.value != nil)\
 	BOOL transitionAnimation = [self isTransitionAnimation];
 	
 	TiUIView *view_ = (transitionAnimation && view!=nil) ? 
-        [view view] : 
+        [view getOrCreateView] :
         (([theview isKindOfClass:[TiViewProxy class]]) ? 
             [(TiViewProxy*)theview view] : 
             (TiUIView *)theview);
+    
 	TiUIView *transitionView = transitionAnimation ? 
         (([theview isKindOfClass:[TiViewProxy class]]) ? 
-            (TiUIView*)[(TiViewProxy*)theview view] : 
+            (TiUIView*)[(TiViewProxy*)theview getOrCreateView] : 
             (TiUIView*)theview) : 
         nil;
 	
