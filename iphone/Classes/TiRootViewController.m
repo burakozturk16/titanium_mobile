@@ -602,11 +602,29 @@
 {
 	windowOrientation = toInterfaceOrientation;
 	[super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    for (TiWindowProxy * thisProxy in windowProxies)
+	{
+        UIViewController * thisNavCon = [thisProxy navController];
+        if (thisNavCon == nil)
+        {
+            thisNavCon = [thisProxy controller];
+        }
+        [thisNavCon willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+	}
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation;
 {
 	[super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    for (TiWindowProxy * thisProxy in windowProxies)
+	{
+        UIViewController * thisNavCon = [thisProxy navController];
+        if (thisNavCon == nil)
+        {
+            thisNavCon = [thisProxy controller];
+        }
+        [thisNavCon didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+	}
 }
 -(BOOL)isCurrentWindowModal{
     for (TiWindowProxy * thisWindow in [windowProxies reverseObjectEnumerator])
