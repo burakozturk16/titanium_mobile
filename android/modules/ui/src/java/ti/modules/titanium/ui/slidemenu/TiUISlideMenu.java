@@ -3,6 +3,7 @@ package ti.modules.titanium.ui.slidemenu;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBaseActivity.ConfigurationChangedListener;
@@ -13,10 +14,12 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.view.ViewGroup;
 
 import com.slidingmenu.lib.SlidingMenu;
 
@@ -27,6 +30,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private SlidingMenu slidingMenu;
 	private TiViewProxy leftView;
 	private TiViewProxy rightView;
+	private TiViewProxy centerView;
 	private static final String TAG = "TiUISlideMenu";
 	private TiBaseActivity activity;
 	private int menuWidth;
@@ -39,7 +43,6 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		activity.addConfigurationChangedListener(this);
         // configure the SlidingMenu
 		slidingMenu = new SlidingMenu(activity);
-		
 		slidingMenu.setOnCloseListener(new SlidingMenu.OnCloseListener() {
 			@Override
 			public void onClose(int leftOrRight, boolean animated, int duration) {
@@ -163,7 +166,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW)) {
 			Object leftView = d.get(TiC.PROPERTY_LEFT_VIEW);
-			if (leftView instanceof TiViewProxy) {
+			if (leftView != null && leftView instanceof TiViewProxy) {
 				this.leftView = (TiViewProxy)leftView;
 			} else {
 				Log.e(TAG, "Invalid type for leftView");
@@ -171,30 +174,28 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW)) {
 			Object rightView = d.get(TiC.PROPERTY_RIGHT_VIEW);
-			if (rightView instanceof TiViewProxy) {
+			if (leftView != null && rightView instanceof TiViewProxy) {
 				this.rightView = (TiViewProxy)rightView;
 			} else {
 				Log.e(TAG, "Invalid type for rightView");
 			}
 		}
 		
-		updateMenus();	
-		
 		if (d.containsKey(TiC.PROPERTY_CENTER_VIEW)) {
 			Object centerView = d.get(TiC.PROPERTY_CENTER_VIEW);
-			if (centerView instanceof TiViewProxy) {
+			if (centerView != null && centerView instanceof TiViewProxy) {
+				this.centerView = (TiViewProxy)centerView;
 				TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
-//				((TiCompositeLayout) activity.getLayout()).addView(slidingMenu, params);
-					content.removeAllViews();
-					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
-					params.autoFillsHeight = true;
-					params.autoFillsWidth = true;
-					
-					content.addView(((TiViewProxy)centerView).getOrCreateView().getOuterView(), params);						
+				TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+				params.autoFillsHeight = true;
+				params.autoFillsWidth = true;
+				content.addView(((TiViewProxy)centerView).getOrCreateView().getOuterView(), params);						
 			} else {
 				Log.e(TAG, "Invalid type for centerView");
 			}
 		}
+		
+		updateMenus();	
 		
 		if (d.containsKey(TiC.PROPERTY_PANNING_MODE)) {
 			updatePanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_PANNING_MODE), UIModule.MENU_PANNING_FULLSCREEN));
@@ -220,7 +221,72 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 		super.processProperties(d);
 	}
+	
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
+	{
+		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 
+		if (key.equals(TiC.PROPERTY_LEFT_VIEW)) {
+			if (newValue == this.leftView) return;
+			TiViewProxy newProxy = null;
+			if (newValue != null && newValue instanceof TiViewProxy) {
+				newProxy = (TiViewProxy)newValue;
+			} else {
+				Log.e(TAG, "Invalid type for leftView");
+			}
+			this.leftView = newProxy;
+			updateMenus();
+		} else if (key.equals(TiC.PROPERTY_RIGHT_VIEW)) {
+			if (newValue == this.rightView) return;
+			TiViewProxy newProxy = null;
+			if (newValue != null && newValue instanceof TiViewProxy) {
+				newProxy = (TiViewProxy)newValue;
+			} else {
+				Log.e(TAG, "Invalid type for leftView");
+			}
+			this.rightView = newProxy;
+			updateMenus();
+		} else if (key.equals(TiC.PROPERTY_CENTER_VIEW)) {
+			if (newValue == this.centerView) return;
+			TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
+			TiViewProxy newProxy = null;
+			int index = 0;
+			if (this.centerView != null)
+			{
+				index = content.indexOfChild(this.centerView.getOrCreateView().getNativeView());
+			}
+			if (newValue != null && newValue instanceof TiViewProxy) {
+					newProxy = (TiViewProxy)newValue;
+					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+					params.autoFillsHeight = true;
+					params.autoFillsWidth = true;
+					content.addView(newProxy.getOrCreateView().getOuterView(), index, params);						
+			} else {
+				Log.e(TAG, "Invalid type for centerView");
+			}
+			if (this.centerView != null)
+			{
+				content.removeView(this.centerView.getOrCreateView().getNativeView());
+			}
+			this.centerView = newProxy;	
+		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {
+			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_FULLSCREEN));
+		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
+			menuWidth = TiConvert.toInt(newValue);
+			updateMenuWidth();
+		} else if (key.equals(TiC.PROPERTY_RIGHT_VIEW_WIDTH)) {
+			menuWidth = TiConvert.toInt(newValue);
+			updateMenuWidth();
+		} else if (key.equals(TiC.PROPERTY_FADING)) {
+			slidingMenu.setFadeDegree(TiConvert.toFloat(newValue));
+		} else if (key.equals(TiC.PROPERTY_MENU_SCROLL_SCALE)) {
+			slidingMenu.setBehindScrollScale(TiConvert.toFloat(newValue));
+		} else if (key.equals(TiC.PROPERTY_SHADOW_WIDTH)) {
+			slidingMenu.setShadowWidth(TiConvert.toInt(newValue));
+		} else {
+			super.propertyChanged(key, oldValue, newValue, proxy);
+		}
+	}
 
 	@Override
 	public void onConfigurationChanged(TiBaseActivity activity,

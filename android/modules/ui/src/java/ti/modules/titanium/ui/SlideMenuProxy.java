@@ -233,18 +233,18 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 	public void releaseViews()
 	{
 		super.releaseViews();
-		if (hasProperty(TiC.PROPERTY_LEFT_VIEW))
-		{
-			((TiViewProxy)getProperty(TiC.PROPERTY_LEFT_VIEW)).releaseViews();
-		}
-		if (hasProperty(TiC.PROPERTY_RIGHT_VIEW))
-		{
-			((TiViewProxy)getProperty(TiC.PROPERTY_RIGHT_VIEW)).releaseViews();
-		}
-		if (hasProperty(TiC.PROPERTY_CENTER_VIEW))
-		{
-			((TiViewProxy)getProperty(TiC.PROPERTY_CENTER_VIEW)).releaseViews();
-		}
+//		if (hasProperty(TiC.PROPERTY_LEFT_VIEW))
+//		{
+//			((TiViewProxy)getProperty(TiC.PROPERTY_LEFT_VIEW)).releaseViews();
+//		}
+//		if (hasProperty(TiC.PROPERTY_RIGHT_VIEW))
+//		{
+//			((TiViewProxy)getProperty(TiC.PROPERTY_RIGHT_VIEW)).releaseViews();
+//		}
+//		if (hasProperty(TiC.PROPERTY_CENTER_VIEW))
+//		{
+//			((TiViewProxy)getProperty(TiC.PROPERTY_CENTER_VIEW)).releaseViews();
+//		}
 	}
 
 	@Override
