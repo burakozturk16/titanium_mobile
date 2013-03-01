@@ -168,7 +168,7 @@ public class CustomViewAbove extends ViewGroup {
 		mMinimumVelocity = configuration.getScaledMinimumFlingVelocity();
 		mMaximumVelocity = configuration.getScaledMaximumFlingVelocity();
 		setInternalPageChangeListener(new SimpleOnPageChangeListener() {
-			public void onPageSelected(int position) {
+			public void onPageSelected(int position, int fromPosition, boolean animated, int duration) {
 				if (mViewBehind != null) {
 					switch (position) {
 					case 0:
