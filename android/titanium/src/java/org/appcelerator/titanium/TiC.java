@@ -1429,7 +1429,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MENU = EVENT_PROPERTY_MENU;
-	
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MENU_PANNING_MODE = "menuPanningMode";
+
 	/**
 	 * @module.api
 	 */

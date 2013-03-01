@@ -126,6 +126,16 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
 	}
 	
+	private void updateMenusPanningMode(int panningMode)
+	{
+		if (panningMode == UIModule.MENU_PANNING_BORDERS)
+			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_MARGIN);
+		else if (panningMode == UIModule.MENU_PANNING_FULLSCREEN)
+			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		else
+			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_NONE);
+	}
+	
 	private void updateMenus() {
 		if (this.leftView != null && this.rightView != null) {
 			slidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
@@ -201,6 +211,10 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			updatePanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_PANNING_MODE), UIModule.MENU_PANNING_FULLSCREEN));
 		}
 		
+		if (d.containsKey(TiC.PROPERTY_MENU_PANNING_MODE)) {
+			updateMenusPanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_MENU_PANNING_MODE), UIModule.MENU_PANNING_FULLSCREEN));
+		}
+		
 		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
 			menuWidth = d.getInt(TiC.PROPERTY_LEFT_VIEW_WIDTH);
 			updateMenuWidth();
@@ -271,6 +285,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			this.centerView = newProxy;	
 		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {
 			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_FULLSCREEN));
+		} else if (key.equals(TiC.PROPERTY_MENU_PANNING_MODE)) {
+			updateMenusPanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_FULLSCREEN));
 		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
 			menuWidth = TiConvert.toInt(newValue);
 			updateMenuWidth();
