@@ -150,6 +150,13 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int URL_ERROR_TIMEOUT = WebViewClient.ERROR_TIMEOUT;
 	@Kroll.constant public static final int URL_ERROR_UNKNOWN = WebViewClient.ERROR_UNKNOWN;
 	@Kroll.constant public static final int URL_ERROR_UNSUPPORTED_SCHEME = WebViewClient.ERROR_UNSUPPORTED_SCHEME;
+	
+	@Kroll.constant public static final int MENU_PANNING_NONE = 0;
+	@Kroll.constant public static final int MENU_PANNING_FULLSCREEN = 1;
+	@Kroll.constant public static final int MENU_PANNING_BORDERS = 2;
+	
+	@Kroll.constant public static final int LEFT_VIEW = 0;
+	@Kroll.constant public static final int RIGHT_VIEW = 1;
 
 	protected static final int MSG_SET_BACKGROUND_COLOR = KrollProxy.MSG_LAST_ID + 100;
 	protected static final int MSG_SET_BACKGROUND_IMAGE = KrollProxy.MSG_LAST_ID + 101;

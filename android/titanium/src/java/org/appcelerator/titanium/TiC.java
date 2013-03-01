@@ -817,6 +817,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_CENTER_VIEW = "centerView";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_CHARSET = "charset";
 
 	/**
@@ -1045,6 +1050,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_EXIT_ON_CLOSE = "exitOnClose";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FADING = "fading";
+	
 	/**
 	 * @module.api
 	 */
@@ -1342,11 +1352,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_LEFT_IMAGE = "leftImage";
-
+	
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_LEFT_VIEW = "leftView";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_LEFT_VIEW_WIDTH = "leftViewWidth";
 
 	/**
 	 * @module.api
@@ -1414,6 +1429,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MENU = EVENT_PROPERTY_MENU;
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MENU_SCROLL_SCALE = "menuScrollScale";
 
 	/**
 	 * @module.api
@@ -1591,6 +1611,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_PANNING_MODE = "panningMode";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_PARENT = "parent";
 	
 	/**
@@ -1743,6 +1768,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_RIGHT_VIEW_WIDTH = "rightViewWidth";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_ROTATE = "rotate";
 
 	/**
@@ -1849,7 +1879,7 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SHADOW_COLOR = "shadowColor";
-
+	
 	/**
 	 * @module.api
 	 */
@@ -1859,6 +1889,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SHADOW_RADIUS = "shadowRadius";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHADOW_WIDTH = "shadowWidth";
 
 	/**
 	 * @module.api

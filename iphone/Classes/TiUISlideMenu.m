@@ -167,8 +167,6 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
                 [controller setPanningMode:IIViewDeckNavigationBarPanning];
                 break;
             case 4:
-                [controller setPanningMode:IIViewDeckPanningViewPanning];
-                break;
             default:
                 [controller setPanningMode:IIViewDeckPanningViewPanning];
                 break;
