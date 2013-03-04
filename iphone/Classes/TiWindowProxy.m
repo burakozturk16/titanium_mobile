@@ -136,7 +136,13 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	if (navController!=nil)
 	{
 		frame = navController.view.frame;
+        if (!self.navController.isNavigationBarHidden)
+            frame.size.height -= self.navController.navigationBar.bounds.size.height;
+        if (!self.navController.isToolbarHidden)
+            frame.size.height -= self.navController.toolbar.bounds.size.height;
+
 	}
+//    sandboxBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
 	TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
 	return [win autorelease];
 }
@@ -334,6 +340,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 {
 }
 
+
 // called to associate a Tab UIViewController with this window when it's connected
 // to a tab or nil to disassociate
 -(void)_associateTab:(UIViewController*)controller_ navBar:(UINavigationController*)navbar_ tab:(TiProxy<TiTab>*)tab_ 
@@ -506,6 +513,30 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	}
 }
 
+// Need this so we can overload the sandbox bounds on split view detail/master
+-(void)determineSandboxBounds
+{
+    UIView * ourSuperview = [[self view] superview];
+    if(ourSuperview == nil)
+    {
+        //TODO: Should we even be relaying out? I guess so.
+        sandboxBounds = CGRectZero;
+    }
+    else
+    {
+        sandboxBounds = [ourSuperview bounds];
+        if (navController!=nil)
+        {
+            sandboxBounds = navController.view.frame;
+            if (!navController.isNavigationBarHidden)
+                sandboxBounds.size.height -= self.navController.navigationBar.bounds.size.height;
+            if (!navController.isToolbarHidden)
+                sandboxBounds.size.height -= self.navController.toolbar.bounds.size.height;
+            
+        }
+    }
+}
+
 // We can't open properly in nav views since they handle all of the view
 // goofiness, and need to perform the prepatory steps that open: usually does.
 -(void)prepareForNavView:(UINavigationController*)navController_
@@ -522,7 +553,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	
 	self.navController = navController_;
 	navWindow = YES;
-	[self view];
+	[self getOrCreateView];
 	if ([self _handleOpen:nil])
 	{
 		[self windowReady];
