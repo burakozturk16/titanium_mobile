@@ -14,11 +14,6 @@
 
 @implementation TiUISlideMenuProxy
 
-MAKE_SYSTEM_PROP(LEFT_SIDE,IIViewDeckLeftSide);
-MAKE_SYSTEM_PROP(RIGHT_SIDE,IIViewDeckRightSide);
-MAKE_SYSTEM_PROP(TOP_SIDE,IIViewDeckTopSide);
-MAKE_SYSTEM_PROP(BOTTOM_SIDE,IIViewDeckBottomSide);
-
 -(id)init
 {
 	if ((self = [super init]))
@@ -33,18 +28,47 @@ MAKE_SYSTEM_PROP(BOTTOM_SIDE,IIViewDeckBottomSide);
 	[self reposition];
 }
 
--(IIViewDeckController *)_controller {
+-(ECSlidingViewController *)_controller {
 	return [(TiUISlideMenu*)[self view] controller];
 }
 
 -(TiUIView*)newView {
-	return [[TiUISlideMenu alloc] init];
+    TiUISlideMenu* menu = [[TiUISlideMenu alloc] init];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(underLeftWillAppear:)
+                                                 name:ECSlidingViewUnderLeftWillAppear
+                                               object:[menu controller]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(underLeftWillDisappear:)
+                                                 name:ECSlidingViewUnderLeftWillDisappear
+                                               object:[menu controller]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(topDidAnchorRight:)
+                                                 name:ECSlidingViewTopDidAnchorRight
+                                               object:[menu controller]];
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(underRightWillAppear:)
+                                                 name:ECSlidingViewUnderRightWillAppear
+                                               object:[menu controller]];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(underRightWillDisappear:)
+                                                 name:ECSlidingViewUnderRightWillDisappear
+                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(topDidAnchorLeft:)
+//                                                 name:ECSlidingViewTopDidAnchorLeft
+//                                               object:[menu controller]];
+//    
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(topDidReset:)
+//                                                 name:ECSlidingViewTopDidReset
+//                                               object:[menu controller]];
+	return menu;
 }
 
 -(void)_configure
 {
-	[self setValue:NUMINT(65) forKey:@"leftWidth"];
-	[self setValue:NUMINT(65) forKey:@"rightWidth"];
 	[super _configure];
 }
 
@@ -94,60 +118,166 @@ MAKE_SYSTEM_PROP(BOTTOM_SIDE,IIViewDeckBottomSide);
 
 
 //API
--(void)toggleLeftView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] toggleLeftView:args];}, NO);
+-(void)toggleLeftView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+        
+    if ([self _controller].underLeftShowing)
+        [[self _controller] resetTopView:animated];
+    else
+        [[self _controller] anchorTopViewTo:ECRight animated:animated];
 }
--(void)toggleRightView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] toggleRightView:args];}, NO);
-}
--(void)bounceLeftView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] bounceLeftView:args];}, NO);
-}
--(void)bounceRightView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] bounceRightView:args];}, NO);
-}
--(void)bounceTopView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] bounceTopView:args];}, NO);
-}
--(void)bounceBottomView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] bounceBottomView:args];}, NO);
-}
--(void)toggleOpenView:(id)args {
-    TiThreadPerformOnMainThread(^{[(TiUISlideMenu*)[self view] toggleOpenView:args];}, NO);
+-(void)toggleRightView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+    
+    if ([self _controller].underRightShowing)
+        [[self _controller] resetTopView:animated];
+    else
+        [[self _controller] anchorTopViewTo:ECLeft animated:animated];
 }
 
+-(void)openLeftView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+  [[self _controller] anchorTopViewTo:ECRight animated:animated];
+}
+
+-(void)openRightView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+    [[self _controller] anchorTopViewTo:ECLeft animated:animated];
+}
+
+-(void)closeLeftView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+    [[self _controller] resetTopView:animated];
+}
+
+-(void)closeRightView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+    [[self _controller] resetTopView:animated];
+}
+
+
+//Notifications
+// slidingViewController notification
+
+- (void)underLeftWillDisappear:(NSNotification *)notification
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(0), @"side",
+                         NUMFLOAT(0.25f), @"duration",
+                         NUMBOOL(true), @"animated", nil];
+    if ([self _hasListeners:@"closemenu"])
+    {
+        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
+    }
+}
+
+- (void)underRightWillDisappear:(NSNotification *)notification
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1), @"side",
+                        NUMFLOAT(0.25f), @"duration",
+                         NUMBOOL(true), @"animated", nil];
+    if ([self _hasListeners:@"closemenu"])
+    {
+        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
+    }
+}
+- (void)underLeftWillAppear:(NSNotification *)notification
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(0), @"side",
+                         NUMFLOAT(0.25f), @"duration",
+                         NUMBOOL(true), @"animated", nil];
+    if ([self _hasListeners:@"openmenu"])
+    {
+        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
+    }
+}
+
+- (void)topDidAnchorRight:(NSNotification *)notification
+{
+    NSLog(@"top did anchor right");
+}
+
+- (void)underRightWillAppear:(NSNotification *)notification
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1), @"side",
+                         NUMFLOAT(0.25f), @"duration",
+                         NUMBOOL(true), @"animated", nil];
+    if ([self _hasListeners:@"openmenu"])
+    {
+        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
+    }
+}
+
+//- (void)topDidAnchorLeft:(NSNotification *)notification
+//{
+//    NSLog(@"top did anchor left");
+//}
+//
+//- (void)topDidReset:(NSNotification *)notification
+//{
+//    NSLog(@"top did reset");
+//}
 
 //delegate
-- (void)viewDeckController:(IIViewDeckController*)viewDeckController didChangeOffset:(CGFloat)offset orientation:(IIViewDeckOffsetOrientation)orientation panning:(BOOL)panning
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
-    if ([self _hasListeners:@"scroll"])
-    {
-        [self fireEvent:@"scroll" withObject:evt propagate:YES];
-    }
-}
-
-- (void)viewDeckController:(IIViewDeckController*)viewDeckController willCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
-        
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
-                        NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
-                         NUMBOOL(animated), @"animated", nil];
-    if ([self _hasListeners:@"closeside"])
-    {
-        [self fireEvent:@"closeside" withObject:evt propagate:YES];
-    }
-}
-
-- (void)viewDeckController:(IIViewDeckController*)viewDeckController willOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
-    
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
-                         NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
-                         NUMBOOL(animated), @"animated", nil];
-    if ([self _hasListeners:@"openside"])
-    {
-        [self fireEvent:@"openside" withObject:evt propagate:YES];
-    }
-}
+//- (void)viewDeckController:(IIViewDeckController*)viewDeckController didChangeOffset:(CGFloat)offset orientation:(IIViewDeckOffsetOrientation)orientation panning:(BOOL)panning
+//{
+//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
+//    if ([self _hasListeners:@"scroll"])
+//    {
+//        [self fireEvent:@"scroll" withObject:evt propagate:YES];
+//    }
+//}
+//
+//- (void)viewDeckController:(IIViewDeckController*)viewDeckController willCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
+//        
+//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
+//                        NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
+//                         NUMBOOL(animated), @"animated", nil];
+//    if ([self _hasListeners:@"closemenu"])
+//    {
+//        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
+//    }
+//}
+//
+//- (void)viewDeckController:(IIViewDeckController*)viewDeckController willOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
+//    
+//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
+//                         NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
+//                         NUMBOOL(animated), @"animated", nil];
+//    if ([self _hasListeners:@"openmenu"])
+//    {
+//        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
+//    }
+//}
 
 
 @end

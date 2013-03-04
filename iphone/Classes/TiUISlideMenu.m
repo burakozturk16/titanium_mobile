@@ -13,8 +13,6 @@
 #import "TiViewController.h"
 #import "TiUISlideFakeWindowProxy.h"
 
-UIViewController * ControllerForViewProxy(TiViewProxy * proxy);
-
 UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
 {
     if([proxy respondsToSelector:@selector(childViewController)]) {
@@ -42,56 +40,39 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
 
 @implementation TiUISlideMenu
 
+-(id)init
+{
+    if (self = [super init])
+    {
+        shadowWidth = 5;
+        panningMode = PanningModeFullscreen;
+    }
+    return self;
+}
 
 -(void)dealloc
 {
 	RELEASE_TO_NIL(controller);
-	[super dealloc];
+	RELEASE_TO_NIL(shadowLayer);
+    [super dealloc];
 }
 
--(IIViewDeckController*)controller
+-(ECSlidingViewController*)controller
 {
 	if (controller==nil)
 	{
-        TiViewProxy* centerController = [self.proxy valueForUndefinedKey:@"centerWindow"];
-		TiViewProxy* leftWindow = [self.proxy valueForUndefinedKey:@"leftWindow"];
-        TiViewProxy* rightWindow = [self.proxy valueForUndefinedKey:@"rightWindow"];
+        controller = [[ECSlidingViewController alloc] init];
         
-        float rightLedge = [TiUtils floatValue:[self.proxy valueForUndefinedKey:@"rightWidth"]];
-        float leftLedge = [TiUtils floatValue:[self.proxy valueForUndefinedKey:@"leftWidth"]];
-        
-        if(leftWindow != nil){
-            if(rightWindow != nil){
-                //both left and right
-                controller =  [[IIViewDeckController alloc] initWithCenterViewController:ControllerForViewProxy(centerController)
-                                                                      leftViewController:ControllerForViewProxy(leftWindow)
-                                                                     rightViewController:ControllerForViewProxy(rightWindow) ];
-            } else {
-                //left only
-                controller =  [[IIViewDeckController alloc] initWithCenterViewController:ControllerForViewProxy(centerController)
-                                                                      leftViewController:ControllerForViewProxy(leftWindow)];
-            }
-        } else if(rightWindow != nil){
-            //right only
-            controller =  [[IIViewDeckController alloc] initWithCenterViewController:ControllerForViewProxy(centerController)
-                                                                 rightViewController:ControllerForViewProxy(rightWindow) ];
-        } else {
-            //error
-            NSLog(@"NappSlideMenu ERROR: No windows assigned");
-            return nil;
-        }
-        
-        controller.sizeMode = IIViewDeckViewSizeMode;
-        
-        //setting the ledge
-        [controller setLeftSize:leftLedge];
-        [controller setRightSize:rightLedge];
-        
-        [controller setDelegate:(TiUISlideMenuProxy *)[self proxy]];
         
         UIView * controllerView = [controller view];
         [controllerView setFrame:[self bounds]];
         [self addSubview:controllerView];
+        
+        [controller setAnchorLeftPeekAmount:40.0f];
+        [controller setAnchorRightPeekAmount:40.0f];
+        
+        [controller setUnderLeftWidthLayout:ECVariableRevealWidth];
+        [controller setUnderRightWidthLayout:ECVariableRevealWidth];
         
         [controller viewWillAppear:NO];
         [controller viewDidAppear:NO];
@@ -101,89 +82,164 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-	[[[self controller] view] setFrame:bounds];
+    if ([self controller].topViewController)
+    {
+        [[[self controller].topViewController view] setFrame:bounds];
+        [[self controller].topViewController view].layer.shadowPath = [UIBezierPath bezierPathWithRect:bounds].CGPath;
+    }
     [super frameSizeChanged:frame bounds:bounds];
 }
 
-
 //API
--(void)toggleLeftView:(id)args
+
+-(void)setCenterView_:(id)args
 {
-    ENSURE_UI_THREAD(toggleLeftView,args);
-    [controller toggleLeftView];
+    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
+    ENSURE_UI_THREAD(setCenterView_,args);
+    
+    UIViewController* localcontroller = ControllerForViewProxy(args);
+    [[localcontroller view] setFrame:[self bounds]];
+    [self controller].topViewController = localcontroller;
+    
+    [self updatePanningMode];
+    
+    localcontroller.view.layer.shadowOpacity = 0.9f;
+    localcontroller.view.layer.shadowRadius = shadowWidth;
+    localcontroller.view.layer.shadowColor = [UIColor blackColor].CGColor;
 }
--(void)toggleRightView:(id)args
+
+-(void)setLeftView_:(id)args
 {
-    ENSURE_UI_THREAD(toggleRightView,args);
-    [controller toggleRightView];
+    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
+    ENSURE_UI_THREAD(setLeftView_,args);
+    
+    [self controller].underLeftViewController = ControllerForViewProxy(args);
 }
--(void)bounceLeftView:(id)args
+
+-(void)setRightView_:(id)args
 {
-    ENSURE_UI_THREAD(bounceLeftView,args);
-    [controller previewBounceView:IIViewDeckLeftSide];
+    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
+    ENSURE_UI_THREAD(setRightView_,args);
+    
+    [self controller].underRightViewController = ControllerForViewProxy(args);
 }
--(void)bounceRightView:(id)args
+
+-(void)setLeftViewWidth_:(id)args
 {
-    ENSURE_UI_THREAD(bounceRightView,args);
-    [controller previewBounceView:IIViewDeckRightSide];
+    ENSURE_TYPE_OR_NIL(args,NSNumber);
+    ENSURE_UI_THREAD(setRightView_,args);
+    
+    CGFloat value = [args floatValue];
+    
+    if (value >0)
+    {
+        [[self controller] setAnchorRightRevealAmount:value];
+        [[self controller] setUnderLeftWidthLayout:ECFixedRevealWidth];
+    }
+    else
+    {
+        [[self controller] setAnchorRightPeekAmount:-value];
+        [[self controller] setUnderLeftWidthLayout:ECVariableRevealWidth];
+    }
 }
--(void)bounceTopView:(id)args
+
+-(void)setRightViewWidth_:(id)args
 {
-    ENSURE_UI_THREAD(bounceTopView,args);
-    [controller previewBounceView:IIViewDeckTopSide];
+    ENSURE_TYPE_OR_NIL(args,NSNumber);
+    ENSURE_UI_THREAD(setRightView_,args);
+    
+    CGFloat value = [args floatValue];
+    
+    if (value >0)
+    {
+        [[self controller] setAnchorRightRevealAmount:value];
+        [[self controller] setUnderLeftWidthLayout:ECFixedRevealWidth];
+    }
+    else
+    {
+        [[self controller] setAnchorRightPeekAmount:-value];
+        [[self controller] setUnderLeftWidthLayout:ECVariableRevealWidth];
+    }
 }
--(void)bounceBottomView:(id)args
+
+-(void) updatePanningMode
 {
-    ENSURE_UI_THREAD(bounceBottomView,args);
-    [controller previewBounceView:IIViewDeckBottomSide];
-}
--(void)toggleOpenView:(id)args
-{
-    ENSURE_UI_THREAD(toggleOpenView,args);
-    [controller toggleOpenView];
+    if (![self controller].topViewController) return;
+    [[self controller].topViewController.view removeGestureRecognizer:[self controller].panGesture];
+    UIViewController* localcontroller = [self controller].topViewController;
+    if ([localcontroller isKindOfClass:[UINavigationController class]])
+        [((UINavigationController*)localcontroller).navigationBar removeGestureRecognizer:[self controller].panGesture];
+    else
+        [localcontroller.navigationController.navigationBar removeGestureRecognizer:[self controller].panGesture];
+    [self controller].grabbableBorderAmount = -1.0f;
+    if (panningMode != PanningModeNone)
+    {
+        if (panningMode == PanningModeBorders)
+        {
+            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+            [self controller].grabbableBorderAmount = 50.0f;
+        }
+        else if (panningMode == PanningModeNavBar)
+        {
+            if ([localcontroller isKindOfClass:[UINavigationController class]])
+                [((UINavigationController*)localcontroller).navigationBar addGestureRecognizer:[self controller].panGesture];
+            else
+                [localcontroller.navigationController.navigationBar addGestureRecognizer:[self controller].panGesture];
+        }
+        else if (panningMode == PanningModeFullscreen)
+        {
+            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+        }
+    }
 }
 
 //Properties
 - (void)setPanningMode_:(id)args
 {
-    /*
-     IIViewDeckNoPanning,              // no panning allowed
-     IIViewDeckFullViewPanning,        // the default: touch anywhere in the center view to drag the center view around
-     IIViewDeckNavigationBarPanning,   // panning only occurs when you start touching in the navigation bar (when the center controller is a UINavigationController with a visible navigation bar). Otherwise it will behave as IIViewDeckNoPanning.
-     IIViewDeckPanningViewPanning      // panning only occurs when you start touching in a UIView set in panningView property
-     */
-    
     ENSURE_UI_THREAD(setPanningMode_,args);
     if(args !=nil){
         int num = [TiUtils intValue:args];
         switch(num){
-            case 1:
-                [controller setPanningMode:IIViewDeckNoPanning];
+            case 0: // MENU_PANNING_NONE
+                panningMode = PanningModeNone;
                 break;
-            case 2:
-                [controller setPanningMode:IIViewDeckFullViewPanning];
+            case 1: // MENU_PANNING_ALL_VIEWS
                 break;
-            case 3:
-                [controller setPanningMode:IIViewDeckNavigationBarPanning];
+            case 3: // MENU_PANNING_BORDERS
+                panningMode = PanningModeBorders;
                 break;
-            case 4:
+            case 4: // MENU_PANNING_NAV_BAR
+                panningMode = PanningModeNavBar;
+                break;
+            case 2: // MENU_PANNING_CENTER_VIEW
             default:
-                [controller setPanningMode:IIViewDeckPanningViewPanning];
+                panningMode = PanningModeFullscreen;
                 break;
         }
     }
+    [self updatePanningMode];
+}
+
+- (void)setShadowWidth:(id)args
+{
+    ENSURE_TYPE_OR_NIL(args, NSNumber);
+    shadowWidth = [args floatValue];
+    if ([self controller].topViewController != nil)
+        [self controller].topViewController.view.layer.shadowRadius = shadowWidth;
 }
  
  // applies a small shadow
--(void)viewDeckController:(IIViewDeckController *)viewDeckController applyShadow:(CALayer *)shadowLayer withBounds:(CGRect)rect {
-     shadowLayer.masksToBounds = NO;
-     shadowLayer.shadowRadius = 5;
-     shadowLayer.shadowOpacity = 0.9;
-     shadowLayer.shadowColor = [[UIColor blackColor] CGColor];
-     shadowLayer.shadowOffset = CGSizeZero;
-     shadowLayer.shadowPath = [[UIBezierPath bezierPathWithRect:rect] CGPath];
-}
- 
+//-(void)viewDeckController:(IIViewDeckController *)viewDeckController applyShadow:(CALayer *)layer withBounds:(CGRect)rect {
+//	RELEASE_TO_NIL(shadowLayer);
+//    shadowLayer = [layer retain];
+//     layer.masksToBounds = NO;
+//     layer.shadowRadius = shadowWidth;
+//     layer.shadowOpacity = 0.9;
+//     layer.shadowColor = [[UIColor blackColor] CGColor];
+//     layer.shadowOffset = CGSizeZero;
+//     layer.shadowPath = [[UIBezierPath bezierPathWithRect:rect] CGPath];
+//}
+
 
 
 @end
