@@ -53,8 +53,8 @@
 		controller = [[UINavigationController alloc] initWithRootViewController:rootController];
 		[controller setDelegate:self];
 		[self addSubview:controller.view];
-		[controller.view addSubview:[windowProxy view]];
 		[windowProxy prepareForNavView:controller];
+		[controller.view addSubview:[windowProxy view]];
 		
 		root = windowProxy;
 //		[self setVisibleProxy:windowProxy];
