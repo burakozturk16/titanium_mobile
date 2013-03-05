@@ -167,6 +167,8 @@ public class SlidingMenu extends RelativeLayout {
 		 * On scrolled.
 		 */
 		public void onScrolled(int scroll);
+		public void onScrolledEnded(int scroll);
+		public void onScrolledStarted(int scroll);
 	}
 
 	/**
@@ -251,6 +253,22 @@ public class SlidingMenu extends RelativeLayout {
 				} else if (position != POSITION_CLOSE && mOpenListener != null) {
 					int leftOrRight = (position == 2)?1:0;
 					mOpenListener.onOpen(leftOrRight, animated, duration);
+				}
+			}
+
+			@Override
+			public void onScrollComplete(int position, float positionOffset,
+					int positionOffsetPixels) {
+				if (mOnScrolledListener != null) {
+					mOnScrolledListener.onScrolledEnded(-positionOffsetPixels);
+				}
+			}
+
+			@Override
+			public void onScrollStarted(int position, float positionOffset,
+					int positionOffsetPixels) {
+				if (mOnScrolledListener != null) {
+					mOnScrolledListener.onScrolledStarted(-positionOffsetPixels);
 				}
 			}
 		});
@@ -584,7 +602,11 @@ public class SlidingMenu extends RelativeLayout {
 		//		params.setMargins(left, top, i, bottom);
 		mViewBehind.setWidthOffset(i);
 	}
-
+	
+	public int getBehindWidth() {
+		return mViewBehind.getBehindWidth();
+	}
+	
 	/**
 	 * Sets the behind offset.
 	 *

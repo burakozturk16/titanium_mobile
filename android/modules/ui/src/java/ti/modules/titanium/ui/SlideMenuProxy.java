@@ -20,6 +20,7 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
@@ -30,8 +31,11 @@ import com.slidingmenu.lib.SlidingMenu;
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
 import ti.modules.titanium.ui.widget.webview.TiUIWebView;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
+import android.view.Display;
+import android.view.WindowManager;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_LEFT_VIEW,
@@ -431,5 +435,19 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		SlidingMenu menu = slidingMenu.get();
 		return menu.isSecondaryMenuShowing();
+	}
+	
+	@Kroll.method
+	public int getRealLeftViewWidth()
+	{
+		SlidingMenu menu = slidingMenu.get();
+		return menu.getBehindWidth();
+	}
+	
+	@Kroll.method
+	public int getRealRightViewWidth()
+	{
+		SlidingMenu menu = slidingMenu.get();
+		return menu.getBehindWidth();
 	}
 }

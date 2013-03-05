@@ -9,6 +9,7 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBaseActivity.ConfigurationChangedListener;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.ActivityProxy;
+import org.appcelerator.titanium.proxy.TiBaseWindowProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
@@ -81,6 +82,28 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				}
 				
 			}
+
+			@Override
+			public void onScrolledEnded(int scroll) {
+				// TODO Auto-generated method stub
+				if (proxy.hasListeners("scrollend"))
+				{
+					KrollDict options = new KrollDict();
+					options.put("offset", scroll);
+					proxy.fireEvent("scrollend", options);
+				}
+			}
+
+			@Override
+			public void onScrolledStarted(int scroll) {
+				// TODO Auto-generated method stub
+				if (proxy.hasListeners("scrollstart"))
+				{
+					KrollDict options = new KrollDict();
+					options.put("offset", scroll);
+					proxy.fireEvent("scrollstart", options);
+				}
+			}
 		});
 		
 		slidingMenu.setMode(SlidingMenu.LEFT);
@@ -116,24 +139,25 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			slidingMenu.setBehindOffset(-menuWidth);
 	}
 	
-	private void updatePanningMode(int panningMode)
+	public int getMenuWidth()
 	{
-		if (panningMode == UIModule.MENU_PANNING_BORDERS)
-			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
-		else if (panningMode == UIModule.MENU_PANNING_FULLSCREEN)
-			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		else
-			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
+		return menuWidth;
 	}
 	
-	private void updateMenusPanningMode(int panningMode)
+	private void updatePanningMode(int panningMode)
 	{
-		if (panningMode == UIModule.MENU_PANNING_BORDERS)
-			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_MARGIN);
-		else if (panningMode == UIModule.MENU_PANNING_FULLSCREEN)
+		slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_MARGIN);
+		if (panningMode == UIModule.MENU_PANNING_BORDERS) {
+			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
+		} else if (panningMode == UIModule.MENU_PANNING_CENTER_VIEW)
+			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
+		else if (panningMode == UIModule.MENU_PANNING_ALL_VIEWS) {
+			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		else
+		} else{
 			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_NONE);
+			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NONE);
+		}
 	}
 	
 	private void updateMenus() {
@@ -177,6 +201,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW)) {
 			Object leftView = d.get(TiC.PROPERTY_LEFT_VIEW);
 			if (leftView != null && leftView instanceof TiViewProxy) {
+				if (centerView instanceof TiBaseWindowProxy)
+					throw new IllegalStateException("Cannot use window as SlideMenu view");
 				this.leftView = (TiViewProxy)leftView;
 			} else {
 				Log.e(TAG, "Invalid type for leftView");
@@ -184,7 +210,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW)) {
 			Object rightView = d.get(TiC.PROPERTY_RIGHT_VIEW);
-			if (leftView != null && rightView instanceof TiViewProxy) {
+			if (rightView != null && rightView instanceof TiViewProxy) {
+				if (rightView instanceof TiBaseWindowProxy)
+					throw new IllegalStateException("Cannot use window as SlideMenu view");
 				this.rightView = (TiViewProxy)rightView;
 			} else {
 				Log.e(TAG, "Invalid type for rightView");
@@ -194,6 +222,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (d.containsKey(TiC.PROPERTY_CENTER_VIEW)) {
 			Object centerView = d.get(TiC.PROPERTY_CENTER_VIEW);
 			if (centerView != null && centerView instanceof TiViewProxy) {
+				if (centerView instanceof TiBaseWindowProxy)
+					throw new IllegalStateException("Cannot use window as SlideMenu view");
+				
 				this.centerView = (TiViewProxy)centerView;
 				TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
 				TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
@@ -208,13 +239,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		updateMenus();	
 		
 		if (d.containsKey(TiC.PROPERTY_PANNING_MODE)) {
-			updatePanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_PANNING_MODE), UIModule.MENU_PANNING_FULLSCREEN));
+			updatePanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_PANNING_MODE), UIModule.MENU_PANNING_CENTER_VIEW));
 		}
-		
-		if (d.containsKey(TiC.PROPERTY_MENU_PANNING_MODE)) {
-			updateMenusPanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_MENU_PANNING_MODE), UIModule.MENU_PANNING_FULLSCREEN));
-		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
 			menuWidth = d.getInt(TiC.PROPERTY_LEFT_VIEW_WIDTH);
 			updateMenuWidth();
@@ -244,6 +271,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			if (newValue == this.leftView) return;
 			TiViewProxy newProxy = null;
 			if (newValue != null && newValue instanceof TiViewProxy) {
+				if (newValue instanceof TiBaseWindowProxy)
+					throw new IllegalStateException("Cannot use window as SlideMenu view");
 				newProxy = (TiViewProxy)newValue;
 			} else {
 				Log.e(TAG, "Invalid type for leftView");
@@ -254,6 +283,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			if (newValue == this.rightView) return;
 			TiViewProxy newProxy = null;
 			if (newValue != null && newValue instanceof TiViewProxy) {
+				if (newValue instanceof TiBaseWindowProxy)
+					throw new IllegalStateException("Cannot use window as SlideMenu view");
 				newProxy = (TiViewProxy)newValue;
 			} else {
 				Log.e(TAG, "Invalid type for leftView");
@@ -270,6 +301,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				index = content.indexOfChild(this.centerView.getOrCreateView().getNativeView());
 			}
 			if (newValue != null && newValue instanceof TiViewProxy) {
+					if (newValue instanceof TiBaseWindowProxy)
+						throw new IllegalStateException("Cannot use window as SlideMenu view");
 					newProxy = (TiViewProxy)newValue;
 					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
 					params.autoFillsHeight = true;
@@ -284,9 +317,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			}
 			this.centerView = newProxy;	
 		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {
-			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_FULLSCREEN));
-		} else if (key.equals(TiC.PROPERTY_MENU_PANNING_MODE)) {
-			updateMenusPanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_FULLSCREEN));
+			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_CENTER_VIEW));
 		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
 			menuWidth = TiConvert.toInt(newValue);
 			updateMenuWidth();
