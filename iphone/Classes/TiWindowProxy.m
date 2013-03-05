@@ -130,20 +130,31 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	[super _configure];
 }
 
--(TiUIView*)newView
+-(CGRect) getInitFrameFromFrame:(CGRect)startFrame;
 {
-	CGRect frame = [self appFrame];
+    CGRect frame = startFrame;
 	if (navController!=nil)
 	{
 		frame = navController.view.frame;
         if (!self.navController.isNavigationBarHidden)
-            frame.size.height -= self.navController.navigationBar.bounds.size.height;
+        {
+            CGFloat navBarHeight = [self.navController.navigationBar sizeThatFits:frame.size].height;
+            frame.size.height -= navBarHeight;
+        }
         if (!self.navController.isToolbarHidden)
-            frame.size.height -= self.navController.toolbar.bounds.size.height;
-
+        {
+            CGFloat toolBarHeight = [self.navController.toolbar sizeThatFits:frame.size].height;
+            frame.size.height -= toolBarHeight;
+        }
+        
 	}
-//    sandboxBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
-	TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
+    return frame;
+}
+
+-(TiUIView*)newView
+{
+    CGRect frame = [self appFrame];
+    TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:[self getInitFrameFromFrame:frame]];
 	return [win autorelease];
 }
 
@@ -524,16 +535,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
     }
     else
     {
-        sandboxBounds = [ourSuperview bounds];
-        if (navController!=nil)
-        {
-            sandboxBounds = navController.view.frame;
-            if (!navController.isNavigationBarHidden)
-                sandboxBounds.size.height -= self.navController.navigationBar.bounds.size.height;
-            if (!navController.isToolbarHidden)
-                sandboxBounds.size.height -= self.navController.toolbar.bounds.size.height;
-            
-        }
+        sandboxBounds = [self getInitFrameFromFrame:[ourSuperview bounds]];
     }
 }
 
