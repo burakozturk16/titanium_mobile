@@ -61,11 +61,28 @@ typedef enum {
   ECPanning = 1 << 1
 } ECResetStrategy;
 
+@protocol ECSlidingViewDelegate <NSObject>
+
+@optional
+
+- (void)panStarted:(CGFloat)offset;
+- (void)panChanged:(CGFloat)offset;
+- (void)panEnded:(CGFloat)offset;
+- (void)willAnchorTopTo:(ECSide)side animated:(BOOL)animated;
+- (void)willResetTopView:(BOOL)animated fromSide:(ECSide)side;
+
+@end
+
 /** ECSlidingViewController is a view controller container that presents its child view controllers in two layers. The top layer can be panned to reveal the layers below it. */
 @interface ECSlidingViewController : UIViewController{
   CGPoint startTouchPosition;
+    id <ECSlidingViewDelegate> delegate;
   BOOL topViewHasFocus;
 }
+
+/** Delegate
+ */
+@property (assign, nonatomic) id delegate;
 
 /** Returns the view controller that will be visible when the top view is slide to the right.
  
@@ -230,6 +247,8 @@ typedef enum {
 
 /** Returns true if the top view is completely off the screen */
 - (BOOL)topViewIsOffScreen;
+
+- (CGFloat)getViewWidth:(ECSide)side;
 
 @end
 

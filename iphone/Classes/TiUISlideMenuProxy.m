@@ -34,27 +34,27 @@
 
 -(TiUIView*)newView {
     TiUISlideMenu* menu = [[TiUISlideMenu alloc] init];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(underLeftWillAppear:)
-                                                 name:ECSlidingViewUnderLeftWillAppear
-                                               object:[menu controller]];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(underLeftWillDisappear:)
-                                                 name:ECSlidingViewUnderLeftWillDisappear
-                                               object:[menu controller]];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(topDidAnchorRight:)
-                                                 name:ECSlidingViewTopDidAnchorRight
-                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(underLeftWillAppear:)
+//                                                 name:ECSlidingViewUnderLeftWillAppear
+//                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(underLeftWillDisappear:)
+//                                                 name:ECSlidingViewUnderLeftWillDisappear
+//                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(topDidAnchorRight:)
+//                                                 name:ECSlidingViewTopDidAnchorRight
+//                                               object:[menu controller]];
     
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(underRightWillAppear:)
-                                                 name:ECSlidingViewUnderRightWillAppear
-                                               object:[menu controller]];
-    [[NSNotificationCenter defaultCenter] addObserver:self
-                                             selector:@selector(underRightWillDisappear:)
-                                                 name:ECSlidingViewUnderRightWillDisappear
-                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(underRightWillAppear:)
+//                                                 name:ECSlidingViewUnderRightWillAppear
+//                                               object:[menu controller]];
+//    [[NSNotificationCenter defaultCenter] addObserver:self
+//                                             selector:@selector(underRightWillDisappear:)
+//                                                 name:ECSlidingViewUnderRightWillDisappear
+//                                               object:[menu controller]];
 //    [[NSNotificationCenter defaultCenter] addObserver:self
 //                                             selector:@selector(topDidAnchorLeft:)
 //                                                 name:ECSlidingViewTopDidAnchorLeft
@@ -118,6 +118,17 @@
 
 
 //API
+
+-(id)getRealLeftViewWidth:(id)args
+{
+    return NUMFLOAT([[self _controller] getViewWidth:ECLeft]);
+}
+
+-(id)getRealRightViewWidth:(id)args
+{
+    return NUMFLOAT([[self _controller] getViewWidth:ECRight]);
+}
+
 -(void)toggleLeftView:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
@@ -127,9 +138,13 @@
 		animated = [args boolValue];
         
     if ([self _controller].underLeftShowing)
+    {
         [[self _controller] resetTopView:animated];
+    }
     else
+    {
         [[self _controller] anchorTopViewTo:ECRight animated:animated];
+    }
 }
 -(void)toggleRightView:(id)args
 {
@@ -140,9 +155,15 @@
 		animated = [args boolValue];
     
     if ([self _controller].underRightShowing)
+    {
+//        [self willHideSide:1 animated:animated];
         [[self _controller] resetTopView:animated];
+    }
     else
+    {
+//        [self willShowSide:1 animated:animated];
         [[self _controller] anchorTopViewTo:ECLeft animated:animated];
+    }
 }
 
 -(void)openLeftView:(id)args
@@ -152,6 +173,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
+//    [self willShowSide:0 animated:animated];
   [[self _controller] anchorTopViewTo:ECRight animated:animated];
 }
 
@@ -162,6 +184,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
+//    [self willShowSide:1 animated:animated];
     [[self _controller] anchorTopViewTo:ECLeft animated:animated];
 }
 
@@ -172,6 +195,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
+//    [self willHideSide:0 animated:animated];
     [[self _controller] resetTopView:animated];
 }
 
@@ -182,102 +206,81 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
+//    [self willHideSide:1 animated:animated];
     [[self _controller] resetTopView:animated];
 }
 
 
-//Notifications
-// slidingViewController notification
-
-- (void)underLeftWillDisappear:(NSNotification *)notification
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(0), @"side",
-                         NUMFLOAT(0.25f), @"duration",
-                         NUMBOOL(true), @"animated", nil];
-    if ([self _hasListeners:@"closemenu"])
-    {
-        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
-    }
-}
-
-- (void)underRightWillDisappear:(NSNotification *)notification
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1), @"side",
-                        NUMFLOAT(0.25f), @"duration",
-                         NUMBOOL(true), @"animated", nil];
-    if ([self _hasListeners:@"closemenu"])
-    {
-        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
-    }
-}
-- (void)underLeftWillAppear:(NSNotification *)notification
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(0), @"side",
-                         NUMFLOAT(0.25f), @"duration",
-                         NUMBOOL(true), @"animated", nil];
-    if ([self _hasListeners:@"openmenu"])
-    {
-        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
-    }
-}
-
-- (void)topDidAnchorRight:(NSNotification *)notification
-{
-    NSLog(@"top did anchor right");
-}
-
-- (void)underRightWillAppear:(NSNotification *)notification
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1), @"side",
-                         NUMFLOAT(0.25f), @"duration",
-                         NUMBOOL(true), @"animated", nil];
-    if ([self _hasListeners:@"openmenu"])
-    {
-        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
-    }
-}
-
-//- (void)topDidAnchorLeft:(NSNotification *)notification
+//- (void)willShowSide:(int)side animated:(BOOL)animated
 //{
-//    NSLog(@"top did anchor left");
-//}
-//
-//- (void)topDidReset:(NSNotification *)notification
-//{
-//    NSLog(@"top did reset");
-//}
-
-//delegate
-//- (void)viewDeckController:(IIViewDeckController*)viewDeckController didChangeOffset:(CGFloat)offset orientation:(IIViewDeckOffsetOrientation)orientation panning:(BOOL)panning
-//{
-//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
-//    if ([self _hasListeners:@"scroll"])
-//    {
-//        [self fireEvent:@"scroll" withObject:evt propagate:YES];
-//    }
-//}
-//
-//- (void)viewDeckController:(IIViewDeckController*)viewDeckController willCloseViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
-//        
-//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
-//                        NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
-//                         NUMBOOL(animated), @"animated", nil];
-//    if ([self _hasListeners:@"closemenu"])
-//    {
-//        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
-//    }
-//}
-//
-//- (void)viewDeckController:(IIViewDeckController*)viewDeckController willOpenViewSide:(IIViewDeckSide)viewDeckSide animated:(BOOL)animated{
-//    
-//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(viewDeckSide), @"side",
-//                         NUMFLOAT([[self _controller] closeSlideAnimationDuration]), @"duration",
+//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(side), @"side",
+//                         NUMFLOAT([self _controller].animationDuration), @"duration",
 //                         NUMBOOL(animated), @"animated", nil];
 //    if ([self _hasListeners:@"openmenu"])
 //    {
 //        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
 //    }
 //}
+//
+//- (void)willHideSide:(int)side animated:(BOOL)animated
+//{
+//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(side), @"side",
+//                         NUMFLOAT([self _controller].animationDuration), @"duration",
+//                         NUMBOOL(animated), @"animated", nil];
+//    if ([self _hasListeners:@"closemenu"])
+//    {
+//        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
+//    }
+//}
 
+//delegate
+- (void)panStarted:(CGFloat)offset;
+{
+  NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
+  if ([self _hasListeners:@"scrollstart"])
+  {
+    [self fireEvent:@"scrollstart" withObject:evt];
+  }
+}
+
+- (void)panEnded:(CGFloat)offset;
+{
+  NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
+  if ([self _hasListeners:@"scrollend"])
+  {
+    [self fireEvent:@"scrollend" withObject:evt];
+  }
+}
+
+- (void)panChanged:(CGFloat)offset;
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
+    if ([self _hasListeners:@"scroll"])
+    {
+        [self fireEvent:@"scroll" withObject:evt];
+    }
+}
+
+- (void)willAnchorTopTo:(ECSide)side animated:(BOOL)animated
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1-side), @"side",
+                         NUMFLOAT([self _controller].animationDuration), @"duration",
+                         NUMBOOL(animated), @"animated", nil];
+    if ([self _hasListeners:@"openmenu"])
+    {
+        [self fireEvent:@"openmenu" withObject:evt];
+    }
+}
+
+- (void)willResetTopView:(BOOL)animated fromSide:(ECSide)side
+{
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1-side), @"side",
+                         NUMFLOAT([self _controller].animationDuration), @"duration",
+                         NUMBOOL(animated), @"animated", nil];
+    if ([self _hasListeners:@"closemenu"])
+    {
+        [self fireEvent:@"closemenu" withObject:evt];
+    }
+}
 
 @end

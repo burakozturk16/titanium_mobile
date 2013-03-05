@@ -11,9 +11,16 @@
 #import "TiUISlideMenuProxy.h"
 #import "TiUtils.h"
 #import "TiViewController.h"
-#import "TiUISlideFakeWindowProxy.h"
+//#import "TiUISlideFakeWindowProxy.h"
 
-UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
+
+
+
+
+
+@implementation TiUISlideMenu
+
+-(UIViewController *) controllerForViewProxy:(TiViewProxy * )proxy
 {
     if([proxy respondsToSelector:@selector(childViewController)]) {
         [[proxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
@@ -26,19 +33,21 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
         }
         return [[[TiViewController alloc] initWithViewProxy:(TiViewProxy<TiUIViewController>*)proxy] autorelease];
     }
-    else{
-        TiUISlideFakeWindowProxy* windowProxy = [[[TiUISlideFakeWindowProxy alloc] initWithViewProxy:proxy] autorelease];
-        [[windowProxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
-        [windowProxy windowWillOpen];
-        [windowProxy reposition];
-        [windowProxy windowDidOpen];
-        return [windowProxy controller];
-    }
     return nil;
 }
 
-
-@implementation TiUISlideMenu
+-(TiViewProxy *) proxyWithControllerFromProxy:(TiViewProxy * )proxy
+{
+    if([proxy respondsToSelector:@selector(childViewController)]) {
+        return proxy;
+    }
+    else{
+        TiWindowProxy* windowProxy = [[TiWindowProxy alloc] init];
+        [windowProxy add:proxy];
+        return [windowProxy autorelease];
+    }
+    return nil;
+}
 
 -(id)init
 {
@@ -54,6 +63,9 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
 {
 	RELEASE_TO_NIL(controller);
 	RELEASE_TO_NIL(shadowLayer);
+	RELEASE_TO_NIL(leftView);
+	RELEASE_TO_NIL(rightView);
+	RELEASE_TO_NIL(centerView);
     [super dealloc];
 }
 
@@ -67,6 +79,8 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
         UIView * controllerView = [controller view];
         [controllerView setFrame:[self bounds]];
         [self addSubview:controllerView];
+        
+        controller.delegate = [self proxy];
         
         [controller setAnchorLeftPeekAmount:40.0f];
         [controller setAnchorRightPeekAmount:40.0f];
@@ -97,15 +111,18 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     ENSURE_UI_THREAD(setCenterView_,args);
     
-    UIViewController* localcontroller = ControllerForViewProxy(args);
-    [[localcontroller view] setFrame:[self bounds]];
-    [self controller].topViewController = localcontroller;
+	RELEASE_TO_NIL(centerView);
+    centerView = [[self proxyWithControllerFromProxy:args] retain];
+    UIViewController* ctlr = [self controllerForViewProxy:centerView];
+    
+    [[ctlr view] setFrame:[self bounds]];
+    [self controller].topViewController = ctlr;
     
     [self updatePanningMode];
     
-    localcontroller.view.layer.shadowOpacity = 0.9f;
-    localcontroller.view.layer.shadowRadius = shadowWidth;
-    localcontroller.view.layer.shadowColor = [UIColor blackColor].CGColor;
+    ctlr.view.layer.shadowOpacity = 0.9f;
+    ctlr.view.layer.shadowRadius = shadowWidth;
+    ctlr.view.layer.shadowColor = [UIColor blackColor].CGColor;
 }
 
 -(void)setLeftView_:(id)args
@@ -113,7 +130,9 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     ENSURE_UI_THREAD(setLeftView_,args);
     
-    [self controller].underLeftViewController = ControllerForViewProxy(args);
+	RELEASE_TO_NIL(leftView);
+    leftView = [[self proxyWithControllerFromProxy:args] retain];
+    [self controller].underLeftViewController = [self controllerForViewProxy:leftView];
 }
 
 -(void)setRightView_:(id)args
@@ -121,7 +140,9 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     ENSURE_UI_THREAD(setRightView_,args);
     
-    [self controller].underRightViewController = ControllerForViewProxy(args);
+	RELEASE_TO_NIL(rightView);
+    rightView = [[self proxyWithControllerFromProxy:args] retain];
+    [self controller].underRightViewController = [self controllerForViewProxy:rightView];
 }
 
 -(void)setLeftViewWidth_:(id)args
@@ -152,13 +173,13 @@ UIViewController * ControllerForViewProxy(TiViewProxy * proxy)
     
     if (value >0)
     {
-        [[self controller] setAnchorRightRevealAmount:value];
-        [[self controller] setUnderLeftWidthLayout:ECFixedRevealWidth];
+        [[self controller] setAnchorLeftRevealAmount:value];
+        [[self controller] setUnderRightWidthLayout:ECFixedRevealWidth];
     }
     else
     {
-        [[self controller] setAnchorRightPeekAmount:-value];
-        [[self controller] setUnderLeftWidthLayout:ECVariableRevealWidth];
+        [[self controller] setAnchorLeftPeekAmount:-value];
+        [[self controller] setUnderRightWidthLayout:ECVariableRevealWidth];
     }
 }
 

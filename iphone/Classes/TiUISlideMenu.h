@@ -23,6 +23,10 @@ typedef enum {
     CALayer* shadowLayer;
     CGFloat shadowWidth;
     PanningMode panningMode;
+    
+    TiViewProxy* leftView;
+    TiViewProxy* rightView;
+    TiViewProxy* centerView;
 }
 -(ECSlidingViewController*)controller;
 

@@ -731,9 +731,6 @@
 		D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
 		D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
 		D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
-		D599485616DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D599485516DF9F1B0080836F /* TiUISlideFakeWindowProxy.m */; };
-		D599485716DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D599485516DF9F1B0080836F /* TiUISlideFakeWindowProxy.m */; };
-		D599485816DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D599485516DF9F1B0080836F /* TiUISlideFakeWindowProxy.m */; };
 		D5E45F6016919EBD00C0FAFF /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E45F0216919EBC00C0FAFF /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5E45F6116919EBD00C0FAFF /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E45F0216919EBC00C0FAFF /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5E45F6216919EBD00C0FAFF /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E45F0216919EBC00C0FAFF /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1886,8 +1883,6 @@
 		D599484616DE7C080080836F /* TiUISlideMenuProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenuProxy.m; sourceTree = "<group>"; };
 		D599484A16DE7CA10080836F /* TiUISlideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUISlideMenu.h; sourceTree = "<group>"; };
 		D599484B16DE7CA10080836F /* TiUISlideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenu.m; sourceTree = "<group>"; };
-		D599485416DF9F1A0080836F /* TiUISlideFakeWindowProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUISlideFakeWindowProxy.h; sourceTree = "<group>"; };
-		D599485516DF9F1B0080836F /* TiUISlideFakeWindowProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideFakeWindowProxy.m; sourceTree = "<group>"; };
 		D5E45F0116919EBC00C0FAFF /* CGUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CGUtils.h; path = ../Classes/DTCoreText/CGUtils.h; sourceTree = "<group>"; };
 		D5E45F0216919EBC00C0FAFF /* CGUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CGUtils.m; path = ../Classes/DTCoreText/CGUtils.m; sourceTree = "<group>"; };
 		D5E45F0316919EBC00C0FAFF /* default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = default.css; path = ../Classes/DTCoreText/default.css; sourceTree = "<group>"; };
@@ -3627,8 +3622,6 @@
 				D599484616DE7C080080836F /* TiUISlideMenuProxy.m */,
 				D599484A16DE7CA10080836F /* TiUISlideMenu.h */,
 				D599484B16DE7CA10080836F /* TiUISlideMenu.m */,
-				D599485416DF9F1A0080836F /* TiUISlideFakeWindowProxy.h */,
-				D599485516DF9F1B0080836F /* TiUISlideFakeWindowProxy.m */,
 			);
 			name = SlideMenu;
 			sourceTree = "<group>";
@@ -4242,7 +4235,6 @@
 				D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484716DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
-				D599485616DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */,
 				D5FE438416E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
 				D5FE438716E488DD00FC1A44 /* UIImage+ImageWithUIView.m in Sources */,
 			);
@@ -4615,7 +4607,6 @@
 				D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484816DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
-				D599485716DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */,
 				D5FE438516E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
 				D5FE438816E488DD00FC1A44 /* UIImage+ImageWithUIView.m in Sources */,
 			);
@@ -4988,7 +4979,6 @@
 				D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
-				D599485816DF9F1B0080836F /* TiUISlideFakeWindowProxy.m in Sources */,
 				D5FE438616E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
 				D5FE438916E488DD00FC1A44 /* UIImage+ImageWithUIView.m in Sources */,
 			);

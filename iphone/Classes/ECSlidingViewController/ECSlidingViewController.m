@@ -84,6 +84,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 @synthesize resetStrategy = _resetStrategy;
 @synthesize grabbableBorderAmount;
 @synthesize animationDuration;
+@synthesize delegate;
 
 // category properties
 @synthesize topViewSnapshot;
@@ -256,6 +257,11 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
     if (self.grabbableBorderAmount < 0 || currentTouchPositionX < self.grabbableBorderAmount || currentTouchPositionX > (self.view.frame.size.width-self.grabbableBorderAmount)) {
       self.initialTouchPositionX = currentTouchPositionX;
       self.initialHoizontalCenter = self.topView.center.x;
+        
+      if (delegate && [delegate respondsToSelector:@selector(panStarted:)]) {
+        CGFloat offset = self.resettedCenter - self.topView.layer.position.x;
+        [delegate panStarted:-offset];
+      }
     }
     else {
       recognizer.enabled = NO;
@@ -277,13 +283,22 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
       [self updateTopViewHorizontalCenter:newCenterPosition];
       [self topViewHorizontalCenterDidChange:newCenterPosition];
     }
+    if (delegate && [delegate respondsToSelector:@selector(panChanged:)]) {
+      CGFloat offset = self.resettedCenter - newCenterPosition;
+      [delegate panChanged:-offset];
+    }
   } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
     CGPoint currentVelocityPoint = [recognizer velocityInView:self.view];
     CGFloat currentVelocityX     = currentVelocityPoint.x;
+      
+    if (delegate && [delegate respondsToSelector:@selector(panEnded:)]) {
+      CGFloat offset = self.resettedCenter - self.topView.layer.position.x;
+      [delegate panEnded:-offset];
+    }
     
-    if ([self underLeftShowing] && currentVelocityX > 100) {
+    if ([self underLeftShowing] && (currentVelocityX > 100 || self.topView.layer.position.x >= self.anchorRightTopViewCenter)) {
       [self anchorTopViewTo:ECRight];
-    } else if ([self underRightShowing] && currentVelocityX < 100) {
+    } else if ([self underRightShowing] && (currentVelocityX < 100 || self.topView.layer.position.x <= self.anchorLeftTopViewCenter)) {
       [self anchorTopViewTo:ECLeft];
     } else {
       [self resetTopView];
@@ -314,6 +329,10 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (void)anchorTopViewTo:(ECSide)side animations:(void (^)())animations onComplete:(void (^)())complete animated:(BOOL)animated
 {
   CGFloat newCenter = self.topView.center.x;
+    
+  if (delegate && [delegate respondsToSelector:@selector(willAnchorTopTo:animated:)]) {
+    [delegate willAnchorTopTo:side animated:animated];
+  }
 
   if (side == ECLeft) {
     newCenter = self.anchorLeftTopViewCenter;
@@ -413,7 +432,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (void)resetTopView:(BOOL)animated
 {
   dispatch_async(dispatch_get_main_queue(), ^{
-    [[NSNotificationCenter defaultCenter] postNotificationName:ECSlidingViewTopWillReset object:self userInfo:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:animated], @"animated", nil]];
+    [[NSNotificationCenter defaultCenter] postNotificationName:ECSlidingViewTopWillReset object:self userInfo:nil];
   });
   [self resetTopViewWithAnimations:nil onComplete:nil animated:animated];
 }
@@ -426,6 +445,10 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (void)resetTopViewWithAnimations:(void(^)())animations onComplete:(void(^)())complete animated:(BOOL)animated
 {
   [self topViewHorizontalCenterWillChange:self.resettedCenter];
+    
+  if (delegate && [delegate respondsToSelector:@selector(willResetTopView:fromSide:)]) {
+      [delegate willResetTopView:animated fromSide:([self underLeftShowing]?ECRight:ECLeft)];
+  }
     
   void (^animationBlock)() = ^() {
     if (animations) {
@@ -661,6 +684,15 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   } else {
     [NSException raise:@"Invalid Width Layout" format:@"underRightWidthLayout must be a valid ECViewWidthLayout"];
   }
+}
+
+- (CGFloat)getViewWidth:(ECSide)side
+{
+    if (side == ECLeft) {
+        return fabs(self.resettedCenter - self.anchorRightTopViewCenter);
+    }
+    else
+        return fabs(self.resettedCenter - self.anchorLeftTopViewCenter);
 }
 
 @end
