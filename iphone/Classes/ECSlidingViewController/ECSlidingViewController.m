@@ -189,6 +189,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   [self.topViewSnapshot addGestureRecognizer:self.resetTapGesture];
   self.grabbableBorderAmount = -1;
   self.animationDuration = 0.25f;
+  panning = NO;
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -257,11 +258,6 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
     if (self.grabbableBorderAmount < 0 || currentTouchPositionX < self.grabbableBorderAmount || currentTouchPositionX > (self.view.frame.size.width-self.grabbableBorderAmount)) {
       self.initialTouchPositionX = currentTouchPositionX;
       self.initialHoizontalCenter = self.topView.center.x;
-        
-      if (delegate && [delegate respondsToSelector:@selector(panStarted:)]) {
-        CGFloat offset = self.resettedCenter - self.topView.layer.position.x;
-        [delegate panStarted:-offset];
-      }
     }
     else {
       recognizer.enabled = NO;
@@ -276,32 +272,46 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
       newCenterPosition = self.resettedCenter;
     }
     
-    BOOL newCenterPositionIsOutsideAnchor = newCenterPosition < self.anchorLeftTopViewCenter || self.anchorRightTopViewCenter < newCenterPosition;
+    CGFloat offset = self.resettedCenter - newCenterPosition;
+    if (offset != 0){
+      if (!panning) {
+        panning = YES;
+        if (delegate && [delegate respondsToSelector:@selector(panStarted:)]) {
+          [delegate panStarted:-offset];
+        }
+      }
+      
+      BOOL newCenterPositionIsOutsideAnchor = newCenterPosition < self.anchorLeftTopViewCenter || self.anchorRightTopViewCenter < newCenterPosition;
+      
+      if ((newCenterPositionIsOutsideAnchor && self.shouldAllowPanningPastAnchor) || !newCenterPositionIsOutsideAnchor) {
+        [self topViewHorizontalCenterWillChange:newCenterPosition];
+        [self updateTopViewHorizontalCenter:newCenterPosition];
+        [self topViewHorizontalCenterDidChange:newCenterPosition];
+      }
+
+      if (delegate && [delegate respondsToSelector:@selector(panChanged:)]) {
+        [delegate panChanged:-offset];
+      }
+    }
     
-    if ((newCenterPositionIsOutsideAnchor && self.shouldAllowPanningPastAnchor) || !newCenterPositionIsOutsideAnchor) {
-      [self topViewHorizontalCenterWillChange:newCenterPosition];
-      [self updateTopViewHorizontalCenter:newCenterPosition];
-      [self topViewHorizontalCenterDidChange:newCenterPosition];
-    }
-    if (delegate && [delegate respondsToSelector:@selector(panChanged:)]) {
-      CGFloat offset = self.resettedCenter - newCenterPosition;
-      [delegate panChanged:-offset];
-    }
   } else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
     CGPoint currentVelocityPoint = [recognizer velocityInView:self.view];
     CGFloat currentVelocityX     = currentVelocityPoint.x;
-      
-    if (delegate && [delegate respondsToSelector:@selector(panEnded:)]) {
-      CGFloat offset = self.resettedCenter - self.topView.layer.position.x;
-      [delegate panEnded:-offset];
-    }
     
-    if ([self underLeftShowing] && (currentVelocityX > 100 || self.topView.layer.position.x >= self.anchorRightTopViewCenter)) {
-      [self anchorTopViewTo:ECRight];
-    } else if ([self underRightShowing] && (currentVelocityX < 100 || self.topView.layer.position.x <= self.anchorLeftTopViewCenter)) {
-      [self anchorTopViewTo:ECLeft];
-    } else {
-      [self resetTopView];
+    if (panning) {
+      panning = NO;
+      if (delegate && [delegate respondsToSelector:@selector(panEnded:)]) {
+        CGFloat offset = self.resettedCenter - self.topView.layer.position.x;
+        [delegate panEnded:-offset];
+      }
+      
+      if ([self underLeftShowing] && (currentVelocityX > 100 || self.topView.layer.position.x >= self.anchorRightTopViewCenter)) {
+        [self anchorTopViewTo:ECRight];
+      } else if ([self underRightShowing] && (currentVelocityX < 100 || self.topView.layer.position.x <= self.anchorLeftTopViewCenter)) {
+        [self anchorTopViewTo:ECLeft];
+      } else {
+        [self resetTopView];
+      }
     }
   }
 }
