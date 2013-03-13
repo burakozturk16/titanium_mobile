@@ -23,6 +23,7 @@ public class TiRootActivity extends TiLaunchActivity
 {
 	private static final String TAG = "TiRootActivity";
 	private boolean finishing = false;
+	private Boolean startedFromBoot = false;
 
 	private Drawable[] backgroundLayers = {null, null};
 
@@ -62,6 +63,11 @@ public class TiRootActivity extends TiLaunchActivity
 			window.setBackgroundDrawable(image);
 		}
 	}
+	
+	public Boolean wasStartedAtBoot()
+	{
+		return startedFromBoot;
+	}
 
 	@Override
 	public String getUrl()
@@ -82,6 +88,9 @@ public class TiRootActivity extends TiLaunchActivity
 		}
 
 		TiApplication tiApp = getTiApp();
+		
+		startedFromBoot = getIntentBoolean(TiC.INTENT_PROPERTY_ON_BOOT, false);
+
 
 		if (tiApp.isRestartPending() || TiBaseActivity.isUnsupportedReLaunch(this, savedInstanceState)) {
 			super.onCreate(savedInstanceState); // Will take care of scheduling restart and finishing.

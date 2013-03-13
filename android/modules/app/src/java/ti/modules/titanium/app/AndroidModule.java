@@ -23,7 +23,7 @@ public class AndroidModule extends KrollModule
 {
 	protected RProxy r;
 	private static final String TAG = "App.AndroidModule";
-
+	
 	public AndroidModule()
 	{
 		super();
@@ -41,6 +41,13 @@ public class AndroidModule extends KrollModule
 			r = new RProxy(RProxy.RESOURCE_TYPE_APPLICATION);
 		}
 		return r;
+	}
+	
+	@Kroll.getProperty(name="wasStartedAtBoot")
+	public Boolean wasStartedAtBoot()
+	{
+		TiApplication tiApp = TiApplication.getInstance();
+		return tiApp.getRootActivity().wasStartedAtBoot();
 	}
 
 	// this shouldn't be called from anything other than the runtime thread
