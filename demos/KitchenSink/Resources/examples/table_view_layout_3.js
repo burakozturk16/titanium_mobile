@@ -3,7 +3,7 @@ win.backgroundColor = '#ccc';
  
 var tableview = Ti.UI.createTableView({
 	separatorColor:'transparent',
-	separatorStyle:Titanium.UI.iPhone.TableViewSeparatorStyle.NONE,
+	separatorStyle:Titanium.UI.TableViewSeparatorStyle.NONE,
 	backgroundColor:'black'
 });
 // tableview.transform = Ti.UI.create2DMatrix({rotate:90})

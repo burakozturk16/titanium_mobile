@@ -122,7 +122,7 @@ var tableview = Titanium.UI.createTableView({
 	footerView:footerView,
 	maxRowHeight:100,
 	minRowHeight:100,
-	separatorStyle: Ti.UI.iPhone.TableViewSeparatorStyle.NONE
+	separatorStyle: Ti.UI.TableViewSeparatorStyle.NONE
 });
 
 tableview.addEventListener('click',function(e)
