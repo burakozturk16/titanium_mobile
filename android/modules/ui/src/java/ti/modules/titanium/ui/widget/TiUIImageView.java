@@ -991,6 +991,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			} else {
 				requestedWidth = TiConvert.toTiDimension(d, TiC.PROPERTY_WIDTH, TiDimension.TYPE_WIDTH);
 			}
+			view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
 		}
 		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
 			// Use the parent's height when it's fill
@@ -1000,6 +1001,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			} else {
 				requestedHeight = TiConvert.toTiDimension(d, TiC.PROPERTY_HEIGHT, TiDimension.TYPE_HEIGHT);
 			}
+			view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
@@ -1067,9 +1069,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
 		}
-		if (d.containsKey(TiC.PROPERTY_CAN_SCALE)) {
-			view.setCanScaleImage(TiConvert.toBoolean(d, TiC.PROPERTY_SCALE_TYPE, false));
-		}
 	}
 
 	@Override
@@ -1080,10 +1079,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			return;
 		}
 
-		if (key.equals(TiC.PROPERTY_CAN_SCALE)) {
-			boolean canScaleImage = TiConvert.toBoolean(newValue);
-			view.setCanScaleImage(canScaleImage);
-		} else if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
+		if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(newValue));
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(newValue));
@@ -1111,6 +1107,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				} else {
 					requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 				}
+				view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
 			} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
 				View parentView = getParentView();
 				String heightProperty = TiConvert.toString(newValue);
@@ -1120,6 +1117,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				} else {
 					requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
 				}
+				view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 			}
 
 			super.propertyChanged(key, oldValue, newValue, proxy);
