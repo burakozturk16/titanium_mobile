@@ -1100,7 +1100,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     [self windowWillOpen];
     [self setParentVisible:YES];
     [self layoutChildren:NO];
-
+    [self refreshSize];
+    [self refreshPosition];
 	return barButtonView;
 }
 
@@ -3173,6 +3174,44 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		[[self view] setAccessibilityHidden_:accessibilityHidden];
 	}
 	[self replaceValue:accessibilityHidden forKey:@"accessibilityHidden" notification:NO];
+}
+
+#pragma mark - View Templates
+
+- (void)unarchiveFromTemplate:(NSDictionary *)viewTemplate
+{
+	id context = self.executionContext;
+	if (context == nil) {
+		context = self.pageContext;
+	}
+	// NB: should we remove all existing keys ?
+	id properties = [viewTemplate objectForKey:@"properties"];
+	if ([properties isKindOfClass:[NSDictionary class]]) {
+		[self _initWithProperties:properties];
+	}
+	[self setValue:[viewTemplate objectForKey:@"bindId"] forKey:@"bindId"];
+	id childTemplates = [viewTemplate objectForKey:@"childTemplates"];
+	if ([childTemplates isKindOfClass:[NSArray class]]) {
+		[(NSArray *)childTemplates enumerateObjectsUsingBlock:^(id childTemplate, NSUInteger idx, BOOL *stop) {
+			if ([childTemplate isKindOfClass:[NSDictionary class]]) {
+				TiViewProxy *child = [[self class] unarchiveFromTemplate:childTemplate inContext:context];
+				if (child != nil) {
+					[self add:child];
+				}
+			}
+		}];
+	}
+}
+
++ (TiViewProxy *)unarchiveFromTemplate:(NSDictionary *)viewTemplate inContext:(id<TiEvaluator>)context
+{
+	NSString *type = [viewTemplate objectForKey:@"type"];
+	if (type != nil) {
+		TiViewProxy *proxy = [[self class] createProxy:type withProperties:nil inContext:context];
+		[proxy unarchiveFromTemplate:viewTemplate];
+		return proxy;
+	}
+	return nil;
 }
 
 -(void)hideKeyboard:(id)arg

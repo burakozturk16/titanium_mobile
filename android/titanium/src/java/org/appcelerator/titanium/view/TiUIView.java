@@ -923,6 +923,11 @@ public abstract class TiUIView
 	}
 	
 	private void addBorderView(){
+		// Create new layout params for the child view since we just want the
+		// wrapper to control the layout
+		LayoutParams params = new LayoutParams();
+		params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+		params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
 		// If the view already has a parent, we need to detach it from the parent
 		// and add the borderView to the parent as the child
 		ViewGroup savedParent = null;
@@ -935,13 +940,6 @@ public abstract class TiUIView
 				savedParent.removeView(nativeView);
 			}
 		}
-		
-		// Create new layout params for the child view since we just want the
-		// wrapper to control the layout
-		LayoutParams params = new LayoutParams();
-		params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-		params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-		
 		borderView.addView(nativeView, params);
 		if (savedParent != null) {
 			savedParent.addView(getOuterView(), savedLayoutParams);

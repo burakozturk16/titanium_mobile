@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -38,6 +38,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.filesystem.FileProxy;
 import ti.modules.titanium.ui.ImageViewProxy;
+import ti.modules.titanium.ui.ScrollViewProxy;
 import ti.modules.titanium.ui.widget.TiImageView.OnSizeChangeListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -134,15 +135,15 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					} catch (RejectedExecutionException e) {
 						Log.e(TAG, "Cannot load the image. Loading too many images at the same time.");
 					}
-				}	
+				}
 			}
 		}
 
 		@Override
-		public void downloadFailed()
+		public void downloadFailed(URI uri)
 		{
 			// If the download failed, fire an error event
-			fireError();
+			fireError("Download Failed", uri.toString());
 		}
 	};
 	
@@ -333,8 +334,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		// what the current bitmap should be.
 		imageViewProxy.onBitmapChanged(this, bitmap);
 	}
-	
-
 
 	private class BitmapWithIndex
 	{
@@ -493,7 +492,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private void setImages()
 	{
 		if (imageSources == null || imageSources.size() == 0) {
-			fireError();
+			fireError("Missing Images", null);
 			return;
 		}
 
@@ -558,9 +557,13 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		proxy.fireEvent(TiC.EVENT_STOP, data);
 	}
 
-	private void fireError()
+	private void fireError(String message, String imageUrl)
 	{
 		KrollDict data = new KrollDict();
+		data.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, message);
+		if (imageUrl != null) {
+			data.put(TiC.PROPERTY_IMAGE, imageUrl);
+		}
 		proxy.fireEvent(TiC.EVENT_ERROR, data);
 	}
 
@@ -647,7 +650,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	{
 		paused = true;
 	}
-	
+
 	public void resume()
 	{
 		paused = false;
@@ -821,12 +824,10 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					});
 
 				} else {
-					bitmap = (imageArgs.mImageref).getBitmap(imageArgs.mView, imageArgs.mRequestedWidth,
-						imageArgs.mRequestedHeight);
+					bitmap = (imageArgs.mImageref).getBitmap();
 				}
 			} else {
-				bitmap = (imageArgs.mImageref).getBitmap(imageArgs.mView, imageArgs.mRequestedWidth,
-					imageArgs.mRequestedHeight);
+				bitmap = (imageArgs.mImageref).getBitmap();
 			}
 			return bitmap;
 		}
@@ -928,7 +929,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			setImage(null);
 			return;
 		}
-		setImage(defaultImageSource.getBitmap(getParentView(), requestedWidth, requestedHeight));
+		setImage(defaultImageSource.getBitmap());
 	}
 
 	private void retryDecode(final boolean recycle)
@@ -955,8 +956,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				url = imageSources.get(0).getUrl();
 			}
 			// Fire an error event when we've reached max retries
-			fireError();
-			Log.e(TAG, "Max retries reached, giving up decoding image source: " + url);
+			String message = "Max retries reached, giving up decoding image source: " + url;
+			fireError(message, url);
+			Log.e(TAG, message);
 		}
 	}
 	
@@ -976,8 +978,14 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		}
 		super.processProperties(d);
 
+		// Disable scaling for scrollview since the an image can extend beyond the screensize
+		if (proxy.getParent() instanceof ScrollViewProxy) {
+			view.setCanScaleImage(false);
+		}
+
 		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
-			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_WIDTH)) && parentView != null) {
+			String widthProperty = d.getString(TiC.PROPERTY_WIDTH);
+			if (TiC.LAYOUT_FILL.equals(widthProperty) && parentView != null) {
 				// Use the parent's width when it's fill
 				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
 			} else {
@@ -986,7 +994,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		}
 		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
 			// Use the parent's height when it's fill
-			if (TiC.LAYOUT_FILL.equals(d.getString(TiC.PROPERTY_HEIGHT)) && parentView != null) {
+			String heightProperty = d.getString(TiC.PROPERTY_HEIGHT);
+			if (TiC.LAYOUT_FILL.equals(heightProperty) && parentView != null) {
 				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
 			} else {
 				requestedHeight = TiConvert.toTiDimension(d, TiC.PROPERTY_HEIGHT, TiDimension.TYPE_HEIGHT);
@@ -996,9 +1005,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
 			setImageSource(d.get(TiC.PROPERTY_IMAGES));
 			setImages();
-		} 
-		if (d.containsKey(TiC.PROPERTY_CAN_SCALE)) {
-			view.setCanScaleImage(TiConvert.toBoolean(d, TiC.PROPERTY_CAN_SCALE, false));
 		}
 		if (d.containsKey(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLE_ZOOM_CONTROLS, true));
@@ -1057,9 +1063,12 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				}
 			}
 		}
+
 		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
-			boolean canScaleImage = proxy.getProperties().optBoolean(TiC.PROPERTY_CAN_SCALE, false);
-			setRealScaleType(canScaleImage, TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
+			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
+		}
+		if (d.containsKey(TiC.PROPERTY_CAN_SCALE)) {
+			view.setCanScaleImage(TiConvert.toBoolean(d, TiC.PROPERTY_SCALE_TYPE, false));
 		}
 	}
 
@@ -1070,32 +1079,14 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (view == null) {
 			return;
 		}
-		View parentView = getParentView();
-		if (key.equals(TiC.PROPERTY_WIDTH)) {
-			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-				// Use the parent's width when it's fill
-				requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
-			} else {
-				requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
-			}
-		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
-			// Use the parent's height when it's fill
-			if (TiC.LAYOUT_FILL.equals(TiConvert.toString(newValue)) && parentView != null) {
-				requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
-			} else {
-				requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
-			}
-		}
 
 		if (key.equals(TiC.PROPERTY_CAN_SCALE)) {
 			boolean canScaleImage = TiConvert.toBoolean(newValue);
 			view.setCanScaleImage(canScaleImage);
-			setRealScaleType(canScaleImage, TiConvert.toInt(proxy.getProperties(), TiC.PROPERTY_SCALE_TYPE));
 		} else if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(newValue));
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
-			boolean canScaleImage = proxy.getProperties().optBoolean(TiC.PROPERTY_CAN_SCALE, false);
-			setRealScaleType(canScaleImage, TiConvert.toInt(newValue));
+			setWantedScaleType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
 			if ((oldValue == null && newValue != null) || (oldValue != null && !oldValue.equals(newValue))) {
 				setImageSource(newValue);
@@ -1110,6 +1101,27 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				}
 			}
 		} else {
+			// Update requestedWidth / requestedHeight when width / height is changed.
+			if (key.equals(TiC.PROPERTY_WIDTH)) {
+				View parentView = getParentView();
+				String widthProperty = TiConvert.toString(newValue);
+				if (TiC.LAYOUT_FILL.equals(widthProperty) && parentView != null) {
+					// Use the parent's width when it's fill
+					requestedWidth = TiConvert.toTiDimension(parentView.getMeasuredWidth(), TiDimension.TYPE_WIDTH);
+				} else {
+					requestedWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+				}
+			} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
+				View parentView = getParentView();
+				String heightProperty = TiConvert.toString(newValue);
+				// Use the parent's height when it's fill
+				if (TiC.LAYOUT_FILL.equals(heightProperty) && parentView != null) {
+					requestedHeight = TiConvert.toTiDimension(parentView.getMeasuredHeight(), TiDimension.TYPE_HEIGHT);
+				} else {
+					requestedHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+				}
+			}
+
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
@@ -1218,45 +1230,31 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		defaultImageSource = null;
 	}
 	
-	private void setRealScaleType(boolean canScaleImage, int type){
+	private void setWantedScaleType(int type){
 		TiImageView view = getView();
 		if (view == null) return;
-		
-		Boolean adjust = canScaleImage || ((autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)) ||
-				(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
-		
 		ScaleType result = ScaleType.FIT_XY;
-
-		if (canScaleImage && Integer.parseInt(Build.VERSION.SDK) > 3) {
-			result = ScaleType.MATRIX;
+		switch (type)
+		{
+			case 1:
+				result = ScaleType.CENTER_INSIDE;
+				break;
+			case 2:
+				result = ScaleType.CENTER_CROP;
+				break;
+			case 3:
+				result = ScaleType.CENTER;
+				break;
+			case 4:
+				result = ScaleType.FIT_START;
+				break;
+			case 5:
+				result = ScaleType.FIT_END;
+				break;
+			case 0:
+			default:
+				break;
 		}
-		else if (adjust) {
-			result = ScaleType.CENTER_CROP;
-		}
-		else {
-			switch (type)
-			{
-				case 1:
-					result = ScaleType.CENTER_INSIDE;
-					break;
-				case 2:
-					result = ScaleType.CENTER_CROP;
-					break;
-				case 3:
-					result = ScaleType.CENTER;
-					break;
-				case 4:
-					result = ScaleType.FIT_START;
-					break;
-				case 5:
-					result = ScaleType.FIT_END;
-					break;
-				case 0:
-				default:
-					break;
-			}
-		}
-		view.setScaleType(result);
-		view.setAdjustViewBounds(adjust);
+		view.setWantedScaleType(result);
 	}
 }

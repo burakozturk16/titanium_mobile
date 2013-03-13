@@ -520,7 +520,9 @@ public class TiHTTPClient
 		dispatchCallback("onreadystatechange", null);
 
 		if (readyState == READY_STATE_DONE) {
-			dispatchCallback("onload", null);
+			KrollDict data = new KrollDict();
+			data.putCodeAndMessage(TiC.ERROR_CODE_NO_ERROR, null);
+			dispatchCallback("onload", data);
 		}
 	}
 
@@ -1296,7 +1298,7 @@ public class TiHTTPClient
 				Log.e(TAG, "HTTP Error (" + t.getClass().getName() + "): " + msg, t);
 
 				KrollDict data = new KrollDict();
-				data.put("error", msg);
+				data.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, "error");
 				dispatchCallback("onerror", data);
 			}
 

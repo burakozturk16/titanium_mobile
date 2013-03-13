@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.TiC;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,7 +48,7 @@ public class KrollDict
 			put(key, json);
 		}
 	}
-	
+		
 	public static Object fromJSON(Object value) {
 		try {
 			if (value instanceof JSONObject) {
@@ -88,6 +89,14 @@ public class KrollDict
 	 */
 	public KrollDict(int size) {
 		super(size);
+	}
+
+	public void putCodeAndMessage(int code, String message) {
+		this.put(TiC.PROPERTY_SUCCESS,new Boolean(code==0));
+		this.put(TiC.PROPERTY_CODE,new Integer(code));
+		if (message != null){
+			this.put(TiC.EVENT_PROPERTY_ERROR,message);
+		}
 	}
 
 	public boolean containsKeyAndNotNull(String key) {

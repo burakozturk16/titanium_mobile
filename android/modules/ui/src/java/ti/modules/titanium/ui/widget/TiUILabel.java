@@ -69,6 +69,7 @@ public class TiUILabel extends TiUIView
 	private static final String TAG = "TiUILabel";
 	
 	private int defaultColor;
+	private boolean wordWrap;
 
 	private int shadowColor;
 	private int shadowDx;
@@ -594,7 +595,7 @@ public class TiUILabel extends TiUIView
 		tv.setFocusable(false);
 		defaultColor = tv.getCurrentTextColor();
 		setNativeView(tv);
-		
+
 	}
 	
 	private Spanned fromHtml(String str)
@@ -690,7 +691,8 @@ public class TiUILabel extends TiUIView
 			}
 		}
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
-			tv.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP, true));
+			wordWrap = TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP, true);
+			tv.setSingleLine(!wordWrap);
 		}
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));

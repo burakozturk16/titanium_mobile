@@ -94,6 +94,7 @@
 
 -(void)prepareForReuse
 {
+	[super prepareForReuse];
 	if (proxy.callbackCell == self) {
 		[proxy prepareTableRowForReuse];
         [proxy setCallbackCell:nil];

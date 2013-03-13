@@ -602,6 +602,10 @@ enum
 
 - (void)prepareForReuse;
 
+- (void)unarchiveFromTemplate:(NSDictionary *)viewTemplate;
+
++ (TiViewProxy *)unarchiveFromTemplate:(NSDictionary *)viewTemplate inContext:(id<TiEvaluator>)context;
+
 @end
 
 
