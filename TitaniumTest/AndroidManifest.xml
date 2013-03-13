@@ -4,15 +4,24 @@
 	<uses-sdk android:minSdkVersion="11" android:targetSdkVersion="17"/>
 
 	<!-- TI_MANIFEST -->
+	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
 	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 	<uses-permission android:name="android.permission.INTERNET"/>
-
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 	<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
 		android:debuggable="false" android:allowBackup="false">
 
+		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
+			android:enabled="true"
+        	android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+		    <intent-filter>
+		        <action android:name="android.intent.action.BOOT_COMPLETED" />
+		    </intent-filter>
+		</receiver>
 		<!-- TI_APPLICATION -->
 
 		<activity android:name=".TitaniumtestActivity"
