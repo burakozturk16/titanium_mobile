@@ -111,33 +111,33 @@ public class TiAnalyticsService extends Service
 								records.put(events.get(id));
 							}
 							boolean deleteEvents = true;
-							if (records.length() > 0) {
-								String jsonData = records.toString() + "\n";
-
-								Log.d(TAG, "Sending " + records.length() + " analytics events.", Log.DEBUG_MODE);
-						   		try {
-							   		HttpPost httpPost = new HttpPost(ANALYTICS_URL);
-							   		StringEntity entity = new StringEntity(jsonData);
-							   		entity.setContentType("text/json");
-							   		httpPost.setEntity(entity);
-
-							   		HttpParams httpParams = new BasicHttpParams();
-							   		HttpConnectionParams.setConnectionTimeout(httpParams, 5000); //TODO use property
-							   		//HttpConnectionParams.setSoTimeout(httpParams, 15000); //TODO use property
-							   		HttpClient client = new DefaultHttpClient(httpParams);
-
-							   		ResponseHandler<String> responseHandler = new BasicResponseHandler();
-							   		client.getParams().setBooleanParameter("http.protocol.expect-continue", false);
-
-						   			@SuppressWarnings("unused")
-									String response = client.execute(httpPost, responseHandler);
-						   		} catch (Throwable t) {
-									Log.e(TAG, "Error posting events: " + t.getMessage(), t);
-						   			deleteEvents = false;
-						   			records = null;
-						   			break;
-						   		}
-							}
+//							if (records.length() > 0) {
+//								String jsonData = records.toString() + "\n";
+//
+//								Log.d(TAG, "Sending " + records.length() + " analytics events.", Log.DEBUG_MODE);
+//						   		try {
+//							   		HttpPost httpPost = new HttpPost(ANALYTICS_URL);
+//							   		StringEntity entity = new StringEntity(jsonData);
+//							   		entity.setContentType("text/json");
+//							   		httpPost.setEntity(entity);
+//
+//							   		HttpParams httpParams = new BasicHttpParams();
+//							   		HttpConnectionParams.setConnectionTimeout(httpParams, 5000); //TODO use property
+//							   		//HttpConnectionParams.setSoTimeout(httpParams, 15000); //TODO use property
+//							   		HttpClient client = new DefaultHttpClient(httpParams);
+//
+//							   		ResponseHandler<String> responseHandler = new BasicResponseHandler();
+//							   		client.getParams().setBooleanParameter("http.protocol.expect-continue", false);
+//
+//						   			@SuppressWarnings("unused")
+//									String response = client.execute(httpPost, responseHandler);
+//						   		} catch (Throwable t) {
+//									Log.e(TAG, "Error posting events: " + t.getMessage(), t);
+//						   			deleteEvents = false;
+//						   			records = null;
+//						   			break;
+//						   		}
+//							}
 
 							records = null;
 
