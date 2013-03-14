@@ -2002,7 +2002,6 @@ class Builder(object):
 				res_zip_file.close()
 				
 	def build_and_run(self, install, avd_id, keystore=None, keystore_pass='tirocks', keystore_alias='tidev', dist_dir=None, build_only=False, device_args=None, debugger_host=None, profiler_host=None, deploy_type=None):
-		deploy_type = 'development'
 		self.build_only = build_only
 		self.device_args = device_args
 		self.postbuild_modules = []
