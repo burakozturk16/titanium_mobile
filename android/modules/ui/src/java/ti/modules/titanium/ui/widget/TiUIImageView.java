@@ -49,6 +49,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.MeasureSpec;
 import android.view.ViewParent;
+import android.widget.ImageView.ScaleType;
 
 public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler.Callback
 {
