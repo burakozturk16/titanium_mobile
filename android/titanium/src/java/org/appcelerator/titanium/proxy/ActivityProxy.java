@@ -256,6 +256,15 @@ public class ActivityProxy extends KrollProxy
 			}
 		}
 	}
+	
+	@Kroll.method
+	public void moveTaskToBack()
+	{
+		Activity activity = getWrappedActivity();
+		if (activity != null) {
+			activity.moveTaskToBack(true);
+		}
+	}
 
 	private void handleOpenOptionsMenu()
 	{
