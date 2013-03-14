@@ -20,12 +20,25 @@ Ti.Android.registerBroadcastReceiver(bc, [Ti.Android.ACTION_AIRPLANE_MODE_CHANGE
 Ti.API.info('test2');
 if (wasStartedAtBoot) {
 	function onResume (){
-		Ti.App.removeEventListener("resume", onResume);
-		Ti.App.removeEventListener("resumed", onResume);
+		Titanium.Android.currentActivity.removeEventListener("resume", onResume);
+		Titanium.Android.currentActivity.removeEventListener("resumed", onResume);
 		win.open();
 	}
-	Ti.App.addEventListener("resume", onResume);
-	Ti.App.addEventListener("resumed", onResume);
+	Titanium.Android.currentActivity.addEventListener("resume", onResume);
+	Titanium.Android.currentActivity.addEventListener("resumed", onResume);
 }
 else
-	win.open();
+{
+//	var activity = win.getActivity();
+//	activity.invalidateOptionsMenu();
+	function onResume (){
+		Titanium.Android.currentActivity.removeEventListener("resume", onResume);
+		Titanium.Android.currentActivity.removeEventListener("resumed", onResume);
+		win.open();
+	}
+	Titanium.Android.currentActivity.addEventListener("resume", onResume);
+	Titanium.Android.currentActivity.addEventListener("resumed", onResume)
+	Titanium.Android.currentActivity.moveTaskToBack();
+//	activity.moveTaskToBack();
+//	win.open();
+}
