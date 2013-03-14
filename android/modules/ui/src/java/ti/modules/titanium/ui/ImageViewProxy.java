@@ -40,7 +40,7 @@ public class ImageViewProxy extends ViewProxy
 	public ImageViewProxy()
 	{
 		super();
-		defaultValues.put(TiC.PROPERTY_SCALE_TYPE, UIModule.SCALE_TYPE_SCALE_TO_FIL);
+		defaultValues.put(TiC.PROPERTY_SCALE_TYPE, UIModule.SCALE_TYPE_SCALE_TO_FILL);
 	}
 
 	public ImageViewProxy(TiContext tiContext)

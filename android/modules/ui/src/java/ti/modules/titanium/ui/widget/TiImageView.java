@@ -56,7 +56,10 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	private Matrix baseMatrix;
 	private Matrix changeMatrix;
 
-	private ScaleType wantedScaleType;
+	private Boolean readyToLayout = false;
+	private Boolean configured = false;
+	
+	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
 	
 	// Flags to help determine whether width/height is defined, so we can scale appropriately
 	private boolean viewWidthDefined;
@@ -472,22 +475,23 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 
 	private void updateScaleType()
 	{
+		if (!configured) return;
 		if (enableZoomControls) {
 			imageView.setAdjustViewBounds(true);
 			imageView.setScaleType(ScaleType.MATRIX);
 		} else {
-			Boolean adjust = canScaleImage || !viewWidthDefined || ! viewHeightDefined;
+			Boolean adjust = canScaleImage && (!viewWidthDefined || ! viewHeightDefined);
 
 			if (adjust) {
 				imageView.setAdjustViewBounds(true);
-				imageView.setScaleType(ScaleType.CENTER_CROP);
+				imageView.setScaleType(ScaleType.FIT_CENTER);
 			}
 			else {
 				imageView.setAdjustViewBounds(false);
 				imageView.setScaleType(wantedScaleType);
 			}
 		}
-		requestLayout();
+		if (readyToLayout) requestLayout();
 	}
 	
 	public void setWantedScaleType(ScaleType type) {
@@ -509,5 +513,22 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	{
 		viewHeightDefined = defined;
 		updateScaleType();
+	}
+	
+	public void setReadyToLayout(boolean ready)
+	{
+		readyToLayout = ready;
+		if (readyToLayout) requestLayout();
+	}
+	
+	public void setConfigured(boolean configured)
+	{
+		this.configured = configured;
+		
+		if (configured)
+		{
+			updateScaleType();
+			readyToLayout = true;
+		}
 	}
 }

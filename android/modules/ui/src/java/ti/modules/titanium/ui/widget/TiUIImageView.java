@@ -1069,6 +1069,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
 		}
+		
+		view.setConfigured(true);
 	}
 
 	@Override

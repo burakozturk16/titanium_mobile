@@ -85,7 +85,7 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int MAP_VIEW_SATELLITE = 2;
 	@Kroll.constant public static final int MAP_VIEW_HYBRID = 3;
 	
-	@Kroll.constant public static final int SCALE_TYPE_SCALE_TO_FIL = 0; //ImageView.ScaleType.FIT_XY
+	@Kroll.constant public static final int SCALE_TYPE_SCALE_TO_FILL = 0; //ImageView.ScaleType.FIT_XY
 	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FIT = 1; //ImageView.ScaleType.FIT_CENTER
 	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FILL = 2; //ImageView.ScaleType.CENTER_CROP
 	@Kroll.constant public static final int SCALE_TYPE_CENTER = 3; //ImageView.ScaleType.CENTER
