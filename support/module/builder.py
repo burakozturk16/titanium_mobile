@@ -122,6 +122,10 @@ def stage(platform, project_dir, manifest, callback):
 		# generate a guid since this is currently done by developer
 		guid = str(uuid.uuid4())
 		xml = xml.replace('<guid></guid>', '<guid>%s</guid>' % guid)
+		
+		#run a module test app in debug mode
+		xml = xml.replace('</ti:app>', '<property name="ti.android.debug" type="bool">true</property>\n</ti:app>')
+
 		tiappf.write(xml)
 		tiappf.close()
 
