@@ -994,7 +994,7 @@ public abstract class TiUIView
 		if (radius > 0f && HONEYCOMB_OR_GREATER) {
 			disableHWAcceleration();
 		}
-		borderView.invalidate();
+		borderView.postInvalidate();
 	}
 	
 	private void setBorderWidth(float width){
@@ -1337,8 +1337,16 @@ public abstract class TiUIView
 		}
 		if (borderView != null) {
 			borderView.setBorderAlpha(Math.round(opacity * 255));
+			borderView.postInvalidate();
 		}
-		setOpacity(nativeView, opacity);
+		if (nativeView != null) {
+			if (HONEYCOMB_OR_GREATER) {
+				nativeView.setAlpha(opacity);
+			} else {
+				setOpacity(nativeView, opacity);
+			}
+			nativeView.postInvalidate();
+		}
 	}
 
 	/**
@@ -1355,7 +1363,6 @@ public abstract class TiUIView
 			if (opacity == 1) {
 				clearOpacity(view);
 			}
-			view.invalidate();
 		}
 	}
 

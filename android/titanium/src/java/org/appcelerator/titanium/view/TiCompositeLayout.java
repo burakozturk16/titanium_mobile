@@ -7,7 +7,6 @@
 package org.appcelerator.titanium.view;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.List;
@@ -26,7 +25,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -76,7 +74,6 @@ public class TiCompositeLayout extends ViewGroup
 	private int horiztonalLayoutPreviousRight = 0;
 
 	private float alpha = 1.0f;
-	private Method setAlphaMethod;
 
 	private WeakReference<TiViewProxy> proxy;
 	private static final int HAS_SIZE_FILL_CONFLICT = 1;
@@ -734,38 +731,6 @@ public class TiCompositeLayout extends ViewGroup
 	}
 
 	/*
-	 * Set the opacity of the view using View.setAlpha if available.
-	 *
-	 * @param alpha the opacity of the view
-	 * @return true if opacity was set, otherwise false if View.setAlpha failed or was not available.
-	 */
-	private boolean nativeSetAlpha(float alpha)
-	{
-		if (Build.VERSION.SDK_INT < 11) {
-			// Only available in API level 11 or higher.
-			return false;
-		}
-
-		if (setAlphaMethod == null) {
-			try {
-				setAlphaMethod = getClass().getMethod("setAlpha", float.class);
-			} catch (NoSuchMethodException e) {
-				Log.w(TAG, "Unable to find setAlpha() method.", e, Log.DEBUG_MODE);
-				return false;
-			}
-		}
-
-		try {
-			setAlphaMethod.invoke(this, alpha);
-		} catch (Exception e) {
-			Log.e(TAG, "Failed to call setAlpha().", e);
-			return false;
-		}
-
-		return true;
-	}
-
-	/*
 	 * Set the alpha of the view. Provides backwards compatibility
 	 * with older versions of Android which don't support View.setAlpha().
 	 *
@@ -773,11 +738,6 @@ public class TiCompositeLayout extends ViewGroup
 	 */
 	public void setAlphaCompat(float alpha)
 	{
-		// Try using the native setAlpha() method first.
-		if (nativeSetAlpha(alpha)) {
-			return;
-		}
-
 		// If setAlpha() is not supported on this platform,
 		// use the backwards compatibility workaround.
 		// See dispatchDraw() for details.
