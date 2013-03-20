@@ -407,7 +407,7 @@ public class TiUIText extends TiUIView
 		if (key.equals(TiC.PROPERTY_ENABLED)) {
 			realtv.setEnabled(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VALUE)) {
-			realtv.setText((String) newValue);
+			realtv.setText(TiConvert.toString(newValue));
 			int pos = realtv.getText().length();
 			realtv.setSelection(pos);
 		} else if (key.equals(TiC.PROPERTY_MAX_LENGTH)) {

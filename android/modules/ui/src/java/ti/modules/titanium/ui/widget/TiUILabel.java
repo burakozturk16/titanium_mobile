@@ -69,7 +69,7 @@ public class TiUILabel extends TiUIView
 	private static final String TAG = "TiUILabel";
 	
 	private int defaultColor;
-	private boolean wordWrap;
+	private boolean wordWrap = true;
 
 	private int shadowColor;
 	private int shadowDx;
@@ -593,6 +593,7 @@ public class TiUILabel extends TiUIView
 		tv.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		tv.setKeyListener(null);
 		tv.setFocusable(false);
+		tv.setSingleLine(false);
 		defaultColor = tv.getCurrentTextColor();
 		setNativeView(tv);
 
