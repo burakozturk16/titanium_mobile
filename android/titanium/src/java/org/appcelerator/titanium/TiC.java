@@ -221,6 +221,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_POST_LAYOUT = "postlayout";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_PLAYING = "playing";
 
 	/**
 	 * @module.api
@@ -466,6 +471,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_TWOFINGERTAP = "twofingertap";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_PROPERTY_URL = "url";
+	
 
 	/**
 	 * @module.api
@@ -960,6 +971,11 @@ public class TiC
 
 	/**
 	 * @module.api
+	 */
+	public static final String PROPERTY_CROP_RECT = "cropRect";
+
+	/**
+	 * @module.api
 	 */ // TIMOB-4478
 	public static final String PROPERTY_CURRENT_PAGE = "currentPage";
 
@@ -1340,7 +1356,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_KEYBOARD_TYPE = "keyboardType";
-	
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_KIND = "kind";
+
 	/**
 	 * @module.api
 	 */
@@ -1462,6 +1483,10 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MAX_LINES = "maxLines";
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MEDIA = "media";
 
 	/**
 	 * @module.api
