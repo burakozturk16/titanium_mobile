@@ -134,6 +134,11 @@ public class TiBorderWrapperView extends FrameLayout
 		updateBorderPath();
 	}
 
+	public float getRadius()
+	{
+		return this.radius;
+	}
+
 	public void setBorderWidth(float borderWidth)
 	{
 		this.borderWidth = borderWidth;

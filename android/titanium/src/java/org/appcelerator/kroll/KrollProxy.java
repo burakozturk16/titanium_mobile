@@ -611,8 +611,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
-	@Kroll.method
-	public void applyProperties(Object arg)
+	public void applyPropertiesInternal(Object arg)
 	{
 		if (!(arg instanceof HashMap)) {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
