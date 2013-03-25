@@ -79,6 +79,11 @@ function TitaniumWrapper(context) {
 	Object.defineProperty(this, "resourcesRelativePath", {
 		get: function() {
 			var value = context.sourceUrl.replace("app://", "");
+			//this test will take care of the require/include difference.
+			//if we are inside a require the path contains the file name
+			//if inside an include we are relative to the path containing the included file
+			if (stringEndsWith(value, '.js'))
+				value = value.split('/').slice(0, -1).join('/')
 			return value;
 		}
 	});
