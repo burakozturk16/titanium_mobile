@@ -149,15 +149,7 @@ public class TableViewProxy extends TiViewProxy
 
 	@Override
 	public boolean fireEvent(String eventName, Object data) {
-		if ((data instanceof HashMap) && (eventName.equals(TiC.EVENT_LONGPRESS) || 
-			eventName.equals(TiC.EVENT_LONGCLICK) || 
-			eventName.equals(TiC.EVENT_CLICK) || 
-			eventName.equals(TiC.EVENT_SINGLE_TAP) || 
-			eventName.equals(TiC.EVENT_DOUBLE_TAP) || 
-			eventName.equals(TiC.EVENT_SWIPE) || 
-			eventName.equals(TiC.EVENT_TOUCH_START) || 
-			eventName.equals(TiC.EVENT_TOUCH_CANCEL) || 
-			eventName.equals(TiC.EVENT_TOUCH_END))) {
+		if ((data instanceof HashMap)) {
 
 			// The data object may already be in use by the runtime thread
 			// due to a child view's event fire. Create a copy to be thread safe.
