@@ -344,20 +344,35 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		int maxHeight = 0;
 
 //		if (DBG) {
-//			int w = MeasureSpec.getSize(widthMeasureSpec);
-//			int wm = MeasureSpec.getMode(widthMeasureSpec);
-//			int h = MeasureSpec.getSize(heightMeasureSpec);
-//			int hm = MeasureSpec.getMode(heightMeasureSpec);
-//
-//			Log.i(LCAT, "w: " + w + " wm: " + wm + " h: " + h + " hm: " + hm);
+		int w = MeasureSpec.getSize(widthMeasureSpec);
+		int wm = MeasureSpec.getMode(widthMeasureSpec);
+		int h = MeasureSpec.getSize(heightMeasureSpec);
+		int hm = MeasureSpec.getMode(heightMeasureSpec);
+
+//			Log.i(TAG, "w: " + w + " wm: " + wm + " h: " + h + " hm: " + hm);
 //		}
 
 		// TODO padding and margins
 
 		measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
+		
+		if(hm == MeasureSpec.EXACTLY == (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
+			maxHeight = Math.max(h, Math.max(maxHeight, imageView.getMeasuredHeight()));
+			float ratio = imageView.getMeasuredWidth() / imageView.getMeasuredHeight();
+			maxWidth = (int) Math.floor(maxHeight * ratio);
+		}
+		else if(wm == MeasureSpec.EXACTLY == (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
+			maxWidth = Math.max(w, Math.max(maxWidth, imageView.getMeasuredWidth()));
+			float ratio = imageView.getMeasuredHeight() / imageView.getMeasuredWidth();
+			maxHeight = (int) Math.floor(maxWidth * ratio);
+		}
+		else {
+			maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
+			maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
+		}
 
-		maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
-		maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
+		
+		Log.i(TAG, "maxWidth: " + maxWidth + " maxHeight: " + maxHeight);
 
 		// Allow for zoom controls.
 		if (enableZoomControls) {
@@ -400,15 +415,16 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 			imageView.setScaleType(ScaleType.MATRIX);
 			imageView.setAdjustViewBounds(false);
 		} else {
-			Boolean adjust = enableScale && (!viewWidthDefined || ! viewHeightDefined);
-
-			if (adjust) {
-				imageView.setAdjustViewBounds(true);
-				imageView.setScaleType(ScaleType.FIT_CENTER);
-			}
-			else {
+			if (viewWidthDefined && viewHeightDefined) {
 				imageView.setAdjustViewBounds(false);
 				imageView.setScaleType(wantedScaleType);
+			}
+			else if(!enableScale) {
+				imageView.setAdjustViewBounds(false);
+				imageView.setScaleType(ScaleType.CENTER);
+			} else {
+				imageView.setAdjustViewBounds(true);
+				imageView.setScaleType(ScaleType.FIT_CENTER);
 			}
 		}
 		if (readyToLayout) requestLayout();

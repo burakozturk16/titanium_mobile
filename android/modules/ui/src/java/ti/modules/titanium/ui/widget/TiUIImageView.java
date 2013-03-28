@@ -759,12 +759,12 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			view.setEnableScale(false);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
+//		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
 			view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
-		}
-		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
+//		}
+//		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
 			view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
-		}
+//		}
 
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
 			setImageSource(d.get(TiC.PROPERTY_IMAGES));
@@ -841,9 +841,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			}
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
-			if (key.equals(TiC.PROPERTY_WIDTH)) {
+			if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_LEFT) || key.equals(TiC.PROPERTY_RIGHT)) {
 				view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
-			} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
+			} else if (key.equals(TiC.PROPERTY_HEIGHT) || key.equals(TiC.PROPERTY_TOP) || key.equals(TiC.PROPERTY_BOTTOM)) {
 				view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 			}
 		}
@@ -959,7 +959,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private void setWantedScaleType(int type){
 		TiImageView view = getView();
 		if (view == null) return;
-		ScaleType result = ScaleType.FIT_XY;
+		ScaleType result = ScaleType.FIT_CENTER;
 		switch (type)
 		{
 			case 1:
