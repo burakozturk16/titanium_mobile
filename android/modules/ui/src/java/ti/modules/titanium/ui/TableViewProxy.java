@@ -149,7 +149,7 @@ public class TableViewProxy extends TiViewProxy
 
 	@Override
 	public boolean fireEvent(String eventName, Object data) {
-		if ((data instanceof HashMap)) {
+		if ((data instanceof HashMap) && ((HashMap)data.)containsKey(TiC.EVENT_PROPERTY_SOURCE)) {
 
 			// The data object may already be in use by the runtime thread
 			// due to a child view's event fire. Create a copy to be thread safe.
@@ -157,6 +157,7 @@ public class TableViewProxy extends TiViewProxy
 			KrollDict dataCopy = new KrollDict((HashMap<String, Object>)data);
 			
 			TiViewProxy source = (TiViewProxy)dataCopy.get(TiC.EVENT_PROPERTY_SOURCE);
+			if (source != null) {
 			TiUIView view  = source.peekView();
 			if (view != null && view.getNativeView() != null)
 			{
@@ -166,6 +167,7 @@ public class TableViewProxy extends TiViewProxy
 					TableViewRowProxy.fillClickEvent(dataCopy, getTableView().getModel(), item);
 					data = dataCopy;
 				}
+			}
 			}
 		}
 
