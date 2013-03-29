@@ -77,46 +77,71 @@ static inline NSTextCheckingType NSTextCheckingTypeFromUIDataDetectorType(UIData
 
 static inline NSDictionary * NSAttributedStringAttributesFromLabel(TTTAttributedLabel *label) {
     NSMutableDictionary *mutableAttributes = [NSMutableDictionary dictionary]; 
-    
-    CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)label.font.fontName, label.font.pointSize, NULL);
-    [mutableAttributes setObject:(__bridge id)font forKey:(NSString *)kCTFontAttributeName];
-    CFRelease(font);
-    
-    [mutableAttributes setObject:(id)[label.textColor CGColor] forKey:(NSString *)kCTForegroundColorAttributeName];
-    
-    CTTextAlignment alignment = CTTextAlignmentFromUITextAlignment(label.textAlignment);
-    CGFloat lineSpacing = label.leading;
-    CGFloat lineSpacingAdjustment = ceilf(label.font.lineHeight - label.font.ascender + label.font.descender);
-    CGFloat lineHeightMultiple = label.lineHeightMultiple;
-    CGFloat topMargin = label.textInsets.top;
-    CGFloat bottomMargin = label.textInsets.bottom;
-    CGFloat leftMargin = label.textInsets.left;
-    CGFloat rightMargin = label.textInsets.right;
-    CGFloat firstLineIndent = label.firstLineIndent + leftMargin;
 
-    CTLineBreakMode lineBreakMode;
-    if (label.numberOfLines != 1) {
-        lineBreakMode = CTLineBreakModeFromUILineBreakMode(UILineBreakModeWordWrap);
+    if ([NSMutableParagraphStyle class]) {
+        [mutableAttributes setObject:label.font forKey:(NSString *)kCTFontAttributeName];
+        [mutableAttributes setObject:label.textColor forKey:(NSString *)kCTForegroundColorAttributeName];
+
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        paragraphStyle.alignment = label.textAlignment;
+        paragraphStyle.lineSpacing = label.leading;
+        paragraphStyle.lineHeightMultiple = label.lineHeightMultiple;
+        paragraphStyle.firstLineHeadIndent = label.firstLineIndent;
+        paragraphStyle.paragraphSpacingBefore = label.textInsets.top;
+        paragraphStyle.paragraphSpacing = label.textInsets.bottom;
+        paragraphStyle.headIndent = label.textInsets.left;
+        paragraphStyle.tailIndent = label.textInsets.right;
+
+        if (label.numberOfLines == 1) {
+            paragraphStyle.lineBreakMode = label.lineBreakMode;
+        } else {
+            paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        }
+
+        [mutableAttributes setObject:paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
     } else {
-        lineBreakMode = CTLineBreakModeFromUILineBreakMode(label.lineBreakMode);
-    }
-	
-    CTParagraphStyleSetting paragraphStyles[10] = {
-		{.spec = kCTParagraphStyleSpecifierAlignment, .valueSize = sizeof(CTTextAlignment), .value = (const void *)&alignment},
-		{.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode},
-        {.spec = kCTParagraphStyleSpecifierLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&lineSpacing},
-        {.spec = kCTParagraphStyleSpecifierLineSpacingAdjustment, .valueSize = sizeof (CGFloat), .value = (const void *)&lineSpacingAdjustment},
-        {.spec = kCTParagraphStyleSpecifierLineHeightMultiple, .valueSize = sizeof(CGFloat), .value = (const void *)&lineHeightMultiple},
-        {.spec = kCTParagraphStyleSpecifierFirstLineHeadIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&firstLineIndent},
-        {.spec = kCTParagraphStyleSpecifierParagraphSpacingBefore, .valueSize = sizeof(CGFloat), .value = (const void *)&topMargin},
-        {.spec = kCTParagraphStyleSpecifierParagraphSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&bottomMargin},
-        {.spec = kCTParagraphStyleSpecifierHeadIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&leftMargin},
-        {.spec = kCTParagraphStyleSpecifierTailIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&rightMargin}
-	};
+        CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)label.font.fontName, label.font.pointSize, NULL);
+        [mutableAttributes setObject:(__bridge id)font forKey:(NSString *)kCTFontAttributeName];
+        CFRelease(font);
 
-    CTParagraphStyleRef paragraphStyle = CTParagraphStyleCreate(paragraphStyles, 10);
-	[mutableAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
-	CFRelease(paragraphStyle);
+        [mutableAttributes setObject:(id)[label.textColor CGColor] forKey:(NSString *)kCTForegroundColorAttributeName];
+
+        CTTextAlignment alignment = CTTextAlignmentFromUITextAlignment(label.textAlignment);
+        CGFloat lineSpacing = label.leading;
+        CGFloat lineSpacingAdjustment = ceilf(label.font.lineHeight - label.font.ascender + label.font.descender);
+        CGFloat lineHeightMultiple = label.lineHeightMultiple;
+        CGFloat topMargin = label.textInsets.top;
+        CGFloat bottomMargin = label.textInsets.bottom;
+        CGFloat leftMargin = label.textInsets.left;
+        CGFloat rightMargin = label.textInsets.right;
+        CGFloat firstLineIndent = label.firstLineIndent + leftMargin;
+
+        CTLineBreakMode lineBreakMode;
+        if (label.numberOfLines != 1) {
+            lineBreakMode = CTLineBreakModeFromUILineBreakMode(UILineBreakModeWordWrap);
+        } else {
+            lineBreakMode = CTLineBreakModeFromUILineBreakMode(label.lineBreakMode);
+        }
+
+        CTParagraphStyleSetting paragraphStyles[10] = {
+            {.spec = kCTParagraphStyleSpecifierAlignment, .valueSize = sizeof(CTTextAlignment), .value = (const void *)&alignment},
+            {.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode},
+            {.spec = kCTParagraphStyleSpecifierLineSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&lineSpacing},
+            {.spec = kCTParagraphStyleSpecifierLineSpacingAdjustment, .valueSize = sizeof (CGFloat), .value = (const void *)&lineSpacingAdjustment},
+            {.spec = kCTParagraphStyleSpecifierLineHeightMultiple, .valueSize = sizeof(CGFloat), .value = (const void *)&lineHeightMultiple},
+            {.spec = kCTParagraphStyleSpecifierFirstLineHeadIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&firstLineIndent},
+            {.spec = kCTParagraphStyleSpecifierParagraphSpacingBefore, .valueSize = sizeof(CGFloat), .value = (const void *)&topMargin},
+            {.spec = kCTParagraphStyleSpecifierParagraphSpacing, .valueSize = sizeof(CGFloat), .value = (const void *)&bottomMargin},
+            {.spec = kCTParagraphStyleSpecifierHeadIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&leftMargin},
+            {.spec = kCTParagraphStyleSpecifierTailIndent, .valueSize = sizeof(CGFloat), .value = (const void *)&rightMargin}
+        };
+
+        CTParagraphStyleRef paragraphStyle = CTParagraphStyleCreate(paragraphStyles, 10);
+        
+        [mutableAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
+        
+        CFRelease(paragraphStyle);
+    }
     
     return [NSDictionary dictionaryWithDictionary:mutableAttributes];
 }
@@ -124,12 +149,23 @@ static inline NSDictionary * NSAttributedStringAttributesFromLabel(TTTAttributed
 static inline NSAttributedString * NSAttributedStringByScalingFontSize(NSAttributedString *attributedString, CGFloat scale, CGFloat minimumFontSize) {    
     NSMutableAttributedString *mutableAttributedString = [attributedString mutableCopy];
     [mutableAttributedString enumerateAttribute:(NSString *)kCTFontAttributeName inRange:NSMakeRange(0, [mutableAttributedString length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop) {
-        CTFontRef font = (__bridge CTFontRef)value;
+        UIFont *font = (UIFont *)value;
         if (font) {
-            CGFloat scaledFontSize = floorf(CTFontGetSize(font) * scale);
-            CTFontRef scaledFont = CTFontCreateCopyWithAttributes(font, fmaxf(scaledFontSize, minimumFontSize), NULL, NULL);
-            CFAttributedStringSetAttribute((__bridge CFMutableAttributedStringRef)mutableAttributedString, CFRangeMake(range.location, range.length), kCTFontAttributeName, scaledFont);
-            CFRelease(scaledFont);
+            NSString *fontName;
+            CGFloat pointSize;
+            
+            if ([font isKindOfClass:[UIFont class]]) {
+                fontName = font.fontName;
+                pointSize = font.pointSize;
+            } else {
+                fontName = (NSString *)CFBridgingRelease(CTFontCopyName((__bridge CTFontRef)font, kCTFontPostScriptNameKey));
+                pointSize = CTFontGetSize((__bridge CTFontRef)font);
+            }
+            
+            [mutableAttributedString removeAttribute:(NSString *)kCTFontAttributeName range:range];
+            CTFontRef fontRef = CTFontCreateWithName((__bridge CFStringRef)fontName, floorf(pointSize * scale), NULL);
+            [mutableAttributedString addAttribute:(NSString *)kCTFontAttributeName value:(__bridge id)fontRef range:range];
+            CFRelease(fontRef);
         }
     }];
     
@@ -141,52 +177,17 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
         return attributedString;
     }
     
-    CGColorRef colorRef = color.CGColor;
     NSMutableAttributedString *mutableAttributedString = [attributedString mutableCopy];    
     [mutableAttributedString enumerateAttribute:(NSString *)kCTForegroundColorFromContextAttributeName inRange:NSMakeRange(0, [mutableAttributedString length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop) {
-        CFBooleanRef usesColorFromContext = (__bridge CFBooleanRef)value;
-        if (usesColorFromContext && CFBooleanGetValue(usesColorFromContext)) {
-            CFRange updateRange = CFRangeMake(range.location, range.length);
-            CFAttributedStringSetAttribute((__bridge CFMutableAttributedStringRef)mutableAttributedString, updateRange, kCTForegroundColorAttributeName, colorRef);
-            CFAttributedStringRemoveAttribute((__bridge CFMutableAttributedStringRef)mutableAttributedString, updateRange, kCTForegroundColorFromContextAttributeName);
+        BOOL usesColorFromContext = (BOOL)value;
+        if (usesColorFromContext) {
+            [mutableAttributedString setAttributes:[NSDictionary dictionaryWithObject:color forKey:(NSString *)kCTForegroundColorAttributeName] range:range];
+            [mutableAttributedString removeAttribute:(NSString *)kCTForegroundColorFromContextAttributeName range:range];
         }
     }];
     
     return mutableAttributedString;    
 }
-
-@implementation NSAttributedString (trim)
-
-- (NSMutableAttributedString*)attributedStringByTrimmingCharactersInSet:(NSCharacterSet*)set
-{
-    NSMutableAttributedString *newStr = [self mutableCopy];
-    NSRange range;
-    
-    // First clear any characters from the set from thebeginning of the string
-    range = [[newStr string] rangeOfCharacterFromSet:set];
-    while (range.length != 0 && range.location == 0)
-    {
-        [newStr replaceCharactersInRange:range withString:@""];
-        range = [[newStr string] rangeOfCharacterFromSet:set];
-    }
-    
-    // Then clear them from the end
-    range = [[newStr string] rangeOfCharacterFromSet:set options:NSBackwardsSearch];
-    while (range.length != 0 && NSMaxRange(range) == [newStr length])
-    {
-        [newStr replaceCharactersInRange:range withString:@""];
-        range = [[newStr string] rangeOfCharacterFromSet:set options:NSBackwardsSearch];
-    }
-    
-    return newStr;
-}
-
-- (NSAttributedString*)attributedStringByTrimmingWhitespace
-{
-    return [[NSAttributedString alloc] initWithAttributedString:[self attributedStringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]]];
-}
-
-@end
 
 @interface TTTAttributedLabel ()
 @property (readwrite, nonatomic, copy) NSAttributedString *inactiveAttributedText;
@@ -199,12 +200,19 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 
 - (void)commonInit;
 - (void)setNeedsFramesetter;
-- (NSArray *)detectedLinksInString:(NSString *)string range:(NSRange)range error:(NSError **)error;
+- (void)addLinksWithTextCheckingResults:(NSArray *)results
+                             attributes:(NSDictionary *)attributes;
 - (NSTextCheckingResult *)linkAtCharacterIndex:(CFIndex)idx;
 - (NSTextCheckingResult *)linkAtPoint:(CGPoint)p;
 - (CFIndex)characterIndexAtPoint:(CGPoint)p;
-- (void)drawFramesetter:(CTFramesetterRef)framesetter attributedString:(NSAttributedString *)attributedString textRange:(CFRange)textRange inRect:(CGRect)rect context:(CGContextRef)c;
-- (void)drawStrike:(CTFrameRef)frame inRect:(CGRect)rect context:(CGContextRef)c;
+- (void)drawFramesetter:(CTFramesetterRef)framesetter
+       attributedString:(NSAttributedString *)attributedString
+              textRange:(CFRange)textRange
+                 inRect:(CGRect)rect
+                context:(CGContextRef)c;
+- (void)drawStrike:(CTFrameRef)frame
+            inRect:(CGRect)rect
+           context:(CGContextRef)c;
 @end
 
 @implementation TTTAttributedLabel {
@@ -225,26 +233,19 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 @synthesize linkAttributes = _linkAttributes;
 @synthesize activeLinkAttributes = _activeLinkAttributes;
 @synthesize shadowRadius = _shadowRadius;
+@synthesize highlightedShadowRadius = _highlightedShadowRadius;
+@synthesize highlightedShadowOffset = _highlightedShadowOffset;
+@synthesize highlightedShadowColor = _highlightedShadowColor;
 @synthesize leading = _leading;
 @synthesize lineHeightMultiple = _lineHeightMultiple;
 @synthesize firstLineIndent = _firstLineIndent;
 @synthesize textInsets = _textInsets;
 @synthesize verticalAlignment = _verticalAlignment;
+@synthesize truncationTokenString = _truncationTokenString;
 @synthesize activeLink = _activeLink;
 
 - (id)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
-    if (!self) {
-        return nil;
-    }
-    
-    [self commonInit];
-    
-    return self;
-}
-
-- (id)initWithCoder:(NSCoder *)coder {
-    self = [super initWithCoder:coder];
     if (!self) {
         return nil;
     }
@@ -263,28 +264,37 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     self.textInsets = UIEdgeInsetsZero;
     
     self.links = [NSArray array];
-    
-    CTLineBreakMode lineBreakMode = CTLineBreakModeFromUILineBreakMode(UILineBreakModeCharacterWrap);
-    CTParagraphStyleSetting paragraphStyles[1] = {
-		{.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode}
-	};
-    CTParagraphStyleRef paragraphStyle = CTParagraphStyleCreate(paragraphStyles, 1);
-    
+
     NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
-    [mutableLinkAttributes setObject:(id)[[UIColor blueColor] CGColor] forKey:(NSString*)kCTForegroundColorAttributeName];
+    [mutableLinkAttributes setObject:[UIColor blueColor] forKey:(NSString*)kCTForegroundColorAttributeName];
     [mutableLinkAttributes setObject:[NSNumber numberWithBool:YES] forKey:(NSString *)kCTUnderlineStyleAttributeName];
-	[mutableLinkAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
-	    
-    self.linkAttributes = [NSDictionary dictionaryWithDictionary:mutableLinkAttributes];
     
     NSMutableDictionary *mutableActiveLinkAttributes = [NSMutableDictionary dictionary];
-    [mutableActiveLinkAttributes setObject:(id)[[UIColor redColor] CGColor] forKey:(NSString*)kCTForegroundColorAttributeName];
+    [mutableActiveLinkAttributes setObject:[UIColor redColor] forKey:(NSString*)kCTForegroundColorAttributeName];
     [mutableActiveLinkAttributes setObject:[NSNumber numberWithBool:NO] forKey:(NSString *)kCTUnderlineStyleAttributeName];
-    [mutableLinkAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
 
+    if ([NSMutableParagraphStyle class]) {
+        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
+        paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        
+        [mutableLinkAttributes setObject:paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
+        [mutableActiveLinkAttributes setObject:paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
+    } else {
+        CTLineBreakMode lineBreakMode = CTLineBreakModeFromUILineBreakMode(UILineBreakModeWordWrap);
+        CTParagraphStyleSetting paragraphStyles[1] = {
+            {.spec = kCTParagraphStyleSpecifierLineBreakMode, .valueSize = sizeof(CTLineBreakMode), .value = (const void *)&lineBreakMode}
+        };
+        CTParagraphStyleRef paragraphStyle = CTParagraphStyleCreate(paragraphStyles, 1);
+        
+        [mutableLinkAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
+        [mutableLinkAttributes setObject:(__bridge id)paragraphStyle forKey:(NSString *)kCTParagraphStyleAttributeName];
+        
+        CFRelease(paragraphStyle);
+    }
+	    
+    self.linkAttributes = [NSDictionary dictionaryWithDictionary:mutableLinkAttributes];
     self.activeLinkAttributes = [NSDictionary dictionaryWithDictionary:mutableActiveLinkAttributes];
     
-    CFRelease(paragraphStyle);
 }
 
 - (void)dealloc {
@@ -299,9 +309,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
         return;
     }
     
-    [self willChangeValueForKey:@"attributedText"];
     _attributedText = [text copy];
-    [self didChangeValueForKey:@"attributedText"];
     
     [self setNeedsFramesetter];
 }
@@ -338,63 +346,34 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 
 #pragma mark -
 
-- (void)setLinkActive:(BOOL)active
-withTextCheckingResult:(NSTextCheckingResult *)result
-{
-    if (result && [self.activeLinkAttributes count] > 0) {
-        if (active) {
-            if (!self.inactiveAttributedText) {
-                self.inactiveAttributedText = self.attributedText;
-            }
-            
-            NSMutableAttributedString *mutableAttributedString = [self.inactiveAttributedText mutableCopy];
-            [mutableAttributedString addAttributes:self.activeLinkAttributes range:result.range];
-            self.attributedText = mutableAttributedString;
-            
-            [self setNeedsDisplay];
-        } else {
-            if (self.inactiveAttributedText) {
-                self.attributedText = self.inactiveAttributedText;
-                self.inactiveAttributedText = nil;
-                
-                [self setNeedsDisplay];
-            }
-        }
-    }
-}
-
-#pragma mark -
-
 - (void)setDataDetectorTypes:(UIDataDetectorTypes)dataDetectorTypes {
-    [self willChangeValueForKey:@"dataDetectorTypes"];
     _dataDetectorTypes = dataDetectorTypes;
-    [self didChangeValueForKey:@"dataDetectorTypes"];
     
     if (self.dataDetectorTypes != UIDataDetectorTypeNone) {
         self.dataDetector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeFromUIDataDetectorType(self.dataDetectorTypes) error:nil];
+    } else {
+        self.dataDetector = nil;
     }
-}
-
-- (NSArray *)detectedLinksInString:(NSString *)string
-                             range:(NSRange)range
-                             error:(NSError **)error
-{
-    if (!string || !self.dataDetector) {
-        return [NSArray array];
-    }
-    
-    return [self.dataDetector matchesInString:string options:0 range:range];
 }
 
 - (void)addLinkWithTextCheckingResult:(NSTextCheckingResult *)result
                            attributes:(NSDictionary *)attributes
 {
-    self.links = [self.links arrayByAddingObject:result];
-    
+    [self addLinksWithTextCheckingResults:[NSArray arrayWithObject:result] attributes:attributes];
+}
+
+- (void)addLinksWithTextCheckingResults:(NSArray *)results
+                             attributes:(NSDictionary *)attributes
+{
+    self.links = [self.links arrayByAddingObjectsFromArray:results];
+
     if (attributes) {
-        NSMutableAttributedString *mutableAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:self.attributedText];
-        [mutableAttributedString addAttributes:attributes range:result.range];
-        self.attributedText = mutableAttributedString;        
+        NSMutableAttributedString *mutableAttributedString = [self.attributedText mutableCopy];
+        for (NSTextCheckingResult *result in results) {
+            [mutableAttributedString addAttributes:attributes range:result.range];
+        }
+        self.attributedText = mutableAttributedString;
+        [self setNeedsDisplay];
     }
 }
 
@@ -437,9 +416,10 @@ withTextCheckingResult:(NSTextCheckingResult *)result
 #pragma mark -
 
 - (NSTextCheckingResult *)linkAtCharacterIndex:(CFIndex)idx {
-    for (NSTextCheckingResult *result in self.links) {
-        NSRange range = result.range;
-        if ((CFIndex)range.location <= idx && idx <= (CFIndex)(range.location + range.length - 1)) {
+    NSEnumerator *enumerator = [self.links reverseObjectEnumerator];
+    NSTextCheckingResult *result = nil;
+    while ((result = [enumerator nextObject])) {
+        if (NSLocationInRange((NSUInteger)idx, result.range)) {
             return result;
         }
     }
@@ -449,6 +429,7 @@ withTextCheckingResult:(NSTextCheckingResult *)result
 
 - (NSTextCheckingResult *)linkAtPoint:(CGPoint)p {
     CFIndex idx = [self characterIndexAtPoint:p];
+    
     return [self linkAtCharacterIndex:idx];
 }
 
@@ -576,14 +557,18 @@ withTextCheckingResult:(NSTextCheckingResult *)result
                 
                 // Get the attributes and use them to create the truncation token string
                 NSDictionary *tokenAttributes = [attributedString attributesAtIndex:truncationAttributePosition effectiveRange:NULL];
-                // \u2026 is the Unicode horizontal ellipsis character code
-                NSAttributedString *tokenString = [[NSAttributedString alloc] initWithString:@"\u2026" attributes:tokenAttributes];
-                CTLineRef truncationToken = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)tokenString);
+                NSString *truncationTokenString = self.truncationTokenString;
+                if (!truncationTokenString) {
+                    truncationTokenString = @"\u2026"; // Unicode Character 'HORIZONTAL ELLIPSIS' (U+2026)
+                }
+
+                NSAttributedString *attributedTokenString = [[NSAttributedString alloc] initWithString:truncationTokenString attributes:tokenAttributes];
+                CTLineRef truncationToken = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)attributedTokenString);
                 
                 // Append truncationToken to the string
                 // because if string isn't too long, CT wont add the truncationToken on it's own
                 // There is no change of a double truncationToken because CT only add the token if it removes characters (and the one we add will go first)
-                NSMutableAttributedString *truncationString = [[attributedString  attributedSubstringFromRange:NSMakeRange(lastLineRange.location, lastLineRange.length)] mutableCopy];
+                NSMutableAttributedString *truncationString = [[attributedString attributedSubstringFromRange:NSMakeRange(lastLineRange.location, lastLineRange.length)] mutableCopy];
                 if (lastLineRange.length > 0) {
                     // Remove any newline at the end (we don't want newline space between the text and the truncation token). There can only be one, because the second would be on the next line.
                     unichar lastCharacter = [[truncationString string] characterAtIndex:lastLineRange.length - 1];
@@ -591,32 +576,31 @@ withTextCheckingResult:(NSTextCheckingResult *)result
                         [truncationString deleteCharactersInRange:NSMakeRange(lastLineRange.length - 1, 1)];
                     }
                 }
-                truncationString = [truncationString attributedStringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                [truncationString appendAttributedString:tokenString];
+                [truncationString appendAttributedString:attributedTokenString];
                 CTLineRef truncationLine = CTLineCreateWithAttributedString((__bridge CFAttributedStringRef)truncationString);
-                
+
                 // Truncate the line in case it is too long.
                 CTLineRef truncatedLine = CTLineCreateTruncatedLine(truncationLine, rect.size.width, truncationType, truncationToken);
                 if (!truncatedLine) {
                     // If the line is not as wide as the truncationToken, truncatedLine is NULL
                     truncatedLine = CFRetain(truncationToken);
                 }
-                
-                float flush = 0.5;
+
+                // Adjust pen offset for flush depending on text alignment
+                CGFloat flushFactor = 0.0f;
                 switch (self.textAlignment) {
                     case UITextAlignmentCenter:
-                        flush = 0.5;
+                        flushFactor = 0.5f;
                         break;
                     case UITextAlignmentRight:
-                        flush = 1;
+                        flushFactor = 1.0f;
                         break;
                     case UITextAlignmentLeft:
                     default:
-                        flush = 0;
                         break;
                 }
-                
-                CGFloat penOffset = CTLineGetPenOffsetForFlush(truncatedLine, flush, rect.size.width);
+
+                CGFloat penOffset = CTLineGetPenOffsetForFlush(truncatedLine, flushFactor, rect.size.width);
                 CGContextSetTextPosition(c, penOffset, lineOrigin.y);
                 
                 CTLineDraw(truncatedLine, c);
@@ -669,16 +653,16 @@ withTextCheckingResult:(NSTextCheckingResult *)result
 
             if (strokeColor || fillColor) {
                 CGRect runBounds = CGRectZero;
-                CGFloat ascent = 0.0f;
-                CGFloat descent = 0.0f;
+                CGFloat runAscent = 0.0f;
+                CGFloat runDescent = 0.0f;
                 
-                runBounds.size.width = CTRunGetTypographicBounds((__bridge CTRunRef)glyphRun, CFRangeMake(0, 0), &ascent, &descent, NULL);
-                runBounds.size.height = ascent + descent;
+                runBounds.size.width = CTRunGetTypographicBounds((__bridge CTRunRef)glyphRun, CFRangeMake(0, 0), &runAscent, &runDescent, NULL);
+                runBounds.size.height = runAscent + runDescent;
                 
                 CGFloat xOffset = CTLineGetOffsetForStringIndex((__bridge CTLineRef)line, CTRunGetStringRange((__bridge CTRunRef)glyphRun).location, NULL);
                 runBounds.origin.x = origins[lineIndex].x + rect.origin.x + xOffset;
                 runBounds.origin.y = origins[lineIndex].y + rect.origin.y + yOffset;
-                runBounds.origin.y -= descent;
+                runBounds.origin.y -= runDescent;
                 
                 // Don't draw higlightedLinkBackground too far to the right
                 if (CGRectGetWidth(runBounds) > CGRectGetWidth(lineBounds)) {
@@ -730,16 +714,16 @@ withTextCheckingResult:(NSTextCheckingResult *)result
             
             if (strikeOut) {
                 CGRect runBounds = CGRectZero;
-                CGFloat ascent = 0.0f;
-                CGFloat descent = 0.0f;
+                CGFloat runAscent = 0.0f;
+                CGFloat runDescent = 0.0f;
                 
-                runBounds.size.width = CTRunGetTypographicBounds((__bridge CTRunRef)glyphRun, CFRangeMake(0, 0), &ascent, &descent, NULL);
-                runBounds.size.height = ascent + descent;
+                runBounds.size.width = CTRunGetTypographicBounds((__bridge CTRunRef)glyphRun, CFRangeMake(0, 0), &runAscent, &runDescent, NULL);
+                runBounds.size.height = runAscent + runDescent;
                 
                 CGFloat xOffset = CTLineGetOffsetForStringIndex((__bridge CTLineRef)line, CTRunGetStringRange((__bridge CTRunRef)glyphRun).location, NULL);
                 runBounds.origin.x = origins[lineIndex].x + rect.origin.x + xOffset;
                 runBounds.origin.y = origins[lineIndex].y + rect.origin.y;
-                runBounds.origin.y -= descent;
+                runBounds.origin.y -= runDescent;
                 
                 // Don't draw strikeout too far to the right
                 if (CGRectGetWidth(runBounds) > CGRectGetWidth(lineBounds)) {
@@ -748,10 +732,10 @@ withTextCheckingResult:(NSTextCheckingResult *)result
                 
 				switch (superscriptStyle) {
 					case 1:
-						runBounds.origin.y -= ascent * 0.47f;
+						runBounds.origin.y -= runAscent * 0.47f;
 						break;
 					case -1:
-						runBounds.origin.y += ascent * 0.25f;
+						runBounds.origin.y += runAscent * 0.25f;
 						break;
 					default:
 						break;
@@ -802,10 +786,17 @@ withTextCheckingResult:(NSTextCheckingResult *)result
     self.attributedText = (NSAttributedString*)text;
 
     self.links = [NSArray array];
-    if (self.dataDetectorTypes != UIDataDetectorTypeNone) {
-        for (NSTextCheckingResult *result in [self detectedLinksInString:[self.attributedText string] range:NSMakeRange(0, [text length]) error:nil]) {
-            [self addLinkWithTextCheckingResult:result];
-        }
+    if (self.attributedText && self.dataDetectorTypes != UIDataDetectorTypeNone) {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+            NSArray *results = [self.dataDetector matchesInString:[text string] options:0 range:NSMakeRange(0, [text length])];
+            if ([results count] > 0) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    if ([[self.attributedText string] isEqualToString:[text string]]) {
+                        [self addLinksWithTextCheckingResults:results attributes:self.linkAttributes];
+                    }
+                });
+            }
+        });
     }
         
     [super setText:[self.attributedText string]];
@@ -827,6 +818,27 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     }
     
     [self setText:mutableAttributedString];
+}
+
+- (void)setActiveLink:(NSTextCheckingResult *)activeLink {
+    _activeLink = activeLink;
+
+    if (_activeLink && [self.activeLinkAttributes count] > 0) {
+        if (!self.inactiveAttributedText) {
+            self.inactiveAttributedText = [self.attributedText copy];
+        }
+
+        NSMutableAttributedString *mutableAttributedString = [self.inactiveAttributedText mutableCopy];
+        [mutableAttributedString addAttributes:self.activeLinkAttributes range:_activeLink.range];
+        self.attributedText = mutableAttributedString;
+
+        [self setNeedsDisplay];
+    } else if (self.inactiveAttributedText) {
+        self.attributedText = self.inactiveAttributedText;
+        self.inactiveAttributedText = nil;
+
+        [self setNeedsDisplay];
+    }
 }
 
 #pragma mark - UILabel
@@ -865,9 +877,12 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     }
         
     CGRect textRect = bounds;
-    
+
+    // Calculate height with a minimum of double the font pointSize, to ensure that CTFramesetterSuggestFrameSizeWithConstraints doesn't return CGSizeZero, as it would if textRect height is insufficient.
+    textRect.size.height = fmaxf(self.font.pointSize * 2.0f, bounds.size.height);
+
     // Adjust the text to be in the center vertically, if the text size is smaller than bounds
-    CGSize textSize = CTFramesetterSuggestFrameSizeWithConstraints(self.framesetter, CFRangeMake(0, [self.attributedText length]), NULL, bounds.size, NULL);
+    CGSize textSize = CTFramesetterSuggestFrameSizeWithConstraints(self.framesetter, CFRangeMake(0, [self.attributedText length]), NULL, textRect.size, NULL);
     textSize = CGSizeMake(ceilf(textSize.width), ceilf(textSize.height)); // Fix for iOS 4, CTFramesetterSuggestFrameSizeWithConstraints sometimes returns fractional sizes
     
     if (textSize.height < textRect.size.height) {
@@ -875,9 +890,11 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         CGFloat yOffset = 0.0f;
         switch (self.verticalAlignment) {
             case TTTAttributedLabelVerticalAlignmentCenter:
+                yOffset = floorf((bounds.size.height - textSize.height) / 2.0f);
                 yOffset = floorf((textRect.size.height - textSize.height) / 2.0f);
                 break;
             case TTTAttributedLabelVerticalAlignmentBottom:
+                yOffset = bounds.size.height - textSize.height;
                 yOffset = textRect.size.height - textSize.height;
                 break;
             case TTTAttributedLabelVerticalAlignmentTop:
@@ -902,7 +919,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     
     // Adjust the font size to fit width, if necessarry 
     if (self.adjustsFontSizeToFitWidth && self.numberOfLines > 0) {
-        CGFloat textWidth = [self sizeThatFits:CGSizeZero].width;
+        // Use infinite width to find the max width, which will be compared to availableWidth if needed.
+        CGSize maxSize = (self.numberOfLines > 1) ? CGSizeMake(CGFLOAT_MAX, CGFLOAT_MAX) : CGSizeZero;
+        
+        CGFloat textWidth = [self sizeThatFits:maxSize].width;
         CGFloat availableWidth = self.frame.size.width * self.numberOfLines;
         if (self.numberOfLines > 1 && self.lineBreakMode == UILineBreakModeWordWrap) {
             textWidth *= kTTTLineBreakWordWrapTextWidthScalingFactor;
@@ -932,6 +952,8 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     // Second, trace the shadow before the actual text, if we have one
     if (self.shadowColor && !self.highlighted) {
         CGContextSetShadowWithColor(c, self.shadowOffset, self.shadowRadius, [self.shadowColor CGColor]);
+    } else if (self.highlightedShadowColor) {
+        CGContextSetShadowWithColor(c, self.highlightedShadowOffset, self.highlightedShadowRadius, [self.highlightedShadowColor CGColor]);
     }
     
     // Finally, draw the text or highlighted text itself (on top of the shadow, if there is one)
@@ -1001,9 +1023,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     
     self.activeLink = [self linkAtPoint:[touch locationInView:self]];
         
-    if (self.activeLink) {
-        [self setLinkActive:YES withTextCheckingResult:self.activeLink];
-    } else {
+    if (!self.activeLink) {
         [super touchesBegan:touches withEvent:event];
     }
 }
@@ -1016,9 +1036,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         UITouch *touch = [touches anyObject];
         
         if (self.activeLink != [self linkAtPoint:[touch locationInView:self]]) {
-            [self setLinkActive:NO withTextCheckingResult:self.activeLink];
-        } else {
-            [self setLinkActive:YES withTextCheckingResult:self.activeLink];
+            self.activeLink = nil;
         }
     } else {
         [super touchesMoved:touches withEvent:event];
@@ -1030,13 +1048,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 {
     [self.delegate processTouchesEnded:touches withEvent:event];
     if (self.activeLink) {
-        [self setLinkActive:NO withTextCheckingResult:self.activeLink];
-        
-        if (!self.delegate) {
-            return;
-        }
-        
         NSTextCheckingResult *result = self.activeLink;
+        self.activeLink = nil;
+
         switch (result.resultType) {
             case NSTextCheckingTypeLink:
                 if ([self.delegate respondsToSelector:@selector(attributedLabel:didSelectLinkWithURL:)]) {
@@ -1082,11 +1096,108 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                withEvent:(UIEvent *)event
 {
     [self.delegate processTouchesCancelled:touches withEvent:event];
-   if (self.activeLink) {
-        [self setLinkActive:NO withTextCheckingResult:self.activeLink];
+    if (self.activeLink) {
+        self.activeLink = nil;
     } else {
         [super touchesCancelled:touches withEvent:event];
     }
+}
+
+#pragma mark - NSCoding
+
+- (void)encodeWithCoder:(NSCoder *)coder {
+    [super encodeWithCoder:coder];
+
+    [coder encodeInteger:self.dataDetectorTypes forKey:@"dataDetectorTypes"];
+    [coder encodeObject:self.links forKey:@"links"];
+    if ([NSMutableParagraphStyle class]) {
+        [coder encodeObject:self.linkAttributes forKey:@"linkAttributes"];
+        [coder encodeObject:self.activeLinkAttributes forKey:@"activeLinkAttributes"];
+    }
+    [coder encodeFloat:self.shadowRadius forKey:@"shadowRadius"];
+    [coder encodeFloat:self.highlightedShadowRadius forKey:@"highlightedShadowRadius"];
+    [coder encodeCGSize:self.highlightedShadowOffset forKey:@"highlightedShadowOffset"];
+    [coder encodeObject:self.highlightedShadowColor forKey:@"highlightedShadowColor"];
+    [coder encodeFloat:self.firstLineIndent forKey:@"firstLineIndent"];
+    [coder encodeFloat:self.leading forKey:@"leading"];
+    [coder encodeFloat:self.lineHeightMultiple forKey:@"lineHeightMultiple"];
+    [coder encodeUIEdgeInsets:self.textInsets forKey:@"textInsets"];
+    [coder encodeInteger:self.verticalAlignment forKey:@"verticalAlignment"];
+    [coder encodeObject:self.truncationTokenString forKey:@"truncationTokenString"];
+    [coder encodeObject:self.attributedText forKey:@"attributedText"];
+}
+
+- (id)initWithCoder:(NSCoder *)coder {
+    self = [super initWithCoder:coder];
+    if (!self) {
+        return nil;
+    }
+
+    [self commonInit];
+
+    if ([coder containsValueForKey:@"dataDetectorTypes"]) {
+        self.dataDetectorTypes = [coder decodeIntegerForKey:@"dataDetectorTypes"];
+    }
+
+    if ([coder containsValueForKey:@"links"]) {
+        self.links = [coder decodeObjectForKey:@"links"];
+    }
+
+    if ([NSMutableParagraphStyle class]) {
+        if ([coder containsValueForKey:@"linkAttributes"]) {
+            self.linkAttributes = [coder decodeObjectForKey:@"linkAttributes"];
+        }
+
+        if ([coder containsValueForKey:@"activeLinkAttributes"]) {
+            self.activeLinkAttributes = [coder decodeObjectForKey:@"activeLinkAttributes"];
+        }
+    }
+
+    if ([coder containsValueForKey:@"shadowRadius"]) {
+        self.shadowRadius = [coder decodeFloatForKey:@"shadowRadius"];
+    }
+
+    if ([coder containsValueForKey:@"highlightedShadowRadius"]) {
+        self.highlightedShadowRadius = [coder decodeFloatForKey:@"highlightedShadowRadius"];
+    }
+
+    if ([coder containsValueForKey:@"highlightedShadowOffset"]) {
+        self.highlightedShadowOffset = [coder decodeCGSizeForKey:@"highlightedShadowOffset"];
+    }
+
+    if ([coder containsValueForKey:@"highlightedShadowColor"]) {
+        self.highlightedShadowColor = [coder decodeObjectForKey:@"highlightedShadowColor"];
+    }
+
+    if ([coder containsValueForKey:@"firstLineIndent"]) {
+        self.firstLineIndent = [coder decodeFloatForKey:@"firstLineIndent"];
+    }
+
+    if ([coder containsValueForKey:@"leading"]) {
+        self.leading = [coder decodeFloatForKey:@"leading"];
+    }
+
+    if ([coder containsValueForKey:@"lineHeightMultiple"]) {
+        self.lineHeightMultiple = [coder decodeFloatForKey:@"lineHeightMultiple"];
+    }
+
+    if ([coder containsValueForKey:@"textInsets"]) {
+        self.textInsets = [coder decodeUIEdgeInsetsForKey:@"textInsets"];
+    }
+
+    if ([coder containsValueForKey:@"verticalAlignment"]) {
+        self.verticalAlignment = [coder decodeIntegerForKey:@"verticalAlignment"];
+    }
+
+    if ([coder containsValueForKey:@"truncationTokenString"]) {
+        self.truncationTokenString = [coder decodeObjectForKey:@"truncationTokenString"];
+    }
+
+    if ([coder containsValueForKey:@"attributedText"]) {
+        self.attributedText = [coder decodeObjectForKey:@"attributedText"];
+    }
+
+    return self;
 }
 
 @end

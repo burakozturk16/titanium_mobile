@@ -75,7 +75,11 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  - `lineBreakMode` - This property displays only the first line when the value is `UILineBreakModeHeadTruncation`, `UILineBreakModeTailTruncation`, or `UILineBreakModeMiddleTruncation`
  - `adjustsFontsizeToFitWidth` - Supported in iOS 5 and greater, this property is effective for any value of `numberOfLines` greater than zero. In iOS 4, setting `numberOfLines` to a value greater than 1 with `adjustsFontSizeToFitWidth` set to `YES` may cause `sizeToFit` to execute indefinitely.
  
- Any properties affecting text or paragraph styling, such as `shadowRadius` or `firstLineIndent` will only apply when text is set with an `NSString`. If the text is set with an `NSAttributedString`, these properties will not apply.
+ Any properties affecting text or paragraph styling, such as `firstLineIndent` will only apply when text is set with an `NSString`. If the text is set with an `NSAttributedString`, these properties will not apply.
+ 
+ ### NSCoding
+ 
+ `TTTAttributedLabel`, like `UILabel`, conforms to `NSCoding`. However, if the build target is set to less than iOS 6.0, `linkAttributes` and `activeLinkAttributes` will not be encoded or decoded. This is due to an runtime exception thrown when attempting to copy non-object CoreText values in dictionaries.
  
  @warning Any properties changed on the label after setting the text will not be reflected until a subsequent call to `setText:` or `setText:afterInheritingLabelAttributesAndConfiguringWithBlock:`. This is to say, order of operations matters in this case. For example, if the label text color is originally black when the text is set, changing the text color to red will have no effect on the display of the label until the text is set once again.
  */
@@ -129,6 +133,19 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  */
 @property (nonatomic, assign) CGFloat shadowRadius;
 
+/** 
+ The shadow blur radius for the label when the label's `highlighted` property is `YES`. A value of 0 indicates no blur, while larger values produce correspondingly larger blurring. This value must not be negative. The default value is 0.
+ */
+@property (nonatomic, assign) CGFloat highlightedShadowRadius;
+/** 
+ The shadow offset for the label when the label's `highlighted` property is `YES`. A size of {0, 0} indicates no offset, with positive values extending down and to the right. The default size is {0, 0}.
+ */
+@property (nonatomic, assign) CGSize highlightedShadowOffset;
+/** 
+ The shadow color for the label when the label's `highlighted` property is `YES`. The default value is `nil` (no shadow color).
+ */
+@property (nonatomic, strong) UIColor *highlightedShadowColor;
+
 ///--------------------------------------------
 /// @name Acccessing Paragraph Style Attributes
 ///--------------------------------------------
@@ -144,7 +161,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 @property (nonatomic, assign) CGFloat leading;
 
 /**
- The line height multiple. This value is 0.0 by default.
+ The line height multiple. This value is 1.0 by default.
  */
 @property (nonatomic, assign) CGFloat lineHeightMultiple;
 
@@ -167,6 +184,13 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  The vertical text alignment for the label, for when the frame size is greater than the text rect size. The vertical alignment is `TTTAttributedLabelVerticalAlignmentCenter` by default.
  */
 @property (nonatomic, assign) TTTAttributedLabelVerticalAlignment verticalAlignment;
+
+/**
+ The truncation token that appears at the end of the truncated line. `nil` by default.
+
+ @discussion When truncation is enabled for the label, by setting `lineBreakMode` to either `UILineBreakModeHeadTruncation`, `UILineBreakModeTailTruncation`, or `UILineBreakModeMiddleTruncation`, the token used to terminate the truncated line will be `truncationTokenString` if defined, otherwise the Unicode Character 'HORIZONTAL ELLIPSIS' (U+2026).
+ */
+@property (nonatomic, strong) NSString *truncationTokenString;
 
 ///----------------------------------
 /// @name Setting the Text Attributes
@@ -200,9 +224,6 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
  A copy of the label's current attributedText. This returns `nil` if an attributed string has never been set on the label.
  */
 @property (readwrite, nonatomic, copy) NSAttributedString *attributedText;
-
-- (CGRect)textRectForBounds:(CGRect)bounds
-     limitedToNumberOfLines:(NSInteger)numberOfLines;
 
 ///-------------------
 /// @name Adding Links
