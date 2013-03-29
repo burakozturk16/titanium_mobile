@@ -751,9 +751,6 @@
 		D56065501705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065511705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065521705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065531705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */ = {isa = PBXBuildFile; fileRef = D56064D71705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig */; };
-		D56065541705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */ = {isa = PBXBuildFile; fileRef = D56064D71705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig */; };
-		D56065551705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */ = {isa = PBXBuildFile; fileRef = D56064D71705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig */; };
 		D56065561705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065571705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065581705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -1930,7 +1927,6 @@
 		D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTDictationPlaceholderView.m; path = ../Classes/DTCoreText/DTDictationPlaceholderView.m; sourceTree = "<group>"; };
 		D56064D51705A89800781E6B /* DTHTMLAttributedStringBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLAttributedStringBuilder.h; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.h; sourceTree = "<group>"; };
 		D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLAttributedStringBuilder.m; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.m; sourceTree = "<group>"; };
-		D56064D71705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DTHTMLAttributedStringBuilder.m.orig; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.m.orig; sourceTree = "<group>"; };
 		D56064D81705A89800781E6B /* DTHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElement.h; path = ../Classes/DTCoreText/DTHTMLElement.h; sourceTree = "<group>"; };
 		D56064D91705A89800781E6B /* DTHTMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElement.m; path = ../Classes/DTCoreText/DTHTMLElement.m; sourceTree = "<group>"; };
 		D56064DA1705A89800781E6B /* DTHTMLElementA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementA.h; path = ../Classes/DTCoreText/DTHTMLElementA.h; sourceTree = "<group>"; };
@@ -3601,7 +3597,6 @@
 				D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */,
 				D56064D51705A89800781E6B /* DTHTMLAttributedStringBuilder.h */,
 				D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */,
-				D56064D71705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig */,
 				D56064D81705A89800781E6B /* DTHTMLElement.h */,
 				D56064D91705A89800781E6B /* DTHTMLElement.m */,
 				D56064DA1705A89800781E6B /* DTHTMLElementA.h */,
@@ -3900,7 +3895,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D56065171705A89800781E6B /* default.css in Resources */,
-				D56065531705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3909,7 +3903,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D56065181705A89800781E6B /* default.css in Resources */,
-				D56065541705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3918,7 +3911,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D56065191705A89800781E6B /* default.css in Resources */,
-				D56065551705A89800781E6B /* DTHTMLAttributedStringBuilder.m.orig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
