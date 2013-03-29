@@ -20,6 +20,7 @@
 -(CGFloat)autoHeightForSize:(CGSize)size;
 
 -(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth;
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight;
 -(CGFloat)contentHeightForWidth:(CGFloat)width;
 
 
