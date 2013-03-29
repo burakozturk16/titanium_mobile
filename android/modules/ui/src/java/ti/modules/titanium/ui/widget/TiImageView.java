@@ -14,6 +14,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
@@ -77,7 +78,7 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		scaleMin = 1.0f;
 		scaleMax = 5.0f;
 		orientation = 0;
-
+		configured = false;
 		baseMatrix = new Matrix();
 		changeMatrix = new Matrix();
 
@@ -355,25 +356,27 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		// TODO padding and margins
 
 		measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
+		int measuredWidth = imageView.getMeasuredWidth();
+		int measuredHeight = imageView.getMeasuredHeight();
 		
-		if(hm == MeasureSpec.EXACTLY == (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
-			maxHeight = Math.max(h, Math.max(maxHeight, imageView.getMeasuredHeight()));
-			float ratio = imageView.getMeasuredWidth() / imageView.getMeasuredHeight();
-			maxWidth = (int) Math.floor(maxHeight * ratio);
-		}
-		else if(wm == MeasureSpec.EXACTLY == (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
-			maxWidth = Math.max(w, Math.max(maxWidth, imageView.getMeasuredWidth()));
-			float ratio = imageView.getMeasuredHeight() / imageView.getMeasuredWidth();
-			maxHeight = (int) Math.floor(maxWidth * ratio);
-		}
-		else {
-			maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
-			maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
+		if (imageView.getMeasuredWidth() > 0 && measuredHeight > 0) {
+			if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
+				maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
+				float ratio = (float)measuredWidth/(float)measuredHeight;
+				maxWidth = (int) Math.floor(maxHeight * ratio);
+			}
+			else if(wm == MeasureSpec.EXACTLY && (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
+				maxWidth = Math.max(w, Math.max(maxWidth, measuredWidth));
+				float ratio = (float)measuredWidth/(float)measuredHeight;
+				maxHeight = (int) Math.floor(maxWidth / ratio);
+			}
+			else {
+				maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
+				maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
+			}
 		}
 
 		
-		Log.i(TAG, "maxWidth: " + maxWidth + " maxHeight: " + maxHeight);
-
 		// Allow for zoom controls.
 		if (enableZoomControls) {
 			measureChild(zoomControls, widthMeasureSpec, heightMeasureSpec);
@@ -411,6 +414,7 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 
 	private void updateScaleType()
 	{
+		if (!configured) return;
 		if (orientation > 0 || enableZoomControls) {
 			imageView.setScaleType(ScaleType.MATRIX);
 			imageView.setAdjustViewBounds(false);
@@ -444,11 +448,21 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		viewWidthDefined = defined;
 		updateScaleType();
 	}
+	
+	public boolean getWidthDefined()
+	{
+		return viewWidthDefined;
+	}
 
 	public void setHeightDefined(boolean defined)
 	{
 		viewHeightDefined = defined;
 		updateScaleType();
+	}
+	
+	public boolean getHeightDefined()
+	{
+		return viewHeightDefined;
 	}
 
 	public void setOrientation(int orientation)

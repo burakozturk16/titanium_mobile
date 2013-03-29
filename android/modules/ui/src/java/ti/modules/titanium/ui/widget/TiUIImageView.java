@@ -249,11 +249,13 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		TiImageView view = getView();
 		if (view != null) {
 			view.setImageBitmap(bitmap);
-			if ((autoSizeWidth() || autoSizeHeight())) {
+			boolean widthDefined = view.getWidthDefined();
+			boolean heightDefined = view.getHeightDefined();
+			if ((!widthDefined || !heightDefined)) {
 				//force re-calculating the layout dimension and the redraw of the view
 				//This is a trick to prevent getMeasuredWidth and Height to be 0
-				view.measure(MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED), 
-		                   MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+				view.measure(MeasureSpec.makeMeasureSpec(0, widthDefined?MeasureSpec.EXACTLY:MeasureSpec.UNSPECIFIED), 
+		                   MeasureSpec.makeMeasureSpec(0, heightDefined?MeasureSpec.EXACTLY:MeasureSpec.UNSPECIFIED));
 				view.requestLayout();
 			}
 		}
