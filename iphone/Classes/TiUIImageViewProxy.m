@@ -175,6 +175,11 @@ USE_VIEW_FOR_CONTENT_WIDTH
 
 USE_VIEW_FOR_CONTENT_HEIGHT
 
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+{
+    return [[self view] contentWidthForWidth:suggestedWidth withHeight:calculatedHeight];
+}
+
 #pragma mark Handling ImageLoader
 
 -(void)setImage:(id)newImage

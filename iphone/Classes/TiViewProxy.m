@@ -850,7 +850,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     CGFloat suggestedWidth = size.width;
     //This is the content width, which is implemented by widgets
     CGFloat contentWidth = -1.0;
-    if ([self respondsToSelector:@selector(contentWidthForWidth:)]) {
+    if ([self respondsToSelector:@selector(contentWidthForWidth:withHeight:)]) {
+        contentWidth = [self contentWidthForWidth:suggestedWidth withHeight:size.height];
+    }
+    else if ([self respondsToSelector:@selector(contentWidthForWidth:)]) {
         contentWidth = [self contentWidthForWidth:suggestedWidth];
     }
     

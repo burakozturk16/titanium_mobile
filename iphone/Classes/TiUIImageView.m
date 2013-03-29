@@ -56,6 +56,29 @@ DEFINE_EXCEPTIONS
 	[super dealloc];
 }
 
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+{
+    if (autoWidth > 0)
+	{
+		if (autoHeight > 0 && calculatedHeight != autoHeight)
+            return (calculatedHeight*autoWidth/autoHeight);
+		return autoWidth;
+	}
+	
+	CGFloat calculatedWidth = TiDimensionCalculateValue(width, autoWidth);
+	if (calculatedWidth > 0)
+	{
+		return calculatedWidth;
+	}
+	
+	if (container!=nil)
+	{
+		return container.bounds.size.width;
+	}
+	
+	return 0;
+}
+
 -(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
 {
 	if (autoWidth > 0)
