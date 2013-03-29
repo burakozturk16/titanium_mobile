@@ -14,6 +14,9 @@
 #import "NSMutableAttributedString+HTML.h"
 
 @implementation DTHTMLElementAttachment
+{
+	CGSize _maxDisplaySize;
+}
 
 - (id)initWithName:(NSString *)name attributes:(NSDictionary *)attributes options:(NSDictionary *)options
 {
@@ -33,6 +36,19 @@
 		// specifiying line height interfers with correct positioning
 		_paragraphStyle.minimumLineHeight = 0;
 		_paragraphStyle.maximumLineHeight = 0;
+		
+		// remember the maximum display size
+		_maxDisplaySize = CGSizeZero;
+		
+		NSValue *maxImageSizeValue =[options objectForKey:DTMaxImageSize];
+		if (maxImageSizeValue)
+		{
+#if TARGET_OS_IPHONE
+			_maxDisplaySize = [maxImageSizeValue CGSizeValue];
+#else
+			_maxDisplaySize = [maxImageSizeValue sizeValue];
+#endif
+		}
 	}
 	
 	return self;
@@ -40,18 +56,21 @@
 
 - (NSAttributedString *)attributedString
 {
-	NSDictionary *attributes = [self attributesDictionary];
-	
-	// ignore text, use unicode object placeholder
-	NSMutableAttributedString *tmpString = [[NSMutableAttributedString alloc] initWithString:UNICODE_OBJECT_PLACEHOLDER attributes:attributes];
-	
-	// block-level elements get space trimmed and a newline
-	if (self.displayStyle != DTHTMLElementDisplayStyleInline)
+	@synchronized(self)
 	{
-		[tmpString appendString:@"\n"];
+		NSDictionary *attributes = [self attributesDictionary];
+		
+		// ignore text, use unicode object placeholder
+		NSMutableAttributedString *tmpString = [[NSMutableAttributedString alloc] initWithString:UNICODE_OBJECT_PLACEHOLDER attributes:attributes];
+		
+		// block-level elements get space trimmed and a newline
+		if (self.displayStyle != DTHTMLElementDisplayStyleInline)
+		{
+			[tmpString appendString:@"\n"];
+		}
+		
+		return tmpString;
 	}
-	
-	return tmpString;
 }
 
 // workaround, because we don't support float yet. float causes the image to be its own block
@@ -63,6 +82,15 @@
 	}
 	
 	return DTHTMLElementDisplayStyleBlock;
+}
+
+- (void)applyStyleDictionary:(NSDictionary *)styles
+{
+	// element size is determined in super (tag attribute and style)
+	[super applyStyleDictionary:styles];
+	
+	// update the display size
+	[_textAttachment setDisplaySize:_size withMaxDisplaySize:_maxDisplaySize];
 }
 
 @end

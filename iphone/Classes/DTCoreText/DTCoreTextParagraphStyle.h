@@ -1,6 +1,6 @@
 //
 //  DTCoreTextParagraphStyle.h
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver Drobnik on 4/14/11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -126,7 +126,9 @@
 
 
 /**
-The distance in points from the margin of a text container to the end of lines.
+The distance in points from the margin of a text container to the end of lines. 
+ 
+ @note This value is negative if it is to be measured from the trailing margin, positive if measured from the same margin as the headIndent.
  */
 @property (nonatomic, assign) CGFloat tailIndent;
 

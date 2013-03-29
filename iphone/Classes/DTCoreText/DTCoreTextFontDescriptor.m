@@ -1,6 +1,6 @@
 //
 //  DTCoreTextFontDescriptor.m
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver Drobnik on 1/26/11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -444,24 +444,8 @@ static BOOL _needsChineseFontCascadeFix = NO;
 		// we need font family, font name or an overridden font name for fast font creation
 		if (_fontFamily||_fontName||overrideName)
 		{
-			if (_needsChineseFontCascadeFix) //ios <6
-			{
-				CTFontRef correctFont;
-
-				NSMutableDictionary *fontAttrs = [attributes mutableCopy];
-				[fontAttrs removeObjectsForKeys:[NSArray arrayWithObjects:(id)kCTFontNameAttribute, (id)kCTFontFamilyNameAttribute, nil]];
-
-				NSString *usedName = overrideName?overrideName:(_fontName?_fontName:_fontFamily);
-				correctFont = CTFontCreateWithName((__bridge CFStringRef)usedName, _pointSize, NULL);
-
-				matchingFont = CTFontCreateCopyWithAttributes(correctFont, _pointSize, NULL, fontDesc);
-				CFRelease(correctFont);
-			}
-			else
-			{
-				// fast font creation
-				matchingFont = CTFontCreateWithFontDescriptor(fontDesc, _pointSize, NULL);
-			}
+			// fast font creation
+			matchingFont = CTFontCreateWithFontDescriptor(fontDesc, _pointSize, NULL);
 		}
 		else
 		{

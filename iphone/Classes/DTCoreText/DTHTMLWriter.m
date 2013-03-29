@@ -79,7 +79,7 @@
 	return [NSString stringWithFormat:@"%@%d", [elementName substringToIndex:1],(int)index];
 }
 
-- (NSString *)_tagRepresentationForListStyle:(DTCSSListStyle *)listStyle closingTag:(BOOL)closingTag
+- (NSString *)_tagRepresentationForListStyle:(DTCSSListStyle *)listStyle closingTag:(BOOL)closingTag inlineStyles:(BOOL)inlineStyles
 {
 	BOOL isOrdered = NO;
 	
@@ -204,12 +204,22 @@
 		NSString *listStyleString = [NSString stringWithFormat:@"list-style='%@';\">", typeString];
 		NSString *className = [self _styleClassForElement:blockElement style:listStyleString];
 		
+		NSString *listElementString = nil;
+		if (inlineStyles) {
+			listElementString = [NSString stringWithFormat:@"<%@ style=\"%@\">", blockElement, listStyleString];
+		} else {
+			listElementString = [NSString stringWithFormat:@"<%@ class=\"%@\">", blockElement, className];
+		}
 		return [NSString stringWithFormat:@"<%@ class=\"%@\">", blockElement, className];
 	}
 }
 
-
 - (void)_buildOutput
+{
+	[self _buildOutputAsHTMLFragment:NO];
+}
+
+- (void)_buildOutputAsHTMLFragment:(BOOL)fragment
 {
 	// reusable styles
 	_styleLookup = [[NSMutableDictionary alloc] init];
@@ -327,7 +337,7 @@
 				}
 				
 				// end of a list block
-				[retString appendString:[self _tagRepresentationForListStyle:closingStyle closingTag:YES]];
+				[retString appendString:[self _tagRepresentationForListStyle:closingStyle closingTag:YES inlineStyles:fragment]];
 				[retString appendString:@"\n"];
 				
 				[closingStyles removeLastObject];
@@ -345,7 +355,7 @@
 			if (![previousListStyles containsObject:effectiveListStyle])
 			{
 				// beginning of a list block
-				[retString appendString:[self _tagRepresentationForListStyle:effectiveListStyle closingTag:NO]];
+				[retString appendString:[self _tagRepresentationForListStyle:effectiveListStyle closingTag:NO inlineStyles:fragment]];
 				[retString appendString:@"\n"];
 			}
 			
@@ -377,8 +387,12 @@
 		if ([paraStyleString length])
 		{
 			NSString *className = [self _styleClassForElement:blockElement style:paraStyleString];
-			[retString appendFormat:@"<%@ class=\"%@\">", blockElement, className];
-			//[retString appendFormat:@"<%@ style=\"%@\">", blockElement, paraStyleString];
+			
+			if (fragment) {
+				[retString appendFormat:@"<%@ style=\"%@\">", blockElement, paraStyleString];
+			} else {
+				[retString appendFormat:@"<%@ class=\"%@\">", blockElement, className];
+			}
 		}
 		else
 		{
@@ -462,29 +476,46 @@
 					}
 				}
 				
-				// write appropriate tag
-				if (attachment.contentType == DTTextAttachmentTypeVideoURL)
+				NSString *blockName;
+				
+				switch (attachment.contentType)
 				{
-					[retString appendFormat:@"<video src=\"%@\"", urlString];
-				}
-				else if (attachment.contentType == DTTextAttachmentTypeImage)
-				{
-					[retString appendFormat:@"<img src=\"%@\"", urlString];
+					case DTTextAttachmentTypeVideoURL:
+					{
+						blockName = @"video";
+						break;
+					}
+						
+					case DTTextAttachmentTypeImage:
+					{
+						blockName = @"img";
+						break;
+					}
+
+					case DTTextAttachmentTypeObject:
+					{
+						blockName = @"object";
+						break;
+					}
+
+					case DTTextAttachmentTypeIframe:
+					{
+						blockName = @"iframe";
+						break;
+					}
+
+					default:
+					{
+						// we don't know how to output this
+						continue;
+					}
 				}
 				
-				
-				// build a HTML 5 conformant size style if set
-				NSMutableString *styleString = [NSMutableString string];
-				
-				if (attachment.originalSize.width>0)
-				{
-					[styleString appendFormat:@"width:%.0fpx;", attachment.originalSize.width];
-				}
-				
-				if (attachment.originalSize.height>0)
-				{
-					[styleString appendFormat:@"height:%.0fpx;", attachment.originalSize.height];
-				}
+				// output tag start
+				[retString appendFormat:@"<%@", blockName];
+
+				// build style for img/video
+				NSMutableString *classStyleString = [NSMutableString string];
 				
 				if (attachment.verticalAlignment != DTTextAttachmentVerticalAlignmentBaseline)
 				{
@@ -492,38 +523,68 @@
 					{
 						case DTTextAttachmentVerticalAlignmentBaseline:
 						{
-							[styleString appendString:@"vertical-align:baseline;"];
+							[classStyleString appendString:@"vertical-align:baseline;"];
 							break;
 						}
 						case DTTextAttachmentVerticalAlignmentTop:
 						{
-							[styleString appendString:@"vertical-align:text-top;"];
+							[classStyleString appendString:@"vertical-align:text-top;"];
 							break;
 						}
 						case DTTextAttachmentVerticalAlignmentCenter:
 						{
-							[styleString appendString:@"vertical-align:middle;"];
+							[classStyleString appendString:@"vertical-align:middle;"];
 							break;
 						}
 						case DTTextAttachmentVerticalAlignmentBottom:
 						{
-							[styleString appendString:@"vertical-align:text-bottom;"];
+							[classStyleString appendString:@"vertical-align:text-bottom;"];
 							break;
 						}
 					}
 				}
 				
-				if ([styleString length])
+				// only add class if there was some content
+				if ([classStyleString length])
 				{
-					[retString appendFormat:@" style=\"%@\"", styleString];
+					NSString *className = [self _styleClassForElement:blockName style:classStyleString];
+					
+					if (fragment) {
+						[retString appendFormat:@" style=\"%@\"", classStyleString];
+					} else {
+						[retString appendFormat:@" class=\"%@\"", className];
+					}
 				}
+				
+				// build a HTML 5 conformant size style if set
+				NSMutableString *sizeStyleString = [NSMutableString string];
+				
+				if (attachment.originalSize.width>0)
+				{
+					[sizeStyleString appendFormat:@"width:%.0fpx;", attachment.originalSize.width];
+				}
+				
+				if (attachment.originalSize.height>0)
+				{
+					[sizeStyleString appendFormat:@"height:%.0fpx;", attachment.originalSize.height];
+				}
+				
+				// add local style for size, since sizes might vary quite a bit
+				if ([sizeStyleString length])
+				{
+					[retString appendFormat:@" style=\"%@\"", sizeStyleString];
+				}
+				
+				[retString appendFormat:@" src=\"%@\"", urlString];
 				
 				// attach the attributes dictionary
 				NSMutableDictionary *tmpAttributes = [attachment.attributes mutableCopy];
 				
-				// remove src and style, we already have that
+				// remove src,style, width and height we already have these
 				[tmpAttributes removeObjectForKey:@"src"];
 				[tmpAttributes removeObjectForKey:@"style"];
+				[tmpAttributes removeObjectForKey:@"width"];
+				[tmpAttributes removeObjectForKey:@"height"];
 				
 				for (__strong NSString *oneKey in [tmpAttributes allKeys])
 				{
@@ -645,7 +706,12 @@
 				if ([fontStyle length])
 				{
 					NSString *className = [self _styleClassForElement:@"a" style:fontStyle];
-					[retString appendFormat:@"<a class=\"%@\" href=\"%@\" style=\"%@\">%@</a>", className, [url relativeString], fontStyle, subString];
+					
+					if (fragment) {
+						[retString appendFormat:@"<a style=\"%@\" href=\"%@\">%@</a>", fontStyle, [url relativeString], subString];
+					} else {
+						[retString appendFormat:@"<a class=\"%@\" href=\"%@\">%@</a>", className, [url relativeString], subString];
+					}
 				}
 				else
 				{
@@ -657,7 +723,12 @@
 				if ([fontStyle length])
 				{
 					NSString *className = [self _styleClassForElement:@"span" style:fontStyle];
-					[retString appendFormat:@"<span class=\"%@\">%@</span>", className, subString];
+					
+					if (fragment) {
+						[retString appendFormat:@"<span style=\"%@\">%@</span>", fontStyle, subString];
+					} else {
+						[retString appendFormat:@"<span class=\"%@\">%@</span>", className, subString];
+					}
 				}
 				else
 				{
@@ -683,34 +754,40 @@
 			DTCSSListStyle *closingStyle = [closingStyles lastObject];
 			
 			// end of a list block
-			[retString appendString:[self _tagRepresentationForListStyle:closingStyle closingTag:YES]];
+			[retString appendString:[self _tagRepresentationForListStyle:closingStyle closingTag:YES inlineStyles:fragment]];
 			[retString appendString:@"\n"];
 			
 			[closingStyles removeLastObject];
 		}
 		while ([closingStyles count]);
 	}
-	
-	// append style block before text
-	NSMutableString *styleBlock = [NSMutableString string];
-	
-	NSArray *keys = [[_styleLookup allKeys] sortedArrayUsingSelector:@selector(compare:)];
-	
-	for (NSString *oneKey in keys)
-	{
-		NSArray *styleArray = [_styleLookup objectForKey:oneKey];
 		
-		[styleArray enumerateObjectsUsingBlock:^(NSString *style, NSUInteger idx, BOOL *stop) {
-			NSString *className = [NSString stringWithFormat:@"%@%d", [oneKey substringToIndex:1], (int)idx+1];
-			[styleBlock appendFormat:@"%@.%@ {%@}\n", oneKey, className, style];
-		}];
+	NSMutableString *output = [NSMutableString string];
+
+	if (!fragment) {
+		// append style block before text
+		NSMutableString *styleBlock = [NSMutableString string];
+		
+		NSArray *keys = [[_styleLookup allKeys] sortedArrayUsingSelector:@selector(compare:)];
+		
+		for (NSString *oneKey in keys)
+		{
+			NSArray *styleArray = [_styleLookup objectForKey:oneKey];
+			
+			[styleArray enumerateObjectsUsingBlock:^(NSString *style, NSUInteger idx, BOOL *stop) {
+				NSString *className = [NSString stringWithFormat:@"%@%d", [oneKey substringToIndex:1], (int)idx+1];
+				[styleBlock appendFormat:@"%@.%@ {%@}\n", oneKey, className, style];
+			}];
+		}
+		
+		[output appendFormat:@"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html40/strict.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta http-equiv=\"Content-Style-Type\" content=\"text/css\" />\n<meta name=\"Generator\" content=\"DTCoreText HTML Writer\" />\n<style type=\"text/css\">\n%@</style>\n</head>\n<body>\n", styleBlock];
 	}
 	
-	NSMutableString *output = [NSMutableString string];
-	
-	[output appendFormat:@"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html40/strict.dtd\">\n<html>\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<meta http-equiv=\"Content-Style-Type\" content=\"text/css\" />\n<meta name=\"Generator\" content=\"DTCoreText HTML Writer\" />\n<style type=\"text/css\">\n%@</style>\n</head>\n<body>\n", styleBlock];
 	[output appendString:[retString stringByAddingAppleConvertedSpace]];
-	[output appendString:@"</body>\n</html>\n"];
+
+	if (!fragment) {
+		[output appendString:@"</body>\n</html>\n"];
+	}
 	
 	_HTMLString = output;
 }
@@ -722,6 +799,16 @@
 	if (!_HTMLString)
 	{
 		[self _buildOutput];
+	}
+	
+	return _HTMLString;
+}
+
+- (NSString *)HTMLFragment
+{
+	if (!_HTMLString)
+	{
+		[self _buildOutputAsHTMLFragment:true];
 	}
 	
 	return _HTMLString;

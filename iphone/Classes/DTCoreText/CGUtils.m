@@ -91,9 +91,3 @@ CGSize sizeThatFitsKeepingAspectRatio2(CGSize originalSize, CGSize sizeToFit)
 	
 	return scaledSize;
 }
-
-
-CGPoint CGRectCenter(CGRect rect)
-{
-	return (CGPoint){ CGRectGetMidX(rect), CGRectGetMidY(rect) };
-}

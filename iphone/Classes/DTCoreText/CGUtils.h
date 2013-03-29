@@ -15,8 +15,3 @@
  */
 CGSize sizeThatFitsKeepingAspectRatio2(CGSize originalSize, CGSize sizeToFit);
 
-/** 
- Convenience method to find the center of a CGRect. Uses CGRectGetMidX and CGRectGetMidY. 
- @returns The point which is the center of rect. 
- */
-CGPoint CGRectCenter(CGRect rect);

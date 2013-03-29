@@ -1,6 +1,6 @@
 //
 //  DTTextAttachment.m
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver on 14.01.11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -8,8 +8,9 @@
 
 #import "DTTextAttachment.h"
 #import "DTCoreText.h"
+#import "DTUtils.h"
 
-#import "NSData+Base64.h"
+#import "DTBase64Coding.h"
 
 static NSCache *imageCache = nil;
 
@@ -30,7 +31,9 @@ static NSCache *imageCache = nil;
     DTTextAttachmentType _contentType;
 	
 	NSURL *_contentURL;
+	
 	NSURL *_hyperLinkURL;
+	NSString *_hyperLinkGUID;
 	
 	CGFloat _fontLeading;
 	CGFloat _fontAscent;
@@ -110,7 +113,7 @@ static NSCache *imageCache = nil;
 			if (range.length)
 			{
 				NSString *encodedData = [src substringFromIndex:range.location + range.length];
-				NSData *decodedData = [NSData dataFromBase64String:encodedData];
+				NSData *decodedData = [DTBase64Coding dataByDecodingString:encodedData];
 				
 				decodedImage = [[DTImage alloc] initWithData:decodedData];
 				
@@ -177,43 +180,21 @@ static NSCache *imageCache = nil;
 			if ([contentURL isFileURL])
 			{
 				DTImage *image = [[DTTextAttachment sharedImageCache] objectForKey:[contentURL path]];
-				if (!image) {
+				if (!image)
+				{
 					image = [[DTImage alloc] initWithContentsOfFile:[contentURL path]];
 					[[DTTextAttachment sharedImageCache] setObject:image forKey:[contentURL path]];
 				}
 
 				originalSize = image.size;
 				
-				// width and/or height missing
-				if (displaySize.width==0 && displaySize.height==0)
-				{
-					displaySize = originalSize;
-				}
-				else if (!displaySize.width && displaySize.height)
-				{
-					CGFloat factor = image.size.height / displaySize.height;
-					displaySize.width = roundf(image.size.width / factor);
-				}
-				else if (displaySize.width>0 && displaySize.height==0)
-				{
-					CGFloat factor = image.size.width / displaySize.width;
-					displaySize.height = roundf(image.size.height / factor);
-				}
+				// initial display size matches original
+				displaySize = originalSize;
 			}
-			else
-			{
-				// remote image, we have to relayout once this size is known
-				displaySize = CGSizeMake(1, 1); // one pixel so that loading is triggered
-			}
-		}
-		
-		// we copy the link because we might need for it making the custom view
-		if (element.link)
-		{
-			attachment.hyperLinkURL = element.link;
 		}
 	}
 
+	
 	
 	// if you have no display size we assume original size
 	if (CGSizeEqualToSize(displaySize, CGSizeZero))
@@ -228,7 +209,7 @@ static NSCache *imageCache = nil;
 	{
 		if (maxImageSize.width < displaySize.width || maxImageSize.height < displaySize.height)
 		{
-			adjustedSize = sizeThatFitsKeepingAspectRatio2(displaySize, maxImageSize);
+			adjustedSize = sizeThatFitsKeepingAspectRatio(displaySize, maxImageSize);
 		}
 		
 		// still no display size? use max size
@@ -259,7 +240,7 @@ static NSCache *imageCache = nil;
 	
 	DTImage *image = (DTImage *)_contents;
 	NSData *data = [image dataForPNGRepresentation];
-	NSString *encoded = [data base64EncodedString];
+	NSString *encoded = [DTBase64Coding stringByEncodingData:data];
 	
 	return [@"data:image/png;base64," stringByAppendingString:encoded];
 }
@@ -330,7 +311,41 @@ static NSCache *imageCache = nil;
 	self.displaySize = _originalSize;
 }
 
-/** 
+- (void)setDisplaySize:(CGSize)displaySize withMaxDisplaySize:(CGSize)maxDisplaySize
+{
+	if (_originalSize.width && _originalSize.height)
+	{
+		// width and/or height missing
+		if (displaySize.width==0 && displaySize.height==0)
+		{
+			displaySize = _originalSize;
+		}
+		else if (!displaySize.width && displaySize.height)
+		{
+			// width missing, calculate it
+			CGFloat factor = _originalSize.height / displaySize.height;
+			displaySize.width = roundf(_originalSize.width / factor);
+		}
+		else if (displaySize.width>0 && displaySize.height==0)
+		{
+			// height missing, calculate it
+			CGFloat factor = _originalSize.width / displaySize.width;
+			displaySize.height = roundf(_originalSize.height / factor);
+		}
+	}
+	
+	if (maxDisplaySize.width>0 && maxDisplaySize.height>0)
+	{
+		if (maxDisplaySize.width < displaySize.width || maxDisplaySize.height < displaySize.height)
+		{
+			displaySize = sizeThatFitsKeepingAspectRatio(displaySize, maxDisplaySize);
+		}
+	}
+	
+	_displaySize = displaySize;
+}
+
+/**
  Accessor for the contents instance variable. If the content type is DTTextAttachmentTypeImage this returns a DTImage instance of the contents.
  @returns Contents. If it is an image, a DTImage instance is returned. Otherwise it is returned as is. 
  */
@@ -361,6 +376,7 @@ static NSCache *imageCache = nil;
 @synthesize hyperLinkURL = _hyperLinkURL;
 @synthesize attributes = _attributes;
 @synthesize verticalAlignment = _verticalAlignment;
-@synthesize hyperLinkGUID;
+@synthesize hyperLinkGUID = hyperLinkGUID;
+@synthesize childNodes = _childNodes;
 
 @end

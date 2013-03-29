@@ -1,6 +1,6 @@
 //
 //  DTCoreTextFontCollection.m
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver Drobnik on 5/23/11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -19,6 +19,8 @@
 
 @property (nonatomic, strong) NSArray *fontDescriptors;
 @property (nonatomic, strong) NSCache *fontMatchCache;
+
+- (id)initWithAvailableFonts;
 
 @end
 

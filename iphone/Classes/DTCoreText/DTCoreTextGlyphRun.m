@@ -1,6 +1,6 @@
 //
 //  DTCoreTextGlyphRun.m
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver Drobnik on 1/25/11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -11,6 +11,7 @@
 #import "DTTextAttachment.h"
 #import "DTCoreTextConstants.h"
 #import "DTCoreTextParagraphStyle.h"
+#import "DTCoreTextFunctions.h"
 
 #ifndef __IPHONE_4_3
 	#define __IPHONE_4_3 40300
@@ -23,7 +24,12 @@
 @property (nonatomic, assign) CGRect frame;
 @property (nonatomic, assign) NSInteger numberOfGlyphs;
 @property (nonatomic, unsafe_unretained, readwrite) NSDictionary *attributes;
-@property (nonatomic, assign) dispatch_semaphore_t runLock;
+
+#if OS_OBJECT_USE_OBJC
+@property (nonatomic, strong) dispatch_semaphore_t runLock; // GCD objects use ARC
+#else
+@property (nonatomic, assign) dispatch_semaphore_t runLock; // GCD objects don't use ARC
+#endif
 
 @end
 
@@ -41,6 +47,7 @@
 	CGFloat _width;
 	
 	BOOL _writingDirectionIsRightToLeft;
+	BOOL _isTrailingWhitespace;
 	
 	NSInteger _numberOfGlyphs;
 	
@@ -58,6 +65,7 @@
 	BOOL _didCheckForHyperlinkInAttributes;
 	BOOL _didCalculateMetrics;
 	BOOL _didGetWritingDirection;
+	BOOL _didDetermineTrailingWhitespace;
 }
 
 @synthesize runLock;
@@ -86,7 +94,9 @@
 		CFRelease(_run);
 	}
 	
+#if !OS_OBJECT_USE_OBJC
 	dispatch_release(runLock);
+#endif
 }
 
 - (NSString *)description
@@ -196,10 +206,143 @@
 		
 		CGContextSetTextMatrix(context, textMatrix);
 		
+		CGContextSetRGBFillColor(context, 1, 0, 0, 1);
+		CGContextSetBlendMode(context, kCGBlendModePlusLighter);
+		
 		CTRunDraw(_run, context, CFRangeMake(0, 0));
 
 		// restore identity
 		CGContextSetTextMatrix(context, CGAffineTransformIdentity);
+	}
+}
+
+- (void)drawDecorationInContext:(CGContextRef)context
+{
+	// get the scaling factor of the current translation matrix
+	CGAffineTransform ctm = CGContextGetCTM(context);
+	CGFloat contentScale = ctm.a; // needed for  rounding operations
+	CGFloat smallestPixelWidth = 1.0f/contentScale;
+	
+	CGColorRef backgroundColor = (__bridge CGColorRef)[_attributes objectForKey:DTBackgroundColorAttribute];
+	
+	// can also be iOS 6 attribute
+#if __IPHONE_OS_VERSION_MAX_ALLOWED > __IPHONE_5_1
+	if (!backgroundColor && ___useiOS6Attributes)
+	{
+		UIColor *uiColor = [_attributes objectForKey:NSBackgroundColorAttributeName];
+		backgroundColor = uiColor.CGColor;
+	}
+#endif
+	// -------------- Line-Out, Underline, Background-Color
+	BOOL drawStrikeOut = [[_attributes objectForKey:DTStrikeOutAttribute] boolValue];
+	BOOL drawUnderline = [[_attributes objectForKey:(id)kCTUnderlineStyleAttributeName] boolValue];
+	
+	if (drawStrikeOut||drawUnderline||backgroundColor)
+	{
+		// calculate area covered by non-whitespace
+		CGRect lineFrame = _line.frame;
+		lineFrame.size.width -= _line.trailingWhitespaceWidth;
+		
+		// exclude trailing whitespace so that we don't underline too much
+		CGRect runStrokeBounds = CGRectIntersection(lineFrame, self.frame);
+		
+		NSInteger superscriptStyle = [[_attributes objectForKey:(id)kCTSuperscriptAttributeName] integerValue];
+		
+		switch (superscriptStyle)
+		{
+			case 1:
+			{
+				runStrokeBounds.origin.y -= _ascent * 0.47f;
+				break;
+			}
+			case -1:
+			{
+				runStrokeBounds.origin.y += _ascent * 0.25f;
+				break;
+			}
+			default:
+				break;
+		}
+		
+		if (backgroundColor)
+		{
+			CGContextSetFillColorWithColor(context, backgroundColor);
+			CGContextFillRect(context, runStrokeBounds);
+		}
+		
+		if (drawStrikeOut || drawUnderline)
+		{
+			CGContextSaveGState(context);
+
+			CTFontRef usedFont = (__bridge CTFontRef)([_attributes objectForKey:(id)kCTFontAttributeName]);
+			
+			CGFloat fontUnderlineThickness;
+			
+			if (usedFont)
+			{
+				fontUnderlineThickness = CTFontGetUnderlineThickness(usedFont);
+			}
+			else
+			{
+				fontUnderlineThickness = smallestPixelWidth;
+			}
+			
+			CGFloat usedUnderlineThickness = DTCeilWithContentScale(fontUnderlineThickness, contentScale);
+			
+			CGContextSetLineWidth(context, usedUnderlineThickness);
+			
+			if (drawStrikeOut)
+			{
+				CGFloat y;
+				
+				if (usedFont)
+				{
+					CGFloat strokePosition = CTFontGetXHeight(usedFont)/2.0;
+					y = DTRoundWithContentScale(runStrokeBounds.origin.y + _ascent - strokePosition, contentScale);
+				}
+				else
+				{
+					y = DTRoundWithContentScale((runStrokeBounds.origin.y + self.frame.size.height/2.0f + 1), contentScale);
+				}
+				
+				if ((int)(usedUnderlineThickness/smallestPixelWidth)%2) // odd line width
+				{
+					y += smallestPixelWidth/2.0f; // shift down half a pixel to avoid aliasing
+				}
+				
+				CGContextMoveToPoint(context, runStrokeBounds.origin.x, y);
+				CGContextAddLineToPoint(context, runStrokeBounds.origin.x + runStrokeBounds.size.width, y);
+			}
+			
+			if (drawUnderline)
+			{
+				CGFloat y;
+				
+				if (usedFont)
+				{
+					CGFloat underlinePosition = CTFontGetUnderlinePosition(usedFont);
+					
+					y = DTRoundWithContentScale(runStrokeBounds.origin.y + runStrokeBounds.size.height - _descent - underlinePosition - fontUnderlineThickness/2.0f, contentScale);
+				}
+				else
+				{
+					y = DTRoundWithContentScale((runStrokeBounds.origin.y + runStrokeBounds.size.height - self.descent + 1.0f), contentScale);
+				}
+				
+				if ((int)(usedUnderlineThickness/smallestPixelWidth)%2) // odd line width
+				{
+					y += smallestPixelWidth/2.0f; // shift down half a pixel to avoid aliasing
+				}
+				
+				CGContextMoveToPoint(context, runStrokeBounds.origin.x, y);
+				CGContextAddLineToPoint(context, runStrokeBounds.origin.x + runStrokeBounds.size.width, y);
+			}
+
+			
+			CGContextStrokePath(context);
+			
+			CGContextRestoreGState(context); // restore antialiasing
+		}
 	}
 }
 
@@ -215,6 +358,31 @@
 		_descent = 0;
 		_ascent = self.attachment.displaySize.height;
 	}
+}
+
+- (BOOL)isTrailingWhitespace
+{
+	if (_didDetermineTrailingWhitespace)
+	{
+		return _isTrailingWhitespace;
+	}
+	
+	if (self == [[_line glyphRuns] lastObject])
+	{
+		if (!_didCalculateMetrics)
+		{
+			[self calculateMetrics];
+		}
+
+		// this is trailing whitespace if it matches the lines's trailing whitespace
+		if (_line.trailingWhitespaceWidth >= _width)
+		{
+			_isTrailingWhitespace = YES;
+		}
+	}
+	
+	_didDetermineTrailingWhitespace = YES;
+	return _isTrailingWhitespace;
 }
 
 #pragma mark Properites

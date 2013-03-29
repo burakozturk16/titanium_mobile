@@ -1,6 +1,6 @@
 //
 //  DTCoreTextLayoutLine.m
-//  CoreTextExtensions
+//  DTCoreText
 //
 //  Created by Oliver Drobnik on 1/24/11.
 //  Copyright 2011 Drobnik.com. All rights reserved.
@@ -11,6 +11,7 @@
 #import "DTCoreTextLayoutFrame.h"
 #import "DTCoreTextLayouter.h"
 #import "DTTextAttachment.h"
+#import "DTCoreTextConstants.h"
 
 @interface DTCoreTextLayoutLine ()
 
@@ -220,6 +221,8 @@
 	CTLineDraw(_line, context);
 }
 
+/*
+
 // fix for image squishing bug < iOS 4.2
 - (BOOL)correctAttachmentHeights:(CGFloat *)downShift
 {
@@ -271,7 +274,8 @@
 	
 	return didShift;
 }
-
+*/
+ 
 - (void)_calculateMetrics
 {
 	dispatch_sync(_syncQueue, ^{
@@ -284,6 +288,7 @@
 		}
 	});
 }
+ 
 
 
 // calculates the extra space that is before every line even though the leading is zero
@@ -333,6 +338,34 @@
 }
 
 
+- (BOOL)isHorizontalRule
+{
+	// HR is only a single \n
+	
+	if (self.stringRange.length>1)
+	{
+		return NO;
+	}
+	
+	NSArray *runs = self.glyphRuns;
+	
+	// thus only a single glyphRun
+	
+	if ([runs count]>1)
+	{
+		return NO;
+	}
+	
+	DTCoreTextGlyphRun *singleRun = [runs lastObject];
+	
+	if ([singleRun.attributes objectForKey:DTHorizontalRuleStyleAttribute])
+	{
+		return YES;
+	}
+	
+	return NO;
+}
+
 #pragma mark Properties
 - (NSArray *)glyphRuns
 {
@@ -371,7 +404,15 @@
 		[self _calculateMetrics];
 	}
 	
-	return CGRectMake(_baselineOrigin.x, _baselineOrigin.y - _ascent, _width, _ascent + _descent);
+	CGRect frame = CGRectMake(_baselineOrigin.x, _baselineOrigin.y - _ascent, _width, _ascent + _descent);
+	
+	// make sure that HR are extremely wide to be be picked up
+	if ([self isHorizontalRule])
+	{
+		frame.size.width = CGFLOAT_MAX;
+	}
+	
+	return frame;
 }
 
 - (CGFloat)width

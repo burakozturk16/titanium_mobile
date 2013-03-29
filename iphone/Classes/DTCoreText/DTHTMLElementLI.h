@@ -8,6 +8,9 @@
 
 #import "DTCoreText.h"
 
+/**
+ Specialized subclass of <DTHTMLElement> that deals with list items.
+ */
 @interface DTHTMLElementLI : DTHTMLElement
 
 @end
