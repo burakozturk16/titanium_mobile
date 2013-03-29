@@ -78,12 +78,11 @@ function TitaniumWrapper(context) {
 
 	Object.defineProperty(this, "resourcesRelativePath", {
 		get: function() {
+
 			var value = context.sourceUrl.replace("app://", "");
-			//this test will take care of the require/include difference.
-			//if we are inside a require the path contains the file name
-			//if inside an include we are relative to the path containing the included file
-			if (stringEndsWith(value, '.js'))
-				value = value.split('/').slice(0, -1).join('/')
+			var splitValue = value.split('/');
+			if (splitValue.length > 1 || stringEndsWith(value, '.js')) 
+				value = value.split('/').slice(0, -1).join('/');
 			return value;
 		}
 	});
@@ -214,6 +213,8 @@ Titanium.getUrlSource = getUrlSource;
 // - We use TitaniumWrapper as the base for all context / scope-specific APIs
 function TiInclude(filename, baseUrl, scopeVars) {
 	var sourceUrl = url.resolve(baseUrl, filename);
+	kroll.log(TAG, 'sourceUrl: ' + JSON.stringify(sourceUrl));
+
 	scopeVars = initScopeVars(scopeVars, sourceUrl.href);
 	
 	// Create a context-bound Titanium module.
@@ -221,7 +222,7 @@ function TiInclude(filename, baseUrl, scopeVars) {
 
 	var inModule = false;
 	var modulePath = filename.split('/')[0];
-	if (!stringEndsWith(modulePath, '.js'))
+	if (!stringEndsWith(modulePath, '.js')) //discard case app.js
 	{
 		inModule = kroll.isExternalCommonJsModule(modulePath);
 	}
