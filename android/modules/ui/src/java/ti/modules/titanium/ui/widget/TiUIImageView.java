@@ -68,6 +68,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private AtomicBoolean isStopping = new AtomicBoolean(false);
 	private boolean reverse = false;
 	private boolean paused = false;
+	private boolean localLoadSync = false;
 	private boolean firedLoad;
 	private ImageViewProxy imageViewProxy;
 	private int currentDuration;
@@ -722,14 +723,13 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				// Check if the image is not cached in disc and the uri is valid.
 				if (!isCachedInDisk && uri != null) {
 					TiDownloadManager.getInstance().download(uri, downloadListener);
-				} else {
-					// If the image has been cached in disk or the uri is not valid,
-					// fetch and cache it and update the UI.
-					TiLoadImageManager.getInstance().load(imageref, loadImageListener);
+					return;
 				}
-			} else {
-				TiLoadImageManager.getInstance().load(imageref, loadImageListener);
 			}
+			if (localLoadSync == true)
+				TiLoadImageManager.getInstance().loadSync(imageref, loadImageListener);
+			else
+				TiLoadImageManager.getInstance().load(imageref, loadImageListener);
 		} else {
 			setImages();
 		}
@@ -778,6 +778,10 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_DEFAULT_IMAGE)) {
 			setDefaultImageSource(d.get(TiC.PROPERTY_DEFAULT_IMAGE));
 		}
+		if(d.containsKey(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
+			localLoadSync = TiConvert.toBoolean(d, TiC.PROPERTY_LOCAL_LOAD_SYNC, localLoadSync);
+		}
+		
 		if (d.containsKey(TiC.PROPERTY_IMAGE)) {
 			// processProperties is also called from TableView, we need check if we changed before re-creating the
 			// bitmap
@@ -826,6 +830,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 
 		if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(newValue));
+		} else if(key.equals(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
+			localLoadSync = TiConvert.toBoolean(newValue);
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {

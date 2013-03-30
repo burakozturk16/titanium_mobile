@@ -77,6 +77,17 @@ public class TiLoadImageManager implements Handler.Callback
 			}
 		}
 	}
+	
+	public void loadSync(TiDrawableReference imageref, TiLoadImageListener listener)
+	{
+		try {
+			Bitmap bitmap = imageref.getBitmap(false);
+			int hash = imageref.hashCode();
+			listener.loadImageFinished(hash, bitmap);
+		} catch (Exception e) {
+			listener.loadImageFailed();
+		}
+	}
 
 	protected void handleLoadImageMessage(int what, int hash, Bitmap bitmap)
 	{
