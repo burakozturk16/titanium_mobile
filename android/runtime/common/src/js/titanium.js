@@ -213,7 +213,6 @@ Titanium.getUrlSource = getUrlSource;
 // - We use TitaniumWrapper as the base for all context / scope-specific APIs
 function TiInclude(filename, baseUrl, scopeVars) {
 	var sourceUrl = url.resolve(baseUrl, filename);
-	kroll.log(TAG, 'sourceUrl: ' + JSON.stringify(sourceUrl));
 
 	scopeVars = initScopeVars(scopeVars, sourceUrl.href);
 	
