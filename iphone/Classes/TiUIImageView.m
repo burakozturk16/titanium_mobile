@@ -36,7 +36,7 @@ DEFINE_EXCEPTIONS
 -(id)init
 {
     if (self = [super init]) {
-        alwaysLoadAsync = NO;
+        localLoadSync = NO;
         scaleType = UIViewContentModeScaleToFill;
     }
     return self;
@@ -523,7 +523,7 @@ DEFINE_EXCEPTIONS
 			imageSize.height *= 2;
 		}
         UIImage *image = nil;
-        if (!alwaysLoadAsync)
+        if (localLoadSync)
         {
             // Skip the imageloader completely if this is obviously a file we can load off the fileystem.
             // why were we ever doing that in the first place...?
@@ -698,9 +698,9 @@ DEFINE_EXCEPTIONS
     [self updateContentMode];
 }
 
--(void)setAlwaysLoadAsync_:(id)arg
+-(void)setLocalLoadSync_:(id)arg
 {
-	alwaysLoadAsync = [TiUtils boolValue:arg];
+	localLoadSync = [TiUtils boolValue:arg];
 }
 
 -(void)setImage_:(id)arg
@@ -721,7 +721,7 @@ DEFINE_EXCEPTIONS
 	UIImage *image = nil;
     NSURL* imageURL = nil;
     
-    if (!alwaysLoadAsync)
+    if (localLoadSync)
         image = [self convertToUIImage:arg];
 	
 	if (image == nil) 
