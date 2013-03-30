@@ -411,10 +411,16 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 		{
 			textAlignment = kCTNaturalTextAlignment;
 		}
-		
+
+		// determine writing direction
 		BOOL isRTL = NO;
+		CTWritingDirection baseWritingDirection;
+		if (CTParagraphStyleGetValueForSpecifier(paragraphStyle, kCTParagraphStyleSpecifierBaseWritingDirection, sizeof(baseWritingDirection), &baseWritingDirection))
+		{
+			isRTL = (baseWritingDirection == kCTWritingDirectionRightToLeft);
+		}
 		
-		switch (textAlignment) 
+		switch (textAlignment)
 		{
 			case kCTLeftTextAlignment:
 			{
@@ -425,17 +431,9 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 				
 			case kCTNaturalTextAlignment:
 			{
-				// depends on the text direction
-				CTWritingDirection baseWritingDirection;
-				CTParagraphStyleGetValueForSpecifier(paragraphStyle, kCTParagraphStyleSpecifierBaseWritingDirection, sizeof(baseWritingDirection), &baseWritingDirection);
-				
 				if (baseWritingDirection != kCTWritingDirectionRightToLeft)
 				{
 					break;
-				}
-				else
-				{
-					isRTL = YES;
 				}
 				
 				// right alignment falls through
@@ -457,8 +455,8 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 				
 			case kCTJustifiedTextAlignment:
 			{
-				BOOL isAtEndOfParagraph    = (currentParagraphRange.location+currentParagraphRange.length <= lineRange.location+lineRange.length || 		// JTL 28/June/2012
-					[[_attributedStringFragment string] characterAtIndex:lineRange.location+lineRange.length-1]==0x2028);									// JTL 28/June/2012
+				BOOL isAtEndOfParagraph    = (currentParagraphRange.location+currentParagraphRange.length <= lineRange.location+lineRange.length ||
+					[[_attributedStringFragment string] characterAtIndex:lineRange.location+lineRange.length-1]==0x2028);
 
 				// only justify if not last line, not <br>, and if the line width is longer than 60% of the frame
 				// avoids over-stretching
@@ -470,7 +468,16 @@ static BOOL _DTCoreTextLayoutFramesShouldDrawDebugFrames = NO;
 					line = justifiedLine;
 				}
 				
-				lineOrigin.x = _frame.origin.x + offset;
+				if (isRTL)
+				{
+					// align line with right margin
+					lineOrigin.x = _frame.origin.x + offset + CTLineGetPenOffsetForFlush(line, 1.0, availableSpace);
+				}
+				else
+				{
+					// align line with left margin
+					lineOrigin.x = _frame.origin.x + offset;
+				}
 				
 				break;
 			}
