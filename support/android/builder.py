@@ -1696,7 +1696,7 @@ class Builder(object):
 
 		# add module native libraries
 		for module in self.modules:
-			exclude_libs = []
+			exclude_libs = ['libstlport_shared.so']
 			add_native_libs(module.get_resource('libs'), exclude_libs)
 
 		# add any native libraries : libs/**/*.so -> lib/**/*.so
