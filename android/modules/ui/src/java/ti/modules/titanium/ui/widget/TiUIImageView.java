@@ -794,7 +794,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			}
 			if (changeImage) {
 				// Check for orientation and decodeRetries only if an image is specified
-				if (d.containsKey(TiC.PROPERTY_AUTOROTATE)) {
+				Object autoRotate = d.get(TiC.PROPERTY_AUTOROTATE);
+				if (autoRotate != null && TiConvert.toBoolean(autoRotate)) {
 					view.setOrientation(source.getOrientation());
 				}
 				if (d.containsKey(TiC.PROPERTY_DECODE_RETRIES)) {
@@ -907,6 +908,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			Drawable drawable = view.getImageDrawable();
 			if (drawable != null && drawable instanceof BitmapDrawable) {
 				Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+				if (bitmap == null && imageSources != null && imageSources.size() == 1) {
+					bitmap = imageSources.get(0).getBitmap(true);
+				}
 				return bitmap == null ? null : TiBlob.blobFromImage(bitmap);
 			}
 		}

@@ -399,35 +399,37 @@ exports.validate = function (logger, config, cli) {
 	if (!cli.argv.xcode || !process.env.TITANIUM_CLI_XCODEBUILD) {
 		// make sure the app doesn't have any blacklisted directories in the Resources directory and warn about graylisted names
 		var resourcesDir = path.join(cli.argv['project-dir'], 'Resources');
-		fs.readdirSync(resourcesDir).forEach(function (filename) {
-			var lcaseFilename = filename.toLowerCase(),
-				isDir = fs.lstatSync(path.join(resourcesDir, filename)).isDirectory();
-
-			if (blacklistDirectories.indexOf(lcaseFilename) != -1) {
-				if (isDir) {
-					logger.error(__('Found blacklisted directory in the Resources directory') + '\n');
-					logger.error(__('The directory "%s" is a reserved word.', filename));
-					logger.error(__('You must rename this directory to something else.') + '\n');
-				} else {
-					logger.error(__('Found blacklisted file in the Resources directory') + '\n');
-					logger.error(__('The file "%s" is a reserved word.', filename));
-					logger.error(__('You must rename this file to something else.') + '\n');
+		if (afs.exists(resourcesDir)) {
+			fs.readdirSync(resourcesDir).forEach(function (filename) {
+				var lcaseFilename = filename.toLowerCase(),
+					isDir = fs.lstatSync(path.join(resourcesDir, filename)).isDirectory();
+	
+				if (blacklistDirectories.indexOf(lcaseFilename) != -1) {
+					if (isDir) {
+						logger.error(__('Found blacklisted directory in the Resources directory') + '\n');
+						logger.error(__('The directory "%s" is a reserved word.', filename));
+						logger.error(__('You must rename this directory to something else.') + '\n');
+					} else {
+						logger.error(__('Found blacklisted file in the Resources directory') + '\n');
+						logger.error(__('The file "%s" is a reserved word.', filename));
+						logger.error(__('You must rename this file to something else.') + '\n');
+					}
+					process.exit(1);
+				} else if (graylistDirectories.indexOf(lcaseFilename) != -1) {
+					if (isDir) {
+						logger.warn(__('Found graylisted directory in the Resources directory'));
+						logger.warn(__('The directory "%s" is potentially a reserved word.', filename));
+						logger.warn(__('There is a good chance your app will be rejected by Apple.'));
+						logger.warn(__('It is highly recommended you rename this directory to something else.'));
+					} else {
+						logger.warn(__('Found graylisted file in the Resources directory'));
+						logger.warn(__('The file "%s" is potentially a reserved word.', filename));
+						logger.warn(__('There is a good chance your app will be rejected by Apple.'));
+						logger.warn(__('It is highly recommended you rename this file to something else.'));
+					}
 				}
-				process.exit(1);
-			} else if (graylistDirectories.indexOf(lcaseFilename) != -1) {
-				if (isDir) {
-					logger.warn(__('Found graylisted directory in the Resources directory'));
-					logger.warn(__('The directory "%s" is potentially a reserved word.', filename));
-					logger.warn(__('There is a good chance your app will be rejected by Apple.'));
-					logger.warn(__('It is highly recommended you rename this directory to something else.'));
-				} else {
-					logger.warn(__('Found graylisted file in the Resources directory'));
-					logger.warn(__('The file "%s" is potentially a reserved word.', filename));
-					logger.warn(__('There is a good chance your app will be rejected by Apple.'));
-					logger.warn(__('It is highly recommended you rename this file to something else.'));
-				}
-			}
-		});
+			});
+		}
 	}
 
 	ti.validateTiappXml(logger, cli.tiapp);
@@ -1053,7 +1055,7 @@ build.prototype = {
 
 				parallel(this, [
 					function (next) {
-						if (this.target == 'simulator') {
+						if (this.target == 'simulator' && this.deployType == 'development') {
 							if (this.forceCopy) {
 								this.logger.info(__('Forcing copying of files instead of creating symlinks'));
 							} else {
@@ -1074,6 +1076,13 @@ build.prototype = {
 					'copyGraphics',
 					'writeBuildManifest'
 				], function () {
+					// this is a hack... for non-deployment builds we need to force xcode so that the pre-compile phase
+					// is run and the ApplicationRouting.m gets updated
+					if (!this.forceRebuild && this.deployType != 'development') {
+						this.logger.info(__('Forcing rebuild: deploy type is %s, so need to recompile ApplicationRouting.m', this.deployType));
+						this.forceRebuild = true;
+					}
+
 					if (this.forceRebuild || this.target != 'simulator' || !afs.exists(this.xcodeAppDir, this.tiapp.name)) {
 						this.logger.info(__('Invoking xcodebuild'));
 						this.invokeXcodeBuild(finished);
@@ -1332,10 +1341,10 @@ build.prototype = {
 			namespace = this.scrubName(this.tiapp.name),
 			copyFileRegExps = [
 				// note: order of regexps matters
+				[/TitaniumViewController/g, namespace + '$ViewController'],
 				[/TitaniumModule/g, namespace + '$Module'],
 				[/Titanium|Appcelerator/g, namespace],
 				[/titanium/g, '_' + namespace.toLowerCase()],
-				[new RegExp(namespace + '(' + namespace + '\\$?Module)', 'g'), '$1'],
 				[/(org|com)\.appcelerator/g, '$1.' + namespace.toLowerCase()],
 				[new RegExp('\\* ' + namespace + ' ' + namespace + ' Mobile', 'g'), '* Appcelerator Titanium Mobile'],
 				[new RegExp('\\* Copyright \\(c\\) \\d{4}(-\\d{4})? by ' + namespace + ', Inc\\.', 'g'), '* Copyright (c) 2009-' + (new Date).getFullYear() + ' by Appcelerator, Inc.'],
@@ -1450,6 +1459,14 @@ build.prototype = {
 			return true;
 		}
 
+		// check if the target changed
+		if (this.target != manifest.target) {
+			this.logger.info(__('Forcing rebuild: target changed since last build'));
+			this.logger.info('  ' + __('Was: %s', this.buildManifest.target));
+			this.logger.info('  ' + __('Now: %s', this.target));
+			return true;
+		}
+
 		if (afs.exists(this.xcodeProjectConfigFile)) {
 			// we have a previous build, see if the Titanium SDK changed
 			var conf = fs.readFileSync(this.xcodeProjectConfigFile).toString(),
@@ -1475,14 +1492,6 @@ build.prototype = {
 		// check that we have a libTiCore hash
 		if (!manifest.tiCoreHash) {
 			this.logger.info(__('Forcing rebuild: incomplete version file %s', this.buildVersionFile.cyan));
-			return true;
-		}
-
-		// check if the target changed
-		if (this.libTiCoreHash != manifest.tiCoreHash) {
-			this.logger.info(__('Forcing rebuild: libTiCore hash changed since last build'));
-			this.logger.info('  ' + __('Was: %s', this.buildManifest.target));
-			this.logger.info('  ' + __('Now: %s', this.target));
 			return true;
 		}
 
@@ -2251,7 +2260,9 @@ build.prototype = {
 								var srcFile = path.join(src, file),
 									destFile = path.join(dest, file);
 								if (fs.lstatSync(srcFile).isDirectory()) {
-									symlinkResources(srcFile, destFile, false, next);
+									setTimeout(function () {
+										symlinkResources(srcFile, destFile, false, next);
+									}, 1);
 								} else {
 									symlinkHook(srcFile, destFile, next);
 								}
@@ -2260,7 +2271,7 @@ build.prototype = {
 							}
 						};
 					}), cb);
-				} else if (cb) {
+				} else {
 					cb();
 				}
 			}.bind(this),

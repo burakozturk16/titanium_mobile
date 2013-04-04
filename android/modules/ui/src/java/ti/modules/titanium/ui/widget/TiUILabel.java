@@ -594,6 +594,7 @@ public class TiUILabel extends TiUIView
 		tv.setKeyListener(null);
 		tv.setFocusable(false);
 		tv.setSingleLine(false);
+		TiUIHelper.styleText(tv, null);
 		defaultColor = tv.getCurrentTextColor();
 		setNativeView(tv);
 

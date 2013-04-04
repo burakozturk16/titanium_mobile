@@ -484,7 +484,9 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 					h = Math.max(minRowHeight, height.getAsPixels(this));
 				}
 				hMode = MeasureSpec.EXACTLY;
-				Log.d(TAG, "Row content measure (" + adjustedWidth + "x" + h + ")", Log.DEBUG_MODE);
+				if (Log.isDebugModeEnabled()) {
+					Log.d(TAG, "Row content measure (" + adjustedWidth + "x" + h + ")", Log.DEBUG_MODE);
+				}
 				measureChild(content, MeasureSpec.makeMeasureSpec(adjustedWidth, wMode), MeasureSpec.makeMeasureSpec(h, hMode));
 			}
 		}

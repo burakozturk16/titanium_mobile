@@ -494,8 +494,10 @@ public class TiAnimationBuilder
 			// need to re-layout.
 			relayoutChild = (autoreverse == null || !autoreverse.booleanValue());
 
-			Log.d(TAG, "animate " + viewProxy + " relative to self: " + (horizontal[0] - x) + ", " + (vertical[0] - y),
-				Log.DEBUG_MODE);
+			if (Log.isDebugModeEnabled()) {
+				Log.d(TAG, "animate " + viewProxy + " relative to self: " + (horizontal[0] - x) + ", " + (vertical[0] - y),
+					Log.DEBUG_MODE);
+			}
 
 		}
 
@@ -574,8 +576,10 @@ public class TiAnimationBuilder
 			this.toWidth = toWidth;
 			this.toHeight = toHeight;
 
-			Log.d(TAG, "animate view from (" + fromWidth + "x" + fromHeight + ") to (" + toWidth + "x" + toHeight + ")",
-				Log.DEBUG_MODE);
+			if (Log.isDebugModeEnabled()) {
+				Log.d(TAG, "animate view from (" + fromWidth + "x" + fromHeight + ") to (" + toWidth + "x" + toHeight + ")",
+					Log.DEBUG_MODE);
+			}
 		}
 
 		@Override

@@ -228,7 +228,9 @@ public class TiUITableView extends TiUIView
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
+		if (Log.isDebugModeEnabled()) {
+			Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
+		}
 		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			tableView.setSeparatorColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {

@@ -1298,7 +1298,7 @@ public class TiHTTPClient
 				Log.e(TAG, "HTTP Error (" + t.getClass().getName() + "): " + msg, t);
 
 				KrollDict data = new KrollDict();
-				data.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, "error");
+				data.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, msg);
 				dispatchCallback("onerror", data);
 			}
 

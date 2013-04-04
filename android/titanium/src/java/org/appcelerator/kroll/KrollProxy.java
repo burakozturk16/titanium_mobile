@@ -459,6 +459,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	@Kroll.method
 	public void extend(KrollDict options)
 	{
+		if (options == null || options.isEmpty()) {
+			return;
+		}
+		
 		ArrayList<KrollPropertyChange> propertyChanges = new ArrayList<KrollPropertyChange>();
 		for (String name : options.keySet()) {
 			Object oldValue = properties.get(name);
@@ -1151,7 +1155,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				eventListeners.put(eventName, listeners);
 			}
 
-			Log.d(TAG, "Added for eventName '" + eventName + "' with id " + listenerId, Log.DEBUG_MODE);
+			if (Log.isDebugModeEnabled()) {
+				Log.d(TAG, "Added for eventName '" + eventName + "' with id " + listenerId, Log.DEBUG_MODE);
+			}
 			listenerId = listenerIdGenerator.incrementAndGet();
 			listeners.put(listenerId, callback);
 		}

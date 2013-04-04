@@ -195,14 +195,16 @@ public class TiCompositeLayout extends ViewGroup
 
 	public void onChildViewAdded(View parent, View child) {
 		needsSort = true;
-		if (parent != null && child != null) {
+		if (Log.isDebugModeEnabled() && parent != null && child != null) {
 			Log.d(TAG, "Attaching: " + viewToString(child) + " to " + viewToString(parent), Log.DEBUG_MODE);
 		}
 	}
 
 	public void onChildViewRemoved(View parent, View child) {
 		needsSort = true;
-		Log.d(TAG, "Removing: " + viewToString(child) + " from " + viewToString(parent), Log.DEBUG_MODE);
+		if (Log.isDebugModeEnabled()) {
+			Log.d(TAG, "Removing: " + viewToString(child) + " from " + viewToString(parent), Log.DEBUG_MODE);
+		}
 	}
 
 	@Override
@@ -213,19 +215,7 @@ public class TiCompositeLayout extends ViewGroup
 	@Override
 	protected LayoutParams generateDefaultLayoutParams()
 	{
-		// Default behavior is size since optionWidth/optionHeight is null, and autoFillsWidth/autoFillsHeight is false.
-		// Some classes such as ViewProxy will set autoFillsWidth/autoFillsHeight to true in order to trigger the fill
-		// behavior by default.
-		LayoutParams params = new LayoutParams();
-		params.optionLeft = null;
-		params.optionRight = null;
-		params.optionTop = null;
-		params.optionBottom = null;
-		params.optionZIndex = NOT_SET;
-		params.sizeOrFillHeightEnabled = false;
-		params.sizeOrFillWidthEnabled = false;
-
-		return params;
+		return new LayoutParams();
 	}
 
 	private static int getAsPercentageValue(double percentage, int value)
