@@ -33,6 +33,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
@@ -727,6 +728,10 @@ public abstract class TiUIView
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
+			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
+		}
 
 		if (d.containsKey(TiC.PROPERTY_BORDER_COLOR)) {
 			setBorderColor(TiConvert.toString(d, TiC.PROPERTY_BORDER_COLOR));
@@ -920,9 +925,8 @@ public abstract class TiUIView
 	{
 		if (background == null) {
 			background = new TiBackgroundDrawable();
-			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+			if (!HONEYCOMB_OR_GREATER && proxy.hasProperty(TiC.PROPERTY_OPACITY))
 				background.setAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
-			
 		}
 		if (nativeView != null) {
 			Drawable currentDrawable = nativeView.getBackground();
@@ -1333,6 +1337,7 @@ public abstract class TiUIView
 	 * Sets the nativeView's opacity.
 	 * @param opacity the opacity to set.
 	 */
+	@SuppressLint("NewApi")
 	public void setOpacity(float opacity)
 	{
 		if (opacity < 0 || opacity > 1) {
@@ -1360,10 +1365,8 @@ public abstract class TiUIView
 	 */
 	protected void setOpacity(View view, float opacity)
 	{
-		if (background != null)
-			background.setAlpha(Math.round(opacity * 255));
 		if (view != null) {
-//			TiUIHelper.setDrawableOpacity(view.getBackground(), opacity);
+			TiUIHelper.setDrawableOpacity(view.getBackground(), opacity);
 			if (opacity == 1) {
 				clearOpacity(view);
 			}
