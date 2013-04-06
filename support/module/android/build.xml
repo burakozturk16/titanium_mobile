@@ -350,6 +350,8 @@ timodule.xml.
 			<filterset refid="ndk.filter"/>
 		</copy>
 		
+		<copy overwrite="true" tofile="${genjni.local}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
+		
 		<build.ndk gendir="${gen}"/>
 
 		<copy todir="${libs}">
