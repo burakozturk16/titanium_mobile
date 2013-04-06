@@ -300,6 +300,7 @@ timodule.xml.
 			<propertyregex property="user.name.nospaces" input="${user.name}" regexp=" " replace="_" global="true" defaultValue="${user.name}"/>
 			<property name="tmpdir" value="${java.io.tmpdir}/${user.name.nospaces}/${ant.project.name}-generated" />
 
+			<delete dir="${tmpdir}"/>
 			<mkdir dir="${tmpdir}" />
 			<copy todir="${tmpdir}" preservelastmodified="true" overwrite="true" includeEmptyDirs="true">
 				<fileset dir="@{gendir}"/>
