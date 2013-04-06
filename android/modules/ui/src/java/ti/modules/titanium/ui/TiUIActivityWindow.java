@@ -348,10 +348,16 @@ public class TiUIActivityWindow extends TiUIView
 	{
 		if (background == null) {
 			background = new TiBackgroundDrawable();
-			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
-				setActivityOpacity(background, TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)), true);
-			else
-				setActivityOpacity(background, 1, true);
+			float opacity = 1f;
+			Object opacityValue = proxy.getProperty(TiC.PROPERTY_OPACITY);
+			if (opacityValue != null) { // lightweight opacity will get handled via super because nativeView won't be null.
+				try {
+					opacity = TiConvert.toFloat(opacityValue);
+				} catch (NumberFormatException e) {
+					opacity = 1f;
+				}
+			}
+			setActivityOpacity(background, opacity, true);
 			setActivityBackground(background, true);
 		}
 	}
@@ -389,6 +395,7 @@ public class TiUIActivityWindow extends TiUIView
 			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+			d.remove(TiC.PROPERTY_BACKGROUND_GRADIENT);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
