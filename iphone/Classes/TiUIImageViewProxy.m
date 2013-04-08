@@ -24,7 +24,7 @@
 {
     NSSet *common = [TiViewProxy transferableProperties];
     return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"image",
-                                              @"scaleType",@"alwaysLoadAsync",@"images",
+                                              @"scaleType",@"localLoadSync",@"images",
                                               @"duration", @"repeatCount", @"reverse", nil]];
 }
 
@@ -36,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[NSArray arrayWithObjects:@"width",@"height",nil] retain];
+		imageKeySequence = [[NSArray arrayWithObjects:@"width",@"height",@"scaleType",@"localLoadSync", nil] retain];
 	}
 	return imageKeySequence;
 }
