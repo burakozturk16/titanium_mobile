@@ -93,9 +93,18 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)setTemplates_:(id)args
 {
-	ENSURE_TYPE_OR_NIL(args,NSDictionary);
+    ENSURE_TYPE_OR_NIL(args,NSDictionary);
+	NSMutableDictionary *templates = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
+	[(NSDictionary *)args enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
+		TiViewTemplate *template = [TiViewTemplate templateFromViewTemplate:obj];
+		if (template != nil) {
+			[templates setObject:template forKey:key];
+		}
+	}];
+    
 	[_templates release];
 	_templates = [args copy];
+	[templates release];
 	if (_tableView != nil) {
 		[_tableView reloadData];
 	}
