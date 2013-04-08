@@ -2718,6 +2718,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 {
+    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height);
+    CGFloat desiredHeight = [child minimumParentHeightForSize:CGSizeMake(0,bounds.size.height)];
+    
     if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
     {
         BOOL followsFillBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
@@ -2726,10 +2729,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         if (boundingValue < 0) {
             boundingValue = 0;
         }
-
+        
         //Ensure that autoHeightForSize is called with the lowest limiting bound
         CGFloat desiredWidth = MIN([child minimumParentWidthForSize:bounds.size],bounds.size.width);
-
+        
         //TOP + BOTTOM
         CGFloat offsetV = TiDimensionCalculateValue([child layoutProperties]->top, bounds.size.height)
         + TiDimensionCalculateValue([child layoutProperties]->bottom, bounds.size.height);
@@ -2801,7 +2804,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
         BOOL followsFillBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
         CGFloat boundingWidth = bounds.size.width-horizontalLayoutBoundary;
-        CGFloat boundingHeight = bounds.size.height-verticalLayoutBoundary;
+        CGFloat boundingHeight = (childIsFixedHeight?desiredHeight:bounds.size.height)-verticalLayoutBoundary;
         
         //LEFT + RIGHT
         CGFloat offsetH = TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width)
@@ -2851,12 +2854,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 				followsFillBehavior = YES;
 			}
         }
-        CGFloat desiredHeight;
-        BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height);
         if (childIsFixedHeight)
         {
             //For percent width is irrelevant
-            desiredHeight = [child minimumParentHeightForSize:CGSizeMake(0,bounds.size.height)];
             bounds.size.height = desiredHeight;
         }
         if (horizontalWrap && (desiredWidth > boundingWidth)) {
@@ -2903,7 +2903,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                                 desiredHeight = [child minimumParentHeightForSize:CGSizeMake(boundingWidth,boundingHeight)];
                             }
                             bounds.size.height = desiredHeight;
-                        }                    
+                        }
                         horizontalLayoutBoundary += desiredWidth;
                         bounds.size.width = desiredWidth;
                         horizontalLayoutRowHeight = bounds.size.height;
@@ -2919,7 +2919,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                                 desiredHeight = [child minimumParentHeightForSize:CGSizeMake(boundingWidth,boundingHeight)];
                             }
                             bounds.size.height = desiredHeight;
-                        }                    
+                        }
                         verticalLayoutBoundary += bounds.size.height;
                     }
                 }
@@ -2929,7 +2929,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                     {
                         desiredHeight = [child minimumParentHeightForSize:CGSizeMake(boundingWidth,boundingHeight)];
                         bounds.size.height = desiredHeight;
-                    }                    
+                    }
                     verticalLayoutBoundary += bounds.size.height;
                 }
                 else {
@@ -2946,7 +2946,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                                 desiredHeight = [child minimumParentHeightForSize:CGSizeMake(boundingWidth,boundingHeight)];
                             }
                             bounds.size.height = desiredHeight;
-                        }                    
+                        }
                         bounds.size.width = desiredWidth;
                         horizontalLayoutBoundary = bounds.size.width;
                         horizontalLayoutRowHeight = bounds.size.height;
