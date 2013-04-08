@@ -45,7 +45,9 @@
     CGFloat textWidth = [[self label] sizeThatFits:maxSize].width;
     textWidth = MIN(textWidth,  maxSize.width);
     CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,textWidth, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
-    textRect.size.height -= textRect.origin.y;
+    
+    textRect.size.height -= 2*textRect.origin.y;
+    textRect.origin.y = 0;
     textRect.size.width += textPadding.origin.x + textPadding.size.width;
     textRect.size.height += textPadding.origin.y + textPadding.size.height;
     return textRect.size;
