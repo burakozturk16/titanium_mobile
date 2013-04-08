@@ -77,7 +77,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                     [NSNumber numberWithInt:0], DTDefaultFontStyle,
                     @"Helvetica", DTDefaultFontFamily,
                      [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
-                     kCTLineBreakByWordWrapping, DTDefaultLineBreakMode, nil] retain];
+                    [NSNumber numberWithInt:kCTLineBreakByWordWrapping], DTDefaultLineBreakMode, nil] retain];
         
         if ([TiUtils isIOS6OrGreater])
         {
