@@ -256,13 +256,13 @@
 
 -(void)moveNext:(id)args
 {
-	ENSURE_SINGLE_ARG(args,NSNumber);
+	ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
 	[self makeViewPerformSelector:@selector(moveNext:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
 -(void)movePrevious:(id)args
 {
-	ENSURE_SINGLE_ARG(args,NSNumber);
+	ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
 	[self makeViewPerformSelector:@selector(movePrevious:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
