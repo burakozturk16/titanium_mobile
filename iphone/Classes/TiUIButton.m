@@ -36,7 +36,11 @@
     if (needsToSetBackgroundImage)
     {
         // to prevent multiple calls because of topCap and leftCap
-        id value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
+
+        id value = [[self proxy] valueForKey:@"backgroundImage"];
+        if (value)
+            [self setBackgroundImage_:value];
+        value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
         if (value)
             [self setBackgroundSelectedImage_:value];
         
@@ -271,7 +275,10 @@
 
 -(void)setBackgroundImage_:(id)value
 {
-    if (!configurationSet) return;
+    if (!configurationSet) {
+        needsToSetBackgroundImage = YES;
+        return;
+    }
 	[backgroundImageCache release];
 	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	backgroundImageCache = [[self loadImage:value] retain];
