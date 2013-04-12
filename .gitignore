@@ -25,3 +25,4 @@ anvil/driver/node_modules/*
 .metadata
 */gen
 */bin
+*.sublime-workspace

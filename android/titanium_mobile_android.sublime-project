@@ -1,0 +1,34 @@
+{
+	"folders":
+	[
+		{
+			"name": "titanium",
+			"path": "titanium/src/java/org/appcelerator"
+		},
+		{
+			"name": "ui",
+			"path": "modules/ui/src/java/ti/modules/titanium/ui"
+		}
+		,
+		{
+			"name": "app",
+			"path": "modules/app/src/java/ti/modules/titanium/app"
+		}
+		,
+		{
+			"name": "platform",
+			"path": "modules/platform/src/java/ti/modules/titanium/platform"
+		}
+		,
+		{
+			"name": "utils",
+			"path": "modules/utils/src/java/ti/modules/titanium/utils"
+		}
+		,
+		{
+			"name": "network",
+			"path": "modules/network/src/java/ti/modules/titanium/network"
+		}
+
+	]
+}
