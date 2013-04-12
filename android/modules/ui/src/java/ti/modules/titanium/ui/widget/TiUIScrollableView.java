@@ -23,6 +23,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.ScrollableViewProxy;
 import ti.modules.titanium.ui.widget.TiUIScrollView.TiScrollViewLayout;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
@@ -38,6 +39,7 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
+@SuppressLint("NewApi")
 public class TiUIScrollableView extends TiUIView
 {
 	private static final String TAG = "TiUIScrollableView";
@@ -585,6 +587,7 @@ public class TiUIScrollableView extends TiUIView
 			return super.onTrackballEvent(event);
 		}
 
+
 		@Override
 		public boolean dispatchTouchEvent(MotionEvent ev)
 		{
@@ -595,7 +598,6 @@ public class TiUIScrollableView extends TiUIView
 					case MotionEvent.ACTION_DOWN:
 						requestDisallowInterceptTouchEvent(true);
 						break;
-
 
 					case MotionEvent.ACTION_UP:
 					case MotionEvent.ACTION_CANCEL:
