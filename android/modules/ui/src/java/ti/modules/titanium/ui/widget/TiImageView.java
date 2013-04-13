@@ -335,6 +335,17 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		}
 		return handled;
 	}
+	
+	private float getImageRatio(){
+		float ratio = 0;
+		BitmapDrawable drawable = (BitmapDrawable)imageView.getDrawable();
+		if (drawable != null) {
+			Bitmap bitmap = drawable.getBitmap();
+			if (bitmap != null && bitmap.getHeight() > 0)
+				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
+		}
+		return ratio;
+	}
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
@@ -359,16 +370,18 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		int measuredWidth = imageView.getMeasuredWidth();
 		int measuredHeight = imageView.getMeasuredHeight();
 		
+		
 		if (imageView.getMeasuredWidth() > 0 && measuredHeight > 0) {
 			if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
 				maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
-				float ratio = (float)measuredWidth/(float)measuredHeight;
+				float ratio =  getImageRatio();
 				maxWidth = (int) Math.floor(maxHeight * ratio);
 			}
 			else if(wm == MeasureSpec.EXACTLY && (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
 				maxWidth = Math.max(w, Math.max(maxWidth, measuredWidth));
-				float ratio = (float)measuredWidth/(float)measuredHeight;
-				maxHeight = (int) Math.floor(maxWidth / ratio);
+				float ratio =  getImageRatio();
+				if (ratio > 0)
+					maxHeight = (int) Math.floor(maxWidth / ratio);
 			}
 			else {
 				maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
