@@ -403,6 +403,17 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				key.equals(TiC.PROPERTY_BACKGROUND_COLOR) ) {
 			setBackgroundFromProxy(getRowProxy());
 		}
+		else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE) || 
+				key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR) ) {
+			if (selectorSource != key){
+				selectorDrawable = null;
+				selectorSource = key;
+				if (selectorSource != null) {
+					getRowProxy().getTable().getTableView().getTableView().enableCustomSelector();
+				}
+			}
+			setBackgroundFromProxy(getRowProxy());
+		}
 		else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
@@ -609,7 +620,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		for(Entry<String, Object> e: newprops.entrySet()){
 			String key = e.getKey();
 			Object newvalue = e.getValue();
-			if (oldprops.containsKeyWithValue(key, newvalue) == false)
+			if (oldprops.containsKeyWithValue(key, newvalue) == false || key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR) || key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE))
 				realProps.put(key, newvalue);
 		}
 		return realProps;
