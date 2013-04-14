@@ -292,6 +292,7 @@ public class TiUIDialog extends TiUIView
 					//add dialog to its activity so we can clean it up later to prevent memory leak.
 					((TiBaseActivity) dialogActivity).addDialog(dialogWrapper);
 					dialog.show();
+					fireEvent(TiC.EVENT_OPEN, new KrollDict());
 				}
 			} else {
 				dialog = null;
@@ -304,6 +305,7 @@ public class TiUIDialog extends TiUIView
 
 	public void hide(KrollDict options)
 	{
+		fireEvent(TiC.EVENT_CLOSE, new KrollDict());
 		AlertDialog dialog = dialogWrapper.getDialog();
 		if (dialog != null) {
 			dialog.dismiss();

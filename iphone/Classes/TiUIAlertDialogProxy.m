@@ -59,6 +59,7 @@ static BOOL alertShowing = NO;
 	
 	if (alert!=nil)
 	{
+		[self fireEvent:@"close" withObject:nil];
 		//On IOS5 sometimes the delegate does not get called when hide is called soon after show
 		//So we do the cleanup here itself
 		
@@ -133,6 +134,7 @@ static BOOL alertShowing = NO;
 
 		[self retain];
 		[alert show];
+		[self fireEvent:@"open" withObject:nil];
 	}
 }
 
