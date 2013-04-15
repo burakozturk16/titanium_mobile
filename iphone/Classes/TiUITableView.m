@@ -95,6 +95,7 @@
 -(void)prepareForReuse
 {
 	[super prepareForReuse];
+    
 	if (proxy.callbackCell == self) {
 		[proxy prepareTableRowForReuse];
         [proxy setCallbackCell:nil];
@@ -111,9 +112,9 @@
 	// them go.
 
 	CGRect oldFrame = [[self contentView] frame];
-    CGSize cellSize = [self computeCellSize];
+	//CGSize cellSize = [self computeCellSize];
     
-	[[self contentView] setFrame:CGRectMake(oldFrame.origin.x, oldFrame.origin.y, cellSize.width, cellSize.height)];
+	[[self contentView] setFrame:CGRectMake(oldFrame.origin.x, oldFrame.origin.y, 0,0)];
 }
 
 - (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event 
@@ -1327,6 +1328,7 @@
     // NOTE: Because of how tableview row reloads are scheduled, we always need to do this
     // because of where the hide might be triggered from.
     
+    
     NSArray* visibleRows = [tableview indexPathsForVisibleRows];
     if ([visibleRows count] > 0)
         [tableview reloadRowsAtIndexPaths:visibleRows withRowAnimation:UITableViewRowAnimationNone];
@@ -1407,9 +1409,13 @@
 	// called when text starts editing
 	[self showSearchScreen:nil];
     searchActivated = YES;
-    [tableview reloadData];
+    [[searchController searchResultsTableView] reloadData];
 }
-
+/*
+ * This is no longer required since we do it from the 
+ * searchDisplayControllerDidEndSearch method
+ */
+/*
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
 {
     if (searchActivated && ([searchBar.text length] == 0)) {
@@ -1417,7 +1423,7 @@
         [tableview reloadData];
     }
 }
-
+*/
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
 {
 	[self setSearchString:searchText];
@@ -2466,11 +2472,10 @@ return result;	\
 
 #pragma mark Search Display Controller Delegates
 
-
 - (void) searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller
 {
     animateHide = YES;
-    [self hideSearchScreen:nil];
+    [self performSelector:@selector(hideSearchScreen:) withObject:nil afterDelay:0.2];
 }
 @end
 

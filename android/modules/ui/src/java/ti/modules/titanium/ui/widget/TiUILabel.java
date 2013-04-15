@@ -67,7 +67,7 @@ import android.text.style.UnderlineSpan;
 public class TiUILabel extends TiUIView
 {
 	private static final String TAG = "TiUILabel";
-	
+
 	private int defaultColor;
 	private boolean wordWrap = true;
 
@@ -123,6 +123,20 @@ public class TiUILabel extends TiUIView
 		private int maxLines;
 		private float lineSpacingMultiplier = 1.0f;
 		private float lineAdditionalVerticalPadding = 0.0f;
+		
+		@Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
+		{
+			// Only allow label to exceed the size of parent when it's size behavior with wordwrap disabled
+			if (!wordWrap && layoutParams.optionWidth == null && !layoutParams.autoFillsWidth) {
+				widthMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
+					MeasureSpec.UNSPECIFIED);
+				heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec),
+					MeasureSpec.UNSPECIFIED);
+			}
+
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		}
 
 		@Override
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)

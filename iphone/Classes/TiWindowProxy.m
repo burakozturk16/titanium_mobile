@@ -159,7 +159,10 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	{
 		frame = navController.view.frame;
 	}
-    TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:[self getInitFrameFromFrame:frame]];
+    else {
+        frame = [self getInitFrameFromFrame:frame];
+    }
+    TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
 	return [win autorelease];
 }
 
@@ -530,19 +533,19 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 }
 
 // Need this so we can overload the sandbox bounds on split view detail/master
--(void)determineSandboxBounds
-{
-    UIView * ourSuperview = [[self view] superview];
-    if(ourSuperview == nil)
-    {
-        //TODO: Should we even be relaying out? I guess so.
-        sandboxBounds = CGRectZero;
-    }
-    else
-    {
-        sandboxBounds = [self getInitFrameFromFrame:[ourSuperview bounds]];
-    }
-}
+//-(void)determineSandboxBounds
+//{
+//    UIView * ourSuperview = [[self view] superview];
+//    if(ourSuperview == nil)
+//    {
+//        //TODO: Should we even be relaying out? I guess so.
+//        sandboxBounds = CGRectZero;
+//    }
+//    else
+//    {
+//        sandboxBounds = [self getInitFrameFromFrame:[ourSuperview bounds]];
+//    }
+//}
 
 // We can't open properly in nav views since they handle all of the view
 // goofiness, and need to perform the prepatory steps that open: usually does.

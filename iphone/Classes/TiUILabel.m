@@ -181,6 +181,15 @@
 	[super didMoveToSuperview];
 }
 
+- (void)didMoveToWindow
+{
+    /*
+     * See above
+     */
+    [self setHighlighted:NO];
+    [super didMoveToWindow];
+}
+
 -(BOOL)isHighlighted
 {
     return [[self label] isHighlighted];

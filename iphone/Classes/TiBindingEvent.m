@@ -264,11 +264,11 @@ void TiBindingEventProcess(TiBindingRunLoop runloop, void * payload)
 
 			TiObjectSetProperty(context, eventObjectRef, jsEventSuccessStringRef, successValue, kTiPropertyAttributeReadOnly, NULL);
 			TiObjectSetProperty(context, eventObjectRef, jsEventErrorCodeStringRef, codeValue, kTiPropertyAttributeReadOnly, NULL);
+		}
 
-			if (event->errorMessageStringRef != NULL) {
-				TiValueRef eventStringValueRef = TiValueMakeString(context, event->eventStringRef);
-				TiObjectSetProperty(context, eventObjectRef, jsEventErrorMessageStringRef, eventStringValueRef, kTiPropertyAttributeReadOnly, NULL);
-			}
+		if (event->errorMessageStringRef != NULL) {
+			TiValueRef eventStringValueRef = TiValueMakeString(context, event->eventStringRef);
+			TiObjectSetProperty(context, eventObjectRef, jsEventErrorMessageStringRef, eventStringValueRef, kTiPropertyAttributeReadOnly, NULL);
 		}
 		
 		TiObjectSetProperty(context, eventObjectRef, jsEventCancelBubbleStringRef, cancelBubbleValue, kTiPropertyAttributeNone, NULL);

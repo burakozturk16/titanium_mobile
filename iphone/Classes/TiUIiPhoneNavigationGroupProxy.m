@@ -34,7 +34,7 @@
 	ENSURE_UI_THREAD(open, args);
 	[[[TiApp app] controller] dismissKeyboard];
 	NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
-	[[self view] performSelector:@selector(open:withObject:) withObject:window withObject:properties];
+	[[self getOrCreateView] performSelector:@selector(open:withObject:) withObject:window withObject:properties];
 }
 
 -(void)close:(NSArray*)args
@@ -62,7 +62,7 @@
 
 -(UINavigationController*)controller
 {
-	return [(TiUIiPhoneNavigationGroup*)[self view] controller];
+	return [(TiUIiPhoneNavigationGroup*)[self getOrCreateView] controller];
 }
 
 - (void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration

@@ -828,6 +828,11 @@ public abstract class TiUIView
 		if (nativeView != null && nativeView.hasFocus()) {
 			TiUIHelper.showSoftKeyboard(nativeView, false);
 			nativeView.clearFocus();
+			TiMessenger.postOnMain(new Runnable() {
+				public void run() {
+					TiUIHelper.showSoftKeyboard(nativeView, false);
+				}
+			});
 		}
 	}
 

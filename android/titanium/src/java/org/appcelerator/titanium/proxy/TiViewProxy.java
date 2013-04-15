@@ -462,12 +462,39 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		return forceCreateView(enableModelListener, true);
 	}
-
+ 
 	public TiUIView forceCreateView()
 	{
 		return forceCreateView(true);
 	}
 
+	/**
+	 * Transfer an existing view to this view proxy.
+	 * Special use in tableView. Do not use anywhere else.
+	 * Called from TiTableViewRowProxyItem.java
+	 * @param transferview - The view to transfer
+	 * @param oldProxy - The currentProxy of the view
+	 */
+	public void transferView(TiUIView transferview, TiViewProxy oldProxy) {
+		if(oldProxy != null) {
+			oldProxy.setView(null);
+			oldProxy.setModelListener(null);
+		}
+		view = transferview;
+		modelListener = transferview;
+		view.setProxy(this);
+	}
+	
+	/**
+	 * Creates or retrieves the view associated with this proxy.
+	 * @return a TiUIView instance.
+	 * @module.api
+	 */
+	public TiUIView getOrCreateView()
+	{
+		return getOrCreateView(true);
+	}
+	
 	public TiUIView getOrCreateView(boolean enableModelListener)
 	{
 		return getOrCreateView(enableModelListener, true);
@@ -484,16 +511,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 
 		return (TiUIView) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEW, (enableModelListener) ? 1 : 0, (processProperties) ? 1 : 0), 0);
-	}
-	
-	/**
-	 * Creates or retrieves the view associated with this proxy.
-	 * @return a TiUIView instance.
-	 * @module.api
-	 */
-	public TiUIView getOrCreateView()
-	{
-		return getOrCreateView(true);
 	}
 
 	protected TiUIView handleGetView(boolean enableModelListener)
@@ -1286,6 +1303,22 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		return peekView().getNativeView();
 	}
 	
+	/*
+	 * Check if the two proxies are compatible outerView wise
+	 */
+	private boolean checkBorderProps(TiViewProxy oldProxy, TiViewProxy newProxy){
+		KrollDict oldProperties = oldProxy.getProperties();
+		KrollDict newProperties = newProxy.getProperties();
+		boolean oldHasBorder = oldProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_COLOR) 
+				|| oldProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_RADIUS)
+				|| oldProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_WIDTH);
+		boolean newHasBorder = newProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_COLOR) 
+				|| newProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_RADIUS)
+				|| newProperties.containsKeyAndNotNull(TiC.PROPERTY_BORDER_WIDTH);
+
+		return (oldHasBorder == newHasBorder);
+	}
+	
 	public Boolean validateTransferToProxy(TiViewProxy newProxy, Boolean deep)
 	{
 		TiViewProxy oldProxy = this;
@@ -1297,10 +1330,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			return false;
 		}
 		
+		
 		if (peekView() == null){
 			return false;
 		}
 	    
+		if (!checkBorderProps(oldProxy, newProxy)) {
+			return false;
+		}
 		View ourView = oldProxy.getParent().parentViewForChild(oldProxy);
 		View parentView = (View)peekView().getNativeView().getParent();
 	    if (parentView != ourView)
