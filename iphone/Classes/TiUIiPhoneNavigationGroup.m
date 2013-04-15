@@ -54,7 +54,7 @@
 		[controller setDelegate:self];
 		[self addSubview:controller.view];
 		[windowProxy prepareForNavView:controller];
-		[controller.view addSubview:[windowProxy view]];
+		[controller.view addSubview:[windowProxy getOrCreateView]];
 		
 		root = windowProxy;
 //		[self setVisibleProxy:windowProxy];
