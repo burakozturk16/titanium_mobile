@@ -103,7 +103,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 	}];
     
 	[_templates release];
-	_templates = [args copy];
+	_templates = [templates copy];
 	[templates release];
 	if (_tableView != nil) {
 		[_tableView reloadData];

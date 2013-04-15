@@ -30,6 +30,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 			[listViewProxy rememberProxy:self];
 		}];
 		self.modelDelegate = self;
+        self.readyToCreateView = YES;
     }
     return self;
 }
