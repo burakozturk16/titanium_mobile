@@ -99,6 +99,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	if ((self = [super init]))
 	{
         readyToCreateView = YES;
+        opened = NO;
 	}
 	return self;
 }
@@ -154,6 +155,10 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 -(TiUIView*)newView
 {
     CGRect frame = [self appFrame];
+    if (navController!=nil)
+	{
+		frame = navController.view.frame;
+	}
     TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:[self getInitFrameFromFrame:frame]];
 	return [win autorelease];
 }
@@ -260,13 +265,13 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	closing = NO;
 	
 	//TODO: Since windowDidClose also calls detachView, is this necessary?
-	[self detachView];
+//	[self detachView];
 	// notify our child that his window is closing
-    NSArray* childProxies = [self children];
-	for (TiViewProxy *child in childProxies)
-	{
-		[child windowDidClose];
-	}
+//    NSArray* childProxies = [self children];
+//	for (TiViewProxy *child in childProxies)
+//	{
+//		[child windowDidClose];
+//	}
 	
 	RELEASE_TO_NIL(navController);
 	[self releaseController];
@@ -555,7 +560,6 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	
 	self.navController = navController_;
 	navWindow = YES;
-	[self getOrCreateView];
 	if ([self _handleOpen:nil])
 	{
 		[self windowReady];
@@ -756,7 +760,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
         rootView = [[TiApp app] controller].view;
     }
 
-    TiUIView *view_ = [self view];
+    TiUIView *view_ = [self getOrCreateView];
 	
     /*
      A modal window is by definition presented and should never be a subview of anything.
