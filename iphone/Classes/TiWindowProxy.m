@@ -562,6 +562,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 	}
 	
 	self.navController = navController_;
+    sandboxBounds = [self getInitFrameFromFrame:[self.navController.view bounds]];
 	navWindow = YES;
 	if ([self _handleOpen:nil])
 	{
