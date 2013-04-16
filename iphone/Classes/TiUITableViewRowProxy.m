@@ -283,7 +283,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
 	if (self = [super init]) {
 		reusable_ = YES;
-        readyToCreateView = NO;
 	}
 	return self;
 }

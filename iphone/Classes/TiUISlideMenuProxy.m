@@ -18,7 +18,7 @@
 {
 	if ((self = [super init]))
 	{
-        readyToCreateView = YES;
+        [self setDefaultReadyToCreateView:YES];
 	}
 	return self;
 }

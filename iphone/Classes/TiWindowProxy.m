@@ -98,7 +98,7 @@ TiOrientationFlags TiOrientationFlagsFromObject(id args)
 {
 	if ((self = [super init]))
 	{
-        readyToCreateView = YES;
+        [self setDefaultReadyToCreateView:YES];
         opened = NO;
 	}
 	return self;

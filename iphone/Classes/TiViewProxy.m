@@ -1136,6 +1136,12 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     }
 }
 
+//supposed to be called on init
+-(void)setDefaultReadyToCreateView:(BOOL)ready
+{
+    defaultReadyToCreateView = readyToCreateView = ready;
+}
+
 -(void)setReadyToCreateView:(BOOL)ready
 {
     [self setReadyToCreateView:YES recursive:YES];
@@ -1271,7 +1277,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     }
     
     if (newView == nil)
-        readyToCreateView = NO;
+        readyToCreateView = defaultReadyToCreateView;
     else {
         view = [newView retain];
         self.modelDelegate = newView;
@@ -1526,6 +1532,21 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 #pragma mark Building up and Tearing down
 
+-(void)resetDefaultValues
+{
+    autoresizeCache = UIViewAutoresizingNone;
+    sizeCache = CGRectZero;
+    sandboxBounds = CGRectZero;
+    positionCache = CGPointZero;
+    repositioning = NO;
+    parentVisible = NO;
+    viewInitialized = NO;
+    readyToCreateView = defaultReadyToCreateView;
+    windowOpened = NO;
+    windowOpening = NO;
+    dirtyflags = 0;
+}
+
 -(id)init
 {
 	if ((self = [super init]))
@@ -1533,9 +1554,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		destroyLock = [[NSRecursiveLock alloc] init];
 		pthread_rwlock_init(&childrenLock, NULL);
 		bubbleParent = YES;
-        viewInitialized = NO;
-        readyToCreateView = NO;
+        defaultReadyToCreateView = NO;
         hidden = NO;
+        [self resetDefaultValues];
 	}
 	return self;
 }
@@ -1702,7 +1723,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		[view removeFromSuperview];
 		view.proxy = nil;
         view.touchDelegate = nil;
-        readyToCreateView = NO;
 		RELEASE_TO_NIL(view);
 		[self viewDidDetach];
 	}
@@ -1713,6 +1733,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         self.modelDelegate = nil;
     }
 	[destroyLock unlock];
+    [self resetDefaultValues];
+
 }
 
 -(void)_destroy

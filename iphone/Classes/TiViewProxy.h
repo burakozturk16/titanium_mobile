@@ -105,6 +105,7 @@ enum
 		//And has nothing to do with whether or not it's onscreen or
     
     BOOL readyToCreateView;
+    BOOL defaultReadyToCreateView;
 
 #pragma mark Parent/Children relationships
 	TiViewProxy *parent;
@@ -230,6 +231,7 @@ enum
 -(void)setBackgroundGradient:(id)arg;
 -(TiBlob*)toImage:(id)args;
 
+-(void)setDefaultReadyToCreateView:(BOOL)ready;
 //this is for the tableview magic. For any other view, will be set when
 //added to a parent which is already ready
 -(void)setReadyToCreateView:(BOOL)ready;

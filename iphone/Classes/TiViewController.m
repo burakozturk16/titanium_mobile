@@ -26,15 +26,11 @@
     [super dealloc];
 }
 
--(UIView*)view
-{
-	return [proxy view];
-}
-
 -(void)loadView
 {
 	self.view = [proxy view];
 }
+
 @synthesize proxy;
 
 - (BOOL)shouldAutorotate{

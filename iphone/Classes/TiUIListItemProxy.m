@@ -30,7 +30,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 			[listViewProxy rememberProxy:self];
 		}];
 		self.modelDelegate = self;
-        self.readyToCreateView = YES;
+        [self setDefaultReadyToCreateView:YES];
     }
     return self;
 }
@@ -43,6 +43,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 		[self windowWillOpen];
 		[self windowDidOpen];
 		[self willShow];
+        [self setDefaultReadyToCreateView:YES];
     }
     return self;
 }
