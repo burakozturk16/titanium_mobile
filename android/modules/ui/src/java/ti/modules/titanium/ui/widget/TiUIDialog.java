@@ -131,11 +131,11 @@ public class TiUIDialog extends TiUIView
 
 	private void setButtonsListeners(AlertDialog dialog){
 		Button button = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-		if (button!= null )button.setOnClickListener(new ClickHandler(DialogInterface.BUTTON_POSITIVE | BUTTON_MASK));
+		if (button!= null )button.setOnClickListener(new ClickHandler(0 | BUTTON_MASK));
 		button = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
-		if (button!= null )button.setOnClickListener(new ClickHandler(DialogInterface.BUTTON_NEGATIVE | BUTTON_MASK));
+		if (button!= null )button.setOnClickListener(new ClickHandler(2 | BUTTON_MASK));
 		button = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
-		if (button!= null )button.setOnClickListener(new ClickHandler(DialogInterface.BUTTON_NEUTRAL | BUTTON_MASK));
+		if (button!= null )button.setOnClickListener(new ClickHandler(1 | BUTTON_MASK));
 	}
 
 	private void processButtons(String[] buttonText)
