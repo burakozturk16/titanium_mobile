@@ -11,6 +11,24 @@
 static NSCondition* alertCondition;
 static BOOL alertShowing = NO;
 
+@interface TiAlertView : UIAlertView {
+}
+@property(nonatomic, readwrite) BOOL hideOnClick;
+@end
+
+
+@implementation TiAlertView
+@synthesize hideOnClick;
+
+-(void)dismissWithClickedButtonIndex:(NSInteger)buttonIndex animated:(BOOL)animated {
+    if (!hideOnClick)
+        return;
+    [super dismissWithClickedButtonIndex:buttonIndex animated:animated];
+}
+
+@end
+
+
 @implementation TiUIAlertDialogProxy
 
 -(void)_destroy
@@ -111,9 +129,12 @@ static BOOL alertShowing = NO;
 			[buttonNames addObject:ok];
 		}
 		persistentFlag = [TiUtils boolValue:[self valueForKey:@"persistent"] def:NO];
-		alert = [[UIAlertView alloc] initWithTitle:[TiUtils stringValue:[self valueForKey:@"title"]]
+		hideOnClick = [TiUtils boolValue:[self valueForKey:@"hideOnClick"] def:YES];
+		alert = [[TiAlertView alloc] initWithTitle:[TiUtils stringValue:[self valueForKey:@"title"]]
 												message:[TiUtils stringValue:[self valueForKey:@"message"]] 
 												delegate:self cancelButtonTitle:nil otherButtonTitles:nil];
+        ((TiAlertView*)alert).hideOnClick = hideOnClick;
+        
 		for (id btn in buttonNames)
 		{
 			NSString * thisButtonName = [TiUtils stringValue:btn];
@@ -182,9 +203,10 @@ static BOOL alertShowing = NO;
 	}
 }
 
+
 -(void)alertViewCancel:(UIAlertView *)alertView
 {
-    if (!persistentFlag) {
+    if (!persistentFlag && hideOnClick) {
         [self hide:[NSDictionary dictionaryWithObject:NUMBOOL(NO) forKey:@"animated"]];
     }
 }
