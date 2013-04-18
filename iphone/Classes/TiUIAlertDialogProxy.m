@@ -84,6 +84,7 @@ static BOOL alertShowing = NO;
 		//Remove ourselves as the delegate. This ensures didDismissWithButtonIndex is not called on dismissWithClickedButtonIndex
 		[alert setDelegate:nil];
 		BOOL animated = [TiUtils boolValue:@"animated" properties:args def:YES];
+        ((TiAlertView*)alert).hideOnClick = true; //to make sure we can close now!
 		[alert dismissWithClickedButtonIndex:[alert cancelButtonIndex] animated:animated];
 		[self cleanup];
 	}
