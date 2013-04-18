@@ -1259,6 +1259,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_HIDE_ON_CLICK = "hideOnClick";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_HIGHLIGHTED_COLOR = "highlightedColor";
 
 	/**
