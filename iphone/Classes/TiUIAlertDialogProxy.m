@@ -31,6 +31,12 @@ static BOOL alertShowing = NO;
 
 @implementation TiUIAlertDialogProxy
 
+-(void)_configure
+{
+	[self setValue:NUMBOOL(YES) forKey:@"hideOnClick"];
+	[super _configure];
+}
+
 -(void)_destroy
 {
     if (alert != nil) {
@@ -61,6 +67,7 @@ static BOOL alertShowing = NO;
 		[alertCondition lock];
 		alertShowing = NO;
         persistentFlag = NO;
+        hideOnClick = YES;
 		[alertCondition broadcast];
 		[alertCondition unlock];
 		[self forgetSelf];
