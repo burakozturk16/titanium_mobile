@@ -528,7 +528,7 @@ public class TiCompositeLayout extends ViewGroup
 		return resolveSize(maxHeight, heightSpec);
 	}
 	
-	public int getChidSize(View child, TiCompositeLayout.LayoutParams params, int left, int top, int bottom, int right , int currentHeight, int[] horizontal, int[] vertical)
+	public int getChildSize(View child, TiCompositeLayout.LayoutParams params, int left, int top, int bottom, int right , int currentHeight, int[] horizontal, int[] vertical)
 	{
 		
 		if (child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
@@ -593,7 +593,7 @@ public class TiCompositeLayout extends ViewGroup
 							
 				if (targetChild == child)
 				{
-					currentHeight = getChidSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
+					currentHeight = getChildSize(child, params, left, top, bottom, right, currentHeight, horizontal, vertical);				
 					childH[0] = horizontal[0];
 					childH[1]= horizontal[1];
 					childV[0] = vertical[0];
@@ -602,7 +602,7 @@ public class TiCompositeLayout extends ViewGroup
 				}
 				else
 				{
-					currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams)child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
+					currentHeight = getChildSize(child, (TiCompositeLayout.LayoutParams)child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
 				}
 				int newWidth = horizontal[1] - horizontal[0];
 				int newHeight = vertical[1] - vertical[0];
@@ -657,7 +657,7 @@ public class TiCompositeLayout extends ViewGroup
 			if (child == null || child.getVisibility() == View.GONE || child.getVisibility() == View.INVISIBLE)
 				continue;
 				
-				currentHeight = getChidSize(child, (TiCompositeLayout.LayoutParams) child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
+				currentHeight = getChildSize(child, (TiCompositeLayout.LayoutParams) child.getLayoutParams(), left, top, bottom, right, currentHeight, horizontal, vertical);				
 				
 				if (!TiApplication.getInstance().isRootActivityAvailable()) {
 					Activity currentActivity = TiApplication.getAppCurrentActivity();
