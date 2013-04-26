@@ -33,6 +33,7 @@ public class TiUISwitch extends TiUIView
 	private static final String TAG = "TiUISwitch";
 	
 	private boolean oldValue = false;
+	private int style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
 	
 	public TiUISwitch(TiViewProxy proxy) {
 		super(proxy);
@@ -47,7 +48,7 @@ public class TiUISwitch extends TiUIView
 		super.processProperties(d);
 
 		if (d.containsKey(TiC.PROPERTY_STYLE)) {
-			setStyle(TiConvert.toInt(d.get(TiC.PROPERTY_STYLE), AndroidModule.SWITCH_STYLE_TOGGLEBUTTON));
+			setStyle(TiConvert.toInt(d.get(TiC.PROPERTY_STYLE), style));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_VALUE)) {
@@ -165,6 +166,7 @@ public class TiUISwitch extends TiUIView
 	{
 		CompoundButton currentButton = (CompoundButton) getNativeView();
 		CompoundButton button = null;
+		this.style = style;
 
 		switch (style) {
 			case AndroidModule.SWITCH_STYLE_CHECKBOX:
