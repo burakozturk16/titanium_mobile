@@ -89,19 +89,25 @@ public class AndroidModule extends KrollModule
 	public AndroidModule()
 	{
 		super();
-		loadDefaultPreferences(TiPreferencesActivity.DEFAULT_PREFS_RNAME);
 	}
 
 	public AndroidModule(TiContext tiContext) 
 	{
 		this();
 	}
+	
+	@Override
+	protected void initActivity(Activity activity)
+	{
+		super.initActivity(activity);
+		loadDefaultPreferences(TiPreferencesActivity.DEFAULT_PREFS_RNAME);
+	}
+	
 	private void loadDefaultPreferences(String prefsName)
 	{
-		Activity currentActivity = TiApplication.getAppCurrentActivity();
 		try {
 			int resid = TiRHelper.getResource("xml." + prefsName);
-			PreferenceManager.setDefaultValues(currentActivity, TiApplication.APPLICATION_PREFERENCES_NAME, Context.MODE_PRIVATE, resid, true);
+			PreferenceManager.setDefaultValues(TiApplication.getInstance().getBaseContext(), TiApplication.APPLICATION_PREFERENCES_NAME, Context.MODE_PRIVATE, resid, true);
 		} catch (TiRHelper.ResourceNotFoundException e) {
 			Log.d(TAG, "xml." + prefsName + " preferences not found.");
 			return ;
@@ -112,7 +118,6 @@ public class AndroidModule extends KrollModule
 	@Kroll.method
 	public void loadPreferences(@Kroll.argument(optional=true) String prefsName)
 	{
-		Activity currentActivity = TiApplication.getAppCurrentActivity();
 		String prefsFileName = TiPreferencesActivity.DEFAULT_PREFS_RNAME;
 		if (prefsName != null) {
 			prefsFileName = prefsName;
