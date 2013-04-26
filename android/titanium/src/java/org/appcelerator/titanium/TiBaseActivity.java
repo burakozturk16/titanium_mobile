@@ -142,6 +142,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (!isEmpty) {
 			proxy.onWindowFocusChange(true);
 		}
+		
+		updateTitle(proxy);
 	}
 
 	public void removeWindowFromStack(TiWindowProxy proxy)
@@ -150,12 +152,21 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 		boolean isTopWindow = ( (!windowStack.isEmpty()) && (windowStack.peek() == proxy) ) ? true : false;
 		windowStack.remove(proxy);
-
-		//Fire focus only if activity is not paused and the removed window was topWindow
-		if (!windowStack.empty() && isResumed && isTopWindow) {
+		
+		if (!windowStack.empty()) {
 			TiWindowProxy nextWindow = windowStack.peek();
-			nextWindow.onWindowFocusChange(true);
+			updateTitle(nextWindow);
+			//Fire focus only if activity is not paused and the removed window was topWindow
+			if (isResumed && isTopWindow) {
+				nextWindow.onWindowFocusChange(true);
+				updateTitle(proxy);
+			}
 		}
+		else
+		{
+			updateTitle(this.window);
+		}
+		
 	}
 
 	/**
@@ -213,7 +224,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		this.window = proxy;
 		setLayoutProxy(proxy);
-		updateTitle();
+		updateTitle(this.window);
 	}
 
 	/**
@@ -336,13 +347,13 @@ public abstract class TiBaseActivity extends FragmentActivity
 	}
 
 
-	protected void updateTitle()
+	protected void updateTitle(TiWindowProxy proxy)
 	{
-		if (window == null) return;
+		if (proxy == null) return;
 
-		if (window.hasProperty(TiC.PROPERTY_TITLE)) {
+		if (proxy.hasProperty(TiC.PROPERTY_TITLE)) {
 			String oldTitle = (String) getTitle();
-			String newTitle = TiConvert.toString(window.getProperty(TiC.PROPERTY_TITLE));
+			String newTitle = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_TITLE));
 
 			if (oldTitle == null) {
 				oldTitle = "";
@@ -1004,7 +1015,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 			return;
 		}
 
-		updateTitle();
+		updateTitle(this.window);
 
 		if (activityProxy != null) {
 			// we only want to set the current activity for good in the resume state but we need it right now.
