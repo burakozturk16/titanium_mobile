@@ -1176,6 +1176,14 @@ public abstract class TiBaseActivity extends FragmentActivity
 			view.releaseViews();
 			view = null;
 		}
+		
+		if (!windowStack.isEmpty()) {
+			Iterator itr = windowStack.iterator();
+		    while( itr.hasNext() ) {
+		        TiWindowProxy window = (TiWindowProxy)itr.next();
+		        window.closeFromActivity();
+		    }
+		}
 
 		if (window != null) {
 			window.closeFromActivity();

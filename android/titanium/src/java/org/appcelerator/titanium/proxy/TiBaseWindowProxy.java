@@ -47,6 +47,7 @@ public class TiBaseWindowProxy extends TiWindowProxy
 			TiBaseActivity baseActivity = (TiBaseActivity)topActivity;
 			hostActivity = new WeakReference<TiBaseActivity>(baseActivity);
 			baseActivity.addWindowToStack(this);
+			this.opened = true;
 		}
 	}
 	
@@ -57,6 +58,7 @@ public class TiBaseWindowProxy extends TiWindowProxy
 		TiBaseActivity activity = (hostActivity != null) ? hostActivity.get() : null;
 		if (activity != null) {
 			activity.removeWindowFromStack(this);
+			this.opened = false;
 		}
 	}
 
