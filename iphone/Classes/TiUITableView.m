@@ -1894,12 +1894,15 @@ return result;	\
 	// the classname for all rows that have the same substainal layout will be the same
 	// we reuse them for speed
 	UITableViewCell *cell = [ourTableView dequeueReusableCellWithIdentifier:row.tableClass];
+
 	if (cell == nil)
 	{
 		cell = [self createCellForRow:row];
 	}
 	else
 	{
+        //Ensure that the row is detached if reusing cells did not do so.
+        [row prepareTableRowForReuse];
         // Have to reset the proxy on the cell, and the row's callback cell, as it may have been cleared in reuse operations (or reassigned)
         [(TiUITableViewCell*)cell setProxy:row];
         [row setCallbackCell:(TiUITableViewCell*)cell];

@@ -999,7 +999,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(void)triggerRowUpdate
 {	
-	if ([self isAttached] && !modifyingRow && !attaching)
+	if ([self isAttached] && self.viewAttached && !modifyingRow && !attaching)
 	{
 		if (OSAtomicTestAndSetBarrier(NEEDS_UPDATE_ROW, &dirtyRowFlags)) {
 			return;

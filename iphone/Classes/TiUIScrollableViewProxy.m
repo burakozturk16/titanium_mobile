@@ -169,7 +169,17 @@
 	[self makeViewPerformSelector:@selector(scrollToView:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(BOOL)animating
+-(void) willChangeSize
+{
+    //Ensure the size change signal goes to children 
+    NSArray *curViews = [self views];
+    for (TiViewProxy *child in curViews) {
+        [child parentSizeWillChange];
+    }
+    [super willChangeSize];
+}
+
+-(void)childWillResize:(TiViewProxy *)child
 {
 	BOOL hasChild = [[self children] containsObject:child];
 
