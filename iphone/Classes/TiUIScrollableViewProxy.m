@@ -179,7 +179,7 @@
     [super willChangeSize];
 }
 
--(void)childWillResize:(TiViewProxy *)child
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
 {
 	BOOL hasChild = [[self children] containsObject:child];
 
@@ -188,7 +188,7 @@
 		return;
 		//In the case of views added with addView, as they are not part of children, they should be ignored.
 	}
-	[super childWillResize:child withinAnimation:animating];
+	[super childWillResize:child withinAnimation:animation];
 }
 
 -(TiViewProxy *)viewAtIndex:(int)index
