@@ -30,6 +30,7 @@ import android.os.Message;
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 	TiC.PROPERTY_HEADER_TITLE,
 	TiC.PROPERTY_FOOTER_TITLE,
+	TiC.PROPERTY_TEMPLATES,
 	TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE,
 	TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 	TiC.PROPERTY_SECTIONS
@@ -62,6 +63,8 @@ public class ListViewProxy extends TiViewProxy {
 		super.handleCreationArgs(createdInModule, args);
 		
 	}
+
+	@Override
 	public void handleCreationDict(KrollDict options) {
 		super.handleCreationDict(options);
 		//Adding sections to preload sections, so we can handle appendSections/insertSection
