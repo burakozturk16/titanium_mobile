@@ -877,12 +877,12 @@ public class TiCompositeLayout extends ViewGroup
 			// this method) will be adjusted to undefined behavior accordingly during the layout phase.
 			// sizeOrFillHeightEnabled is used during the layout phase to determine whether we want to use the fill/size
 			// measurements that we got from the measure phase.
-			if (currentParams.autoFillsWidth && currentParams.optionWidth == null && conflicts[0] == NOT_SET) {
-				conflicts[0] = HAS_SIZE_FILL_CONFLICT;
-			}
-			if (currentParams.autoFillsHeight && currentParams.optionHeight == null && conflicts[1] == NOT_SET) {
-				conflicts[1] = HAS_SIZE_FILL_CONFLICT;
-			}
+//			if (currentParams.autoFillsWidth && currentParams.optionWidth == null && conflicts[0] == NOT_SET) {
+//				conflicts[0] = HAS_SIZE_FILL_CONFLICT;
+//			}
+//			if (currentParams.autoFillsHeight && currentParams.optionHeight == null && conflicts[1] == NOT_SET) {
+//				conflicts[1] = HAS_SIZE_FILL_CONFLICT;
+//			}
 
 			// Stop traversing if we've determined whether there is a conflict for both width and height
 			if (conflicts[0] != NOT_SET && conflicts[1] != NOT_SET) {
