@@ -185,22 +185,22 @@ tabGroup.addEventListener('open', function(e)
 });
 
 // focus event listener for tracking tab changes
-tabGroup.addEventListener('focus', function(e)
-{
-	messageLabel.text = 'tab changed to ' + e.index + ' old index ' + e.previousIndex;
-	messageWin.open();
-	setTimeout(function()
-	{
-		Ti.API.info('tab ' + e.tab.title  + ' prevTab = ' + (e.previousTab ? e.previousTab.title : null));
-		messageLabel.text = 'active title ' + e.tab.title + ' old title ' + (e.previousTab ? e.previousTab.title : null);
-	},1000);
-
-	setTimeout(function()
-	{
-		messageWin.close({opacity:0,duration:500});
-	},2000);
-
-});
+// tabGroup.addEventListener('focus', function(e)
+// {
+	// messageLabel.text = 'tab changed to ' + e.index + ' old index ' + e.previousIndex;
+	// messageWin.open();
+	// setTimeout(function()
+	// {
+		// Ti.API.info('tab ' + e.tab.title  + ' prevTab = ' + (e.previousTab ? e.previousTab.title : null));
+		// messageLabel.text = 'active title ' + e.tab.title + ' old title ' + (e.previousTab ? e.previousTab.title : null);
+	// },1000);
+//
+	// setTimeout(function()
+	// {
+		// messageWin.close({opacity:0,duration:500});
+	// },2000);
+//
+// });
 
 // blur event listener for tracking tab changes
 tabGroup.addEventListener('blur', function(e)
@@ -370,7 +370,7 @@ if (isiOS4Plus())
 	var service = Ti.App.iOS.registerBackgroundService({url:'bg.js'});
 
 	Ti.API.info("registered background service = "+service);
-	
+
 	if(Ti.App.getArguments().url)
 	{
 		alert(Ti.App.getArguments().url);
