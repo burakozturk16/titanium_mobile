@@ -4,6 +4,7 @@ win.barColor = '#385292';
 // CREATE SEARCH BAR
 //
 var search = Titanium.UI.createSearchBar({
+	height:80,
 	barColor:'#385292',
 	showCancel:false
 });

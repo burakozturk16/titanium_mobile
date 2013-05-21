@@ -330,12 +330,15 @@ function getData(){
 	 client.send(); 
 }
 
+if (isandroid === false) {
 var more = Titanium.UI.createButton({
 	systemButton:Titanium.UI.iPhone.SystemButton.ADD
 });
 
 more.addEventListener('click', loadNextPage);
 
+
 win.setRightNavButton(more);
+}
  
 getData();

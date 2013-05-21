@@ -1,5 +1,5 @@
 var win = Ti.UI.currentWindow;
-
+win.backgroundColor = 'white';
 var tableView = Ti.UI.createTableView();
 var toolbar = createToolbar();
 var data = [];
