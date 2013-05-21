@@ -613,6 +613,45 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     return [rect autorelease];
 }
 
+-(TiRect*)absoluteRect
+{
+    TiRect *rect = [[TiRect alloc] init];
+	if ([self viewAttached]) {
+        __block CGRect viewRect;
+        __block CGPoint viewPosition;
+        __block CGAffineTransform viewTransform;
+        __block CGPoint viewAnchor;
+        TiThreadPerformOnMainThread(^{
+            TiUIView * ourView = [self view];
+            viewRect = [ourView bounds];
+            viewPosition = [ourView center];
+            viewTransform = [ourView transform];
+            viewAnchor = [[ourView layer] anchorPoint];
+            viewRect.origin = CGPointMake(-viewAnchor.x*viewRect.size.width, -viewAnchor.y*viewRect.size.height);
+            viewRect = CGRectApplyAffineTransform(viewRect, viewTransform);
+            viewRect.origin.x += viewPosition.x;
+            viewRect.origin.y += viewPosition.y;
+            viewRect.origin = [ourView convertPoint:CGPointZero toView:nil];
+            if (![[UIApplication sharedApplication] isStatusBarHidden])
+            {
+                CGRect statusFrame = [[UIApplication sharedApplication] statusBarFrame];
+                viewRect.origin.y -= statusFrame.size.height;
+            }
+            
+        }, YES);
+        [rect setRect:viewRect];
+        
+        id defaultUnit = [[NSUserDefaults standardUserDefaults] objectForKey:@"ti.ui.defaultunit"];
+        if ([defaultUnit isKindOfClass:[NSString class]]) {
+            [rect convertToUnit:defaultUnit];
+        }
+    }
+    else {
+        [rect setRect:CGRectZero];
+    }
+    return [rect autorelease];
+}
+
 -(id)zIndex
 {
     return [self valueForUndefinedKey:@"zindex_"];
