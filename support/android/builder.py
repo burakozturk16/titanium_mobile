@@ -2249,6 +2249,7 @@ class Builder(object):
 					(self.fastdev and not built_all_modules) or \
 					(not self.fastdev and built_all_modules):
 				self.android.config['compile_js'] = self.compile_js
+				self.android.config['appversion'] = self.tiapp.properties['version']
 				trace("Generating Java Classes")
 				self.android.create(os.path.abspath(os.path.join(self.top_dir,'..')),
 					True, project_dir = self.top_dir, include_all_ti_modules=include_all_ti_modules)
