@@ -2534,24 +2534,20 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	IGNORE_IF_NOT_OPENED
 	
-	// if not attached, ignore layout
-	if ([self viewAttached])
-	{
-		// if not visible, ignore layout
-		if (view.hidden)
-		{
-			OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
-			return;
-		}
-		
-		[self refreshView:nil];
+    // if not visible, ignore layout
+    if (view.hidden)
+    {
+        OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
+        return;
+    }
+    
+    [self refreshView:nil];
 
-		BOOL wasSet=OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags);
-		if (wasSet && [self viewAttached])
-		{
-			[self layoutChildren:NO];
-		}
-	}
+    BOOL wasSet=OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags);
+    if (wasSet && [self viewAttached])
+    {
+        [self layoutChildren:NO];
+    }
 }
 
 -(BOOL)willBeRelaying
