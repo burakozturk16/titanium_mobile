@@ -934,6 +934,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	configuredChildren = YES;
     //now we are ready to create views!
     [self setReadyToCreateView:YES recursive:NO];
+    [self fakeOpening];
 }
 
 -(void)initializeTableViewCell:(UITableViewCell*)cell
