@@ -33,6 +33,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.util.DisplayMetrics;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Handler;
@@ -110,6 +111,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	private static final int MSG_FINISH_LAYOUT = MSG_FIRST_ID + 112;
 	private static final int MSG_UPDATE_LAYOUT = MSG_FIRST_ID + 113;
 	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 114;
+	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 115;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -335,6 +337,40 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 				result.setResult(d);
 				return true;
 			}
+			case MSG_GETABSRECT: {
+				AsyncResult result = (AsyncResult) msg.obj;
+				KrollDict d = null;
+				d = new KrollDict();
+				if (view != null) {
+					View v = view.getOuterView();
+					if (v != null) {
+						int position[] = new int[2];
+						v.getLocationOnScreen(position);
+
+						View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
+
+						DisplayMetrics dm = new DisplayMetrics();
+						TiApplication.getAppCurrentActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
+
+						int topOffset = dm.heightPixels - decorView.getMeasuredHeight();
+						position[1] -= topOffset; //we remove statusbar height 
+
+						d.put(TiC.PROPERTY_WIDTH, v.getMeasuredWidth());
+						d.put(TiC.PROPERTY_HEIGHT, v.getMeasuredHeight());
+						d.put(TiC.PROPERTY_X, position[0]);
+						d.put(TiC.PROPERTY_Y, position[1]);
+					}
+				}
+				if (!d.containsKey(TiC.PROPERTY_WIDTH)) {
+					d.put(TiC.PROPERTY_WIDTH, 0);
+					d.put(TiC.PROPERTY_HEIGHT, 0);
+					d.put(TiC.PROPERTY_X, 0);
+					d.put(TiC.PROPERTY_Y, 0);
+				}
+
+				result.setResult(d);
+				return true;
+			}
 			case MSG_FINISH_LAYOUT : {
 				handleFinishLayout();
 				return true;
@@ -362,6 +398,12 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	public KrollDict getRect()
 	{
 		return (KrollDict) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETRECT), getActivity());
+	}
+
+	@Kroll.getProperty @Kroll.method
+	public KrollDict getAbsoluteRect()
+	{
+		return (KrollDict) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETABSRECT), getActivity());
 	}
 
 	@Kroll.getProperty @Kroll.method
