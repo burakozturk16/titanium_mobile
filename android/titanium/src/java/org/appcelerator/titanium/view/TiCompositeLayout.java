@@ -981,6 +981,17 @@ public class TiCompositeLayout extends ViewGroup
 			sizeOrFillHeightEnabled = params.sizeOrFillHeightEnabled;
 			sizeOrFillWidthEnabled = params.sizeOrFillWidthEnabled;
 		}
+		
+
+		public boolean autoSizeHeight(){
+			return ((!this.sizeOrFillHeightEnabled && !this.autoFillsHeight && this.optionHeight == null)
+			|| (this.sizeOrFillHeightEnabled && !this.autoFillsHeight));
+		}
+		
+		public boolean autoSizeWidth(){
+			return ((!this.sizeOrFillWidthEnabled && !this.autoFillsWidth && this.optionWidth == null)
+					|| (this.sizeOrFillWidthEnabled && !this.autoFillsWidth));
+		}
 	}
 
 	protected boolean isVerticalArrangement()

@@ -247,15 +247,7 @@ public abstract class TiUIView
 		return layoutParams;
 	}
 	
-	protected boolean autoSizeHeight(){
-		return ((!layoutParams.sizeOrFillHeightEnabled && !layoutParams.autoFillsHeight && layoutParams.optionHeight == null)
-		|| (layoutParams.sizeOrFillHeightEnabled && !layoutParams.autoFillsHeight));
-	}
 	
-	protected boolean autoSizeWidth(){
-		return ((!layoutParams.sizeOrFillWidthEnabled && !layoutParams.autoFillsWidth && layoutParams.optionWidth == null)
-				|| (layoutParams.sizeOrFillWidthEnabled && !layoutParams.autoFillsWidth));
-	}
 	
 	//This handler callback is tied to the UI thread.
 	public boolean handleMessage(Message msg)

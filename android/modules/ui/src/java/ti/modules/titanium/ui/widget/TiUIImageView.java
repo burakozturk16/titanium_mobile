@@ -772,10 +772,10 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		}
 
 //		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
-			view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
+			view.setWidthDefined(!(layoutParams.autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
 //		}
 //		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
-			view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
+			view.setHeightDefined(!(layoutParams.autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 //		}
 
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
@@ -861,9 +861,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 			if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_LEFT) || key.equals(TiC.PROPERTY_RIGHT)) {
-				view.setWidthDefined(!(autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
+				view.setWidthDefined(!(layoutParams.autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
 			} else if (key.equals(TiC.PROPERTY_HEIGHT) || key.equals(TiC.PROPERTY_TOP) || key.equals(TiC.PROPERTY_BOTTOM)) {
-				view.setHeightDefined(!(autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
+				view.setHeightDefined(!(layoutParams.autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 			}
 		}
 	}
@@ -981,11 +981,11 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private void setWantedScaleType(int type){
 		TiImageView view = getView();
 		if (view == null) return;
-		ScaleType result = ScaleType.FIT_CENTER;
+		ScaleType result = ScaleType.FIT_XY;
 		switch (type)
 		{
 			case 1:
-				result = ScaleType.CENTER_INSIDE;
+				result = ScaleType.FIT_CENTER;
 				break;
 			case 2:
 				result = ScaleType.CENTER_CROP;
