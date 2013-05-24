@@ -504,6 +504,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 					h = Math.max(h, minRowHeight);
 				} else {
 					h = Math.max(minRowHeight, height.getAsPixels(this));
+					content.getLayoutParams().height = h;
 				}
 
 				if (Log.isDebugModeEnabled()) {
