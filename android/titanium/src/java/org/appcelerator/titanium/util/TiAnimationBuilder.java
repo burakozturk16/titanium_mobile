@@ -624,6 +624,11 @@ public class TiAnimationBuilder
 
 			view.setLayoutParams(params);
 		}
+		
+		@Override
+		public boolean willChangeBounds() {
+		    return true;
+		}
 	}
 
 	public static class TiMatrixAnimation extends Animation
