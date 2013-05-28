@@ -585,8 +585,10 @@ enum
 
 -(void)reposition;	//Todo: Replace
 -(void)repositionWithinAnimation:(TiAnimation*)animation;
-
--(BOOL)willBeRelaying;	//Todo: Replace
+/**
+ Tells if the view is enqueued in the LayoutQueue
+ */
+-(BOOL)willBeRelaying;
 
 -(BOOL) widthIsAutoFill;
 -(BOOL) widthIsAutoSize;

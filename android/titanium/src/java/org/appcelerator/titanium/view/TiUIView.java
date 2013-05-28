@@ -135,6 +135,8 @@ public abstract class TiUIView
 
 	//to maintain sync visibility between borderview and view. Default is visible
 	private int visibility = View.VISIBLE;
+	
+	protected GestureDetector detector = null;
 
 	protected Handler handler;
 	
@@ -340,17 +342,16 @@ public abstract class TiUIView
 		if (animBuilder == null) {
 			animBuilder = new TiAnimationBuilder();
 		}
-		View v = getOuterView();
-		if (v != null) {
+		View outerView = getOuterView();
+		if (outerView != null) {
 			if (timatrix != null) {
 				TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(timatrix);
 				matrixAnimation.interpolate = false;
-
-				matrixAnimation.setDuration(1);
+				matrixAnimation.setDuration(0);
 				matrixAnimation.setFillAfter(true);
-				v.startAnimation(matrixAnimation);
+				outerView.startAnimation(matrixAnimation);
 			} else {
-				v.clearAnimation();
+				outerView.clearAnimation();
 			}
 		}
 	}
@@ -1118,7 +1119,7 @@ public abstract class TiUIView
 				}
 			});
 
-		final GestureDetector detector = new GestureDetector(touchable.getContext(), new SimpleOnGestureListener()
+		detector = new GestureDetector(touchable.getContext(), new SimpleOnGestureListener()
 		{
 			@Override
 			public boolean onDoubleTap(MotionEvent e)

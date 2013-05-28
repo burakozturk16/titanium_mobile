@@ -7,13 +7,15 @@
 #ifdef USE_TI_UILISTVIEW
 
 #import "TiUIView.h"
+#import "TiUIListViewProxy.h"
 
-@interface TiUIListView : TiUIView <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate, TiScrolling >
+@interface TiUIListView : TiUIView <UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate, TiScrolling, TiProxyObserver >
 
 #pragma mark - Private APIs
 
 @property (nonatomic, readonly) UITableView *tableView;
 
+- (void)setContentInsets_:(id)value withObject:(id)props;
 - (void)deselectAll:(BOOL)animated;
 
 + (UITableViewRowAnimation)animationStyleForProperties:(NSDictionary*)properties;

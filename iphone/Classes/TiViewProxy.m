@@ -420,28 +420,17 @@ static NSSet* transferableProps = nil;
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
-    
-    if ([self view])
-    {
-        newAnimation.delegate = [self animationDelegate];
-        [self rememberProxy:newAnimation];
-        TiThreadPerformOnMainThread(^{
-            [parent contentsWillChange];
-            if ([view superview]==nil)
-            {
-                VerboseLog(@"Entering animation without a superview Parent is %@, props are %@",parent,dynprops);
-                [parent childWillResize:self];
-            }
-            [self windowWillOpen]; // we need to manually attach the window if you're animating
-            [parent layoutChildrenIfNeeded];
-            [[self view] animate:newAnimation];
-        }, NO);
-    }
-    else
-    {
-        //in tableview magic the view might not exist so let s go directly to the finish line!
-        [newAnimation simulateFinish:self];
-    }
+	[self rememberProxy:newAnimation];
+	TiThreadPerformOnMainThread(^{
+		if ([view superview]==nil)
+		{
+			VerboseLog(@"Entering animation without a superview Parent is %@, props are %@",parent,dynprops);
+			[parent childWillResize:self];
+		}
+		[self windowWillOpen]; // we need to manually attach the window if you're animating
+		[parent layoutChildrenIfNeeded];
+		[[self view] animate:newAnimation];
+	}, NO);
 }
 
 -(void)setAnimation:(id)arg
@@ -1592,6 +1581,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	{
 		destroyLock = [[NSRecursiveLock alloc] init];
 		pthread_rwlock_init(&childrenLock, NULL);
+		_bubbleParent = YES;
         defaultReadyToCreateView = NO;
         hidden = NO;
         [self resetDefaultValues];
@@ -2552,7 +2542,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(BOOL)willBeRelaying
 {
-	return dirtyflags != 0;
+    DebugLog(@"DIRTY FLAGS %d WILLBERELAYING %d",dirtyflags, (*((char*)&dirtyflags) & (1 << (7 - TiRefreshViewEnqueued))));
+    return ((*((char*)&dirtyflags) & (1 << (7 - TiRefreshViewEnqueued))) != 0);
 }
 
 -(void)childWillResize:(TiViewProxy *)child

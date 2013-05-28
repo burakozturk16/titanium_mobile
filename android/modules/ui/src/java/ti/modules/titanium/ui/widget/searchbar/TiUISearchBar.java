@@ -15,10 +15,12 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
 import ti.modules.titanium.ui.widget.TiUIText;
+import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ImageButton;
 
 public class TiUISearchBar extends TiUIText
@@ -38,6 +40,9 @@ public class TiUISearchBar extends TiUIText
 		textfield = this;
 		TiCompositeLayout.LayoutParams params = getLayoutParams();
 		params.autoFillsWidth = true;
+		
+		TiEditText tv = (TiEditText) ((FocusFixedEditText)getNativeView()).getRealEditText();
+		tv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
 		// TODO Add Filter support
 

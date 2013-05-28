@@ -6,8 +6,11 @@
  */
 package ti.modules.titanium.ui.widget;
 
-import org.appcelerator.kroll.common.Log;
+import java.lang.ref.WeakReference;
 
+import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiUIHelper;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ColorFilter;
@@ -64,6 +67,8 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	private boolean viewHeightDefined;
 
 	private int orientation;
+	
+	private WeakReference<TiViewProxy> proxy;
 
 	public TiImageView(Context context) {
 		super(context);
@@ -143,6 +148,17 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		});
 
 		super.setOnClickListener(this);
+	}
+	
+	/**
+	 * Constructs a new TiImageView object.
+	 * @param context the associated context.
+	 * @param proxy the associated proxy.
+	 */
+	public TiImageView(Context context, TiViewProxy proxy)
+	{
+		this(context);
+		this.proxy = new WeakReference<TiViewProxy>(proxy);
 	}
 
 	public void setEnableScale(boolean enableScale)
@@ -418,6 +434,9 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 			int zoomHeight = zoomControls.getMeasuredHeight();
 			zoomControls.layout(parentRight - zoomWidth, parentBottom - zoomHeight, parentRight, parentBottom);
 		}
+		
+		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
+		TiUIHelper.firePostLayoutEvent(viewProxy);
 	}
 
 	public void setColorFilter(ColorFilter filter)

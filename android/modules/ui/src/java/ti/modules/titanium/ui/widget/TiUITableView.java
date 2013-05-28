@@ -239,6 +239,8 @@ public class TiUITableView extends TiUIView
 			if (Build.VERSION.SDK_INT >= 9) {
 				getListView().setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
 			}
+		} else if (TiC.PROPERTY_MIN_ROW_HEIGHT.equals(key)) {
+			updateView();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
