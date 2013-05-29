@@ -153,7 +153,16 @@ timodule.xml.
 	<target name="generate.aidl" depends="init"
 		description="Generate remote interfaces from aidl files">
 		<property name="framework_aidl" location="${android.platform}/framework.aidl"/>
-		<property name="aidl" location="${android.sdk}/platform-tools/aidl"/>
+		<if>
+			<isset property="android.build.tools"/> 
+			<then>
+				<echo>android.build.tools already set: ${android.build.tools}</echo>
+			</then>
+			<else>
+				<property name="android.build.tools"  value="17.0.0"/>
+			</else>
+		</if>
+		<property name="aidl" location="${android.sdk}/build-tools/${android.build.tools}/aidl"/>
 
 		<path id="aidl.files">
 			<fileset dir="${src}" includes="**/*.aidl"/>
@@ -296,7 +305,15 @@ timodule.xml.
 			</condition>
 			
 			<property name="mobilesdk.dir" location="${titanium.platform}/.."/>
-			<property name="ndk.verbose" value="0"/>
+			<if>
+				<isset property="ndk.verbose"/> 
+				<then>
+					<echo>ndk.verbose already set: ${ndk.verbose}</echo>
+				</then>
+				<else>
+					<property name="ndk.verbose"  value="0"/>
+				</else>
+			</if>
 			<propertyregex property="user.name.nospaces" input="${user.name}" regexp=" " replace="_" global="true" defaultValue="${user.name}"/>
 			<property name="tmpdir" value="${java.io.tmpdir}/${user.name.nospaces}/${ant.project.name}-generated" />
 
