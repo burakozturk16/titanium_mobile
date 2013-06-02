@@ -412,6 +412,23 @@ function sendAnalytics(cli) {
 }
 
 function build(logger, config, cli, finished) {
+	this.logger = logger;
+	this.cli = cli;
+
+	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
+
+	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
+
+	this.assetsDir = path.join(this.buildDir, 'assets');
+	this.tiapp = cli.tiapp;
+	this.target = cli.argv.target;
+	this.projectDir = cli.argv['project-dir'];
+	this.buildDir = path.join(this.projectDir, 'build', this.platformName);
+	this.assetsDir = path.join(this.buildDir, 'assets');
+	this.buildBinDir = path.join(this.buildDir, 'bin');
+	
+	var that = this;
+
 	cli.fireHook('build.pre.compile', this, function (e) {
 		var env = {};
 		for (var i in process.env) {
@@ -495,12 +512,12 @@ function build(logger, config, cli, finished) {
 					// build failed, error out
 					logger.error(__('Build process exited with code %s', code));
 					emulatorProcess && emulatorProcess.kill('SIGKILL');
-					finished && finished(code);
+					finished && finished.call(that, code);
 					finished = buildProcess = emulatorProcess = null;
 
 				} else {
 					// we call finished here to display the build time and fire post build plugins
-					finished && finished();
+					finished && finished.call(that);
 
 					if (cli.argv.target == 'emulator') {
 						if (!emulatorRunning) {
