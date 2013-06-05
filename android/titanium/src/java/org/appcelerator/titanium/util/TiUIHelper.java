@@ -924,6 +924,7 @@ public class TiUIHelper
 	 */
 	public static void showSoftKeyboard(View view, boolean show) 
 	{
+		if (view == null) return;
 		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
 
 		if (imm != null) {
