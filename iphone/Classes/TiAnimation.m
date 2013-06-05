@@ -74,7 +74,7 @@ self.p = [TiUtils colorValue:v];\
 #define SET_ID_PROP(p,d) \
 {\
 id v = d==nil ? nil : [d objectForKey:@#p];\
-if (v!=nil && ![v isKindOfClass:[NSNull class]]) {\
+if (v!=nil) {\
 self.p = v;\
 }\
 }\
