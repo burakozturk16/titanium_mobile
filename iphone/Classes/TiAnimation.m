@@ -22,10 +22,60 @@
 @implementation TiAnimation
 
 @synthesize delegate;
-@synthesize zIndex, left, right, top, bottom, width, height;
+@synthesize zIndex;
 @synthesize duration, color, backgroundColor, opacity, opaque, view;
 @synthesize visible, curve, repeat, autoreverse, delay, transform, transition;
 @synthesize animatedView, callback, isReverse, reverseAnimation;
+
+static NSArray *layoutProps;
+
++ (NSArray *)layoutProps
+{
+    if (!layoutProps)
+        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", @"transform", nil];
+    
+    return layoutProps;
+}
+
+-(void)setValue:(id)value forKey:(NSString *)key
+{
+    [super setValue:value forKey:key];
+    if ([key isEqualToString:@"top"]) {
+        RELEASE_TO_NIL(top);
+        top = [value retain];
+        topDefined = YES;
+    }
+    else if ([key isEqualToString:@"bottom"]) {
+        RELEASE_TO_NIL(bottom);
+        bottom = [value retain];
+        bottomDefined = YES;
+    }
+    else if ([key isEqualToString:@"left"]) {
+        RELEASE_TO_NIL(left);
+        left = [value retain];
+        leftDefined = YES;
+    }
+    else if ([key isEqualToString:@"right"]) {
+        RELEASE_TO_NIL(right);
+        right = [value retain];
+        rightDefined = YES;
+    }
+    else if ([key isEqualToString:@"width"]) {
+        RELEASE_TO_NIL(width);
+        width = [value retain];
+        widthDefined = YES;
+    }
+    else if ([key isEqualToString:@"height"]) {
+        RELEASE_TO_NIL(height);
+        height = [value retain];
+        heightDefined = YES;
+    }
+    else if ([key isEqualToString:@"transform"]) {
+        RELEASE_TO_NIL(transform);
+        transform = [value retain];
+        transformDefined = YES;
+    }
+}
 
 -(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context_ callback:(KrollCallback*)callback_
 {
@@ -71,11 +121,10 @@ self.p = [TiUtils colorValue:v];\
 }\
 }\
 
-#define SET_ID_PROP(p,d) \
+#define SET_LAYOUT_PROP(p,d) \
 {\
 id v = d==nil ? nil : [d objectForKey:@#p];\
-if (v!=nil) {\
-self.p = v;\
+[self setValue:[d objectForKey:@#p] forKey:@#p]; {\
 }\
 }\
 
@@ -86,14 +135,18 @@ if (v!=nil && ![v isKindOfClass:[NSNull class]]) {\
 self.p = v;\
 }\
 }\
-		
+        
+        leftDefined = rightDefined = topDefined = bottomDefined = widthDefined = heightDefined = transformDefined = NO;
+        
+        NSMutableSet *intersection = [NSMutableSet setWithArray:[TiAnimation layoutProps]];
+        [intersection intersectSet:[NSSet setWithArray:[properties allKeys]]];
+        
+        NSArray *layoutpropsToProcess = [intersection allObjects];
+        for (id prop in layoutpropsToProcess) {
+            [self setValue:[properties objectForKey:prop] forKey:prop];
+        }
+        
 		SET_FLOAT_PROP(zIndex,properties);
-		SET_ID_PROP(left,properties);
-		SET_ID_PROP(right,properties);
-		SET_ID_PROP(top,properties);
-		SET_ID_PROP(bottom,properties);
-		SET_ID_PROP(width,properties);
-		SET_ID_PROP(height,properties);
 		SET_FLOAT_PROP(duration,properties);
 		SET_FLOAT_PROP(opacity,properties);
 		SET_FLOAT_PROP(delay,properties);
@@ -105,7 +158,6 @@ self.p = v;\
 		SET_POINT_PROP(center,properties);
 		SET_COLOR_PROP(backgroundColor,properties);
 		SET_COLOR_PROP(color,properties);
-		SET_ID_PROP(transform,properties);
 		SET_INT_PROP(transition,properties);
 		SET_PROXY_PROP(view,properties);
 
@@ -325,7 +377,7 @@ if (self.d != nil)\
 
 #define UPDATE_PROXY_LAYOUT_PROP(p,methodName, value) \
 {\
-if (self.value != nil)\
+if (value != nil)\
 [p methodName:value];\
 }\
 
@@ -499,7 +551,7 @@ if (self.value != nil)\
                 [self animationStarted:[self description] context:self];
             }
             
-            if (transform!=nil)
+            if (transformDefined == YES)
             {
                 if (reverseAnimation != nil) {
                     id transformMatrix = [(TiUIView*)view_ transformMatrix];
@@ -518,8 +570,8 @@ if (self.value != nil)\
                 
                 BOOL doReposition = NO;
                 
-#define CHECK_LAYOUT_CHANGE(a) \
-if (a!=nil && layoutProperties!=NULL) \
+#define CHECK_LAYOUT_CHANGE(a, b) \
+if (b == YES && layoutProperties!=NULL) \
 {\
 id cacheValue = [[(TiUIView*)view_ proxy] valueForKey:@#a]; \
 [reverseAnimation setValue:cacheValue forKey:@#a]; \
@@ -527,12 +579,12 @@ layoutProperties->a = TiDimensionFromObject(a); \
 doReposition = YES;\
 }
 
-                CHECK_LAYOUT_CHANGE(left);
-                CHECK_LAYOUT_CHANGE(right);
-                CHECK_LAYOUT_CHANGE(width);
-                CHECK_LAYOUT_CHANGE(height);
-                CHECK_LAYOUT_CHANGE(top);
-                CHECK_LAYOUT_CHANGE(bottom);
+                CHECK_LAYOUT_CHANGE(left, leftDefined);
+                CHECK_LAYOUT_CHANGE(right, rightDefined);
+                CHECK_LAYOUT_CHANGE(width, widthDefined);
+                CHECK_LAYOUT_CHANGE(height, heightDefined);
+                CHECK_LAYOUT_CHANGE(top, topDefined);
+                CHECK_LAYOUT_CHANGE(bottom, bottomDefined);
                 if (center!=nil && layoutProperties != NULL)
                 {
                     [reverseAnimation setCenter:[[[TiPoint alloc] initWithPoint:[(TiUIView*)view_ center]] autorelease]];
