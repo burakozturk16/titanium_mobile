@@ -415,15 +415,11 @@ function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
 
-	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
-
-	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
-
-	this.assetsDir = path.join(this.buildDir, 'assets');
 	this.tiapp = cli.tiapp;
 	this.target = cli.argv.target;
+	this.platform = cli.argv.platform;
 	this.projectDir = cli.argv['project-dir'];
-	this.buildDir = path.join(this.projectDir, 'build', this.platformName);
+	this.buildDir = path.join(this.projectDir, 'build', this.platform);
 	this.assetsDir = path.join(this.buildDir, 'assets');
 	this.buildBinDir = path.join(this.buildDir, 'bin');
 	
