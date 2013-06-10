@@ -371,6 +371,7 @@ class Builder(object):
 			ignoreRegExpStr += '|' + '|'.join(self.config_plugins['ignoreFiles'])
 		ignoreRegExpStr += "$";
 		self.ignoreFilesRegex = re.compile(ignoreRegExpStr)
+		debug("ignoreRegExpStr: %s" % ignoreRegExpStr)
 		
 		# don't build if a java keyword in the app id would cause the build to fail
 		tok = self.app_id.split('.')
