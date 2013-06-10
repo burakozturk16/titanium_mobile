@@ -414,6 +414,7 @@ function sendAnalytics(cli) {
 function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
+	this.config = config;
 
 	this.tiapp = cli.tiapp;
 	this.target = cli.argv.target;
@@ -422,6 +423,15 @@ function build(logger, config, cli, finished) {
 	this.buildDir = path.join(this.projectDir, 'build', this.platform);
 	this.assetsDir = path.join(this.buildDir, 'assets');
 	this.buildBinDir = path.join(this.buildDir, 'bin');
+
+	this.writeBuildManifest = function(callback) {
+		var buildManifest = {};
+		if (this.config['plugins'])
+			buildManifest['config-plugins'] = this.config.plugins;
+		
+		logger.debug('writeBuildManifest: %s', this.buildManifestFile);
+		fs.writeFile(this.buildManifestFile, JSON.stringify(buildManifest, null, '\t'), callback);
+	}
 	
 	var that = this;
 
@@ -430,6 +440,9 @@ function build(logger, config, cli, finished) {
 		for (var i in process.env) {
 			env[i] = process.env[i];
 		}
+
+		that.buildManifestFile = path.join(that.buildDir, 'build-manifest.json');
+		that.writeBuildManifest();
 
 		// Make sure we have an app.js. This used to be validated in validate(), but since plugins like
 		// Alloy generate an app.js, it may not have existed during validate(), but should exist now
