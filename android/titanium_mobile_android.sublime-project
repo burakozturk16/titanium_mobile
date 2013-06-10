@@ -38,6 +38,10 @@
 		{
 			"follow_symlinks": true,
 			"path": "/usr/local/lib/node_modules/titanium/node_modules"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "modules/filesystem"
 		}
 	]
 }
