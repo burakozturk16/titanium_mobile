@@ -76,7 +76,10 @@ public class FilesystemModule extends KrollModule
 	public FileProxy getFile(KrollInvocation invocation, Object[] parts)
 	{
 		String[] sparts = TiConvert.toStringArray(parts);
-		return new FileProxy(invocation.getSourceUrl(), sparts);
+		if (sparts[0].startsWith("."))
+			return new FileProxy(invocation.getSourceUrl(), sparts);
+		else
+			return new FileProxy(getResourcesDirectory(), sparts);
 	}
 
 	@Kroll.getProperty @Kroll.method
