@@ -543,7 +543,7 @@ function build(logger, config, cli, finished) {
 							});
 						}
 
-					} else if (cli.argv.target == 'device') {
+					} else if (cli.argv.target == 'device' && !cli.argv['build-only']) {
 						// Since installing on device does not run
 						// the application we must send the "intent" ourselves.
 						// We will launch the MAIN activity for the application.
