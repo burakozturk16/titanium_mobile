@@ -51,6 +51,11 @@ ${init_assets}
     return new String(filterDataInRange(assetsBytes, range.offset, range.length)); // charset encoding?
   }
 
+  public boolean assetExists(String path)
+  {
+    return assets.containsKey(path);
+  }
+
   private static byte[] filterDataInRange(byte[] data, int offset, int length)
   {
     try {

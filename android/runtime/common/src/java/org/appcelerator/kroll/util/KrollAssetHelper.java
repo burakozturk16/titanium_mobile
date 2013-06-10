@@ -29,6 +29,7 @@ public class KrollAssetHelper
 	public interface AssetCrypt
 	{
 		String readAsset(String path);
+		boolean assetExists(String path);
 	}
 
 	public static void setAssetCrypt(AssetCrypt assetCrypt)
@@ -42,6 +43,47 @@ public class KrollAssetHelper
 		KrollAssetHelper.packageName = context.getPackageName();
 		KrollAssetHelper.cacheDir = context.getCacheDir().getAbsolutePath();
 	}
+
+	// public static String getAssetPath(String path)
+	// {
+	// 	String resourcePath = path.replace("Resources/", "");
+
+	// 	if (TiFastDev.isFastDevEnabled()) {
+	// 		if (path != null && path.startsWith("Resources/")) {
+	// 			Log.d(TAG, "Fetching \"" + resourcePath + "\" with Fastdev...");
+	// 			InputStream stream = TiFastDev.getInstance().openInputStream(resourcePath);
+	// 			String asset = KrollStreamHelper.toString(stream);
+	// 			if (!asset.equals("NOT_FOUND")) {
+	// 				return asset;
+	// 			} else {
+	// 				Log.d(TAG, "File not found with Fastdev.");
+	// 			}
+	// 		}
+	// 	}
+
+	// 	if (assetCrypt != null) {
+	// 		String asset = assetCrypt.readAsset(resourcePath);
+	// 		if (asset != null) {
+	// 			Log.d(TAG, "Fetching \"" + resourcePath + "\" with assetCrypt...");
+	// 			return asset;
+	// 		}
+	// 	}
+
+	// 	try {
+	// 		AssetManager assetManager = manager.get();
+	// 		if (assetManager == null) {
+	// 			Log.e(TAG, "AssetManager is null, can't read asset: " + path);
+	// 			return null;
+	// 		}
+
+	// 		InputStream in = assetManager.open(path);
+
+	// 	} catch (IOException e) {
+	// 		Log.e(TAG, "Error while get asset path \"" + path + "\":", e);
+	// 	}
+
+	// 	return null;
+	// }
 
 	public static String readAsset(String path)
 	{
@@ -63,6 +105,7 @@ public class KrollAssetHelper
 		if (assetCrypt != null) {
 			String asset = assetCrypt.readAsset(resourcePath);
 			if (asset != null) {
+				Log.d(TAG, "Fetching \"" + resourcePath + "\" with assetCrypt...");
 				return asset;
 			}
 		}
@@ -85,6 +128,7 @@ public class KrollAssetHelper
 				}
 			}
 
+			Log.d(TAG, "Fetching \"" + resourcePath + "\" with assetManager...");
 			return out.toString();
 
 		} catch (IOException e) {
@@ -122,14 +166,15 @@ public class KrollAssetHelper
 
 	public static boolean fileExists(String path)
 	{
+		String resourcePath = path;
+		if (resourcePath != null && resourcePath.startsWith("Resources/")) {
+			resourcePath = resourcePath.replace("Resources/", "");
+		}
 		if (TiFastDev.isFastDevEnabled()) {
-			if (path != null && path.startsWith("Resources/")) {
-				String resourcePath = path.replace("Resources/", "");
-				return TiFastDev.getInstance().fileExists(resourcePath);
-			}
+			return TiFastDev.getInstance().fileExists(resourcePath);
 		}
 
-		return false;
+		return (assetCrypt != null && assetCrypt.assetExists(resourcePath));
 	}
 
 	public static String getPackageName()
