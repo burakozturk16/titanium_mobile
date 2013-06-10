@@ -9,7 +9,12 @@
 #ifdef USE_TI_FILESYSTEM
 
 @interface FilesystemModule : TiModule {
-
+    NSString* _resourcesDirectory;
+    NSString* _applicationDirectory;
+    NSString* _applicationSupportDirectory;
+    NSString* _applicationDataDirectory;
+    NSString* _applicationCacheDirectory;
+    NSString* _tempDirectory;
 }
 
 @property(nonatomic,readonly) NSString *resourcesDirectory;

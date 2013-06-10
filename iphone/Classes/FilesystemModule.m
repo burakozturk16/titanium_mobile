@@ -18,6 +18,17 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 
 @implementation FilesystemModule
 
+-(void)dealloc
+{
+    RELEASE_TO_NIL(_resourcesDirectory);
+    RELEASE_TO_NIL(_applicationDirectory);
+    RELEASE_TO_NIL(_applicationSupportDirectory);
+    RELEASE_TO_NIL(_applicationDataDirectory);
+    RELEASE_TO_NIL(_applicationCacheDirectory);
+    RELEASE_TO_NIL(_tempDirectory);
+	[super dealloc];
+}
+
 // internal
 -(id)resolveFile:(id)arg
 {
@@ -116,32 +127,44 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 
 -(NSString*)resourcesDirectory
 {
-	return fileURLify([TiHost resourcePath]);
+    if (_resourcesDirectory == nil)
+        _resourcesDirectory = fileURLify([TiHost resourcePath]);
+	return _resourcesDirectory;
 }
 
 -(NSString*)applicationDirectory
 {
-	return fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+    if (_applicationDirectory == nil)
+        _applicationDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+	return _applicationDirectory;
 }
 
 -(NSString*)applicationSupportDirectory
 {
-	return fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+    if (_applicationSupportDirectory == nil)
+        _applicationSupportDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+	return _applicationSupportDirectory;
 }
 
 -(NSString*)applicationDataDirectory
 {
-	return fileURLify([NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+    if (_applicationDataDirectory == nil)
+        _applicationDataDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+	return _applicationDataDirectory;
 }
 
 -(NSString*)applicationCacheDirectory
 {
-    return fileURLify([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+    if (_applicationCacheDirectory == nil)
+        _applicationCacheDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+	return _applicationCacheDirectory;
 }
 
 -(NSString*)tempDirectory
 {
-	return fileURLify(NSTemporaryDirectory());
+    if (_tempDirectory == nil)
+        _tempDirectory = fileURLify(NSTemporaryDirectory());
+	return _tempDirectory;
 }
 
 -(NSString*)separator
