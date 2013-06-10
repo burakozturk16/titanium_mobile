@@ -833,6 +833,7 @@ function sendAnalytics(cli) {
 function build(logger, config, cli, finished) {
 	this.logger = logger;
 	this.cli = cli;
+	this.config = config;
 
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
 	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
