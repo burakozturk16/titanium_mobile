@@ -181,10 +181,9 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 {
 	NSString* newpath = [self pathFromComponents:args];
     
-	if ([newpath hasPrefix:[self resourcesDirectory]] &&
-		([newpath hasSuffix:@".html"]||
+	if ([newpath hasSuffix:@".html"]||
 		 [newpath hasSuffix:@".js"]||
-		 [newpath hasSuffix:@".css"]))
+		 [newpath hasSuffix:@".css"])
 	{
 		NSURL *url = [NSURL fileURLWithPath:newpath];
 		NSData *data = [TiUtils loadAppResource:url];
