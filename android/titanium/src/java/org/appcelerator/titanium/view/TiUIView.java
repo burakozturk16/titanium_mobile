@@ -1060,7 +1060,7 @@ public abstract class TiUIView
 
 	public View getOuterView()
 	{
-		return borderView == null ? nativeView : borderView;
+		return borderView == null ? getNativeView() : borderView;
 	}
 
 	public void registerForTouch()
