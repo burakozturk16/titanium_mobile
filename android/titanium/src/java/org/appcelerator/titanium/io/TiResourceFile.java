@@ -249,6 +249,7 @@ public class TiResourceFile extends TiBaseFile
 	public List<String> getDirectoryListing()
 	{
 		List<String> listing = new ArrayList<String>();
+		KrollAssetHelper.getDirectoryListing(path, listing);
 		try {
 			String lpath = TiFileHelper2.joinSegments("Resources", path);
 			if (lpath.endsWith("/")) {

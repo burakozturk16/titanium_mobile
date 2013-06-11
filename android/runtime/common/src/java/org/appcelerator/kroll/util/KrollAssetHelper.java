@@ -12,6 +12,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import org.appcelerator.kroll.common.TiFastDev;
 
@@ -30,6 +31,7 @@ public class KrollAssetHelper
 	{
 		String readAsset(String path);
 		boolean assetExists(String path);
+		List<String> list(String path);
 	}
 
 	public static void setAssetCrypt(AssetCrypt assetCrypt)
@@ -43,47 +45,6 @@ public class KrollAssetHelper
 		KrollAssetHelper.packageName = context.getPackageName();
 		KrollAssetHelper.cacheDir = context.getCacheDir().getAbsolutePath();
 	}
-
-	// public static String getAssetPath(String path)
-	// {
-	// 	String resourcePath = path.replace("Resources/", "");
-
-	// 	if (TiFastDev.isFastDevEnabled()) {
-	// 		if (path != null && path.startsWith("Resources/")) {
-	// 			Log.d(TAG, "Fetching \"" + resourcePath + "\" with Fastdev...");
-	// 			InputStream stream = TiFastDev.getInstance().openInputStream(resourcePath);
-	// 			String asset = KrollStreamHelper.toString(stream);
-	// 			if (!asset.equals("NOT_FOUND")) {
-	// 				return asset;
-	// 			} else {
-	// 				Log.d(TAG, "File not found with Fastdev.");
-	// 			}
-	// 		}
-	// 	}
-
-	// 	if (assetCrypt != null) {
-	// 		String asset = assetCrypt.readAsset(resourcePath);
-	// 		if (asset != null) {
-	// 			Log.d(TAG, "Fetching \"" + resourcePath + "\" with assetCrypt...");
-	// 			return asset;
-	// 		}
-	// 	}
-
-	// 	try {
-	// 		AssetManager assetManager = manager.get();
-	// 		if (assetManager == null) {
-	// 			Log.e(TAG, "AssetManager is null, can't read asset: " + path);
-	// 			return null;
-	// 		}
-
-	// 		InputStream in = assetManager.open(path);
-
-	// 	} catch (IOException e) {
-	// 		Log.e(TAG, "Error while get asset path \"" + path + "\":", e);
-	// 	}
-
-	// 	return null;
-	// }
 
 	public static String readAsset(String path)
 	{
@@ -175,6 +136,19 @@ public class KrollAssetHelper
 		}
 
 		return (assetCrypt != null && assetCrypt.assetExists(resourcePath));
+	}
+
+	public static void getDirectoryListing(String path, List<String> listing)
+	{
+		if (assetCrypt == null) return;
+		String resourcePath = path;
+		if (resourcePath != null && resourcePath.startsWith("Resources/")) {
+			resourcePath = resourcePath.replace("Resources/", "");
+		}
+		if (resourcePath.endsWith("/")) {
+			resourcePath = resourcePath.substring(0, resourcePath.lastIndexOf("/"));
+		}
+		listing.addAll(assetCrypt.list(resourcePath));
 	}
 
 	public static String getPackageName()
