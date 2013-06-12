@@ -622,7 +622,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	private boolean collectAnalytics()
 	{
-		return getAppInfo().isAnalyticsEnabled();
+		return false;
 	}
 
 	/**
