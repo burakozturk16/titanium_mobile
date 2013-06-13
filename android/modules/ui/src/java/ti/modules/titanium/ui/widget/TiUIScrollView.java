@@ -19,6 +19,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Build;
@@ -29,6 +30,7 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 
+@SuppressLint("NewApi")
 public class TiUIScrollView extends TiUIView
 {
 	public static final int TYPE_VERTICAL = 0;
@@ -596,6 +598,9 @@ public class TiUIScrollView extends TiUIView
 	@Override
 	public void add(TiUIView child)
 	{
+		if (child.hWAccelerationDisabled()) {
+			disableHWAcceleration();	
+		}
 		super.add(child);
 
 		if (getNativeView() != null) {

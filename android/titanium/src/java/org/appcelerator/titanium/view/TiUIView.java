@@ -949,7 +949,7 @@ public abstract class TiUIView
 		ViewGroup savedParent = null;
 		android.view.ViewGroup.LayoutParams savedLayoutParams = null;
 		if (nativeView.getParent() != null) {
-			ViewParent nativeParent = nativeView.getParent();
+			ViewParent nativeParent = getOuterView().getParent();
 			if (nativeParent instanceof ViewGroup) {
 				savedParent = (ViewGroup) nativeParent;
 				savedLayoutParams = savedParent.getLayoutParams();
@@ -1467,7 +1467,7 @@ public abstract class TiUIView
 		});
 	}
 
-	private void disableHWAcceleration()
+	protected void disableHWAcceleration()
 	{
 		View  view = getOuterView();
 		if (view == null) {
@@ -1500,6 +1500,10 @@ public abstract class TiUIView
 		} catch (InvocationTargetException e) {
 			Log.e(TAG, e.getMessage(), e);
 		}
+	}
+	
+	public boolean hWAccelerationDisabled(){
+		return (mSetLayerTypeMethod != null);
 	}
 
 	/**
