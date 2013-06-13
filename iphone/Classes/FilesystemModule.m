@@ -128,7 +128,7 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 -(NSString*)resourcesDirectory
 {
     if (_resourcesDirectory == nil)
-        _resourcesDirectory = fileURLify([TiHost resourcePath]);
+        _resourcesDirectory = [fileURLify([TiHost resourcePath]) retain];
 	return _resourcesDirectory;
 }
 
@@ -142,28 +142,28 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 -(NSString*)applicationSupportDirectory
 {
     if (_applicationSupportDirectory == nil)
-        _applicationSupportDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+        _applicationSupportDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
 	return _applicationSupportDirectory;
 }
 
 -(NSString*)applicationDataDirectory
 {
     if (_applicationDataDirectory == nil)
-        _applicationDataDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+        _applicationDataDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
 	return _applicationDataDirectory;
 }
 
 -(NSString*)applicationCacheDirectory
 {
     if (_applicationCacheDirectory == nil)
-        _applicationCacheDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
+        _applicationCacheDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
 	return _applicationCacheDirectory;
 }
 
 -(NSString*)tempDirectory
 {
     if (_tempDirectory == nil)
-        _tempDirectory = fileURLify(NSTemporaryDirectory());
+        _tempDirectory = [fileURLify(NSTemporaryDirectory()) retain];
 	return _tempDirectory;
 }
 
