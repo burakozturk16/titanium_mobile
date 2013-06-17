@@ -1171,7 +1171,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)singleTapRecognizer;
 {
 	if (singleTapRecognizer == nil) {
-		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
 		[self configureGestureRecognizer:singleTapRecognizer];
 		[self addGestureRecognizer:singleTapRecognizer];
 
@@ -1185,7 +1185,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)doubleTapRecognizer;
 {
 	if (doubleTapRecognizer == nil) {
-		doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedDoubleTap:)];
 		[doubleTapRecognizer setNumberOfTapsRequired:2];
 		[self configureGestureRecognizer:doubleTapRecognizer];
 		[self addGestureRecognizer:doubleTapRecognizer];
@@ -1200,7 +1200,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)twoFingerTapRecognizer;
 {
 	if (twoFingerTapRecognizer == nil) {
-		twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
 		[twoFingerTapRecognizer setNumberOfTouchesRequired:2];
 		[self configureGestureRecognizer:twoFingerTapRecognizer];
 		[self addGestureRecognizer:twoFingerTapRecognizer];
@@ -1270,28 +1270,28 @@ DEFINE_EXCEPTIONS
 	return longPressRecognizer;
 }
 
-
--(void)recognizedTap:(UITapGestureRecognizer*)recognizer
+-(void)recognizedSingleTap:(UITapGestureRecognizer*)recognizer
 {
 	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
-	
-	if ([recognizer numberOfTouchesRequired] == 2) {
+    if ([recognizer numberOfTouchesRequired] == 2) {
 		[proxy fireEvent:@"twofingertap" withObject:event];
 	}
-	else if ([recognizer numberOfTapsRequired] == 2) {
-		//Because double-tap suppresses touchStart and double-click, we must do this:
-		if ([proxy _hasListeners:@"touchstart"])
-		{
-			[proxy fireEvent:@"touchstart" withObject:event propagate:YES];
-		}
-		if ([proxy _hasListeners:@"dblclick"]) {
-			[proxy fireEvent:@"dblclick" withObject:event propagate:YES];
-		}
-		[proxy fireEvent:@"doubletap" withObject:event];
-	}
-	else {
-		[proxy fireEvent:@"singletap" withObject:event];		
-	}
+    else
+        [proxy fireEvent:@"singletap" withObject:event];
+}
+
+-(void)recognizedDoubleTap:(UITapGestureRecognizer*)recognizer
+{
+	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
+    //Because double-tap suppresses touchStart and double-click, we must do this:
+    if ([proxy _hasListeners:@"touchstart"])
+    {
+        [proxy fireEvent:@"touchstart" withObject:event propagate:YES];
+    }
+    if ([proxy _hasListeners:@"dblclick"]) {
+        [proxy fireEvent:@"dblclick" withObject:event propagate:YES];
+    }
+    [proxy fireEvent:@"doubletap" withObject:event];
 }
 
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
