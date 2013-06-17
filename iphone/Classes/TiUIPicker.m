@@ -304,12 +304,14 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 
 - (CGFloat)pickerView:(UIPickerView *)pickerView rowHeightForComponent:(NSInteger)component
 {
-	TiUIPickerColumnProxy *proxy = [[self columns] objectAtIndex:component];
-	id height = [proxy valueForKey:@"height"];
-	if (height != nil)
-	{
-		return [TiUtils floatValue:height];
-	}
+    if (component <= [[self columns] count]) {
+        TiUIPickerColumnProxy *proxy = [[self columns] objectAtIndex:component];
+        id height = [proxy valueForKey:@"height"];
+        if (height != nil)
+        {
+            return [TiUtils floatValue:height];
+        }
+    }
 
 	return DEFAULT_ROW_HEIGHT;
 }
