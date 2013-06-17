@@ -14,6 +14,7 @@
 #import "TiNetworkSocketProxy.h"
 #import "ASIHTTPRequest.h"
 #import "TiUtils.h"
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 
@@ -178,6 +179,15 @@ NSString* const INADDR_ANY_token = @"INADDR_ANY";
 		}
 	}
 	return @"UNKNOWN";
+}
+
+- (NSString*)carrierName
+{
+	CTTelephonyNetworkInfo *netinfo = [[[CTTelephonyNetworkInfo alloc] init] autorelease];
+    CTCarrier *carrier = [netinfo subscriberCellularProvider];
+    if (carrier != nil)
+        return [carrier carrierName];
+    return (NSString*)[NSNull null];
 }
 
 -(NSNumber*)networkType

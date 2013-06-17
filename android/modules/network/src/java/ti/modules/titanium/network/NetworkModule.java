@@ -31,6 +31,7 @@ import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 
 @Kroll.module
 public class NetworkModule extends KrollModule {
@@ -253,6 +254,16 @@ public class NetworkModule extends KrollModule {
 	public String getNetworkTypeName()
 	{
 		return networkTypeToTypeName(getNetworkType());
+	}
+
+	@Kroll.getProperty @Kroll.method
+	public String getCarrierName()
+	{
+		TelephonyManager manager = (TelephonyManager)TiApplication.getInstance().getRootActivity().getSystemService(Context.TELEPHONY_SERVICE);
+		if (manager != null) {
+			manager.getNetworkOperatorName();
+		}
+		return null;
 	}
 	
 	@Kroll.getProperty @Kroll.method
