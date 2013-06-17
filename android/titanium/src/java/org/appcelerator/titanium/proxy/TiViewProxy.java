@@ -471,6 +471,13 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		return view;
 	}
+
+	public View getNativeView()
+	{
+		if (view  != null)
+			return view.getNativeView();
+		return null;
+	}
 	
 	public View viewToAnimate()
 	{
@@ -1083,12 +1090,9 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 	public void setClickable(boolean clickable)
 	{
-		TiUIView v = peekView();
-		if (v != null) {
-			View nv = v.getNativeView();
-			if (nv != null) {
-				nv.setClickable(clickable);
-			}
+		View nv = getNativeView();
+		if (nv != null) {
+			nv.setClickable(clickable);
 		}
 	}
 
@@ -1110,12 +1114,9 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	public boolean getKeepScreenOn()
 	{
 		Boolean keepScreenOn = null;
-		TiUIView v = peekView();
-		if (v != null) {
-			View nv = v.getNativeView();
-			if (nv != null) {
-				keepScreenOn = nv.getKeepScreenOn();
-			}
+		View nv = getNativeView();
+		if (nv != null) {
+			keepScreenOn = nv.getKeepScreenOn();
 		}
 
 		//Keep the proxy in the correct state
@@ -1331,18 +1332,15 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	@Kroll.method
 	public void hideKeyboard()
 	{
-		TiUIView v = peekView();
-		if (v != null) {
-			View nv = v.getNativeView();
-			if (nv != null) {
-				TiUIHelper.showSoftKeyboard(nv, false);
-			}
+		View nv = getNativeView();
+		if (nv != null) {
+			TiUIHelper.showSoftKeyboard(nv, false);
 		}
 	}
 	
 	public View parentViewForChild(TiViewProxy child)
 	{
-		return peekView().getNativeView();
+		return getNativeView();
 	}
 	
 	/*

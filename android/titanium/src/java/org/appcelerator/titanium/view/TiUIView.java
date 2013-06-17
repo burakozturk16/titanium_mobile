@@ -345,7 +345,7 @@ public abstract class TiUIView
 		View outerView = getOuterView();
 		if (outerView != null) {
 			if (timatrix != null) {
-				TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(timatrix);
+				TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(outerView, timatrix);
 				matrixAnimation.interpolate = false;
 				matrixAnimation.setDuration(0);
 				matrixAnimation.setFillAfter(true);
@@ -1004,6 +1004,7 @@ public abstract class TiUIView
 	}
 	
 	private void setBorderWidth(float width){
+		float realWidth = (new TiDimension(Float.toString(width), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
 		getOrCreateBorderView().setBorderWidth(width);
 		borderView.invalidate();
 	}

@@ -13,9 +13,13 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 
 import android.graphics.Matrix;
 import android.util.Pair;
+
+import android.view.View;
 
 @Kroll.proxy
 public class Ti2DMatrix extends KrollProxy
@@ -47,7 +51,7 @@ public class Ti2DMatrix extends KrollProxy
 			this.type = type;
 		}
 
-		public void apply(float interpolatedTime, Matrix matrix,
+		public void apply(View view, float interpolatedTime, Matrix matrix,
 			int childWidth, int childHeight, float anchorX, float anchorY)
 		{
 			anchorX = anchorX == DEFAULT_ANCHOR_VALUE ? this.anchorX : anchorX;
@@ -60,11 +64,15 @@ public class Ti2DMatrix extends KrollProxy
 						anchorY * childHeight);
 					break;
 				case TYPE_TRANSLATE:
-					matrix.preTranslate((interpolatedTime *  (translateToX - translateFromX)) + translateFromX, (interpolatedTime * (translateToY - translateFromY)) + translateFromY); break;
+					float realTranslateToX = (new TiDimension(Float.toString(translateToX), TiDimension.TYPE_LEFT)).getAsPixels(view);
+					float realTranslateToY = (new TiDimension(Float.toString(translateToY), TiDimension.TYPE_TOP)).getAsPixels(view);
+					float realTranslateFromX = (new TiDimension(Float.toString(translateFromX), TiDimension.TYPE_LEFT)).getAsPixels(view);
+					float realTranslateFromY = (new TiDimension(Float.toString(translateFromY), TiDimension.TYPE_TOP)).getAsPixels(view);
+					matrix.preTranslate((interpolatedTime *  (realTranslateToX - realTranslateFromX)) + realTranslateFromX, (interpolatedTime * (realTranslateToY - realTranslateFromY)) + realTranslateFromY); break;
 				case TYPE_ROTATE:
 					matrix.preRotate((interpolatedTime * (rotateTo - rotateFrom)) + rotateFrom, anchorX * childWidth, anchorY * childHeight); break;
 				case TYPE_MULTIPLY:
-					matrix.preConcat(multiplyWith.interpolate(interpolatedTime, childWidth, childHeight, anchorX, anchorY)); break;
+					matrix.preConcat(multiplyWith.interpolate(view, interpolatedTime, childWidth, childHeight, anchorX, anchorY)); break;
 				case TYPE_INVERT:
 					matrix.invert(matrix); break;
 			}
@@ -212,15 +220,21 @@ public class Ti2DMatrix extends KrollProxy
 	}
 	
 	@Kroll.method
-	public float[] finalValuesAfterInterpolation (int width, int height)
+	public float[] finalValuesAfterInterpolation (TiViewProxy proxy)
 	{
-		Matrix m = interpolate(1f, width, height, 0.5f, 0.5f);
-		float[] result = new float[9];
-		m.getValues(result);
-		return result;
+		View view = proxy.getNativeView();
+		if (view != null) {
+			int width = view.getWidth();
+			int height = view.getHeight();
+			Matrix m = interpolate(view, 1f, width, height, 0.5f, 0.5f);
+			float[] result = new float[9];
+			m.getValues(result);
+			return result;
+		}
+		return null;
 	}
 
-	public Matrix interpolate(float interpolatedTime, int childWidth, int childHeight, float anchorX, float anchorY)
+	public Matrix interpolate(View view, float interpolatedTime, int childWidth, int childHeight, float anchorX, float anchorY)
 	{
 		Ti2DMatrix first = this;
 		ArrayList<Ti2DMatrix> preMatrixList = new ArrayList<Ti2DMatrix>();
@@ -236,11 +250,11 @@ public class Ti2DMatrix extends KrollProxy
 		Matrix matrix = new Matrix();
 		for (Ti2DMatrix current : preMatrixList) {
 			if (current.op != null) {
-				current.op.apply(interpolatedTime, matrix, childWidth, childHeight, anchorX, anchorY);
+				current.op.apply(view, interpolatedTime, matrix, childWidth, childHeight, anchorX, anchorY);
 			}
 		}
 		if (op != null) {
-			op.apply(interpolatedTime, matrix, childWidth, childHeight, anchorX, anchorY);
+			op.apply(view, interpolatedTime, matrix, childWidth, childHeight, anchorX, anchorY);
 		}
 		return matrix;
 	}

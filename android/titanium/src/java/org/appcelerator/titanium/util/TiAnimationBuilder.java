@@ -318,9 +318,9 @@ public class TiAnimationBuilder
 		animationSet.addAnimation(animation);
 	}
 
-	public TiMatrixAnimation createMatrixAnimation(Ti2DMatrix matrix)
+	public TiMatrixAnimation createMatrixAnimation(View view, Ti2DMatrix matrix)
 	{
-		return new TiMatrixAnimation(matrix, anchorX, anchorY);
+		return new TiMatrixAnimation(view, matrix, anchorX, anchorY);
 	}
 
 	public AnimationSet render(TiViewProxy viewProxy, View view, int x, int y, int w, int h, int parentWidth,
@@ -417,7 +417,7 @@ public class TiAnimationBuilder
 					(autoreverse != null && autoreverse.booleanValue())));
 			}
 
-			anim = new TiMatrixAnimation(realTdm, anchorX, anchorY);
+			anim = new TiMatrixAnimation(view, realTdm, anchorX, anchorY);
 			
 			 if (viewProxy.hasProperty(TiC.PROPERTY_TRANSFORM)) {
 			 	((TiMatrixAnimation)anim).setFrom((Ti2DMatrix)viewProxy.getProperty(TiC.PROPERTY_TRANSFORM));
@@ -633,6 +633,7 @@ public class TiAnimationBuilder
 
 	public static class TiMatrixAnimation extends Animation
 	{
+		protected View view;
 		protected Ti2DMatrix matrix;
 		protected Ti2DMatrix from;
 		protected int childWidth, childHeight;
@@ -640,8 +641,9 @@ public class TiAnimationBuilder
 
 		public boolean interpolate = true;
 
-		public TiMatrixAnimation(Ti2DMatrix matrix, float anchorX, float anchorY)
+		public TiMatrixAnimation(View view, Ti2DMatrix matrix, float anchorX, float anchorY)
 		{
+			this.view = view;
 			this.matrix = matrix;
 			this.anchorX = anchorX;
 			this.anchorY = anchorY;
@@ -665,9 +667,9 @@ public class TiAnimationBuilder
 		{
 			super.applyTransformation(interpolatedTime, transformation);
 			if (interpolate) {
-				Matrix m = matrix.interpolate(interpolatedTime, childWidth, childHeight, anchorX, anchorY);
+				Matrix m = matrix.interpolate(view, interpolatedTime, childWidth, childHeight, anchorX, anchorY);
 				if (from != null){
-					Matrix mFrom = from.interpolate((1 - interpolatedTime), childWidth, childHeight, anchorX, anchorY);
+					Matrix mFrom = from.interpolate(view, (1 - interpolatedTime), childWidth, childHeight, anchorX, anchorY);
 					m.preConcat(mFrom);
 				}
 				transformation.getMatrix().set(m);
@@ -680,7 +682,7 @@ public class TiAnimationBuilder
 
 		public Matrix getFinalMatrix(int childWidth, int childHeight)
 		{
-			return matrix.interpolate(1.0f, childWidth, childHeight, anchorX, anchorY);
+			return matrix.interpolate(view, 1.0f, childWidth, childHeight, anchorX, anchorY);
 		}
 
 		public void invalidateWithMatrix(View view)
