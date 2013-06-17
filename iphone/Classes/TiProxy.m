@@ -964,24 +964,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 //What classes should actually use.
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
 {
-	if (![self _hasListeners:type])
-	{
-		return;
-	}
-	
-	TiBindingEvent ourEvent;
-	
-	ourEvent = TiBindingEventCreateWithNSObjects(self, self, type, obj);
-	if (report || (code != 0))
-	{
-		TiBindingEventSetErrorCode(ourEvent, code);
-	}
-	if (message != nil)
-	{
-		TiBindingEventSetErrorMessageWithNSString(ourEvent, message);
-	}
-	TiBindingEventSetBubbles(ourEvent, propagate);
-	TiBindingEventFire(ourEvent);
+	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:report errorCode:code message:message];
 }
 
 //Temporary method until source is removed, for our subclasses.
