@@ -995,7 +995,8 @@ public abstract class TiUIView
 	}
 	
 	private void setBorderRadius(float radius){
-		getOrCreateBorderView().setRadius(radius);
+		float realRadius = (new TiDimension(Float.toString(radius), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
+		getOrCreateBorderView().setRadius(realRadius);
 		if (radius > 0f && HONEYCOMB_OR_GREATER) {
 			disableHWAcceleration();
 		}
