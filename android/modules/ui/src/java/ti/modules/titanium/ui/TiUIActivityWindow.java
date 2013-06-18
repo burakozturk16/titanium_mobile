@@ -673,5 +673,17 @@ public class TiUIActivityWindow extends TiUIView
 	{
 		return windowActivity;
 	}
+	
+
+	@Override
+	public void hide()
+	{
+		if (windowActivity != null) {
+			windowActivity.moveTaskToBack(true);
+		}
+		else {
+			super.hide();
+		}
+	}
 }
 
