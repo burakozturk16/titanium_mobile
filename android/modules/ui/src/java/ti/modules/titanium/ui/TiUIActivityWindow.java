@@ -634,15 +634,6 @@ public class TiUIActivityWindow extends TiUIView
 			intent.putExtra(TiC.PROPERTY_WINDOW_PIXEL_FORMAT, TiConvert.toInt(pixelFormat));
 		}
 
-		boolean finishRoot = false;
-		Object exitOnClose = proxy.getProperty(TiC.PROPERTY_EXIT_ON_CLOSE);
-
-		if (exitOnClose != null) {
-			finishRoot = TiConvert.toBoolean(exitOnClose);
-		}
-
-		intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, finishRoot);
-
 		Messenger messenger = new Messenger(handler);
 		intent.putExtra(TiC.INTENT_PROPERTY_MESSENGER, messenger);
 

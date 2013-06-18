@@ -1185,13 +1185,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 		// so we need to relaunch the application entirely.
 		if (!isFinishing())
 		{
-			if (!shouldFinishRootActivity()) {
-				// Put it in, because we want it to finish root in this case.
-				getIntent().putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, true);
-			}
-
 			tiApp.scheduleRestart(250);
-			finish();
+			finish(true);
 
 			return;
 		}
@@ -1251,17 +1246,24 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 	protected boolean shouldFinishRootActivity()
 	{
-		return getIntentBoolean(TiC.INTENT_PROPERTY_FINISH_ROOT, false);
+		if (window != null)
+			return TiConvert.toBoolean(window.getProperties(), TiC.PROPERTY_EXIT_ON_CLOSE, false);
+		return false;
 	}
 
 	@Override
 	public void finish()
 	{
+		finish(false);
+	}
+
+	public void finish(boolean force)
+	{
 		super.finish();
 
 		boolean animate = getIntentBoolean(TiC.PROPERTY_ANIMATE, true);
 		
-		if (shouldFinishRootActivity()) {
+		if (shouldFinishRootActivity() || force == true) {
 			TiApplication app = getTiApp();
 			if (app != null) {
 				TiRootActivity rootActivity = app.getRootActivity();
