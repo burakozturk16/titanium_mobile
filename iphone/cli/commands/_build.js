@@ -781,7 +781,13 @@ exports.run = function (logger, config, cli, finished) {
 
 	if (cli.argv.xcode) {
 		// basically, we bypass the pre, post, and finalize hooks for xcode builds
-		new build(logger, config, cli, finished);
+		new build(logger, config, cli, function (err) {
+			cli.fireHook('build.post.compile', this, function (postHookErr) {
+				cli.fireHook('build.finalize', this, function () {
+						finished(err || postHookErr);
+					});
+			}.bind(this));
+		});
 	} else {
 		cli.fireHook('build.pre.construct', function () {
 			new build(logger, config, cli, function (err) {
