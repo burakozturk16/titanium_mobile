@@ -1395,7 +1395,7 @@ public abstract class TiUIView
 		return null;
 	}
 
-	private void doSetClickable(View view, boolean clickable)
+	protected void doSetClickable(View view, boolean clickable)
 	{
 		if (view == null) {
 			return;

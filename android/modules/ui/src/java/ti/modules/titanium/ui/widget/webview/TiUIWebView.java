@@ -223,6 +223,12 @@ public class TiUIWebView extends TiUIView
 	}
 
 	@Override
+	protected void doSetClickable(View view, boolean clickable)
+	{
+		super.doSetClickable(view, clickable);
+	}
+
+	@Override
 	public void processProperties(KrollDict d)
 	{
 		super.processProperties(d);
@@ -253,6 +259,12 @@ public class TiUIWebView extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_PLUGIN_STATE)) {
 			setPluginState(TiConvert.toInt(d, TiC.PROPERTY_PLUGIN_STATE));
 		}
+
+		if (d.containsKey(TiC.PROPERTY_SHOW_SCROLLBARS)) {
+			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_SCROLLBARS);
+			getWebView().setVerticalScrollBarEnabled(value);
+			getWebView().setHorizontalScrollBarEnabled(value);
+		}
 		
 		if (d.containsKey(TiC.PROPERTY_OVER_SCROLL_MODE)) {
 			if (Build.VERSION.SDK_INT >= 9) {
@@ -279,6 +291,10 @@ public class TiUIWebView extends TiUIView
 			if (Build.VERSION.SDK_INT >= 9) {
 				nativeView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
 			}
+		} else if (TiC.PROPERTY_SHOW_SCROLLBARS.equals(key)){
+			boolean value = TiConvert.toBoolean(newValue);
+			getWebView().setVerticalScrollBarEnabled(value);
+			getWebView().setHorizontalScrollBarEnabled(value);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
