@@ -1362,6 +1362,30 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 	return nil;
 }
 
+
++(NSArray *)getDirectoryListing:(NSString*)path
+{
+    NSURL *url = [NSURL fileURLWithPath:path];
+    NSString *urlstring = [[url standardizedURL] path];
+    NSString *resourceurl = [[NSBundle mainBundle] resourcePath];
+    NSRange range = [urlstring rangeOfString:resourceurl];
+    NSString *appurlstr = urlstring;
+    if (range.location!=NSNotFound)
+    {
+        appurlstr = [urlstring substringFromIndex:range.location + range.length + 1];
+    }
+    static id AppRouter;
+    if (AppRouter==nil)
+    {
+        AppRouter = NSClassFromString(@"ApplicationRouting");
+    }
+    if (AppRouter!=nil)
+    {
+        DebugLog(@"[DEBUG] getDirectoryListing: %@, Resource: %@",urlstring,appurlstr);
+        return [AppRouter performSelector:@selector(getDirectoryListing:) withObject:appurlstr];
+    }
+}
+
 +(BOOL)barTranslucencyForColor:(TiColor *)color
 {
 	return [color _color]==[UIColor clearColor];

@@ -84,6 +84,13 @@ typedef enum {
 +(NSData *)loadAppResource:(NSURL*)url;
 
 /**
+ getDirectoryListing for compiled resources.
+ @param path The path to list
+ @return The array of found files.
+ */
++(NSArray *)getDirectoryListing:(NSString*)path;
+
+/**
  Encodes the input string according by escaping illegal characters.
  @param unencodedString The input string.
  @return The encoded string.

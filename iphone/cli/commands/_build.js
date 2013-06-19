@@ -2342,6 +2342,10 @@ build.prototype = {
 					'{',
 					'	return nil;',
 					'}',
+					'+ (NSArray*) getDirectoryListing:(NSString*)path',
+					'{',
+					'	return nil;',
+					'}',
 					'',
 					'@end'
 				].join('\n'), callback);
@@ -2871,6 +2875,7 @@ build.prototype = {
 							child = spawn(args.shift(), args);
 							child.stdin.write(this.jsFilesToPrepare.join('\n'));
 							child.stdin.end();
+							var that = this;
 							child.stdout.on('data', function (data) {
 								out.push(data.toString());
 							});
@@ -2882,6 +2887,11 @@ build.prototype = {
 									this.logger.error(__('Failed during titanium_prep') + '\n');
 									process.exit(1);
 								}
+								var outstr = out.join('');
+								outstr = outstr.replace(/static NSDictionary \*map = nil;\s*if \(map == nil\) \{\s*map = /, "+(NSDictionary*) map;{ static NSDictionary *map = nil;if (map == nil) {map = ");
+								outstr = outstr.replace(/nil\];\s*\}/, "nil]; }return map;}");
+								outstr = outstr.replace(/static NSRange ranges\[\] = \{/, "const NSRange ranges[] = {");
+								outstr = outstr.replace(/static UInt8 data\[\] = \{/, "UInt8 data[] = {");
 
 								var dest = path.join(this.buildDir, 'Classes', 'ApplicationRouting.h'),
 									contents = [
@@ -2900,6 +2910,7 @@ build.prototype = {
 										'',
 										'}',
 										'+ (NSData*) resolveAppAsset:(NSString*)path;',
+										'+ (NSArray*) getDirectoryListing:(NSString*)path;',
 										'',
 										'@end'
 									].join('\n');
@@ -2929,14 +2940,39 @@ build.prototype = {
 									'',
 									'@implementation ApplicationRouting',
 									'',
-									'+ (NSData*) resolveAppAsset:(NSString*)path;',
+									outstr,
+									'',
+									'+ (NSData*) resolveAppAsset:(NSString*)path',
 									'{',
-										out.join(''),
+									'	NSDictionary* map = [ApplicationRouting map];',
 									'	NSNumber *index = [map objectForKey:path];',
 									'	if (index == nil) { return nil; }',
 									'	return filterDataInRange([NSData dataWithBytesNoCopy:data length:sizeof(data) freeWhenDone:NO], ranges[index.integerValue]);',
 									'}',
 									'',
+									'+ (NSArray*) getDirectoryListing:(NSString*)path',
+									'{',
+									'	NSDictionary* map = [ApplicationRouting map];',
+									'	if (map == nil) return nil;',
+									'	NSMutableArray* result = [[NSMutableArray alloc] init];',
+									'	NSString* pathToCompare = path;',
+									'	if (![pathToCompare hasSuffix:@"/"])',
+									'	pathToCompare = [pathToCompare stringByAppendingString:@"/"];',
+									'	id key;',
+									'	NSArray *keys = [map allKeys];',
+									'	int count = [keys count];',
+									'	for (int i = 0; i < count; i++)',
+									'	{',
+									'	key = [keys objectAtIndex: i];',
+									'	if ([key hasPrefix:path]) {',
+									'	NSString* value = [[key substringFromIndex:[pathToCompare length]] stringByReplacingOccurrencesOfString:@"_" withString:@"."];',
+									'	[result addObject: value];',
+									'	}',
+									'	}',
+									'	NSArray* array = [NSArray arrayWithArray:result];',
+									'	[result release];',
+									'	return array;',
+									'}',
 									'@end'
 								].join('\n');
 

@@ -132,11 +132,13 @@ FILENOOP(setHidden:(id)x);
 -(id)getDirectoryListing:(id)args
 {
 	NSError * error=nil;
-	NSArray * resultArray = [fm contentsOfDirectoryAtPath:path error:&error];
+	NSArray * resultArray = [TiUtils getDirectoryListing:path];
+	NSArray * resultArray2 = [fm contentsOfDirectoryAtPath:path error:&error];
 	if(error!=nil)
 	{
 		//TODO: what should be do?
 	}
+    resultArray?(resultArray = [resultArray arrayByAddingObjectsFromArray:resultArray2]):(resultArray = resultArray2);
 	return resultArray;
 }
 
