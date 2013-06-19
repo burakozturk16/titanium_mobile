@@ -48,10 +48,11 @@ public class KrollAssetHelper
 
 	public static String readAsset(String path)
 	{
+
 		String resourcePath = path.replace("Resources/", "");
 
 		if (TiFastDev.isFastDevEnabled()) {
-			if (path != null && path.startsWith("Resources/")) {
+			if (resourcePath != null) {
 				Log.d(TAG, "Fetching \"" + resourcePath + "\" with Fastdev...");
 				InputStream stream = TiFastDev.getInstance().openInputStream(resourcePath);
 				String asset = KrollStreamHelper.toString(stream);
