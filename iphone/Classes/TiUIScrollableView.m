@@ -150,17 +150,17 @@
 	}	
 }
 
--(void)renderViewForIndex:(int)index
+-(void)renderViewForIndex:(int)index withRefresh:(BOOL)refresh
 {
 	UIScrollView *sv = [self scrollview];
 	NSArray * svSubviews = [sv subviews];
 	int svSubviewsCount = [svSubviews count];
-
+    
 	if ((index < 0) || (index >= svSubviewsCount))
 	{
 		return;
 	}
-
+    
 	UIView *wrapper = [svSubviews objectAtIndex:index];
 	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
 	if ([[wrapper subviews] count]==0)
@@ -169,11 +169,15 @@
 		TiUIView *uiview = [viewproxy getOrCreateView];
 		[viewproxy windowWillOpen];
 		[wrapper addSubview:uiview];
+        [viewproxy windowWillOpen];
+        [viewproxy reposition];
+        [viewproxy windowDidOpen];
 	}
-    [viewproxy windowWillOpen];
-    [viewproxy reposition];
-    [viewproxy windowDidOpen];
-
+    else if(refresh) {
+        [viewproxy windowWillOpen];
+        [viewproxy reposition];
+        [viewproxy windowDidOpen];
+    }
 }
 
 -(NSRange)cachedFrames:(int)page
@@ -209,7 +213,7 @@
 	return NSMakeRange(startPage, endPage - startPage + 1);
 }
 
--(void)manageCache:(int)page
+-(void)manageCache:(int)page withRefresh:(BOOL)refresh
 {
     if ([(TiUIScrollableViewProxy *)[self proxy] viewCount] == 0) {
         return;
@@ -217,11 +221,11 @@
     
     NSRange renderRange = [self cachedFrames:page];
 	int viewsCount = [[self proxy] viewCount];
-
+    
     for (int i=0; i < viewsCount; i++) {
         TiViewProxy* viewProxy = [[self proxy] viewAtIndex:i];
         if (i >= renderRange.location && i < NSMaxRange(renderRange)) {
-            [self renderViewForIndex:i];
+            [self renderViewForIndex:i withRefresh:refresh];
         }
         else {
             [viewProxy windowWillClose];
@@ -229,6 +233,11 @@
             [viewProxy windowDidClose];
         }
     }
+}
+
+-(void)manageCache:(int)page
+{
+    [self manageCache:page withRefresh:NO];
 }
 
 -(void)listenerAdded:(NSString*)event count:(int)count
