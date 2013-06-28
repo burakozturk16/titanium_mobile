@@ -781,13 +781,7 @@ exports.run = function (logger, config, cli, finished) {
 
 	if (cli.argv.xcode) {
 		// basically, we bypass the pre, post, and finalize hooks for xcode builds
-		new build(logger, config, cli, function (err) {
-			cli.fireHook('build.post.compile', this, function (postHookErr) {
-				cli.fireHook('build.finalize', this, function () {
-						finished(err || postHookErr);
-					});
-			}.bind(this));
-		});
+		new build(logger, config, cli, finished);
 	} else {
 		cli.fireHook('build.pre.construct', function () {
 			new build(logger, config, cli, function (err) {
@@ -866,8 +860,7 @@ function build(logger, config, cli, finished) {
 	if (cli.argv.xcode) {
 		this.deployType = cli.argv['deploy-type'];
 	} else {
-		this.deployType = cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
-		// this.deployType = /device|simulator/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
+		this.deployType = /device|simulator|adhoc/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
 	}
 	this.xcodeTarget = process.env.CONFIGURATION || (/device|simulator/.test(this.target) ? 'Debug' : 'Release');
 	this.iosSdkVersion = cli.argv['ios-version'];
@@ -2751,7 +2744,7 @@ build.prototype = {
 		this.symbols = ['USE_TI_ANALYTICS', 'USE_TI_NETWORK', 'USE_TI_PLATFORM', 'USE_TI_UI', 'USE_TI_API'];
 		this.jsFilesToPrepare = [];
 
-		this.cli.fireHook('build.pre.compile', this, function () {
+		// this.cli.fireHook('build.pre.compile', this, function () {
 			parallel(this, [
 				'compileJSS',
 				'compileI18N',
@@ -3056,7 +3049,7 @@ build.prototype = {
 					], finished.bind(this));
 				});
 			});
-		}.bind(this));
+		// }.bind(this));
 	}
 
 };
