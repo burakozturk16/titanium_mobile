@@ -182,8 +182,91 @@ public class KrollDict
 		return TiConvert.toDouble(get(key));
 	}
 
+	public Double optDouble(String key, Double defaultValue) {
+		Double result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getDouble(key);
+		}
+		return result;
+	}
+
+	public float getFloat(String key) {
+		return TiConvert.toFloat(get(key));
+	}
+
+	public float optFloat(String key, float defaultValue) {
+		float result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getFloat(key);
+		}
+		return result;
+	}
+
+	public int getColor(String key) {
+		return TiConvert.toColor(getString(key));
+	}
+
+	public int optColor(String key, int defaultValue) {
+		int result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getColor(key);
+		}
+		return result;
+	}
+
 	public String[] getStringArray(String key) {
 		return TiConvert.toStringArray((Object[])get(key));
+	}
+
+	public String[] optStringArray(String key, String[] defaultValue) {
+		String[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getStringArray(key);
+		}
+		return result;
+	}
+
+	public int[] getIntArray(String key) {
+		return TiConvert.toIntArray((Object[])get(key));
+	}
+
+	public int[] optIntArray(String key, int[] defaultValue) {
+		int[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getIntArray(key);
+		}
+		return result;
+	}
+
+	public double[] getDoubleArray(String key) {
+		return TiConvert.toDoubleArray((Object[])get(key));
+	}
+
+	public double[] optDoubleArray(String key, double[] defaultValue) {
+		double[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getDoubleArray(key);
+		}
+		return result;
+	}
+
+	public Number[] getNumberArray(String key) {
+		return TiConvert.toNumberArray((Object[])get(key));
+	}
+
+	public Number[] optIntArray(String key, Number[] defaultValue) {
+		Number[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getNumberArray(key);
+		}
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
