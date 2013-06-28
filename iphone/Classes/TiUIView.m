@@ -247,6 +247,7 @@ DEFINE_EXCEPTIONS
 		transferLock = [[NSRecursiveLock alloc] init];
 		touchPassThrough = false;
         self.clipsToBounds = clipChildren = YES;
+        backgroundOpacity = 1.0f;
 	}
 	return self;
 }
@@ -502,15 +503,21 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundColor_:(id)color
 {
+    UIColor* uicolor;
 	if ([color isKindOfClass:[UIColor class]])
 	{
-		super.backgroundColor = color;
+        uicolor = (UIColor*)color;
 	}
 	else
 	{
-		TiColor *ticolor = [TiUtils colorValue:color];
-		super.backgroundColor = [ticolor _color];
+		uicolor = [[TiUtils colorValue:color] _color];
 	}
+    if (backgroundOpacity < 1.0f) {
+        const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
+        float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
+        uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
+    }
+    super.backgroundColor = uicolor;
 }
 
 -(void)setTileBackground_:(id)image
@@ -616,6 +623,7 @@ DEFINE_EXCEPTIONS
 		backgroundImageLayer = [[CALayer alloc] init];
 		[backgroundImageLayer setFrame:[self bounds]];
         backgroundImageLayer.masksToBounds = YES;
+        backgroundImageLayer.opacity = backgroundOpacity;
         backgroundImageLayer.cornerRadius = self.layer.cornerRadius;
 		[[[self backgroundImageWrapperView] layer] insertSublayer:backgroundImageLayer atIndex:0];
 	}
@@ -644,6 +652,21 @@ DEFINE_EXCEPTIONS
     [self setBackgroundImage_:backgroundImage];
 }
 
+-(void)setBackgroundOpacity_:(id)opacity
+{
+    backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
+    
+    id value = [proxy valueForKey:@"backgroundColor"];
+    if (value!=nil) {
+        [self setBackgroundColor_:value];
+    }
+    if (backgroundImageLayer) {
+        backgroundImageLayer.opacity = backgroundOpacity;
+    }
+    if (gradientLayer) {
+        gradientLayer.opacity = backgroundOpacity;
+    }
+}
 
 -(void)setBackgroundLeftCap_:(id)value
 {
@@ -765,6 +788,7 @@ DEFINE_EXCEPTIONS
 		[gradientLayer setNeedsDisplayOnBoundsChange:YES];
 		[gradientLayer setFrame:[self bounds]];
         gradientLayer.masksToBounds = YES;
+        gradientLayer.opacity = backgroundOpacity;
         gradientLayer.cornerRadius = self.layer.cornerRadius;
 		[gradientLayer setNeedsDisplay];
 		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];

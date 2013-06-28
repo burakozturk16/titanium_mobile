@@ -730,6 +730,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_OPACITY = "backgroundOpacity";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_PADDING = "backgroundPadding";
 
 	/**

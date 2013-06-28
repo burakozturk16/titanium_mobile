@@ -578,6 +578,9 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
 			if (background != null)
 				background.setImageRepeat(TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
+			if (background != null)
+				TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			setBorderColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
@@ -721,6 +724,12 @@ public abstract class TiUIView
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		}
+
+		//no need to have it here, will be set when necessary
+		// if (d.containsKey(TiC.PROPERTY_BACKGROUND_OPACITY)) {
+		// 	if(background != null)
+		// 		TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(d, TiC.PROPERTY_BACKGROUND_OPACITY, 1f));
+		// } 
 		
 		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
 			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
@@ -922,8 +931,18 @@ public abstract class TiUIView
 	{
 		if (background == null) {
 			background = new TiBackgroundDrawable();
-			if (!HONEYCOMB_OR_GREATER && proxy.hasProperty(TiC.PROPERTY_OPACITY))
-				background.setAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
+				float alpha = 1.0f;
+			if (!HONEYCOMB_OR_GREATER) {
+				if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+					alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
+			}
+			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_OPACITY))
+				alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_BACKGROUND_OPACITY));
+			
+			if (alpha < 255)
+				background.setAlpha(Math.round(alpha * 255));
+			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
+				background.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));
 		}
 		if (nativeView != null) {
 			Drawable currentDrawable = nativeView.getBackground();
