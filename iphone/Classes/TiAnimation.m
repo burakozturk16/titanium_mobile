@@ -333,7 +333,7 @@ self.p = v;\
             animatedViewProxy = [(TiViewProxy*)v.proxy retain];
         }
     }
-    else{
+    else if ([finished boolValue]){
         [self updateViewProxyProperties];
     }
     
