@@ -243,6 +243,19 @@ public class KrollDict
 		return result;
 	}
 
+	public float[] getFloatArray(String key) {
+		return TiConvert.toFloatArray((Object[])get(key));
+	}
+
+	public float[] optFloatArray(String key, float[] defaultValue) {
+		float[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getFloatArray(key);
+		}
+		return result;
+	}
+
 	public double[] getDoubleArray(String key) {
 		return TiConvert.toDoubleArray((Object[])get(key));
 	}
