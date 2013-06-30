@@ -608,6 +608,20 @@ public class TiConvert
 	}
 
 	/**
+	 * Converts an array of boxed objects into a primitive float array.
+	 * @param inArray array that contains Number objects
+	 * @return a primitive float array
+	 * @throws ClassCastException if a non-Integer object is found in the array.
+	 */
+	public static float[] toFloatArray(Object[] inArray) {
+		float[] outArray = new float[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = ((Number) inArray[i]).floatValue();
+		}
+		return outArray;
+	}
+
+	/**
 	 * Converts an array of boxed objects into a primitive double array.
 	 * @param inArray array that contains Number objects
 	 * @return a primitive double array
