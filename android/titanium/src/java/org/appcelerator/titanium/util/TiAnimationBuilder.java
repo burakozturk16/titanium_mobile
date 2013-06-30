@@ -437,10 +437,6 @@ public class TiAnimationBuilder
 			// we know the values are expressed for certain in pixels.
 			if (top != null) {
 				optionTop = new TiDimension(top, TiDimension.TYPE_TOP);
-			} else if (bottom == null && centerY == null) {
-				// Fix a top value since no other y-axis value is being set.
-				optionTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
-				optionTop.setUnits(TypedValue.COMPLEX_UNIT_PX);
 			}
 
 			if (bottom != null) {
@@ -449,10 +445,6 @@ public class TiAnimationBuilder
 
 			if (left != null) {
 				optionLeft = new TiDimension(left, TiDimension.TYPE_LEFT);
-			} else if (right == null && centerX == null) {
-				// Fix a left value since no other x-axis value is being set.
-				optionLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
-				optionLeft.setUnits(TypedValue.COMPLEX_UNIT_PX);
 			}
 
 			if (right != null) {
