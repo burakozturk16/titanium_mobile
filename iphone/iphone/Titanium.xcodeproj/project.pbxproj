@@ -694,9 +694,6 @@
 		D56065141705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065151705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56065161705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065171705A89800781E6B /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
-		D56065181705A89800781E6B /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
-		D56065191705A89800781E6B /* default.css in Resources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D560651A1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D560651B1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D560651C1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -861,7 +858,6 @@
 		D56915C0168F18C300C3F89F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B4168F18C200C3F89F /* zip.c */; };
 		D56915C1168F18C300C3F89F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B4168F18C200C3F89F /* zip.c */; };
 		D56915C3168F192B00C3F89F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
-		D56915C7168F1A5D00C3F89F /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56915C6168F1A5C00C3F89F /* default.css */; };
 		D56915CC168F2E7400C3F89F /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
 		D56915CD168F2E7400C3F89F /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
 		D56915CE168F2E7400C3F89F /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
@@ -872,6 +868,7 @@
 		D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D590815C168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
 		D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
 		D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
@@ -2005,7 +2002,6 @@
 		D56915B4168F18C200C3F89F /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zip.c; path = ../Classes/DTFoundation/Externals/minizip/zip.c; sourceTree = "<group>"; };
 		D56915B5168F18C300C3F89F /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = ../Classes/DTFoundation/Externals/minizip/zip.h; sourceTree = "<group>"; };
 		D56915C2168F192B00C3F89F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		D56915C6168F1A5C00C3F89F /* default.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = default.css; path = ../Classes/DTCoreText/default.css; sourceTree = "<group>"; };
 		D56915C8168F2E7300C3F89F /* TiUILabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUILabel.h; sourceTree = "<group>"; };
 		D56915C9168F2E7300C3F89F /* TiUILabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUILabel.m; sourceTree = "<group>"; };
 		D56915CA168F2E7300C3F89F /* TiUILabelProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUILabelProxy.h; sourceTree = "<group>"; };
@@ -3312,7 +3308,6 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				D56915C6168F1A5C00C3F89F /* default.css */,
 				24CA8902111160BE0084E2DE /* Classes */,
 				24CA8903111160C30084E2DE /* Thirdparty */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -3905,7 +3900,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D56065171705A89800781E6B /* default.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3913,7 +3907,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D56065181705A89800781E6B /* default.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3921,7 +3914,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D56065191705A89800781E6B /* default.css in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4344,7 +4336,6 @@
 				D56065141705A89800781E6B /* CGUtils.m in Sources */,
 				D560651A1705A89800781E6B /* DTAttributedLabel.m in Sources */,
 				D560651D1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
-				D56915C7168F1A5D00C3F89F /* default.css in Sources */,
 				D56065201705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
 				D56065231705A89800781E6B /* DTAttributedTextView.m in Sources */,
 				D56065261705A89800781E6B /* DTColor+HTML.m in Sources */,
@@ -4391,6 +4382,7 @@
 				D56065A41705A89800781E6B /* NSString+HTML.m in Sources */,
 				D56065A71705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D56065AA1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
+				D579668F17823308000B6C0B /* default.css in Sources */,
 				D56065AD1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
