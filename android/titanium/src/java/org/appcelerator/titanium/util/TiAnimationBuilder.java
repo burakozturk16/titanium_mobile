@@ -266,7 +266,9 @@ public class TiAnimationBuilder
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String)pairs.getKey();
-			if (key.compareTo("duration") != 0)
+			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
+					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
+					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
 				viewProxy.setPropertyAndFire((String)pairs.getKey(), pairs.getValue());
 		}
 	}
