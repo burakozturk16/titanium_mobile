@@ -174,6 +174,15 @@ public class TiBackgroundDrawable extends Drawable {
 		return drawable;
 	}
 	
+	public int getColorForState(int[] stateSet)
+	{
+		int result = 0;
+		int key = keyOfStateSet(stateSet);
+		if (key != -1)
+			result = drawables.get(key).getColor();
+		return result;
+	}
+	
 	public void setColorDrawableForState(int[] stateSet, Drawable drawable)
 	{
 		if (drawable != null) {

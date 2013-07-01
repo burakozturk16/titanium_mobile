@@ -514,11 +514,15 @@ public class TiUIHelper
 	public static final int[] BACKGROUND_DISABLED_STATE = {
 		-android.R.attr.state_enabled
 	};
+
+	public static ColorDrawable buildColorDrawable(int color) {	
+		return new ColorDrawable(color);
+	}
 	
 	public static ColorDrawable buildColorDrawable(String color) {
 		ColorDrawable colorDrawable = null;
 		if (color != null) {
-			colorDrawable = new ColorDrawable(TiColorHelper.parseColor(color));
+			colorDrawable = buildColorDrawable(TiColorHelper.parseColor(color));
 		}			
 		return colorDrawable;
 	}
