@@ -2315,7 +2315,7 @@ build.prototype = {
 				function (next) {
 					symlinkResources(path.join(this.titaniumIosSdkPath, 'modules'), path.join(this.xcodeAppDir, 'modules'), false, next);
 				},
-				'compileJSS',
+//				'compileJSS',
 				'compileI18N'
 			], function () {
 				// reset the application routing
@@ -2746,7 +2746,7 @@ build.prototype = {
 
 		// this.cli.fireHook('build.pre.compile', this, function () {
 			parallel(this, [
-				'compileJSS',
+//				'compileJSS',
 				'compileI18N',
 				function (next) {
 					if (this.deployType != 'production' && !process.env.TITANIUM_CLI_XCODEBUILD) {
@@ -2798,7 +2798,7 @@ build.prototype = {
 							dest = path.join(this.xcodeAppDir, filename);
 
 						// we only copy the plist file for dev/test when building from Studio (via the Ti CLI), otherwise make sure the file doesn't exist
-						if (this.deployType != 'production' && process.env.TITANIUM_CLI_XCODEBUILD) {
+						if (!/dist\-appstore|dist\-adhoc/.test(this.target) && this.deployType != 'production' && process.env.TITANIUM_CLI_XCODEBUILD) {
 							afs.copyFileSync(
 								src,
 								dest,
