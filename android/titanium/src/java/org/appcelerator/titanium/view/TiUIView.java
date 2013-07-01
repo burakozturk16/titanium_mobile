@@ -18,7 +18,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
-import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
@@ -27,19 +26,24 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiAnimationBuilder;
 import org.appcelerator.titanium.util.TiAnimationBuilder.TiMatrixAnimation;
-import org.appcelerator.titanium.util.TiColorHelper;
+import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
+import org.appcelerator.titanium.util.TiAnimatorListenerAdapter;
+import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
-import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -50,6 +54,7 @@ import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
 import android.util.Pair;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
@@ -65,7 +70,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
+import android.view.animation.Transformation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 
@@ -661,17 +666,10 @@ public abstract class TiUIView
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
-//			if (!nativeViewNull){
-//				Integer bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
-//				nativeView.setBackgroundColor(bgColor);
-//			}
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-//			if (background != null) {
-				ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
-//				background.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, colorDrawable);
-				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
-				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
-//			}
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
@@ -1651,5 +1649,372 @@ public abstract class TiUIView
 
 		ViewCompat.setImportantForAccessibility(nativeView, importanceMode);
 	}
+	
+	public void setTiWidth(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		params.height = val;
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionWidth = new TiDimension(val, TiDimension.TYPE_WIDTH, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiWidth() {
+		View view =  getOuterView();
+		return view.getMeasuredWidth();
+	}
+	public void setTiHeight(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		params.height = val;
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionHeight = new TiDimension(val, TiDimension.TYPE_HEIGHT, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiHeight() {
+		View view =  getOuterView();
+		return view.getMeasuredHeight();
+	}
+	public void setTiTop(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionTop = new TiDimension(val, TiDimension.TYPE_TOP, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiTop() {
+		View view =  getOuterView();
+		return view.getTop();
+	}
+	public void setTiBottom(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionBottom = new TiDimension(val, TiDimension.TYPE_BOTTOM, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiBottom() {
+		View view =  getOuterView();
+		return view.getBottom();
+	}
+	public void setTiLeft(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionLeft = new TiDimension(val, TiDimension.TYPE_LEFT, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiLeft() {
+		View view =  getOuterView();
+		return view.getLeft();
+	}
+	public void setTiRight(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionRight = new TiDimension(val, TiDimension.TYPE_RIGHT, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiRight() {
+		View view =  getOuterView();
+		return view.getRight();
+	}
+	public void setTiCenterX(int val) {
+		View view =  getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionCenterX = new TiDimension(val, TiDimension.TYPE_CENTER_X, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiCenterX() {
+		View view =  getOuterView();
+		return (view.getLeft() + view.getMeasuredWidth()) / 2;
+	}
+	
+	public void setTiCenterY(int val) {
+		View view = getOuterView();
+		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		if (params instanceof TiCompositeLayout.LayoutParams) {
+			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+			tiParams.optionCenterY = new TiDimension(val, TiDimension.TYPE_CENTER_Y, TypedValue.COMPLEX_UNIT_PX);
+		}
+		view.setLayoutParams(params);
+	}
+	public int getTiCenterY() {
+		View view =  getOuterView();
+		return (view.getTop() + view.getMeasuredHeight()) / 2;
+	}
+	
+	public void setTiBackgroundColor(int color) {
+		TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+		ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(color);		
+		bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+		bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+	}
+	
+	public int getBackgroundTiColor() {
+		if (background == null)
+		{
+			return 0;
+		}
+		return background.getColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1);
+	}
+	
+	private class FakeMatrixAnimation extends Animation {
+		Matrix matrix;
+		
+		public FakeMatrixAnimation(Matrix matrix){
+			this.matrix = matrix;
+		}
+		
+		@Override
+		protected void applyTransformation(float interpolatedTime,
+				Transformation t) {
+			super.applyTransformation(interpolatedTime, t);
+			t.getMatrix().set(matrix);
+		}
+	}
+	
+	public void setTi2DMatrix(Ti2DMatrix matrix) {
+		
+		View outerView =  getOuterView();
+		outerView.clearAnimation();
+		FakeMatrixAnimation matrixAnimation = new FakeMatrixAnimation(matrix.getTransformMatrix());
+		matrixAnimation.setDuration(0);
+		matrixAnimation.setFillAfter(true);
+		outerView.startAnimation(matrixAnimation);
+	}
+	public Ti2DMatrix getTi2DMatrix() {
+		return (Ti2DMatrix)proxy.getProperty(TiC.PROPERTY_TRANSFORM);
+	}
+	
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	private ValueAnimator tiDimensionAnimator(TiDimension[] dimensions, View view, View parentView, TiAnimation proxy, HashMap options) 
+	{
+		PropertyValuesHolder[] arrayOfPropertyValuesHolder = new PropertyValuesHolder[dimensions.length];
+		for (int i = 0; i < dimensions.length; i++) {
+			TiDimension dimension = dimensions[i];
+			int to = dimension.getAsPixels((parentView != null) ? parentView : view);
+			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(dimension.getAnimatedProperty() , to);
+			arrayOfPropertyValuesHolder[i] = anim;
+		}		
+		
+		TiAnimatorListenerAdapter listener = new TiAnimatorListenerAdapter(view, proxy, options) {
+			public void onAnimationEnd(Animator animation) {
+				ViewGroup.LayoutParams params = view.getLayoutParams();
+				if (params instanceof TiCompositeLayout.LayoutParams) {
+					if (viewProxy != null) {
+						TiConvert
+								.fillLayout(
+										viewProxy.getProperties(),
+										(TiCompositeLayout.LayoutParams) params);
+					} else if (options != null) {
+						TiConvert
+								.fillLayout(
+										options,
+										(TiCompositeLayout.LayoutParams) params);
+					}
+				}
+				view.setLayoutParams(params);
+			}
+		};
+		ObjectAnimator localObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, arrayOfPropertyValuesHolder);
+		localObjectAnimator.addListener(listener);
+		return localObjectAnimator;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void prepareAnimatorSet(TiAnimatorSet tiSet) {
+		AnimatorSet set = tiSet.set();
+		final View view = proxy.viewToAnimate();
 
+		List<Animator> list = new ArrayList<Animator>();
+		HashMap options = tiSet.getOptions();
+
+		if (options.containsKey(TiC.PROPERTY_DELAY)) {
+			set.setStartDelay(TiConvert.toInt(options, TiC.PROPERTY_DELAY));
+		}
+
+		if (options.containsKey(TiC.PROPERTY_DURATION)) {
+			set.setDuration(TiConvert.toInt(options, TiC.PROPERTY_DURATION));
+		}
+
+		int repeat = 1;
+		final boolean autoreverse = options
+				.containsKey(TiC.PROPERTY_AUTOREVERSE) ? TiConvert.toBoolean(
+				options, TiC.PROPERTY_AUTOREVERSE) : false;
+
+		if (options.containsKey(TiC.PROPERTY_REPEAT)) {
+			repeat = TiConvert.toInt(options, TiC.PROPERTY_REPEAT);
+
+			if (repeat == 0) {
+				// A repeat of 0 is probably non-sensical. Titanium iOS
+				// treats it as 1 and so should we.
+				repeat = 1;
+			}
+		}
+		TiAnimatorListenerAdapter listener = new TiAnimatorListenerAdapter(this.proxy, tiSet,
+				options);
+		listener.setAutoreverse(autoreverse);
+		set.addListener(listener);
+
+		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
+			setOpacity(1.0f);
+			ObjectAnimator anim = ObjectAnimator.ofFloat(view, "alpha",
+					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
+
+			anim.addListener(new TiAnimatorListenerAdapter(view) {
+				public void onAnimationStart(Animator animation) {
+					if (view.getVisibility() == View.INVISIBLE) {
+						view.setVisibility(View.VISIBLE);
+					}
+				}
+
+				public void onAnimationEnd(Animator animation) {
+					if (view.getAlpha() == 0.0f) {
+						view.setVisibility(View.INVISIBLE);
+					}
+				}
+			});
+			list.add(anim);
+		}
+
+		if (options.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+//			if (!proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR)) {
+//				Log.w(TAG, "Cannot animate view without a backgroundColor. View doesn't have that property. Using #00000000");
+//				getNativeView().setBackgroundColor(Color.argb(0, 0, 0, 0));
+//			}
+			ObjectAnimator anim = ObjectAnimator.ofInt(this, "tiBackgroundColor", TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR));
+			list.add(anim);
+		}
+		
+		ViewParent parent = view.getParent();
+		View parentView = null;
+		int parentWidth = 0;
+		int parentHeight = 0;
+
+		if (parent instanceof ViewGroup) {
+			ViewGroup group = (ViewGroup) parent;
+			parentHeight = group.getMeasuredHeight();
+			parentWidth = group.getMeasuredWidth();
+		}
+		if (parent instanceof View) {
+			parentView = (View) parent;
+		}
+		List<TiDimension> dimensions = new ArrayList<TiDimension>();
+		if (options.containsKey(TiC.PROPERTY_WIDTH)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_WIDTH);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_WIDTH));
+			else
+				dimensions.add(new TiDimension(view.getMeasuredWidth(), TiDimension.TYPE_WIDTH));
+		}
+		if (options.containsKey(TiC.PROPERTY_HEIGHT)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_HEIGHT);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_HEIGHT));
+			else
+				dimensions.add(new TiDimension(view.getMeasuredHeight(), TiDimension.TYPE_HEIGHT));
+		}
+		if (options.containsKey(TiC.PROPERTY_TOP)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_TOP);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_TOP));
+			else
+				dimensions.add(new TiDimension(((parentHeight - view.getMeasuredHeight())/2), TiDimension.TYPE_TOP));
+		}
+		if (options.containsKey(TiC.PROPERTY_BOTTOM)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_BOTTOM);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_BOTTOM));
+			else
+				dimensions.add(new TiDimension(((parentHeight + view.getMeasuredHeight())/2), TiDimension.TYPE_BOTTOM));
+		}
+		if (options.containsKey(TiC.PROPERTY_LEFT)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_LEFT);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_LEFT));
+			else
+				dimensions.add(new TiDimension(((parentWidth - view.getMeasuredWidth())/2), TiDimension.TYPE_LEFT));
+		}
+		if (options.containsKey(TiC.PROPERTY_RIGHT)) {
+			String value = TiConvert.toString(options, TiC.PROPERTY_RIGHT);
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_RIGHT));
+			else
+				dimensions.add(new TiDimension(((parentWidth + view.getMeasuredWidth())/2), TiDimension.TYPE_RIGHT));
+		}
+		if (options.containsKey(TiC.PROPERTY_CENTER)) {
+			HashMap center = (HashMap) options.get(TiC.PROPERTY_CENTER);
+			String value = (center == null)?null:TiConvert.toString(center.get(TiC.PROPERTY_X));
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_CENTER_X));
+			else
+				dimensions.add(new TiDimension((parentWidth/2), TiDimension.TYPE_CENTER_X));
+			value = (center == null)?null:TiConvert.toString(center.get(TiC.PROPERTY_Y));
+			if (value != null)
+				dimensions.add(new TiDimension(value, TiDimension.TYPE_CENTER_Y));
+			else
+				dimensions.add(new TiDimension((parentHeight/2), TiDimension.TYPE_CENTER_Y));
+		}
+	
+		TiDimension[] dimsArray = {};
+		ValueAnimator layoutAnim = tiDimensionAnimator(dimensions.toArray(dimsArray), view, parentView, tiSet.animationProxy, options);
+		list.add(layoutAnim);
+		
+		
+		
+		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			float anchorX = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
+			float anchorY = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
+			if (options.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
+				Object anchorPoint = options.get(TiC.PROPERTY_ANCHOR_POINT);
+				if (anchorPoint instanceof HashMap) {
+					HashMap point = (HashMap) anchorPoint;
+					anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+					anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+				} else {
+					Log.e(TAG, "Invalid argument type for anchorPoint property. Ignoring");
+				}
+			}
+			
+			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+			if (tdm == null) tdm = new Ti2DMatrix();
+			
+			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY, view.getMeasuredWidth(), view.getMeasuredHeight()), tdm);
+			list.add(anim);
+		}
+
+
+		if (autoreverse) {
+			for (int i = 0; i < list.size(); i++) {
+				ValueAnimator anim = (ValueAnimator) list.get(i);
+				anim.setRepeatCount(1);
+				anim.setRepeatMode(ValueAnimator.REVERSE);
+			}
+		} else if (repeat > 1) {
+			int realRepeat = repeat - 1;
+			for (int i = 0; i < list.size(); i++) {
+				ValueAnimator anim = (ValueAnimator) list.get(i);
+				anim.setRepeatCount(realRepeat);
+				anim.setRepeatMode(ValueAnimator.RESTART);
+			}
+		}
+		set.playTogether(list);
+	}
 }

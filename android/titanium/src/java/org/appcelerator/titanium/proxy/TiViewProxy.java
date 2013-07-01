@@ -27,6 +27,8 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.util.TiAnimationBuilder;
+import org.appcelerator.titanium.util.TiAnimatorListenerAdapter;
+import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -34,6 +36,8 @@ import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.util.DisplayMetrics;
+import android.animation.Animator.AnimatorListener;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Handler;
@@ -844,18 +848,36 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 	}
 
+	@SuppressLint("NewApi")
 	@Kroll.method
 	public void animate(Object arg, @Kroll.argument(optional=true) KrollFunction callback)
 	{
+		if (pendingAnimation != null) {
+			if (pendingAnimation instanceof TiAnimatorSet) {
+				ArrayList<AnimatorListener> listeners = ((TiAnimatorSet)pendingAnimation).set().getListeners();
+				for (int i = 0; i < listeners.size(); i++) {
+					AnimatorListener listener = listeners.get(i);
+					if (listener instanceof TiAnimatorListenerAdapter) {
+						((TiAnimatorListenerAdapter)listener).cancel();
+					}
+						
+				}
+			}
+			//already running animation
+		}
 		synchronized (pendingAnimationLock) {
+			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+				pendingAnimation = new TiAnimationBuilder();
+			}
+			else {
+				pendingAnimation = new TiAnimatorSet();
+			}
 			if (arg instanceof HashMap) {
 				HashMap options = (HashMap) arg;
-				pendingAnimation = new TiAnimationBuilder();
-				pendingAnimation.applyOptions(options);
+				pendingAnimation.setOptions(options);
 			} else if (arg instanceof TiAnimation) {
 				TiAnimation anim = (TiAnimation) arg;
-				pendingAnimation = new TiAnimationBuilder();
-				pendingAnimation.applyAnimation(anim);
+				pendingAnimation.setAnimation(anim);
 			} else {
 				throw new IllegalArgumentException("Unhandled argument to animate: " + arg.getClass().getSimpleName());
 			}
@@ -872,7 +894,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	public void cancelAllAnimations()
 	{
 		View nativeView = viewToAnimate();
-		nativeView.clearAnimation();
+		 nativeView.clearAnimation();
 		pendingAnimation = null;
 	}
 
@@ -894,6 +916,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 	}
 
+	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
 		View view = viewToAnimate();
@@ -909,7 +932,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (pendingAnimation == null) {
 			return;
 		}
-		pendingAnimation.animateOnView(view, this);
+		if (pendingAnimation instanceof TiAnimatorSet) {
+			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
+			((TiAnimatorSet) pendingAnimation).set().start();
+		}
+		else {
+			pendingAnimation.applyOptions();
+			pendingAnimation.animateOnView(this);
+		}
 	}
 
 	@Kroll.method

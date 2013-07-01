@@ -88,6 +88,21 @@ public class TiDimension
 		this.valueType = valueType;
 		this.units = COMPLEX_UNIT_UNDEFINED;
 	}
+	
+	/**
+	 * Creates a TiDimension object.
+	 * @param value the value to set.
+	 * @param valueType the valueType to set. Supported types include: {@link #TYPE_LEFT}, {@link #TYPE_RIGHT}, 
+	 * {@link #TYPE_BOTTOM}, {@link #TYPE_TOP}, {@link #TYPE_CENTER_X}, {@link #TYPE_CENTER_Y}, {@link #TYPE_HEIGHT}.
+	 * {@link #TYPE_WIDTH}.
+	 * @param units the value to set.
+	 */
+	public TiDimension(double value, int valueType, int units)
+	{
+		this.value = value;
+		this.valueType = valueType;
+		this.units = units;
+	}
 
 	/**
 	 * Creates and parses a TiDimension object.
@@ -99,8 +114,8 @@ public class TiDimension
 	public TiDimension(String svalue, int valueType)
 	{
 		this.valueType = valueType;
-		this.units = TypedValue.COMPLEX_UNIT_PX;
 		if (svalue != null) {
+			this.units = TypedValue.COMPLEX_UNIT_PX;
 			Matcher m = DIMENSION_PATTERN.matcher(svalue.trim());
 			if (m.matches()) {
 				value = Float.parseFloat(m.group(1));
@@ -138,6 +153,9 @@ public class TiDimension
 				this.units = COMPLEX_UNIT_AUTO;
 			}
 		}
+		else {
+			this.units = COMPLEX_UNIT_UNDEFINED;
+		}
 	}
 
 	/**
@@ -146,6 +164,40 @@ public class TiDimension
 	public double getValue()
 	{
 		return value;
+	}
+	
+	/**
+	 * @return the TiDimension's valueType.
+	 */
+	public int getValueType()
+	{
+		return valueType;
+	}
+	
+	/**
+	 * @return the TiDimension's valueType.
+	 */
+	public String getAnimatedProperty()
+	{
+		switch (valueType) {
+		case TYPE_TOP:
+			return "tiTop";
+		case TYPE_BOTTOM:
+			return "tiBottom";
+		case TYPE_CENTER_Y:
+			return "tiCenterY";
+		case TYPE_HEIGHT:
+			return "tiHeight";
+		case TYPE_LEFT:
+			return "tiLeft";
+		case TYPE_RIGHT:
+			return "tiRight";
+		case TYPE_CENTER_X:
+			return "tiCenterX";
+		case TYPE_WIDTH:
+			return "tiWidth";
+		}
+		return null;
 	}
 
 	/**

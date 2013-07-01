@@ -8,7 +8,6 @@ package org.appcelerator.titanium.util;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Iterator;
 
 import org.appcelerator.kroll.KrollDict;
@@ -62,11 +61,11 @@ public class TiAnimationBuilder
 	protected String width = null, height = null;
 	protected Integer backgroundColor = null;
 
-	protected TiAnimation animationProxy;
+	public TiAnimation animationProxy;
 	protected KrollFunction callback;
 	protected boolean relayoutChild = false, applyOpacity = false;
 	@SuppressWarnings("rawtypes")
-	protected HashMap options;
+	public HashMap options;
 	protected View view;
 	protected TiViewProxy viewProxy;
 
@@ -75,10 +74,25 @@ public class TiAnimationBuilder
 		anchorX = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
 		anchorY = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
 	}
+	
+	
+	public void setOptions(HashMap options) {
+		this.options = options;
+	}
+	
+	public void setAnimation(TiAnimation animation) {
+		this.animationProxy = animation;
+	}
+	
+	public HashMap getOptions() {
+		return (this.animationProxy != null)?this.animationProxy.getProperties():this.options ;
+	}
 
 	@SuppressWarnings({"unchecked", "rawtypes"})
-	public void applyOptions(HashMap options)
+	public void applyOptions()
 	{
+		HashMap options = getOptions();
+		
 		if (options == null) {
 			return;
 		}
@@ -168,8 +182,9 @@ public class TiAnimationBuilder
 		this.options = options;
 	}
 	
-	public void animateOnView(View view, TiViewProxy proxy) {
-		
+	public void animateOnView(TiViewProxy proxy) {
+		this.viewProxy = proxy;
+		this.view = viewProxy.viewToAnimate();
 		// Pre-honeycomb, if one animation clobbers another you get a problem whereby the background of the
 		// animated view's parent (or the grandparent) bleeds through.  It seems to improve if you cancel and clear
 		// the older animation.  So here we cancel and clear, then re-queue the desired animation.
@@ -187,7 +202,7 @@ public class TiAnimationBuilder
 		}		
 		
 		proxy.clearAnimation(this);
-		AnimationSet as = this.render(proxy, view);
+		AnimationSet as = this.render(proxy);
 
 		// If a view is "visible" but not currently seen (such as because it's covered or
 		// its position is currently set to be fully outside its parent's region),
@@ -273,19 +288,14 @@ public class TiAnimationBuilder
 		}
 	}
 
-	public void applyAnimation(TiAnimation anim)
-	{
-		this.animationProxy = anim;
-		applyOptions(anim.getProperties());
-	}
-
 	public void setCallback(KrollFunction callback)
 	{
 		this.callback = callback;
 	}
 
-	public AnimationSet render(TiViewProxy viewProxy, View view)
+	public AnimationSet render(TiViewProxy viewProxy)
 	{
+		View view = viewProxy.getNativeView();
 		ViewParent parent = view.getParent();
 		int parentWidth = 0;
 		int parentHeight = 0;
@@ -296,7 +306,7 @@ public class TiAnimationBuilder
 			parentWidth = group.getMeasuredWidth();
 		}
 
-		return render(viewProxy, view, view.getLeft(), view.getTop(), view.getMeasuredWidth(),
+		return render(viewProxy, view.getLeft(), view.getTop(), view.getMeasuredWidth(),
 			view.getMeasuredHeight(), parentWidth, parentHeight);
 	}
 
@@ -320,17 +330,14 @@ public class TiAnimationBuilder
 		animationSet.addAnimation(animation);
 	}
 
-	public TiMatrixAnimation createMatrixAnimation(View view, Ti2DMatrix matrix)
+	public static TiMatrixAnimation createMatrixAnimation(View view, Ti2DMatrix matrix)
 	{
-		return new TiMatrixAnimation(view, matrix, anchorX, anchorY);
+		return new TiMatrixAnimation(view, matrix, Ti2DMatrix.DEFAULT_ANCHOR_VALUE, Ti2DMatrix.DEFAULT_ANCHOR_VALUE);
 	}
 
-	public AnimationSet render(TiViewProxy viewProxy, View view, int x, int y, int w, int h, int parentWidth,
+	public AnimationSet render(TiViewProxy viewProxy, int x, int y, int w, int h, int parentWidth,
 		int parentHeight)
 	{
-		this.view = view;
-		this.viewProxy = viewProxy;
-
 		AnimationSet as = new AnimationSet(false);
 		AnimationListener animationListener = new AnimationListener();
 		as.setAnimationListener(animationListener);
@@ -401,7 +408,7 @@ public class TiAnimationBuilder
 				fromBackgroundColor = Color.argb(0, 0, 0, 0);
 			}
 
-			Animation a = new TiColorAnimation(view, fromBackgroundColor, backgroundColor);
+			Animation a = new TiColorAnimation(tiView.getNativeView(), fromBackgroundColor, backgroundColor);
 			addAnimation(as, a);
 		}
 
@@ -538,7 +545,6 @@ public class TiAnimationBuilder
 		if (duration != null) {
 			as.setDuration(duration.longValue());
 		}
-
 		if (autoreverse != null && autoreverse.booleanValue()) {
 			as.setRepeatMode(Animation.REVERSE);
 		} else {
