@@ -1528,41 +1528,6 @@ public abstract class TiUIView
 	}
 
 	/**
-	 * Retrieve the saved animated scale values, which we store here since Android provides no property
-	 * for looking them up.
-	 */
-	public Pair<Float, Float> getAnimatedScaleValues()
-	{
-		return animatedScaleValues;
-	}
-
-	/**
-	 * Store the animated x and y scale values (i.e., the scale after an animation)
-	 * since Android provides no property for looking them up.
-	 */
-	public void setAnimatedScaleValues(Pair<Float, Float> newValues)
-	{
-		animatedScaleValues = newValues;
-	}
-
-	/**
-	 * Set the animated rotation degrees, since Android provides no property for looking it up.
-	 */
-	public void setAnimatedRotationDegrees(float degrees)
-	{
-		animatedRotationDegrees = degrees;
-	}
-
-	/**
-	 * Retrieve the animated rotation degrees, which we store here since Android provides no property
-	 * for looking it up.
-	 */
-	public float getAnimatedRotationDegrees()
-	{
-		return animatedRotationDegrees;
-	}
-
-	/**
 	 * Set the animated alpha values, since Android provides no property for looking it up.
 	 */
 	public void setAnimatedAlpha(float alpha)

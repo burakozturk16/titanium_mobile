@@ -407,15 +407,6 @@ public class TiAnimationBuilder
 			Ti2DMatrix realTdm = tdm;
 
 			Animation anim;
-			if (realTdm.hasScaleOperation() && tiView != null) {
-				tiView.setAnimatedScaleValues(realTdm.verifyScaleValues(tiView,
-					(autoreverse != null && autoreverse.booleanValue())));
-			}
-
-			if (realTdm.hasRotateOperation() && tiView != null) {
-				tiView.setAnimatedRotationDegrees(realTdm.verifyRotationValues(tiView,
-					(autoreverse != null && autoreverse.booleanValue())));
-			}
 
 			anim = new TiMatrixAnimation(view, realTdm, anchorX, anchorY);
 			
@@ -658,18 +649,17 @@ public class TiAnimationBuilder
 		protected void applyTransformation(float interpolatedTime, Transformation transformation)
 		{
 			super.applyTransformation(interpolatedTime, transformation);
+			Matrix m;
 			if (interpolate) {
-				Matrix m = matrix.interpolate(view, interpolatedTime, childWidth, childHeight, anchorX, anchorY);
+				m = matrix.interpolate(view, interpolatedTime, childWidth, childHeight, anchorX, anchorY);
 				if (from != null){
 					Matrix mFrom = from.interpolate(view, (1 - interpolatedTime), childWidth, childHeight, anchorX, anchorY);
 					m.preConcat(mFrom);
 				}
-				transformation.getMatrix().set(m);
-
 			} else {
-				Matrix m = getFinalMatrix(childWidth, childHeight);
-				transformation.getMatrix().set(m);
+				m = getFinalMatrix(childWidth, childHeight);
 			}
+			transformation.getMatrix().set(m);
 		}
 
 		public Matrix getFinalMatrix(int childWidth, int childHeight)
@@ -788,7 +778,6 @@ public class TiAnimationBuilder
 			}
 
 			if (a instanceof AnimationSet) {
-				applyCompletionProperties();
 				handleFinish();
 			}
 		}
