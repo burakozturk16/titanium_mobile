@@ -733,8 +733,11 @@ public class TiAnimationBuilder
 
 	protected class AnimationListener implements Animation.AnimationListener
 	{
+		private boolean ended = false; 
 		public void onAnimationEnd(Animation a)
 		{
+			if (ended == true) return;
+			ended = true;
 			if (relayoutChild) {
 				ViewGroup.LayoutParams params = view.getLayoutParams();
 				if (params instanceof TiCompositeLayout.LayoutParams)
