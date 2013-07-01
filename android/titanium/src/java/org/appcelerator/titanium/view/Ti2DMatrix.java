@@ -28,6 +28,7 @@ public class Ti2DMatrix extends KrollProxy
 	public static final float VALUE_UNSPECIFIED = Float.MIN_VALUE;
 
 	protected Ti2DMatrix next, prev;
+	protected Matrix transformMatrix = null;
 
 	protected static class Operation
 	{
@@ -82,6 +83,12 @@ public class Ti2DMatrix extends KrollProxy
 	protected Operation op;
 
 	public Ti2DMatrix() {}
+	public Ti2DMatrix(Matrix m) {this.transformMatrix = m;}
+	
+	public Matrix getTransformMatrix() {
+		return transformMatrix;
+	}
+	
 	protected Ti2DMatrix(Ti2DMatrix prev, int opType)
 	{
 		if (prev != null) {
