@@ -5,6 +5,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 
@@ -95,6 +96,11 @@ public class OneStateDrawable extends Drawable {
 	public void setColorDrawable(Drawable drawable)
 	{
 		colorDrawable = drawable;
+	}
+	
+	public int getColor()
+	{
+		return ((ColorDrawable)colorDrawable).getColor();
 	}
 	
 	public void setBitmapDrawable(Drawable drawable)
