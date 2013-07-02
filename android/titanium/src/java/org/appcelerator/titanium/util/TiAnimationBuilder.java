@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
@@ -68,6 +69,7 @@ public class TiAnimationBuilder
 	@SuppressWarnings("rawtypes")
 	public HashMap options;
 	protected View view;
+	protected KrollProxy proxy;
 	protected TiViewProxy viewProxy;
 
 	public TiAnimationBuilder()
@@ -102,7 +104,12 @@ public class TiAnimationBuilder
 	}
 	
 	public void setViewProxy(TiViewProxy proxy) {
+		this.proxy = proxy;
 		this.viewProxy = proxy;
+	}
+	
+	public void setProxy(KrollProxy proxy) {
+		this.proxy = proxy;
 	}
 	
 	public void setAutoreverse(boolean autoreverse) {
@@ -212,7 +219,7 @@ public class TiAnimationBuilder
 	}
 	
 	public void animateOnView(TiViewProxy proxy) {
-		this.viewProxy = proxy;
+		this.setViewProxy(proxy);
 		this.view = viewProxy.viewToAnimate();
 		// Pre-honeycomb, if one animation clobbers another you get a problem whereby the background of the
 		// animated view's parent (or the grandparent) bleeds through.  It seems to improve if you cancel and clear
@@ -276,8 +283,8 @@ public class TiAnimationBuilder
 	{
 		Log.d(TAG, "handleFinish", Log.DEBUG_MODE);
 		applyCompletionProperties();
-		if (callback != null) {
-			callback.callAsync(viewProxy.getKrollObject(), new Object[] { new KrollDict() });
+		if (callback != null && proxy != null) {
+			callback.callAsync(proxy.getKrollObject(), new Object[] { new KrollDict() });
 		}
 
 		if (animationProxy != null) {
@@ -305,7 +312,7 @@ public class TiAnimationBuilder
 	{
 		Log.d(TAG, "resetAnimationProperties", Log.DEBUG_MODE);
 
-		if (this.options == null || viewProxy == null) {
+		if (this.options == null || proxy == null) {
 			return;
 		}
 
@@ -317,19 +324,20 @@ public class TiAnimationBuilder
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
 					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
 				Log.d(TAG, "resetAnimationProperties " + key, Log.DEBUG_MODE);
-				viewProxy.firePropertyChanged(key, null, viewProxy.getProperty(key));
+			proxy.firePropertyChanged(key, null, proxy.getProperty(key));
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	private void applyCompletionProperties()
 	{
 		Log.d(TAG, "applyCompletionProperties", Log.DEBUG_MODE);
-
-		if (this.options == null || viewProxy == null || autoreverse == true) {
+		HashMap options = getOptions();
+		if (options == null || proxy == null || autoreverse == true) {
 			return;
 		}
 
-		Iterator it = this.options.entrySet().iterator();
+		Iterator it = options.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String)pairs.getKey();
@@ -337,7 +345,7 @@ public class TiAnimationBuilder
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
 					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
 				Log.d(TAG, "applyCompletionProperties " + key, Log.DEBUG_MODE);
-				viewProxy.setPropertyAndFire(key, pairs.getValue());
+			proxy.setPropertyAndFire(key, pairs.getValue());
 		}
 	}
 

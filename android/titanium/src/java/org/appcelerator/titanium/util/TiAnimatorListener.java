@@ -12,11 +12,8 @@ import org.appcelerator.titanium.view.TiAnimation;
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.TargetApi;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.os.Build;
 import android.view.View;
-import android.view.ViewParent;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("rawtypes")
@@ -36,10 +33,18 @@ public class TiAnimatorListener implements AnimatorListener {
 		this.animationProxy = tiSet.animationProxy;
 		this.options = options;
 	}
+	
+	public TiAnimatorListener(TiAnimatorSet tiSet, HashMap options) {
+		super();
+		this.tiSet = tiSet;
+		this.animationProxy = tiSet.animationProxy;
+		this.options = options;
+	}
 
 	public TiAnimatorListener(View view, TiAnimation aproxy,
 			HashMap options) {
 		super();
+		this.tiSet = tiSet;
 		this.view = view;
 		this.animationProxy = aproxy;
 		this.options = options;
@@ -56,6 +61,7 @@ public class TiAnimatorListener implements AnimatorListener {
 
 	
 	public void onAnimationEnd(Animator animation) {
+		Log.d(TAG, "onAnimationEnd", Log.DEBUG_MODE);
 		if (tiSet == null || tiSet.getAnimating() == false) return;//prevent double onEnd!
 		tiSet.setAnimating(false);
 		tiSet.handleFinish(); //will fire the EVENT_COMPLETE
@@ -63,12 +69,14 @@ public class TiAnimatorListener implements AnimatorListener {
 
 	public void onAnimationStart(Animator animation) {
 		if (tiSet != null) tiSet.setAnimating(true);
+		Log.d(TAG, "onAnimationStart", Log.DEBUG_MODE);
 		if (this.animationProxy != null) {
 			this.animationProxy.fireEvent(TiC.EVENT_START, null);
 		}
 	}
 	
 	public void onAnimationCancel(Animator animation) {
+		Log.d(TAG, "onAnimationCancel", Log.DEBUG_MODE);
 		if (tiSet != null) {
 			tiSet.setAnimating(false);
 			tiSet.resetAnimationProperties();
@@ -77,6 +85,7 @@ public class TiAnimatorListener implements AnimatorListener {
 	}
 	
 	public void onAnimationRepeat(Animator animation) {
+		Log.d(TAG, "onAnimationRepeat", Log.DEBUG_MODE);
 		if (this.animationProxy != null) {
 			this.animationProxy.fireEvent(TiC.EVENT_REPEAT, null);
 		}
