@@ -55,7 +55,7 @@ public class TiAnimationBuilder
 	protected Double duration = null;
 	protected Double toOpacity = null;
 	protected Double repeat = null;
-	protected Boolean autoreverse = null;
+	protected Boolean autoreverse = false;
 	protected String top = null, bottom = null, left = null, right = null;
 	protected String centerX = null, centerY = null;
 	protected String width = null, height = null;
@@ -82,6 +82,14 @@ public class TiAnimationBuilder
 	
 	public void setAnimation(TiAnimation animation) {
 		this.animationProxy = animation;
+	}
+	
+	public void setViewProxy(TiViewProxy proxy) {
+		this.viewProxy = proxy;
+	}
+	
+	public void setAutoreverse(boolean autoreverse) {
+		this.autoreverse = autoreverse;
 	}
 	
 	public HashMap getOptions() {
@@ -243,7 +251,7 @@ public class TiAnimationBuilder
 		this.viewProxy = null;
 	}
 	
-	private void handleFinish()
+	protected void handleFinish()
 	{
 		applyCompletionProperties();
 		if (callback != null) {
@@ -273,7 +281,7 @@ public class TiAnimationBuilder
 	private void applyCompletionProperties()
 	{
 
-		if (this.options == null || viewProxy == null) {
+		if (this.options == null || viewProxy == null || autoreverse == true) {
 			return;
 		}
 
@@ -377,7 +385,7 @@ public class TiAnimationBuilder
 
 			applyOpacity = true; // Used in the animation listener
 			addAnimation(as, animation);
-			animation.setAnimationListener(animationListener);
+//			animation.setAnimationListener(animationListener);
 
 			if (viewProxy.hasProperty(TiC.PROPERTY_OPACITY) && toOpacity != null
 				&& tiView != null) {
@@ -476,7 +484,7 @@ public class TiAnimationBuilder
 			Animation animation = new TranslateAnimation(Animation.ABSOLUTE, 0, Animation.ABSOLUTE,
 				horizontal[0] - x, Animation.ABSOLUTE, 0, Animation.ABSOLUTE, vertical[0] - y);
 
-			animation.setAnimationListener(animationListener);
+//			animation.setAnimationListener(animationListener);
 			addAnimation(as, animation);
 
 			// Will need to update layout params at end of animation
@@ -527,7 +535,7 @@ public class TiAnimationBuilder
 			}
 
 			sizeAnimation.setInterpolator(new LinearInterpolator());
-			sizeAnimation.setAnimationListener(animationListener);
+//			sizeAnimation.setAnimationListener(animationListener);
 			addAnimation(as, sizeAnimation);
 		}
 		

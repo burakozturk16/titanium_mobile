@@ -10,6 +10,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -119,8 +120,6 @@ public abstract class TiUIView
 	// of Ti2DMatrix.scale().
 	private Pair<Float, Float> animatedScaleValues = Pair.create(Float.valueOf(1f), Float.valueOf(1f)); // default = full size (1f)
 
-	// Same for rotation animation and for alpha animation.
-	private float animatedRotationDegrees = 0f; // i.e., no rotation.
 	private float animatedAlpha = Float.MIN_VALUE; // i.e., no animated alpha.
 
 	protected KrollDict lastUpEvent = new KrollDict(2);
@@ -1373,6 +1372,10 @@ public abstract class TiUIView
 			nativeView.postInvalidate();
 		}
 	}
+	
+	public float getOpacity() {
+		return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
+	}
 
 	/**
 	 * Sets the view's opacity.
@@ -1547,8 +1550,6 @@ public abstract class TiUIView
 	 */
 	private void resetPostAnimationValues()
 	{
-		animatedRotationDegrees = 0f; // i.e., no rotation.
-		animatedScaleValues = Pair.create(Float.valueOf(1f), Float.valueOf(1f)); // 1 means no scaling
 		animatedAlpha = Float.MIN_VALUE; // we use min val to signal no val.
 	}
 
@@ -1798,7 +1799,7 @@ public abstract class TiUIView
 		outerView.startAnimation(matrixAnimation);
 	}
 	public Ti2DMatrix getTi2DMatrix() {
-		return (Ti2DMatrix)proxy.getProperty(TiC.PROPERTY_TRANSFORM);
+		return (Ti2DMatrix) proxy.getProperty(TiC.PROPERTY_TRANSFORM);
 	}
 	
 	
@@ -1814,7 +1815,8 @@ public abstract class TiUIView
 		}		
 		
 		TiAnimatorListenerAdapter listener = new TiAnimatorListenerAdapter(view, proxy, options) {
-			public void onAnimationEnd(Animator animation) {
+			public void onAnimationStart(Animator animation) {}
+				public void onAnimationEnd(Animator animation) {
 				ViewGroup.LayoutParams params = view.getLayoutParams();
 				if (params instanceof TiCompositeLayout.LayoutParams) {
 					if (viewProxy != null) {
@@ -1858,7 +1860,7 @@ public abstract class TiUIView
 		final boolean autoreverse = options
 				.containsKey(TiC.PROPERTY_AUTOREVERSE) ? TiConvert.toBoolean(
 				options, TiC.PROPERTY_AUTOREVERSE) : false;
-
+		tiSet.setAutoreverse(autoreverse);
 		if (options.containsKey(TiC.PROPERTY_REPEAT)) {
 			repeat = TiConvert.toInt(options, TiC.PROPERTY_REPEAT);
 
@@ -1868,29 +1870,12 @@ public abstract class TiUIView
 				repeat = 1;
 			}
 		}
-		TiAnimatorListenerAdapter listener = new TiAnimatorListenerAdapter(this.proxy, tiSet,
-				options);
-		listener.setAutoreverse(autoreverse);
-		set.addListener(listener);
+		set.addListener(new TiAnimatorListenerAdapter(this.proxy, tiSet,
+				options));
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
-			setOpacity(1.0f);
-			ObjectAnimator anim = ObjectAnimator.ofFloat(view, "alpha",
+			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "opacity",
 					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
-
-			anim.addListener(new TiAnimatorListenerAdapter(view) {
-				public void onAnimationStart(Animator animation) {
-					if (view.getVisibility() == View.INVISIBLE) {
-						view.setVisibility(View.VISIBLE);
-					}
-				}
-
-				public void onAnimationEnd(Animator animation) {
-					if (view.getAlpha() == 0.0f) {
-						view.setVisibility(View.INVISIBLE);
-					}
-				}
-			});
 			list.add(anim);
 		}
 
@@ -1995,6 +1980,9 @@ public abstract class TiUIView
 			
 			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
 			if (tdm == null) tdm = new Ti2DMatrix();
+			
+			Log.i(TAG, "Transform: " + Arrays.toString(tdm.getRotateOperationParameters()));
+			
 			
 			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY, view.getMeasuredWidth(), view.getMeasuredHeight()), tdm);
 			list.add(anim);

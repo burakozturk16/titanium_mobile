@@ -923,6 +923,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (view == null) {
 			//let s deal with callback and completion properties
 			if (pendingAnimation != null) {
+				pendingAnimation.applyOptions();
 				pendingAnimation.simulateFinish(this);
 				pendingAnimation = null;
 			}
@@ -933,6 +934,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			return;
 		}
 		if (pendingAnimation instanceof TiAnimatorSet) {
+			pendingAnimation.setViewProxy(this);
 			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
 			((TiAnimatorSet) pendingAnimation).set().start();
 		}

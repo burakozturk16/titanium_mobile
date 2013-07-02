@@ -17,7 +17,6 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
 import android.graphics.Matrix;
-import android.util.Pair;
 
 import android.view.View;
 

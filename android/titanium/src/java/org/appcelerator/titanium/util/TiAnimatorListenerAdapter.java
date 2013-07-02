@@ -23,7 +23,6 @@ public class TiAnimatorListenerAdapter extends AnimatorListenerAdapter {
 	protected View view;
 	protected HashMap options;
 	protected boolean cancelled = false;
-	protected boolean autoreverse = false;
 	
 	public TiAnimatorListenerAdapter(TiViewProxy proxy,
 			TiAnimatorSet tiSet, HashMap options) {
@@ -51,10 +50,7 @@ public class TiAnimatorListenerAdapter extends AnimatorListenerAdapter {
 	public TiAnimatorListenerAdapter() {
 		super();
 	}
-	
-	public void setAutoreverse(boolean autoreverse){
-		this.autoreverse = autoreverse;
-	}
+
 	
 	public void cancel(){
 		cancelled = true;
@@ -62,19 +58,15 @@ public class TiAnimatorListenerAdapter extends AnimatorListenerAdapter {
 	
 	public void onAnimationEnd(Animator animation) {
 		if (cancelled) return;
-		TiAnimation aproxy = this.animationProxy;
-		if (aproxy != null) {
-			aproxy.fireEvent(TiC.EVENT_COMPLETE, null);
-		}
-		if (autoreverse == false) {
-			onComplete();
+
+		if (tiSet != null) {
+			tiSet.handleFinish();
 		}
 	}
 
 	public void onAnimationStart(Animator animation) {
-		TiAnimation proxy = this.animationProxy;
-		if (proxy != null) {
-			proxy.fireEvent(TiC.EVENT_START, null);
+		if (this.animationProxy != null) {
+			this.animationProxy.fireEvent(TiC.EVENT_START, null);
 		}
 	}
 

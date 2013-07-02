@@ -1,6 +1,5 @@
 package org.appcelerator.titanium.util;
 
-
 import org.appcelerator.titanium.view.Ti2DMatrix;
 
 import android.animation.TypeEvaluator;
@@ -28,8 +27,12 @@ public class Ti2DMatrixEvaluator implements TypeEvaluator<Ti2DMatrix> {
 	public Ti2DMatrix evaluate(float fraction, Ti2DMatrix startValue,
 			Ti2DMatrix endValue) {
 		Matrix m = endValue.interpolate(view, fraction, childWidth, childHeight, anchorX, anchorY);
-		if (startValue != null){
-			Matrix mFrom = startValue.interpolate(view, (1 - fraction), childWidth, childHeight, anchorX, anchorY);
+		if (fraction != 1 && startValue != null)
+		{
+			Matrix mFrom = startValue.getTransformMatrix();
+			if (mFrom == null) {
+				mFrom = startValue.interpolate(view, (1 - fraction), childWidth, childHeight, anchorX, anchorY);
+			}
 			m.preConcat(mFrom);
 		}
 		return new Ti2DMatrix(m);
