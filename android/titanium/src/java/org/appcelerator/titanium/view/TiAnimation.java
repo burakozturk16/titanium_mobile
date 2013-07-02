@@ -17,6 +17,10 @@ public class TiAnimation extends KrollProxy {
 	public TiAnimation(){
 		builder = null;
 	}
+
+	public void setBuilder(TiAnimationBuilder tiAnimationBuilder) {
+		builder = tiAnimationBuilder;
+	}
 	
 	@Kroll.getProperty
 	public boolean animating() {
@@ -24,8 +28,11 @@ public class TiAnimation extends KrollProxy {
 			return builder.animating();
 		return false;
 	}
-
-	public void setBuilder(TiAnimationBuilder tiAnimationBuilder) {
-		builder = tiAnimationBuilder;
+	
+	@Kroll.method
+	public void cancel() {
+		if (builder != null)
+			builder.cancel();
 	}
+
 }
