@@ -4,27 +4,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiAnimation;
 
 import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+import android.animation.Animator.AnimatorListener;
 import android.annotation.TargetApi;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewParent;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("rawtypes")
-public class TiAnimatorListenerAdapter extends AnimatorListenerAdapter {
+public class TiAnimatorListener implements AnimatorListener {
+	private static final String TAG = "TiAnimatorListener";
 	protected TiAnimatorSet tiSet;
 	protected TiViewProxy viewProxy;
 	protected TiAnimation animationProxy;
 	protected View view;
 	protected HashMap options;
-	protected boolean cancelled = false;
 	
-	public TiAnimatorListenerAdapter(TiViewProxy proxy,
+	public TiAnimatorListener(TiViewProxy proxy,
 			TiAnimatorSet tiSet, HashMap options) {
 		super();
 		this.viewProxy = proxy;
@@ -33,62 +37,49 @@ public class TiAnimatorListenerAdapter extends AnimatorListenerAdapter {
 		this.options = options;
 	}
 
-	public TiAnimatorListenerAdapter(View view, TiAnimation aproxy,
+	public TiAnimatorListener(View view, TiAnimation aproxy,
 			HashMap options) {
 		super();
-		this.tiSet = tiSet;
 		this.view = view;
 		this.animationProxy = aproxy;
 		this.options = options;
 	}
 
-	public TiAnimatorListenerAdapter(View view) {
+	public TiAnimatorListener(View view) {
 		super();
 		this.view = view;
 	}
 
-	public TiAnimatorListenerAdapter() {
+	public TiAnimatorListener() {
 		super();
 	}
 
 	
-	public void cancel(){
-		cancelled = true;
-	}
-	
 	public void onAnimationEnd(Animator animation) {
-		if (cancelled) return;
-
-		if (tiSet != null) {
-			tiSet.handleFinish();
-		}
+		if (tiSet == null || tiSet.getAnimating() == false) return;//prevent double onEnd!
+		tiSet.setAnimating(false);
+		tiSet.handleFinish(); //will fire the EVENT_COMPLETE
 	}
 
 	public void onAnimationStart(Animator animation) {
+		if (tiSet != null) tiSet.setAnimating(true);
 		if (this.animationProxy != null) {
 			this.animationProxy.fireEvent(TiC.EVENT_START, null);
 		}
 	}
+	
+	public void onAnimationCancel(Animator animation) {
+		if (tiSet != null) {
+			tiSet.setAnimating(false);
+			tiSet.resetAnimationProperties();
+		}
 
-	protected void onComplete() {
-		if (viewProxy != null) {
-			Iterator it = null;
-			if (animationProxy != null) {
-				it = animationProxy.getProperties().entrySet().iterator();
-			} else if (options != null) {
-				it = options.entrySet().iterator();
-			}
-			if (it != null) {
-				while (it.hasNext()) {
-					Map.Entry pairs = (Map.Entry) it.next();
-					String key = (String) pairs.getKey();
-					if (key.compareTo(TiC.PROPERTY_DURATION) != 0
-							&& key.compareTo(TiC.PROPERTY_DELAY) != 0
-							&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
-						viewProxy.setProperty(key, pairs.getValue());
-				}
-			}
-			viewProxy.clearAnimation(tiSet);
+	}
+	
+	public void onAnimationRepeat(Animator animation) {
+		if (this.animationProxy != null) {
+			this.animationProxy.fireEvent(TiC.EVENT_REPEAT, null);
 		}
 	}
+
 }

@@ -8,8 +8,24 @@ package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.titanium.util.TiAnimationBuilder;
 
 @Kroll.proxy
 public class TiAnimation extends KrollProxy {
+	private TiAnimationBuilder builder;
+	
+	public TiAnimation(){
+		builder = null;
+	}
+	
+	@Kroll.getProperty
+	public boolean animating() {
+		if (builder != null)
+			return builder.animating();
+		return false;
+	}
 
+	public void setBuilder(TiAnimationBuilder tiAnimationBuilder) {
+		builder = tiAnimationBuilder;
+	}
 }

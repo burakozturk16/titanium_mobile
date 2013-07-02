@@ -60,6 +60,7 @@ public class TiAnimationBuilder
 	protected String centerX = null, centerY = null;
 	protected String width = null, height = null;
 	protected Integer backgroundColor = null;
+	protected boolean animating;
 
 	public TiAnimation animationProxy;
 	protected KrollFunction callback;
@@ -73,8 +74,23 @@ public class TiAnimationBuilder
 	{
 		anchorX = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
 		anchorY = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
+		animating = false;
 	}
 	
+	public void cancel(){
+		if (animating == false) return;
+		Log.d(TAG, "cancel", Log.DEBUG_MODE);
+		if (viewProxy != null) {
+			View view = viewProxy.viewToAnimate();
+			if (view != null)
+				view.clearAnimation();
+			view = viewProxy.getNativeView();
+			if (view != null)
+				view.clearAnimation();
+		}	
+		animating = false; //will prevent the call the handleFinish
+		resetAnimationProperties();
+	}
 	
 	public void setOptions(HashMap options) {
 		this.options = options;
@@ -82,6 +98,7 @@ public class TiAnimationBuilder
 	
 	public void setAnimation(TiAnimation animation) {
 		this.animationProxy = animation;
+		this.animationProxy.setBuilder(this);
 	}
 	
 	public void setViewProxy(TiViewProxy proxy) {
@@ -190,6 +207,10 @@ public class TiAnimationBuilder
 		this.options = options;
 	}
 	
+	public boolean animating() {
+		return animating;
+	}
+	
 	public void animateOnView(TiViewProxy proxy) {
 		this.viewProxy = proxy;
 		this.view = viewProxy.viewToAnimate();
@@ -253,6 +274,7 @@ public class TiAnimationBuilder
 	
 	protected void handleFinish()
 	{
+		Log.d(TAG, "handleFinish", Log.DEBUG_MODE);
 		applyCompletionProperties();
 		if (callback != null) {
 			callback.callAsync(viewProxy.getKrollObject(), new Object[] { new KrollDict() });
@@ -275,11 +297,33 @@ public class TiAnimationBuilder
 					}
 				});
 			}
+			this.animationProxy.setBuilder(null);
+		}
+	}
+	
+	public void resetAnimationProperties()
+	{
+		Log.d(TAG, "resetAnimationProperties", Log.DEBUG_MODE);
+
+		if (this.options == null || viewProxy == null) {
+			return;
+		}
+
+		Iterator it = this.options.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			String key = (String)pairs.getKey();
+			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
+					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
+					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
+				Log.d(TAG, "resetAnimationProperties " + key, Log.DEBUG_MODE);
+				viewProxy.firePropertyChanged(key, null, viewProxy.getProperty(key));
 		}
 	}
 
 	private void applyCompletionProperties()
 	{
+		Log.d(TAG, "applyCompletionProperties", Log.DEBUG_MODE);
 
 		if (this.options == null || viewProxy == null || autoreverse == true) {
 			return;
@@ -292,7 +336,8 @@ public class TiAnimationBuilder
 			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
 					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
-				viewProxy.setPropertyAndFire((String)pairs.getKey(), pairs.getValue());
+				Log.d(TAG, "applyCompletionProperties " + key, Log.DEBUG_MODE);
+				viewProxy.setPropertyAndFire(key, pairs.getValue());
 		}
 	}
 
@@ -749,11 +794,10 @@ public class TiAnimationBuilder
 
 	protected class AnimationListener implements Animation.AnimationListener
 	{
-		private boolean ended = false; 
 		public void onAnimationEnd(Animation a)
 		{
-			if (ended == true) return;
-			ended = true;
+			if (animating == false) return; //prevent double onEnd!
+			animating = false;
 			if (relayoutChild) {
 				ViewGroup.LayoutParams params = view.getLayoutParams();
 				if (params instanceof TiCompositeLayout.LayoutParams)
@@ -794,10 +838,14 @@ public class TiAnimationBuilder
 		
 		public void onAnimationRepeat(Animation a)
 		{
+			if (animationProxy != null) {
+				animationProxy.fireEvent(TiC.EVENT_REPEAT, null);
+			}
 		}
 
 		public void onAnimationStart(Animation a)
 		{
+			animating = true;
 			if (animationProxy != null) {
 				animationProxy.fireEvent(TiC.EVENT_START, null);
 			}

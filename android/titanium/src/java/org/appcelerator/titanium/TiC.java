@@ -436,6 +436,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_STOP = "stop";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_REPEAT = "repeat";
 	
 	/**
 	 * @module.api
@@ -1756,6 +1761,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PLAY = "play";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PLAY_MODE = "playMode";
+	
 	/**
 	 * @module.api
 	 */

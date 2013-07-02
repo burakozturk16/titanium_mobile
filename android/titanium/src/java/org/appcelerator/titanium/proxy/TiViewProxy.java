@@ -27,7 +27,7 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.util.TiAnimationBuilder;
-import org.appcelerator.titanium.util.TiAnimatorListenerAdapter;
+import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
@@ -853,17 +853,8 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	public void animate(Object arg, @Kroll.argument(optional=true) KrollFunction callback)
 	{
 		if (pendingAnimation != null) {
-			if (pendingAnimation instanceof TiAnimatorSet) {
-				ArrayList<AnimatorListener> listeners = ((TiAnimatorSet)pendingAnimation).set().getListeners();
-				for (int i = 0; i < listeners.size(); i++) {
-					AnimatorListener listener = listeners.get(i);
-					if (listener instanceof TiAnimatorListenerAdapter) {
-						((TiAnimatorListenerAdapter)listener).cancel();
-					}
-						
-				}
-			}
 			//already running animation
+			pendingAnimation.cancel();
 		}
 		synchronized (pendingAnimationLock) {
 			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
@@ -893,9 +884,11 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	@Kroll.method
 	public void cancelAllAnimations()
 	{
-		View nativeView = viewToAnimate();
-		 nativeView.clearAnimation();
-		pendingAnimation = null;
+		
+		if (pendingAnimation != null) {
+			pendingAnimation.cancel();
+			pendingAnimation = null;
+		}
 	}
 
 	public void handlePendingAnimation(boolean forceQueue)

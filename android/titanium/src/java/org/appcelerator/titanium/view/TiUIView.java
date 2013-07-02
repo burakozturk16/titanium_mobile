@@ -28,7 +28,7 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiAnimationBuilder;
 import org.appcelerator.titanium.util.TiAnimationBuilder.TiMatrixAnimation;
 import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
-import org.appcelerator.titanium.util.TiAnimatorListenerAdapter;
+import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -45,6 +45,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -1797,6 +1799,10 @@ public abstract class TiUIView
 		matrixAnimation.setDuration(0);
 		matrixAnimation.setFillAfter(true);
 		outerView.startAnimation(matrixAnimation);
+		ViewParent viewParent = outerView.getParent();
+		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+			((View) viewParent).postInvalidate();
+		}
 	}
 	public Ti2DMatrix getTi2DMatrix() {
 		return (Ti2DMatrix) proxy.getProperty(TiC.PROPERTY_TRANSFORM);
@@ -1814,7 +1820,7 @@ public abstract class TiUIView
 			arrayOfPropertyValuesHolder[i] = anim;
 		}		
 		
-		TiAnimatorListenerAdapter listener = new TiAnimatorListenerAdapter(view, proxy, options) {
+		TiAnimatorListener listener = new TiAnimatorListener(view, proxy, options) {
 			public void onAnimationStart(Animator animation) {}
 				public void onAnimationEnd(Animator animation) {
 				ViewGroup.LayoutParams params = view.getLayoutParams();
@@ -1870,7 +1876,7 @@ public abstract class TiUIView
 				repeat = 1;
 			}
 		}
-		set.addListener(new TiAnimatorListenerAdapter(this.proxy, tiSet,
+		set.addListener(new TiAnimatorListener(this.proxy, tiSet,
 				options));
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
