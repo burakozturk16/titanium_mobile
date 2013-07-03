@@ -308,6 +308,7 @@ public class TiAnimationBuilder
 		}
 	}
 	
+	@SuppressWarnings("rawtypes")
 	public void resetAnimationProperties()
 	{
 		Log.d(TAG, "resetAnimationProperties", Log.DEBUG_MODE);
