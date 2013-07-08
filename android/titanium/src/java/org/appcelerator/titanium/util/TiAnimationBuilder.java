@@ -311,8 +311,6 @@ public class TiAnimationBuilder
 	@SuppressWarnings("rawtypes")
 	public void resetAnimationProperties()
 	{
-		Log.d(TAG, "resetAnimationProperties", Log.DEBUG_MODE);
-
 		if (this.options == null || proxy == null) {
 			return;
 		}
@@ -324,7 +322,6 @@ public class TiAnimationBuilder
 			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
 					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
-				Log.d(TAG, "resetAnimationProperties " + key, Log.DEBUG_MODE);
 			proxy.firePropertyChanged(key, null, proxy.getProperty(key));
 		}
 	}
@@ -332,7 +329,6 @@ public class TiAnimationBuilder
 	@SuppressWarnings("rawtypes")
 	private void applyCompletionProperties()
 	{
-		Log.d(TAG, "applyCompletionProperties", Log.DEBUG_MODE);
 		HashMap options = getOptions();
 		if (options == null || proxy == null || autoreverse == true) {
 			return;
@@ -345,7 +341,6 @@ public class TiAnimationBuilder
 			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
 					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
-				Log.d(TAG, "applyCompletionProperties " + key, Log.DEBUG_MODE);
 			proxy.setPropertyAndFire(key, pairs.getValue());
 		}
 	}
