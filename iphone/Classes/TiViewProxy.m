@@ -522,6 +522,16 @@ LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeS
     return transferableProps;
 }
 
+-(NSArray *)keySequence
+{
+	static NSArray *keySequence = nil;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		keySequence = [[NSArray arrayWithObjects:@"backgroundColor",@"backgroundImage",@"backgroundGradient",@"backgroundOpacity",nil] retain];
+	});
+	return keySequence;
+}
+
 // See below for how we handle setLayout
 //LAYOUTPROPERTIES_SETTER(setLayout,layoutStyle,TiLayoutRuleFromObject,[self willChangeLayout])
 
