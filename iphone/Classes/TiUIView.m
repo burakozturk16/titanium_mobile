@@ -238,16 +238,31 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+- (void) initialize
+{
+    childViews  =[[NSMutableArray alloc] init];
+    transferLock = [[NSRecursiveLock alloc] init];
+    touchPassThrough = false;
+    self.clipsToBounds = clipChildren = YES;
+    backgroundOpacity = 1.0f;
+}
+
 - (id) init
 {
 	self = [super init];
 	if (self != nil)
 	{
-        childViews  =[[NSMutableArray alloc] init];
-		transferLock = [[NSRecursiveLock alloc] init];
-		touchPassThrough = false;
-        self.clipsToBounds = clipChildren = YES;
-        backgroundOpacity = 1.0f;
+        [self initialize];
+	}
+	return self;
+}
+
+- (id)initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	if (self != nil)
+	{
+        [self initialize];
 	}
 	return self;
 }
