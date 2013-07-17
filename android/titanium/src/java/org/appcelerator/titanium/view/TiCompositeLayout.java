@@ -175,7 +175,7 @@ public class TiCompositeLayout extends ViewGroup
 			}
 		});
 
-		needsSort = true;
+		setNeedsSort(true);
 		setOnHierarchyChangeListener(this);
 		this.proxy = new WeakReference<TiViewProxy>(proxy);
 	}
@@ -188,20 +188,20 @@ public class TiCompositeLayout extends ViewGroup
 	{
 		if (getVisibility() == View.INVISIBLE || getVisibility() == View.GONE)
 			return;
-		needsSort = true;
+		setNeedsSort(true);
 		requestLayout();
 		invalidate();
 	}
 
 	public void onChildViewAdded(View parent, View child) {
-		needsSort = true;
+		setNeedsSort(true);
 		if (Log.isDebugModeEnabled() && parent != null && child != null) {
 			Log.d(TAG, "Attaching: " + viewToString(child) + " to " + viewToString(parent), Log.DEBUG_MODE);
 		}
 	}
 
 	public void onChildViewRemoved(View parent, View child) {
-		needsSort = true;
+		setNeedsSort(true);
 		if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Removing: " + viewToString(child) + " from " + viewToString(parent), Log.DEBUG_MODE);
 		}
@@ -641,7 +641,7 @@ public class TiCompositeLayout extends ViewGroup
 					attachViewToParent(child, i++, child.getLayoutParams());
 				}
 			}
-			needsSort = false;
+			setNeedsSort(false);
 		}
 		// viewSorter is not needed after this. It's a source of
 		// memory leaks if it retains the views it's holding.
@@ -1054,5 +1054,16 @@ public class TiCompositeLayout extends ViewGroup
 	{
 		if (touchPassThrough) return false;
 		return super.dispatchTouchEvent(event);
+	}
+	
+	private void setNeedsSort(boolean value)
+	{
+		// For vertical and horizontal layouts, since the controls doesn't
+		// overlap, we shouldn't sort based on the zIndex, the original order
+		// that controls added should be preserved
+		if (isHorizontalArrangement() || isVerticalArrangement()) {
+			value = false;
+		}
+		needsSort = value;
 	}
 }

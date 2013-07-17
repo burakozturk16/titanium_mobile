@@ -17,6 +17,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import ti.modules.titanium.ui.widget.TiUIText;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -26,7 +27,7 @@ import android.widget.ImageButton;
 public class TiUISearchBar extends TiUIText
 {
 	protected ImageButton cancelBtn;
-	protected TiUIText textfield;
+	private TiEditText tv;
 	
 	public interface OnSearchChangeListener {
 		public void filterBy(String text);
@@ -37,11 +38,10 @@ public class TiUISearchBar extends TiUIText
 	public TiUISearchBar(final TiViewProxy proxy)
 	{
 		super(proxy, true);
-		textfield = this;
 		TiCompositeLayout.LayoutParams params = getLayoutParams();
 		params.autoFillsWidth = true;
 		
-		TiEditText tv = (TiEditText) ((FocusFixedEditText)getNativeView()).getRealEditText();
+		tv = (TiEditText) ((FocusFixedEditText)getNativeView()).getRealEditText();
 		tv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
 		// TODO Add Filter support
@@ -64,8 +64,8 @@ public class TiUISearchBar extends TiUIText
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}*/
-				proxy.setProperty(TiC.PROPERTY_VALUE, "", true);
-				proxy.fireEvent("cancel", null);
+				tv.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
+				fireEvent("cancel", null);
 			}
 		});
 		((FocusFixedEditText)getNativeView()).setRightView(cancelBtn);

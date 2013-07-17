@@ -48,6 +48,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -340,6 +341,23 @@ public abstract class TiUIView
 	private double computeAngle(float[] v1, float[] v2)
 	{
 		return (180.0 / Math.PI * Math.atan2(v1[0] - v2[0], v2[1] - v1[1]));
+	}
+
+	public float[] getPreTranslationValue(float[] points)
+	{
+		View view = getOuterView();
+		if (view != null && layoutParams.optionTransform != null) {
+			TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(view, layoutParams.optionTransform);
+			int width = view.getWidth();
+			int height = view.getHeight();
+			Matrix m = matrixAnimation.getFinalMatrix(width, height);
+			// Get the translation values
+			float[] values = new float[9];
+			m.getValues(values);
+			points[0] = points[0] - values[2];
+			points[1] = points[1] - values[5];
+		}
+		return points;
 	}
 
 	protected void applyTransform(Ti2DMatrix timatrix)

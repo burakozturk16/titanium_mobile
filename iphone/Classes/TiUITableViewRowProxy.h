@@ -55,6 +55,7 @@
 -(void)updateRow:(NSDictionary*)data withObject:(NSDictionary*)properties;
 -(UIView*) currentRowContainerView; //Private method :For internal use only.
 -(void)configureBackgroundColor;
+-(void)triggerLayout; //Private method :For internal use only. Called from layoutSubviews of the cell.
 
 @end
 

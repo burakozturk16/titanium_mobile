@@ -113,6 +113,25 @@ public class TiUITableView extends TiUIView
 	@Override
 	public void processProperties(KrollDict d)
 	{
+		// Don't create a new table view if one already exists
+		if (tableView == null) {
+			tableView = new TiTableView((TableViewProxy) proxy);
+		}
+		Activity activity = proxy.getActivity();
+		if (activity instanceof TiBaseActivity) {
+			((TiBaseActivity) activity).addOnLifecycleEventListener(this);
+		}
+
+		boolean clickable = true;
+		if (d.containsKey(TiC.PROPERTY_TOUCH_ENABLED)) {
+			clickable = (Boolean) d.get(TiC.PROPERTY_TOUCH_ENABLED);
+		}
+		if (clickable) {
+			tableView.setOnItemClickListener(this);
+			tableView.setOnItemLongClickListener(this);
+
+		}
+
 		if (d.containsKey(TiC.PROPERTY_SEARCH)) {
 			TiViewProxy searchView = (TiViewProxy) d.get(TiC.PROPERTY_SEARCH);
 			TiUIView search = searchView.getOrCreateView();
@@ -231,6 +250,20 @@ public class TiUITableView extends TiUIView
 		if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 		}
+
+		if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
+			boolean clickable = TiConvert.toBoolean(newValue);
+			if (clickable) {
+				tableView.setOnItemClickListener(this);
+				tableView.setOnItemLongClickListener(this);
+
+			} else {
+				tableView.setOnItemClickListener(null);
+				tableView.setOnItemLongClickListener(null);
+			}
+
+		}
+
 		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			tableView.setSeparatorColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {

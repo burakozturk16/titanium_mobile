@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -47,6 +47,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 
 import ti.modules.titanium.TitaniumModule;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -76,6 +77,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	private static final String PROPERTY_COMPILE_JS = "ti.android.compilejs";
 	private static final String PROPERTY_ENABLE_COVERAGE = "ti.android.enablecoverage";
 	private static final String PROPERTY_DEFAULT_UNIT = "ti.ui.defaultunit";
+	private static final String PROPERTY_USE_LEGACY_WINDOW = "ti.android.useLegacyWindow";
 	private static long lastAnalyticsTriggered = 0;
 	private static long mainThreadId = 0;
 
@@ -88,6 +90,10 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	public static final String APPLICATION_PREFERENCES_NAME = "titanium";
 	public static final String PROPERTY_FASTDEV = "ti.android.fastdev";
 	public static final int TRIM_MEMORY_RUNNING_LOW = 10; // Application.TRIM_MEMORY_RUNNING_LOW for API 16+
+
+	// Whether or not using legacy window. This is set in the application's tiapp.xml with the
+	// "ti.android.useLegacyWindow" property.
+	public static boolean USE_LEGACY_WINDOW = false;
 
 	private boolean restartPending = false;
 	private String baseUrl;
@@ -384,6 +390,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		super.onLowMemory();
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	public void onTrimMemory(int level)
 	{
@@ -411,6 +418,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		}
 
 		TiConfig.DEBUG = TiConfig.LOGD = systemProperties.getBool("ti.android.debug", false);
+		USE_LEGACY_WINDOW = systemProperties.getBool(PROPERTY_USE_LEGACY_WINDOW, false);
 
 		startExternalStorageMonitor();
 		
@@ -527,7 +535,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public void addAppEventProxy(KrollProxy appEventProxy)
 	{
-		Log.e(TAG, "APP PROXY: " + appEventProxy);
 		if (appEventProxy != null && !appEventProxies.contains(appEventProxy)) {
 			appEventProxies.add(new WeakReference<KrollProxy>(appEventProxy));
 		}

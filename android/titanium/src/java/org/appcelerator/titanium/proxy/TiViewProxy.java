@@ -39,6 +39,8 @@ import android.util.DisplayMetrics;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Matrix;
+import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -141,6 +143,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
 		defaultValues.put(TiC.PROPERTY_KEEP_SCREEN_ON, false);
+		defaultValues.put(TiC.PROPERTY_ENABLED, true);
 	}
 
 	@Override
@@ -1239,10 +1242,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 		int pointWindowX = viewLocation[0] + x;
 		int pointWindowY = viewLocation[1] + y;
+	
+		// Apply reverse transformation to get the original location
+		float[] points = new float[] { pointWindowX - destLocation[0], pointWindowY - destLocation[1] };
+		points = destView.getPreTranslationValue(points);
 
 		KrollDict destPoint = new KrollDict();
-		destPoint.put(TiC.PROPERTY_X, pointWindowX - destLocation[0]);
-		destPoint.put(TiC.PROPERTY_Y, pointWindowY - destLocation[1]);
+		destPoint.put(TiC.PROPERTY_X, (int) points[0]);
+		destPoint.put(TiC.PROPERTY_Y, (int) points[1]);
 		return destPoint;
 	}
 
