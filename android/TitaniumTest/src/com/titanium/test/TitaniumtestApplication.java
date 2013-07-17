@@ -7,19 +7,9 @@ package com.titanium.test;
 
 import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.runtime.v8.V8Runtime;
-
-import org.appcelerator.kroll.KrollModule;
-import org.appcelerator.kroll.KrollModuleInfo;
 import org.appcelerator.kroll.KrollRuntime;
-import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiRootActivity;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-
-import android.util.Log;
 
 
 public final class TitaniumtestApplication extends TiApplication
