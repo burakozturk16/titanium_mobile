@@ -1840,22 +1840,27 @@ public abstract class TiUIView
 		
 		TiAnimatorListener listener = new TiAnimatorListener(view, proxy, options) {
 			public void onAnimationStart(Animator animation) {}
-				public void onAnimationEnd(Animator animation) {
-				ViewGroup.LayoutParams params = view.getLayoutParams();
-				if (params instanceof TiCompositeLayout.LayoutParams) {
-					if (viewProxy != null) {
-						TiConvert
-								.fillLayout(
-										viewProxy.getProperties(),
-										(TiCompositeLayout.LayoutParams) params);
-					} else if (options != null) {
-						TiConvert
-								.fillLayout(
-										options,
-										(TiCompositeLayout.LayoutParams) params);
+			public void onAnimationEnd(Animator animation) {
+				
+				TiMessenger.postOnMain(new Runnable() {
+					public void run() {
+						ViewGroup.LayoutParams params = view.getLayoutParams();
+						if (params instanceof TiCompositeLayout.LayoutParams) {
+							if (viewProxy != null) {
+								TiConvert
+										.fillLayout(
+												viewProxy.getProperties(),
+												(TiCompositeLayout.LayoutParams) params);
+							} else if (options != null) {
+								TiConvert
+										.fillLayout(
+												options,
+												(TiCompositeLayout.LayoutParams) params);
+							}
+						}
+						view.setLayoutParams(params);
 					}
-				}
-				view.setLayoutParams(params);
+				});
 			}
 		};
 		ObjectAnimator localObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, arrayOfPropertyValuesHolder);
