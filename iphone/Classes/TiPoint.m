@@ -56,6 +56,13 @@
 			TiDimensionCalculateValue(yDimension, 0));
 }
 
+
+-(CGPoint)pointWithinSize:(CGSize)size
+{
+	return CGPointMake(TiDimensionCalculateValue(xDimension, size.width),
+                       TiDimensionCalculateValue(yDimension, size.height));
+}
+
 -(id)x
 {
 	return [TiUtils valueFromDimension:xDimension];

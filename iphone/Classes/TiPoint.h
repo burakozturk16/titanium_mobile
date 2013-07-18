@@ -25,6 +25,8 @@
 
 -(void)setValues:(id)object;
 
+-(CGPoint)pointWithinSize:(CGSize)size;
+
 /**
  Provides access to point struct.
  */
