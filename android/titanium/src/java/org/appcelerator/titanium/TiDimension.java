@@ -245,24 +245,28 @@ public class TiDimension
 		this.units = units;
 	}
 
-	protected double getPixels(View parent)
+	protected double getPixels(Context context, int width, int height)
 	{
 		switch (units) {
 			case TypedValue.COMPLEX_UNIT_PX:
 			case COMPLEX_UNIT_UNDEFINED:
 				return (int) this.value;
 			case COMPLEX_UNIT_PERCENT:
-				return getPercentPixels(parent);
+				return getPercentPixels(width, height);
 			case TypedValue.COMPLEX_UNIT_DIP:
 			case TypedValue.COMPLEX_UNIT_SP:
-				return getScaledPixels(parent);
+				return getScaledPixels(context, width, height);
 			case TypedValue.COMPLEX_UNIT_PT:
 			case TypedValue.COMPLEX_UNIT_MM:
 			case COMPLEX_UNIT_CM:
 			case TypedValue.COMPLEX_UNIT_IN:
-				return getSizePixels(parent);
+				return getSizePixels(context, width, height);
 		}
 		return -1;
+	}
+	protected double getPixels(View parent)
+	{
+		return getPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
 	/**
@@ -271,46 +275,69 @@ public class TiDimension
 	 * @param parent the parent view used for calculation.
 	 * @return the number of pixels.
 	 */
+	public int getAsPixels(Context context, int width, int height)
+	{
+		return (int) Math.round(getPixels(context, width, height));
+	}
 	public int getAsPixels(View parent)
 	{
-		return (int) Math.round(getPixels(parent));
+		return getAsPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
-	public double getAsMillimeters(View parent)
+	public double getAsMillimeters(Context context, int width, int height)
 	{
 		if (units == TypedValue.COMPLEX_UNIT_MM) {
 			return this.value;
 		}
 
-		return ((getPixels(parent) / getDPIForType(parent)) * MM_INCH);
+		return ((getPixels(context, width, height) / getDPIForType(context)) * MM_INCH);
+	}
+	
+	public double getAsMillimeters(View parent)
+	{
+		return getAsMillimeters(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
-	public double getAsCentimeters(View parent)
+	public double getAsCentimeters(Context context, int width, int height)
 	{
 		if (units == COMPLEX_UNIT_CM) {
 			return this.value;
 		}
 
-		return ((getPixels(parent) / getDPIForType(parent)) * CM_INCH);
+		return ((getPixels(context, width, height) / getDPIForType(context)) * CM_INCH);
+	}
+	
+	public double getAsCentimeters(View parent)
+	{
+		return getAsCentimeters(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
-	public double getAsInches(View parent)
+	public double getAsInches(Context context, int width, int height)
 	{
 		if (units == TypedValue.COMPLEX_UNIT_IN) {
 			return this.value;
 		}
 
-		return (getPixels(parent) / getDPIForType(parent));
+		return (getPixels(context, width, height) / getDPIForType(context));
+	}
+	public double getAsInches(View parent)
+	{
+		return getAsInches(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
-	public int getAsDIP(View parent)
+	public int getAsDIP(Context context, int width, int height)
 	{
 		if (units == TypedValue.COMPLEX_UNIT_DIP) {
 			return (int) this.value;
 		}
 
-		return (int) Math.round((getPixels(parent) / getDisplayMetrics(parent).density));
+		return (int) Math.round((getPixels(context, width, height) / getDisplayMetrics(context).density));
 	}
+	public int getAsDIP(View parent)
+	{
+		return getAsDIP(parent.getContext(), parent.getWidth(), parent.getHeight());
+	}
+	
 	
 	/**
 	 * Calculates and returns the dimension in the default units. If the default
@@ -318,27 +345,31 @@ public class TiDimension
 	 * @param parent the parent of the view used for calculation
 	 * @return the dimension in the system unit
 	 */
-	public double getAsDefault(View parent)
+	public double getAsDefault(Context context, int width, int height)
 	{
 		String defaultUnit = TiApplication.getInstance().getDefaultUnit();
 		if (UNIT_DP.equals(defaultUnit) || UNIT_DIP.equals(defaultUnit)) {
-			return (double) getAsDIP(parent);
+			return (double) getAsDIP(context, width, height);
 		}
 		else if (UNIT_MM.equals(defaultUnit)) {
-			return getAsMillimeters(parent);
+			return getAsMillimeters(context, width, height);
 		}
 		else if (UNIT_CM.equals(defaultUnit)) {
-			return getAsCentimeters(parent);
+			return getAsCentimeters(context, width, height);
 		}
 		else if (UNIT_IN.equals(defaultUnit)) {
-			return getAsInches(parent);
+			return getAsInches(context, width, height);
 		}
 
 		// Returned for PX, SYSTEM, and unknown values
-		return (double) getAsPixels(parent);
+		return (double) getAsPixels(context, width, height);
 	}
-
-	protected double getPercentPixels(View parent)
+	public double getAsDefault(View parent)
+	{
+		return getAsDefault(parent.getContext(), parent.getWidth(), parent.getHeight());
+	}
+	
+	protected double getPercentPixels(int width, int height)
 	{
 		int dimension = -1;
 		switch (valueType) {
@@ -346,13 +377,13 @@ public class TiDimension
 			case TYPE_BOTTOM:
 			case TYPE_CENTER_Y:
 			case TYPE_HEIGHT:
-				dimension = parent.getHeight();
+				dimension = height;
 				break;
 			case TYPE_LEFT:
 			case TYPE_RIGHT:
 			case TYPE_CENTER_X:
 			case TYPE_WIDTH:
-				dimension = parent.getWidth();
+				dimension = width;
 				break;
 		}
 		if (dimension != -1) {
@@ -360,21 +391,30 @@ public class TiDimension
 		}
 		return -1;
 	}
+	protected double getPercentPixels(View parent)
+	{
+		return getPercentPixels(parent.getWidth(), parent.getHeight());
+	}
 
-	protected static DisplayMetrics getDisplayMetrics(View parent)
+	protected static DisplayMetrics getDisplayMetrics(Context context)
 	{
 		if (metrics == null) {
-			WindowManager windowManager = (WindowManager) parent.getContext().getSystemService(Context.WINDOW_SERVICE);
+			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 			Display display = windowManager.getDefaultDisplay();
 			metrics = new DisplayMetrics();
 			display.getMetrics(metrics);
 		}
 		return metrics;
 	}
-
-	protected double getScaledPixels(View parent)
+	
+	protected static DisplayMetrics getDisplayMetrics(View parent)
 	{
-		DisplayMetrics metrics = getDisplayMetrics(parent);
+		return getDisplayMetrics(parent.getContext());
+	}
+
+	protected double getScaledPixels(Context context, int width, int height)
+	{
+		DisplayMetrics metrics = getDisplayMetrics(context);
 		if (units == TypedValue.COMPLEX_UNIT_DIP) {
 			return (metrics.density * this.value);
 		} else if (units == TypedValue.COMPLEX_UNIT_SP) {
@@ -383,9 +423,14 @@ public class TiDimension
 		return -1;
 	}
 	
-	protected double getDPIForType(View parent)
+	protected double getScaledPixels(View parent)
 	{
-		DisplayMetrics metrics = getDisplayMetrics(parent);		
+		return getScaledPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
+	}
+	
+	protected double getDPIForType(Context context)
+	{
+		DisplayMetrics metrics = getDisplayMetrics(context);		
 		float dpi = -1;
 		switch (valueType) {
 			case TYPE_TOP:
@@ -406,10 +451,14 @@ public class TiDimension
 		
 		return dpi;
 	}
-	
-	protected double getSizePixels(View parent)
+	protected double getDPIForType(View parent)
 	{
-		double dpi = getDPIForType(parent);
+		return getDPIForType(parent.getContext());
+	}
+	
+	protected double getSizePixels(Context context, int width, int height)
+	{
+		double dpi = getDPIForType(context);
 		
 		if (units == TypedValue.COMPLEX_UNIT_PT) {
 			return (this.value * (dpi / POINT_DPI));
@@ -421,6 +470,11 @@ public class TiDimension
 			return (this.value * dpi);
 		}
 		return -1;
+	}
+	
+	protected double getSizePixels(View parent)
+	{
+		return getSizePixels(parent.getContext(), parent.getWidth(), parent.getHeight());
 	}
 
 	/**
