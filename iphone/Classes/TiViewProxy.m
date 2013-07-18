@@ -1238,6 +1238,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 		[view initializeState];
 
+        [view configurationStart];
 		// fire property changes for all properties to our delegate
 		[self firePropertyChanges];
 
