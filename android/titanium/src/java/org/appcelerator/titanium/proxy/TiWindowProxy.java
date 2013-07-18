@@ -215,10 +215,10 @@ public abstract class TiWindowProxy extends TiViewProxy
 		this.postOpenListener = listener;
 	}
 
-	public TiBlob handleToImage(Number scale)
-	{
-		return TiUIHelper.viewToImage(null, getActivity().getWindow().getDecorView(), scale.floatValue());
-	}
+//	 public TiBlob handleToImage(Number scale)
+//	 {
+//	 	return TiUIHelper.viewToImage(null, getActivity().getWindow().getDecorView(), scale.floatValue());
+//	 }
 
 	/*
 	 * Called when the window's activity has been created.
