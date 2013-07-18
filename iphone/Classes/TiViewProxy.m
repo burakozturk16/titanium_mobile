@@ -762,7 +762,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 -(TiBlob*)toImage:(id)args
 {
     KrollCallback *callback = nil;
-    BOOL honorScale = NO;
+    float scale = 1.0f;
     
     NSObject *obj = nil;
     if( [args count] > 0) {
@@ -773,7 +773,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         }
         
         if( [args count] > 1) {
-            honorScale = [TiUtils boolValue:[args objectAtIndex:1] def:NO];
+            scale = [TiUtils floatValue:[args objectAtIndex:1] def:1.0f];
         }
     }
     callback = (KrollCallback*)obj;
@@ -800,7 +800,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 			CGRect rect = CGRectMake(0, 0, size.width, size.height);
 			[TiUtils setView:myview positionRect:rect];
 		}
-		UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], (honorScale ? 0.0 : 1.0));
+		UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
 		[myview.layer renderInContext:UIGraphicsGetCurrentContext()];
 		UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
 		[blob setImage:image];
@@ -808,8 +808,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		UIGraphicsEndImageContext();
 		if (callback != nil)
 		{
-			NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"blob"];
-			[self _fireEventToListener:@"blob" withObject:event listener:callback thisObject:nil];
+            NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+            [self _fireEventToListener:@"toimage" withObject:event listener:callback thisObject:nil];
 		}
 	}, (callback==nil));
 	
