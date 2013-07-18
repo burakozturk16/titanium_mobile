@@ -110,6 +110,7 @@ view.addEventListener('touchend', function(e){
 			// win.open();
 		// }, 0.5);
 		var win2 = Ti.UI.createWindow({
+			title:'test',
 			backgroundColor:'red'
 		});
 		win2.open({
