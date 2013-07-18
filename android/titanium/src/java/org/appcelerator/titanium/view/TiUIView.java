@@ -713,7 +713,7 @@ public abstract class TiUIView
 			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, colorDrawable);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1});
+			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1, TiUIHelper.BACKGROUND_DEFAULT_STATE_2});
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
 			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_SELECTED_STATE});
