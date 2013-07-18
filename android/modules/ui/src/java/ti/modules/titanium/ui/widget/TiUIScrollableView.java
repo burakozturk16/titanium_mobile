@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.lang.Math;
 
 import org.appcelerator.kroll.KrollDict;
@@ -18,12 +19,10 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.ScrollableViewProxy;
-import ti.modules.titanium.ui.widget.TiUIScrollView.TiScrollViewLayout;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -504,18 +503,24 @@ public class TiUIScrollableView extends TiUIView
 	public static class ViewPagerAdapter extends PagerAdapter
 	{
 		private final ArrayList<TiViewProxy> mViewProxies;
+		private  HashMap<TiViewProxy, TiCompositeLayout> mHolders;
 		public ViewPagerAdapter(Activity activity, ArrayList<TiViewProxy> viewProxies)
 		{
 			mViewProxies = viewProxies;
+			mHolders = new HashMap<TiViewProxy, TiCompositeLayout>();
 		}
 
 		@Override
 		public void destroyItem(View container, int position, Object object)
 		{
-			((ViewPager) container).removeView((View) object);
-			if (position < mViewProxies.size()) {
-				TiViewProxy proxy = mViewProxies.get(position);
-				proxy.releaseViews();
+			TiCompositeLayout layout = mHolders.get(object);
+			if (layout != null) {
+				((ViewPager) container).removeView(layout);
+				mHolders.remove(object);
+			}
+			TiViewProxy tiProxy = (TiViewProxy) object;
+			if (tiProxy != null) {
+				tiProxy.releaseViews();
 			}
 		}
 
@@ -548,13 +553,15 @@ public class TiUIScrollableView extends TiUIView
 			} else {
 				pager.addView(layout, params);
 			}
-			return layout;
+			mHolders.put(tiProxy, layout);
+			return tiProxy;
 		}
 
 		@Override
-		public boolean isViewFromObject(View view, Object obj)
+		public boolean isViewFromObject(View view, Object object)
 		{
-			return (obj instanceof View && view.equals(obj));
+			TiCompositeLayout layout = mHolders.get(object);
+			return (layout != null && layout.equals(view));
 		}
 
 		@Override
@@ -569,11 +576,21 @@ public class TiUIScrollableView extends TiUIView
 		@Override
 		public int getItemPosition(Object object)
 		{
-			if (!mViewProxies.contains(object)) {
-				return POSITION_NONE;
-			} else {
-				return POSITION_UNCHANGED;
+
+			TiViewProxy proxy = (TiViewProxy) object;
+			if (proxy == null) return POSITION_NONE;
+
+			for(int i = 0; i < getCount(); i++) {
+				if(mViewProxies.get(i).equals(proxy)) {
+					// item still exists in dataset; return position
+					return i;
+				}
 			}
+			// if we arrive here, the data-item for which the Proxy was created
+			// does not exist anymore.
+			proxy.releaseViews();
+
+			return POSITION_NONE;
 		}
 	}
 
