@@ -552,6 +552,20 @@ public class TiUIHelper
 		return imageDrawable;
 	}
 	
+	public static Drawable buildImageDrawable(Context context, Bitmap image, boolean tileImage, KrollProxy proxy) {
+		BitmapDrawable imageDrawable = new BitmapDrawable(context.getResources(), image);
+		
+		if (tileImage) {
+			if (imageDrawable instanceof BitmapDrawable) {
+				BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+				tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+				tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+				imageDrawable = tiledBackground;
+			}
+		}
+		return imageDrawable;
+	}
+	
 	public static TiGradientDrawable buildGradientDrawable(View view, KrollDict gradientProperties) {
 		TiGradientDrawable gradientDrawable = null;
 		if (gradientProperties != null) {
@@ -601,10 +615,10 @@ public class TiUIHelper
 		}
 		return null;
 	}
-
-	public static TiBlob viewToImage(KrollDict proxyDict, View view, float scale)
+	
+	public static Bitmap viewToBitmap(KrollDict proxyDict, View view, float scale)
 	{
-		TiBlob image = null;
+		Bitmap bitmap = null;
 
 		if (view != null) {
 			int width = view.getWidth();
@@ -665,7 +679,7 @@ public class TiUIHelper
 				}
 			}
 
-			Bitmap bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
+			bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
 			Canvas canvas = new Canvas(bitmap);
 			canvas.scale(scale, scale);
 			view.draw(canvas);
@@ -675,17 +689,31 @@ public class TiUIHelper
 			// 	image = createDictForImage(width, height, bos.toByteArray());
 				
 			// }
-			image = TiBlob.blobFromImage(bitmap);
 			canvas = null;
-			bitmap.recycle();
+//			bitmap.recycle();
 		}
 
-		return image;
+		return bitmap;
+	}
+
+	public static TiBlob viewToImage(KrollDict proxyDict, View view, float scale)
+	{
+		TiBlob image = null;
+		Bitmap bitmap = viewToBitmap(proxyDict, view, scale);
+		if (bitmap != null) {
+			return TiBlob.blobFromImage(bitmap);
+		}
+		return null;
 	}
 
 	public static TiBlob viewToImage(KrollDict proxyDict, View view)
 	{
 		return viewToImage(proxyDict, view, 1.0f);
+	}
+	
+	public static Bitmap viewToBitmap(KrollDict proxyDict, View view)
+	{
+		return viewToBitmap(proxyDict, view, 1.0f);
 	}
 
 	/**
