@@ -1041,7 +1041,7 @@ public abstract class TiUIView
 		borderView.invalidate();
 	}
 
-	private static SparseArray<String> motionEvents = new SparseArray<String>();
+	protected static SparseArray<String> motionEvents = new SparseArray<String>();
 	static
 	{
 		motionEvents.put(MotionEvent.ACTION_DOWN, TiC.EVENT_TOUCH_START);
@@ -1256,12 +1256,7 @@ public abstract class TiUIView
 				}
 
 
-				String motionEvent = motionEvents.get(event.getAction());
-				if (motionEvent != null) {
-					if (proxy.hierarchyHasListener(motionEvent)) {
-						fireEvent(motionEvent, dictFromEvent(event));
-					}
-				}
+				handleTouchEvent(event);
 
 				// Inside View.java, dispatchTouchEvent() does not call onTouchEvent() if this listener returns true. As
 				// a result, click and other motion events do not occur on the native Android side. To prevent this, we
@@ -1270,6 +1265,15 @@ public abstract class TiUIView
 			}
 		});
 		
+	}
+	
+	protected void handleTouchEvent(MotionEvent event) {
+		String motionEvent = motionEvents.get(event.getAction());
+		if (motionEvent != null) {
+			if (proxy.hierarchyHasListener(motionEvent)) {
+				fireEvent(motionEvent, dictFromEvent(event));
+			}
+		}
 	}
 
 	protected void registerForTouch(final View touchable)
