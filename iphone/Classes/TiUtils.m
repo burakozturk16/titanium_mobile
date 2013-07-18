@@ -405,7 +405,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	else if ([value isKindOfClass:[NSDictionary class]])
 	{
 		xDimension = [self dimensionValue:@"x" properties:value];
-		yDimension = [self dimensionValue:@"x" properties:value];
+		yDimension = [self dimensionValue:@"y" properties:value];
 	}
 	else
 	{
