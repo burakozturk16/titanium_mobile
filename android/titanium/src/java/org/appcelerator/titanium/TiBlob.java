@@ -607,15 +607,4 @@ public class TiBlob extends KrollProxy
 		return blobFromImage(imageWithBorder);
 	}
 
-	@Kroll.method
-	public TiBlob imageBlurred(Number radius)
-	{
-		Bitmap img = getImage();
-		if (img == null) {
-			return null;
-		}
-
-		Bitmap blurred = TiImageHelper.blurredImage((Context)TiApplication.getAppRootOrCurrentActivity(), img, radius.intValue());
-		return blobFromImage(blurred);
-	}
 }
