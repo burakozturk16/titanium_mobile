@@ -721,7 +721,7 @@ DEFINE_EXCEPTIONS
 	UIImage *image = nil;
     NSURL* imageURL = nil;
     
-    if (localLoadSync)
+    if (localLoadSync || ![arg isKindOfClass:[NSString class]])
         image = [self convertToUIImage:arg];
 	
 	if (image == nil) 
