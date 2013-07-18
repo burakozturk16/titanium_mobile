@@ -10,7 +10,6 @@ var Charts = Ti.Charts;
 var win = Ti.UI.createWindow({
 	backgroundColor : 'black',
 	exitOnClose : true,
-	fullscreen : true,
 	orientationModes : [Ti.UI.UPSIDE_PORTRAIT, Ti.UI.PORTRAIT, Ti.UI.LANDSCAPE_RIGHT, Ti.UI.LANDSCAPE_LEFT]
 });
 
@@ -85,7 +84,7 @@ function setPercent(_percent) {
 	var rect = arc.rect;
 	var myangle = percentage*totalSweepAngle;
 	var y  = 0;
-	if (percentage > 0.5 && rect != null){
+	if (percentage > 0.5 && rect !== null){
 		y = (rect.height - 2*radius)*(1 - (Math.cos(Math.PI/180*(myangle + startAngle)*2)));
 	}
 	arc2.sweepAngle = myangle;
@@ -95,16 +94,42 @@ function setPercent(_percent) {
 }
 
 view.addEventListener('touchstart', function(e){
+
 	setPercent(e.x / view.rect.width);
 });
 view.addEventListener('touchmove', function(e){
 	setPercent(e.x / view.rect.width);
 });
 
+view.addEventListener('touchend', function(e){
+	// Ti.Media.takeScreenshot(function(_event){
+			// Ti.API.info('width '+ _event.image.width);
+			// var win = Ti.UI.createWindow({
+				// backgroundImage:Ti.Image.getFilteredViewToImage(_event.image, Ti.Image.FILTER_GAUSSIAN_BLUR)
+			// });
+			// win.open();
+		// }, 0.5);
+		var win2 = Ti.UI.createWindow({
+			backgroundColor:'red'
+		});
+		win2.open({
+			activityEnterAnimation: Ti.Android.R.anim.fade_in,
+			activityExitAnimation: Ti.Android.R.anim.fade_out
+		});
+		// win.toImage(function(_event){
+			// Ti.API.info('width '+ _event.image.width);
+			// var win = Ti.UI.createWindow({
+				// backgroundImage:_event.image
+			// });
+			// win.open({
+				// activityEnterAnimation: Ti.Android.R.anim.fade_in,
+				// activityExitAnimation: Ti.Android.R.anim.fade_out
+			// });
+		// }, 0.5);
+});
+
 view.addEventListener('postlayout', function(e){
 	setPercent(0.8);
 });
-
-
 
 win.open();
