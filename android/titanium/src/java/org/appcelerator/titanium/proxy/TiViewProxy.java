@@ -34,6 +34,7 @@ import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.TiBlob;
 
 import android.util.DisplayMetrics;
 import android.animation.Animator.AnimatorListener;
@@ -44,6 +45,7 @@ import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.os.AsyncTask;
 import android.view.View;
 
 /**
@@ -283,7 +285,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 			case MSG_TOIMAGE: {
 				AsyncResult result = (AsyncResult) msg.obj;
-				result.setResult(handleToImage());
+				result.setResult(handleToImage((Number) result.getArg()));
 				return true;
 			}
 			case MSG_GETSIZE : {
@@ -983,25 +985,58 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 	}
 
-	@Kroll.method
-	public KrollDict toImage()
+	private class ToImageTask extends AsyncTask< Object, Void, TiBlob >
 	{
-		if (TiApplication.isUIThread()) {
-			return handleToImage();
+		KrollFunction callback;
+		TiViewProxy proxy;
 
-		} else {
-			return (KrollDict) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_TOIMAGE), getActivity());
+		@Override
+		protected TiBlob doInBackground(Object... params)
+		{
+			callback = (KrollFunction)params[1];
+			proxy = (TiViewProxy)params[2];
+			return handleToImage((Number)params[0]);
+		}
+		/**
+		 * Always invoked on UI thread.
+		 */
+		@Override
+		protected void onPostExecute(TiBlob image)
+		{
+			KrollDict result = new KrollDict();
+			result.put("image", image);
+			this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
 		}
 	}
 
-	protected KrollDict handleToImage()
+	@Kroll.method
+	public TiBlob toImage(@Kroll.argument(optional=true) KrollFunction callback, @Kroll.argument(optional=true) Number scale)
+	{
+		if (scale == null) {
+			scale = new Float(1.0f);
+		}
+		if (callback == null) {
+			// if (TiApplication.isUIThread()) {
+				return handleToImage(scale);
+			// } else {
+				// return	(TiBlob) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_TOIMAGE), scale);
+
+			// }
+		}
+		else {
+			(new ToImageTask()).execute(scale, this, callback);
+		}
+		return null;
+	}
+
+	protected TiBlob handleToImage(Number scale)
 	{
 		TiUIView view = getOrCreateView();
 		if (view == null) {
 			return null;
 		}
 
-		return view.toImage();
+		return view.toImage(scale);
 	}
 
 

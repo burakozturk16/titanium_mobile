@@ -24,6 +24,7 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.TiBlob;
 
 import com.slidingmenu.lib.SlidingMenu;
 
@@ -226,10 +227,10 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	@Override
-	public KrollDict handleToImage()
+	public TiBlob handleToImage(Number scale)
 	{
 		// TODO we need to expose properties again as a KrollDict?
-		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView());
+		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView(), scale.floatValue());
 	}
 
 	@Override

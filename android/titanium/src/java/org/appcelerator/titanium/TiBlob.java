@@ -26,6 +26,7 @@ import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TitaniumBlob;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
+import org.appcelerator.titanium.TiApplication;
 
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
@@ -35,6 +36,7 @@ import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.RectF;
 import android.media.ThumbnailUtils;
+import android.content.Context;
 
 /** 
  * A Titanium Blob object. A Blob can represent any opaque data or input stream.
@@ -603,5 +605,17 @@ public class TiBlob extends KrollProxy
 		int borderSize = size.intValue();
 		Bitmap imageWithBorder = TiImageHelper.imageWithTransparentBorder(img, borderSize);
 		return blobFromImage(imageWithBorder);
+	}
+
+	@Kroll.method
+	public TiBlob imageBlurred(Number radius)
+	{
+		Bitmap img = getImage();
+		if (img == null) {
+			return null;
+		}
+
+		Bitmap blurred = TiImageHelper.blurredImage((Context)TiApplication.getAppRootOrCurrentActivity(), img, radius.intValue());
+		return blobFromImage(blurred);
 	}
 }

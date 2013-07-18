@@ -33,6 +33,7 @@ import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
+import org.appcelerator.titanium.TiBlob;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
@@ -1418,9 +1419,9 @@ public abstract class TiUIView
 			background.clearColorFilter();
 	}
 
-	public KrollDict toImage()
+	public TiBlob toImage(Number scale)
 	{
-		return TiUIHelper.viewToImage(proxy.getProperties(), getNativeView());
+		return TiUIHelper.viewToImage(proxy.getProperties(), getNativeView(), scale.floatValue());
 	}
 
 	private View getTouchView()

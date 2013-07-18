@@ -602,9 +602,9 @@ public class TiUIHelper
 		return null;
 	}
 
-	public static KrollDict viewToImage(KrollDict proxyDict, View view)
+	public static TiBlob viewToImage(KrollDict proxyDict, View view, float scale)
 	{
-		KrollDict image = new KrollDict();
+		TiBlob image = null;
 
 		if (view != null) {
 			int width = view.getWidth();
@@ -644,6 +644,9 @@ public class TiUIHelper
 				view.layout(0, 0, width, height);
 			}
 
+
+			width *= scale;
+			height *= scale;
 			// opacity should support transparency by default
 			Config bitmapConfig = Config.ARGB_8888;
 
@@ -664,13 +667,15 @@ public class TiUIHelper
 
 			Bitmap bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
 			Canvas canvas = new Canvas(bitmap);
+			canvas.scale(scale, scale);
 			view.draw(canvas);
 
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			if (bitmap.compress(CompressFormat.PNG, 100, bos)) {
-				image = createDictForImage(width, height, bos.toByteArray());
-			}
-
+			// ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			// if (bitmap.compress(CompressFormat.PNG, 100, bos)) {
+			// 	image = createDictForImage(width, height, bos.toByteArray());
+				
+			// }
+			image = TiBlob.blobFromImage(bitmap);
 			canvas = null;
 			bitmap.recycle();
 		}
@@ -678,18 +683,26 @@ public class TiUIHelper
 		return image;
 	}
 
+	public static TiBlob viewToImage(KrollDict proxyDict, View view)
+	{
+		return viewToImage(proxyDict, view, 1.0f);
+	}
+
 	/**
 	 * Creates and returns a Bitmap from an InputStream.
 	 * @param stream an InputStream to read bitmap data.
+	 * @param opts BitmapFactory options
 	 * @return a new bitmap instance.
 	 * @module.api
 	 */
-	public static Bitmap createBitmap(InputStream stream)
+	public static Bitmap createBitmap(InputStream stream, BitmapFactory.Options opts)
 	{
 		Rect pad = new Rect();
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inPurgeable = true;
-		opts.inInputShareable = true;
+		if (opts == null) {
+			opts = new BitmapFactory.Options();
+			opts.inPurgeable = true;
+			opts.inInputShareable = true;
+		}
 
 		Bitmap b = null;
 		try {
@@ -698,6 +711,16 @@ public class TiUIHelper
 			Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage());
 		}
 		return b;
+	}
+	/**
+	 * Creates and returns a Bitmap from an InputStream.
+	 * @param stream an InputStream to read bitmap data.
+	 * @return a new bitmap instance.
+	 * @module.api
+	 */
+	public static Bitmap createBitmap(InputStream stream)
+	{
+		return createBitmap(stream, null);
 	}
 	
 	private static String getResourceKeyForImage(String url)

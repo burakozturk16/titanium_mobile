@@ -24,6 +24,7 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.TiBlob;
 
 import ti.modules.titanium.ui.widget.tabgroup.TiUIAbstractTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUIActionBarTabGroup;
@@ -466,10 +467,10 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	@Override
-	public KrollDict handleToImage()
+	public TiBlob handleToImage(Number scale)
 	{
 		// TODO we need to expose properties again as a KrollDict?
-		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView());
+		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView(), scale.floatValue());
 	}
 
 	@Override

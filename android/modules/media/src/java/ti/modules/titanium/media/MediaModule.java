@@ -57,9 +57,11 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
+import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.view.Window;
+import android.view.View;
 
 @Kroll.module @ContextSpecific
 public class MediaModule extends KrollModule
@@ -810,9 +812,36 @@ public class MediaModule extends KrollModule
 			});
 	}
 
-	@Kroll.method
-	public void takeScreenshot(KrollFunction callback)
+	private class ToImageTask extends AsyncTask< Object, Void, TiBlob >
 	{
+		KrollFunction callback;
+		TiViewProxy proxy;
+
+		@Override
+		protected TiBlob doInBackground(Object... params)
+		{
+			callback = (KrollFunction)params[1];
+			proxy = (TiViewProxy)params[3];
+			return TiUIHelper.viewToImage(null, (View)params[2], ((Number)params[0]).floatValue());
+		}
+		/**
+		 * Always invoked on UI thread.
+		 */
+		@Override
+		protected void onPostExecute(TiBlob image)
+		{
+			KrollDict result = new KrollDict();
+			result.put("image", image);
+			this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
+		}
+	}
+
+	@Kroll.method
+	public void takeScreenshot(KrollFunction callback, @Kroll.argument(optional=true) Number scale)
+	{
+		if (scale == null) {
+			scale = new Float(1.0f);
+		}
 		Activity a = TiApplication.getAppCurrentActivity();
 
 		if (a == null) {
@@ -831,10 +860,7 @@ public class MediaModule extends KrollModule
 			w = w.getContainer();
 		}
 
-		KrollDict image = TiUIHelper.viewToImage(null, w.getDecorView());
-		if (callback != null) {
-			callback.callAsync(getKrollObject(), new Object[] { image });
-		}
+		(new ToImageTask()).execute(scale, this, w.getDecorView(), callback);
 	}
 
 	@Kroll.method

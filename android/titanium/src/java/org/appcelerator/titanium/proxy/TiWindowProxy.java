@@ -22,6 +22,7 @@ import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.TiBlob;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
@@ -214,9 +215,9 @@ public abstract class TiWindowProxy extends TiViewProxy
 		this.postOpenListener = listener;
 	}
 
-	public KrollDict handleToImage()
+	public TiBlob handleToImage(Number scale)
 	{
-		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView());
+		return TiUIHelper.viewToImage(null, getActivity().getWindow().getDecorView(), scale.floatValue());
 	}
 
 	/*
