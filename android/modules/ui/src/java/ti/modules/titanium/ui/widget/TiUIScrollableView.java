@@ -18,6 +18,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -33,6 +34,7 @@ import android.support.v4.view.ViewPager;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ListView;
@@ -533,15 +535,20 @@ public class TiUIScrollableView extends TiUIView
 			TiViewProxy tiProxy = mViewProxies.get(position);
 			TiUIView tiView = tiProxy.getOrCreateView();
 			View view = tiView.getOuterView();
-			if (view.getParent() != null) {
-				pager.removeView(view);
+			ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+			TiCompositeLayout layout = new TiCompositeLayout(tiProxy.getActivity());
+			ViewParent parent = view.getParent();
+			if (parent instanceof ViewGroup) {
+				ViewGroup group = (ViewGroup) parent;
+				group.removeView(view);
 			}
+			layout.addView(view, tiView.getLayoutParams());
 			if (position < pager.getChildCount()) {
-				pager.addView(view, position);
+				pager.addView(layout, position, params);
 			} else {
-				pager.addView(view);
+				pager.addView(layout, params);
 			}
-			return view;
+			return layout;
 		}
 
 		@Override
