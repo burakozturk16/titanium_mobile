@@ -111,7 +111,7 @@ view.addEventListener('touchend', function(e){
 		// }, 0.5);
 		var win2 = Ti.UI.createWindow({
 			title:'test',
-			backgroundColor:'red'
+			backgroundImage:Ti.Image.getFilteredViewToImage(win, 0.5, Ti.Image.FILTER_GAUSSIAN_BLUR)
 		});
 		win2.open({
 			activityEnterAnimation: Ti.Android.R.anim.fade_in,
