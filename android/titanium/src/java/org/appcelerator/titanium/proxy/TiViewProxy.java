@@ -488,11 +488,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		return null;
 	}
 	
-	public View viewToAnimate()
+	public View getOuterView()
 	{
 		if (view  != null)
 			return view.getOuterView();
 		return null;
+	}
+	
+	public View viewToAnimate()
+	{
+		return getOuterView();
 	}
 
 	public void setView(TiUIView view)
@@ -988,13 +993,13 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	private class ToImageTask extends AsyncTask< Object, Void, TiBlob >
 	{
 		KrollFunction callback;
-		TiViewProxy proxy;
+		KrollProxy proxy;
 
 		@Override
 		protected TiBlob doInBackground(Object... params)
 		{
-			callback = (KrollFunction)params[1];
-			proxy = (TiViewProxy)params[2];
+			callback = (KrollFunction)params[2];
+			proxy = (KrollProxy)params[1];
 			return handleToImage((Number)params[0]);
 		}
 		/**
