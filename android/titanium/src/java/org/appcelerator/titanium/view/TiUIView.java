@@ -2008,10 +2008,7 @@ public abstract class TiUIView
 			}
 			
 			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-			if (tdm == null) tdm = new Ti2DMatrix();
-			
-			Log.i(TAG, "Transform: " + Arrays.toString(tdm.getRotateOperationParameters()));
-			
+			if (tdm == null) tdm = new Ti2DMatrix();			
 			
 			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY, view.getMeasuredWidth(), view.getMeasuredHeight()), tdm);
 			list.add(anim);
