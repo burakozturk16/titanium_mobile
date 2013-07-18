@@ -22,6 +22,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollObject;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -815,13 +816,13 @@ public class MediaModule extends KrollModule
 	private class ToImageTask extends AsyncTask< Object, Void, TiBlob >
 	{
 		KrollFunction callback;
-		TiViewProxy proxy;
+		KrollProxy proxy;
 
 		@Override
 		protected TiBlob doInBackground(Object... params)
 		{
-			callback = (KrollFunction)params[1];
-			proxy = (TiViewProxy)params[3];
+			callback = (KrollFunction)params[3];
+			proxy = (KrollProxy)params[1];
 			return TiUIHelper.viewToImage(null, (View)params[2], ((Number)params[0]).floatValue());
 		}
 		/**
