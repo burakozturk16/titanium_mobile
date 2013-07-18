@@ -19,6 +19,7 @@
 		"media":["filesystem"],
 		"network":["xml"],
 		"platform":[],
+		"shape":[],
 		"ui":["filesystem","media"],
 		"utils":[],
 		"xml":[]
