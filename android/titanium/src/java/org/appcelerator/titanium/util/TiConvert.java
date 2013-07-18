@@ -21,12 +21,15 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 
@@ -883,6 +886,77 @@ public class TiConvert
 	{
 		return toDate(hashMap.get(key));
 	}
+	
+	/**
+	 * Converts HashMap into Rect object and returns it.
+	 * @param value the HashMap to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	public static RectF toRect(HashMap<String, Object>  map)
+	{
+		if (map.containsKey(TiC.PROPERTY_X) && map.containsKey(TiC.PROPERTY_Y) &&
+				map.containsKey(TiC.PROPERTY_WIDTH) && map.containsKey(TiC.PROPERTY_HEIGHT)) {
+			float left = toFloat(map, TiC.PROPERTY_X);
+			float top = toFloat(map, TiC.PROPERTY_Y);
+			float width = toFloat(map, TiC.PROPERTY_WIDTH);
+			float height = toFloat(map, TiC.PROPERTY_HEIGHT);
+			return new RectF(left, top, left + width, top + height);
+		}
+
+		return null;
+	}
+	/**
+	 * Converts value into Rect object and returns it.
+	 * @param value the value to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	@SuppressWarnings("unchecked")
+	public static RectF toRect(Object value)
+	{
+		if (value instanceof RectF) {
+			return (RectF)value;
+
+		} else if (value instanceof HashMap<?,?>) {
+			return toRect((HashMap<String, Object>)value);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * A wrapper function.
+	 * Refer to {@link #toRect(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	public static RectF toRect(HashMap<String, Object> hashMap, String key)
+	{
+		return toRect(hashMap.get(key));
+	}
+	
+	/**
+	 * Converts value into Rect object and returns it.
+	 * @param value the value to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	@SuppressWarnings("unchecked")
+	public static TiPoint toPoint(Object value)
+	{
+		if (value instanceof TiPoint) {
+			return (TiPoint)value;
+
+		} else if (value instanceof HashMap || value instanceof KrollDict) {
+			return new TiPoint((HashMap)value);
+		}
+
+		return null;
+	}
+
 }
 
 
