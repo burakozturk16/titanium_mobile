@@ -1710,6 +1710,8 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     UIImage* resultImage = nil;
     if ([image isKindOfClass:[UIImage class]]) {
         resultImage = image;
+    } else if ([image isKindOfClass:[TiBlob class]]) {
+        resultImage = ((TiBlob*)image).image;
     }
     else if ([image isKindOfClass:[NSString class]]) {
         NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
