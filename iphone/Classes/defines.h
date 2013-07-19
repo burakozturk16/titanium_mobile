@@ -95,5 +95,3 @@
 #define USE_TI_UIIOSDOCUMENTVIEWER
 
 #define USE_TI_APPIOS
-
-#define USE_TI_CHARTS
