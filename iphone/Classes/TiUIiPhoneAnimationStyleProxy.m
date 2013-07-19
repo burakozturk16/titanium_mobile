@@ -16,6 +16,7 @@ MAKE_SYSTEM_PROP(CURL_UP,UIViewAnimationOptionTransitionCurlUp);
 MAKE_SYSTEM_PROP(CURL_DOWN,UIViewAnimationOptionTransitionCurlDown);
 MAKE_SYSTEM_PROP(FLIP_FROM_LEFT,UIViewAnimationOptionTransitionFlipFromLeft);
 MAKE_SYSTEM_PROP(FLIP_FROM_RIGHT,UIViewAnimationOptionTransitionFlipFromRight);
+MAKE_SYSTEM_PROP(CROSS_DISSOLVE,UIViewAnimationOptionTransitionCrossDissolve);
 
 @end
 
