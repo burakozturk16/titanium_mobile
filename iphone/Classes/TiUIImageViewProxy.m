@@ -58,7 +58,7 @@ static NSArray* imageKeySequence;
 
 -(void)_configure
 {
-    [self replaceValue:NUMINT(UIViewContentModeScaleToFill) forKey:@"scaleType" notification:NO];
+    [self replaceValue:NUMINT(UIViewContentModeScaleAspectFit) forKey:@"scaleType" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"reverse" notification:NO];

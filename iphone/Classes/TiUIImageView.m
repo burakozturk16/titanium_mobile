@@ -37,7 +37,7 @@ DEFINE_EXCEPTIONS
 {
     if (self = [super init]) {
         localLoadSync = NO;
-        scaleType = UIViewContentModeScaleToFill;
+        scaleType = UIViewContentModeScaleAspectFit;
     }
     return self;
 }
