@@ -236,6 +236,7 @@ enum
 
 -(void)setBackgroundGradient:(id)arg;
 -(TiBlob*)toImage:(id)args;
+-(UIImage*)toImageWithScale:(CGFloat)scale;
 
 -(void)setDefaultReadyToCreateView:(BOOL)ready;
 //this is for the tableview magic. For any other view, will be set when

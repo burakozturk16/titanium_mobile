@@ -759,6 +759,37 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	[self replaceValue:newGradient forKey:@"backgroundGradient" notification:YES];
 }
 
+-(UIImage*)toImageWithScale:(CGFloat)scale
+{
+    if ([TiUtils isRetinaDisplay])
+    {
+        scale*=2;
+    }
+    TiUIView *myview = [self getOrCreateView];
+    [self windowWillOpen];
+    CGSize size = myview.bounds.size;
+    if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
+    {
+        CGFloat width = [self autoWidthForSize:CGSizeMake(1000,1000)];
+        CGFloat height = [self autoHeightForSize:CGSizeMake(width,0)];
+        if (width > 0 && height > 0)
+        {
+            size = CGSizeMake(width, height);
+        }
+        if (CGSizeEqualToSize(size, CGSizeZero) || width==0 || height == 0)
+        {
+            size = [UIScreen mainScreen].bounds.size;
+        }
+        CGRect rect = CGRectMake(0, 0, size.width, size.height);
+        [TiUtils setView:myview positionRect:rect];
+    }
+    UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
+    [myview.layer renderInContext:UIGraphicsGetCurrentContext()];
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return image;
+}
+
 -(TiBlob*)toImage:(id)args
 {
     KrollCallback *callback = nil;
@@ -782,30 +813,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// if you pass a callback function, we'll run the render asynchronously, if you
 	// don't, we'll do it synchronously
 	TiThreadPerformOnMainThread(^{
-		TiUIView *myview = [self getOrCreateView];
-		[self windowWillOpen];
-		CGSize size = myview.bounds.size;
-		if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
-		{
-			CGFloat width = [self autoWidthForSize:CGSizeMake(1000,1000)];
-			CGFloat height = [self autoHeightForSize:CGSizeMake(width,0)];
-			if (width > 0 && height > 0)
-			{
-				size = CGSizeMake(width, height);
-			}
-			if (CGSizeEqualToSize(size, CGSizeZero) || width==0 || height == 0)
-			{
-				size = [UIScreen mainScreen].bounds.size;
-			}
-			CGRect rect = CGRectMake(0, 0, size.width, size.height);
-			[TiUtils setView:myview positionRect:rect];
-		}
-		UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
-		[myview.layer renderInContext:UIGraphicsGetCurrentContext()];
-		UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+		UIImage *image = [self toImageWithScale:scale];
 		[blob setImage:image];
         [blob setMimeType:@"image/png" type:TiBlobTypeImage];
-		UIGraphicsEndImageContext();
 		if (callback != nil)
 		{
             NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
