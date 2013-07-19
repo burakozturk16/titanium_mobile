@@ -12,7 +12,6 @@
 		"filesystem":[],
 		"gesture":["ui"],
 		"geolocation":[],
-		"image":[],
 		"locale":[],
 		"map":[],
 		"media":["filesystem"],
