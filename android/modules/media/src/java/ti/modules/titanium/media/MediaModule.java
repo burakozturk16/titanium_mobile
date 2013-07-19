@@ -813,32 +813,8 @@ public class MediaModule extends KrollModule
 			});
 	}
 
-	private class ToImageTask extends AsyncTask< Object, Void, TiBlob >
-	{
-		KrollFunction callback;
-		KrollProxy proxy;
-
-		@Override
-		protected TiBlob doInBackground(Object... params)
-		{
-			callback = (KrollFunction)params[3];
-			proxy = (KrollProxy)params[1];
-			return TiUIHelper.viewToImage(null, (View)params[2], ((Number)params[0]).floatValue());
-		}
-		/**
-		 * Always invoked on UI thread.
-		 */
-		@Override
-		protected void onPostExecute(TiBlob image)
-		{
-			KrollDict result = new KrollDict();
-			result.put("image", image);
-			this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
-		}
-	}
-
 	@Kroll.method
-	public void takeScreenshot(KrollFunction callback, @Kroll.argument(optional=true) Number scale)
+	public void takeScreenshot(final KrollFunction callback, @Kroll.argument(optional=true) Number scale)
 	{
 		if (scale == null) {
 			scale = new Float(1.0f);
@@ -861,7 +837,17 @@ public class MediaModule extends KrollModule
 			w = w.getContainer();
 		}
 
-		(new ToImageTask()).execute(scale, this, w.getDecorView(), callback);
+		final Window winParam = w;
+		final float winScale = scale.floatValue();
+
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				TiBlob blob = TiUIHelper.viewToImage(null, winParam.getDecorView(), winScale);
+				KrollDict result = new KrollDict();
+				result.put("image", blob);
+				callback.callAsync(getKrollObject(), new Object[] { result });
+			}
+		});
 	}
 
 	@Kroll.method

@@ -1000,7 +1000,12 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		{
 			callback = (KrollFunction)params[2];
 			proxy = (KrollProxy)params[1];
-			return handleToImage((Number)params[0]);
+			Number scale = (Number)params[0];
+			if (TiApplication.isUIThread()) {
+				return handleToImage(scale);
+			} else {
+				return	(TiBlob) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_TOIMAGE), scale);
+			}
 		}
 		/**
 		 * Always invoked on UI thread.
@@ -1021,12 +1026,11 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			scale = new Float(1.0f);
 		}
 		if (callback == null) {
-			// if (TiApplication.isUIThread()) {
+			if (TiApplication.isUIThread()) {
 				return handleToImage(scale);
-			// } else {
-				// return	(TiBlob) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_TOIMAGE), scale);
-
-			// }
+			} else {
+				return	(TiBlob) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_TOIMAGE), scale);
+			}
 		}
 		else {
 			(new ToImageTask()).execute(scale, this, callback);
