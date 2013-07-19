@@ -6,8 +6,6 @@
  */
 #import "TiModule.h"
 
-#ifdef USE_TI_CHARTS
-
 @interface ChartsModule : TiModule {
 
 }
@@ -65,5 +63,3 @@
 @property(nonatomic,readonly) NSNumber *VERTICAL;
 
 @end
-
-#endif

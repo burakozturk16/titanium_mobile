@@ -6,8 +6,6 @@
  */
 #import "TiBase.h"
 
-#ifdef USE_TI_CHARTS
-
 #import "ChartsModule.h"
 #import "TiUtils.h"
 #import "TiChartsChart.h"
@@ -90,5 +88,3 @@ MAKE_SYSTEM_PROP(JOIN_BEVEL,kCGLineJoinBevel);
 MAKE_SYSTEM_PROP(HORIZONTAL,0);
 MAKE_SYSTEM_PROP(VERTICAL,1);
 @end
-
-#endif
