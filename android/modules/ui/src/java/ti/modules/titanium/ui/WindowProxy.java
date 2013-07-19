@@ -17,7 +17,6 @@ import org.appcelerator.titanium.TiActivity;
 import org.appcelerator.titanium.TiActivityWindow;
 import org.appcelerator.titanium.TiActivityWindows;
 import org.appcelerator.titanium.TiApplication;
-import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiTranslucentActivity;
@@ -296,11 +295,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		if (hasProperty(TiC.PROPERTY_FULLSCREEN)) {
 			intent.putExtra(TiC.PROPERTY_FULLSCREEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN), false));
 		}
-
-		ITiAppInfo appInfo = TiApplication.getInstance().getAppInfo();
-		boolean navBarHidden = TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN), appInfo.isNavBarHidden());
-		intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, navBarHidden);
-
+		if (hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)) {
+			intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN), false));
+		}
 		if (hasProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)) {
 			intent.putExtra(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE), -1));
 		}

@@ -1242,8 +1242,6 @@ public abstract class TiBaseActivity extends FragmentActivity
 	public void finish(boolean force)
 	{
 		super.finish();
-
-		boolean animate = getIntentBoolean(TiC.PROPERTY_ANIMATE, true);
 		
 		if (shouldFinishRootActivity() || force == true) {
 			TiApplication app = getTiApp();

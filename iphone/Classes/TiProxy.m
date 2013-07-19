@@ -1099,6 +1099,7 @@ DEFINE_EXCEPTIONS
 		KrollWrapper * newValue = [[[KrollWrapper alloc] init] autorelease];
 		[newValue setBridge:(KrollBridge*)[[(KrollCallback*)value context] delegate]];
 		[newValue setJsobject:[(KrollCallback*)value function]];
+		[newValue protectJsobject];
 		value = newValue;
 	}
     
