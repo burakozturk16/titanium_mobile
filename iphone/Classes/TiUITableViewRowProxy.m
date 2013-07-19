@@ -616,17 +616,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     modifyingRow = NO;
     
 }
-//Private method :For internal use only. Called from layoutSubviews of the cell.
--(void)triggerLayout
-{
-    if (modifyingRow) {
-        return;
-    }
-    modifyingRow = YES;
-    [TiLayoutQueue layoutProxy:self];
-    modifyingRow = NO;
-    
-}
 
 - (void)prepareTableRowForReuse
 {
