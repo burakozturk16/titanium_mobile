@@ -210,6 +210,7 @@
 
 #endif
 
++(UIImage*) takeScreenshotWithScale:(CGFloat)scale;
 
 @end
 

@@ -945,6 +945,7 @@
 		D5DC5661178DAE7200A67D8A /* TiChartsPieChart.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC5660178DAE7200A67D8A /* TiChartsPieChart.m */; };
 		D5DC5662178DAE7200A67D8A /* TiChartsPieChart.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC5660178DAE7200A67D8A /* TiChartsPieChart.m */; };
 		D5DC5663178DAE7200A67D8A /* TiChartsPieChart.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC5660178DAE7200A67D8A /* TiChartsPieChart.m */; };
+		D5E0D00B179916B400BA7272 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5E0D006179916A400BA7272 /* libGPUImage.a */; };
 		D5FE438416E488DD00FC1A44 /* ECSlidingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FE438116E488DD00FC1A44 /* ECSlidingViewController.m */; };
 		D5FE438516E488DD00FC1A44 /* ECSlidingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FE438116E488DD00FC1A44 /* ECSlidingViewController.m */; };
 		D5FE438616E488DD00FC1A44 /* ECSlidingViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FE438116E488DD00FC1A44 /* ECSlidingViewController.m */; };
@@ -1337,6 +1338,27 @@
 			proxyType = 1;
 			remoteGlobalIDString = BC9B83460FB8A0A40035D8DA;
 			remoteInfo = "CorePlot-CocoaTouch";
+		};
+		D5E0D005179916A400BA7272 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BCF1A33414DDB1EC00852800;
+			remoteInfo = GPUImage;
+		};
+		D5E0D007179916A400BA7272 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = BCF1A34414DDB1EC00852800;
+			remoteInfo = GPUImageTests;
+		};
+		D5E0D009179916AC00BA7272 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = BCF1A33314DDB1EC00852800;
+			remoteInfo = GPUImage;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -2141,6 +2163,7 @@
 		D5DC565B178DADF200A67D8A /* TiChartsPieSegmentProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiChartsPieSegmentProxy.m; sourceTree = "<group>"; };
 		D5DC565F178DAE7200A67D8A /* TiChartsPieChart.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiChartsPieChart.h; sourceTree = "<group>"; };
 		D5DC5660178DAE7200A67D8A /* TiChartsPieChart.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiChartsPieChart.m; sourceTree = "<group>"; };
+		D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GPUImage.xcodeproj; path = ../../../../ios/GPUImage/framework/GPUImage.xcodeproj; sourceTree = "<group>"; };
 		D5FE438016E488DD00FC1A44 /* ECSlidingViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ECSlidingViewController.h; path = ../Classes/ECSlidingViewController/ECSlidingViewController.h; sourceTree = "<group>"; };
 		D5FE438116E488DD00FC1A44 /* ECSlidingViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ECSlidingViewController.m; path = ../Classes/ECSlidingViewController/ECSlidingViewController.m; sourceTree = "<group>"; };
 		D5FE438216E488DD00FC1A44 /* UIImage+ImageWithUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIImage+ImageWithUIView.h"; path = "../Classes/ECSlidingViewController/UIImage+ImageWithUIView.h"; sourceTree = "<group>"; };
@@ -2210,6 +2233,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5E0D00B179916B400BA7272 /* libGPUImage.a in Frameworks */,
 				D52AFA7F178EDA7700247856 /* libCorePlot-CocoaTouch.a in Frameworks */,
 				D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */,
 				D93DAA6D16CBFD7100AD64C9 /* EventKit.framework in Frameworks */,
@@ -2589,6 +2613,7 @@
 		24CA8A09111161D60084E2DE /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D5E0D00C179916C300BA7272 /* Image */,
 				D517309F178B20A600EDAB3E /* Charts */,
 				D93DAA4C16CBF8A000AD64C9 /* Calendar */,
 				24F6204D1199F1F400EEAD3C /* TopTiModule.h */,
@@ -3434,6 +3459,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */,
 				D52AFA77178EDA5500247856 /* CorePlot-CocoaTouch.xcodeproj */,
 				24CA8902111160BE0084E2DE /* Classes */,
 				24CA8903111160C30084E2DE /* Thirdparty */,
@@ -3930,6 +3956,22 @@
 			name = SlideMenu;
 			sourceTree = "<group>";
 		};
+		D5E0CFFE179916A400BA7272 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5E0D006179916A400BA7272 /* libGPUImage.a */,
+				D5E0D008179916A400BA7272 /* GPUImageTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D5E0D00C179916C300BA7272 /* Image */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Image;
+			sourceTree = "<group>";
+		};
 		D5FE437F16E488CB00FC1A44 /* ECSlidingViewController */ = {
 			isa = PBXGroup;
 			children = (
@@ -4004,6 +4046,7 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
+				D5E0D00A179916AC00BA7272 /* PBXTargetDependency */,
 				D52AFA81178EDAA200247856 /* PBXTargetDependency */,
 			);
 			name = "Titanium-KitchenSink";
@@ -4076,6 +4119,10 @@
 					ProductGroup = D52AFA78178EDA5500247856 /* Products */;
 					ProjectRef = D52AFA77178EDA5500247856 /* CorePlot-CocoaTouch.xcodeproj */;
 				},
+				{
+					ProductGroup = D5E0CFFE179916A400BA7272 /* Products */;
+					ProjectRef = D5E0CFFD179916A400BA7272 /* GPUImage.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -4092,6 +4139,20 @@
 			fileType = archive.ar;
 			path = "libCorePlot-CocoaTouch.a";
 			remoteRef = D52AFA7D178EDA5500247856 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D5E0D006179916A400BA7272 /* libGPUImage.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libGPUImage.a;
+			remoteRef = D5E0D005179916A400BA7272 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D5E0D008179916A400BA7272 /* GPUImageTests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = GPUImageTests.octest;
+			remoteRef = D5E0D007179916A400BA7272 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -5418,6 +5479,11 @@
 			isa = PBXTargetDependency;
 			name = "CorePlot-CocoaTouch";
 			targetProxy = D52AFA80178EDAA200247856 /* PBXContainerItemProxy */;
+		};
+		D5E0D00A179916AC00BA7272 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GPUImage;
+			targetProxy = D5E0D009179916AC00BA7272 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

@@ -933,7 +933,63 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
 	ENSURE_SINGLE_ARG_OR_NIL(args,NSDictionary);
 	ENSURE_UI_THREAD(openPhotoGallery,args);
 	[self showPicker:args isCamera:NO];
-}	
+}
+
++(UIImage*) takeScreenshotWithScale:(CGFloat)scale
+{
+    // Create a graphics context with the target size
+    
+    CGSize imageSize = [[UIScreen mainScreen] bounds].size;
+    UIGraphicsBeginImageContextWithOptions(imageSize, NO, scale);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Iterate over every window from back to front
+    for (UIWindow *window in [[UIApplication sharedApplication] windows])
+    {
+        if (![window respondsToSelector:@selector(screen)] || [window screen] == [UIScreen mainScreen])
+        {
+            // -renderInContext: renders in the coordinate space of the layer,
+            // so we must first apply the layer's geometry to the graphics context
+            CGContextSaveGState(context);
+            // Center the context around the window's anchor point
+            CGContextTranslateCTM(context, [window center].x, [window center].y);
+            // Apply the window's transform about the anchor point
+            CGContextConcatCTM(context, [window transform]);
+            // Offset by the portion of the bounds left of and above the anchor point
+            CGContextTranslateCTM(context,
+                                  -[window bounds].size.width * [[window layer] anchorPoint].x,
+                                  -[window bounds].size.height * [[window layer] anchorPoint].y);
+            
+            // Render the layer hierarchy to the current context
+            [[window layer] renderInContext:context];
+            
+            // Restore the context
+            CGContextRestoreGState(context);
+        }
+    }
+    
+    // Retrieve the screenshot image
+    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+    
+    UIGraphicsEndImageContext();
+    
+    UIInterfaceOrientation windowOrientation = [[TiApp controller] windowOrientation];
+    switch (windowOrientation) {
+        case UIInterfaceOrientationPortraitUpsideDown:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationDown];
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationRight];
+            break;
+        case UIInterfaceOrientationLandscapeRight:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationLeft];
+            break;
+        default:
+            break;
+    }
+    return image;
+}
 
 -(void)takeScreenshot:(id)args
 {
@@ -956,60 +1012,10 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
     callback = (KrollCallback*)obj;
     
 	TiThreadPerformOnMainThread(^{
-        // Create a graphics context with the target size
-
-        CGSize imageSize = [[UIScreen mainScreen] bounds].size;
-        UIGraphicsBeginImageContextWithOptions(imageSize, NO, scale);
-
-        CGContextRef context = UIGraphicsGetCurrentContext();
-
-        // Iterate over every window from back to front
-        for (UIWindow *window in [[UIApplication sharedApplication] windows])
-        {
-            if (![window respondsToSelector:@selector(screen)] || [window screen] == [UIScreen mainScreen])
-            {
-                // -renderInContext: renders in the coordinate space of the layer,
-                // so we must first apply the layer's geometry to the graphics context
-                CGContextSaveGState(context);
-                // Center the context around the window's anchor point
-                CGContextTranslateCTM(context, [window center].x, [window center].y);
-                // Apply the window's transform about the anchor point
-                CGContextConcatCTM(context, [window transform]);
-                // Offset by the portion of the bounds left of and above the anchor point
-                CGContextTranslateCTM(context,
-                                      -[window bounds].size.width * [[window layer] anchorPoint].x,
-                                      -[window bounds].size.height * [[window layer] anchorPoint].y);
-
-                // Render the layer hierarchy to the current context
-                [[window layer] renderInContext:context];
-
-                // Restore the context
-                CGContextRestoreGState(context);
-            }
-        }
-
         // Retrieve the screenshot image
-        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-
-        UIGraphicsEndImageContext();
-
-        UIInterfaceOrientation windowOrientation = [[TiApp controller] windowOrientation];
-        switch (windowOrientation) {
-            case UIInterfaceOrientationPortraitUpsideDown:
-                image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationDown];
-                break;
-            case UIInterfaceOrientationLandscapeLeft:
-                image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationRight];
-                break;
-            case UIInterfaceOrientationLandscapeRight:
-                image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationLeft];
-                break;
-            default:
-                break;
-        }
+        UIImage *image = [MediaModule takeScreenshotWithScale:scale];
         TiBlob *blob = [[[TiBlob alloc] initWithImage:image] autorelease];
         [blob setMimeType:@"image/png" type:TiBlobTypeImage];
-        
         NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
         [self _fireEventToListener:@"screenshot" withObject:event listener:callback thisObject:nil];
 	}, NO);
