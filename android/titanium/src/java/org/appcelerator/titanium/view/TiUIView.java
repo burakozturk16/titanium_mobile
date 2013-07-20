@@ -1288,7 +1288,7 @@ public abstract class TiUIView
 			return;
 		}
 		
-		boolean clickable = clickable = proxy.getProperties().optBoolean(TiC.PROPERTY_TOUCH_ENABLED, true);
+		boolean clickable = proxy.getProperties().optBoolean(TiC.PROPERTY_TOUCH_ENABLED, true);
 
 		if (clickable) {
 			registerTouchEvents(touchable);
