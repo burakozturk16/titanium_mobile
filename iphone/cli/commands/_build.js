@@ -2661,7 +2661,12 @@ build.prototype = {
 							break;
 						}
 					}
-					buffer.length && this.addSymbol(buffer.join('.'));
+					if (buffer.length) {
+						var lasttoken = buffer[buffer.length-1]
+						if (!lasttoken.match(/^create*/))
+							buffer = buffer.slice(0, -1)
+						buffer.length && this.addSymbol(buffer.join('.'));
+					}
 				}
 			}.bind(this));
 
@@ -2669,9 +2674,15 @@ build.prototype = {
 	},
 
 	addSymbol: function (symbol) {
-		var tokens = symbol.split('.'),
-			current = '',
-			s = tokens[0].toLowerCase();
+		var tokens = symbol.split('.');
+
+		var current = '';
+
+		if (tokens[0] == 'Ti' || tokens[0] == 'Titanium' )
+			tokens = tokens.slice(1);
+		if (!tokens.length || tokens.indexOf('Android') != -1) return;
+		
+		var s = tokens[0].toLowerCase();
 
 		this.tiModules.indexOf(s) == -1 && this.tiModules.push(s);
 
