@@ -107,7 +107,7 @@ public class TiUIWebView extends TiUIView
 				}
 			}
 			
-			boolean swipeHandled = detector.onTouchEvent(ev);
+			boolean swipeHandled = (detector != null && detector.onTouchEvent(ev));
 			
 			// Don't return here -- must call super.onTouchEvent()
 			
