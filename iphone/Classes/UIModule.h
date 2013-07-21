@@ -34,9 +34,7 @@
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
 	TiProxy *tableViewSeparatorStyle;
 #endif
-#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
-	TiProxy *listViewCellSelectionStyle;
-#endif
+
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	TiProxy *listViewSeparatorStyle;
 #endif
@@ -234,9 +232,6 @@
 @property(nonatomic,readonly) TiProxy* TableViewSeparatorStyle;
 #endif
 
-#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
-@property(nonatomic,readonly) TiProxy* ListViewCellSelectionStyle;
-#endif
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 @property(nonatomic,readonly) TiProxy* ListViewSeparatorStyle;
 #endif

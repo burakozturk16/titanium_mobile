@@ -102,9 +102,6 @@ return ivarName;	\
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
     FORGET_AND_RELEASE(tableViewSeparatorStyle);
 #endif
-#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
-	FORGET_AND_RELEASE(listViewCellSelectionStyle);
-#endif
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
@@ -274,10 +271,6 @@ MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_CALENDAR,UIDataDetectorTypeCalen
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSeparatorStyle);
 #endif
-#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
-DEFINE_SUBPROXY_AS(ListViewCellSelectionStyle, TableViewCellSelectionStyle, listViewCellSelectionStyle);
-#endif
-
 
 -(void)setBackgroundColor:(id)color
 {
@@ -495,9 +488,6 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 #endif
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
 	FORGET_AND_RELEASE(tableViewSeparatorStyle);
-#endif
-#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
-	FORGET_AND_RELEASE(listViewCellSelectionStyle);
 #endif
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	FORGET_AND_RELEASE(listViewSeparatorStyle);

@@ -52,6 +52,9 @@
 #ifdef USE_TI_UIIPHONELISTVIEWSCROLLPOSITION
 	TiProxy *listViewScrollPosition;
 #endif
+#ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
+	TiProxy *listViewCellSelectionStyle;
+#endif
 }
 
 #ifdef USE_TI_UIIPHONEANIMATIONSTYLE
@@ -95,6 +98,9 @@
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWSCROLLPOSITION
 @property(nonatomic,readonly) TiProxy* ListViewScrollPosition;
+#endif
+#ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
+@property(nonatomic,readonly) TiProxy* ListViewCellSelectionStyle;
 #endif
 
 
