@@ -304,7 +304,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             theValue = [template.properties objectForKey:key];
         }
         if (theValue == nil) {
-            theValue = [self valueForKey:key];
+            theValue = [self.proxy valueForKey:key];
         }
     }
     

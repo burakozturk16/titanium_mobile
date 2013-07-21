@@ -173,8 +173,9 @@
     [self updateGradientLayer:yn|[self isSelected] withAnimation:animated];
 }
 
--(void) setBackgroundGradient_:(TiGradient *)newGradient
+-(void) setBackgroundGradient_:(TiGradient *)newGradientDict
 {
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
 	if(newGradient == backgroundGradient)
 	{
 		return;
@@ -188,9 +189,10 @@
 	}
 }
 
--(void) setSelectedBackgroundGradient_:(TiGradient *)newGradient
+-(void) setSelectedBackgroundGradient_:(TiGradient *)newGradientDict
 {
-	if(newGradient == selectedBackgroundGradient)
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    if(newGradient == selectedBackgroundGradient)
 	{
 		return;
 	}
@@ -365,18 +367,16 @@
     if ([keys containsObject:@"backgroundGradient"]) {
         id backgroundGradientValue = [properties objectForKey:@"backgroundGradient"];
         if ([self shouldUpdateValue:backgroundGradientValue forKeyPath:@"backgroundGradient"]) {
-            [self recordChangeValue:backgroundGradientValue forKeyPath:@"backgroundGradient" withBlock:^{
-                [self setBackgroundGradient_:backgroundGradientValue];
-            }];
+            [self setBackgroundGradient_:backgroundGradientValue];
+            [self recordChangeValue:backgroundGradientValue forKeyPath:@"backgroundGradient" withBlock:^{}];
         }
     }
     
     if ([keys containsObject:@"selectedBackgroundGradient"]) {
         id backgroundGradientValue = [properties objectForKey:@"selectedBackgroundGradient"];
         if ([self shouldUpdateValue:backgroundGradientValue forKeyPath:@"selectedBackgroundGradient"]) {
-            [self recordChangeValue:backgroundGradientValue forKeyPath:@"selectedBackgroundGradient" withBlock:^{
-                [self setBackgroundGradient_:backgroundGradientValue];
-            }];
+            [self setSelectedBackgroundGradient_:backgroundGradientValue];
+            [self recordChangeValue:backgroundGradientValue forKeyPath:@"selectedBackgroundGradient" withBlock:^{}];
         }
     }
     if ([keys containsObject:@"backgroundColor"] ||
