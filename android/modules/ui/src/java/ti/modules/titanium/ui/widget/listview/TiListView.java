@@ -27,6 +27,8 @@ import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
+import ti.modules.titanium.ui.widget.tableview.TiBaseTableViewItem;
+import ti.modules.titanium.ui.widget.tableview.TiTableView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -36,14 +38,19 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Pair;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 
 @SuppressLint("NewApi")
 public class TiListView extends TiUIView {
@@ -234,10 +241,62 @@ public class TiListView extends TiUIView {
 		ListViewWrapper wrapper = new ListViewWrapper(activity);
 		wrapper.setFocusable(false);
 		wrapper.setFocusableInTouchMode(false);
+		wrapper.setAddStatesFromChildren(true);
 		listView = new ListView(activity);
 		listView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		wrapper.addView(listView);
 		adapter = new TiBaseAdapter(activity);
+		
+		final KrollProxy fProxy = proxy;
+		listView.setOnScrollListener(new OnScrollListener()
+		{
+			private boolean scrollValid = false;
+			private int lastValidfirstItem = 0;
+			
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState)
+			{
+				 {
+				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+					scrollValid = false;
+					TiViewProxy viewProxy = proxy;
+					if (!proxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
+					KrollDict eventArgs = new KrollDict();
+					KrollDict size = new KrollDict();
+					size.put("width", TiListView.this.getNativeView().getWidth());
+					size.put("height", TiListView.this.getNativeView().getHeight());
+					eventArgs.put("size", size);
+					KrollDict scrollEndArgs = new KrollDict(eventArgs);
+					fProxy.fireEvent(TiC.EVENT_SCROLLEND, eventArgs);
+				}
+				else if (scrollState == OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+					scrollValid = true;
+				}
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+			{
+				boolean fireScroll = scrollValid;
+				if (!fireScroll && visibleItemCount > 0) {
+					//Items in a list can be selected with a track ball in which case
+					//we must check to see if the first visibleItem has changed.
+					fireScroll = (lastValidfirstItem != firstVisibleItem);
+				}
+				if(fireScroll && proxy.hasListeners(TiC.EVENT_SCROLL)) {
+					lastValidfirstItem = firstVisibleItem;
+					KrollDict eventArgs = new KrollDict();
+					eventArgs.put("firstVisibleItem", firstVisibleItem);
+					eventArgs.put("visibleItemCount", visibleItemCount);
+					eventArgs.put("totalItemCount", totalItemCount);
+					KrollDict size = new KrollDict();
+					size.put("width", TiListView.this.getNativeView().getWidth());
+					size.put("height", TiListView.this.getNativeView().getHeight());
+					eventArgs.put("size", size);
+					fProxy.fireEvent(TiC.EVENT_SCROLL, eventArgs);
+				}
+			}
+		});
 		
 		//init inflater
 		if (inflater == null) {
