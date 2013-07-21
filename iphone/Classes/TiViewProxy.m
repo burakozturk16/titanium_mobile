@@ -1931,6 +1931,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
 {
+    if (eventOverrideDelegate != nil) {
+        obj = [eventOverrideDelegate overrideEventObject:obj forEvent:type fromViewProxy:self];
+    }
 	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:report errorCode:code message:message];
 }
 
