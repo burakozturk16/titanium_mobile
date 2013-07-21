@@ -18,25 +18,34 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+@SuppressLint("NewApi")
 public class TiListView extends TiUIView {
 
 	private ListView listView;
@@ -274,7 +283,55 @@ public class TiListView extends TiUIView {
 			textView.setVisibility(View.VISIBLE);
 		}
 	}
-	
+
+	private TiUIView layoutHeaderOrFooter(TiViewProxy viewProxy)
+	{
+		//We are always going to create a new view here. So detach outer view here and recreate
+		View outerView = (viewProxy.peekView() == null) ? null : viewProxy.peekView().getOuterView();
+		if (outerView != null) {
+			ViewParent vParent = outerView.getParent();
+			if ( vParent instanceof ViewGroup ) {
+				((ViewGroup)vParent).removeView(outerView);
+			}
+		}
+		TiUIView tiView = viewProxy.forceCreateView();
+		View nativeView = tiView.getOuterView();
+		TiCompositeLayout.LayoutParams params = tiView.getLayoutParams();
+
+		int width = AbsListView.LayoutParams.WRAP_CONTENT;
+		int height = AbsListView.LayoutParams.WRAP_CONTENT;
+		if (params.sizeOrFillHeightEnabled) {
+			if (params.autoFillsHeight) {
+				height = AbsListView.LayoutParams.MATCH_PARENT;
+			}
+		} else if (params.optionHeight != null) {
+			height = params.optionHeight.getAsPixels(listView);
+		}
+		if (params.sizeOrFillWidthEnabled) {
+			if (params.autoFillsWidth) {
+				width = AbsListView.LayoutParams.MATCH_PARENT;
+			}
+		} else if (params.optionWidth != null) {
+			width = params.optionWidth.getAsPixels(listView);
+		}
+		AbsListView.LayoutParams p = new AbsListView.LayoutParams(width, height);
+		nativeView.setLayoutParams(p);
+		return tiView;
+	}
+
+	public void setSeparatorColor(String colorstring) {
+		int sepColor = TiColorHelper.parseColor(colorstring);
+		int dividerHeight = listView.getDividerHeight();
+		listView.setDivider(new ColorDrawable(sepColor));
+		listView.setDividerHeight(dividerHeight);
+	}
+
+	public void setSeparatorStyle(int separatorHeight) {
+		Drawable drawable = listView.getDivider();
+		listView.setDivider(drawable);
+		listView.setDividerHeight(separatorHeight);
+	}
+
 	@Override
 	public void registerForTouch()
 	{
@@ -315,13 +372,33 @@ public class TiListView extends TiUIView {
 		}
 
 		listProxy.clearPreloadSections();
-		
-		if (d.containsKey(TiC.PROPERTY_HEADER_TITLE)) {
+
+		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			setSeparatorColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_SEPARATOR_COLOR)));
+		}
+
+		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			setSeparatorStyle(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SEPARATOR_STYLE)));
+		}
+
+		if (proxy.hasProperty(TiC.PROPERTY_OVER_SCROLL_MODE)) {
+			if (Build.VERSION.SDK_INT >= 9) {
+				listView.setOverScrollMode(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
+			}
+		}
+
+		if (proxy.hasProperty(TiC.PROPERTY_HEADER_VIEW)) {
+			TiViewProxy view = (TiViewProxy) proxy.getProperty(TiC.PROPERTY_HEADER_VIEW);
+			headerView = layoutHeaderOrFooter(view).getOuterView();
+		} else if (d.containsKey(TiC.PROPERTY_HEADER_TITLE)) {
 			headerView = inflater.inflate(headerFooterId, null);
 			setHeaderTitle(TiConvert.toString(d, TiC.PROPERTY_HEADER_TITLE));
 		}
-		
-		if (d.containsKey(TiC.PROPERTY_FOOTER_TITLE)) {
+
+		if (proxy.hasProperty(TiC.PROPERTY_FOOTER_VIEW)) {
+			TiViewProxy view = (TiViewProxy) proxy.getProperty(TiC.PROPERTY_FOOTER_VIEW);
+			footerView = layoutHeaderOrFooter(view).getOuterView();
+		} else if (d.containsKey(TiC.PROPERTY_FOOTER_TITLE)) {
 			footerView = inflater.inflate(headerFooterId, null);
 			setFooterTitle(TiConvert.toString(d, TiC.PROPERTY_FOOTER_TITLE));
 		}
@@ -348,8 +425,15 @@ public class TiListView extends TiUIView {
 	}
 	
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-
-		if (key.equals(TiC.PROPERTY_HEADER_TITLE)) {
+		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			setSeparatorColor(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			setSeparatorStyle(TiConvert.toInt(newValue));
+		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)){
+			if (Build.VERSION.SDK_INT >= 9) {
+				listView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
+			}
+		} else if (key.equals(TiC.PROPERTY_HEADER_TITLE)) {
 			setHeaderTitle(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_FOOTER_TITLE)) {
 			setFooterTitle(TiConvert.toString(newValue));
