@@ -233,6 +233,10 @@ public abstract class TiWindowProxy extends TiViewProxy
 			setOrientationModes(orientationModes);
 		}
 	}
+	
+	public void onFirstLayout()
+	{
+	}
 
 	/**
 	 * Called when the window gained or lost focus.

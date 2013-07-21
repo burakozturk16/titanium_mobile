@@ -83,6 +83,19 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		setView(v);
 		return v;
 	}
+	
+	@Override
+	public void onWindowActivityCreated()
+	{
+		super.onWindowActivityCreated();
+	}
+	
+	@Override
+	public void onFirstLayout()
+	{
+		super.onFirstLayout();
+		fireEvent(TiC.EVENT_OPEN, null);
+	}
 
 	public void addLightweightWindowToStack() 
 	{
@@ -280,7 +293,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		callPropertySync(PROPERTY_POST_WINDOW_CREATED, null);
 
 		opened = true;
-		fireEvent(TiC.EVENT_OPEN, null);
 		handlePostOpen();
 	}
 
