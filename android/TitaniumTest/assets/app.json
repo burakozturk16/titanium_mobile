@@ -35,23 +35,10 @@
       "external_child_modules": [],
       "on_app_create": null
     },
-    {
-      "class_name": "ti.modules.titanium.charts.ChartsModule",
-      "api_name": "Charts",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
+
     {
       "class_name": "ti.modules.titanium.shape.ShapeModule",
       "api_name": "Shape",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
-    {
-      "class_name": "ti.modules.titanium.shape.ShapeModule",
-      "api_name": "Image",
       "bindings": [],
       "external_child_modules": [],
       "on_app_create": null
