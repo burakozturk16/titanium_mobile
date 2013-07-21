@@ -30,6 +30,8 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 			[listViewProxy rememberProxy:self];
 		}];
 		self.modelDelegate = self;
+        [self getCellPropsFromDict:[listViewProxy allProperties]];
+      
         [self setDefaultReadyToCreateView:YES];
     }
     return self;
@@ -69,6 +71,36 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 {
 	view = nil;
 	[super _destroy];
+}
+
+-(void) getCellPropsFromDict:(NSDictionary*)dict {
+    NSArray* keys = [dict allKeys];
+    if ([keys containsObject:@"accessoryType"]) {
+        [self setValue:[dict valueForKey:@"accessoryType"] forKey:@"accessoryType"];
+    }
+    if ([keys containsObject:@"selectionStyle"]) {
+        [self setValue:[dict valueForKey:@"selectionStyle"] forKey:@"selectionStyle"];
+    }
+    if ([keys containsObject:@"selectedBackgroundColor"]) {
+        [self setValue:[dict valueForKey:@"selectedBackgroundColor"] forKey:@"selectedBackgroundColor"];
+    }
+    if ([keys containsObject:@"selectedBackgroundImage"]) {
+        [self setValue:[dict valueForKey:@"selectedBackgroundImage"] forKey:@"selectedBackgroundImage"];
+    }
+    if ([keys containsObject:@"selectedBackgroundGradient"]) {
+        [self setValue:[dict valueForKey:@"selectedBackgroundGradient"] forKey:@"selectedBackgroundGradient"];
+    }
+}
+
+-(void)_initWithProperties:(NSDictionary*)properties
+{
+    [super _initWithProperties:properties];
+    if (_listItem != nil) {
+        [_listItem applyCellProps:properties];
+    }
+    else {
+        [self getCellPropsFromDict:properties];
+    }
 }
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_

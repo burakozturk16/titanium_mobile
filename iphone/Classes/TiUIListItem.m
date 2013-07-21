@@ -23,6 +23,7 @@
     int _positionMask;
     BOOL _grouped;
     UIView* _bgView;
+    UIView* _sbgView;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -53,6 +54,7 @@
 		_resetKeys = [[NSMutableSet alloc] initWithCapacity:10];
 		_proxy = [proxy retain];
 		_proxy.listItem = self;
+        [self applyCellProps:[_proxy allProperties]];
     }
     return self;
 }
@@ -71,6 +73,8 @@
 	[selectedBackgroundGradient release];
     [_bgView removeFromSuperview];
     [_bgView release];
+    [_sbgView removeFromSuperview];
+    [_sbgView release];
 	[super dealloc];
 }
 
@@ -203,6 +207,14 @@
 {
     _positionMask = position;
     _grouped = grouped;
+    if (_bgView != nil) {
+        [((TiSelectedCellBackgroundView*)_bgView) setPosition:_positionMask];
+        ((TiSelectedCellBackgroundView*)_bgView).grouped = _grouped;
+    }
+    if (_sbgView != nil) {
+        [((TiSelectedCellBackgroundView*)_sbgView) setPosition:_positionMask];
+        ((TiSelectedCellBackgroundView*)_sbgView).grouped = _grouped;
+    }
 }
 
 -(void) applyBackgroundWithColor:(id)backgroundColor image:(id)backgroundImage selectedColor:(id)selectedBackgroundColor selectedImage:(id)selectedBackgroundImage
@@ -222,7 +234,7 @@
                 RELEASE_TO_NIL(_bgView);
                 _bgView = [[UIImageView alloc] initWithFrame:CGRectZero];
                 _bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-                [superView addSubview:_bgView];
+                [superView insertSubview:_bgView atIndex:0];
             }
             [(UIImageView*)_bgView setImage:bgImage];
             [_bgView setBackgroundColor:((bgColor == nil) ? [UIColor clearColor] : bgColor)];
@@ -233,7 +245,7 @@
                     RELEASE_TO_NIL(_bgView);
                     _bgView = [[TiSelectedCellBackgroundView alloc] initWithFrame:CGRectZero];
                     _bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth;
-                    [superView addSubview:_bgView];
+                    [superView insertSubview:_bgView atIndex:0];
                 }
                 ((TiSelectedCellBackgroundView*)_bgView).grouped = _grouped;
                 ((TiSelectedCellBackgroundView*)_bgView).fillColor = bgColor;
@@ -256,15 +268,18 @@
                 [view_ setBackgroundColor:((bgColor == nil) ? [UIColor clearColor] : bgColor)];
                 self.backgroundView = view_;
             }
+            RELEASE_TO_NIL(_bgView);
+            _bgView = self.backgroundView;
         } else {
             if (bgColor != nil) {
                 if (![self.backgroundView isKindOfClass:[TiSelectedCellBackgroundView class]]) {
                     self.backgroundView = [[[TiSelectedCellBackgroundView alloc] initWithFrame:CGRectZero] autorelease];
                 }
-                TiSelectedCellBackgroundView *bgView = (TiSelectedCellBackgroundView*)self.backgroundView;
-                bgView.grouped = _grouped;
-                bgView.fillColor = bgColor;
-                [bgView setPosition:_positionMask];
+                RELEASE_TO_NIL(_bgView);
+                _bgView = (TiSelectedCellBackgroundView*)self.backgroundView;
+                ((TiSelectedCellBackgroundView*)_bgView).grouped = _grouped;
+                ((TiSelectedCellBackgroundView*)_bgView).fillColor = bgColor;
+                [((TiSelectedCellBackgroundView*)_bgView) setPosition:_positionMask];
             } else {
                 self.backgroundView = nil;
             }
@@ -281,12 +296,13 @@
             [view_ setBackgroundColor:((sbgColor == nil) ? [UIColor clearColor] : sbgColor)];
             self.selectedBackgroundView = view_;
         }
+        _sbgView = self.selectedBackgroundView;
     } else {
         if (![self.selectedBackgroundView isKindOfClass:[TiSelectedCellBackgroundView class]]) {
             self.selectedBackgroundView = [[[TiSelectedCellBackgroundView alloc] initWithFrame:CGRectZero] autorelease];
         }
-        TiSelectedCellBackgroundView *selectedBGView = (TiSelectedCellBackgroundView*)self.selectedBackgroundView;
-        selectedBGView.grouped = _grouped;
+        _sbgView = (TiSelectedCellBackgroundView*)self.selectedBackgroundView;
+        ((TiSelectedCellBackgroundView*)_sbgView).grouped = _grouped;
         if (sbgColor == nil) {
             switch (self.selectionStyle) {
                 case UITableViewCellSelectionStyleBlue:sbgColor = [Webcolor webColorNamed:@"#0272ed"];break;
@@ -294,8 +310,8 @@
                 case UITableViewCellSelectionStyleNone:sbgColor = [UIColor clearColor];break;
             }
         }
-        selectedBGView.fillColor = sbgColor;
-        [selectedBGView setPosition:_positionMask];
+        ((TiSelectedCellBackgroundView*)_sbgView).fillColor = sbgColor;
+        [((TiSelectedCellBackgroundView*)_sbgView) setPosition:_positionMask];
     }
 }
 
@@ -315,6 +331,76 @@
 		same = (heightValue == otherHeightValue) || [heightValue isEqual:otherHeightValue];
 	}
 	return same;
+}
+
+- (void) applyCellProps:(NSDictionary *)properties
+{
+    NSArray* keys = [properties allKeys];
+    NSDictionary* currentProps = [_proxy allProperties];
+    
+    
+    if ([keys containsObject:@"accessoryType"]) {
+        id accessoryTypeValue = [properties objectForKey:@"accessoryType"];
+        if ([self shouldUpdateValue:accessoryTypeValue forKeyPath:@"accessoryType"]) {
+            if ([accessoryTypeValue isKindOfClass:[NSNumber class]]) {
+                UITableViewCellAccessoryType accessoryType = [accessoryTypeValue unsignedIntegerValue];
+                [self recordChangeValue:accessoryTypeValue forKeyPath:@"accessoryType" withBlock:^{
+                    self.accessoryType = accessoryType;
+                }];
+            }
+        }
+    }
+    if ([keys containsObject:@"selectionStyle"]) {
+        id selectionStyleValue = [properties objectForKey:@"selectionStyle"];
+        if ([self shouldUpdateValue:selectionStyleValue forKeyPath:@"selectionStyle"]) {
+            if ([selectionStyleValue isKindOfClass:[NSNumber class]]) {
+                UITableViewCellSelectionStyle selectionStyle = [selectionStyleValue unsignedIntegerValue];
+                [self recordChangeValue:selectionStyleValue forKeyPath:@"selectionStyle" withBlock:^{
+                    self.selectionStyle = selectionStyle;
+                }];
+            }
+        }
+	}
+    
+    if ([keys containsObject:@"backgroundGradient"]) {
+        id backgroundGradientValue = [properties objectForKey:@"backgroundGradient"];
+        if ([self shouldUpdateValue:backgroundGradientValue forKeyPath:@"backgroundGradient"]) {
+            [self recordChangeValue:backgroundGradientValue forKeyPath:@"backgroundGradient" withBlock:^{
+                [self setBackgroundGradient_:backgroundGradientValue];
+            }];
+        }
+    }
+    
+    if ([keys containsObject:@"selectedBackgroundGradient"]) {
+        id backgroundGradientValue = [properties objectForKey:@"selectedBackgroundGradient"];
+        if ([self shouldUpdateValue:backgroundGradientValue forKeyPath:@"selectedBackgroundGradient"]) {
+            [self recordChangeValue:backgroundGradientValue forKeyPath:@"selectedBackgroundGradient" withBlock:^{
+                [self setBackgroundGradient_:backgroundGradientValue];
+            }];
+        }
+    }
+    if ([keys containsObject:@"backgroundColor"] ||
+        [keys containsObject:@"selectedBackgroundColor"] ||
+        [keys containsObject:@"backgroundImage"] ||
+        [keys containsObject:@"selectedBackgroundImage"]) {
+        id backgroundColorValue = [currentProps valueForKey:@"backgroundColor"];
+        if ([keys containsObject:@"backgroundColor"]) {
+            backgroundColorValue = [properties objectForKey:@"backgroundColor"];
+        }
+        id selectedbackgroundColorValue = [currentProps valueForKey:@"selectedBackgroundColor"];
+        if ([keys containsObject:@"selectedBackgroundColor"]) {
+            selectedbackgroundColorValue = [properties objectForKey:@"selectedBackgroundColor"];
+        }
+        id backgroundImageValue = [currentProps valueForKey:@"backgroundImage"];
+        if ([keys containsObject:@"backgroundImage"]) {
+            backgroundImageValue = [properties objectForKey:@"backgroundImage"];
+        }
+        id selectedBackgroundImageValue = [currentProps valueForKey:@"selectedBackgroundImage"];
+        if ([keys containsObject:@"selectedBackgroundImage"]) {
+            selectedBackgroundImageValue = [properties objectForKey:@"selectedBackgroundImage"];
+        }
+        [self applyBackgroundWithColor:backgroundColorValue image:backgroundImageValue selectedColor:selectedbackgroundColorValue selectedImage:selectedBackgroundImageValue];
+    }
 }
 
 - (void)setDataItem:(NSDictionary *)dataItem
@@ -394,38 +480,9 @@
 			}];
 			break;
 	}
-	id accessoryTypeValue = [properties objectForKey:@"accessoryType"];
-	if ([self shouldUpdateValue:accessoryTypeValue forKeyPath:@"accessoryType"]) {
-		if ([accessoryTypeValue isKindOfClass:[NSNumber class]]) {
-			UITableViewCellAccessoryType accessoryType = [accessoryTypeValue unsignedIntegerValue];
-			[self recordChangeValue:accessoryTypeValue forKeyPath:@"accessoryType" withBlock:^{
-				self.accessoryType = accessoryType;
-			}];
-		}
-	}
-	id selectionStyleValue = [properties objectForKey:@"selectionStyle"];
-	if ([self shouldUpdateValue:selectionStyleValue forKeyPath:@"selectionStyle"]) {
-		if ([selectionStyleValue isKindOfClass:[NSNumber class]]) {
-			UITableViewCellSelectionStyle selectionStyle = [selectionStyleValue unsignedIntegerValue];
-			[self recordChangeValue:selectionStyleValue forKeyPath:@"selectionStyle" withBlock:^{
-				self.selectionStyle = selectionStyle;
-			}];
-		}
-	}
     
-    id backgroundGradientValue = [properties objectForKey:@"backgroundGradient"];
-    [self setBackgroundGradient_:backgroundGradientValue];
-	
+    [self applyCellProps:properties];
     
-    id selectedBackgroundGradientValue = [properties objectForKey:@"selectedBackgroundGradient"];
-    [self setSelectedBackgroundGradient_:selectedBackgroundGradientValue];
-	
-
-	id backgroundColorValue = [properties objectForKey:@"backgroundColor"];
-	id selectedbackgroundColorValue = [properties objectForKey:@"selectedBackgroundColor"];
-	id backgroundImageValue = [properties objectForKey:@"backgroundImage"];
-	id selectedBackgroundImageValue = [properties objectForKey:@"selectedBackgroundImage"];
-	[self applyBackgroundWithColor:backgroundColorValue image:backgroundImageValue selectedColor:selectedbackgroundColorValue selectedImage:selectedBackgroundImageValue];
 	[_resetKeys enumerateObjectsUsingBlock:^(NSString *keyPath, BOOL *stop) {
 		id value = [_initialValues objectForKey:keyPath];
 		[self setValue:(value != [NSNull null] ? value : nil) forKeyPath:keyPath];
