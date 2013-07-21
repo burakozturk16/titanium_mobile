@@ -13,6 +13,11 @@
 #import "TiUILabelProxy.h"
 #import "TiUISearchBarProxy.h"
 
+@interface TiUIView(eventHandler);
+-(void)handleListenerRemovedWithEvent:(NSString *)event;
+-(void)handleListenerAddedWithEvent:(NSString *)event;
+@end
+
 @interface TiUIListView ()
 @property (nonatomic, readonly) TiUIListViewProxy *listViewProxy;
 @end
@@ -297,6 +302,9 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         if (![templateId isKindOfClass:[NSNumber class]]) {
             TiViewTemplate *template = [_templates objectForKey:templateId];
             theValue = [template.properties objectForKey:key];
+        }
+        if (theValue == nil) {
+            theValue = [self valueForKey:key];
         }
     }
     
@@ -586,6 +594,12 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 -(void)setAllowsSelection_:(id)value
 {
     [[self tableView] setAllowsSelection:[TiUtils boolValue:value]];
+    [tableController setClearsSelectionOnViewWillAppear:![[self tableView] allowsSelection]];
+}
+
+-(void)setAllowsSelectionDuringEditing_:(id)arg
+{
+	[[self tableView] setAllowsSelectionDuringEditing:[TiUtils boolValue:arg def:NO]];
 }
 
 -(void)setEditing_:(id)args
@@ -639,6 +653,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         [searchViewProxy setDelegate:self];
         tableController = [[UITableViewController alloc] init];
         tableController.tableView = [self tableView];
+		[tableController setClearsSelectionOnViewWillAppear:![[self tableView] allowsSelection]];
         searchController = [[UISearchDisplayController alloc] initWithSearchBar:[searchViewProxy searchBar] contentsController:tableController];
         searchController.searchResultsDataSource = self;
         searchController.searchResultsDelegate = self;
@@ -1333,11 +1348,19 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if ([tableView allowsSelection]==NO)
+	{
+		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
     [self fireClickForItemAtIndexPath:[self pathForSearchPath:indexPath] tableView:tableView accessoryButtonTapped:NO];
 }
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
+    if ([tableView allowsSelection]==NO)
+	{
+		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
     [self fireClickForItemAtIndexPath:[self pathForSearchPath:indexPath] tableView:tableView accessoryButtonTapped:YES];
 }
 
@@ -1387,6 +1410,118 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 - (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
 {
     //Events none (maybe scroll later)
+}
+
+#pragma mark Overloaded view handling
+- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+{
+	UIView * result = [super hitTest:point withEvent:event];
+	if(result == self)
+	{	//There is no valid reason why the TiUITableView will get an
+		//touch event; it should ALWAYS be a child view.
+		return nil;
+	}
+	return result;
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	// iOS idiom seems to indicate that you should never be able to interact with a table
+	// while the 'delete' button is showing for a row, but touchesBegan:withEvent: is still triggered.
+	// Turn it into a no-op while we're editing
+	if (!editing) {
+		[super touchesBegan:touches withEvent:event];
+	}
+}
+
+-(void)handleListenerRemovedWithEvent:(NSString *)event
+{
+	if([event isEqualToString:@"longpress"])
+	{
+		for (UIGestureRecognizer *gesture in [_tableView gestureRecognizers])
+		{
+			if([[gesture class] isEqual:[UILongPressGestureRecognizer class]])
+			{
+				[_tableView removeGestureRecognizer:gesture];
+				return;
+			}
+		}
+	}
+	[super handleListenerRemovedWithEvent:event];
+}
+
+-(void)handleListenerAddedWithEvent:(NSString *)event
+{
+	ENSURE_UI_THREAD_1_ARG(event);
+    if ([event isEqualToString:@"longpress"]) {
+		UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressGesture:)];
+		[[self tableView] addGestureRecognizer:longPress];
+		[longPress release];
+		return;
+    }
+	[super handleListenerAddedWithEvent:event];
+}
+
+-(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
+{
+    if ([[self proxy] _hasListeners:@"swipe"]) {
+        
+        NSString* swipeString;
+        switch ([recognizer direction]) {
+            case UISwipeGestureRecognizerDirectionUp:
+                swipeString = @"up";
+                break;
+            case UISwipeGestureRecognizerDirectionDown:
+                swipeString = @"down";
+                break;
+            case UISwipeGestureRecognizerDirectionLeft:
+                swipeString = @"left";
+                break;
+            case UISwipeGestureRecognizerDirectionRight:
+                swipeString = @"right";
+                break;
+            default:
+                swipeString = @"unknown";
+                break;
+        }
+        
+        BOOL viaSearch = [self isSearchActive];
+        UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+        CGPoint point = [recognizer locationInView:theTableView];
+        CGPoint pointInView = [recognizer locationInView:self];
+        NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
+        indexPath = [self pathForSearchPath:indexPath];
+        if (indexPath != nil) {
+            NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView];
+            [event setValue:swipeString forKey:@"direction"];
+            [[self proxy] fireEvent:@"swipe" withObject:event];
+        }
+        
+        
+    }
+}
+
+-(void)longPressGesture:(UILongPressGestureRecognizer *)recognizer
+{
+    if([[self proxy] _hasListeners:@"longpress"] && [recognizer state] == UIGestureRecognizerStateBegan)
+    {
+        BOOL viaSearch = [self isSearchActive];
+        UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+        CGPoint point = [recognizer locationInView:theTableView];
+        CGPoint pointInView = [recognizer locationInView:self];
+        NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
+        indexPath = [self pathForSearchPath:indexPath];
+        
+        if (indexPath != nil) {
+            NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView atPoint:point];
+            [[self proxy] fireEvent:@"longpress" withObject:event];
+        }
+
+        if ([theTableView allowsSelection] == NO)
+        {
+            [theTableView deselectRowAtIndexPath:indexPath animated:YES];
+        }
+	}
 }
 
 #pragma mark - UISearchBarDelegate Methods
@@ -1466,16 +1601,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 #pragma mark - Internal Methods
 
-- (void)fireClickForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView accessoryButtonTapped:(BOOL)accessoryButtonTapped
+- (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView  accessoryButtonTapped:(BOOL)accessoryButtonTapped
 {
-	NSString *eventName = @"itemclick";
-    if (![self.proxy _hasListeners:eventName]) {
-		return;
-	}
-	TiUIListSectionProxy *section = [self.listViewProxy sectionForIndex:indexPath.section];
+    TiUIListSectionProxy *section = [self.listViewProxy sectionForIndex:indexPath.section];
 	NSDictionary *item = [section itemAtIndex:indexPath.row];
-	NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+    NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
 										section, @"section",
+										[self isSearchActive], @"searchResult",
 										NUMINT(indexPath.section), @"sectionIndex",
 										NUMINT(indexPath.row), @"itemIndex",
 										NUMBOOL(accessoryButtonTapped), @"accessoryClicked",
@@ -1494,8 +1626,31 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 			[eventObject setObject:[tapViewProxy valueForKey:@"bindId"] forKey:@"bindId"];
 		}
 	}
-	[self.proxy fireEvent:eventName withObject:eventObject];
-	[eventObject release];	
+    return [eventObject autorelease];
+}
+
+- (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView
+{
+    return [self EventObjectForItemAtIndexPath:indexPath tableView:tableView accessoryButtonTapped:NO];
+}
+
+- (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView atPoint:(CGPoint)point
+{
+    NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:tableView];
+    [event setObject:NUMFLOAT(point.x) forKey:@"x"];
+    [event setObject:NUMFLOAT(point.y) forKey:@"y"];
+    return event;
+}
+
+- (void)fireClickForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView accessoryButtonTapped:(BOOL)accessoryButtonTapped
+{
+	NSString *eventName = @"itemclick";
+    if (![self.proxy _hasListeners:eventName]) {
+		return;
+	}
+	
+	
+	[self.proxy fireEvent:eventName withObject:[self EventObjectForItemAtIndexPath:indexPath tableView:tableView]];
 }
 
 #pragma mark - UITapGestureRecognizer
