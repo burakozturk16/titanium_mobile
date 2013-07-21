@@ -56,6 +56,18 @@
 #import "TiUtils.h"
 #import "UIButton+BackgroundColors.h"
 
+
+#define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
+-(TiProxy*)methodName	\
+{	\
+if (ivarName==nil)	\
+{	\
+ivarName = [[TiUI##className##Proxy alloc] _initWithPageContext:[self executionContext]];	\
+[self rememberProxy:ivarName]; \
+}	\
+return ivarName;	\
+}	\
+
 @implementation UIModule
 
 +(void)swizzle
@@ -73,28 +85,28 @@
 -(void)dealloc
 {
 #ifdef USE_TI_UIIPHONE
-    [self forgetProxy:iphone];
-	RELEASE_TO_NIL(iphone);
+	FORGET_AND_RELEASE(iphone);
 #endif
 #ifdef USE_TI_UIIPAD
-    [self forgetProxy:ipad];
-    RELEASE_TO_NIL(ipad);
+    FORGET_AND_RELEASE(ipad);
 #endif
 #ifdef USE_TI_UIIOS
-    [self forgetProxy:ios];
-    RELEASE_TO_NIL(ios);
+    FORGET_AND_RELEASE(ios);
 #endif
 #ifdef USE_TI_UICLIPBOARD
-    [self forgetProxy:clipboard];
-    RELEASE_TO_NIL(clipboard);
+    FORGET_AND_RELEASE(clipboard);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-    [self forgetProxy:activityIndicatorStyle];
-    RELEASE_TO_NIL(activityIndicatorStyle);
+    FORGET_AND_RELEASE(activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
-    [self forgetProxy:tableViewSeparatorStyle];
-    RELEASE_TO_NIL(tableViewSeparatorStyle);
+    FORGET_AND_RELEASE(tableViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
+	FORGET_AND_RELEASE(listViewCellSelectionStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
 	[super dealloc];
 }
@@ -258,6 +270,13 @@ MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_LINK,UIDataDetectorTypeLink, @"U
 
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_ADDRESS,UIDataDetectorTypeAddress, @"UI.AUTODETECT_ADDRESS", @"1.8.0", @"Ti.UI.AUTOLINK_MAP_ADDRESSES");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_CALENDAR,UIDataDetectorTypeCalendarEvent, @"UI.AUTODETECT_CALENDAR", @"1.8.0", @"Ti.UI.AUTOLINK_CALENDAR");
+
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
+DEFINE_SUBPROXY_AS(ListViewCellSelectionStyle, TableViewCellSelectionStyle, listViewCellSelectionStyle);
+#endif
 
 
 -(void)setBackgroundColor:(id)color
@@ -460,22 +479,28 @@ MAKE_SYSTEM_PROP(FACE_DOWN,UIDeviceOrientationFaceDown);
 -(void)didReceiveMemoryWarning:(NSNotification*)notification
 {
 #ifdef USE_TI_UIIPHONE
-	RELEASE_TO_NIL(iphone);
+	FORGET_AND_RELEASE(iphone);
 #endif
 #ifdef USE_TI_UIIPAD
-	RELEASE_TO_NIL(ipad);
+	FORGET_AND_RELEASE(ipad);
 #endif
 #ifdef USE_TI_UIIOS
-	RELEASE_TO_NIL(ios);
+	FORGET_AND_RELEASE(ios);
 #endif
 #ifdef USE_TI_UICLIPBOARD
-	RELEASE_TO_NIL(clipboard);
+	FORGET_AND_RELEASE(clipboard);
 #endif
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
-	RELEASE_TO_NIL(activityIndicatorStyle);
+	FORGET_AND_RELEASE(activityIndicatorStyle);
 #endif
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
-	RELEASE_TO_NIL(tableViewSeparatorStyle);
+	FORGET_AND_RELEASE(tableViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWCELLSELECTIONSTYLE
+	FORGET_AND_RELEASE(listViewCellSelectionStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }

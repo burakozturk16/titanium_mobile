@@ -409,7 +409,24 @@ DebugLog(@"[WARN] Ti%@.%@ DEPRECATED in %@, in favor of %@.",@"tanium",api,in,ne
 #define NUMFLOAT(x) \
 [NSNumber numberWithFloat:x]\
 
+    
+#define DEFINE_SUBPROXY(methodName,ivarName)	\
+-(TiProxy*)methodName	\
+{	\
+if (ivarName==nil)	\
+{	\
+ivarName = [[TiUIiPhone##methodName##Proxy alloc] _initWithPageContext:[self executionContext]];	\
+[self rememberProxy:ivarName]; \
+}	\
+return ivarName;	\
+}	\
 
+    
+#define FORGET_AND_RELEASE(x) \
+{\
+[self forgetProxy:x]; \
+RELEASE_TO_NIL(x); \
+}
 
  //MUST BE NEGATIVE, as it inhabits the same space as UIBarButtonSystemItem
 enum {
