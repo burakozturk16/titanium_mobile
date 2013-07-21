@@ -3046,7 +3046,11 @@ build.prototype = {
 								'#define USE_TI_UISLIDER',
 								'#define USE_TI_UITEXTFIELD',
 								'#define USE_TI_UITEXTAREA',
-								'#endif');
+								'#endif',
+								'#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE',
+								'#define USE_TI_UITABLEVIEWSEPARATORSTYLE',
+								'#endif'
+								);
 							contents = contents.join('\n');
 
 							if (!afs.exists(dest) || fs.readFileSync(dest).toString() != contents) {
