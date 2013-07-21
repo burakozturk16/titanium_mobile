@@ -11,7 +11,8 @@
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 	<uses-permission android:name="android.permission.INTERNET"/>
 	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-	<application 
+	<uses-permission android:name="android.permission.READ_CONTACTS"/>
+		<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
 		android:debuggable="false" android:allowBackup="false"
 		android:hardwareAccelerated="false">
