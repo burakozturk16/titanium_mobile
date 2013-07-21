@@ -48,12 +48,16 @@ public class Ti2DMatrix extends KrollProxy
 
 		public Operation(int type)
 		{
+			scaleFromX = scaleFromY = scaleToX = scaleToY = 1;
+			translateToX =  translateToY = translateFromX = translateFromY = 0;
+			rotateFrom = rotateTo = 0;
 			this.type = type;
 		}
 
 		public void apply(View view, float interpolatedTime, Matrix matrix,
 			int childWidth, int childHeight, float anchorX, float anchorY)
 		{
+			if (interpolatedTime == 0) return;
 			anchorX = anchorX == DEFAULT_ANCHOR_VALUE ? this.anchorX : anchorX;
 			anchorY = anchorY == DEFAULT_ANCHOR_VALUE ? this.anchorY : anchorY;
 			switch (type) {
@@ -82,7 +86,7 @@ public class Ti2DMatrix extends KrollProxy
 	protected Operation op;
 
 	public Ti2DMatrix() {}
-	public Ti2DMatrix(Matrix m) {this.transformMatrix = m;}
+	public Ti2DMatrix(Matrix m) {this.transformMatrix = new Matrix(m);}
 	
 	public Matrix getTransformMatrix() {
 		return transformMatrix;
@@ -105,7 +109,6 @@ public class Ti2DMatrix extends KrollProxy
 		super.handleCreationDict(dict);
 		if (dict.containsKey(TiC.PROPERTY_ROTATE)) {
 			op = new Operation(Operation.TYPE_ROTATE);
-			op.rotateFrom = 0;
 			op.rotateTo = TiConvert.toFloat(dict, TiC.PROPERTY_ROTATE);
 			handleAnchorPoint(dict);
 
@@ -123,7 +126,6 @@ public class Ti2DMatrix extends KrollProxy
 
 		} else if (dict.containsKey(TiC.PROPERTY_SCALE)) {
 			op = new Operation(Operation.TYPE_SCALE);
-			op.scaleFromX = op.scaleFromY = 1.0f;
 			op.scaleToX = op.scaleToY = TiConvert.toFloat(dict, TiC.PROPERTY_SCALE);
 			handleAnchorPoint(dict);
 		}
@@ -166,7 +168,6 @@ public class Ti2DMatrix extends KrollProxy
 	{
 		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_SCALE);
 		newMatrix.handleAnchorPoint(this.getProperties());
-		newMatrix.op.scaleFromX = newMatrix.op.scaleFromY = VALUE_UNSPECIFIED;
 		newMatrix.op.scaleToX = newMatrix.op.scaleToY = 1.0f;
 		// varargs for API backwards compatibility
 		if (args.length == 4) {
@@ -219,9 +220,9 @@ public class Ti2DMatrix extends KrollProxy
 	@Kroll.method
 	public Ti2DMatrix multiply(Ti2DMatrix other)
 	{
-		Ti2DMatrix newMatrix = new Ti2DMatrix(other, Operation.TYPE_MULTIPLY);
+		Ti2DMatrix newMatrix = new Ti2DMatrix(this, Operation.TYPE_MULTIPLY);
 		newMatrix.handleAnchorPoint(this.getProperties());
-		newMatrix.op.multiplyWith = this;
+		newMatrix.op.multiplyWith = other;
 		return newMatrix;
 	}
 	
@@ -232,13 +233,26 @@ public class Ti2DMatrix extends KrollProxy
 		if (view != null) {
 			int width = view.getWidth();
 			int height = view.getHeight();
-			Matrix m = interpolate(view, 1f, width, height, 0.5f, 0.5f);
 			float[] result = new float[9];
+			Matrix m = finalMatrixAfterInterpolation(proxy);
 			m.getValues(result);
 			return result;
 		}
 		return null;
 	}
+	
+	public Matrix finalMatrixAfterInterpolation (TiViewProxy proxy)
+	{
+		View view = proxy.getNativeView();
+		if (view != null) {
+			int width = view.getWidth();
+			int height = view.getHeight();
+			Matrix m = interpolate(view, 1f, width, height, 0.5f, 0.5f);
+			return m;
+		}
+		return null;
+	}
+
 
 	public Matrix interpolate(View view, float interpolatedTime, int childWidth, int childHeight, float anchorX, float anchorY)
 	{

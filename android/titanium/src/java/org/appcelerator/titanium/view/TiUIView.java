@@ -10,7 +10,6 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,10 +45,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
@@ -612,9 +608,7 @@ public abstract class TiUIView
 			Log.w(TAG, "Focus state changed to " + TiConvert.toString(newValue) + " not honored until next focus event.",
 				Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
-			if (nativeView != null) {
-				applyTransform((Ti2DMatrix)newValue);
-			}
+			applyTransform((Ti2DMatrix)newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
 			if (nativeView != null) {
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
@@ -773,9 +767,7 @@ public abstract class TiUIView
 
 		if (d.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			Ti2DMatrix matrix = (Ti2DMatrix) d.get(TiC.PROPERTY_TRANSFORM);
-			if (matrix != null) {
-				applyTransform(matrix);
-			}
+			applyTransform(matrix);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
@@ -861,6 +853,7 @@ public abstract class TiUIView
 		if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Releasing: " + this, Log.DEBUG_MODE);
 		}
+		proxy.cancelAllAnimations();
 		View nv = getNativeView();
 		if (nv != null) {
 			if (nv instanceof ViewGroup) {
@@ -1833,7 +1826,7 @@ public abstract class TiUIView
 		}
 	}
 	public Ti2DMatrix getTi2DMatrix() {
-		return (Ti2DMatrix) proxy.getProperty(TiC.PROPERTY_TRANSFORM);
+		return layoutParams.optionTransform;
 	}
 	
 	
@@ -1913,6 +1906,7 @@ public abstract class TiUIView
 				options));
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
+			show();
 			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "opacity",
 					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
 			list.add(anim);
@@ -2017,10 +2011,18 @@ public abstract class TiUIView
 				}
 			}
 			
-			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-			if (tdm == null) tdm = new Ti2DMatrix();			
 			
-			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY, view.getMeasuredWidth(), view.getMeasuredHeight()), tdm);
+			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+			if (layoutParams.optionTransform != null) {
+				tdm = layoutParams.optionTransform.invert().multiply(tdm);
+			}
+			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY), tdm);
+			anim.addListener(new TiAnimatorListener(this.proxy, tiSet, options) {
+				public void onAnimationStart(Animator animation) {}
+				public void onAnimationEnd(Animator animation) {
+					layoutParams.optionTransform = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+				}
+			});
 			list.add(anim);
 		}
 

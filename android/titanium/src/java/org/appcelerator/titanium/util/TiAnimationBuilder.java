@@ -283,18 +283,21 @@ public class TiAnimationBuilder
 	{
 		Log.d(TAG, "handleFinish", Log.DEBUG_MODE);
 		applyCompletionProperties();
+		Log.d(TAG, "applyCompletionProperties done", Log.DEBUG_MODE);
 		if (callback != null && proxy != null) {
 			callback.callAsync(proxy.getKrollObject(), new Object[] { new KrollDict() });
 		}
+		Log.d(TAG, "callback done", Log.DEBUG_MODE);
 
-		if (animationProxy != null) {
+		if (this.animationProxy != null) {
+			this.animationProxy.setBuilder(null);
 			// In versions prior to Honeycomb, don't fire the event
 			// until the message queue is empty. There appears to be
 			// a bug in versions before Honeycomb where this
 			// onAnimationEnd listener can be called even before the
 			// animation is really complete.
 			if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-				animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
+				this.animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
 			} else {
 				Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
 					public boolean queueIdle()
@@ -304,8 +307,9 @@ public class TiAnimationBuilder
 					}
 				});
 			}
-			this.animationProxy.setBuilder(null);
+			Log.d(TAG, "animationProxy done", Log.DEBUG_MODE);
 		}
+		Log.d(TAG, "handleFinish done", Log.DEBUG_MODE);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -340,8 +344,9 @@ public class TiAnimationBuilder
 			String key = (String)pairs.getKey();
 			if (key.compareTo(TiC.PROPERTY_DURATION) != 0
 					&& key.compareTo(TiC.PROPERTY_DELAY) != 0
-					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0)
-			proxy.setPropertyAndFire(key, pairs.getValue());
+					&& key.compareTo(TiC.PROPERTY_REPEAT) != 0) {
+				proxy.setProperty(key, pairs.getValue());
+			}
 		}
 	}
 
