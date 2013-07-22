@@ -281,13 +281,10 @@ public class TiAnimationBuilder
 	
 	protected void handleFinish()
 	{
-		Log.d(TAG, "handleFinish", Log.DEBUG_MODE);
 		applyCompletionProperties();
-		Log.d(TAG, "applyCompletionProperties done", Log.DEBUG_MODE);
 		if (callback != null && proxy != null) {
 			callback.callAsync(proxy.getKrollObject(), new Object[] { new KrollDict() });
 		}
-		Log.d(TAG, "callback done", Log.DEBUG_MODE);
 
 		if (this.animationProxy != null) {
 			this.animationProxy.setBuilder(null);
@@ -307,9 +304,7 @@ public class TiAnimationBuilder
 					}
 				});
 			}
-			Log.d(TAG, "animationProxy done", Log.DEBUG_MODE);
 		}
-		Log.d(TAG, "handleFinish done", Log.DEBUG_MODE);
 	}
 	
 	@SuppressWarnings("rawtypes")
@@ -404,7 +399,7 @@ public class TiAnimationBuilder
 		AnimationListener animationListener = new AnimationListener();
 		as.setAnimationListener(animationListener);
 
-		TiUIView tiView = viewProxy.peekView();
+		final TiUIView tiView = viewProxy.peekView();
 
 		if (toOpacity != null) {
 			// Determine which value to use for "from" value, in this order:
@@ -476,14 +471,26 @@ public class TiAnimationBuilder
 
 		if (tdm != null) {
 			Ti2DMatrix realTdm = tdm;
+			Ti2DMatrix from = tiView.getLayoutParams().optionTransform;
 
 			Animation anim;
+			
+			if (from != null) {
+				realTdm = from.invert().multiply(realTdm);
+			}
 
 			anim = new TiMatrixAnimation(view, realTdm, anchorX, anchorY);
 			
-			 if (viewProxy.hasProperty(TiC.PROPERTY_TRANSFORM)) {
-			 	((TiMatrixAnimation)anim).setFrom((Ti2DMatrix)viewProxy.getProperty(TiC.PROPERTY_TRANSFORM));
-			 }
+			if (tiView.getLayoutParams().optionTransform != null) {
+			 	((TiMatrixAnimation)anim).setFrom(from);
+			}
+			anim.setAnimationListener(new Animation.AnimationListener() {
+				public void onAnimationStart(Animation animation) {}
+				public void onAnimationRepeat(Animation animation) {}
+				public void onAnimationEnd(Animation animation) {
+						tiView.getLayoutParams().optionTransform = tdm;
+				}
+			});
 
 			addAnimation(as, anim);
 
@@ -696,10 +703,12 @@ public class TiAnimationBuilder
 
 		public TiMatrixAnimation(View view, Ti2DMatrix matrix, float anchorX, float anchorY)
 		{
+			this.from = null;
 			this.view = view;
 			this.matrix = matrix;
 			this.anchorX = anchorX;
 			this.anchorY = anchorY;
+			this.setFillAfter(true);
 		}
 		
 		public void setFrom(Ti2DMatrix from)
@@ -723,8 +732,9 @@ public class TiAnimationBuilder
 			if (interpolate) {
 				m = matrix.interpolate(view, interpolatedTime, childWidth, childHeight, anchorX, anchorY);
 				if (from != null){
-					Matrix mFrom = from.interpolate(view, (1 - interpolatedTime), childWidth, childHeight, anchorX, anchorY);
-					m.preConcat(mFrom);
+					Matrix mFrom = from.interpolate(view, 1, childWidth, childHeight, anchorX, anchorY);
+					mFrom.preConcat(m);
+					m = mFrom;
 				}
 			} else {
 				m = getFinalMatrix(childWidth, childHeight);
@@ -812,15 +822,11 @@ public class TiAnimationBuilder
 				if (params instanceof TiCompositeLayout.LayoutParams)
 					TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
 				view.setLayoutParams(params);
-				view.clearAnimation();
 				relayoutChild = false;
 			}
 
 			if (applyOpacity && (autoreverse == null || !autoreverse.booleanValue())) {
-				// There is an android bug where animations still occur after
-				// this method. We clear it from the view to
-				// correct this.
-				view.clearAnimation();
+
 				if (toOpacity.floatValue() == 0) {
 					view.setVisibility(View.INVISIBLE);
 
@@ -828,13 +834,7 @@ public class TiAnimationBuilder
 					if (view.getVisibility() == View.INVISIBLE) {
 						view.setVisibility(View.VISIBLE);
 					}
-					// this is apparently the only way to apply an opacity to
-					// the entire view and have it stick
-					// AlphaAnimation aa = new AlphaAnimation(toOpacity.floatValue(), toOpacity.floatValue());
-					// aa.setDuration(1);
-					// aa.setFillAfter(true);
-					// view.setLayoutParams(view.getLayoutParams());
-					// view.startAnimation(aa);
+
 					viewProxy.peekView().setOpacity(toOpacity.floatValue());
 				}
 				applyOpacity = false;

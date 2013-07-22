@@ -369,7 +369,6 @@ public abstract class TiUIView
 				TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(outerView, timatrix);
 				matrixAnimation.interpolate = false;
 				matrixAnimation.setDuration(0);
-				matrixAnimation.setFillAfter(true);
 				outerView.startAnimation(matrixAnimation);
 			} else {
 				outerView.clearAnimation();
@@ -1801,6 +1800,8 @@ public abstract class TiUIView
 		Matrix matrix;
 		
 		public FakeMatrixAnimation(Matrix matrix){
+			this.setDuration(0);
+			this.setFillAfter(true);
 			this.matrix = matrix;
 		}
 		
@@ -1817,8 +1818,6 @@ public abstract class TiUIView
 		View outerView =  getOuterView();
 		outerView.clearAnimation();
 		FakeMatrixAnimation matrixAnimation = new FakeMatrixAnimation(matrix.getTransformMatrix());
-		matrixAnimation.setDuration(0);
-		matrixAnimation.setFillAfter(true);
 		outerView.startAnimation(matrixAnimation);
 		ViewParent viewParent = outerView.getParent();
 		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
