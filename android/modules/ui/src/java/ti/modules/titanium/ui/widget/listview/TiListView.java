@@ -256,11 +256,9 @@ public class TiListView extends TiUIView {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState)
 			{
-				 {
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
 					scrollValid = false;
-					TiViewProxy viewProxy = proxy;
-					if (!proxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
+					if (!fProxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
 					KrollDict eventArgs = new KrollDict();
 					KrollDict size = new KrollDict();
 					size.put("width", TiListView.this.getNativeView().getWidth());
@@ -283,7 +281,7 @@ public class TiListView extends TiUIView {
 					//we must check to see if the first visibleItem has changed.
 					fireScroll = (lastValidfirstItem != firstVisibleItem);
 				}
-				if(fireScroll && proxy.hasListeners(TiC.EVENT_SCROLL)) {
+				if(fireScroll && fProxy.hasListeners(TiC.EVENT_SCROLL)) {
 					lastValidfirstItem = firstVisibleItem;
 					KrollDict eventArgs = new KrollDict();
 					eventArgs.put("firstVisibleItem", firstVisibleItem);
