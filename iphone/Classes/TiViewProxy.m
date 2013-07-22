@@ -1163,27 +1163,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 #pragma mark Recognizers
 
--(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
-{ 
-    NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                           NUMDOUBLE(recognizer.scale), @"scale", 
-                           NUMDOUBLE(recognizer.velocity), @"velocity", 
-                           nil]; 
-    [self fireEvent:@"pinch" withObject:event]; 
-}
-
--(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
-{ 
-    if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        CGPoint p = [recognizer locationInView:self.view];
-        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                               NUMFLOAT(p.x), @"x",
-                               NUMFLOAT(p.y), @"y",
-                               nil];
-        [self fireEvent:@"longpress" withObject:event]; 
-    }
-}
-
 //supposed to be called on init
 -(void)setDefaultReadyToCreateView:(BOOL)ready
 {
@@ -1228,18 +1207,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		// on open we need to create a new view
 		[self viewWillAttach];
 		view = [[self newView] retain];
-
-        // check listeners dictionary to see if we need gesture recognizers
-        if ([self _hasListeners:@"pinch"]) {
-            UIPinchGestureRecognizer* r = [[UIPinchGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedPinch:)];
-            [view addGestureRecognizer:r];
-            [r release];
-        }
-        if ([self _hasListeners:@"longpress"]) {
-            UILongPressGestureRecognizer* r = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedLongPress:)];
-            [view addGestureRecognizer:r];
-            [r release];
-        }
         
 		view.proxy = self;
 		view.layer.transform = CATransform3DIdentity;

@@ -1354,9 +1354,9 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
+-(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer
 {
-	NSString* swipeString;
+    NSString* swipeString;
 	switch ([recognizer direction]) {
 		case UISwipeGestureRecognizerDirectionUp:
 			swipeString = @"up";
@@ -1374,9 +1374,13 @@ DEFINE_EXCEPTIONS
 			swipeString = @"unknown";
 			break;
 	}
-	
+    return swipeString;
+}
+
+-(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
+{
 	NSMutableDictionary *event = [[TiUtils dictionaryFromGesture:recognizer inView:self] mutableCopy];
-	[event setValue:swipeString forKey:@"direction"];
+	[event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
 	[proxy fireEvent:@"swipe" withObject:event];
 	[event release];
 

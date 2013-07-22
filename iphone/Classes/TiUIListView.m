@@ -1434,77 +1434,32 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 	}
 }
 
--(void)handleListenerRemovedWithEvent:(NSString *)event
-{
-	if([event isEqualToString:@"longpress"])
-	{
-		for (UIGestureRecognizer *gesture in [_tableView gestureRecognizers])
-		{
-			if([[gesture class] isEqual:[UILongPressGestureRecognizer class]])
-			{
-				[_tableView removeGestureRecognizer:gesture];
-				return;
-			}
-		}
-	}
-	[super handleListenerRemovedWithEvent:event];
-}
-
--(void)handleListenerAddedWithEvent:(NSString *)event
-{
-	ENSURE_UI_THREAD_1_ARG(event);
-    if ([event isEqualToString:@"longpress"]) {
-		UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(longPressGesture:)];
-		[[self tableView] addGestureRecognizer:longPress];
-		[longPress release];
-		return;
-    }
-	[super handleListenerAddedWithEvent:event];
-}
-
 -(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
 {
-    if ([[self proxy] _hasListeners:@"swipe"]) {
-        
-        NSString* swipeString;
-        switch ([recognizer direction]) {
-            case UISwipeGestureRecognizerDirectionUp:
-                swipeString = @"up";
-                break;
-            case UISwipeGestureRecognizerDirectionDown:
-                swipeString = @"down";
-                break;
-            case UISwipeGestureRecognizerDirectionLeft:
-                swipeString = @"left";
-                break;
-            case UISwipeGestureRecognizerDirectionRight:
-                swipeString = @"right";
-                break;
-            default:
-                swipeString = @"unknown";
-                break;
-        }
-        
-        BOOL viaSearch = [self isSearchActive];
-        UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
-        CGPoint point = [recognizer locationInView:theTableView];
-        CGPoint pointInView = [recognizer locationInView:self];
-        NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
-        indexPath = [self pathForSearchPath:indexPath];
-        if (indexPath != nil) {
-            NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView];
-            [event setValue:swipeString forKey:@"direction"];
-            [[self proxy] fireEvent:@"swipe" withObject:event];
-        }
-        
-        
+    BOOL viaSearch = [self isSearchActive];
+    UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+    CGPoint point = [recognizer locationInView:theTableView];
+    CGPoint pointInView = [recognizer locationInView:self];
+    NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
+    indexPath = [self pathForSearchPath:indexPath];
+    if (indexPath != nil) {
+        NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView];
+        [event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
+        [[self proxy] fireEvent:@"swipe" withObject:event];
+    }
+    else {
+        [super recognizedSwipe:recognizer];
+    }
+    
+    if ([theTableView allowsSelection] == NO)
+    {
+        [theTableView deselectRowAtIndexPath:indexPath animated:YES];
     }
 }
 
--(void)longPressGesture:(UILongPressGestureRecognizer *)recognizer
+-(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer
 {
-    if([[self proxy] _hasListeners:@"longpress"] && [recognizer state] == UIGestureRecognizerStateBegan)
-    {
+    if ([recognizer state] == UIGestureRecognizerStateBegan) {
         BOOL viaSearch = [self isSearchActive];
         UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
         CGPoint point = [recognizer locationInView:theTableView];
@@ -1512,17 +1467,22 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
         indexPath = [self pathForSearchPath:indexPath];
         
+        NSMutableDictionary *event;
         if (indexPath != nil) {
             NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView atPoint:point];
             [[self proxy] fireEvent:@"longpress" withObject:event];
         }
-
+        else {
+            [super recognizedLongPress:recognizer];
+        }
+        
         if ([theTableView allowsSelection] == NO)
         {
             [theTableView deselectRowAtIndexPath:indexPath animated:YES];
         }
-	}
+    }
 }
+
 
 #pragma mark - UISearchBarDelegate Methods
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
