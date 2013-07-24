@@ -17,17 +17,14 @@ enum {
 
 @interface TiUIListItem : UITableViewCell
 {
-	TiGradientLayer * gradientLayer;
-	TiGradient * backgroundGradient;
-	TiGradient * selectedBackgroundGradient;
 }
 
 @property (nonatomic, readonly) NSInteger templateStyle;
 @property (nonatomic, readonly) TiUIListItemProxy *proxy;
 @property (nonatomic, readwrite, retain) NSDictionary *dataItem;
 
-- (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier proxy:(TiUIListItemProxy *)proxy;
-- (id)initWithProxy:(TiUIListItemProxy *)proxy reuseIdentifier:(NSString *)reuseIdentifier;
+- (id)initWithStyle:(UITableViewCellStyle)style position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier proxy:(TiUIListItemProxy *)proxy;
+- (id)initWithProxy:(TiUIListItemProxy *)proxy position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier;
 
 - (void) applyCellProps:(NSDictionary *)properties;
 - (BOOL)canApplyDataItem:(NSDictionary *)otherItem;

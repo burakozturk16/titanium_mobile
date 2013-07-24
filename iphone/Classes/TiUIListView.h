@@ -10,7 +10,9 @@
 #import "TiUIListViewProxy.h"
 
 @interface TiUIListView : TiUIView <UITableViewDelegate, UITableViewDataSource, UIScrollViewDelegate, UIGestureRecognizerDelegate, UISearchBarDelegate, UISearchDisplayDelegate, TiScrolling, TiProxyObserver >
-
+{
+    BOOL allowsSelection;
+}
 #pragma mark - Private APIs
 
 @property (nonatomic, readonly) UITableView *tableView;

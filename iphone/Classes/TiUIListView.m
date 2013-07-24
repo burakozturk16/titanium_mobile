@@ -65,6 +65,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     self = [super init];
     if (self) {
         _defaultItemTemplate = [[NSNumber numberWithUnsignedInteger:UITableViewCellStyleDefault] retain];
+        allowsSelection = YES;
     }
     return self;
 }
@@ -593,8 +594,8 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 -(void)setAllowsSelection_:(id)value
 {
-    [[self tableView] setAllowsSelection:[TiUtils boolValue:value]];
-    [tableController setClearsSelectionOnViewWillAppear:![[self tableView] allowsSelection]];
+    allowsSelection = [TiUtils boolValue:value];
+    [tableController setClearsSelectionOnViewWillAppear:!allowsSelection];
 }
 
 -(void)setAllowsSelectionDuringEditing_:(id)arg
@@ -653,7 +654,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         [searchViewProxy setDelegate:self];
         tableController = [[UITableViewController alloc] init];
         tableController.tableView = [self tableView];
-		[tableController setClearsSelectionOnViewWillAppear:![[self tableView] allowsSelection]];
+		[tableController setClearsSelectionOnViewWillAppear:!allowsSelection];
         searchController = [[UISearchDisplayController alloc] initWithSearchBar:[searchViewProxy searchBar] contentsController:tableController];
         searchController.searchResultsDataSource = self;
         searchController.searchResultsDelegate = self;
@@ -1093,6 +1094,24 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     }
     NSString *cellIdentifier = [templateId isKindOfClass:[NSNumber class]] ? [NSString stringWithFormat:@"TiUIListView__internal%@", templateId]: [templateId description];
     TiUIListItem *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
+    
+    TiCellBackgroundViewPosition position = TiCellBackgroundViewPositionMiddle;
+    BOOL grouped = NO;
+    if (tableView.style == UITableViewStyleGrouped) {
+        grouped = YES;
+        if (indexPath.row == 0) {
+            if (maxItem == 1) {
+                position = TiCellBackgroundViewPositionSingleLine;
+            } else {
+                position = TiCellBackgroundViewPositionTop;
+            }
+        } else if (indexPath.row == (maxItem - 1) ) {
+            position = TiCellBackgroundViewPositionBottom;
+        } else {
+            position = TiCellBackgroundViewPositionMiddle;
+        }
+    }
+    
     if (cell == nil) {
         id<TiEvaluator> context = self.listViewProxy.executionContext;
         if (context == nil) {
@@ -1101,9 +1120,9 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
         if ([templateId isKindOfClass:[NSNumber class]]) {
             UITableViewCellStyle cellStyle = [templateId unsignedIntegerValue];
-            cell = [[TiUIListItem alloc] initWithStyle:cellStyle reuseIdentifier:cellIdentifier proxy:cellProxy];
+            cell = [[TiUIListItem alloc] initWithStyle:cellStyle position:position grouped:grouped reuseIdentifier:cellIdentifier proxy:cellProxy];
         } else {
-            cell = [[TiUIListItem alloc] initWithProxy:cellProxy reuseIdentifier:cellIdentifier];
+            cell = [[TiUIListItem alloc] initWithProxy:cellProxy position:position grouped:grouped reuseIdentifier:cellIdentifier];
             id template = [_templates objectForKey:templateId];
             if (template != nil) {
                 [cellProxy unarchiveFromTemplate:template];
@@ -1112,23 +1131,10 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         [cellProxy release];
         [cell autorelease];
     }
-
-    if (tableView.style == UITableViewStyleGrouped) {
-        if (indexPath.row == 0) {
-            if (maxItem == 1) {
-                [cell setPosition:TiCellBackgroundViewPositionSingleLine isGrouped:YES];
-            } else {
-                [cell setPosition:TiCellBackgroundViewPositionTop isGrouped:YES];
-            }
-        } else if (indexPath.row == (maxItem - 1) ) {
-            [cell setPosition:TiCellBackgroundViewPositionBottom isGrouped:YES];
-        } else {
-            [cell setPosition:TiCellBackgroundViewPositionMiddle isGrouped:YES];
-        }
-    } else {
-        [cell setPosition:TiCellBackgroundViewPositionMiddle isGrouped:NO];
+    else {
+        [cell setPosition:position isGrouped:grouped];
     }
-
+    
     cell.dataItem = item;
     cell.proxy.indexPath = realIndexPath;
     return cell;
@@ -1348,7 +1354,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ([tableView allowsSelection]==NO)
+    if (allowsSelection==NO)
 	{
 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}
@@ -1357,7 +1363,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
-    if ([tableView allowsSelection]==NO)
+    if (allowsSelection==NO)
 	{
 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
 	}
@@ -1451,7 +1457,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         [super recognizedSwipe:recognizer];
     }
     
-    if ([theTableView allowsSelection] == NO)
+    if (allowsSelection == NO)
     {
         [theTableView deselectRowAtIndexPath:indexPath animated:YES];
     }
@@ -1476,7 +1482,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             [super recognizedLongPress:recognizer];
         }
         
-        if ([theTableView allowsSelection] == NO)
+        if (allowsSelection == NO)
         {
             [theTableView deselectRowAtIndexPath:indexPath animated:YES];
         }

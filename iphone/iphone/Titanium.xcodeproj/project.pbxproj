@@ -595,6 +595,9 @@
 		D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
 		D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
 		D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
+		D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
+		D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
+		D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
 		D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -1827,6 +1830,8 @@
 		D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JRSwizzle.m; path = ../Classes/JRSwizzle/JRSwizzle.m; sourceTree = "<group>"; };
 		D522FE1016D2AD55008C6CC4 /* UIButton+BackgroundColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIButton+BackgroundColors.h"; sourceTree = "<group>"; };
 		D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+BackgroundColors.m"; sourceTree = "<group>"; };
+		D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSelectableBackgroundLayer.h; sourceTree = "<group>"; };
+		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D56064141705A78100781E6B /* DTHTMLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParser.h; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.h; sourceTree = "<group>"; };
 		D56064151705A78100781E6B /* DTHTMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLParser.m; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.m; sourceTree = "<group>"; };
 		D560641A1705A79100781E6B /* NSString+DTUTI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTUTI.h"; path = "../Classes/DTFoundation/DTUTI/NSString+DTUTI.h"; sourceTree = "<group>"; };
@@ -2535,6 +2540,8 @@
 				DAA72342156D642400757987 /* TiConsole.m */,
 				84C3870017417CB800970D26 /* TiSelectedCellbackgroundView.h */,
 				84C3870117417CB800970D26 /* TiSelectedCellbackgroundView.m */,
+				D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */,
+				D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -4389,6 +4396,7 @@
 				D56065A11705A89800781E6B /* NSString+CSS.m in Sources */,
 				D56065A41705A89800781E6B /* NSString+HTML.m in Sources */,
 				D56065A71705A89800781E6B /* NSString+Paragraphs.m in Sources */,
+				D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				D56065AA1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
 				D579668F17823308000B6C0B /* default.css in Sources */,
 				D56065AD1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
@@ -4769,6 +4777,7 @@
 				D56065A21705A89800781E6B /* NSString+CSS.m in Sources */,
 				D56065A51705A89800781E6B /* NSString+HTML.m in Sources */,
 				D56065A81705A89800781E6B /* NSString+Paragraphs.m in Sources */,
+				D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				D56065AB1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
 				D56065AE1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
 				84C3870317417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
@@ -5149,6 +5158,7 @@
 				D56065A01705A89800781E6B /* NSScanner+HTML.m in Sources */,
 				D56065A31705A89800781E6B /* NSString+CSS.m in Sources */,
 				D56065A61705A89800781E6B /* NSString+HTML.m in Sources */,
+				D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				D56065A91705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D56065AC1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
 				D56065AF1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
