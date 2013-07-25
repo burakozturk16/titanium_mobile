@@ -9,11 +9,19 @@
 #import <UIKit/UIKit.h>
 #import "TiUIListView.h"
 #import "TiUIListItemProxy.h"
-#import "TiSelectedCellbackgroundView.h"
 
 enum {
 	TiUIListItemTemplateStyleCustom = -1
 };
+
+typedef enum
+{
+    TiGroupedListItemPositionTop,
+    TiGroupedListItemPositionMiddle,
+    TiGroupedListItemPositionBottom,
+	TiGroupedListItemPositionSingleLine
+} TiGroupedListItemPosition;
+
 
 @interface TiUIListItem : UITableViewCell
 {

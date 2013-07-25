@@ -67,6 +67,7 @@
     currentLayer = nil;
 	[stateLayersMap release];
 	[stateLayers release];
+	[maskLayer release];
 	[super dealloc];
 }
 - (void)drawInContext:(CGContextRef)ctx
@@ -82,6 +83,36 @@
     if (currentLayer) {
         [currentLayer drawInContext:ctx inRect:[self bounds]];
     }
+}
+
+-(void)setFrame:(CGRect)frame
+{
+    [super setFrame:frame];
+    if (maskLayer != nil) {
+        maskLayer.frame = self.bounds;
+    }
+    [self updateMask];
+}
+
+- (void)updateMask
+{
+    if (maskLayer == nil) return;
+    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:maskLayer.bounds
+                                                   byRoundingCorners:roundedCorners
+                                                         cornerRadii:CGSizeMake(cornersRadius, cornersRadius)];
+    maskLayer.path = maskPath.CGPath;
+}
+
+- (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners
+{
+    if (maskLayer == nil) {
+        maskLayer = [[CAShapeLayer alloc] init];
+        maskLayer.frame = self.bounds;
+        [self setMask:maskLayer];
+    }
+    cornersRadius = radius;
+    roundedCorners = corners;
+    [self updateMask];
 }
 
 - (void)setState:(UIControlState)state

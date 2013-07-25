@@ -2149,6 +2149,7 @@ build.prototype = {
 		}
 
 		if (this.modules.length) {
+			var that = this;
 			// if we have modules, write out a new ApplicationMods.m, otherwise use the default one
 			this.modules.forEach(function (m) {
 				var moduleId = m.manifest.moduleid.toLowerCase(),
@@ -2156,7 +2157,7 @@ build.prototype = {
 					prefix = m.manifest.moduleid.toUpperCase().replace(/\./g, '_');
 
 				[	path.join(m.modulePath, 'module.xcconfig'),
-					path.join(this.projectDir, 'modules', 'iphone', moduleName + '.xcconfig')
+					path.join(that.projectDir, 'modules', 'iphone', moduleName + '.xcconfig')
 				].forEach(function (file) {
 					if (afs.exists(file)) {
 						var xc = new appc.xcconfig(file);
@@ -2663,7 +2664,7 @@ build.prototype = {
 					}
 					if (buffer.length) {
 						var lasttoken = buffer[buffer.length-1]
-						if (!lasttoken.match(/^create*/))
+						if (!lasttoken.match(/^create/))
 							buffer = buffer.slice(0, -1)
 						buffer.length && this.addSymbol(buffer.join('.'));
 					}

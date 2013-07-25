@@ -16,8 +16,11 @@
 
 @interface TiSelectableBackgroundLayer : CALayer
 {
+    CAShapeLayer* maskLayer;
     NSMutableDictionary* stateLayersMap;
     NSMutableArray* stateLayers;
+    CGFloat cornersRadius;
+    UIRectCorner roundedCorners;
 }
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;
 @property(nonatomic,readonly) NSArray *stateLayers;
@@ -29,4 +32,5 @@
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(UIImage*)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
+- (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners;
 @end

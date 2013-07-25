@@ -1095,20 +1095,20 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     NSString *cellIdentifier = [templateId isKindOfClass:[NSNumber class]] ? [NSString stringWithFormat:@"TiUIListView__internal%@", templateId]: [templateId description];
     TiUIListItem *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
     
-    TiCellBackgroundViewPosition position = TiCellBackgroundViewPositionMiddle;
+    TiGroupedListItemPosition position = TiGroupedListItemPositionMiddle;
     BOOL grouped = NO;
     if (tableView.style == UITableViewStyleGrouped) {
         grouped = YES;
         if (indexPath.row == 0) {
             if (maxItem == 1) {
-                position = TiCellBackgroundViewPositionSingleLine;
+                position = TiGroupedListItemPositionSingleLine;
             } else {
-                position = TiCellBackgroundViewPositionTop;
+                position = TiGroupedListItemPositionTop;
             }
         } else if (indexPath.row == (maxItem - 1) ) {
-            position = TiCellBackgroundViewPositionBottom;
+            position = TiGroupedListItemPositionBottom;
         } else {
-            position = TiCellBackgroundViewPositionMiddle;
+            position = TiGroupedListItemPositionMiddle;
         }
     }
     

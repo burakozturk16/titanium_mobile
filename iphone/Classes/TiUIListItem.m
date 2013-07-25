@@ -11,6 +11,9 @@
 #import "TiViewProxy.h"
 #import "ImageLoader.h"
 #import "Webcolor.h"
+#import "TiSelectableBackgroundLayer.h"
+
+#define GROUP_ROUND_RADIUS 8
 
 @implementation TiUIListItem {
 	TiUIListItemProxy *_proxy;
@@ -22,7 +25,7 @@
 	NSDictionary *_bindings;
     int _positionMask;
     BOOL _grouped;
-    TiSelectedCellBackgroundView* _bgView;
+    TiSelectableBackgroundLayer* _bgLayer;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -72,8 +75,8 @@
 	[_dataItem release];
 	[_proxy release];
 	[_bindings release];
-    [_bgView removeFromSuperview];
-    [_bgView release];
+    [_bgLayer removeFromSuperlayer];
+    [_bgLayer release];
 	[super dealloc];
 }
 
@@ -97,6 +100,13 @@
 - (void)layoutSubviews
 {
 	[super layoutSubviews];
+    if (_bgLayer != nil) {
+        if (!CGRectEqualToRect(_bgLayer.bounds, self.contentView.frame)) {
+            _bgLayer.frame = self.contentView.bounds;
+        }
+        [self.contentView.layer insertSublayer:_bgLayer atIndex:0];
+    }
+    
 	if (_templateStyle == TiUIListItemTemplateStyleCustom) {
 		// prevent any crashes that could be caused by unsupported layouts
 		_proxy.layoutProperties->layoutStyle = TiLayoutRuleAbsolute;
@@ -152,17 +162,6 @@
     [super touchesCancelled:touches withEvent:event];
 }
 
--(void)handleEvent:(NSString*)type
-{
-	if ([type isEqual:@"touchstart"]) {
-		[super setHighlighted:YES animated:NO];
-	}
-	else if ([type isEqual:@"touchend"]) {
-		[super setHighlighted:NO animated:YES];
-	}
-}
-
-
 #pragma mark - Background Support
 -(BOOL) selectedOrHighlighted
 {
@@ -200,9 +199,10 @@
 {
     [super setSelected:yn animated:animated];
     [self unHighlight:[self subviews]];
-    if (_bgView != nil) {
+    if (_bgLayer != nil) {
         BOOL realSelected = yn|[self isHighlighted];
-        [_bgView setSelected:realSelected animated:animated];
+        UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
+        [_bgLayer setState:state];
     }
 }
 
@@ -210,38 +210,39 @@
 {
     [super setHighlighted:yn animated:animated];
     [self unHighlight:[self subviews]];
-    if (_bgView != nil) {
-        BOOL realSelected = yn|[self isSelected];
-        [_bgView setSelected:realSelected animated:animated];
+    if (_bgLayer != nil) {
+        BOOL realSelected = yn|[self isHighlighted];
+        UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
+        [_bgLayer setState:state];
     }
 }
 
 -(void)setBackgroundOpacity_:(id)opacity
 {
     CGFloat backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
-    if (_bgView!=nil) {
-        [_bgView setBackgroundOpacity:backgroundOpacity];
+    if (_bgLayer!=nil) {
+        _bgLayer.opacity = backgroundOpacity;
     }
 }
 
 -(void)setBorderRadius_:(id)radius
 {
 	self.layer.cornerRadius = [TiUtils floatValue:radius];
-    if (_bgView) {
-        [_bgView setBorderRadius:self.layer.cornerRadius];
+    if (_bgLayer!=nil) {
+        _bgLayer.cornerRadius= self.layer.cornerRadius;
     }
 }
 
 -(void) setBackgroundGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundView] setGradient:newGradient forState:UIControlStateNormal];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateNormal];
 }
 
 -(void) setSelectedBackgroundGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundView] setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
     self.selectionStyle = UITableViewCellSelectionStyleNone;
 }
 
@@ -260,7 +261,7 @@
             case UITableViewCellSelectionStyleNone:uiColor = [UIColor clearColor];break;
         }
     }
-    [[self getOrCreateCustomBackgroundView] setColor:uiColor forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
     self.selectionStyle = UITableViewCellSelectionStyleNone;
 }
 
@@ -268,13 +269,13 @@
 -(void) setBackgroundImage_:(id)image
 {
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:_proxy];
-    [[self getOrCreateCustomBackgroundView] setImage:bgImage forState:UIControlStateNormal];
+    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateNormal];
 }
 
 -(void) setSelectedBackgroundImage_:(id)image
 {
     UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:_proxy];
-    [[self getOrCreateCustomBackgroundView] setImage:bgImage forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
     self.selectionStyle = UITableViewCellSelectionStyleNone;
 }
 
@@ -282,46 +283,50 @@
 {
     _positionMask = position;
     _grouped = grouped;
-    if (_bgView != nil) {
-        [((TiSelectedCellBackgroundView*)_bgView) setPosition:_positionMask];
-        ((TiSelectedCellBackgroundView*)_bgView).grouped = _grouped;
+    [self updateBackgroundLayerCorners];
+    [self setNeedsDisplay];
+}
+
+-(void) updateBackgroundLayerCorners {
+    if (_bgLayer == nil) {
+        return;
+    }
+    if (_grouped) {
+        UIRectCorner corners = -1;
+        switch (_positionMask) {
+            case TiGroupedListItemPositionBottom:
+                corners = UIRectCornerBottomRight | UIRectCornerBottomLeft;
+                break;
+            case TiGroupedListItemPositionTop:
+                corners = UIRectCornerTopRight | UIRectCornerTopLeft;
+                break;
+            case TiGroupedListItemPositionSingleLine:
+                corners = UIRectCornerAllCorners;
+                break;
+            default:
+                break;
+        }
+        if (corners != -1) {
+            [_bgLayer setRoundedRadius:GROUP_ROUND_RADIUS inCorners:corners];
+        }
     }
 }
 
-
--(void)setBackgroundView:(UIView *)backgroundView
+-(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
-    [super setBackgroundView:backgroundView];
-    if (_bgView != nil && backgroundView != _bgView) {
-        _bgView.frame = self.backgroundView.bounds;
-        [backgroundView insertSubview:_bgView atIndex:0];
+    if (_bgLayer != nil) {
+        return _bgLayer;
     }
-}
-
--(TiSelectedCellBackgroundView*)getOrCreateCustomBackgroundView
-{
-    if (_bgView != nil) {
-        return _bgView;
-    }
-        //Setting the backgroundView on grouped style is a little complicated
-        //By default this is not nil. So we will add the stuff as subviews to this
-        UIView* superView = [self backgroundView];
     
-    _bgView = [[TiSelectedCellBackgroundView alloc] initWithFrame:superView.bounds];
-    _bgView.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    if (!_grouped && superView == nil) {
-        self.backgroundView = _bgView;
-    }
-    else {
-        [superView insertSubview:_bgView atIndex:0];
-    }
-
-    _bgView.grouped = _grouped;
-    _bgView.position = _positionMask;
+    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
+    _bgLayer.frame = self.contentView.bounds;
+    [self.contentView.layer insertSublayer:_bgLayer atIndex:0];
+    
+    [self updateBackgroundLayerCorners];
 
     CGFloat backgroundOpacity = [TiUtils floatValue:[_proxy valueForKey:@"backgroundOpacity"] def:1.0f];
-    [_bgView setBackgroundOpacity:backgroundOpacity];
-    return _bgView;
+    _bgLayer.opacity = backgroundOpacity;
+    return _bgLayer;
 }
 
 - (BOOL)canApplyDataItem:(NSDictionary *)otherItem;
