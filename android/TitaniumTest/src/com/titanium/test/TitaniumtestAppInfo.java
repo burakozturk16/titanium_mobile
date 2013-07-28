@@ -21,6 +21,8 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
 					appProperties.setString("ti.ui.defaultunit", "system");
 					properties.setBool("ti.android.bug2373.finishfalseroot", true);
 					appProperties.setBool("ti.android.bug2373.finishfalseroot", true);
+					properties.setBool("ti.android.fastdev", false);
+					appProperties.setBool("ti.android.fastdev", false);
 	}
 	
 	public String getId() {
