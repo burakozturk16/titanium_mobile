@@ -117,10 +117,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	private void setupProxy(KrollObject object, Object[] creationArguments, TiUrl creationUrl)
 	{
-		// Store reference to the native object that represents this proxy so we can drive changes to the JS 
-		// object
-		krollObject = object;
-		object.setProxySupport(this);
+		if (object != null) {
+			// Store reference to the native object that represents this proxy so we can drive changes to the JS 
+			// object
+			krollObject = object;
+			object.setProxySupport(this);
+		}
 		this.creationUrl = creationUrl;
 
 		// Associate the activity with the proxy.  if the proxy needs activity association delayed until a 
