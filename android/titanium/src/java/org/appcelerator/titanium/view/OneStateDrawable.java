@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.view;
 
+import org.appcelerator.kroll.common.Log;
+
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Rect;
@@ -7,9 +9,11 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
 import android.view.View;
 
 public class OneStateDrawable extends Drawable {
+	private static final String TAG = "OneStateDrawable";
 			
 	Drawable colorDrawable;
 	Drawable imageDrawable; //BitmapDrawable or NinePatchDrawable
@@ -21,8 +25,9 @@ public class OneStateDrawable extends Drawable {
 			colorDrawable.draw(canvas);
 		if (gradientDrawable != null)
 			gradientDrawable.draw(canvas);
-		if (imageDrawable != null)
+		if (imageDrawable != null) {
 			imageDrawable.draw(canvas);
+		}
 	}
 
 	@Override
@@ -77,8 +82,11 @@ public class OneStateDrawable extends Drawable {
 	}
 	
 	public void releaseDelegate() {
-		if (imageDrawable != null && imageDrawable instanceof BitmapDrawable)
-			((BitmapDrawable)imageDrawable).getBitmap().recycle();
+		// if (imageDrawable != null && imageDrawable instanceof BitmapDrawable) {
+		// 	Bitmap bitmap = ((BitmapDrawable)imageDrawable).getBitmap();
+		// 	if (!bitmap.isRecycled())
+		// 		bitmap.recycle();
+		// }
 		imageDrawable = null;
 		colorDrawable = null;
 		gradientDrawable = null;
@@ -105,8 +113,11 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setBitmapDrawable(Drawable drawable)
 	{
-		if (imageDrawable != null && imageDrawable instanceof BitmapDrawable)
-			((BitmapDrawable)imageDrawable).getBitmap().recycle();
+		// if (imageDrawable != null && imageDrawable != drawable && imageDrawable instanceof BitmapDrawable) {
+		// 	Bitmap bitmap = ((BitmapDrawable)imageDrawable).getBitmap();
+		// 	if (!bitmap.isRecycled())
+		// 		bitmap.recycle();
+		// }
 		imageDrawable = drawable;
 	}
 	

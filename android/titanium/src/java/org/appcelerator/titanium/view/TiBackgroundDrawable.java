@@ -86,16 +86,9 @@ public class TiBackgroundDrawable extends Drawable {
 	@Override
 	public void draw(Canvas canvas)
 	{
-//		if (currentDrawable != null) {
-//			currentDrawable.setBounds((int) innerRect.left, (int) innerRect.top, (int) innerRect.right, (int) innerRect.bottom);
-//		}
-
 		canvas.save();
 		
 		if (currentDrawable != null) {
-//			if (alpha > NOT_SET) {
-//				currentDrawable.setAlpha(alpha);
-//			}
 			currentDrawable.draw(canvas);
 		}
 
@@ -114,17 +107,16 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 	}
 	
-	@Override
-	protected boolean onLevelChange(int level)
-	{
-		return super.onLevelChange(level);
-
-	}
+	// @Override
+	// protected boolean onLevelChange(int level)
+	// {
+	// 	return super.onLevelChange(level);
+	// }
 	
-	@Override
-	public boolean setState (int[] stateSet) {
-		return super.setState(stateSet);
-	}
+	// @Override
+	// public boolean setState (int[] stateSet) {
+	// 	return super.setState(stateSet);
+	// }
 
 	@Override
 	protected boolean onStateChange(int[] stateSet) {
@@ -231,20 +223,10 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 	}
 
-	@Override
-	public void invalidateSelf() {
-		super.invalidateSelf();
-//		if (background != null && background.setLevel(level)) {
-//			background.invalidateSelf();
-//		}
-//		int key = 0;
-//		int length = drawables.size();
-//		for(int i = 0; i < length; i++) {
-//		   key = drawables.keyAt(i);
-//		   Drawable drawable = drawables.get(key);
-//			invalidateSelf();
-//		}
-	}
+	// @Override
+	// public void invalidateSelf() {
+	// 	super.invalidateSelf();
+	// }
 
 	public void invalidateDrawable(Drawable who) {
 		
