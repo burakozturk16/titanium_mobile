@@ -2256,7 +2256,7 @@ class Builder(object):
 				os.makedirs(self.assets_resources_dir)
 
 			self.tiapp = TiAppXML(self.project_tiappxml)
-			self.tiapp.setDeployType(deploy_type)
+			# self.tiapp.setDeployType(deploy_type)
 			self.sdcard_copy = False
 			sdcard_property = "ti.android.loadfromsdcard"
 			if self.tiapp.has_app_property(sdcard_property):
