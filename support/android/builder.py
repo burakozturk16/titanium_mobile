@@ -1223,6 +1223,19 @@ class Builder(object):
 <style name="Theme.Titanium" parent="android:%s">
     <item name="android:windowBackground">@drawable/background</item>
 </style>
+<style name="Theme.Titanium.Translucent" parent="android:Theme.DeviceDefault">
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:colorBackgroundCacheHint">@null</item>
+    <item name="android:windowIsTranslucent">true</item>
+</style>
+<style name="Theme.Titanium.Translucent.NoTitleBar">
+    <item name="android:windowActionBar">false</item>
+    <item name="android:windowNoTitle">true</item>
+    <item name="android:windowContentOverlay">@null</item>
+</style>
+<style name="Theme.Titanium.Translucent.NoTitleBar.Fullscreen">
+    <item name="android:windowFullscreen">true</item>
+</style>
 </resources>
 """ % theme_flags
 			theme_file.write(TITANIUM_THEME)
