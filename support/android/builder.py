@@ -315,7 +315,7 @@ def remove_orphaned_files(source_folder, target_folder, ignore=[]):
 				os.remove(full)
 
 def is_resource_drawable(path):
-	if re.search("android/images/(high|medium|low|res-[^/]+)/", path.replace(os.sep, "/")):
+	if re.search("android/images(/(extra high|high|medium|low|res-[^/]+))?/", path.replace(os.sep, "/")):
 		return True
 	else:
 		return False
@@ -324,13 +324,17 @@ def resource_drawable_folder(path):
 	if not is_resource_drawable(path):
 		return None
 	else:
-		pattern = r'/android/images/(high|medium|low|res-[^/]+)/'
+		pattern = r'/android/images(/(extra high|high|medium|low|res-[^/]+))?/'
 		match = re.search(pattern, path.replace(os.sep, "/"))
-		if not match.groups():
+		if  match == None:
 			return None
-		folder = match.groups()[0]
-		if re.match('high|medium|low', folder):
+		folder = match.groups()[1]
+		if folder == None:
+			return 'drawable'
+		elif re.match('high|medium|low', folder):
 			return 'drawable-%sdpi' % folder[0]
+		elif re.match('extra high', folder):
+				return 'drawable-xhdpi'
 		else:
 			return 'drawable-%s' % folder.replace('res-', '')
 
@@ -383,7 +387,7 @@ class Builder(object):
 		self.app_id = app_id
 		self.support_dir = support_dir
 		self.compiled_files = []
-		self.force_rebuild = False
+		self.force_rebuild = True
 		self.debugger_host = None
 		self.debugger_port = -1
 		self.profiler_host = None
@@ -787,7 +791,7 @@ class Builder(object):
 
 		def make_resource_drawable_filename(orig):
 			normalized = orig.replace(os.sep, "/")
-			matches = re.search("/android/images/(high|medium|low|res-[^/]+)/(?P<chopped>.*$)", normalized)
+			matches = re.search("/android/images(/(extra high|high|medium|low|res-[^/]+))?/(?P<chopped>.*$)", normalized)
 			if matches and matches.groupdict() and 'chopped' in matches.groupdict():
 				chopped = matches.groupdict()['chopped'].lower()
 				for_hash = chopped
@@ -916,7 +920,7 @@ class Builder(object):
 
 		for delta in self.project_deltas:
 			path = delta.get_path()
-			if re.search("android/images/(high|medium|low|res-[^/]+)/", path.replace(os.sep, "/")):
+			if re.search("android/images(/(extra high|high|medium|low|res-[^/]+))?/", path.replace(os.sep, "/")):
 				continue # density images are handled later
 
 			if delta.get_status() == Delta.DELETED and path.startswith(android_resources_dir):
@@ -1246,7 +1250,7 @@ class Builder(object):
 		android_images_dir = os.path.join(resources_dir, 'android', 'images')
 		# look for density-specific default.png's first
 		if os.path.exists(android_images_dir):
-			pattern = r'/android/images/(high|medium|low|res-[^/]+)/default.png'
+			pattern = r'/android/images(/(extra high|high|medium|low|res-[^/]+))?/default.png'
 			for root, dirs, files in os.walk(android_images_dir):
 				remove_ignored_dirs(dirs)
 				for f in files:
