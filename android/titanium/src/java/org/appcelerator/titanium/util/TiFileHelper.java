@@ -302,13 +302,17 @@ public class TiFileHelper
 				if (is == null) {
 					is = openInputStream(path, report);
 				}
-				Bitmap b = TiUIHelper.createBitmap(is);
-				d = nph.process(b);
+				if (is != null) {
+					Bitmap b = TiUIHelper.createBitmap(is);
+					d = nph.process(b);
+				}
 			} else {
 				is = openInputStream(path, report);
-				Bitmap b = TiUIHelper.createBitmap(is);
-				if (b != null) {
-					d = new BitmapDrawable(b);
+				if (is != null) {
+					Bitmap b = TiUIHelper.createBitmap(is);
+					if (b != null) {
+						d = new BitmapDrawable(b);
+					}
 				}
 			}
 		} catch (IOException e) {

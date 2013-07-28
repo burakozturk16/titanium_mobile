@@ -545,7 +545,6 @@ public class TiUIHelper
 					BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
 					tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
 					tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
-					imageDrawable = tiledBackground;
 				}
 			}
 		}
@@ -684,13 +683,7 @@ public class TiUIHelper
 			canvas.scale(scale, scale);
 			view.draw(canvas);
 
-			// ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			// if (bitmap.compress(CompressFormat.PNG, 100, bos)) {
-			// 	image = createDictForImage(width, height, bos.toByteArray());
-				
-			// }
 			canvas = null;
-//			bitmap.recycle();
 		}
 
 		return bitmap;
@@ -874,8 +867,8 @@ public class TiUIHelper
 		if (id == 0) {
 			return null;
 		}
-		
-		return getResourceDrawable(id);
+		Drawable d = getResourceDrawable(id);
+		return d;
 	}
 	
 	public static Drawable getResourceDrawable(int res_id)
