@@ -59,7 +59,7 @@ JS_CREATE = \
 """
 
 JS_INVOCATION_API = \
-"""	addInvocationAPI(module, \"%(moduleNamespace)s\", \"%(namespace)s\", \"%(api)s\");
+"""	addInvocationAPI(module, \"%(moduleNamespace)s\", \"%(namespace)s\", \"%(api)s\", \"%(className)s\");
 """
 
 JS_DEFINE_TOP_LEVEL = \
@@ -267,7 +267,7 @@ class Bootstrap(object):
 				else:
 					accessor = "." + create["name"]
 
-				invocationAPIs.append({ "apiName": "create%s" % create["name"] })
+				invocationAPIs.append({ "apiName": "create%s" % create["name"], "className": create["proxyClassName"]})
 				js += JS_CREATE % {"name": var, "type": create["name"], "accessor": accessor }
 
 		if hasChildren:
@@ -284,7 +284,10 @@ class Bootstrap(object):
 					self.globalsJS += JS_DEFINE_TOP_LEVEL % {"name": name, "mapping": method, "namespace": ns}
 
 		for api in invocationAPIs:
-			self.invocationJS += JS_INVOCATION_API % { "moduleNamespace": self.moduleName, "namespace": namespace, "api": api["apiName"] }
+			invocClassName = "undefined"
+			if ("className" in api):
+				invocClassName = api["className"]
+			self.invocationJS += JS_INVOCATION_API % { "moduleNamespace": self.moduleName, "namespace": namespace, "api": api["apiName"], "className": invocClassName }
 
 		if needsReturn:
 			js += "		return %s;\n" % var

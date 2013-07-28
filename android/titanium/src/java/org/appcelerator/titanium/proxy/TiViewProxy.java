@@ -27,7 +27,6 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.util.TiAnimationBuilder;
-import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
@@ -37,11 +36,8 @@ import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
 import android.util.DisplayMetrics;
-import android.animation.Animator.AnimatorListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -131,6 +127,8 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	protected TiAnimationBuilder pendingAnimation;
 	private boolean isDecorView = false;
 
+	protected HashMap<String, TiViewProxy> bindings;
+
 	// TODO: Deprecated since Release 3.0.0
 	@Deprecated private AtomicBoolean layoutStarted = new AtomicBoolean();
 	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
@@ -141,6 +139,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	 */
 	public TiViewProxy()
 	{
+		bindings = new HashMap<String, TiViewProxy>();
 		pendingAnimationLock = new Object();
 		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
@@ -555,7 +554,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	 */
 	public TiUIView getOrCreateView()
 	{
-		return getOrCreateView(true);
+		return getOrCreateView(true, true);
 	}
 	
 	public TiUIView getOrCreateView(boolean enableModelListener)
@@ -606,7 +605,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	
 	protected TiUIView handleGetView()
 	{
-		return handleGetView(true);
+		return handleGetView(true, true);
 	}
 
 	public void realizeViews(TiUIView view, boolean enableModelListener)
@@ -1497,5 +1496,16 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 				child.prepareForReuse();
 			}
 		}
+	}
+	
+	public void setBinding(String key, TiViewProxy proxy)
+	{
+		bindings.put(key, proxy);
+	}
+	
+	@Kroll.method
+	public Object getBindings()
+	{
+		return bindings;
 	}
 }

@@ -52,10 +52,6 @@ exports.bootstrap = function(Titanium) {
 
 	// TODO: Remove me. Only for temporary compatibility
 	Titanium.UI.iPhone = {
-		ActivityIndicatorStyle: {
-			get BIG() { return iPhoneConstant("ActivityIndicatorStyle.BIG"); },
-			get DARK() { return  iPhoneConstant("ActivityIndicatorStyle.DARK"); }
-		},
 		AnimationStyle: {
 			get FLIP_FROM_LEFT() { return iPhoneConstant("AnimationStyle.FLIP_FROM_LEFT"); }
 		},
@@ -71,9 +67,6 @@ exports.bootstrap = function(Titanium) {
 		},
 		TableViewCellSelectionStyle: {
 			get NONE() { return iPhoneConstant("TableViewCellSelectionStyle.NONE"); }
-		},
-		TableViewSeparatorStyle: {
-			get NONE() { return iPhoneConstant("TableViewSeparatorStyle.NONE"); }
 		},
 		RowAnimationStyle: {
 			get NONE() { return iPhoneConstant("RowAnimationStyle.NONE"); }
@@ -107,5 +100,55 @@ exports.bootstrap = function(Titanium) {
 	Titanium.UI.ActivityIndicator.DIALOG = 1;
 	Titanium.UI.ActivityIndicator.INDETERMINANT = 0;
 	Titanium.UI.ActivityIndicator.DETERMINANT = 1;
+
+	//Create ListItemProxy, add events, then store it in 'tiProxy' property
+	function processTemplate(properties) {
+		var proxyType = (properties.type  || "Ti.UI.View");
+		proxyType = proxyType.slice(proxyType.indexOf(".") + 1);
+		properties.tiClass = Titanium.proxyBindings[proxyType];
+		if (!properties.hasOwnProperty('childTemplates')) return;
+		var childProperties = properties.childTemplates;
+		if (childProperties === void 0 || childProperties === null) return;
+		
+		for (var i = 0; i < childProperties.length; i++) {
+			var child = childProperties[i];
+			processTemplate(child);
+		}
+	}
+
+	var realAddViewTemplates = Titanium.UI.addViewTemplates;
+	function addViewTemplates(templates) {
+		if (templates) {
+			for (var binding in templates) {
+				var currentTemplate = templates[binding];
+				//process template
+				processTemplate(currentTemplate);
+			}
+		}
+		realAddViewTemplates.call(this, templates);
+	}
+
+	function setBindings(_proxy , _level) {
+		var bindings = _proxy.getBindings();
+		for (var binding in bindings) {
+			var _bproxy = bindings[binding];
+			setBindings(_bproxy, (_level + 1) );
+			_proxy[binding] = _bproxy;
+		}
+	}
+
+	var realCreateViewFromTemplate = Titanium.UI.createViewFromTemplate;
+	function createViewFromTemplate(options) {
+		var proxy  = realCreateViewFromTemplate.call(this, options);
+		if (proxy !== null) {
+			setBindings(proxy, 0);
+		}
+		return proxy;
+	}
+
+
+	//overwrite createViewFromTemplate function with our own.
+	Titanium.UI.addViewTemplates = addViewTemplates;
+	Titanium.UI.createViewFromTemplate = createViewFromTemplate;
 }
 

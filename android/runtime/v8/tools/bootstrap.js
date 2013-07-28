@@ -9,6 +9,7 @@ var customProperties = {};
 function lazyGet(object, binding, name, namespace, bindingGetter) {
 	delete object[name];
 	delete object.__proto__[name];
+	
 
 	// This allows overriding of the "binding" lookup
 	// which is mostly used for 3rd party modules
@@ -89,13 +90,20 @@ function loadAppModules() {
 	}
 }
 
-function addInvocationAPI(module, moduleNamespace, namespace, api) {
+function addInvocationAPI(module, moduleNamespace, namespace, api, className) {
 	var apiInfo = { namespace: namespace, api: api };
 
 	// Always push module APIs.
 	if (namespace == moduleNamespace) {
 		module.invocationAPIs.push(apiInfo);
 		return;
+	}
+
+	if (className) {
+		if (!module.hasOwnProperty('proxyBindings')) {
+			module.proxyBindings = {};
+		}
+		module.proxyBindings[(namespace + "." + api.slice(6))] = className;
 	}
 
 	var len = appModules.length;

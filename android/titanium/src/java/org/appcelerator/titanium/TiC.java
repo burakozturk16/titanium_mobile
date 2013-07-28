@@ -2202,6 +2202,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_TI_PROXY = "tiProxy";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TI_CLASS = "tiClass";
 
 	/**
 	 * @module.api
