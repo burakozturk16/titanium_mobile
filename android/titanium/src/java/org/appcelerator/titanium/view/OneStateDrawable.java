@@ -3,6 +3,7 @@ package org.appcelerator.titanium.view;
 import org.appcelerator.kroll.common.Log;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.Shader;
@@ -106,9 +107,21 @@ public class OneStateDrawable extends Drawable {
 		colorDrawable = drawable;
 	}
 	
+	public void setColor(int color)
+	{
+		if (colorDrawable  == null) {
+			colorDrawable = new ColorDrawable(color);
+		}
+		else {
+			((ColorDrawable)colorDrawable).setColor(color);
+		}
+	}
+	
 	public int getColor()
 	{
-		return ((ColorDrawable)colorDrawable).getColor();
+		if (colorDrawable != null)
+			return ((ColorDrawable)colorDrawable).getColor();
+		return Color.TRANSPARENT;
 	}
 	
 	public void setBitmapDrawable(Drawable drawable)

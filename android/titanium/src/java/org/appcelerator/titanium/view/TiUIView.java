@@ -36,6 +36,7 @@ import org.appcelerator.titanium.TiBlob;
 
 import android.animation.Animator;
 import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
@@ -1817,15 +1818,14 @@ public abstract class TiUIView
 	
 	public void setTiBackgroundColor(int color) {
 		TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-		ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(color);		
-		bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
-		bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
+		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
 	}
 	
-	public int getBackgroundTiColor() {
+	public int getTiBackgroundColor() {
 		if (background == null)
 		{
-			return 0;
+			return Color.TRANSPARENT;
 		}
 		return background.getColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1);
 	}
@@ -1951,6 +1951,7 @@ public abstract class TiUIView
 //				getNativeView().setBackgroundColor(Color.argb(0, 0, 0, 0));
 //			}
 			ObjectAnimator anim = ObjectAnimator.ofInt(this, "tiBackgroundColor", TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR));
+			 anim.setEvaluator(new ArgbEvaluator());
 			list.add(anim);
 		}
 		

@@ -185,6 +185,11 @@ public class TiBackgroundDrawable extends Drawable {
 		onStateChange(getState());
 	}
 	
+	public void setColorForState(int[] stateSet, int color)
+	{
+		getOrCreateDrawableForState(stateSet).setColor(color);
+	}
+	
 	public void setImageDrawableForState(int[] stateSet, Drawable drawable)
 	{
 		if (drawable != null) {

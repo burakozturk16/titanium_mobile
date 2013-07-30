@@ -951,21 +951,22 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
-		View view = viewToAnimate();
-		if (view == null && pendingAnimation != null) {
-			if (view.getWidth() == 0 && view.getHeight() == 0) {
-				getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
-			} else {
-				pendingAnimation.applyOptions();
-				pendingAnimation.simulateFinish(this);
-				pendingAnimation = null;
-			}
-			return;
-		}
-		
 		if (pendingAnimation == null) {
 			return;
 		}
+		View view = viewToAnimate();
+		if (view == null) {
+			pendingAnimation.applyOptions();
+			pendingAnimation.simulateFinish(this);
+			pendingAnimation = null;
+			return;
+		}
+		else if (view.getWidth() == 0 && view.getHeight() == 0) {
+			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
+			return;
+		}
+		
+		
 		if (pendingAnimation instanceof TiAnimatorSet) {
 			pendingAnimation.setViewProxy(this);
 			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
