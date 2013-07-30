@@ -252,7 +252,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 			case MSG_ADD_CHILD : {
 				AsyncResult result = (AsyncResult) msg.obj;
-				handleAdd((TiViewProxy) result.getArg());
+				handleAdd((TiViewProxy) result.getArg(), msg.arg1);
 				result.setResult(null); //Signal added.
 				return true;
 			}
@@ -699,8 +699,12 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	 * @module.api
 	 */
 	@Kroll.method
-	public void add(TiViewProxy child)
+	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
 	{
+		int i = -1; // no index by default
+		if (index instanceof Number) {
+			i = ((Number)index).intValue();
+		}
 		if (child == null) {
 			Log.e(TAG, "Add called with a null child");
 			return;
@@ -712,22 +716,37 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 
 		if (peekView() != null) {
 			if (TiApplication.isUIThread()) {
-				handleAdd(child);
+				handleAdd(child, i);
 				return;
 			}
 
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD), child);
+			
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
 
 		} else {
-			children.add(child);
+			if (i >= 0) {
+				children.add(i, child);
+			}
+			else {
+				children.add(child);
+			}
 			child.parent = new WeakReference<TiViewProxy>(this);
 		}
-		//TODO zOrder
 	}
 
-	public void handleAdd(TiViewProxy child)
+	public void add(TiViewProxy child)
 	{
-		children.add(child);
+		add(child, new Integer(-1));
+	}
+
+	public void handleAdd(TiViewProxy child, int index)
+	{
+		if (index >= 0) {
+			children.add(index, child);
+		}
+		else {
+			children.add(child);
+		}
 		child.parent = new WeakReference<TiViewProxy>(this);
 		if (view != null) {
 			child.setActivity(getActivity());

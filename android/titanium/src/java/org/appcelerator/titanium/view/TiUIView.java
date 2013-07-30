@@ -162,22 +162,41 @@ public abstract class TiUIView
 	/**
 	 * Adds a child view into the ViewGroup.
 	 * @param child the view to be added.
+	 * @param index z-index of the view to be added.
 	 */
-	public void add(TiUIView child)
+	public void add(TiUIView child, int index)
 	{
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
 				View nv = getNativeView();
 				if (nv instanceof ViewGroup) {
-					if (cv.getParent() == null) {
-						((ViewGroup) nv).addView(cv, child.getLayoutParams());
+					if (index >= 0) {
+						if (cv.getParent() == null) {
+							((ViewGroup) nv).addView(cv, index, child.getLayoutParams());
+						}
+						children.add(index, child);
 					}
-					children.add(child);
+					else {
+						if (cv.getParent() == null) {
+						((ViewGroup) nv).addView(cv, child.getLayoutParams());
+						}
+						children.add(child);
+					}
+					
 					child.parent = proxy;
 				}
 			}
 		}
+	}
+
+	/**
+	 * Adds a child view into the ViewGroup.
+	 * @param child the view to be added.
+	 */
+	public void add(TiUIView child)
+	{
+		add(child, -1);
 	}
 
 	/**
