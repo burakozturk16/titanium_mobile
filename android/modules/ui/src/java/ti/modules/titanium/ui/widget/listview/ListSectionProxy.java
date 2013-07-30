@@ -649,6 +649,7 @@ public class ListSectionProxy extends ViewProxy{
 		
 		for (Map.Entry<String, String> entry : toPassProps.entrySet()) {
 			String inProp = entry.getKey();
+			if (listItemProperties.containsKey(inProp)) continue;
 			String outProp = entry.getValue();
 			if (templateProperties.containsKey(inProp)) {
 				listItemProperties.put(outProp, templateProperties.get(inProp));
