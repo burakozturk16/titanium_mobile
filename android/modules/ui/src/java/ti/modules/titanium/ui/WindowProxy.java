@@ -38,7 +38,6 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
-	TiC.PROPERTY_OPACITY,
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT

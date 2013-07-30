@@ -6,9 +6,6 @@
  */
 package ti.modules.titanium.ui;
 
-import java.util.HashMap;
-
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -19,7 +16,6 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiRootActivity;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
@@ -34,6 +30,7 @@ import android.os.Message;
 import android.text.util.Linkify;
 import android.view.View;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 @Kroll.module
@@ -173,12 +170,10 @@ public class UIModule extends KrollModule implements Handler.Callback
 	protected static final int MSG_SET_BACKGROUND_IMAGE = KrollProxy.MSG_LAST_ID + 101;
 	protected static final int MSG_LAST_ID = MSG_SET_BACKGROUND_IMAGE;
 
-	private static HashMap<String, TiUIViewTemplate> templatesByBinding;
 
 	public UIModule()
 	{
 		super();
-		templatesByBinding = new HashMap<String, TiUIViewTemplate>();
 	}
 
 	public UIModule(TiContext tiContext)
@@ -319,33 +314,5 @@ public class UIModule extends KrollModule implements Handler.Callback
 		}
 
 		return super.handleMessage(message);
-	}
-	
-	@SuppressWarnings("unchecked")
-	@Kroll.method
-	public void addViewTemplates(KrollDict templates) {
-		
-		for (String key : templates.keySet()) {
-			//Here we bind each template with a key so we can use it to look up later
-			KrollDict properties = new KrollDict((HashMap)templates.get(key));
-			TiUIViewTemplate template = new TiUIViewTemplate(key, properties);
-			templatesByBinding.put(key, template);
-		}
-	}
-	
-	public static TiViewProxy internalCreateViewFromTemplate(String templateId, HashMap arguments) {
-		TiUIViewTemplate template = templatesByBinding.get(templateId);
-		if (template != null) {
-			return template.buildProxy(arguments);
-		}
-		else { 
-			Log.e(TAG, "No template named " + templateId);
-			return null;
-		}
-	}
-	
-	@Kroll.method
-	public TiViewProxy createViewFromTemplate(String templateId, @Kroll.argument(optional = true) HashMap arguments) {
-		return internalCreateViewFromTemplate(templateId, arguments);
 	}
 }
