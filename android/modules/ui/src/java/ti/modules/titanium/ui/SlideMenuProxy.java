@@ -196,11 +196,11 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	@Override
-	public void closeFromActivity() {
+	public void closeFromActivity(boolean activityIsFinishing) {
 
 		// Call super to fire the close event on the tab group.
 		// This event must fire after each tab has been closed.
-		super.closeFromActivity();
+		super.closeFromActivity(activityIsFinishing);
 	}
 
 	@Override

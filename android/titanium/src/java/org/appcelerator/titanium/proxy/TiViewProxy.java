@@ -120,6 +120,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	private static final int MSG_UPDATE_LAYOUT = MSG_FIRST_ID + 113;
 	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 114;
 	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 115;
+	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 116;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -243,6 +244,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	}
 
 	//This handler callback is tied to the UI thread.
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean handleMessage(Message msg)
 	{
 		switch(msg.what) {
@@ -281,6 +283,13 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			}
 			case MSG_ANIMATE : {
 				handleAnimate();
+				return true;
+			}
+			case MSG_QUEUED_ANIMATE: {
+				// An animation that was re-queued
+				// because the view's height and width
+				// were not yet known (i.e., not yet laid out)
+				handleQueuedAnimate();
 				return true;
 			}
 			case MSG_TOIMAGE: {
@@ -893,6 +902,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 				pendingAnimation = new TiAnimatorSet();
 			}
 			if (arg instanceof HashMap) {
+				@SuppressWarnings("rawtypes")
 				HashMap options = (HashMap) arg;
 				pendingAnimation.setOptions(options);
 			} else if (arg instanceof TiAnimation) {
@@ -942,9 +952,10 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	protected void handleAnimate()
 	{
 		View view = viewToAnimate();
-		if (view == null) {
-			//let s deal with callback and completion properties
-			if (pendingAnimation != null) {
+		if (view == null && pendingAnimation != null) {
+			if (view.getWidth() == 0 && view.getHeight() == 0) {
+				getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
+			} else {
 				pendingAnimation.applyOptions();
 				pendingAnimation.simulateFinish(this);
 				pendingAnimation = null;
@@ -964,6 +975,11 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			pendingAnimation.applyOptions();
 			pendingAnimation.animateOnView(this);
 		}
+	}
+
+	protected void handleQueuedAnimate()
+	{
+		handleAnimate();
 	}
 
 	@Kroll.method
@@ -1076,6 +1092,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	 * @param bubbles if true will send the event to the parent view after it has been dispatched to this view's listeners.
 	 * @return true if the event was handled
 	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean fireEvent(String eventName, Object data, boolean bubbles)
 	{
 		if (data == null) {
@@ -1365,6 +1382,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	}
 
 	// TODO: Deprecated since Release 3.0.0
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Kroll.method @Deprecated
 	public void updateLayout(Object params)
 	{

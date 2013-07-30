@@ -275,6 +275,10 @@ public class TiUIDialog extends TiUIView
 	{
 		AlertDialog dialog = dialogWrapper.getDialog();
 		if (dialog == null) {
+			if (dialogWrapper.getActivity() == null) {
+				TiBaseActivity dialogActivity = (TiBaseActivity) getCurrentActivity();
+				dialogWrapper.setActivity(new WeakReference<TiBaseActivity>(dialogActivity));
+			}
 			processProperties(proxy.getProperties());
 			getBuilder().setOnCancelListener(new OnCancelListener() {
 				@Override

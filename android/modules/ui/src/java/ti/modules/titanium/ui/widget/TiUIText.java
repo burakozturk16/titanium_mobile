@@ -78,6 +78,7 @@ public class TiUIText extends TiUIView
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
+	private boolean disableChangeEvent = false;
 
 	protected FocusFixedEditText tv;
 	protected TiEditText realtv;
@@ -340,11 +341,15 @@ public class TiUIText extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_MAX_LENGTH) && field) {
 			maxLength = TiConvert.toInt(d.get(TiC.PROPERTY_MAX_LENGTH), -1);
 		}
+		
+		// Disable change event temporarily as we are setting the default value
+		disableChangeEvent = true;
 		if (d.containsKey(TiC.PROPERTY_VALUE)) {
 			realtv.setText(d.getString(TiC.PROPERTY_VALUE));
 			int pos = realtv.getText().length();
 			realtv.setSelection(pos);
 		}
+		disableChangeEvent = false;
 		
 		if (d.containsKey(TiC.PROPERTY_COLOR)) {
 			realtv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
@@ -506,7 +511,8 @@ public class TiUIText extends TiUIView
 			return;
 		}
 		String newText = realtv.getText().toString();
-		if (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText))) {
+		if (!disableChangeEvent
+			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText)))) {
 			KrollDict data = new KrollDict();
 			data.put(TiC.PROPERTY_VALUE, newText);
 			proxy.setProperty(TiC.PROPERTY_VALUE, newText);

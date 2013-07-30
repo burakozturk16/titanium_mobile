@@ -39,10 +39,12 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
+import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.drawable.ColorDrawable;
@@ -382,6 +384,7 @@ public abstract class TiUIView
 		if (animBuilder == null) {
 			animBuilder = new TiAnimationBuilder();
 		}
+
 		View outerView = getOuterView();
 		if (outerView != null) {
 			if (timatrix != null) {
@@ -395,9 +398,9 @@ public abstract class TiUIView
 		}
 	}
 
-	public void forceLayoutNativeView(boolean imformParent)
+	public void forceLayoutNativeView(boolean informParent)
 	{
-		layoutNativeView(imformParent);
+		layoutNativeView(informParent);
 	}
 
 	protected void layoutNativeView()
@@ -563,6 +566,7 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			doSetClickable(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
+			newValue = (newValue == null) ? false : newValue;
 			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE : View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
 			nativeView.setEnabled(TiConvert.toBoolean(newValue));
@@ -1406,7 +1410,7 @@ public abstract class TiUIView
 		}
 		if (nativeView != null) {
 			if (HONEYCOMB_OR_GREATER) {
-				nativeView.setAlpha(opacity);
+				setAlpha(nativeView, opacity);
 			} else {
 				setOpacity(nativeView, opacity);
 			}
@@ -1419,7 +1423,18 @@ public abstract class TiUIView
 	}
 
 	/**
-	 * Sets the view's opacity.
+	 * Sets the view's alpha (Honeycomb or later).
+	 * @param view The native view object
+	 * @param alpha The new alpha value
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void setAlpha(View view, float alpha)
+	{
+		view.setAlpha(alpha);
+	}
+
+	/**
+	 * Sets the view's opacity (pre-Honeycomb).
 	 * @param view the view object.
 	 * @param opacity the opacity to set.
 	 */

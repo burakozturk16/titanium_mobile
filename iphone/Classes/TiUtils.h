@@ -500,6 +500,12 @@ typedef enum {
 +(BOOL)isIOS6OrGreater;
 
 /**
+ Whether or not the current OS version is equal to or greater than 7.0.
+ @return _YES_ if the current OS version is equal to or greater thann 7.0, _NO_ otherwise.
+ */
++(BOOL)isIOS7OrGreater;
+
+/**
  Whether or not the current device is an iPhone 4.
  @return _YES_ if the current device is an iPhone 4, _NO_ otherwise.
  */
@@ -516,6 +522,8 @@ typedef enum {
  @return _YES_ if the current device has a 4 inch retina display, _NO_ otherwise.
  */
 +(BOOL)isRetinaFourInch;
+
++(void)configureController:(id)controller withObject:(id)object;
 
 +(int)dpi;
 

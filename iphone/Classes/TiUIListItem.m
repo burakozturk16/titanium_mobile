@@ -43,7 +43,7 @@
 		_proxy = [proxy retain];
         self.contentView.backgroundColor = [UIColor grayColor];
 		_proxy.listItem = self;
-        _grouped = grouped;
+        [self setGrouped:grouped];
         _positionMask = position;
     }
     return self;
@@ -59,11 +59,16 @@
 		_resetKeys = [[NSMutableSet alloc] initWithCapacity:10];
 		_proxy = [proxy retain];
 		_proxy.listItem = self;
-        _grouped = grouped;
+        [self setGrouped:grouped];
         _positionMask = position;
         [self applyCellProps:[_proxy allProperties]];
     }
     return self;
+}
+
+-(void)setGrouped:(BOOL)grouped
+{
+    _grouped = grouped && ![TiUtils isIOS7OrGreater];
 }
 
 - (void)dealloc
@@ -259,6 +264,7 @@
             case UITableViewCellSelectionStyleBlue:uiColor = [Webcolor webColorNamed:@"#0272ed"];break;
             case UITableViewCellSelectionStyleGray:uiColor = [Webcolor webColorNamed:@"#bbb"];break;
             case UITableViewCellSelectionStyleNone:uiColor = [UIColor clearColor];break;
+            default:uiColor = [TiUtils isIOS7OrGreater]?[Webcolor webColorNamed:@"#e0e0e0"]:[Webcolor webColorNamed:@"#0272ed"];break;
         }
     }
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
@@ -282,7 +288,7 @@
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped
 {
     _positionMask = position;
-    _grouped = grouped;
+    [self setGrouped:grouped];
     [self updateBackgroundLayerCorners];
     [self setNeedsDisplay];
 }
