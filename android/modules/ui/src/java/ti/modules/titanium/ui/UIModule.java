@@ -324,7 +324,6 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@SuppressWarnings("unchecked")
 	@Kroll.method
 	public void addViewTemplates(KrollDict templates) {
-		Log.e(TAG, "addViewTemplates  " + templates);
 		
 		for (String key : templates.keySet()) {
 			//Here we bind each template with a key so we can use it to look up later
@@ -334,10 +333,10 @@ public class UIModule extends KrollModule implements Handler.Callback
 		}
 	}
 	
-	public static TiViewProxy internalCreateViewFromTemplate(String templateId) {
+	public static TiViewProxy internalCreateViewFromTemplate(String templateId, HashMap arguments) {
 		TiUIViewTemplate template = templatesByBinding.get(templateId);
 		if (template != null) {
-			return template.buildProxy();
+			return template.buildProxy(arguments);
 		}
 		else { 
 			Log.e(TAG, "No template named " + templateId);
@@ -346,7 +345,7 @@ public class UIModule extends KrollModule implements Handler.Callback
 	}
 	
 	@Kroll.method
-	public TiViewProxy createViewFromTemplate(String templateId) {
-		return internalCreateViewFromTemplate(templateId);
+	public TiViewProxy createViewFromTemplate(String templateId, @Kroll.argument(optional = true) HashMap arguments) {
+		return internalCreateViewFromTemplate(templateId, arguments);
 	}
 }

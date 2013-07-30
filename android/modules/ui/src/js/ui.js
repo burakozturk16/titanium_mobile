@@ -102,46 +102,71 @@ exports.bootstrap = function(Titanium) {
 	Titanium.UI.ActivityIndicator.DETERMINANT = 1;
 
 	//Create ListItemProxy, add events, then store it in 'tiProxy' property
-	function processTemplate(properties) {
+	function processTemplate(properties, templateBindings) {
+		if (templateBindings && !templateBindings.hasOwnProperty('properties')) {
+			templateBindings.bindings = {};
+			templateBindings.properties = properties.properties;
+		}
 		var proxyType = (properties.type  || "Ti.UI.View");
 		proxyType = proxyType.slice(proxyType.indexOf(".") + 1);
 		properties.tiClass = Titanium.proxyBindings[proxyType];
 		if (!properties.hasOwnProperty('childTemplates')) return;
 		var childProperties = properties.childTemplates;
 		if (childProperties === void 0 || childProperties === null) return;
-		
 		for (var i = 0; i < childProperties.length; i++) {
 			var child = childProperties[i];
-			processTemplate(child);
+			if(templateBindings && child.hasOwnProperty('bindId')) {
+				templateBindings.bindings[child.bindId] = {};
+				processTemplate(child, templateBindings.bindings[child.bindId]);
+			}
+			else
+				processTemplate(child, templateBindings);
 		}
 	}
+
+	var jsStoredTemplatesBindings = {};
 
 	var realAddViewTemplates = Titanium.UI.addViewTemplates;
 	function addViewTemplates(templates) {
+		var ourTemplates = {};
 		if (templates) {
-			for (var binding in templates) {
-				var currentTemplate = templates[binding];
+			for (var templateId in templates) {
+				var currentTemplate = JSON.parse(JSON.stringify(templates[templateId]));
 				//process template
-				processTemplate(currentTemplate);
+				var bindings = {bindings:{}};
+				processTemplate(currentTemplate, bindings);
+				jsStoredTemplatesBindings[templateId] = bindings;
+				ourTemplates[templateId] = currentTemplate;
 			}
 		}
-		realAddViewTemplates.call(this, templates);
+		realAddViewTemplates.call(this, ourTemplates);
 	}
 
-	function setBindings(_proxy , _level) {
+	function setBindings(bindingAndProps, _proxy) {
+		//first we set js properties
+		if (bindingAndProps.properties) {
+			var props = bindingAndProps.properties;
+			for (prop in props) {
+				_proxy.setProperty(prop, props[prop]);
+			}
+		}
 		var bindings = _proxy.getBindings();
 		for (var binding in bindings) {
 			var _bproxy = bindings[binding];
-			setBindings(_bproxy, (_level + 1) );
 			_proxy[binding] = _bproxy;
+			var subBindingAndProps = bindingAndProps;
+			if (bindingAndProps.bindings && bindingAndProps.bindings.hasOwnProperty(binding))
+				subBindingAndProps = bindingAndProps.bindings[binding];
+			setBindings(subBindingAndProps, _bproxy);
 		}
 	}
 
 	var realCreateViewFromTemplate = Titanium.UI.createViewFromTemplate;
-	function createViewFromTemplate(options) {
-		var proxy  = realCreateViewFromTemplate.call(this, options);
+	function createViewFromTemplate() {
+		var proxy  = realCreateViewFromTemplate.apply(this, arguments);
 		if (proxy !== null) {
-			setBindings(proxy, 0);
+			var templateBindings = jsStoredTemplatesBindings[arguments[0]] ;
+			setBindings(templateBindings, proxy);
 		}
 		return proxy;
 	}

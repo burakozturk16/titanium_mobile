@@ -127,7 +127,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	protected TiAnimationBuilder pendingAnimation;
 	private boolean isDecorView = false;
 
-	protected HashMap<String, TiViewProxy> bindings;
+	protected HashMap<String, Object> bindings;
 
 	// TODO: Deprecated since Release 3.0.0
 	@Deprecated private AtomicBoolean layoutStarted = new AtomicBoolean();
@@ -139,7 +139,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	 */
 	public TiViewProxy()
 	{
-		bindings = new HashMap<String, TiViewProxy>();
+		bindings = new HashMap<String, Object>();
 		pendingAnimationLock = new Object();
 		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
@@ -626,7 +626,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			// called.
 			view.processProperties(getProperties());
 		}
-
 
 		// Use a copy so bundle can be modified as it passes up the inheritance
 		// tree. Allows defaults to be added and keys removed.
@@ -1517,9 +1516,9 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 	}
 	
-	public void setBinding(String key, TiViewProxy proxy)
+	public void setBinding(String key, Object binding)
 	{
-		bindings.put(key, proxy);
+		bindings.put(key, binding);
 	}
 	
 	@Kroll.method
