@@ -14,7 +14,7 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS"/>
 		<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-		android:debuggable="false" android:allowBackup="false"
+		android:debuggable="true" android:allowBackup="false"
 		android:hardwareAccelerated="false">
 
 		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
