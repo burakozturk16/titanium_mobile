@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.content.res.ColorStateList;
 
 public class TiUIButton extends TiUIView
 {
@@ -59,6 +60,16 @@ public class TiUIButton extends TiUIView
 		setNativeView(btn);
 	}
 
+	private void setTextColors(int color, int selectedColor) {
+		ColorStateList colorStateList = new ColorStateList(
+			new int[][] {	new int [] {android.R.attr.state_pressed},
+							new int [] {android.R.attr.state_focused},
+							new int [] {}},
+			new int[] {selectedColor, selectedColor, color}
+		);
+		((Button) getNativeView()).setTextColor(colorStateList);
+	}
+
 	@Override
 	public void processProperties(KrollDict d)
 	{
@@ -82,13 +93,10 @@ public class TiUIButton extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
 			btn.setText(d.getString(TiC.PROPERTY_TITLE));
 		}
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			Object color = d.get(TiC.PROPERTY_COLOR);
-			if (color == null) {
-				btn.setTextColor(defaultColor);
-			} else {
-				btn.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
-			}
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			setTextColors(color, selectedColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, d.getKrollDict(TiC.PROPERTY_FONT));
@@ -150,7 +158,14 @@ public class TiUIButton extends TiUIView
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			btn.setText((String) newValue);
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
+			int color = TiConvert.toColor(TiConvert.toString(newValue));
+			int selectedColor = proxy.getProperties().optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			setTextColors(color, selectedColor);
+		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
 			btn.setTextColor(TiConvert.toColor(TiConvert.toString(newValue)));
+			int selectedColor = TiConvert.toColor(TiConvert.toString(newValue));
+			int color = proxy.getProperties().optColor(TiC.PROPERTY_COLOR, selectedColor);
+			setTextColors(color, selectedColor);
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
