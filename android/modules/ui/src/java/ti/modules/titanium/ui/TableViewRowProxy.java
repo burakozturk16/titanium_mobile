@@ -130,15 +130,16 @@ public class TableViewRowProxy extends TiViewProxy
 		return controls.toArray(new TiViewProxy[controls.size()]);
 	}
 
-	public void add(TiViewProxy control)
+	@Override
+	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
 	{
 		if (controls == null) {
 			controls = new ArrayList<TiViewProxy>();
 		}
-		controls.add(control);
-		control.setParent(this);
+		controls.add(child);
+		child.setParent(this);
 		if (tableViewItem != null) {
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CONTROL), control);
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CONTROL), child);
 		}
 	}
 

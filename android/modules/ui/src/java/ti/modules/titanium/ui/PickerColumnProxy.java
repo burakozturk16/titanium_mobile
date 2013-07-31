@@ -102,7 +102,7 @@ public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
 	}
 
 	@Override
-	public void add(TiViewProxy o)
+	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
 	{
 		if (TiApplication.isUIThread()) {
 			handleAddRow(o);
