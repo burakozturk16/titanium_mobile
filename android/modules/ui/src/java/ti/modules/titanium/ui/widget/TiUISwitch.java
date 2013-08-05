@@ -61,16 +61,32 @@ public class TiUISwitch extends TiUIView
 		}
 	}
 	
+	private void updateToggleButton(ToggleButton cb, KrollDict d) {
+		if (cb == null) return;
+		if (d.containsKey(TiC.PROPERTY_TITLE_OFF)) {
+			cb.setTextOff(TiConvert.toString(d, TiC.PROPERTY_TITLE_OFF));
+		}
+		if (d.containsKey(TiC.PROPERTY_TITLE_ON) ) {
+			cb.setTextOn(TiConvert.toString(d, TiC.PROPERTY_TITLE_ON));
+		}
+	}
+
+	private void updateSwitchButton(Switch cb, KrollDict d) {
+		if (cb == null) return;
+		Log.d(TAG, "updateSwitchButton" + d.toString(), Log.DEBUG_MODE);
+		if (d.containsKey(TiC.PROPERTY_TITLE_OFF)) {
+			cb.setTextOff(TiConvert.toString(d, TiC.PROPERTY_TITLE_OFF));
+		}
+		if (d.containsKey(TiC.PROPERTY_TITLE_ON) ) {
+			cb.setTextOn(TiConvert.toString(d, TiC.PROPERTY_TITLE_ON));
+		}
+	}
+
 	protected void updateButton(CompoundButton cb, KrollDict d) {
 		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-		if (d.containsKey(TiC.PROPERTY_TITLE) && cb instanceof CheckBox) {
+
+		if (d.containsKey(TiC.PROPERTY_TITLE)) {
 			cb.setText(TiConvert.toString(d, TiC.PROPERTY_TITLE));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_OFF) && cb instanceof ToggleButton) {
-			((ToggleButton) cb).setTextOff(TiConvert.toString(d, TiC.PROPERTY_TITLE_OFF));
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_ON) && cb instanceof ToggleButton) {
-			((ToggleButton) cb).setTextOn(TiConvert.toString(d, TiC.PROPERTY_TITLE_ON));
 		}
 		if (d.containsKey(TiC.PROPERTY_VALUE)) {
 		
@@ -102,9 +118,40 @@ public class TiUISwitch extends TiUIView
 			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, d.getKrollDict(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT));
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		}
+		if (cb instanceof ToggleButton) {
+			updateToggleButton((ToggleButton) cb, d);
+		}
+		else if (cb instanceof Switch) {
+			updateSwitchButton((Switch) cb, d);
+		}
 		cb.invalidate();
 	}
 
+	private boolean propertyChangedToggleButton(ToggleButton cb, String key, Object oldValue, Object newValue, KrollProxy proxy) {
+		if (cb == null) return false;
+		if (key.equals(TiC.PROPERTY_TITLE_OFF)) {
+			cb.setTextOff((String)  newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_TITLE_ON)) {
+			cb.setTextOn((String)  newValue);
+		} else {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean propertyChangedSwitchButton(Switch cb, String key, Object oldValue, Object newValue, KrollProxy proxy) {
+		if (cb == null) return false;
+		if (key.equals(TiC.PROPERTY_TITLE_OFF)) {
+			cb.setTextOff((String)  newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_TITLE_ON)) {
+			cb.setTextOn((String)  newValue);
+		} else {
+			return false;
+		}
+		return true;
+	}
 
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
@@ -116,12 +163,8 @@ public class TiUISwitch extends TiUIView
 		CompoundButton cb = (CompoundButton) getNativeView();
 		if (key.equals(TiC.PROPERTY_STYLE) && newValue != null) {
 			setStyle(TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_TITLE) && cb instanceof CheckBox) {
+		} else if (key.equals(TiC.PROPERTY_TITLE)) {
 			cb.setText((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_TITLE_OFF) && cb instanceof ToggleButton) {
-			((ToggleButton) cb).setTextOff((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_TITLE_ON) && cb instanceof ToggleButton) {
-			((ToggleButton) cb).setTextOff((String) newValue);
 		} else if (key.equals(TiC.PROPERTY_VALUE)) {
 			cb.setChecked(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
@@ -144,6 +187,10 @@ public class TiUISwitch extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
 			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, (KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
+		} else if (cb instanceof ToggleButton) {
+			propertyChangedToggleButton((ToggleButton) cb, key, oldValue, newValue, proxy);
+		} else if (cb instanceof Switch) {
+			propertyChangedSwitchButton((Switch) cb, key, oldValue, newValue, proxy);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
