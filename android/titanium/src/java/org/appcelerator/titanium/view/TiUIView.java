@@ -1817,9 +1817,13 @@ public abstract class TiUIView
 	}
 	
 	public void setTiBackgroundColor(int color) {
-		TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
-		bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
+		int currentColor = getTiBackgroundColor();
+		if (currentColor != color) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
+			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
+			bgdDrawable.invalidateSelf();
+		}
 	}
 	
 	public int getTiBackgroundColor() {
