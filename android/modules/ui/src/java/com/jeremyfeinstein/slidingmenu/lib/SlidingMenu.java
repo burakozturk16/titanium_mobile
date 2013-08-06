@@ -1,4 +1,4 @@
-package com.slidingmenu.lib;
+package com.jeremyfeinstein.slidingmenu.lib;
 
 import java.lang.reflect.Method;
 
@@ -27,7 +27,7 @@ import android.view.WindowManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
-import com.slidingmenu.lib.CustomViewAbove.OnPageChangeListener;
+import com.jeremyfeinstein.slidingmenu.lib.CustomViewAbove.OnPageChangeListener;
 
 public class SlidingMenu extends RelativeLayout {
 
@@ -679,6 +679,22 @@ public class SlidingMenu extends RelativeLayout {
 	public float getBehindScrollScale() {
 		return mViewBehind.getScrollScale();
 	}
+	
+	/**
+	 * Gets the touch mode margin threshold
+	 * @return the touch mode margin threshold
+	 */
+	public int getTouchmodeMarginThreshold() {
+		return mViewBehind.getMarginThreshold();
+	}
+	
+	/**
+	 * Set the touch mode margin threshold
+	 * @param touchmodeMarginThreshold
+	 */
+	public void setTouchmodeMarginThreshold(int touchmodeMarginThreshold) {
+		mViewBehind.setMarginThreshold(touchmodeMarginThreshold);
+	}
 
 	/**
 	 * Sets the behind scroll scale.
@@ -1003,23 +1019,24 @@ public class SlidingMenu extends RelativeLayout {
 
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void manageLayers(float percentOpen) {
-		if (Build.VERSION.SDK_INT < 11) return;
-
-		boolean layer = percentOpen > 0.0f && percentOpen < 1.0f;
-		final int layerType = layer ? View.LAYER_TYPE_HARDWARE : View.LAYER_TYPE_NONE;
-
-		if (layerType != getContent().getLayerType()) {
-			mHandler.post(new Runnable() {
-				public void run() {
-					Log.v(TAG, "changing layerType. hardware? " + (layerType == View.LAYER_TYPE_HARDWARE));
-					getContent().setLayerType(layerType, null);
-					getMenu().setLayerType(layerType, null);
-					if (getSecondaryMenu() != null) {
-						getSecondaryMenu().setLayerType(layerType, null);
-					}
-				}
-			});
-		}
+		return; // this is so bad on scroll performances!
+//		if (Build.VERSION.SDK_INT < 11) return;
+//
+//		boolean layer = percentOpen > 0.0f && percentOpen < 1.0f;
+//		final int layerType = layer ? View.LAYER_TYPE_HARDWARE : View.LAYER_TYPE_NONE;
+//
+//		if (layerType != getContent().getLayerType()) {
+//			mHandler.post(new Runnable() {
+//				public void run() {
+//					Log.v(TAG, "changing layerType. hardware? " + (layerType == View.LAYER_TYPE_HARDWARE));
+//					getContent().setLayerType(layerType, null);
+//					getMenu().setLayerType(layerType, null);
+//					if (getSecondaryMenu() != null) {
+//						getSecondaryMenu().setLayerType(layerType, null);
+//					}
+//				}
+//			});
+//		}
 	}
 
 }

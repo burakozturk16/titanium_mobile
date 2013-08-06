@@ -1,4 +1,4 @@
-package com.slidingmenu.lib;
+package com.jeremyfeinstein.slidingmenu.lib;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.slidingmenu.lib.SlidingMenu.CanvasTransformer;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.CanvasTransformer;
 
 public class CustomViewBehind extends ViewGroup {
 
@@ -52,6 +52,14 @@ public class CustomViewBehind extends ViewGroup {
 	public void setWidthOffset(int i) {
 		mWidthOffset = i;
 		requestLayout();
+	}
+	
+	public void setMarginThreshold(int marginThreshold) {
+		mMarginThreshold = marginThreshold;
+	}
+	
+	public int getMarginThreshold() {
+		return mMarginThreshold;
 	}
 
 	public int getBehindWidth() {

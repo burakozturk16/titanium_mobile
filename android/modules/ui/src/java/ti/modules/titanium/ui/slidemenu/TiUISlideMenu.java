@@ -21,7 +21,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.view.ViewGroup;
 
-import com.slidingmenu.lib.SlidingMenu;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.SlideMenuProxy;
 import ti.modules.titanium.ui.UIModule;
@@ -299,7 +299,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			}
 			if (this.centerView != null)
 			{
-				content.removeView(this.centerView.getOrCreateView().getNativeView());
+				content.removeView(this.centerView.getNativeView());
 			}
 			this.centerView = newProxy;	
 		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {

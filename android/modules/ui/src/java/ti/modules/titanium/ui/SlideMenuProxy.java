@@ -26,7 +26,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.TiBlob;
 
-import com.slidingmenu.lib.SlidingMenu;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
 import ti.modules.titanium.ui.widget.webview.TiUIWebView;
@@ -48,11 +48,11 @@ import android.view.WindowManager;
 	TiC.PROPERTY_MENU_SCROLL_SCALE,
 	TiC.PROPERTY_SHADOW_WIDTH
 })
-public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
+public class SlideMenuProxy extends WindowProxy implements TiActivityWindow
 {
 	private static final String TAG = "SlideMenuProxy";
 
-	private static final int MSG_FIRST_ID = TiWindowProxy.MSG_LAST_ID + 1;
+	private static final int MSG_FIRST_ID = WindowProxy.MSG_LAST_ID + 1;
 
 	private static final int MSG_TOGGLE_LEFT_VIEW = MSG_FIRST_ID + 100;
 	private static final int MSG_TOGGLE_RIGHT_VIEW = MSG_FIRST_ID + 101;
@@ -86,7 +86,7 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 				return true;
 			}
 			case MSG_TOGGLE_RIGHT_VIEW: {
-				handleToggleLeftView((Boolean)msg.obj);
+				handleToggleRightView((Boolean)msg.obj);
 				return true;
 			}
 			case MSG_OPEN_LEFT_VIEW: {
