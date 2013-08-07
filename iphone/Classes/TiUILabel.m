@@ -162,10 +162,10 @@
     }
     
     id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
-    if ([attr isKindOfClass:[NSAttributedString class]])
-        [[self label] setText:attr];
-    else
-        [[self label] setText:attr];
+//    if ([attr isKindOfClass:[NSAttributedString class]])
+//        [[self label] setText:attr];
+//    else
+    [[self label] setText:attr];
     
     
 }
