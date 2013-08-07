@@ -254,7 +254,7 @@ public class PickerProxy extends TiViewProxy implements PickerColumnListener
 	private void addColumn(PickerColumnProxy column)
 	{
 		prepareColumn(column);
-		super.add(column);
+		super.add(column, new Integer(-1));
 		if (peekView() instanceof TiUIPicker) {
 			((TiUIPicker)peekView()).onColumnAdded(children.indexOf(column));
 		}

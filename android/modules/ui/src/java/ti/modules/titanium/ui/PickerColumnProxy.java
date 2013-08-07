@@ -130,7 +130,7 @@ public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
 		if (o == null)return;
 		if (o instanceof PickerRowProxy) {
 			((PickerRowProxy)o).setRowListener(this);
-			super.add((PickerRowProxy)o);
+			super.add((PickerRowProxy)o, new Integer(-1));
 			if (columnListener != null && !suppressListenerEvents) {
 				int index = children.indexOf(o);
 				columnListener.rowAdded(this, index);

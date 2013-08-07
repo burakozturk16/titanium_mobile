@@ -596,12 +596,12 @@ public class TiUIScrollView extends TiUIView
 	}
 
 	@Override
-	public void add(TiUIView child)
+	public void add(TiUIView child, int index)
 	{
 		if (child.hWAccelerationDisabled()) {
 			disableHWAcceleration();	
 		}
-		super.add(child);
+		super.add(child, index);
 
 		if (getNativeView() != null) {
 			getLayout().requestLayout();
