@@ -1585,7 +1585,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 	NSDictionary *item = [section itemAtIndex:indexPath.row];
     NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
 										section, @"section",
-										[self isSearchActive], @"searchResult",
+										NUMBOOL([self isSearchActive]), @"searchResult",
 										NUMINT(indexPath.section), @"sectionIndex",
 										NUMINT(indexPath.row), @"itemIndex",
 										NUMBOOL(accessoryButtonTapped), @"accessoryClicked",
