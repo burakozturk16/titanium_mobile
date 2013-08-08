@@ -176,8 +176,9 @@
 	if (button==nil)
 	{
         BOOL hasImage = [self.proxy valueForKey:@"backgroundImage"]!=nil;
+        BOOL hasBgdColor = [self.proxy valueForKey:@"backgroundColor"]!=nil;
 		
-        UIButtonType defaultType = (hasImage==YES) ? UIButtonTypeCustom : UIButtonTypeRoundedRect;
+        UIButtonType defaultType = (hasImage==YES || hasBgdColor==YES) ? UIButtonTypeCustom : UIButtonTypeRoundedRect;
 		style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:defaultType];
 		UIView *btn = [TiButtonUtil buttonWithType:style];
 		button = (UIButton*)[btn retain];
@@ -463,28 +464,23 @@
 	[[[b titleLabel] layer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
--(void)setTitlePaddingLeft_:(id)left
+-(void)setTitlePadding_:(id)value
 {
-	titlePadding.origin.x = [TiUtils floatValue:left];
-	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
-}
-
--(void)setTitlePaddingRight_:(id)right
-{
-	titlePadding.size.width = [TiUtils floatValue:right];
-	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
-}
-
--(void)setTitlePaddingTop_:(id)top
-{
-	titlePadding.origin.y = [TiUtils floatValue:top];
-	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
-}
-
--(void)setTitlePaddingBottom_:(id)bottom
-{
-	titlePadding.size.height = [TiUtils floatValue:bottom];
-	[button setTitleEdgeInsets:UIEdgeInsetsMake(titlePadding.origin.y, titlePadding.origin.x, titlePadding.size.height, titlePadding.size.width)];
+	ENSURE_SINGLE_ARG(value,NSDictionary);
+    NSDictionary* padding = (NSDictionary*)value;
+    if ([padding objectForKey:@"left"]) {
+        titlePadding.left = [TiUtils floatValue:[padding objectForKey:@"left"]];
+    }
+    if ([padding objectForKey:@"right"]) {
+        titlePadding.right = [TiUtils floatValue:[padding objectForKey:@"right"]];
+    }
+    if ([padding objectForKey:@"top"]) {
+        titlePadding.top = [TiUtils floatValue:[padding objectForKey:@"top"]];
+    }
+    if ([padding objectForKey:@"bottom"]) {
+        titlePadding.bottom = [TiUtils floatValue:[padding objectForKey:@"bottom"]];
+    }
+	[button setTitleEdgeInsets:titlePadding];
 }
 
 -(void)setWordWrap_:(id)value

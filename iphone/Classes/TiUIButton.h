@@ -30,7 +30,7 @@
 	
     BOOL touchStarted;
 
-	CGRect titlePadding;
+	UIEdgeInsets titlePadding;
     
 }
 
