@@ -1335,6 +1335,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_IMAGE_ANCHOR = "imageAnchor";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_IMAGES = "images";
 
 	/**
@@ -2226,22 +2231,7 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TITLE_PADDING_LEFT = "titlePaddingLeft";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TITLE_PADDING_RIGHT = "titlePaddingRight";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TITLE_PADDING_TOP = "titlePaddingTop";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TITLE_PADDING_BOTTOM = "titlePaddingBottom";
+	public static final String PROPERTY_TITLE_PADDING = "titlePadding";
 
 	/**
 	 * @module.api

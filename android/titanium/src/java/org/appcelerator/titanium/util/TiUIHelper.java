@@ -432,6 +432,23 @@ public class TiUIHelper
 		return style;
 	}
 
+	public static int getGravity(String align, boolean vertical) {
+		if (align != null) {
+			if ("left".equals(align)) {
+				 return Gravity.LEFT;
+			} else if ("center".equals(align)) {
+				return vertical?Gravity.CENTER_VERTICAL:Gravity.CENTER_HORIZONTAL;
+			} else if ("right".equals(align)) {
+				return Gravity.RIGHT;
+			} else if ("top".equals(align)) {
+				return Gravity.TOP;
+			} else if ("bottom".equals(align)) {
+				return Gravity.BOTTOM;
+			}
+		}
+		return Gravity.NO_GRAVITY;
+	}
+
 	public static void setAlignment(TextView tv, String textAlign, String verticalAlign) 
 	{
 		int gravity = Gravity.NO_GRAVITY;

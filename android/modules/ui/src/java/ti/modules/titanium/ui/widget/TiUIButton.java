@@ -37,10 +37,13 @@ public class TiUIButton extends TiUIView
 	private int shadowDy;
 	private float shadowRadius;
 	private Rect titlePadding;
+	private Drawable imageDrawable;
+	private int imageGravity;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
+		imageGravity = Gravity.LEFT;
 		titlePadding = new Rect();
 		titlePadding.left = 8;
 		titlePadding.right = 8;
@@ -70,6 +73,27 @@ public class TiUIButton extends TiUIView
 		((Button) getNativeView()).setTextColor(colorStateList);
 	}
 
+	private void updateImage(){
+		Button btn = (Button) getNativeView();
+		if (btn != null) {
+			switch(imageGravity) {
+				case Gravity.LEFT:
+				default:
+					btn.setCompoundDrawablesWithIntrinsicBounds(imageDrawable, null, null, null);
+					break;
+				case Gravity.TOP:
+					btn.setCompoundDrawablesWithIntrinsicBounds(null, imageDrawable, null, null);
+					break;
+				case Gravity.RIGHT:
+					btn.setCompoundDrawablesWithIntrinsicBounds(null, null, imageDrawable, null);
+					break;
+				case Gravity.BOTTOM:
+					btn.setCompoundDrawablesWithIntrinsicBounds(null, null, null, imageDrawable);
+					break;
+			}
+		}
+	}
+
 	@Override
 	public void processProperties(KrollDict d)
 	{
@@ -78,16 +102,13 @@ public class TiUIButton extends TiUIView
 		Button btn = (Button) getNativeView();
 		if (d.containsKey(TiC.PROPERTY_IMAGE)) {
 			Object value = d.get(TiC.PROPERTY_IMAGE);
-			TiDrawableReference drawableRef = null;
-			if (value instanceof String) {
-				drawableRef = TiDrawableReference.fromUrl(proxy, (String) value);
-			} else if (value instanceof TiBlob) {
-				drawableRef = TiDrawableReference.fromBlob(proxy.getActivity(), (TiBlob) value);
-			}
+			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), value);
 
 			if (drawableRef != null) {
-				Drawable image = drawableRef.getDrawable();
-				btn.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+				imageDrawable = drawableRef.getDrawable();
+			}
+			else {
+				imageDrawable = null;
 			}
 		}
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
@@ -109,21 +130,24 @@ public class TiUIButton extends TiUIView
 			String verticalAlign = d.getString(TiC.PROPERTY_VERTICAL_ALIGN);
 			TiUIHelper.setAlignment(btn, null, verticalAlign);
 		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING_LEFT)) {
-			titlePadding.left = TiConvert.toInt(d, TiC.PROPERTY_TITLE_PADDING_LEFT);
+		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING)) {
+			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TITLE_PADDING);
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				titlePadding.left = dict.getInt(TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				titlePadding.right = dict.getInt(TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				titlePadding.top = dict.getInt(TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				titlePadding.bottom = dict.getInt(TiC.PROPERTY_BOTTOM);
+			}
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING_RIGHT)) {
-			titlePadding.right = TiConvert.toInt(d, TiC.PROPERTY_TITLE_PADDING_RIGHT);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING_TOP)) {
-			titlePadding.top = TiConvert.toInt(d, TiC.PROPERTY_TITLE_PADDING_TOP);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
-		}
-		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING_BOTTOM)) {
-			titlePadding.bottom = TiConvert.toInt(d, TiC.PROPERTY_TITLE_PADDING_BOTTOM);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+		if (d.containsKey(TiC.PROPERTY_IMAGE_ANCHOR)) {
+			imageGravity = TiUIHelper.getGravity(d.getString(TiC.PROPERTY_IMAGE_ANCHOR), false);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
@@ -145,6 +169,7 @@ public class TiUIButton extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_SELECTED)) {
 			btn.setPressed(TiConvert.toBoolean(d, TiC.PROPERTY_SELECTED));
 		}
+		updateImage();
 		btn.invalidate();
 	}
 
@@ -174,20 +199,20 @@ public class TiUIButton extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(btn, null, TiConvert.toString(newValue));
 			btn.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_LEFT)) {
-			titlePadding.left = TiConvert.toInt(newValue);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
-			btn.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_RIGHT)) {
-			titlePadding.right = TiConvert.toInt(newValue);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
-			btn.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_TOP)) {
-			titlePadding.top = TiConvert.toInt(newValue);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
-			btn.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING_BOTTOM)) {
-			titlePadding.bottom = TiConvert.toInt(newValue);
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
+			KrollDict dict = (KrollDict) newValue;
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				titlePadding.left = dict.getInt(TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				titlePadding.right = dict.getInt(TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				titlePadding.top = dict.getInt(TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				titlePadding.bottom = dict.getInt(TiC.PROPERTY_BOTTOM);
+			}
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
@@ -209,16 +234,18 @@ public class TiUIButton extends TiUIView
 			btn.setPressed(TiConvert.toBoolean(newValue));
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
-			TiDrawableReference drawableRef = null;
-			if (newValue instanceof String) {
-				drawableRef = TiDrawableReference.fromUrl(proxy, (String) newValue);
-			} else if (newValue instanceof TiBlob) {
-				drawableRef = TiDrawableReference.fromBlob(proxy.getActivity(), (TiBlob) newValue);
-			}
+			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), newValue);
+
 			if (drawableRef != null) {
-				Drawable image = drawableRef.getDrawable();
-				btn.setCompoundDrawablesWithIntrinsicBounds(image, null, null, null);
+				imageDrawable = drawableRef.getDrawable();
 			}
+			else {
+				imageDrawable = null;
+			}
+			updateImage();
+		} else if (key.equals(TiC.PROPERTY_IMAGE_ANCHOR)) {
+			imageGravity = TiUIHelper.getGravity(TiConvert.toString(newValue), false);
+			updateImage();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
