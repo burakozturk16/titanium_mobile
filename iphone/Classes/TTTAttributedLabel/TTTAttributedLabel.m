@@ -872,18 +872,21 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 - (CGRect)textRectForBounds:(CGRect)bounds
      limitedToNumberOfLines:(NSInteger)numberOfLines
 {
+    CGRect textRect = bounds;
+    CGSize textSize;
     if (!self.attributedText) {
-        return [super textRectForBounds:bounds limitedToNumberOfLines:numberOfLines];
+        textSize = [super textRectForBounds:bounds limitedToNumberOfLines:numberOfLines].size;
+    }
+    else {
+        // Calculate height with a minimum of double the font pointSize, to ensure that CTFramesetterSuggestFrameSizeWithConstraints doesn't return CGSizeZero, as it would if textRect height is insufficient.
+        textRect.size.height = fmaxf(self.font.pointSize * 2.0f, bounds.size.height);
+        
+        // Adjust the text to be in the center vertically, if the text size is smaller than bounds
+        textSize = CTFramesetterSuggestFrameSizeWithConstraints(self.framesetter, CFRangeMake(0, [self.attributedText length]), NULL, textRect.size, NULL);
+        textSize = CGSizeMake(ceilf(textSize.width), ceilf(textSize.height)); // Fix for iOS 4, CTFramesetterSuggestFrameSizeWithConstraints sometimes returns fractional sizes
+
     }
     
-    CGRect textRect = bounds;
-    
-    // Calculate height with a minimum of double the font pointSize, to ensure that CTFramesetterSuggestFrameSizeWithConstraints doesn't return CGSizeZero, as it would if textRect height is insufficient.
-    textRect.size.height = fmaxf(self.font.pointSize * 2.0f, bounds.size.height);
-    
-    // Adjust the text to be in the center vertically, if the text size is smaller than bounds
-    CGSize textSize = CTFramesetterSuggestFrameSizeWithConstraints(self.framesetter, CFRangeMake(0, [self.attributedText length]), NULL, textRect.size, NULL);
-    textSize = CGSizeMake(ceilf(textSize.width), ceilf(textSize.height)); // Fix for iOS 4, CTFramesetterSuggestFrameSizeWithConstraints sometimes returns fractional sizes
     
     if (textSize.height < textRect.size.height) {
         CGFloat yOffset = 0.0f;
@@ -902,13 +905,17 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         textRect.origin.y += yOffset;
     }
     
+    if (!self.attributedText) {
+        textRect.size = textSize;
+    }
     return textRect;
 }
 
 
 - (void)drawTextInRect:(CGRect)rect {
     if (!self.attributedText) {
-        [super drawTextInRect:rect];
+        CGRect textRect = [self textRectForBounds:rect limitedToNumberOfLines:self.numberOfLines];
+        [super drawTextInRect:textRect];
         return;
     }
         
