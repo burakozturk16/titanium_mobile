@@ -74,6 +74,7 @@
         stateLayers = [[NSMutableArray array] retain];
         self.masksToBounds=YES;
         self.needsDisplayOnBoundsChange = YES;
+        self.contentsScale = [[UIScreen mainScreen] scale];
    }
     return self;
 }
