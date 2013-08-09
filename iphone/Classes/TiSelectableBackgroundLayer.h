@@ -8,10 +8,12 @@
     UIColor* color;
     UIImage* image;
     TiGradient* gradient;
+    BOOL imageRepeat;
 }
 @property(nonatomic,retain) UIColor *color;
 @property(nonatomic,retain) UIImage *image;
 @property(nonatomic,retain) TiGradient *gradient;
+@property(nonatomic,assign) BOOL imageRepeat;
 @end
 
 @interface TiSelectableBackgroundLayer : CALayer
@@ -21,7 +23,9 @@
     NSMutableArray* stateLayers;
     CGFloat cornersRadius;
     UIRectCorner roundedCorners;
+    BOOL _imageRepeat;
 }
+@property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;
 @property(nonatomic,readonly) NSArray *stateLayers;
 

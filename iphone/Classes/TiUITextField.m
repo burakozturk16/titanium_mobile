@@ -333,32 +333,14 @@
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
+    [self setBgState:_trulyEnabled];
 }
 
 -(void)setEnabled_:(id)value
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-}
-
-
--(void)setBackgroundImage_:(id)image
-{
-	UITextField *tf = [self textWidgetView];
-	
-	if (image!=nil && tf.borderStyle == UITextBorderStyleRoundedRect)
-	{
-		// if you have a backround image and your border style is rounded, we
-		// need to force into no border or it won't render
-		[tf setBorderStyle:UITextBorderStyleNone];
-	}
-	[tf setBackground:[self loadImage:image]];
-	self.backgroundImage = image;
-}
-
--(void)setBackgroundDisabledImage_:(id)image
-{
-	[[self textWidgetView] setDisabledBackground:[self loadImage:image]];
+    [self setBgState:_trulyEnabled];
 }
 
 -(void)setHintText_:(id)value

@@ -43,19 +43,18 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Base class for all Titanium views.
  @see TiViewProxy
  */
-@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing> 
+@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing>
 {
 @protected
     BOOL configurationSet;
 	BOOL needsToSetBackgroundImage;
+	BOOL needsToSetBackgroundSelectedImage;
+	BOOL needsToSetBackgroundDisabledImage;
     NSMutableArray* childViews;
 @private
 	TiProxy *proxy;
 	TiAnimation *animation;
-	
-	CALayer *gradientLayer;
-	CALayer *backgroundImageLayer;
-	
+		
 	CGAffineTransform virtualParentTransform;
 	id transformMatrix;
 	BOOL childrenInitialized;
@@ -86,9 +85,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	//Resizing handling
 	CGSize oldSize;
     
-	// Image capping/backgrounds
-    id backgroundImage;
-    BOOL backgroundRepeat;
     float backgroundOpacity;
     TiDimension leftCap;
     TiDimension topCap;
@@ -121,7 +117,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 /**
  Provides access to background image of the view.
  */
-@property(nonatomic,readwrite,retain) id backgroundImage;
+//@property(nonatomic,readwrite,retain) id backgroundImage;
 
 /**
  Returns enablement of touch events.
@@ -140,17 +136,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)configureGestureRecognizer:(UIGestureRecognizer*)gestureRecognizer;
 - (UIGestureRecognizer *)gestureRecognizerForEvent:(NSString *)event;
-
-/**
- Returns CA layer for the background image of the view.
- */
--(CALayer *)backgroundImageLayer;
-/**
- Returns CA layer for the background gradient of the view.
- */
--(CALayer *)gradientLayer;
-
--(void)setBackgroundImageLayerBounds:(CGRect)bounds;
 
 /**
  Tells the view to start specified animation.
@@ -257,7 +242,10 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)setBackgroundImage_:(id)value;
 
--(UIView *)gradientWrapperView;
+-(UIView *)backgroundWrapperView;
+-(CALayer *)backgroundLayer;
+-(void)setBgState:(UIControlState)state;
+
 -(void)checkBounds;
 
 -(BOOL)clipChildren;

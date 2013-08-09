@@ -117,7 +117,7 @@
         [label setFrame:initFrame];
     }
 
-    if ([self backgroundImageLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
+    if ([self backgroundLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
     {
         [self updateBackgroundImageFrameWithPadding];
     }
@@ -239,13 +239,13 @@
 
 -(void)setBackgroundImageLayerBounds:(CGRect)bounds
 {
-    if ([self backgroundImageLayer] != nil)
+    if ([self backgroundLayer] != nil)
     {
         CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
                                             bounds.origin.y - padding.origin.y,
                                             bounds.size.width + padding.origin.x + padding.size.width,
                                             bounds.size.height + padding.origin.y + padding.size.height);
-        [self backgroundImageLayer].frame = backgroundFrame;
+        [self backgroundLayer].frame = backgroundFrame;
     }
 }
 
@@ -258,7 +258,7 @@
 {
     [super setBackgroundImage_:url];
     //if using padding we must not mask to bounds.
-    [self backgroundImageLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
+    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
     [self updateBackgroundImageFrameWithPadding];
 }
 

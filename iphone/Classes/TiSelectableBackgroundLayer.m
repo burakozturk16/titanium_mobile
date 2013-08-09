@@ -1,8 +1,15 @@
 #import "TiSelectableBackgroundLayer.h"
 
 @implementation TiDrawable
-@synthesize gradient, color, image;
+@synthesize gradient, color, image, imageRepeat;
 
+- (id)init {
+    if (self = [super init])
+    {
+        imageRepeat = NO;
+    }
+    return self;
+}
 
 - (void) dealloc
 {
@@ -26,7 +33,15 @@
     }
     
     if (image){
-        CGContextDrawImage(ctx, rect, image.CGImage);
+        if (imageRepeat) {
+            CGRect imageRect = CGRectMake(0, 0, image.size.width, image.size.height);
+            CGContextDrawTiledImage(ctx, imageRect, image.CGImage);
+        }
+        else {
+            UIGraphicsPushContext(ctx);
+            [image drawInRect:rect];
+            UIGraphicsPopContext();
+        }
     }
     CGContextRestoreGState(ctx);
 }
@@ -40,7 +55,7 @@
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat;
 
 - (id) initWithLayer:(id)layer {
     if(self = [super initWithLayer:layer]) {
@@ -58,6 +73,7 @@
         stateLayersMap = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
         stateLayers = [[NSMutableArray array] retain];
         self.masksToBounds=YES;
+        self.needsDisplayOnBoundsChange = YES;
    }
     return self;
 }
@@ -83,6 +99,17 @@
     if (currentLayer) {
         [currentLayer drawInContext:ctx inRect:[self bounds]];
     }
+}
+
+-(void)setImageRepeat:(BOOL)imageRepeat
+{
+    _imageRepeat = imageRepeat;
+    
+    [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+        if (drawable != nil) {
+            drawable.imageRepeat = _imageRepeat;
+        }
+    }];
 }
 
 -(void)setFrame:(CGRect)frame
@@ -118,6 +145,9 @@
 - (void)setState:(UIControlState)state
 {
     currentLayer = (TiDrawable*)[stateLayersMap objectForKey:[[NSNumber numberWithInt:state] stringValue]];
+    if (currentLayer == nil) {
+        currentLayer = (TiDrawable*)[stateLayersMap objectForKey:[[NSNumber numberWithInt:UIControlStateNormal] stringValue]];
+    }
     [self setNeedsDisplay];
 }
 
@@ -127,6 +157,7 @@
     TiDrawable* drawable = (TiDrawable*)[stateLayersMap objectForKey:key];
     if (drawable == nil) {
         drawable = [[TiDrawable alloc] init];
+        drawable.imageRepeat = _imageRepeat;
         [stateLayersMap setObject:drawable forKey:key];
         [drawable release];
     }

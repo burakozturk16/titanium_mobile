@@ -260,6 +260,7 @@
 -(void)setEnabled_:(id)value
 {
 	[[self button] setEnabled:[TiUtils boolValue:value]];
+    [self setBgState:[self button].enabled];
 }
 
 
@@ -283,7 +284,7 @@
 	[backgroundImageCache release];
 	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	backgroundImageCache = [[self loadImage:value] retain];
-    self.backgroundImage = value;
+//    self.backgroundImage = value;
 	[self updateBackgroundImage];
 }
 

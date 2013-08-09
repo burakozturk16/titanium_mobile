@@ -612,8 +612,9 @@ doReposition = YES;\
                 {
                     CABasicAnimation *boundsAnimation = nil;
                     CABasicAnimation *positionAnimation = nil;
-                    bool hasGradient = ([uiview gradientLayer] != nil);
-                    if (hasGradient) {
+                    bool hasBgLayer = ([uiview backgroundLayer] != nil);
+                    if (hasBgLayer) {
+                        [[uiview backgroundLayer] removeAllAnimations];
                         boundsAnimation = [CABasicAnimation animationWithKeyPath:@"bounds"];
                         boundsAnimation.fromValue = [NSValue valueWithCGRect:[uiview bounds]];
                         boundsAnimation.duration = animationDuration;
@@ -627,7 +628,7 @@ doReposition = YES;\
                     
                     [(TiViewProxy *)[uiview proxy] repositionWithinAnimation:self];
                     
-                    if (hasGradient) {
+                    if (hasBgLayer) {
                         boundsAnimation.toValue = [NSValue valueWithCGRect:[uiview bounds]];
                         positionAnimation.toValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
                         if (repeatCount > 0) {
@@ -638,8 +639,8 @@ doReposition = YES;\
                             positionAnimation.repeatCount = repeatCount;
                         }
                         
-                        [[uiview gradientLayer] addAnimation:boundsAnimation forKey:@"animateBounds"];
-                        [[uiview gradientLayer] addAnimation:positionAnimation forKey:@"animatePosition"];
+                        [[uiview backgroundLayer] addAnimation:boundsAnimation forKey:@"animateBounds"];
+                        [[uiview backgroundLayer] addAnimation:positionAnimation forKey:@"animatePosition"];
                     }
                 }
             }

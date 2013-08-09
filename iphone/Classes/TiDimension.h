@@ -237,3 +237,14 @@ TI_INLINE CGRect TiDimensionLayerContentCenter(TiDimension top, TiDimension left
 
 	return result;
 }
+
+TI_INLINE UIEdgeInsets TiUIEdgeInsets(TiDimension top, TiDimension left, TiDimension bottom, TiDimension right, CGSize imageSize)
+{
+	UIEdgeInsets result;
+	result.top = TiDimensionCalculateValue(top,imageSize.height);
+	result.bottom = TiDimensionCalculateValue(bottom,imageSize.height);
+	result.left = TiDimensionCalculateValue(left,imageSize.width);
+	result.right = TiDimensionCalculateValue(right,imageSize.width);
+    
+	return result;
+}
