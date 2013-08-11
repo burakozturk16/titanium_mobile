@@ -248,6 +248,7 @@ DEFINE_EXCEPTIONS
     transferLock = [[NSRecursiveLock alloc] init];
     touchPassThrough = false;
     self.clipsToBounds = clipChildren = YES;
+    self.userInteractionEnabled = YES;
     backgroundOpacity = 1.0f;
 }
 
@@ -340,7 +341,7 @@ DEFINE_EXCEPTIONS
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
     
     if (_bgLayer) {
-        [_bgLayer setState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+        [_bgLayer setState:UIControlStateNormal];
     }
 }
 
