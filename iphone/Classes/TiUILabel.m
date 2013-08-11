@@ -30,12 +30,12 @@
     [super dealloc];
 }
 
-- (BOOL)interactionDefault
-{
-	// by default, labels don't have any interaction unless you explicitly add
-	// it via addEventListener
-	return NO;
-}
+//- (BOOL)interactionDefault
+//{
+//	// by default, labels don't have any interaction unless you explicitly add
+//	// it via addEventListener
+//	return NO;
+//}
 
 
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth
@@ -132,16 +132,6 @@
         [self addSubview:label];
 	}
 	return label;
-}
-
--(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-	UIView *superResult = [super hitTest:point withEvent:event];
-	
-	if(superResult == [self label]) {
-		return self;
-	}
-    
-	return superResult;
 }
 
 - (id)accessibilityElement
