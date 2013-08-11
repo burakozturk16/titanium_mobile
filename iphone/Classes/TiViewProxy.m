@@ -146,6 +146,13 @@ static NSSet* transferableProps = nil;
     }
 }
 
+-(void)applyProperties:(id)args
+{
+    [view configurationStart];
+    [super applyProperties:args];
+    [view configurationSet];
+}
+
 -(void)startLayout:(id)arg
 {
     DebugLog(@"startLayout() method is deprecated since 3.0.0 .");
@@ -3063,7 +3070,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 			for (TiUIView * thisView in [ourView subviews])
 			{
-				if ( (!optimizeInsertion) && (![thisView isKindOfClass:[TiUIView class]]) )
+				if ( (!optimizeInsertion) || (![thisView isKindOfClass:[TiUIView class]]) )
 				{
 					insertPosition ++;
 					continue;
