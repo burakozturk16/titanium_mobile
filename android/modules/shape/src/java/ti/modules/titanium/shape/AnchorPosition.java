@@ -22,7 +22,7 @@ package ti.modules.titanium.shape;
  */
 public enum AnchorPosition {
     TOP_MIDDLE,
-    LEFT_TOP,    // default
+    LEFT_TOP,
     LEFT_MIDDLE,
     LEFT_BOTTOM,
     RIGHT_TOP,

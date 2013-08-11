@@ -6,7 +6,6 @@
  */
 package ti.modules.titanium.ui.widget;
 
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;

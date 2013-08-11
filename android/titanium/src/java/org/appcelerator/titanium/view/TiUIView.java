@@ -172,7 +172,7 @@ public abstract class TiUIView
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
-				View nv = getNativeView();
+				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
 					if (index >= 0) {
 						if (cv.getParent() == null) {
@@ -211,7 +211,7 @@ public abstract class TiUIView
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
-				View nv = getNativeView();
+				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
 					((ViewGroup) nv).removeView(cv);
 					children.remove(child);
@@ -296,6 +296,11 @@ public abstract class TiUIView
 	public View getNativeView()
 	{
 		return nativeView;
+	}
+
+	public View getParentViewForChild()
+	{
+		return getNativeView();
 	}
 
 	/**
@@ -421,7 +426,7 @@ public abstract class TiUIView
 		if (parent != null) {
 			TiUIView uiv = parent.peekView();
 			if (uiv != null) {
-				View v = uiv.getNativeView();
+				View v = uiv.getOuterView();
 				if (v.getVisibility() == View.INVISIBLE || v.getVisibility() == View.GONE) {
 					//if we have a parent which is hidden, we are hidden, so no need to layout
 					return;
@@ -438,14 +443,14 @@ public abstract class TiUIView
 				if (parent != null) {
 					TiUIView uiv = parent.peekView();
 					if (uiv != null) {
-						View v = uiv.getNativeView();
+						View v = uiv.getParentViewForChild();
 						if (v instanceof TiCompositeLayout) {
 							((TiCompositeLayout) v).resort();
 						}
 					}
 				}
 			}
-			nativeView.requestLayout();
+			getParentViewForChild().requestLayout();
 		}
 	}
 
@@ -673,36 +678,39 @@ public abstract class TiUIView
 	public void processProperties(KrollDict d)
 	{
 		boolean nativeViewNull = false;
+		View viewForLayout = getParentViewForChild();
+		
 		if (nativeView == null) {
 			nativeViewNull = true;
 			Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
 		}
-		if (d.containsKey(TiC.PROPERTY_LAYOUT)) {
-			String layout = TiConvert.toString(d, TiC.PROPERTY_LAYOUT);
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout)nativeView).setLayoutArrangement(layout);
+		
+		if (viewForLayout instanceof TiCompositeLayout) {
+			TiCompositeLayout tiLayout = (TiCompositeLayout)viewForLayout;
+			if (d.containsKey(TiC.PROPERTY_LAYOUT)) {
+				String layout = TiConvert.toString(d, TiC.PROPERTY_LAYOUT);
+				tiLayout.setLayoutArrangement(layout);
 			}
-		}
-		if (TiConvert.fillLayout(d, layoutParams) && !nativeViewNull) {
-			nativeView.requestLayout();
-		}
+			
 
-		if (d.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
+			if (d.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
+				tiLayout.setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
 			}
-		}
 
-		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+			if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+				tiLayout.setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+			}
+			if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
+//				if (nativeView instanceof ViewGroup) {
+//					((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				((ViewGroup) nativeView).setClipToPadding(false);
+//				}
 			}
 		}
-		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
-//			if (nativeView instanceof ViewGroup) {
-//				((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				((ViewGroup) nativeView).setClipToPadding(false);
-//			}
+		
+		if (TiConvert.fillLayout(d, layoutParams) && viewForLayout != null) {
+			viewForLayout.requestLayout();
 		}
+		
 		
 		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		
@@ -910,15 +918,11 @@ public abstract class TiUIView
 		if (this.visibility != visibility)
 			forceLayoutNativeView(true);
 		this.visibility = visibility;
-		
+		View view = getOuterView();
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
-		if (borderView != null) {
-			borderView.clearAnimation();
-			borderView.setVisibility(this.visibility);
-		}
-		if (nativeView != null) {
-			nativeView.clearAnimation();
-			nativeView.setVisibility(this.visibility);
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
 		}
 	}
 
@@ -928,7 +932,7 @@ public abstract class TiUIView
 	public void show()
 	{
 		this.setVisibility(View.VISIBLE);
-		if (borderView == null && nativeView == null) {
+		if (getOuterView() == null) {
 			Log.w(TAG, "Attempt to show null native control", Log.DEBUG_MODE);
 		}
 	}
@@ -939,7 +943,7 @@ public abstract class TiUIView
 	public void hide()
 	{
 		this.setVisibility(View.INVISIBLE);
-		if (borderView == null && nativeView == null) {
+		if (getOuterView() == null) {
 			Log.w(TAG, "Attempt to hide null native control", Log.DEBUG_MODE);
 		}
 	}

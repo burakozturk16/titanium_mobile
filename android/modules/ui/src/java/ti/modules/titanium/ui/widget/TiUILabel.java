@@ -17,6 +17,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
@@ -28,6 +29,7 @@ import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -77,6 +79,10 @@ public class TiUILabel extends TiUIView
 	private float shadowRadius;
 	private Rect textPadding;
 	
+	private TiCompositeLayout childrenHolder;
+	private FrameLayout layout;
+	private TextView tv;
+	
 	public class CustomTypefaceSpan extends TypefaceSpan {
         private final Typeface newType;
         private final String fontFamily;
@@ -104,7 +110,6 @@ public class TiUILabel extends TiUIView
         }
 
         private void applyCustomTypeFace(Paint paint, Typeface tf) {
-    		TextView tv = (TextView) getNativeView();
     		tf = TiUIHelper.toTypeface(tv.getContext(), fontFamily);
             paint.setTypeface(tf);
         }
@@ -588,15 +593,12 @@ public class TiUILabel extends TiUIView
 		}
 	}
 
+
 	public TiUILabel(final TiViewProxy proxy)
 	{
 		super(proxy);
-		shadowColor = 0;
-		shadowDx = 0;
-		shadowDy = 0;
-		textPadding = new Rect();
 		Log.d(TAG, "Creating a text label", Log.DEBUG_MODE);
-		TextView tv = new EllipsizingTextView(getProxy().getActivity());
+		tv = new EllipsizingTextView(getProxy().getActivity());
 		shadowColor = 0;
 		shadowRadius = 1;
 		shadowDx = 0;
@@ -610,8 +612,25 @@ public class TiUILabel extends TiUIView
 		tv.setSingleLine(false);
 		TiUIHelper.styleText(tv, null);
 		defaultColor = tv.getCurrentTextColor();
+		
+		layout = new FrameLayout(proxy.getActivity());
+		childrenHolder = new TiCompositeLayout(proxy.getActivity());
+		layout.addView(tv);
+		layout.addView(childrenHolder);
 		setNativeView(tv);
 
+	}
+	
+	@Override
+	public View getParentViewForChild()
+	{
+		return childrenHolder;
+	}
+
+	@Override
+	public View getOuterView()
+	{
+		return layout;
 	}
 	
 	private Spanned fromHtml(String str)
@@ -638,7 +657,6 @@ public class TiUILabel extends TiUIView
 	{
 
 		super.processProperties(d);
-		TextView tv = (TextView) getNativeView();
 		if (tv == null) return;
 
 		// Clear any text style left over here if view is recycled
@@ -753,7 +771,6 @@ public class TiUILabel extends TiUIView
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		TextView tv = (TextView) getNativeView();
 		if (key.equals(TiC.PROPERTY_HTML)) {
 			String html = TiConvert.toString(newValue);
 			if (html == null) {
@@ -844,7 +861,7 @@ public class TiUILabel extends TiUIView
 	}
 
 	public void setClickable(boolean clickable) {
-		((TextView)getNativeView()).setClickable(clickable);
+		tv.setClickable(clickable);
 	}
 
 	@Override

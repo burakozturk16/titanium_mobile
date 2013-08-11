@@ -11,11 +11,11 @@ import java.util.HashMap;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -24,6 +24,7 @@ import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.content.res.ColorStateList;
 
 public class TiUIButton extends TiUIView
@@ -39,6 +40,8 @@ public class TiUIButton extends TiUIView
 	private Rect titlePadding;
 	private Drawable imageDrawable;
 	private int imageGravity;
+	private TiCompositeLayout childrenHolder;
+	private FrameLayout layout;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
@@ -57,10 +60,26 @@ public class TiUIButton extends TiUIView
 				TiUIHelper.firePostLayoutEvent(proxy);
 			}
 		};
+		layout = new FrameLayout(proxy.getActivity());
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
 		defaultColor = btn.getCurrentTextColor();
+		childrenHolder = new TiCompositeLayout(proxy.getActivity());
+		layout.addView(btn);
+		layout.addView(childrenHolder);
 		setNativeView(btn);
+	}
+
+	@Override
+	public View getParentViewForChild()
+	{
+		return childrenHolder;
+	}
+
+	@Override
+	public View getOuterView()
+	{
+		return layout;
 	}
 
 	private void setTextColors(int color, int selectedColor) {
@@ -232,7 +251,6 @@ public class TiUIButton extends TiUIView
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SELECTED)) {
 			btn.setPressed(TiConvert.toBoolean(newValue));
-			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), newValue);
 

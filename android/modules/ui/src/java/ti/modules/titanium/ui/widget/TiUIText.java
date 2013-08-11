@@ -194,7 +194,7 @@ public class TiUIText extends TiUIView
 				this.leftView = null;
 			} else if (leftView instanceof TiViewProxy) {
 				this.leftView = (TiViewProxy)leftView;
-				leftPane.addView((this.leftView.getOrCreateView()).getNativeView());
+				leftPane.addView((this.leftView.getOrCreateView()).getOuterView());
 				leftPane.setVisibility(View.VISIBLE);
 			} else if (leftView instanceof View) {
 				leftPane.addView((View)leftView);
@@ -222,7 +222,7 @@ public class TiUIText extends TiUIView
 				rightPane.setVisibility(View.GONE);
 			} else if (rightView instanceof TiViewProxy) {
 				this.rightView = (TiViewProxy)rightView;
-				rightPane.addView((this.rightView.getOrCreateView()).getNativeView());
+				rightPane.addView((this.rightView.getOrCreateView()).getOuterView());
 				rightPane.setVisibility(View.VISIBLE);
 			} else if (rightView instanceof View) {
 				rightPane.addView((View)rightView);

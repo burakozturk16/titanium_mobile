@@ -590,7 +590,7 @@ public class ListSectionProxy extends ViewProxy{
 			rootItem.bindView(child.getBindingId(), viewItem);
 			//Add it to view hierarchy
 			if (root) {
-				rootItem.addView(view.getNativeView(), view.getLayoutParams());
+				rootItem.addView(view.getOuterView(), view.getLayoutParams());
 			} else {
 				parentContent.add(view);
 			}
