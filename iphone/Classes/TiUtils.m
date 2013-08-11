@@ -1185,6 +1185,60 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return align;
 }
 
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment
+{
+	UIControlContentHorizontalAlignment align = UIControlContentHorizontalAlignmentCenter;
+    
+	if ([alignment isKindOfClass:[NSString class]])
+	{
+		if ([alignment isEqualToString:@"left"])
+		{
+			align = UIControlContentHorizontalAlignmentLeft;
+		}
+		else if ([alignment isEqualToString:@"center"])
+		{
+			align = UIControlContentHorizontalAlignmentCenter;
+		}
+		else if ([alignment isEqualToString:@"right"])
+		{
+			align = UIControlContentHorizontalAlignmentRight;
+		}
+	}
+	else if ([alignment isKindOfClass:[NSNumber class]])
+	{
+		align = [alignment intValue];
+		if (align < UIControlContentHorizontalAlignmentCenter || align > UIControlContentHorizontalAlignmentRight)
+			align = UIControlContentHorizontalAlignmentCenter;
+	}
+	return align;
+}
+
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValueFromTextAlignment:(id)alignment
+{
+	UIControlContentHorizontalAlignment align = UIControlContentHorizontalAlignmentCenter;
+    
+	if ([alignment isKindOfClass:[NSString class]])
+	{
+		return [TiUtils contentHorizontalAlignmentValue:alignment];
+	}
+	else if ([alignment isKindOfClass:[NSNumber class]])
+	{
+		align = [alignment intValue];
+		switch (align) {
+            case UITextAlignmentLeft:
+                align = UIControlContentHorizontalAlignmentLeft;
+                break;
+            case UITextAlignmentRight:
+                align = UIControlContentHorizontalAlignmentRight;
+                break;
+            default:
+                align = UIControlContentHorizontalAlignmentCenter;
+                break;
+        }
+	}
+	return align;
+}
+
 #define RETURN_IF_ORIENTATION_STRING(str,orientation) \
 if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation;
 

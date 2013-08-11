@@ -66,7 +66,7 @@
 
 -(void)setHighlighting:(BOOL)isHiglighted
 {
-	for (TiUIView * thisView in [[self button] subviews])
+	for (TiUIView * thisView in [self subviews])
 	{
 		if ([thisView respondsToSelector:@selector(setHighlighted:)])
 		{
@@ -394,8 +394,8 @@
 
 -(void)setTextAlign_:(id)alignment
 {
-    UIButton *b = [self button];
-    [[b titleLabel] setTextAlignment:[TiUtils textAlignmentValue:alignment]];
+    [button setContentHorizontalAlignment:[TiUtils contentHorizontalAlignmentValueFromTextAlignment:alignment]];
+    [button setNeedsLayout];
 }
 
 -(void)setShadowColor_:(id)color
@@ -459,6 +459,7 @@
 -(void)setVerticalAlign_:(id)alignment
 {
 	[button setContentVerticalAlignment:[TiUtils contentVerticalAlignmentValue:alignment]];
+    [button setNeedsLayout];
 }
 
 -(CGFloat)contentWidthForWidth:(CGFloat)value

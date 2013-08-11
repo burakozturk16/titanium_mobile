@@ -427,6 +427,8 @@ typedef enum {
 +(UITextAlignment)textAlignmentValue:(id)alignment;
 
 +(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment;
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment;
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValueFromTextAlignment:(id)alignment;
 
 /**
  Whether or not the current device orientation is portrait.
