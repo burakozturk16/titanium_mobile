@@ -599,7 +599,8 @@ exports.validate = function (logger, config, cli) {
 			cli.argv['distribution-name'] = (cli.argv['distribution-name'] || '').trim();
 
 			var p = iosEnv.certs.distNames.map(function (name) {
-				return name.toLowerCase();
+				var m = name.match(/^([^(]+?)*/);
+				return (m ? m[0] : name).trim().toLowerCase();
 			}).indexOf(cli.argv['distribution-name'].toLowerCase());
 
 			if (p != -1) {
