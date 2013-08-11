@@ -24,10 +24,12 @@
     CGFloat cornersRadius;
     UIRectCorner roundedCorners;
     BOOL _imageRepeat;
+    BOOL animateTransition;
 }
 @property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;
 @property(nonatomic,readonly) NSArray *stateLayers;
+@property(nonatomic,assign) BOOL animateTransition;
 
 - (void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect;
 

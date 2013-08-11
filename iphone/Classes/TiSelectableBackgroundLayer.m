@@ -51,11 +51,12 @@
 @interface TiSelectableBackgroundLayer()
 {
     TiDrawable* currentLayer;
+    UIControlState currentState;
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, animateTransition;
 
 - (id) initWithLayer:(id)layer {
     if(self = [super initWithLayer:layer]) {
@@ -72,6 +73,8 @@
     {
         stateLayersMap = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
         stateLayers = [[NSMutableArray array] retain];
+        animateTransition = NO;
+        _imageRepeat = NO;
         self.masksToBounds=YES;
         self.needsDisplayOnBoundsChange = YES;
         self.contentsScale = [[UIScreen mainScreen] scale];
@@ -146,11 +149,21 @@
 - (void)setState:(UIControlState)state
 {
     currentLayer = (TiDrawable*)[stateLayersMap objectForKey:[[NSNumber numberWithInt:state] stringValue]];
+    currentState = state;
     if (currentLayer == nil) {
         currentLayer = (TiDrawable*)[stateLayersMap objectForKey:[[NSNumber numberWithInt:UIControlStateNormal] stringValue]];
+        currentState = UIControlStateNormal;
     }
     [self setNeedsDisplay];
 }
+
+- (id<CAAction>)actionForKey:(NSString *)event
+{
+    if (!animateTransition && [event isEqualToString:@"contents"])
+        return nil;
+    return [super actionForKey:event];
+}
+
 
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state
 {
@@ -161,6 +174,9 @@
         drawable.imageRepeat = _imageRepeat;
         [stateLayersMap setObject:drawable forKey:key];
         [drawable release];
+        if (currentLayer == nil && state == currentState) {
+            currentLayer = drawable;
+        }
     }
     return drawable;
 }
@@ -176,17 +192,26 @@
 - (void)setColor:(UIColor*)color forState:(UIControlState)state
 {
     [self getOrCreateDrawableForState:state].color = color;
+    if (state == currentState) {
+        [self setNeedsDisplay];
+    }
 }
 
 
 - (void)setImage:(UIImage*)image forState:(UIControlState)state
 {
     [self getOrCreateDrawableForState:state].image = image;
+    if (state == currentState) {
+        [self setNeedsDisplay];
+    }
 }
 
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state
 {
     [self getOrCreateDrawableForState:state].gradient = gradient;
+    if (state == currentState) {
+        [self setNeedsDisplay];
+    }
 }
 
 

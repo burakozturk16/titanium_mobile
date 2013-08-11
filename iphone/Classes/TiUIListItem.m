@@ -326,6 +326,7 @@
     
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
     _bgLayer.frame = self.contentView.bounds;
+    _bgLayer.animateTransition = YES;
     [self.contentView.layer insertSublayer:_bgLayer atIndex:0];
     
     [self updateBackgroundLayerCorners];
