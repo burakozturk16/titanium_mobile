@@ -23,7 +23,6 @@
 {
 	[button removeTarget:self action:NULL forControlEvents:UIControlEventAllTouchEvents];
 	RELEASE_TO_NIL(button);
-	RELEASE_TO_NIL(viewGroupWrapper);
 	RELEASE_TO_NIL(backgroundImageCache)
 	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	[super dealloc];
@@ -58,21 +57,6 @@
     }
 }
 
--(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-	UIView *superResult = [super hitTest:point withEvent:event];
-	
-	if(superResult == nil) {
-		return nil;
-	}
-	
-	if((viewGroupWrapper == superResult) || ([superResult isKindOfClass:[TiUIView class]] 
-	   && ![(TiUIView*)superResult touchEnabled])) {
-		return [self button];
-	}
-
-	return superResult;
-}
-
 -(BOOL)hasTouchableListener
 {
 	// since this guy only works with touch events, we always want them
@@ -82,7 +66,7 @@
 
 -(void)setHighlighting:(BOOL)isHiglighted
 {
-	for (TiUIView * thisView in [viewGroupWrapper subviews])
+	for (TiUIView * thisView in [[self button] subviews])
 	{
 		if ([thisView respondsToSelector:@selector(setHighlighted:)])
 		{
@@ -191,35 +175,14 @@
 		}
 		[button addTarget:self action:@selector(controlAction:forEvent:) forControlEvents:UIControlEventAllTouchEvents];
 		button.exclusiveTouch = YES;
-	}
-	if ((viewGroupWrapper != nil) && ([viewGroupWrapper	superview]!=button)) {
-		[viewGroupWrapper setFrame:[button bounds]];
-		[button addSubview:viewGroupWrapper];
-	}
+        [self addSubview:button];
+    }
 	return button;
 }
 
 - (id)accessibilityElement
 {
 	return [self button];
-}
-
--(UIView *) viewGroupWrapper
-{
-	if (viewGroupWrapper == nil) {
-		viewGroupWrapper = [[UIView alloc] initWithFrame:[self bounds]];
-		[viewGroupWrapper setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-	}
-	if (button != [viewGroupWrapper superview]) {
-		if (button != nil) {
-			[viewGroupWrapper setFrame:[button bounds]];
-			[button addSubview:viewGroupWrapper];
-		}
-		else {
-			[viewGroupWrapper removeFromSuperview];
-		}
-	}
-	return viewGroupWrapper;
 }
 
 #pragma mark Public APIs
