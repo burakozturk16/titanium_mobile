@@ -50,6 +50,7 @@
     textRect.origin.y = 0;
     textRect.size.width += textPadding.origin.x + textPadding.size.width;
     textRect.size.height += textPadding.origin.y + textPadding.size.height;
+
     return textRect.size;
 }
 

@@ -25,6 +25,7 @@
 @property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
 
 -(void)setAttributedTextViewContent;
+- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth;
 
 @end
 

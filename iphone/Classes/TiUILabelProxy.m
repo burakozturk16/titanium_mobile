@@ -253,8 +253,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     [options setValue:newColor forKey:DTDefaultLinkColor];
     
     //we need to reset the text to update default paragraph settings
-    [self updateAttributeText];
 	[self replaceValue:color forKey:@"color" notification:YES];
+    [self updateAttributeText];
 }
 
 -(void)setFont:(id)font
@@ -273,8 +273,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
     
     //we need to reset the text to update default paragraph settings
-    [self updateAttributeText];
 	[self replaceValue:font forKey:@"font" notification:YES];
+    [self updateAttributeText];
 }
 
 -(void)setTextAlign:(id)alignment
@@ -282,8 +282,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     [options setValue:[NSNumber numberWithInt:UITextAlignmentToCTTextAlignment([TiUtils textAlignmentValue:alignment])] forKey:DTDefaultTextAlignment];
     
     //we need to reset the text to update default paragraph settings
-    [self updateAttributeText];
 	[self replaceValue:alignment forKey:@"textAlign" notification:YES];
+    [self updateAttributeText];
 }
 
 -(void)setMultiLineEllipsize:(id)value
