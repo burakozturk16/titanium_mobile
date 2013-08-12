@@ -640,7 +640,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderRadius_:(id)radius
 {
-	self.layer.cornerRadius = TiDimensionCalculateValueFromString([TiUtils stringValue:radius]);
+	self.layer.cornerRadius = [TiUtils floatValue:radius];
     if (_bgLayer) {
         _bgLayer.cornerRadius = self.layer.cornerRadius;
     }

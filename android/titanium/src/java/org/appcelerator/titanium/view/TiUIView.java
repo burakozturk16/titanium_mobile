@@ -627,7 +627,7 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			setBorderColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
-			setBorderRadius(TiUIHelper.getRawSizeOrZero(newValue));
+			setBorderRadius(TiConvert.toFloat(newValue, 0f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
@@ -785,7 +785,7 @@ public abstract class TiUIView
 			setBorderColor(TiConvert.toString(d, TiC.PROPERTY_BORDER_COLOR));
 		}
 		if (d.containsKey(TiC.PROPERTY_BORDER_RADIUS)) {
-			setBorderRadius(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_RADIUS));
+			setBorderRadius(TiConvert.toFloat(d, TiC.PROPERTY_BORDER_RADIUS, 0f));
 		}
 		if (d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_WIDTH));
