@@ -627,9 +627,9 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			setBorderColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
-			setBorderRadius(TiConvert.toFloat(newValue, 0f));
+			setBorderRadius(TiUIHelper.getRawSizeOrZero(newValue));
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
-			setBorderWidth(TiConvert.toFloat(newValue, 0f));
+			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
 			setOpacity(TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
@@ -785,10 +785,10 @@ public abstract class TiUIView
 			setBorderColor(TiConvert.toString(d, TiC.PROPERTY_BORDER_COLOR));
 		}
 		if (d.containsKey(TiC.PROPERTY_BORDER_RADIUS)) {
-			setBorderRadius(TiConvert.toFloat(d, TiC.PROPERTY_BORDER_RADIUS, 0f));
+			setBorderRadius(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_RADIUS));
 		}
 		if (d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
-			setBorderWidth(TiConvert.toFloat(d, TiC.PROPERTY_BORDER_WIDTH, 0f));
+			setBorderWidth(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_WIDTH));
 		} 
 
 		if (d.containsKey(TiC.PROPERTY_VISIBLE) && !nativeViewNull) {

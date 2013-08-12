@@ -509,18 +509,6 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Public APIs
 
--(void)setBorderColor_:(id)color
-{
-	TiColor *ticolor = [TiUtils colorValue:color];
-	self.layer.borderWidth = MAX(self.layer.borderWidth,1);
-	self.layer.borderColor = [ticolor _color].CGColor;
-}
- 
--(void)setBorderWidth_:(id)w
-{ 
-	self.layer.borderWidth = [TiUtils sizeValue:w];
-}
-
 -(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
     if (_bgLayer != nil) {
@@ -652,11 +640,24 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderRadius_:(id)radius
 {
-	self.layer.cornerRadius = [TiUtils floatValue:radius];
+	self.layer.cornerRadius = TiDimensionCalculateValueFromString([TiUtils stringValue:radius]);
     if (_bgLayer) {
         _bgLayer.cornerRadius = self.layer.cornerRadius;
     }
     [self updateViewShadowPath];
+}
+
+
+-(void)setBorderColor_:(id)color
+{
+	TiColor *ticolor = [TiUtils colorValue:color];
+	self.layer.borderWidth = MAX(self.layer.borderWidth,1);
+	self.layer.borderColor = [ticolor _color].CGColor;
+}
+
+-(void)setBorderWidth_:(id)w
+{
+	self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setAnchorPoint_:(id)point

@@ -389,6 +389,10 @@ public class TiUIHelper
 	public static float getRawSizeOrZero(KrollDict dict, String property) {
 		return getRawSizeOrZero(dict, property, null);
 	}
+
+	public static float getRawSizeOrZero(Object value) {
+		return getRawSize(TiConvert.toString(value), null);
+	}
 	
 	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
 		FontDesc desc = new FontDesc();
