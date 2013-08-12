@@ -335,27 +335,22 @@
 	[[self label] setShadowOffset:size];
 }
 
--(void)setTextPaddingLeft_:(id)left
+-(void)setTextPadding_:(id)value
 {
-    textPadding.origin.x = [TiUtils floatValue:left];
-    [self padLabel];
-}
-
--(void)setTextPaddingRight_:(id)right
-{
-    textPadding.size.width = [TiUtils floatValue:right];
-    [self padLabel];
-}
-
--(void)setTextPaddingTop_:(id)top
-{
-    textPadding.origin.y = [TiUtils floatValue:top];
-    [self padLabel];
-}
-
--(void)setTextPaddingBottom_:(id)bottom
-{
-    textPadding.size.height = [TiUtils floatValue:bottom];
+	ENSURE_SINGLE_ARG(value,NSDictionary);
+    NSDictionary* paddingDict = (NSDictionary*)value;
+    if ([paddingDict objectForKey:@"left"]) {
+        textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
+    }
+    if ([paddingDict objectForKey:@"right"]) {
+        textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
+    }
+    if ([paddingDict objectForKey:@"top"]) {
+        textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
+    }
+    if ([paddingDict objectForKey:@"bottom"]) {
+        textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
+    }
     [self padLabel];
 }
 
