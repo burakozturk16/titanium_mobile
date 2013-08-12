@@ -1776,7 +1776,11 @@ public abstract class TiUIView
 	}
 	public int getTiBottom() {
 		View view =  getOuterView();
-		return view.getBottom();
+		View parent =  (View)getOuterView().getParent();
+		if (parent != null) {
+			return parent.getMeasuredHeight() - view.getBottom();
+		}
+		return 0;
 	}
 	public void setTiLeft(int val) {
 		View view =  getOuterView();
@@ -1802,7 +1806,11 @@ public abstract class TiUIView
 	}
 	public int getTiRight() {
 		View view =  getOuterView();
-		return view.getRight();
+		View parent =  (View)getOuterView().getParent();
+		if (parent != null) {
+			return parent.getMeasuredWidth() - view.getRight();
+		}
+		return 0;
 	}
 	public void setTiCenterX(int val) {
 		View view =  getOuterView();
