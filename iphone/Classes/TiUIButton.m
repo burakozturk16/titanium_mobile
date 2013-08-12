@@ -402,8 +402,10 @@
 
 -(void)setTextAlign_:(id)alignment
 {
-    [button setContentHorizontalAlignment:[TiUtils contentHorizontalAlignmentValueFromTextAlignment:alignment]];
-    [button setNeedsLayout];
+    UIButton *b = [self button];
+    [[b titleLabel] setTextAlignment:[TiUtils textAlignmentValue:alignment]];
+    [b setContentHorizontalAlignment:[TiUtils contentHorizontalAlignmentValueFromTextAlignment:alignment]];
+    [b setNeedsLayout];
 }
 
 -(void)setShadowColor_:(id)color
@@ -453,6 +455,7 @@
         titlePadding.bottom = [TiUtils floatValue:[padding objectForKey:@"bottom"]];
     }
 	[button setTitleEdgeInsets:titlePadding];
+    [button setNeedsLayout];
 }
 
 -(void)setWordWrap_:(id)value
@@ -462,6 +465,7 @@
 		[[button titleLabel] setLineBreakMode:UILineBreakModeWordWrap];
 	else 
 		[[button titleLabel] setLineBreakMode:UILineBreakModeTailTruncation];
+    [button setNeedsLayout];
 }
 
 -(void)setVerticalAlign_:(id)alignment
