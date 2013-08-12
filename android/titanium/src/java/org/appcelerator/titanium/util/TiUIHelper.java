@@ -96,11 +96,26 @@ public class TiUIHelper
 	public static final int FACE_UP = 5;
 	public static final int FACE_DOWN = 6;
 	public static final int UNKNOWN = 7;
-	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|pt|in)?");
+	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
 
 	private static Method overridePendingTransition;
 	private static Map<String, String> resourceImageKeys = Collections.synchronizedMap(new HashMap<String, String>());
 	private static Map<String, Typeface> mCustomTypeFaces = Collections.synchronizedMap(new HashMap<String, Typeface>());
+	
+	public static class FontDesc {
+		public Float size = 15.0f;
+		public int sizeUnit = TypedValue.COMPLEX_UNIT_PX;
+		public Typeface typeface = null;
+		public int style = Typeface.NORMAL;
+		
+		public void setDefaults(Context context){
+			typeface = toTypeface(context, null);
+			float[] result = new float[2];
+			getSizeAndUnits(null, result);
+			sizeUnit = (int)result[0];
+			size = result[1];
+		}
+	}
 	
 	public static OnClickListener createDoNothingListener() {
 		return new OnClickListener() {
@@ -279,6 +294,49 @@ public class TiUIHelper
 
 		return units;
 	}
+	
+	public static void getSizeAndUnits(String size, float[] result) {
+		int units = TypedValue.COMPLEX_UNIT_PX;
+		float value = 15.0f;
+		String unitString = null;
+
+		if (size != null) {
+			Matcher m = SIZED_VALUE.matcher(size.trim());
+			if (m.matches()) {
+				if (m.groupCount() == 2) {
+					unitString = m.group(2);
+					value = Float.parseFloat(m.group(1));
+				}
+			}
+		}
+
+		if (unitString == null) {
+			unitString = TiApplication.getInstance().getDefaultUnit();
+		}
+
+		if (TiDimension.UNIT_PX.equals(unitString) || TiDimension.UNIT_SYSTEM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_PX;
+		} else if (TiDimension.UNIT_PT.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_PT;
+		} else if (TiDimension.UNIT_DP.equals(unitString) || TiDimension.UNIT_DIP.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_DIP;
+		} else if (TiDimension.UNIT_SP.equals(unitString) || TiDimension.UNIT_SIP.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_SP;
+		} else if (TiDimension.UNIT_MM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_MM;
+		} else if (TiDimension.UNIT_CM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_MM;
+			value *= 10;
+		} else if (TiDimension.UNIT_IN.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_IN;
+		} else {
+			if (unitString != null) {
+				Log.w(TAG, "Unknown unit: " + unitString, Log.DEBUG_MODE);
+			}
+		}
+		result[0] = units;
+		result[1] = value;
+	}
 
 	public static float getSize(String size) {
 		float value = 15.0f;
@@ -301,40 +359,75 @@ public class TiUIHelper
 		}
 		return TypedValue.applyDimension(unit, size, r.getDisplayMetrics());
 	}
+
+	public static float getRawSize(int unit, float size) {
+		return getRawSize(unit, size, null);
+	}
 	
 	public static float getRawDIPSize(float size, Context context) {
 		return getRawSize(TypedValue.COMPLEX_UNIT_DIP, size, context);
 	}
 	
 	public static float getRawSize(String size, Context context) {
-		return getRawSize(getSizeUnits(size), getSize(size), context);
+		float[] result = new float[2];
+		getSizeAndUnits(size, result);
+		return getRawSize((int)result[0], result[1], context);
 	}
 
-	public static void styleText(TextView tv, HashMap<String, Object> d) {
-	
-		if (d == null) {
-			TiUIHelper.styleText(tv, null, null, null);
-			return;
-		}
-		
-		String fontSize = null;
-		String fontWeight = null;
-		String fontFamily = null;
-		String fontStyle = null;
+	public static float getRawSize(String size) {
+		return getRawSize(size, null);
+	}
 
+	public static float getRawSizeOrZero(KrollDict dict, String property,
+			Context context) {
+		if (dict.containsKey(property)) {
+			return TiUIHelper.getRawSize(dict.getString(property), context);
+		}
+		return 0;
+	}
+
+	public static float getRawSizeOrZero(KrollDict dict, String property) {
+		return getRawSizeOrZero(dict, property, null);
+	}
+	
+	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
+		FontDesc desc = new FontDesc();
+		if (d == null) {
+			desc.setDefaults(context);
+			return desc;
+		}
+		String fontSize = null;
 		if (d.containsKey("fontSize")) {
 			fontSize = TiConvert.toString(d, "fontSize");
 		}
-		if (d.containsKey("fontWeight")) {
-			fontWeight = TiConvert.toString(d, "fontWeight");
-		}
+		float[] result = new float[2];
+		getSizeAndUnits(fontSize, result);
+		desc.sizeUnit = (int)result[0]; 
+		desc.size = result[1]; 
+		
+		String fontFamily = null;
 		if (d.containsKey("fontFamily")) {
 			fontFamily = TiConvert.toString(d, "fontFamily");
+		}
+		desc.typeface = toTypeface(context, fontFamily);
+		
+		String fontWeight = null;
+		String fontStyle = null;
+		if (d.containsKey("fontWeight")) {
+			fontWeight = TiConvert.toString(d, "fontWeight");
 		}
 		if (d.containsKey("fontStyle")) {
 			fontStyle = TiConvert.toString(d, "fontStyle");
 		}
-		TiUIHelper.styleText(tv, fontFamily, fontSize, fontWeight, fontStyle);
+		desc.style = toTypefaceStyle(fontWeight, fontStyle);
+
+		return desc;
+	}
+	
+	public static void styleText(TextView tv, HashMap<String, Object> d) {
+		FontDesc desc = getFontStyle(tv.getContext(), d);
+		tv.setTypeface(desc.typeface, desc.style);
+		tv.setTextSize(desc.sizeUnit, desc.size);
 	}
 
 	public static void styleText(TextView tv, String fontFamily, String fontSize, String fontWeight)
@@ -347,7 +440,9 @@ public class TiUIHelper
 		Typeface tf = tv.getTypeface();
 		tf = toTypeface(tv.getContext(), fontFamily);
 		tv.setTypeface(tf, toTypefaceStyle(fontWeight, fontStyle));
-		tv.setTextSize(getSizeUnits(fontSize), getSize(fontSize));
+		float[] result = new float[2];
+		getSizeAndUnits(fontSize, result);
+		tv.setTextSize((int)result[0], result[1]);
 	}
 
 	public static Typeface toTypeface(Context context, String fontFamily)

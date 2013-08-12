@@ -2211,22 +2211,7 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TEXT_PADDING_LEFT = "textPaddingLeft";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TEXT_PADDING_RIGHT = "textPaddingRight";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TEXT_PADDING_TOP = "textPaddingTop";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TEXT_PADDING_BOTTOM = "textPaddingBottom";
+	public static final String PROPERTY_TEXT_PADDING = "textPadding";
 
 	/**
 	 * @module.api

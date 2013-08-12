@@ -605,7 +605,7 @@ public class TiUILabel extends TiUIView
 		shadowDy = 0;
 		textPadding = new Rect();
 		tv.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
-		tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		// tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 		tv.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		tv.setKeyListener(null);
 		tv.setFocusable(false);
@@ -731,20 +731,21 @@ public class TiUILabel extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
 		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_LEFT)) {
-			textPadding.left = TiConvert.toInt(d, TiC.PROPERTY_TEXT_PADDING_LEFT);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_RIGHT)) {
-			textPadding.right = TiConvert.toInt(d, TiC.PROPERTY_TEXT_PADDING_RIGHT);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_TOP)) {
-			textPadding.top = TiConvert.toInt(d, TiC.PROPERTY_TEXT_PADDING_TOP);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING_BOTTOM)) {
-			textPadding.bottom = TiConvert.toInt(d, TiC.PROPERTY_TEXT_PADDING_BOTTOM);
+
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
+			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TEXT_PADDING);
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
+			}
 			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
@@ -828,20 +829,20 @@ public class TiUILabel extends TiUIView
 			tv.setMaxLines(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
 			Linkify.addLinks(tv, TiConvert.toInt(newValue));
-		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_LEFT)) {
-			textPadding.left = TiConvert.toInt(newValue);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_RIGHT)) {
-			textPadding.right = TiConvert.toInt(newValue);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_TOP)) {
-			textPadding.top = TiConvert.toInt(newValue);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
-			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_TEXT_PADDING_BOTTOM)) {
-			textPadding.bottom = TiConvert.toInt(newValue);
+		}  else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
+			KrollDict dict = (KrollDict) newValue;
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
+			}
 			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {

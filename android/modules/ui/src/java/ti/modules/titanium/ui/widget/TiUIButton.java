@@ -152,16 +152,16 @@ public class TiUIButton extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING)) {
 			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TITLE_PADDING);
 			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = dict.getInt(TiC.PROPERTY_LEFT);
+				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
 			}
 			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right = dict.getInt(TiC.PROPERTY_RIGHT);
+				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
 			}
 			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top = dict.getInt(TiC.PROPERTY_TOP);
+				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
 			}
 			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom = dict.getInt(TiC.PROPERTY_BOTTOM);
+				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
 			}
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		}
@@ -221,16 +221,16 @@ public class TiUIButton extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
 			KrollDict dict = (KrollDict) newValue;
 			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = dict.getInt(TiC.PROPERTY_LEFT);
+				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
 			}
 			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right = dict.getInt(TiC.PROPERTY_RIGHT);
+				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
 			}
 			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top = dict.getInt(TiC.PROPERTY_TOP);
+				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
 			}
 			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom = dict.getInt(TiC.PROPERTY_BOTTOM);
+				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
 			}
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 			btn.requestLayout();
