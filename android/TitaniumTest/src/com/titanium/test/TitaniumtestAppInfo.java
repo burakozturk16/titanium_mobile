@@ -17,8 +17,8 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
 		TiProperties properties = app.getSystemProperties();
 		TiProperties appProperties = app.getAppProperties();
 					
-					properties.setString("ti.ui.defaultunit", "system");
-					appProperties.setString("ti.ui.defaultunit", "system");
+					properties.setString("ti.ui.defaultunit", "dp");
+					appProperties.setString("ti.ui.defaultunit", "dp");
 					properties.setBool("ti.android.bug2373.finishfalseroot", true);
 					appProperties.setBool("ti.android.bug2373.finishfalseroot", true);
 					properties.setBool("ti.android.fastdev", false);
