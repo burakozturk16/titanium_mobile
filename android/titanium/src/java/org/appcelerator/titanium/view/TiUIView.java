@@ -300,7 +300,7 @@ public abstract class TiUIView
 
 	public View getParentViewForChild()
 	{
-		return getNativeView();
+		return nativeView;
 	}
 
 	/**
@@ -426,7 +426,7 @@ public abstract class TiUIView
 		if (parent != null) {
 			TiUIView uiv = parent.peekView();
 			if (uiv != null) {
-				View v = uiv.getOuterView();
+				View v = uiv.getNativeView();
 				if (v.getVisibility() == View.INVISIBLE || v.getVisibility() == View.GONE) {
 					//if we have a parent which is hidden, we are hidden, so no need to layout
 					return;
@@ -697,14 +697,16 @@ public abstract class TiUIView
 				tiLayout.setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
 			}
 
-			if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-				tiLayout.setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
-			}
+			
 			if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
 //				if (nativeView instanceof ViewGroup) {
 //					((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				((ViewGroup) nativeView).setClipToPadding(false);
 //				}
 			}
+		}
+
+		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH) && (nativeView instanceof TiCompositeLayout)) {
+			((TiCompositeLayout)nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
 		}
 		
 		if (TiConvert.fillLayout(d, layoutParams) && viewForLayout != null) {
@@ -918,11 +920,14 @@ public abstract class TiUIView
 		if (this.visibility != visibility)
 			forceLayoutNativeView(true);
 		this.visibility = visibility;
-		View view = getOuterView();
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
-		if (view != null) {
-			view.clearAnimation();
-			view.setVisibility(this.visibility);
+		if (borderView != null) {
+			borderView.clearAnimation();
+			borderView.setVisibility(this.visibility);
+		}
+		if (nativeView != null) {
+			nativeView.clearAnimation();
+			nativeView.setVisibility(this.visibility);
 		}
 	}
 
@@ -999,24 +1004,31 @@ public abstract class TiUIView
 	private void addBorderView(){
 		// Create new layout params for the child view since we just want the
 		// wrapper to control the layout
-		LayoutParams params = new LayoutParams();
-		params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-		params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+//		LayoutParams params = new LayoutParams();
+//		params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+//		params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
 		// If the view already has a parent, we need to detach it from the parent
 		// and add the borderView to the parent as the child
 		ViewGroup savedParent = null;
+		int savedIndex = 0;
 		android.view.ViewGroup.LayoutParams savedLayoutParams = null;
 		if (nativeView.getParent() != null) {
-			ViewParent nativeParent = getOuterView().getParent();
+			ViewParent nativeParent = nativeView.getParent();
 			if (nativeParent instanceof ViewGroup) {
 				savedParent = (ViewGroup) nativeParent;
 				savedLayoutParams = savedParent.getLayoutParams();
+				savedIndex = savedParent.indexOfChild(nativeView);
 				savedParent.removeView(nativeView);
 			}
 		}
-		borderView.addView(nativeView, params);
+		borderView.addView(nativeView);
 		if (savedParent != null) {
-			savedParent.addView(getOuterView(), savedLayoutParams);
+			if (savedLayoutParams != null) {
+				savedParent.addView(borderView, savedIndex, savedLayoutParams);
+			}
+			else {
+				savedParent.addView(borderView, savedIndex);
+			}
 		}
 		
 		if (borderView.getRadius() > 0f && HONEYCOMB_OR_GREATER) {
@@ -1120,7 +1132,7 @@ public abstract class TiUIView
 
 	public View getOuterView()
 	{
-		return borderView == null ? getNativeView() : borderView;
+		return borderView == null ? nativeView : borderView;
 	}
 
 	public void registerForTouch()
