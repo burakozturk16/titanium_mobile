@@ -196,10 +196,44 @@ TI_INLINE BOOL TiDimensionDidCalculateValue(TiDimension dimension,CGFloat boundi
 	return NO;
 }
 
+TI_INLINE BOOL TiDimensionDidCalculateValueNoPercent(TiDimension dimension, CGFloat * result)
+{
+	switch (dimension.type)
+	{
+		case TiDimensionTypeDip:
+			*result = dimension.value;
+			return YES;
+		default: {
+			break;
+		}
+	}
+	return NO;
+}
+
 TI_INLINE CGFloat TiDimensionCalculateValue(TiDimension dimension,CGFloat boundingValue)
 {
 	CGFloat result;
 	if(TiDimensionDidCalculateValue(dimension,boundingValue,&result))
+	{
+		return result;
+	}
+	return 0.0;
+}
+
+TI_INLINE CGFloat TiDimensionCalculateValueFromStringInBouding(NSString* value, CGFloat boundingValue)
+{
+	CGFloat result;
+	if(TiDimensionDidCalculateValue(TiDimensionFromObject(value),boundingValue,&result))
+	{
+		return result;
+	}
+	return 0.0;
+}
+
+TI_INLINE CGFloat TiDimensionCalculateValueFromString(NSString* value)
+{
+	CGFloat result;
+	if(TiDimensionDidCalculateValueNoPercent(TiDimensionFromObject(value),&result))
 	{
 		return result;
 	}
