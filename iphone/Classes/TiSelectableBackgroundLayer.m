@@ -73,6 +73,7 @@
     {
         stateLayersMap = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
         stateLayers = [[NSMutableArray array] retain];
+        currentState = UIControlStateNormal;
         animateTransition = NO;
         _imageRepeat = NO;
         self.masksToBounds=YES;
@@ -148,6 +149,7 @@
 
 - (void)setState:(UIControlState)state
 {
+    if (state == currentState) return;
     currentLayer = (TiDrawable*)[stateLayersMap objectForKey:[[NSNumber numberWithInt:state] stringValue]];
     currentState = state;
     if (currentLayer == nil) {
@@ -155,6 +157,12 @@
         currentState = UIControlStateNormal;
     }
     [self setNeedsDisplay];
+}
+
+- (UIControlState)getState
+{
+    return currentState;
+    
 }
 
 - (id<CAAction>)actionForKey:(NSString *)event

@@ -34,6 +34,7 @@
 - (void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect;
 
 - (void)setState:(UIControlState)state;
+- (UIControlState)getState;
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state;
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(UIImage*)image forState:(UIControlState)state;
