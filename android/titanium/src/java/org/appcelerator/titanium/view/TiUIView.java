@@ -1726,7 +1726,7 @@ public abstract class TiUIView
 	
 	public void setTiWidth(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		params.height = val;
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
@@ -1740,7 +1740,7 @@ public abstract class TiUIView
 	}
 	public void setTiHeight(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		params.height = val;
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
@@ -1754,7 +1754,7 @@ public abstract class TiUIView
 	}
 	public void setTiTop(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionTop = new TiDimension(val, TiDimension.TYPE_TOP, TypedValue.COMPLEX_UNIT_PX);
@@ -1767,7 +1767,7 @@ public abstract class TiUIView
 	}
 	public void setTiBottom(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionBottom = new TiDimension(val, TiDimension.TYPE_BOTTOM, TypedValue.COMPLEX_UNIT_PX);
@@ -1784,7 +1784,7 @@ public abstract class TiUIView
 	}
 	public void setTiLeft(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionLeft = new TiDimension(val, TiDimension.TYPE_LEFT, TypedValue.COMPLEX_UNIT_PX);
@@ -1797,7 +1797,7 @@ public abstract class TiUIView
 	}
 	public void setTiRight(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionRight = new TiDimension(val, TiDimension.TYPE_RIGHT, TypedValue.COMPLEX_UNIT_PX);
@@ -1814,7 +1814,7 @@ public abstract class TiUIView
 	}
 	public void setTiCenterX(int val) {
 		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionCenterX = new TiDimension(val, TiDimension.TYPE_CENTER_X, TypedValue.COMPLEX_UNIT_PX);
@@ -1828,7 +1828,7 @@ public abstract class TiUIView
 	
 	public void setTiCenterY(int val) {
 		View view = getOuterView();
-		ViewGroup.LayoutParams params = getNativeView().getLayoutParams();
+		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
 		if (params instanceof TiCompositeLayout.LayoutParams) {
 			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
 			tiParams.optionCenterY = new TiDimension(val, TiDimension.TYPE_CENTER_Y, TypedValue.COMPLEX_UNIT_PX);
@@ -1936,7 +1936,7 @@ public abstract class TiUIView
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void prepareAnimatorSet(TiAnimatorSet tiSet) {
 		AnimatorSet set = tiSet.set();
-		final View view = proxy.viewToAnimate();
+		final View view = proxy.getOuterView();
 
 		List<Animator> list = new ArrayList<Animator>();
 		HashMap options = tiSet.getOptions();

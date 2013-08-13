@@ -503,11 +503,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			return view.getOuterView();
 		return null;
 	}
-	
-	public View viewToAnimate()
-	{
-		return getOuterView();
-	}
 
 	public void setView(TiUIView view)
 	{
@@ -895,7 +890,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 			pendingAnimation.cancel();
 		}
 		synchronized (pendingAnimationLock) {
-			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB || peekView() == null) {
 				pendingAnimation = new TiAnimationBuilder();
 			}
 			else {
@@ -954,7 +949,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		if (pendingAnimation == null) {
 			return;
 		}
-		View view = viewToAnimate();
+		View view = getOuterView();
 		if (view == null) {
 			pendingAnimation.applyOptions();
 			pendingAnimation.simulateFinish(this);

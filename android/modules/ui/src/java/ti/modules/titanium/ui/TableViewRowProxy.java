@@ -303,7 +303,13 @@ public class TableViewRowProxy extends TiViewProxy
 	}
 	
 	@Override
-	public View viewToAnimate()
+	public TiUIView peekView()
+	{
+		return null;
+	}
+
+	@Override
+	public View getOuterView()
 	{
 		return tableViewItem;
 	}

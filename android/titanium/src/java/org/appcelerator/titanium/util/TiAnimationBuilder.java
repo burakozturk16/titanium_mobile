@@ -44,6 +44,7 @@ import android.view.animation.AnimationSet;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 import android.view.animation.TranslateAnimation;
+import android.widget.ListView;
 
 public class TiAnimationBuilder
 {
@@ -82,12 +83,7 @@ public class TiAnimationBuilder
 	public void cancel(){
 		if (animating == false) return;
 		Log.d(TAG, "cancel", Log.DEBUG_MODE);
-		if (viewProxy != null) {
-			View view = viewProxy.viewToAnimate();
-			if (view != null)
-				view.clearAnimation();
-			view = viewProxy.getNativeView();
-			if (view != null)
+		if (view != null) {
 				view.clearAnimation();
 		}	
 		animating = false; //will prevent the call the handleFinish
@@ -220,7 +216,7 @@ public class TiAnimationBuilder
 	
 	public void animateOnView(TiViewProxy proxy) {
 		this.setViewProxy(proxy);
-		this.view = viewProxy.viewToAnimate();
+		this.view = viewProxy.getOuterView();
 		// Pre-honeycomb, if one animation clobbers another you get a problem whereby the background of the
 		// animated view's parent (or the grandparent) bleeds through.  It seems to improve if you cancel and clear
 		// the older animation.  So here we cancel and clear, then re-queue the desired animation.
@@ -352,7 +348,7 @@ public class TiAnimationBuilder
 
 	public AnimationSet render(TiViewProxy viewProxy)
 	{
-		View view = viewProxy.getNativeView();
+		View view = viewProxy.getOuterView();
 		ViewParent parent = view.getParent();
 		int parentWidth = 0;
 		int parentHeight = 0;
@@ -591,10 +587,6 @@ public class TiAnimationBuilder
 
 			SizeAnimation sizeAnimation = new SizeAnimation(view, w, h, toWidth, toHeight);
 
-			if (duration != null) {
-				sizeAnimation.setDuration(duration.longValue());
-			}
-
 			sizeAnimation.setInterpolator(new LinearInterpolator());
 //			sizeAnimation.setAnimationListener(animationListener);
 			addAnimation(as, sizeAnimation);
@@ -654,35 +646,37 @@ public class TiAnimationBuilder
 		{
 			super.applyTransformation(interpolatedTime, transformation);
 
-			int width = 0;
-			if (fromWidth == toWidth) {
-				width = (int) fromWidth;
-
-			} else {
-				width = (int) FloatMath.floor(fromWidth + ((toWidth - fromWidth) * interpolatedTime));
-			}
-
-			int height = 0;
-			if (fromHeight == toHeight) {
-				height = (int) fromHeight;
-
-			} else {
-				height = (int) FloatMath.floor(fromHeight + ((toHeight - fromHeight) * interpolatedTime));
-			}
-
-			ViewGroup.LayoutParams params = view.getLayoutParams();
-			params.width = width;
-			params.height = height;
-
-			if (params instanceof TiCompositeLayout.LayoutParams) {
-				TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-				tiParams.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
-				tiParams.optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
-				tiParams.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
-				tiParams.optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
-			}
-
-			view.setLayoutParams(params);
+	        if (interpolatedTime < 1.0f) { //fixes infinite animation
+				int width = 0;
+				if (fromWidth == toWidth) {
+					width = (int) fromWidth;
+	
+				} else {
+					width = (int) FloatMath.floor(fromWidth + ((toWidth - fromWidth) * interpolatedTime));
+				}
+	
+				int height = 0;
+				if (fromHeight == toHeight) {
+					height = (int) fromHeight;
+	
+				} else {
+					height = (int) FloatMath.floor(fromHeight + ((toHeight - fromHeight) * interpolatedTime));
+				}
+	
+				ViewGroup.LayoutParams params = view.getLayoutParams();
+				params.width = width;
+				params.height = height;
+	
+				if (params instanceof TiCompositeLayout.LayoutParams) {
+					TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
+					tiParams.optionHeight = new TiDimension(height, TiDimension.TYPE_HEIGHT);
+					tiParams.optionHeight.setUnits(TypedValue.COMPLEX_UNIT_PX);
+					tiParams.optionWidth = new TiDimension(width, TiDimension.TYPE_WIDTH);
+					tiParams.optionWidth.setUnits(TypedValue.COMPLEX_UNIT_PX);
+				}
+	
+				view.requestLayout();
+	        }
 		}
 		
 		@Override
@@ -766,6 +760,11 @@ public class TiAnimationBuilder
 					top + rect.height());
 			}
 		}
+		
+		@Override
+		public boolean willChangeTransformationMatrix() {
+		    return true;
+		}
 	}
 
 	public static class TiColorAnimation extends Animation
@@ -834,8 +833,9 @@ public class TiAnimationBuilder
 					if (view.getVisibility() == View.INVISIBLE) {
 						view.setVisibility(View.VISIBLE);
 					}
-
-					viewProxy.peekView().setOpacity(toOpacity.floatValue());
+					if (viewProxy.peekView() != null) {
+						viewProxy.peekView().setOpacity(toOpacity.floatValue());
+					}
 				}
 				applyOpacity = false;
 			}

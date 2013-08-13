@@ -111,7 +111,7 @@ public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
 			} else if(proxy instanceof TiAnimation) {
 				TiViewProxy viewProxy = mAnimations.get(proxy);
 				if (viewProxy != null) {
-					View view = viewProxy.viewToAnimate();
+					View view = viewProxy.getOuterView();
 					if (view != null) {
 						TiAnimatorSet tiSet = new TiAnimatorSet();
 						tiSet.setViewProxy(viewProxy);
