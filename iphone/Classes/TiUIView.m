@@ -341,10 +341,6 @@ DEFINE_EXCEPTIONS
         [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
     if (needsToSetBackgroundSelectedImage)
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
-    
-    if (_bgLayer) {
-        [_bgLayer setState:UIControlStateNormal];
-    }
 }
 
 -(void)setProxy:(TiProxy *)p
