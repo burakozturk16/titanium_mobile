@@ -1,11 +1,12 @@
 var win = Titanium.UI.currentWindow;
 win.backgroundColor = '#13386c';
+win.backgroundSelectedColor = 'green';
 win.name = "window";
 
-var a = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'orange',width:100,height:100,top:10,name:"view a"});
-var b = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'purple',width:100,height:100,top:115,right:40,name:"view b"});
-var c = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'red',width:100,height:100,top:115,left:40,name:"view c"});
-var d = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'cyan',width:100,height:100,top:220,name:"view d"});
+var a = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'orange',backgroundSelectedColor:'green',width:100,height:100,top:10,name:"view a"});
+var b = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'purple',backgroundSelectedColor:'green',width:100,height:100,top:115,right:40,name:"view b"});
+var c = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'red',backgroundSelectedColor:'green',width:100,height:100,top:115,left:40,name:"view c"});
+var d = Ti.UI.createView({borderColor:'#133899',borderWidth:6,borderRadius:2,backgroundColor:'cyan',backgroundSelectedColor:'green',width:100,height:100,top:220,name:"view d"});
 
 a.add(Ti.UI.createLabel({name:"label a",color:'white',text:'A',height:'auto',width:'auto',font:{fontSize:48,fontWeight:'bold',fontFamily:'Helvetica Neue'}}));
 b.add(Ti.UI.createLabel({name:"label b",color:'white',text:'B',height:'auto',width:'auto',font:{fontSize:48,fontWeight:'bold',fontFamily:'Helvetica Neue'}}));
@@ -54,6 +55,7 @@ function clear(o)
 win.addEventListener('click',function(ev)
 {
 	l2.text = "window: You clicked on " +ev.source.name;
+	Ti.API.info('Window Clicked: '+ev.source.name);
 	clear(l2);
 });
 
