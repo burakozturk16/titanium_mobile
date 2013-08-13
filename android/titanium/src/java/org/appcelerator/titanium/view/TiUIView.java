@@ -136,7 +136,7 @@ public abstract class TiUIView
 	private Method mSetLayerTypeMethod = null; // Honeycomb, for turning off hw acceleration.
 
 	private boolean zIndexChanged = false;
-	private TiBorderWrapperView borderView;
+	protected TiBorderWrapperView borderView;
 	// For twofingertap detection
 	private boolean didScale = false;
 
@@ -1002,6 +1002,7 @@ public abstract class TiUIView
 	}
 	
 	private void addBorderView(){
+		View rootView = getRootView();
 		// Create new layout params for the child view since we just want the
 		// wrapper to control the layout
 //		LayoutParams params = new LayoutParams();
@@ -1012,16 +1013,16 @@ public abstract class TiUIView
 		ViewGroup savedParent = null;
 		int savedIndex = 0;
 		android.view.ViewGroup.LayoutParams savedLayoutParams = null;
-		if (nativeView.getParent() != null) {
-			ViewParent nativeParent = nativeView.getParent();
+		if (rootView.getParent() != null) {
+			ViewParent nativeParent = rootView.getParent();
 			if (nativeParent instanceof ViewGroup) {
 				savedParent = (ViewGroup) nativeParent;
 				savedLayoutParams = savedParent.getLayoutParams();
-				savedIndex = savedParent.indexOfChild(nativeView);
-				savedParent.removeView(nativeView);
+				savedIndex = savedParent.indexOfChild(rootView);
+				savedParent.removeView(rootView);
 			}
 		}
-		borderView.addView(nativeView);
+		borderView.addView(rootView);
 		if (savedParent != null) {
 			if (savedLayoutParams != null) {
 				savedParent.addView(borderView, savedIndex, savedLayoutParams);
@@ -1133,6 +1134,11 @@ public abstract class TiUIView
 	public View getOuterView()
 	{
 		return borderView == null ? nativeView : borderView;
+	}
+
+	public View getRootView()
+	{
+		return nativeView;
 	}
 
 	public void registerForTouch()

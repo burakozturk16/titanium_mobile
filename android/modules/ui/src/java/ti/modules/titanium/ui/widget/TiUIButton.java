@@ -79,6 +79,12 @@ public class TiUIButton extends TiUIView
 	@Override
 	public View getOuterView()
 	{
+		return borderView == null ? layout : borderView;
+	}
+
+	@Override
+	public View getRootView()
+	{
 		return layout;
 	}
 

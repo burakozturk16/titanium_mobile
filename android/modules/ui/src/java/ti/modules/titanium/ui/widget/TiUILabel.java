@@ -630,9 +630,15 @@ public class TiUILabel extends TiUIView
 	@Override
 	public View getOuterView()
 	{
+		return borderView == null ? layout : borderView;
+	}
+
+	@Override
+	public View getRootView()
+	{
 		return layout;
 	}
-	
+		
 	private Spanned fromHtml(String str)
 	{
 		SpannableStringBuilder htmlText = new SpannableStringBuilder(Html.fromHtml(str));
