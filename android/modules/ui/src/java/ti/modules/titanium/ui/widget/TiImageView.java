@@ -187,6 +187,9 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	 */
 	public void setImageBitmap(Bitmap bitmap) {
 		imageView.setImageBitmap(bitmap);
+
+		// using that code we can create TransitionDrawable
+		// setImageDrawable(new BitmapDrawable(mContext.getResources(), bm));
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
