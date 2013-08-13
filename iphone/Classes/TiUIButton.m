@@ -116,7 +116,7 @@
     UITouch *touch = [[event allTouches] anyObject];
     NSString *fireEvent;
     NSString * fireActionEvent = nil;
-    NSMutableDictionary *evt = [NSMutableDictionary dictionaryWithDictionary:[TiUtils pointToDictionary:[touch locationInView:self]]];
+    NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 
     switch (touch.phase) {
         case UITouchPhaseBegan:
