@@ -180,13 +180,13 @@
 	return button;
 }
 
--(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-	if ([[self button] pointInside:point withEvent:event]) {
-		return [self button];
-    }
-    
-	return [super hitTest:point withEvent:event];
-}
+//-(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
+//	if ([[self button] pointInside:point withEvent:event]) {
+//		return [self button];
+//    }
+//    
+//	return [super hitTest:point withEvent:event];
+//}
 
 - (id)accessibilityElement
 {
