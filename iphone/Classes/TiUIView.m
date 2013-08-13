@@ -166,6 +166,8 @@ NSArray* listenerArray = nil;
 
 DEFINE_EXCEPTIONS
 
+#define kTOUCH_MAX_DIST 70
+
 @synthesize proxy,touchDelegate,oldSize;
 
 #pragma mark Internal Methods
@@ -716,6 +718,14 @@ DEFINE_EXCEPTIONS
     if (_bgLayer != nil) {
         [_bgLayer setState:state];
     }
+}
+
+-(UIControlState)getBgState
+{
+    if (_bgLayer != nil) {
+        return [_bgLayer getState];
+    }
+    return UIControlStateNormal;
 }
 
 -(void)setTouchEnabled_:(id)arg
@@ -1388,7 +1398,6 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self setBgState:UIControlStateSelected];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesBegan:touches withEvent:event];
     }
@@ -1399,12 +1408,13 @@ DEFINE_EXCEPTIONS
 {
     
     UITouch *touch = [touches anyObject];
+    [self setBgState:UIControlStateSelected];
 	
 	if (handlesTouches)
 	{
-		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 		if ([proxy _hasListeners:@"touchstart"])
 		{
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 			[proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
 			[self handleControlEvents:UIControlEventTouchDown];
 		}
@@ -1413,6 +1423,8 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    
+
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesMoved:touches withEvent:event];
     }
@@ -1422,11 +1434,15 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	UITouch *touch = [touches anyObject];
+    CGPoint localPoint = [touch locationInView:self];
+    BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
+                    localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
+    [self setBgState:outside?UIControlStateNormal:UIControlStateSelected];
 	if (handlesTouches)
 	{
-		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 		if ([proxy _hasListeners:@"touchmove"])
 		{
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 			[proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
 		}
 	}
@@ -1434,8 +1450,6 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
-    int test = [[event touchesForView:self] count];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesEnded:touches withEvent:event];
     }
@@ -1444,30 +1458,39 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
 	if (handlesTouches)
 	{
 		UITouch *touch = [touches anyObject];
-		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-		if ([proxy _hasListeners:@"touchend"])
+        BOOL hasTouchEnd = [proxy _hasListeners:@"touchend"];
+        BOOL hasDblclick = [proxy _hasListeners:@"dblclick"];
+        BOOL hasClick = [proxy _hasListeners:@"click"];
+		if (hasTouchEnd || hasDblclick || hasClick)
 		{
-			[proxy fireEvent:@"touchend" withObject:evt propagate:YES];
-			[self handleControlEvents:UIControlEventTouchCancel];
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+            if (hasTouchEnd) {
+                [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
+                [self handleControlEvents:UIControlEventTouchCancel];
+            }
+            
+            // Click handling is special; don't propagate if we have a delegate,
+            // but DO invoke the touch delegate.
+            // clicks should also be handled by any control the view is embedded in.
+            if (hasDblclick && [touch tapCount] == 2) {
+                [proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+                return;
+            }
+            if (hasClick)
+            {
+                CGPoint localPoint = [touch locationInView:self];
+                BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
+                                localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
+                if (!outside && touchDelegate == nil) {
+                    [proxy fireEvent:@"click" withObject:evt propagate:YES];
+                    return;
+                } 
+            }
 		}
-
-		// Click handling is special; don't propagate if we have a delegate,
-        // but DO invoke the touch delegate.
-		// clicks should also be handled by any control the view is embedded in.
-		if ([touch tapCount] == 2 && [proxy _hasListeners:@"dblclick"]) {
-			[proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
-			return;
-		}
-		if ([proxy _hasListeners:@"click"])
-		{
-			if (touchDelegate == nil) {
-				[proxy fireEvent:@"click" withObject:evt propagate:YES];
-				return;
-			} 
-		}  
 	}
 }
 
