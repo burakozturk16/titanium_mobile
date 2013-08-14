@@ -1,4 +1,5 @@
 #import "TiSelectableBackgroundLayer.h"
+#import "TiGradient.h"
 
 @implementation TiDrawable
 @synthesize gradient, color, image, imageRepeat;

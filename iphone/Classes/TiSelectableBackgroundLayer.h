@@ -1,7 +1,5 @@
 
-#import <UIKit/UIKit.h>
-#import "TiGradient.h"
-
+@class TiGradient;
 @interface TiDrawable : NSObject
 {
     NSArray* states;

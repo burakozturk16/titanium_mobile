@@ -433,7 +433,7 @@ DEFINE_EXCEPTIONS
 }
 
 
--(void)checkBounds
+-(BOOL)checkBounds
 {
     CGRect newBounds = [self bounds];
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
