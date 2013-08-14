@@ -237,7 +237,6 @@ public abstract class TiBaseActivity extends FragmentActivity
 	public void setWindowProxy(TiWindowProxy proxy)
 	{
 		this.window = proxy;
-		setLayoutProxy(proxy);
 		updateTitle(this.window);
 	}
 
@@ -246,7 +245,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 	 * 
 	 * @param proxy
 	 */
-	protected void setLayoutProxy(TiViewProxy proxy)
+	public void setLayoutProxy(TiViewProxy proxy)
 	{
 		if (layout instanceof TiCompositeLayout) {
 			((TiCompositeLayout) layout).setProxy(proxy);
@@ -414,7 +413,6 @@ public abstract class TiBaseActivity extends FragmentActivity
 						firstLayout = false;
 						window.onFirstLayout();
 					}
-					TiUIHelper.firePostLayoutEvent(window);
 				}
 
 			}

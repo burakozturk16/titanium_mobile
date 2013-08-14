@@ -22,6 +22,7 @@ public class TiColorHelper
 	static Pattern shortHexPattern = Pattern.compile("#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f]?)");
 	static Pattern rgbPattern = Pattern.compile("rgb\\(([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})\\)");
 	static Pattern argbPattern = Pattern.compile("rgba\\(([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3})\\)");
+	static Pattern webPattern = Pattern.compile("[a-f]+");
 
 	private static final String TAG = "TiColorHelper";
 	private static HashMap<String, Integer> colorTable;
@@ -62,7 +63,14 @@ public class TiColorHelper
 			} else {
 				// Try the parser, will throw illegalArgument if it can't parse it.
 				try {
+					
 					color = Color.parseColor(lowval);
+					// In 4.3, Google introduced some new string color constants and they forgot to
+					// add the alpha bits to them! This is a temporary workaround 
+					// until they fix it. I've created a Google ticket for this:
+					// https://code.google.com/p/android/issues/detail?id=58352&thanks=58352
+					if (webPattern.matcher(lowval).matches())
+						color |= 0xFF000000;
 				} catch (IllegalArgumentException e) {
 					if (colorTable == null) {
 						buildColorTable();

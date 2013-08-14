@@ -82,6 +82,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 
 -(void)viewWillDetach
 {
+    ((TiUITableView*)[self view]).viewWillDetach = YES;
     for (TiUITableViewSectionProxy* section in sections) {
         for (TiUITableViewRowProxy* row in [section rows]) {
             [row detachView];
@@ -93,11 +94,9 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 
 -(void)viewDidAttach
 {
-	TiUITableView * ourView = (TiUITableView *)[self view];
-    int newCount = 0;	//Since we're iterating anyways, we might as well not get count.
-    
-    for (TiUITableViewSectionProxy* section in sections)
-	{
+    TiUITableView * ourView = (TiUITableView *)[self view];
+    ourView.viewWillDetach = NO;
+    for (TiUITableViewSectionProxy* section in sections) {
 		[section setTable:ourView];
 		[section setSection:newCount ++];
 		[self rememberSection:section];
