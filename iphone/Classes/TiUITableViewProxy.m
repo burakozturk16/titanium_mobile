@@ -96,6 +96,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 {
     TiUITableView * ourView = (TiUITableView *)[self view];
     ourView.viewWillDetach = NO;
+    int newCount = 0;
     for (TiUITableViewSectionProxy* section in sections) {
 		[section setTable:ourView];
 		[section setSection:newCount ++];

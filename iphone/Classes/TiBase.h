@@ -79,6 +79,7 @@ NSMutableDictionary* TiCreateNonRetainingDictionary();
 
 CGPoint midpointBetweenPoints(CGPoint a, CGPoint b);
 void TiLogMessage(NSString* str, ...);
+void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName, NSString *format, ...);
 
 /**
  * Protocol for classes to provide their JavaScript details (class name, in particular).
