@@ -152,6 +152,7 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
+    CALayer* _maskLayer;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -443,6 +444,10 @@ DEFINE_EXCEPTIONS
             [CATransaction begin];
             [CATransaction setDisableActions:YES];
         }
+        if (_maskLayer) {
+            [_maskLayer setFrame:newBounds];
+        }
+        
         if (_bgLayer) {
             [_bgLayer setFrame:newBounds];
         }
@@ -1624,5 +1629,31 @@ DEFINE_EXCEPTIONS
 		}
 	}
 }
+
+-(CALayer*)getOrCreateMaskLayer
+{
+    if (_maskLayer == nil) {
+        _maskLayer = [[CALayer alloc] init];
+        _maskLayer.frame = self.layer.bounds;
+        self.layer.mask = _maskLayer;
+    }
+    return _maskLayer;
+}
+
+
+-(void)setMaskImage_:(id)arg
+{
+	UIImage *image = [TiUtils loadBackgroundImage:arg forProxy:self.proxy];
+    if (image == nil) {
+        self.layer.mask = nil;
+        RELEASE_TO_NIL(_maskLayer);
+    }
+    else {
+        [self getOrCreateMaskLayer].contents = (id)image.CGImage;
+    }
+    
+    [self.layer setNeedsDisplay];
+}
+
 
 @end
