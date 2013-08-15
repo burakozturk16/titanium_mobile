@@ -6,7 +6,6 @@
  */
 #if defined(USE_TI_UITABLEVIEW) || defined(USE_TI_UILISTVIEW)
  
-#import <UIKit/UIKit.h>
 #import "TiSelectableBackgroundLayer.h"
 
 typedef enum
