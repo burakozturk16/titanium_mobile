@@ -251,6 +251,7 @@ DEFINE_EXCEPTIONS
     touchPassThrough = false;
     self.clipsToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
 }
 

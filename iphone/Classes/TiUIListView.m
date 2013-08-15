@@ -13,6 +13,8 @@
 #import "TiUILabelProxy.h"
 #import "TiUISearchBarProxy.h"
 
+#define GROUPED_MARGIN_WIDTH 18.0
+
 @interface TiUIView(eventHandler);
 -(void)handleListenerRemovedWithEvent:(NSString *)event;
 -(void)handleListenerAddedWithEvent:(NSString *)event;
@@ -27,6 +29,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 @implementation TiUIListView {
     UITableView *_tableView;
     NSDictionary *_templates;
+    NSMutableDictionary* _templatesSizeProxies;
     id _defaultItemTemplate;
 
     TiDimension _rowHeight;
@@ -76,6 +79,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     _tableView.dataSource = nil;
     [_tableView release];
     [_templates release];
+    [_templatesSizeProxies release];
     [_defaultItemTemplate release];
     RELEASE_TO_NIL(_searchResults);
     RELEASE_TO_NIL(_pullViewWrapper);
@@ -108,9 +112,9 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     [theProxy setProxyObserver:self];
     if (header) {
-        [self.tableView setTableHeaderView:[theProxy view]];
+        [self.tableView setTableHeaderView:[theProxy getOrCreateView]];
     } else {
-        [self.tableView setTableFooterView:[theProxy view]];
+        [self.tableView setTableFooterView:[theProxy getOrCreateView]];
     }
     [theProxy windowWillOpen];
     [theProxy setParentVisible:YES];
@@ -247,16 +251,33 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     ENSURE_TYPE_OR_NIL(args,NSDictionary);
 	NSMutableDictionary *templates = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
+	NSMutableDictionary *templatesSizeProxies = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
 	[(NSDictionary *)args enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
 		TiViewTemplate *template = [TiViewTemplate templateFromViewTemplate:obj];
 		if (template != nil) {
 			[templates setObject:template forKey:key];
+            
+            //create fake proxy for height computation
+            id<TiEvaluator> context = self.listViewProxy.executionContext;
+            if (context == nil) {
+                context = self.listViewProxy.pageContext;
+            }
+            TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
+            [cellProxy unarchiveFakeFromTemplate:template];
+            [cellProxy bindings];
+            [templatesSizeProxies setObject:cellProxy forKey:key];
+            [cellProxy release];
 		}
 	}];
     
 	[_templates release];
 	_templates = [templates copy];
 	[templates release];
+    
+    [_templatesSizeProxies release];
+	_templatesSizeProxies = [templatesSizeProxies copy];
+	[templatesSizeProxies release];
+    
 	if (_tableView != nil) {
 		[_tableView reloadData];
 	}
@@ -1347,19 +1368,69 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     return size;
 }
 
+-(CGFloat)computeRowWidth
+{
+    CGFloat rowWidth = _tableView.bounds.size.width;
+	if ((self.tableView.style == UITableViewStyleGrouped) && (![TiUtils isIOS7OrGreater]) ){
+		rowWidth -= GROUPED_MARGIN_WIDTH;
+	}
+    
+    // Apple does not provide a good way to get information about the index sidebar size
+    // in the event that it exists - it silently resizes row content which is "flexible width"
+    // but this is not useful for us. This is a problem when we have Ti.UI.SIZE/FILL behavior
+    // on row contents, which rely on the height of the row to be accurately precomputed.
+    //
+    // The following is unreliable since it uses a private API name, but one which has existed
+    // since iOS 3.0. The alternative is to grab a specific subview of the tableview itself,
+    // which is more fragile.
+    
+    NSArray* subviews = [_tableView subviews];
+    if ([subviews count] > 0) {
+        // Obfuscate private class name
+        Class indexview = NSClassFromString([@"UITableView" stringByAppendingString:@"Index"]);
+        for (UIView* view in subviews) {
+            if ([view isKindOfClass:indexview]) {
+                rowWidth -= [view frame].size.width;
+            }
+        }
+    }
+    
+    return rowWidth;
+}
+
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    NSIndexPath* realPath = [self pathForSearchPath:indexPath];
+    NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
     
-    id heightValue = [self valueWithKey:@"height" atIndexPath:realPath];
-    
+    id heightValue = [self valueWithKey:@"height" atIndexPath:realIndexPath];
     TiDimension height = _rowHeight;
     if (heightValue != nil) {
         height = [TiUtils dimensionValue:heightValue];
     }
     if (TiDimensionIsDip(height)) {
         return height.value;
+    }
+    
+    else if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height))
+    {
+        TiUIListSectionProxy* theSection = [self.listViewProxy sectionForIndex:realIndexPath.section];
+        NSDictionary *item = [theSection itemAtIndex:realIndexPath.row];
+        id templateId = [item objectForKey:@"template"];
+        if (templateId == nil) {
+            templateId = _defaultItemTemplate;
+        }
+        TiUIListItemProxy *cellProxy = [_templatesSizeProxies objectForKey:templateId];
+        if (cellProxy != nil) {
+            CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
+            if (width > 0) {
+                [cellProxy setDataItem:item];
+                return [cellProxy minimumParentHeightForSize:CGSizeMake(width, INT_MAX)];
+            }
+        }
+    }
+    else if (TiDimensionIsPercent(height)) {
+        return TiDimensionCalculateValue(height, tableView.bounds.size.height);
     }
     return 44;
 }

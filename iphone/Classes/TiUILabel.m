@@ -54,7 +54,7 @@
     return textRect.size;
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
 {
     return [self suggestedFrameSizeToFitEntireStringConstraintedToWidth:suggestedWidth].width;
 }

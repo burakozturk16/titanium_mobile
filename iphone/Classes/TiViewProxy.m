@@ -967,6 +967,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     CGFloat width = size.width;
     //This is the content width, which is implemented by widgets
     CGFloat contentHeight = -1.0;
+    
     if ([self respondsToSelector:@selector(contentHeightForWidth:)]) {
         contentHeight = [self contentHeightForWidth:width];
     }
@@ -3245,6 +3246,32 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}];
 }
 
+- (void)unarchiveFakeFromTemplate:(id)viewTemplate_
+{
+	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
+	if (viewTemplate == nil) {
+		return;
+	}
+	
+	id<TiEvaluator> context = self.executionContext;
+	if (context == nil) {
+		context = self.pageContext;
+	}
+	
+	[self _initWithProperties:viewTemplate.properties];
+	
+	[viewTemplate.childTemplates enumerateObjectsUsingBlock:^(TiViewTemplate *childTemplate, NSUInteger idx, BOOL *stop) {
+		TiViewProxy *child = [[self class] unarchiveFakeFromTemplate:childTemplate inContext:context];
+		if (child != nil) {
+			[context.krollContext invokeBlockOnThread:^{
+				[self rememberProxy:child];
+				[child forgetSelf];
+			}];
+			[self add:child];
+		}
+	}];
+}
+
 // Returns protected proxy, caller should do forgetSelf.
 + (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate_ inContext:(id<TiEvaluator>)context
 {
@@ -3260,6 +3287,26 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			[proxy rememberSelf];
 		}];
 		[proxy unarchiveFromTemplate:viewTemplate];
+		return proxy;
+	}
+	return nil;
+}
+
+// Returns protected proxy, caller should do forgetSelf.
++ (TiViewProxy *)unarchiveFakeFromTemplate:(id)viewTemplate_ inContext:(id<TiEvaluator>)context
+{
+	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
+	if (viewTemplate == nil) {
+		return;
+	}
+	
+	if (viewTemplate.type != nil) {
+		TiViewProxy *proxy = [[self class] createProxy:viewTemplate.type withProperties:nil inContext:context];
+		[context.krollContext invokeBlockOnThread:^{
+			[context registerProxy:proxy];
+			[proxy rememberSelf];
+		}];
+		[proxy unarchiveFakeFromTemplate:viewTemplate];
 		return proxy;
 	}
 	return nil;

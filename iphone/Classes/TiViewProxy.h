@@ -623,6 +623,7 @@ enum
 - (void)prepareForReuse;
 
 - (void)unarchiveFromTemplate:(id)viewTemplate;
+- (void)unarchiveFakeFromTemplate:(id)viewTemplate;
 + (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 @end
