@@ -1,3 +1,4 @@
+#import <QuartzCore/QuartzCore.h>
 
 @class TiGradient;
 @interface TiDrawable : NSObject
