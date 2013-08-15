@@ -940,6 +940,11 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
     // Create a graphics context with the target size
     
     CGSize imageSize = [[UIScreen mainScreen] bounds].size;
+    if ([TiUtils isRetinaDisplay])
+    {
+        scale*=2;
+        
+    }
     UIGraphicsBeginImageContextWithOptions(imageSize, NO, scale);
     
     CGContextRef context = UIGraphicsGetCurrentContext();
@@ -991,7 +996,7 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
     return image;
 }
 
--(void)takeScreenshot:(id)args
+-(TiBlob*)takeScreenshot:(id)args
 {
     KrollCallback *callback = nil;
     float scale = 1.0f;
@@ -1008,17 +1013,19 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
             scale = [TiUtils floatValue:[args objectAtIndex:1] def:1.0f];
         }
     }
-	ENSURE_SINGLE_ARG(obj,KrollCallback);
+	ENSURE_SINGLE_ARG_OR_NIL(obj,KrollCallback);
     callback = (KrollCallback*)obj;
-    
+ 	TiBlob *blob = [[[TiBlob alloc] init] autorelease];
+   
 	TiThreadPerformOnMainThread(^{
         // Retrieve the screenshot image
         UIImage *image = [MediaModule takeScreenshotWithScale:scale];
-        TiBlob *blob = [[[TiBlob alloc] initWithImage:image] autorelease];
+		[blob setImage:image];
         [blob setMimeType:@"image/png" type:TiBlobTypeImage];
         NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
         [self _fireEventToListener:@"screenshot" withObject:event listener:callback thisObject:nil];
-	}, NO);
+	}, (callback==nil));
+	return blob;
 }
 
 -(void)saveToPhotoGallery:(id)arg

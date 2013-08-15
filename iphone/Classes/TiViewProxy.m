@@ -768,13 +768,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(UIImage*)toImageWithScale:(CGFloat)scale
 {
-    if ([TiUtils isRetinaDisplay])
-    {
-        scale*=2;
-    }
     TiUIView *myview = [self getOrCreateView];
     [self windowWillOpen];
     CGSize size = myview.bounds.size;
+   
     if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
     {
         CGFloat width = [self autoWidthForSize:CGSizeMake(1000,1000)];
@@ -790,8 +787,14 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         CGRect rect = CGRectMake(0, 0, size.width, size.height);
         [TiUtils setView:myview positionRect:rect];
     }
+    if ([TiUtils isRetinaDisplay])
+    {
+        scale*=2;
+        
+    }
     UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
-    [myview.layer renderInContext:UIGraphicsGetCurrentContext()];
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    [myview.layer renderInContext:context];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
@@ -814,6 +817,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
             scale = [TiUtils floatValue:[args objectAtIndex:1] def:1.0f];
         }
     }
+	ENSURE_SINGLE_ARG_OR_NIL(obj,KrollCallback);
     callback = (KrollCallback*)obj;
 	TiBlob *blob = [[[TiBlob alloc] init] autorelease];
 	// we spin on the UI thread and have him convert and then add back to the blob
