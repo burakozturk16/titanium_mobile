@@ -604,9 +604,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundRepeat_:(id)repeat
 {
-    if (_bgLayer) {
-        _bgLayer.imageRepeat = [TiUtils boolValue:repeat def:NO];
-    }
+    [self getOrCreateCustomBackgroundLayer].imageRepeat = [TiUtils boolValue:repeat def:NO];
 }
 
 -(void)setBackgroundOpacity_:(id)opacity
@@ -1665,6 +1663,13 @@ DEFINE_EXCEPTIONS
         if (self.layer.mask == nil) {
             self.layer.mask = [CALayer layer];
             self.layer.mask.frame = self.layer.bounds;
+        }
+        self.layer.mask.contentsScale = [image scale];
+        self.layer.mask.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [image size]);
+        if (!CGPointEqualToPoint(self.layer.mask.contentsCenter.origin,CGPointZero)) {
+            self.layer.mask.magnificationFilter = @"nearest";
+        } else {
+            self.layer.mask.magnificationFilter = @"linear";
         }
         self.layer.mask.contents = (id)image.CGImage;
     }

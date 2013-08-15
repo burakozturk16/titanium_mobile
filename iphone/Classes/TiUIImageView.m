@@ -823,6 +823,8 @@ DEFINE_EXCEPTIONS
             imageView.layer.mask = [CALayer layer];
             imageView.layer.mask.frame = self.layer.bounds;
         }
+        imageView.layer.mask.contentsScale = [image scale];
+        imageView.layer.mask.magnificationFilter = @"nearest";
         imageView.layer.mask.contents = (id)image.CGImage;
     }
     
