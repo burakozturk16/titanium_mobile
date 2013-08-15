@@ -30,7 +30,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.OnHierarchyChangeListener;
 import android.view.MotionEvent;
-import android.view.animation.Transformation;
 
 /**
  * Base layout class for all Titanium views. 

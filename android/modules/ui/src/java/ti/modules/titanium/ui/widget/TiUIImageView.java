@@ -827,7 +827,9 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
 		}
-		
+		if (d.containsKey(TiC.PROPERTY_IMAGE_MASK)) {
+			setImageMask(d.get(TiC.PROPERTY_IMAGE_MASK));
+		}
 		view.setConfigured(true);
 	}
 
@@ -845,6 +847,8 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			localLoadSync = TiConvert.toBoolean(newValue);
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(newValue));
+		} else if (key.equals(TiC.PROPERTY_IMAGE_MASK)) {
+			setImageMask(newValue);
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
 			if ((oldValue == null && newValue != null) || (oldValue != null && !oldValue.equals(newValue))) {
 				setImageSource(newValue);
@@ -858,6 +862,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					setImages();
 				}
 			}
+			
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 			if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_LEFT) || key.equals(TiC.PROPERTY_RIGHT)) {
@@ -866,6 +871,25 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				view.setHeightDefined(!(layoutParams.autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 			}
 		}
+	}
+	
+	private void setImageMask(Object mask){
+		TiImageView view = getView();
+		if (view == null) return;
+		Bitmap bitmap = null;
+		if (mask instanceof TiBlob) {
+			bitmap = ((TiBlob)mask).getImage();
+		}
+		else {
+			BitmapDrawable drawable = ((BitmapDrawable) TiUIHelper.buildImageDrawable(TiConvert.toString(mask), false, proxy));
+			if (drawable != null) {
+				bitmap = drawable.getBitmap();
+			}
+		}
+		
+		
+		view.setMask(bitmap);
+		view.invalidate();
 	}
 
 	public void onDestroy(Activity activity)

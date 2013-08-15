@@ -11,6 +11,8 @@ import java.lang.ref.WeakReference;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiBorderWrapperView;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ColorFilter;
@@ -31,7 +33,7 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.ZoomControls;
 
-public class TiImageView extends ViewGroup implements Handler.Callback, OnClickListener
+public class TiImageView extends TiBorderWrapperView implements Handler.Callback, OnClickListener
 {
 	private static final String TAG = "TiImageView";
 

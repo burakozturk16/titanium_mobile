@@ -1340,6 +1340,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_IMAGE_MASK = "imageMask";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_IMAGES = "images";
 
 	/**
@@ -2366,6 +2371,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_VIEW = "view";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_VIEW_MASK = "viewMask";
 
 	/**
 	 * @module.api

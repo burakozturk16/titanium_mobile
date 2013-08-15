@@ -11,12 +11,17 @@ import java.util.Arrays;
 import org.appcelerator.kroll.common.Log;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.View;
@@ -39,6 +44,9 @@ public class TiBorderWrapperView extends FrameLayout
 	private Path innerPath;
 	private Path borderPath;
 	private Paint paint;
+	
+	private Paint maskPaint;
+	Bitmap bitmap;
 
 	public TiBorderWrapperView(Context context)
 	{
@@ -46,6 +54,9 @@ public class TiBorderWrapperView extends FrameLayout
 		outerRect = new RectF();
 		innerRect = new RectF();
 		paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+		maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+	    maskPaint.setColor(0xFFFFFFFF);
+		maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
 		setWillNotDraw(false);
 		updateBorderPath();
 	}
@@ -73,6 +84,26 @@ public class TiBorderWrapperView extends FrameLayout
 	{
  		drawBorder(canvas);
  		clipCanvas(canvas);
+	}
+	
+	
+	@Override
+	protected void dispatchDraw(Canvas canvas)
+	{
+		if (bitmap != null) {
+			Rect bounds = new Rect();
+			getDrawingRect(bounds);
+			
+			Bitmap mBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
+			Canvas mCanvas = new Canvas(mBitmap);
+			super.dispatchDraw(mCanvas);
+			mCanvas.drawBitmap(bitmap, new Rect(0,0, bitmap.getWidth(), bitmap.getHeight()), bounds, maskPaint);
+			canvas.drawBitmap(mBitmap, bounds, bounds, new Paint());
+			mBitmap.recycle();
+		}
+		else {
+			super.dispatchDraw(canvas);
+		}
 	}
 
 	private void updateBorderPath()
@@ -134,6 +165,8 @@ public class TiBorderWrapperView extends FrameLayout
 		updateBorderPath();
 	}
 
+
+
 	public float getRadius()
 	{
 		return this.radius;
@@ -148,5 +181,10 @@ public class TiBorderWrapperView extends FrameLayout
 	public void setBorderAlpha(int alpha)
 	{
 		this.alpha = alpha;
+	}
+
+	public void setMask(Bitmap bitmap)
+	{
+		this.bitmap = bitmap;
 	}
 }

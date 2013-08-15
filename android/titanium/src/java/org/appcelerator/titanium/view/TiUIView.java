@@ -45,9 +45,12 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -630,6 +633,8 @@ public abstract class TiUIView
 			setBorderRadius(TiConvert.toFloat(newValue, 0f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
+		} else if (key.equals(TiC.PROPERTY_VIEW_MASK)) {
+			setViewMask(newValue);
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
 			setOpacity(TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
@@ -790,7 +795,9 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_WIDTH));
 		} 
-
+		if (d.containsKey(TiC.PROPERTY_VIEW_MASK)) {
+			setViewMask(d.get(TiC.PROPERTY_VIEW_MASK));
+		}
 		if (d.containsKey(TiC.PROPERTY_VISIBLE) && !nativeViewNull) {
 			this.setVisibility(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE, true) ? View.VISIBLE : View.INVISIBLE);
 		}
@@ -1077,6 +1084,22 @@ public abstract class TiUIView
 	private void setBorderWidth(float width){
 		float realWidth = (new TiDimension(Float.toString(width), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
 		getOrCreateBorderView().setBorderWidth(width);
+		borderView.invalidate();	
+	}
+	
+	private void setViewMask(Object mask){
+		Bitmap bitmap = null;
+		if (mask instanceof TiBlob) {
+			bitmap = ((TiBlob)mask).getImage();
+		}
+		else {
+			BitmapDrawable drawable = ((BitmapDrawable) TiUIHelper.buildImageDrawable(TiConvert.toString(mask), false, proxy));
+			if (drawable != null) {
+				bitmap = drawable.getBitmap();
+			}
+		}
+		
+		getOrCreateBorderView().setMask(bitmap);
 		borderView.invalidate();
 	}
 
