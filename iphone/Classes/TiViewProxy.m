@@ -522,7 +522,7 @@ LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeS
 +(NSSet*)transferableProperties
 {
     if (transferableProps == nil) {
-        transferableProps = [[NSSet alloc] initWithObjects:@"visible", @"backgroundImage", @"backgroundGradient", @"backgroundColor", @"backgroundRepeat", @"backgroundLeftCap", @"backgroundTopCap", @"focusable", @"touchEnabled", @"viewShadowOffset", @"viewShadowRadius", @"viewShadowColor", @"accessibilityLabel", @"accessibilityValue", @"accessibilityHint", @"accessibilityHidden",
+        transferableProps = [[NSSet alloc] initWithObjects:@"imageCap",@"visible", @"backgroundImage", @"backgroundGradient", @"backgroundColor", @"backgroundSelectedImage", @"backgroundSelectedGradient", @"backgroundSelectedColor", @"backgroundDisabledImage", @"backgroundDisabledGradient", @"backgroundDisabledColor", @"backgroundRepeat",@"focusable", @"touchEnabled", @"viewShadow", @"viewMask", @"accessibilityLabel", @"accessibilityValue", @"accessibilityHint", @"accessibilityHidden",
             @"opacity", @"borderWidth", @"borderColor", @"borderRadius", @"tileBackground",
             @"transform", @"center", @"anchorPoint", @"clipChildren", @"touchPassThrough", @"transform", nil];
     }
@@ -534,7 +534,7 @@ LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeS
 	static NSArray *keySequence = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		keySequence = [[NSArray arrayWithObjects:@"backgroundColor",@"backgroundImage",@"backgroundGradient",@"backgroundOpacity",nil] retain];
+		keySequence = [[NSArray arrayWithObjects:@"imageCap",@"backgroundColor",@"backgroundImage",@"backgroundGradient",@"backgroundOpacity",nil] retain];
 	});
 	return keySequence;
 }
