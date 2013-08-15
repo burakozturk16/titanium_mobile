@@ -34,14 +34,14 @@
     }
     
     if (image){
+        CGContextTranslateCTM(ctx, 0, rect.size.height);
+        CGContextScaleCTM(ctx, 1.0, -1.0);
         if (imageRepeat) {
             CGRect imageRect = CGRectMake(0, 0, image.size.width, image.size.height);
             CGContextDrawTiledImage(ctx, imageRect, image.CGImage);
         }
         else {
-            UIGraphicsPushContext(ctx);
-            [image drawInRect:rect];
-            UIGraphicsPopContext();
+            CGContextDrawImage(ctx, rect, image.CGImage);
         }
     }
     CGContextRestoreGState(ctx);
