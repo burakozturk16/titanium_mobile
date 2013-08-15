@@ -152,7 +152,6 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
-    CALayer* _maskLayer;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -351,18 +350,6 @@ DEFINE_EXCEPTIONS
 	[self sanitycheckListeners];
 }
 
--(UIImage*)loadImage:(id)image 
-{
-	if (image==nil) return nil;
-	NSURL *url = [TiUtils toURL:image proxy:proxy];
-	if (url==nil)
-	{
-		NSLog(@"[WARN] could not find image: %@",image);
-		return nil;
-	}
-	return [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap];
-}
-
 -(id)transformMatrix
 {
 	return transformMatrix;
@@ -434,7 +421,7 @@ DEFINE_EXCEPTIONS
 }
 
 
--(BOOL)checkBounds
+-(void)checkBounds
 {
     CGRect newBounds = [self bounds];
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
@@ -444,17 +431,18 @@ DEFINE_EXCEPTIONS
             [CATransaction begin];
             [CATransaction setDisableActions:YES];
         }
-        if (_maskLayer) {
-            [_maskLayer setFrame:newBounds];
+        if (self.layer.mask != nil) {
+            [self.layer.mask setFrame:newBounds];
         }
         
         if (_bgLayer) {
             [_bgLayer setFrame:newBounds];
         }
+        
+        [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
         if (!animating) {
             [CATransaction commit];
         }
-        [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
     }
 }
 
@@ -1667,26 +1655,18 @@ DEFINE_EXCEPTIONS
 	}
 }
 
--(CALayer*)getOrCreateMaskLayer
+-(void)setViewMask_:(id)arg
 {
-    if (_maskLayer == nil) {
-        _maskLayer = [[CALayer alloc] init];
-        _maskLayer.frame = self.layer.bounds;
-        self.layer.mask = _maskLayer;
-    }
-    return _maskLayer;
-}
-
-
--(void)setMaskImage_:(id)arg
-{
-	UIImage *image = [TiUtils loadBackgroundImage:arg forProxy:self.proxy];
+    UIImage* image = [self loadImage:arg];
     if (image == nil) {
         self.layer.mask = nil;
-        RELEASE_TO_NIL(_maskLayer);
     }
     else {
-        [self getOrCreateMaskLayer].contents = (id)image.CGImage;
+        if (self.layer.mask == nil) {
+            self.layer.mask = [CALayer layer];
+            self.layer.mask.frame = self.layer.bounds;
+        }
+        self.layer.mask.contents = (id)image.CGImage;
     }
     
     [self.layer setNeedsDisplay];

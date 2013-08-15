@@ -928,13 +928,17 @@ public abstract class TiUIView
 			forceLayoutNativeView(true);
 		this.visibility = visibility;
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
-		if (borderView != null) {
-			borderView.clearAnimation();
-			borderView.setVisibility(this.visibility);
+
+		View view = getOuterView();
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
 		}
-		if (nativeView != null) {
-			nativeView.clearAnimation();
-			nativeView.setVisibility(this.visibility);
+		
+		view = getRootView();
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
 		}
 	}
 

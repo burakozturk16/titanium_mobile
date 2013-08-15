@@ -129,6 +129,10 @@ DEFINE_EXCEPTIONS
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    if (imageView.layer.mask != nil) {
+        [imageView.layer.mask setFrame:bounds];
+    }
+
 	for (UIView *child in [self subviews])
 	{
 		[TiUtils setView:child positionRect:bounds];
@@ -805,6 +809,24 @@ DEFINE_EXCEPTIONS
 -(void)setReverse_:(id)value
 {
 	reverse = [TiUtils boolValue:value];
+}
+
+
+-(void)setImageMask_:(id)arg
+{
+    UIImage* image = [self loadImage:arg];
+    if (image == nil) {
+        imageView.layer.mask = nil;
+    }
+    else {
+        if (imageView.layer.mask == nil) {
+            imageView.layer.mask = [CALayer layer];
+            imageView.layer.mask.frame = self.layer.bounds;
+        }
+        imageView.layer.mask.contents = (id)image.CGImage;
+    }
+    
+    [imageView.layer setNeedsDisplay];
 }
 
 
