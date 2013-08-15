@@ -88,6 +88,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
     float backgroundOpacity;
     TiDimension leftCap;
     TiDimension topCap;
+    TiDimension bottomCap;
+    TiDimension rightCap;
 	NSRecursiveLock *transferLock;
 }
 

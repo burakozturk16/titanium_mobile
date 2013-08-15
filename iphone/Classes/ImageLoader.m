@@ -31,6 +31,8 @@
     
     TiDimension leftCap;
     TiDimension topCap;
+    TiDimension rightCap;
+    TiDimension bottomCap;
     
     BOOL recapStretchableImage;
 	BOOL hires;
@@ -49,6 +51,8 @@
 
 @property(nonatomic,readwrite) TiDimension leftCap;
 @property(nonatomic,readwrite) TiDimension topCap;
+@property(nonatomic,readwrite) TiDimension rightCap;
+@property(nonatomic,readwrite) TiDimension bottomCap;
 @property(nonatomic,readwrite) BOOL hires;
 @property(nonatomic,readonly) NSDate* lastModified;
 @property(nonatomic,readonly) BOOL local;
@@ -65,7 +69,7 @@
 
 @implementation ImageCacheEntry
 
-@synthesize fullImage, leftCap, topCap, hires, localPath, stretchableImage, recentlyResizedImage, lastModified, local;
+@synthesize fullImage, leftCap, topCap, rightCap, bottomCap, hires, localPath, stretchableImage, recentlyResizedImage, lastModified, local;
 
 - (UIImage *)fullImage {
 	if(fullImage == nil) {
@@ -112,6 +116,24 @@
     }
 }
 
+-(void)setRightCap:(TiDimension)cap
+{
+    if (!TiDimensionEqual(rightCap, cap)) {
+        rightCap = cap;
+        recapStretchableImage = YES;
+    }
+}
+
+
+-(void)setBottomCap:(TiDimension)cap
+{
+    if (!TiDimensionEqual(bottomCap, cap)) {
+        bottomCap = cap;
+        recapStretchableImage = YES;
+    }
+}
+
+
 -(UIImage *)stretchableImage
 {
     if (stretchableImage == nil || recapStretchableImage) {
@@ -136,8 +158,8 @@
                 top = maxHeight - 2;
             }
             
-            NSInteger right = left;
-            NSInteger bottom = top;
+            NSInteger right = TiDimensionIsUndefined(rightCap)?left:TiDimensionCalculateValue(rightCap, maxWidth);
+            NSInteger bottom = TiDimensionIsUndefined(bottomCap)?top:TiDimensionCalculateValue(bottomCap, maxHeight);
             
             if ((left + right) >= maxWidth) {
                 right = maxWidth - (left + 1);
@@ -145,6 +167,7 @@
             if ((top + bottom) >= maxHeight) {
                 bottom = maxHeight - (top + 1);
             }
+            
             stretchableImage = [[theImage resizableImageWithCapInsets:UIEdgeInsetsMake(top, left, bottom, right) resizingMode:UIImageResizingModeStretch] retain];
         }
         else
@@ -156,7 +179,6 @@
             if (top > maxHeight) {
                 top = maxHeight - 2;
             }
-            
             stretchableImage = [[theImage stretchableImageWithLeftCapWidth:left
                                                               topCapHeight:top] retain];
         }
@@ -610,6 +632,16 @@ DEFINE_EXCEPTIONS
     image.leftCap = left;
     image.topCap = top;
 	return [image stretchableImage];    
+}
+
+-(UIImage *)loadImmediateStretchableImage:(NSURL *)url withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
+{
+    ImageCacheEntry* image = [self entryForKey:url];
+    image.leftCap = left;
+    image.topCap = top;
+    image.rightCap = right;
+    image.bottomCap = bottom;
+	return [image stretchableImage];
 }
 
 -(CGSize)fullImageSize:(NSURL *)url

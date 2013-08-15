@@ -564,16 +564,27 @@ DEFINE_EXCEPTIONS
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateDisabled];
 }
 
+
+
+-(UIImage*)loadImage:(id)image
+{
+	if (image==nil) return nil;
+	NSURL *url = [TiUtils toURL:image proxy:proxy];
+	if (url==nil)
+	{
+		NSLog(@"[WARN] could not find image: %@",image);
+		return nil;
+	}
+	return [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+}
+
 -(void) setBackgroundImage_:(id)image
 {
     if (!configurationSet) {
         needsToSetBackgroundImage = YES;
         return;
     }
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:self.proxy];
-    if (!TiDimensionIsUndefined(leftCap) || !TiDimensionIsUndefined(topCap)) {
-        bgImage = [bgImage resizableImageWithCapInsets:TiUIEdgeInsets(topCap, leftCap, topCap, leftCap, bgImage.size) resizingMode:UIImageResizingModeStretch];
-    }
+    UIImage* bgImage = [self loadImage:image];
     [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateNormal];
 }
 
@@ -583,10 +594,7 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundSelectedImage = YES;
         return;
     }
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:self.proxy];
-    if (!TiDimensionIsUndefined(leftCap) || !TiDimensionIsUndefined(topCap)) {
-        bgImage = [bgImage resizableImageWithCapInsets:TiUIEdgeInsets(topCap, leftCap, topCap, leftCap, bgImage.size) resizingMode:UIImageResizingModeStretch];
-    }
+    UIImage* bgImage = [self loadImage:image];
     [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
 }
 
@@ -596,10 +604,7 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundDisabledImage = YES;
         return;
     }
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:self.proxy];
-    if (!TiDimensionIsUndefined(leftCap) || !TiDimensionIsUndefined(topCap)) {
-        bgImage = [bgImage resizableImageWithCapInsets:TiUIEdgeInsets(topCap, leftCap, topCap, leftCap, bgImage.size) resizingMode:UIImageResizingModeStretch];
-    }
+    UIImage* bgImage = [self loadImage:image];
     [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
 }
 
@@ -625,19 +630,21 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)setBackgroundLeftCap_:(id)value
+-(void)setImageCap_:(id)arg
 {
-    TiDimension cap = TiDimensionFromObject(value);
-    if (!TiDimensionEqual(leftCap, cap)) {
-        leftCap = cap;
+    ENSURE_SINGLE_ARG(arg,NSDictionary);
+    NSDictionary* dict = (NSDictionary*)arg;
+    if ([dict objectForKey:@"left"]) {
+        leftCap = TiDimensionFromObject([dict objectForKey:@"left"]);
     }
-}
-
--(void)setBackgroundTopCap_:(id)value
-{
-    TiDimension cap = TiDimensionFromObject(value);
-    if (!TiDimensionEqual(topCap, cap)) {
-        topCap = cap;
+    if ([dict objectForKey:@"right"]) {
+        rightCap = TiDimensionFromObject([dict objectForKey:@"right"]);
+    }
+    if ([dict objectForKey:@"top"]) {
+        topCap = TiDimensionFromObject([dict objectForKey:@"top"]);
+    }
+    if ([dict objectForKey:@"bottom"]) {
+        bottomCap = TiDimensionFromObject([dict objectForKey:@"bottom"]);
     }
 }
 
