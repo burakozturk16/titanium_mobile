@@ -44,6 +44,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
     BOOL ignorePercent = NO;
     BOOL needsWidthAutoCompute = NO;
     BOOL needsHeightAutoCompute = NO;
+    BOOL parentCanGrow = NO;
     CGSize parentSize = CGSizeZero;
     
     if ([autoSizer isKindOfClass:[TiViewProxy class]]) {
@@ -52,6 +53,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             //Sandbox with percent values is garbage
             ignorePercent = YES;
             parentSize = [parent size].rect.size;
+            parentCanGrow = TiDimensionIsAutoSize([parent layoutProperties]->height);
         }
     }
     
@@ -189,8 +191,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             if ([autoSizer respondsToSelector:@selector(autoHeightForSize:)])
             {
                 CGFloat desiredHeight = [autoSizer autoHeightForSize:CGSizeMake(width, height)];
-                height = height < desiredHeight?height:desiredHeight;
-//                height = desiredHeight;
+                height = parentCanGrow?desiredHeight:(height < desiredHeight?height:desiredHeight);
             }
             else if(resultResizing != NULL)
             {
