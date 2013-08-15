@@ -139,8 +139,8 @@
     if (stretchableImage == nil || recapStretchableImage) {
         [stretchableImage release];
         UIImage *theImage = [self fullImage];
-        CGFloat maxWidth = [theImage size].width;
-        CGFloat maxHeight = [theImage size].height;
+        CGFloat maxWidth = [theImage size].width * theImage.scale;
+        CGFloat maxHeight = [theImage size].height * theImage.scale;
         
         NSInteger left = (TiDimensionIsAuto(leftCap) || TiDimensionIsUndefined(leftCap) || leftCap.value == 0) ?
                                 maxWidth/2  : 
