@@ -133,22 +133,33 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         {
             CGSize resultSize = CGSizeZero;
             CGRect textPadding = CGRectZero;
-            if ([self valueForKey:@"textPaddingLeft"])
-                textPadding.origin.x = [TiUtils intValue:[self valueForKey:@"textPaddingLeft"]];
-            if ([self valueForKey:@"textPaddingRight"])
-                textPadding.size.width = [TiUtils intValue:[self valueForKey:@"textPaddingRight"]];
-            if ([self valueForKey:@"textPaddingTop"])
-                textPadding.origin.y = [TiUtils intValue:[self valueForKey:@"textPaddingTop"]];
-            if ([self valueForKey:@"textPaddingBottom"])
-                textPadding.size.height = [TiUtils intValue:[self valueForKey:@"textPaddingBottom"]];
-            
+            if ([self valueForKey:@"textPadding"]) {
+                NSDictionary* paddingDict = (NSDictionary*)[self valueForKey:@"textPadding"];
+                if ([paddingDict objectForKey:@"left"]) {
+                    textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
+                }
+                if ([paddingDict objectForKey:@"right"]) {
+                    textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
+                }
+                if ([paddingDict objectForKey:@"top"]) {
+                    textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
+                }
+                if ([paddingDict objectForKey:@"bottom"]) {
+                    textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
+                };
+            }
             CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
             maxSize.width -= textPadding.origin.x + textPadding.size.width;
             if ([realLabelContent isKindOfClass:[NSAttributedString class]])
             {
+
                 if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
                 {
-                    resultSize = [(NSAttributedString*)realLabelContent boundingRectWithSize:maxSize options:0 context:nil].size;
+                    resultSize = [(NSAttributedString*)realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+                }else {
+                    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)realLabelContent);
+                    resultSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [realLabelContent length]), NULL, maxSize, NULL);
+                    CFRelease(framesetter);
                 }
             }
             else
