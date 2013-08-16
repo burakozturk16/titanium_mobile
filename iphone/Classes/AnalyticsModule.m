@@ -97,7 +97,7 @@ NSString * const TI_DB_VERSION = @"1";
 
 -(void)backgroundFlushEventQueue
 {
-	[self enqueueBlock:^{[self flushEventQueueWrapper];}];
+//	[self enqueueBlock:^{[self flushEventQueueWrapper];}];
 }
 
 -(void)requeueEventsOnTimer
@@ -312,74 +312,74 @@ NSString * const TI_DB_VERSION = @"1";
 
 -(void)queueEvent:(NSString*)type name:(NSString*)name data:(NSDictionary*)data immediate:(BOOL)immediate
 {
-	static int sequence = 0;
-	
-	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-	
-	[dict setObject:@"2" forKey:@"ver"];
-	[dict setObject:[TiUtils UTCDate] forKey:@"ts"];
-	[dict setObject:[TiUtils createUUID] forKey:@"id"];
-	[dict setObject:NUMINT(sequence++) forKey:@"seq"];
-	[dict setObject:[TiUtils appIdentifier] forKey:@"mid"];
-
-	[dict setObject:TI_APPLICATION_GUID forKey:@"aguid"];
-	[dict setObject:TI_APPLICATION_DEPLOYTYPE forKey:@"deploytype"];
-	[dict setObject:name forKey:@"event"];
-	[dict setObject:type forKey:@"type"];
-	[dict setObject:[[TiApp app] sessionId] forKey:@"sid"];
-	if (data==nil)
-	{
-		[dict setObject:[NSNull null] forKey:@"data"];
-	}
-	else 
-	{
-		[dict setObject:data forKey:@"data"];
-	}
-	NSString *remoteDeviceUUID = [[TiApp app] remoteDeviceUUID];
-	if (remoteDeviceUUID==nil)
-	{
-		[dict setObject:[NSNull null] forKey:@"rdu"];
-	}
-	else 
-	{
-		[dict setObject:remoteDeviceUUID forKey:@"rdu"];
-	}
-
-	id value = [SBJSON stringify:dict];
-	self.lastEvent = value;
-	
-	NSString *sql = [NSString stringWithFormat:@"INSERT INTO pending_events VALUES (?)"];
-	NSError *error = nil;
-    // Don't lock until we need to
-    [lock lock];
-    if (database==nil)
-	{
-		// doh, no database???
-		[lock unlock];
-		return;
-	}
-	PLSqlitePreparedStatement * statement = (PLSqlitePreparedStatement *) [database prepareStatement:sql error:&error];
-	[statement bindParameters:[NSArray arrayWithObjects:value,nil]];
-    
-    
-	[database beginTransaction];
-	[statement executeUpdate];
-	[database commitTransaction];
-	[lock unlock];
-	
-	[statement close];
-
-	
-	if (immediate)
-	{	
-		// if immediate we send right now
-		[self flushEventQueueWrapper];
-	}
-	else
-	{
-		// otherwise, we start our flush timer to send later
-		[self startFlushTimer];
-	}
+//	static int sequence = 0;
+//	
+//	NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+//	
+//	[dict setObject:@"2" forKey:@"ver"];
+//	[dict setObject:[TiUtils UTCDate] forKey:@"ts"];
+//	[dict setObject:[TiUtils createUUID] forKey:@"id"];
+//	[dict setObject:NUMINT(sequence++) forKey:@"seq"];
+//	[dict setObject:[TiUtils appIdentifier] forKey:@"mid"];
+//
+//	[dict setObject:TI_APPLICATION_GUID forKey:@"aguid"];
+//	[dict setObject:TI_APPLICATION_DEPLOYTYPE forKey:@"deploytype"];
+//	[dict setObject:name forKey:@"event"];
+//	[dict setObject:type forKey:@"type"];
+//	[dict setObject:[[TiApp app] sessionId] forKey:@"sid"];
+//	if (data==nil)
+//	{
+//		[dict setObject:[NSNull null] forKey:@"data"];
+//	}
+//	else 
+//	{
+//		[dict setObject:data forKey:@"data"];
+//	}
+//	NSString *remoteDeviceUUID = [[TiApp app] remoteDeviceUUID];
+//	if (remoteDeviceUUID==nil)
+//	{
+//		[dict setObject:[NSNull null] forKey:@"rdu"];
+//	}
+//	else 
+//	{
+//		[dict setObject:remoteDeviceUUID forKey:@"rdu"];
+//	}
+//
+//	id value = [SBJSON stringify:dict];
+//	self.lastEvent = value;
+//	
+//	NSString *sql = [NSString stringWithFormat:@"INSERT INTO pending_events VALUES (?)"];
+//	NSError *error = nil;
+//    // Don't lock until we need to
+//    [lock lock];
+//    if (database==nil)
+//	{
+//		// doh, no database???
+//		[lock unlock];
+//		return;
+//	}
+//	PLSqlitePreparedStatement * statement = (PLSqlitePreparedStatement *) [database prepareStatement:sql error:&error];
+//	[statement bindParameters:[NSArray arrayWithObjects:value,nil]];
+//    
+//    
+//	[database beginTransaction];
+//	[statement executeUpdate];
+//	[database commitTransaction];
+//	[lock unlock];
+//	
+//	[statement close];
+//
+//	
+//	if (immediate)
+//	{	
+//		// if immediate we send right now
+//		[self flushEventQueueWrapper];
+//	}
+//	else
+//	{
+//		// otherwise, we start our flush timer to send later
+//		[self startFlushTimer];
+//	}
 }
 
 -(NSString*)checkForEnrollment:(BOOL*)enrolled
@@ -451,35 +451,35 @@ NSString * const TI_DB_VERSION = @"1";
 
 -(void)enroll
 {
-	@try 
-	{
-		// if not online (since we need some stuff), re-queue for later
-		id online = [[self network] valueForKey:@"online"];
-		if ([TiUtils boolValue:online]==NO)
-		{
-			[self performSelector:@selector(enroll) withObject:nil afterDelay:10];
-			return;
-		}
-		
-		id platform = [self platform];
-		
-		NSMutableDictionary *enrollment = [NSMutableDictionary dictionary];
-		
-		[enrollment setObject:[platform valueForKey:@"processorCount"] forKey:@"oscpu"];
-		[enrollment setObject:[platform valueForKey:@"ostype"] forKey:@"ostype"];
-		[enrollment setObject:[platform valueForKey:@"architecture"] forKey:@"osarch"];
-		[enrollment setObject:[platform valueForKey:@"model"] forKey:@"model"];
-		[enrollment setObject:TI_APPLICATION_NAME forKey:@"app_name"];
-		[enrollment setObject:TI_APPLICATION_DEPLOYTYPE forKey:@"deploytype"];
-		[enrollment setObject:TI_APPLICATION_ID forKey:@"app_id"];
-		[enrollment setObject:@"iphone" forKey:@"platform"];
-		
-		[self queueEvent:@"ti.enroll" name:@"ti.enroll" data:enrollment immediate:NO];
-	}
-	@catch (NSException * e) 
-	{
-		NSLog(@"[ERROR] Error sending analytics event: %@",e);
-	}
+//	@try 
+//	{
+//		// if not online (since we need some stuff), re-queue for later
+//		id online = [[self network] valueForKey:@"online"];
+//		if ([TiUtils boolValue:online]==NO)
+//		{
+//			[self performSelector:@selector(enroll) withObject:nil afterDelay:10];
+//			return;
+//		}
+//		
+//		id platform = [self platform];
+//		
+//		NSMutableDictionary *enrollment = [NSMutableDictionary dictionary];
+//		
+//		[enrollment setObject:[platform valueForKey:@"processorCount"] forKey:@"oscpu"];
+//		[enrollment setObject:[platform valueForKey:@"ostype"] forKey:@"ostype"];
+//		[enrollment setObject:[platform valueForKey:@"architecture"] forKey:@"osarch"];
+//		[enrollment setObject:[platform valueForKey:@"model"] forKey:@"model"];
+//		[enrollment setObject:TI_APPLICATION_NAME forKey:@"app_name"];
+//		[enrollment setObject:TI_APPLICATION_DEPLOYTYPE forKey:@"deploytype"];
+//		[enrollment setObject:TI_APPLICATION_ID forKey:@"app_id"];
+//		[enrollment setObject:@"iphone" forKey:@"platform"];
+//		
+//		[self queueEvent:@"ti.enroll" name:@"ti.enroll" data:enrollment immediate:NO];
+//	}
+//	@catch (NSException * e) 
+//	{
+//		NSLog(@"[ERROR] Error sending analytics event: %@",e);
+//	}
 }
 
 -(NSDictionary *)startupDataPayload
@@ -528,19 +528,19 @@ NSString * const TI_DB_VERSION = @"1";
 {
 	static bool AnalyticsStarted = NO;
 	
-	DebugLog(@"[DEBUG] Analytics is enabled = %@", (TI_APPLICATION_ANALYTICS==NO ? @"NO":@"YES"));
-	
-	if (AnalyticsStarted || TI_APPLICATION_ANALYTICS==NO)
-	{
-		return;
-	}
-
-	AnalyticsStarted = YES;
-	
-	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(analyticsEvent:) name:kTiAnalyticsNotification object:nil];
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(remoteDeviceUUIDChanged:) name:kTiRemoteDeviceUUIDNotification object:nil];
-	[self enqueueBlock:^{[self queueEvent:@"ti.start" name:@"ti.start" data:[self startupDataPayload] immediate:NO];}];
+//	DebugLog(@"[DEBUG] Analytics is enabled = %@", (TI_APPLICATION_ANALYTICS==NO ? @"NO":@"YES"));
+//	
+//	if (AnalyticsStarted || TI_APPLICATION_ANALYTICS==NO)
+//	{
+//		return;
+//	}
+//
+//	AnalyticsStarted = YES;
+//	
+//	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
+//	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(analyticsEvent:) name:kTiAnalyticsNotification object:nil];
+//	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(remoteDeviceUUIDChanged:) name:kTiRemoteDeviceUUIDNotification object:nil];
+//	[self enqueueBlock:^{[self queueEvent:@"ti.start" name:@"ti.start" data:[self startupDataPayload] immediate:NO];}];
 	[super startup];
 }
 
@@ -559,33 +559,33 @@ NSString * const TI_DB_VERSION = @"1";
 
 -(void)analyticsEvent:(NSNotification*)note
 {
-	id userInfo = [note userInfo];
-	if (![userInfo isKindOfClass:[NSDictionary class]])
-	{
-		DebugLog(@"[ERROR] Invalid analytics event received. Expected dictionary, got: %@",[userInfo class]);
-		return;
-	}
-	[self enqueueBlock:^{
-	NSDictionary *event = (NSDictionary*)userInfo;
-	NSString *name = [event objectForKey:@"name"];
-	NSString *type = [event objectForKey:@"type"];
-	NSDictionary *data = [event objectForKey:@"data"];
-	
-	if (IS_NULL_OR_NIL(data) && [type isEqualToString:@"ti.foreground"]) {
-		//Do we want to open this up to other events? On one hand, more data
-		//is good. On the other, sending unneeded data is expensive.
-		data = [self startupDataPayload];
-	}
-	[self queueEvent:type name:name data:data immediate:NO];
-	}];
+//	id userInfo = [note userInfo];
+//	if (![userInfo isKindOfClass:[NSDictionary class]])
+//	{
+//		DebugLog(@"[ERROR] Invalid analytics event received. Expected dictionary, got: %@",[userInfo class]);
+//		return;
+//	}
+//	[self enqueueBlock:^{
+//	NSDictionary *event = (NSDictionary*)userInfo;
+//	NSString *name = [event objectForKey:@"name"];
+//	NSString *type = [event objectForKey:@"type"];
+//	NSDictionary *data = [event objectForKey:@"data"];
+//	
+//	if (IS_NULL_OR_NIL(data) && [type isEqualToString:@"ti.foreground"]) {
+//		//Do we want to open this up to other events? On one hand, more data
+//		//is good. On the other, sending unneeded data is expensive.
+//		data = [self startupDataPayload];
+//	}
+//	[self queueEvent:type name:name data:data immediate:NO];
+//	}];
 }
 
 -(void)remoteDeviceUUIDChanged:(NSNotification*)note
 {
-	id userInfo = [note userInfo];
-	NSString *deviceid = [userInfo objectForKey:@"deviceid"];
-	NSDictionary *event = [NSDictionary dictionaryWithObject:deviceid forKey:@"deviceid"];
-	[self enqueueBlock:^{[self queueEvent:@"app.settings" name:@"RemoteDeviceUUID" data:event immediate:NO];}];
+//	id userInfo = [note userInfo];
+//	NSString *deviceid = [userInfo objectForKey:@"deviceid"];
+//	NSDictionary *event = [NSDictionary dictionaryWithObject:deviceid forKey:@"deviceid"];
+//	[self enqueueBlock:^{[self queueEvent:@"app.settings" name:@"RemoteDeviceUUID" data:event immediate:NO];}];
 }
 
 #pragma mark Helper methods
@@ -603,88 +603,88 @@ NSString * const TI_DB_VERSION = @"1";
 // internal event handler
 -(void)queueKeyValueEvent:(id)args type:(NSString*)type
 {
-	if ([args count] < 1)
-	{
-		[self throwException:@"invalid number of arguments, expected at least 1" subreason:nil location:CODELOCATION];
-		return;
-	}
-	NSString *event = [args objectAtIndex:0];
-	id data = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
-	[self enqueueBlock:^{
-		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:[self dataToDictionary:data],@"data",nil];	
-		[self queueEvent:type name:event data:payload immediate:NO];
-	}];
+//	if ([args count] < 1)
+//	{
+//		[self throwException:@"invalid number of arguments, expected at least 1" subreason:nil location:CODELOCATION];
+//		return;
+//	}
+//	NSString *event = [args objectAtIndex:0];
+//	id data = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
+//	[self enqueueBlock:^{
+//		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:[self dataToDictionary:data],@"data",nil];	
+//		[self queueEvent:type name:event data:payload immediate:NO];
+//	}];
 }
 
 #pragma mark Public APIs
 
 -(void)addEvent:(id)args
 {
-	if ([args count] < 2)
-	{
-		[self throwException:@"invalid number of arguments, expected at least 2" subreason:nil location:CODELOCATION];
-		return;
-	}
-	NSString *type = [args objectAtIndex:0];
-	NSString *name = [args objectAtIndex:1];
-	id data = [args count] > 2 ? [args objectAtIndex:2] : [NSDictionary dictionary];
-	[self enqueueBlock:^{
-		DeveloperLog(@"[INFO] Analytics->addEvent with type: %@, name: %@, data: %@",type,name,data);
-		
-		[self queueEvent:type name:name data:[self dataToDictionary:data] immediate:NO];
-	}];
+//	if ([args count] < 2)
+//	{
+//		[self throwException:@"invalid number of arguments, expected at least 2" subreason:nil location:CODELOCATION];
+//		return;
+//	}
+//	NSString *type = [args objectAtIndex:0];
+//	NSString *name = [args objectAtIndex:1];
+//	id data = [args count] > 2 ? [args objectAtIndex:2] : [NSDictionary dictionary];
+//	[self enqueueBlock:^{
+//		DeveloperLog(@"[INFO] Analytics->addEvent with type: %@, name: %@, data: %@",type,name,data);
+//		
+//		[self queueEvent:type name:name data:[self dataToDictionary:data] immediate:NO];
+//	}];
 }
 
 -(void)navEvent:(id)args
 {
 	// from, to, event, data
-	if ([args count] < 2)
-	{
-		[self throwException:@"invalid number of arguments, expected at least 2" subreason:nil location:CODELOCATION];
-		return;
-	}
-	NSString *from = [args objectAtIndex:0];
-	NSString *to = [args objectAtIndex:1];
-	NSString *event = [args count] > 2 ? [args objectAtIndex:2] : @"";
-	id data = [args count] > 3 ? [args objectAtIndex:3] : [NSDictionary dictionary];
-	[self enqueueBlock:^{
-		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:from,@"from",
-							   to,@"to",[self dataToDictionary:data],@"data",nil];
-		
-		DeveloperLog(@"[INFO] Analytics->navEvent with from: %@, to: %@, event: %@, data: %@",from,to,event,data);
-
-		[self queueEvent:@"app.nav" name:event data:payload immediate:NO];
-	}];
+//	if ([args count] < 2)
+//	{
+//		[self throwException:@"invalid number of arguments, expected at least 2" subreason:nil location:CODELOCATION];
+//		return;
+//	}
+//	NSString *from = [args objectAtIndex:0];
+//	NSString *to = [args objectAtIndex:1];
+//	NSString *event = [args count] > 2 ? [args objectAtIndex:2] : @"";
+//	id data = [args count] > 3 ? [args objectAtIndex:3] : [NSDictionary dictionary];
+//	[self enqueueBlock:^{
+//		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:from,@"from",
+//							   to,@"to",[self dataToDictionary:data],@"data",nil];
+//		
+//		DeveloperLog(@"[INFO] Analytics->navEvent with from: %@, to: %@, event: %@, data: %@",from,to,event,data);
+//
+//		[self queueEvent:@"app.nav" name:event data:payload immediate:NO];
+//	}];
 }
 
 -(void)timedEvent:(id)args
 {
 	// event, start, stop, duration, data
-	if ([args count] < 4)
-	{
-		[self throwException:@"invalid number of arguments, expected at least 4" subreason:nil location:CODELOCATION];
-		return;
-	}
-	NSString *event = [args objectAtIndex:0];
-	NSDate *start = [args objectAtIndex:1];	
-	NSDate *stop = [args objectAtIndex:2];
-	ENSURE_TYPE(start,NSDate);
-	ENSURE_TYPE(stop,NSDate);
-	
-	id duration = [args objectAtIndex:3];
-	id data = [args count] > 4 ? [args objectAtIndex:4] : [NSDictionary dictionary];
-	
-	[self enqueueBlock:^{
-		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:
-								 [TiUtils UTCDateForDate:start],@"start",
-								 [TiUtils UTCDateForDate:stop],@"stop",
-								 duration,@"duration",
-								 [self dataToDictionary:data],@"data",nil];
-		
-		DeveloperLog(@"[INFO] Analytics->timedEvent with event: %@, start: %@, stop: %@, duration: %@, data: %@",event,start,stop,duration,data);
-
-		[self queueEvent:@"app.timed_event" name:event data:payload immediate:NO];
-	}];
+//	if ([args count] < 4)
+//	{
+//		[self throwException:@"invalid number of arguments, expected at least 4" subreason:nil location:CODELOCATION];
+//		return;
+//	}
+//	NSString *event = [args objectAtIndex:0];
+//	NSDate *start = [args objectAtIndex:1];	
+//	NSDate *stop = [args objectAtIndex:2];
+//	ENSURE_TYPE(start,NSDate);
+//	ENSURE_TYPE(stop,NSDate);
+//	
+//	id duration = [args objectAtIndex:3];
+//	id data = [args count] > 4 ? [args objectAtIndex:4] : [NSDictionary dictionary];
+//	
+//	[self enqueueBlock:^{
+//		NSDictionary *payload = [NSDictionary dictionaryWithObjectsAndKeys:
+//								 [TiUtils UTCDateForDate:start],@"start",
+//								 [TiUtils UTCDateForDate:stop],@"stop",
+//								 duration,@"duration",
+//								 [self dataToDictionary:data],@"data",nil];
+//		
+//		DeveloperLog(@"[INFO] Analytics->timedEvent with event: %@, start: %@, stop: %@, duration: %@, data: %@",event,start,stop,duration,data);
+//
+//		[self queueEvent:@"app.timed_event" name:event data:payload immediate:NO];
+//	}];
 }
 
 #define PRINT_EVENT_DETAILS(name,args) \
@@ -695,20 +695,20 @@ NSString * const TI_DB_VERSION = @"1";
 
 -(void)featureEvent:(id)args
 {
-	PRINT_EVENT_DETAILS(featureEvent,args);
-	[self queueKeyValueEvent:args type:@"app.feature"];
+//	PRINT_EVENT_DETAILS(featureEvent,args);
+//	[self queueKeyValueEvent:args type:@"app.feature"];
 }
 
 -(void)settingsEvent:(id)args
 {
-	PRINT_EVENT_DETAILS(settingsEvent,args);
-	[self queueKeyValueEvent:args type:@"app.settings"];
+//	PRINT_EVENT_DETAILS(settingsEvent,args);
+//	[self queueKeyValueEvent:args type:@"app.settings"];
 }
 
 -(void)userEvent:(id)args
 {
-	PRINT_EVENT_DETAILS(userEvent,args);
-	[self queueKeyValueEvent:args type:@"app.user"];
+//	PRINT_EVENT_DETAILS(userEvent,args);
+//	[self queueKeyValueEvent:args type:@"app.user"];
 }
 
 @end
