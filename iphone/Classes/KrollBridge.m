@@ -63,11 +63,11 @@ void TiBindingRunLoopAnnounceStart(TiBindingRunLoop runLoop);
 		TiModule *api = [host moduleNamed:@"API" context:pageContext_];
 		[self addModule:@"API" module:api];
 		
-		if (TI_APPLICATION_ANALYTICS)
-		{
-			// force analytics to load on startup
-			[host moduleNamed:@"Analytics" context:pageContext_];
-		}
+//		if (TI_APPLICATION_ANALYTICS)
+//		{
+//			// force analytics to load on startup
+//			[host moduleNamed:@"Analytics" context:pageContext_];
+//		}
 	}
 	return self;
 }
