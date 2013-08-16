@@ -46,7 +46,7 @@ static NSArray* webKeySequence;
     if (webKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        webKeySequence = [[NSArray arrayWithObjects:@"url",nil] retain];
+        webKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"url",nil]] retain];
     }
     return webKeySequence;
 }

@@ -19,7 +19,7 @@ static NSArray* tabGroupKeySequence;
     if (tabGroupKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        tabGroupKeySequence = [[NSArray arrayWithObjects:@"tabs",@"activeTab",nil] retain];
+        tabGroupKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"tabs",@"activeTab",nil]] retain];
     }
     return tabGroupKeySequence;
 }

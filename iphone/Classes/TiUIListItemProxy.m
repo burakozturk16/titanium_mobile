@@ -25,6 +25,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     NSMutableDictionary *_initialValues;
 	NSMutableDictionary *_currentValues;
 	NSMutableSet *_resetKeys;
+    BOOL unarchived;
 }
 
 @synthesize listItem = _listItem;
@@ -34,6 +35,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 {
     self = [self _initWithPageContext:context];
     if (self) {
+        unarchived = NO;
         _initialValues = [[NSMutableDictionary alloc] initWithCapacity:10];
 		_currentValues = [[NSMutableDictionary alloc] initWithCapacity:10];
 		_resetKeys = [[NSMutableSet alloc] initWithCapacity:10];
@@ -44,8 +46,6 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 		}];
 		self.modelDelegate = self;
         [self getCellPropsFromDict:[listViewProxy allProperties]];
-      
-        [self setDefaultReadyToCreateView:YES];
     }
     return self;
 }
@@ -147,11 +147,18 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 {
 	[super unarchiveFromTemplate:viewTemplate];
 	SetEventOverrideDelegateRecursive(self.children, self);
+    unarchived = YES;
+}
+
+- (void)unarchiveFakeFromTemplate:(id)viewTemplate
+{
+	[super unarchiveFakeFromTemplate:viewTemplate];
+    unarchived = YES;
 }
 
 - (NSDictionary *)bindings
 {
-	if (_bindings == nil) {
+	if (_bindings == nil &&  unarchived) {
 		NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
 		[[self class] buildBindingsForViewProxy:self intoDictionary:dict];
 		_bindings = [dict copy];
