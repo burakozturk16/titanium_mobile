@@ -564,6 +564,10 @@ DEFINE_EXCEPTIONS
 		NSLog(@"[WARN] could not find image: %@",image);
 		return nil;
 	}
+    if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        return [[ImageLoader sharedLoader]loadImmediateImage:url];
+    }
 	return [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
 }
 
