@@ -309,6 +309,21 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     return nil;
 }
 
+-(void)scrollToTop:(NSInteger)top animated:(BOOL)animated
+{
+	[_tableView setContentOffset:CGPointMake(0,top) animated:animated];
+}
+
+
+-(void)scrollToBottom:(NSInteger)bottom animated:(BOOL)animated
+{
+    if (_tableView.contentSize.height > _tableView.frame.size.height)
+    {
+        CGPoint offset = CGPointMake(0, _tableView.contentSize.height - _tableView.frame.size.height - bottom);
+        [_tableView setContentOffset:offset animated:animated];
+    }
+}
+
 #pragma mark - Helper Methods
 
 -(id)valueWithKey:(NSString*)key atIndexPath:(NSIndexPath*)indexPath
@@ -1142,6 +1157,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             context = self.listViewProxy.pageContext;
         }
         TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
+        cellProxy.parentForBubbling = (TiViewProxy*)self.proxy;
         if ([templateId isKindOfClass:[NSNumber class]]) {
             UITableViewCellStyle cellStyle = [templateId unsignedIntegerValue];
             cell = [[TiUIListItem alloc] initWithStyle:cellStyle position:position grouped:grouped reuseIdentifier:cellIdentifier proxy:cellProxy];

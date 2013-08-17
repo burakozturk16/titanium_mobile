@@ -15,6 +15,7 @@
 
 @property (nonatomic, readwrite, assign) TiUIListItem *listItem;
 @property (nonatomic, readwrite, retain) NSIndexPath *indexPath;
+@property (nonatomic, readwrite, assign) TiViewProxy *parentForBubbling;
 
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context;
 - (void) applyCellProps;

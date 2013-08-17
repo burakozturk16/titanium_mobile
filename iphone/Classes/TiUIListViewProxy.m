@@ -372,6 +372,26 @@
 	}];
 }
 
+-(void)scrollToTop:(id)args
+{
+	ENSURE_UI_THREAD(scrollToTop,args);
+	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
+	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
+	
+	[self.listView scrollToTop:top animated:animated];
+}
+
+-(void)scrollToBottom:(id)args
+{
+	ENSURE_UI_THREAD(scrollToBottom,args);
+	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
+	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
+	
+	[self.listView scrollToBottom:top animated:animated];
+}
+
 - (void)selectItem:(id)args
 {
 	ENSURE_ARG_COUNT(args, 2);

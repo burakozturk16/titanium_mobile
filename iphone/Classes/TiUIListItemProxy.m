@@ -30,6 +30,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 @synthesize listItem = _listItem;
 @synthesize indexPath = _indexPath;
+@synthesize parentForBubbling = _parentForBubbling;
 
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context
 {
@@ -71,6 +72,8 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 -(void)dealloc
 {
+    [_parentForBubbling release];
+    [_listItem release];
     [_initialValues release];
 	[_currentValues release];
 	[_resetKeys release];
@@ -83,6 +86,12 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 {
 	return view = (TiUIView *)_listItem.contentView;
 }
+
+-(TiProxy*)parentForBubbling
+{
+	return _parentForBubbling;
+}
+
 
 - (void)detachView
 {
