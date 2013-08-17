@@ -126,12 +126,29 @@
 {
     if ( ([[event touchesForView:self.contentView] count] > 0) || ([[event touchesForView:self.accessoryView] count] > 0)
         || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
-        if ([_proxy _hasListeners:@"touchend"])
-        {
+        BOOL hasTouchEnd = [_proxy _hasListeners:@"touchend"];
+        BOOL hasDblclick = [_proxy _hasListeners:@"dblclick"];
+        BOOL hasClick = [_proxy _hasListeners:@"click"];
+		if (hasTouchEnd || hasDblclick || hasClick)
+		{
             UITouch *touch = [touches anyObject];
             NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-            [_proxy fireEvent:@"touchend" withObject:evt propagate:YES];
-        }
+            if (hasTouchEnd) {
+                [_proxy fireEvent:@"touchend" withObject:evt propagate:YES];
+            }
+            
+            // Click handling is special; don't propagate if we have a delegate,
+            // but DO invoke the touch delegate.
+            // clicks should also be handled by any control the view is embedded in.
+            if (hasDblclick && [touch tapCount] == 2) {
+                [_proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+                return;
+            }
+            if (hasClick)
+            {
+                [_proxy fireEvent:@"click" withObject:evt propagate:YES];
+            }
+		}
     }
     [super touchesEnded:touches withEvent:event];
 }
