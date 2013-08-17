@@ -60,6 +60,7 @@ public class TableViewProxy extends TiViewProxy
 	private static final int MSG_APPEND_SECTION = TiViewProxy.MSG_LAST_ID + 5009;
 	private static final int MSG_DELETE_SECTION = TiViewProxy.MSG_LAST_ID + 5010;
 	private static final int MSG_INSERT_SECTION = TiViewProxy.MSG_LAST_ID + 5011;
+	private static final int MSG_SCROLL_TO_BOTTOM = TiViewProxy.MSG_LAST_ID + 5012;
 
 	public static final String CLASSNAME_DEFAULT = "__default__";
 	public static final String CLASSNAME_HEADER = "__header__";
@@ -891,13 +892,29 @@ public class TableViewProxy extends TiViewProxy
 		message.sendToTarget();
 	}
 
+	@Kroll.method
+	public void scrollToTop(int y, @Kroll.argument(optional = true) Object obj)
+	{
+		Boolean animated = true;
+		if (obj != null) {
+			animated = TiConvert.toBoolean(obj);
+		}
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
+		message.sendToTarget();
+	}
 
 	@Kroll.method
-	public void scrollToTop(int index)
+	public void scrollToBottom(int y, @Kroll.argument(optional = true) Object obj)
 	{
-		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
-		// Message msg = getUIHandler().obtainMessage(MSG_SCROLL_TO_TOP);
-		message.arg1 = index;
+		Boolean animated = true;
+		if (obj != null) {
+			animated = TiConvert.toBoolean(obj);
+		}
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_BOTTOM);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
 		message.sendToTarget();
 	}
 
@@ -976,7 +993,10 @@ public class TableViewProxy extends TiViewProxy
 			}
 			return true;
 		} else if (msg.what == MSG_SCROLL_TO_TOP) {
-			getTableView().scrollToTop(msg.arg1);
+			getTableView().scrollToTop(msg.arg1, msg.arg2 == 1);
+			return true;
+		} else if (msg.what == MSG_SCROLL_TO_BOTTOM) {
+			getTableView().scrollToBottom(msg.arg1, msg.arg2 == 1);
 			return true;
 		} else if (msg.what == MSG_SELECT_ROW) {
 			getTableView().selectRow(msg.arg1);

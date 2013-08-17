@@ -90,11 +90,26 @@ public class TiUITableView extends TiUIView
 		tableView.getListView().smoothScrollToPosition(index);
 	}
 
-	public void scrollToTop(final int index)
+	public void scrollToTop(final int y, boolean animated)
 	{
-		tableView.getListView().setSelectionFromTop(index, 0);
+		if (animated) {
+			tableView.getListView().smoothScrollToPosition(0);
+		}
+		else {
+			tableView.getListView().setSelectionFromTop(0, y);
+		}
 	}
-	
+
+	public void scrollToBottom(final int y, boolean animated)
+	{
+		if (animated) {
+			tableView.getListView().smoothScrollToPosition(tableView.getCount() - 1);
+		}
+		else {
+			tableView.getListView().setSelection(tableView.getCount() - 1);
+		}
+	}
+
 	public void selectRow(final int row_id)
 	{
 		tableView.getListView().setSelection(row_id);

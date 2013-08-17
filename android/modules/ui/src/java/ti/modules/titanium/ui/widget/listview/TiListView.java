@@ -244,6 +244,7 @@ public class TiListView extends TiUIView {
 		wrapper.setAddStatesFromChildren(true);
 		listView = new ListView(activity);
 		listView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
 		wrapper.addView(listView);
 		adapter = new TiBaseAdapter(activity);
 		
@@ -653,6 +654,13 @@ public class TiListView extends TiUIView {
 		}
 		return position;
 	}
+
+	private int getCount() {
+		if (adapter != null) {
+			return adapter.getCount();
+		}
+		return 0;
+	}
 	
 	public void scrollToItem(int sectionIndex, int sectionItemIndex) {
 		int position = findItemPosition(sectionIndex, sectionItemIndex);
@@ -660,6 +668,27 @@ public class TiListView extends TiUIView {
 			listView.smoothScrollToPosition(position + 1);
 		}
 	}
+
+	public void scrollToTop(final int y, boolean animated)
+	{
+		if (animated) {
+			listView.smoothScrollToPosition(0);
+		}
+		else {
+			listView.setSelectionFromTop(0, y);
+		}
+	}
+
+	public void scrollToBottom(final int y, boolean animated)
+	{
+		if (animated) {
+			listView.smoothScrollToPosition(getCount() - 1);
+		}
+		else {
+			listView.setSelection(getCount() - 1);
+		}
+	}
+
 	
 	public void release() {
 		for (int i = 0; i < sections.size(); i++) {

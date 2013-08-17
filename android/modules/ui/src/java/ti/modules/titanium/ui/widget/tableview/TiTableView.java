@@ -571,6 +571,13 @@ public class TiTableView extends FrameLayout
 		}
 	}
 
+	public int getCount() {
+		if (adapter != null) {
+			return adapter.getCount();
+		}
+		return 0;
+	}
+
 	public void setOnItemClickListener(OnItemClickedListener listener) {
 		this.itemClickListener = listener;
 	}
