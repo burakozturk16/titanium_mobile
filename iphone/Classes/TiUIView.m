@@ -553,22 +553,59 @@ DEFINE_EXCEPTIONS
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateDisabled];
 }
 
-
-
--(UIImage*)loadImage:(id)image
+-(UIImage*)convertToUIImage:(id)arg
 {
-	if (image==nil) return nil;
-	NSURL *url = [TiUtils toURL:image proxy:proxy];
-	if (url==nil)
-	{
-		NSLog(@"[WARN] could not find image: %@",image);
-		return nil;
-	}
-    if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
-        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
-        return [[ImageLoader sharedLoader]loadImmediateImage:url];
+	if (arg==nil) return nil;
+    UIImage *image = nil;
+	
+    if ([arg isKindOfClass:[TiBlob class]]) {
+        TiBlob *blob = (TiBlob*)arg;
+        image = [blob image];
     }
-	return [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+    else if ([arg isKindOfClass:[TiFile class]]) {
+        NSURL *url = [TiUtils toURL:arg proxy:proxy];
+        image = [[ImageLoader sharedLoader] loadImmediateImage:url];
+    }
+    else if ([arg isKindOfClass:[UIImage class]]) {
+		// called within this class
+        image = (UIImage*)arg;
+    }
+    return image;
+}
+
+
+
+-(UIImage*)loadImage:(id)arg
+{
+    if (arg==nil) return nil;
+    UIImage *image = nil;
+	
+    if ([arg isKindOfClass:[TiBlob class]]) {
+        TiBlob *blob = (TiBlob*)arg;
+        image = [blob image];
+    }
+    else if ([arg isKindOfClass:[UIImage class]]) {
+		// called within this class
+        image = (UIImage*)arg;
+    }
+    else {
+        NSURL *url;
+        if ([arg isKindOfClass:[TiFile class]]) {
+            TiFile *file = (TiFile*)arg;
+            url = [NSURL fileURLWithPath:[file path]];
+        }
+        else {
+            url = [TiUtils toURL:arg proxy:proxy];
+        }
+        if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+            TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+            image =  [[ImageLoader sharedLoader]loadImmediateImage:url];
+        }
+        else {
+            image = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+        }
+    }
+	return image;
 }
 
 -(void) setBackgroundImage_:(id)image
