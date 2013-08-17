@@ -617,32 +617,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	{
 		realizeViews(view, enableModelListener, true);
 	}
-	
-	public TiUIView createViewAndChildren(boolean processProperties)
-	{
-		Activity activity = getActivity();
-		view = createView(activity);
-		if (processProperties)
-		{
-			KrollDict d = getProperties();
-			if (d != null) {
-				view.processProperties(d);
-			}
-		}
-		// Use a copy so bundle can be modified as it passes up the inheritance
-		// tree. Allows defaults to be added and keys removed.
-		if (children != null) {
-			try {
-				for (TiViewProxy p : children) {
-					TiUIView cv = p.createViewAndChildren(processProperties);
-					view.add(cv);
-				}
-			} catch (ConcurrentModificationException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
-		}
-		return view;
-	}
 
 	public void realizeViews(TiUIView view, boolean enableModelListener, boolean processProperties)
 	{
