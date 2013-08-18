@@ -536,9 +536,21 @@ DEFINE_EXCEPTIONS
 
 -(void) setBackgroundColor_:(id)color
 {
-    UIColor* uiColor = [TiUtils colorValue:color].color;
-//    self.backgroundColor = uiColor;
-   [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateNormal];
+    UIColor* uicolor;
+	if ([color isKindOfClass:[UIColor class]])
+	{
+        uicolor = (UIColor*)color;
+	}
+	else
+	{
+		uicolor = [[TiUtils colorValue:color] _color];
+	}
+    if (backgroundOpacity < 1.0f) {
+        const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
+        float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
+        uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
+    }
+    super.backgroundColor = uicolor;
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
@@ -652,6 +664,11 @@ DEFINE_EXCEPTIONS
 -(void)setBackgroundOpacity_:(id)opacity
 {
     backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
+    
+    id value = [proxy valueForKey:@"backgroundColor"];
+    if (value!=nil) {
+        [self setBackgroundColor_:value];
+    }
 
     if (_bgLayer) {
         _bgLayer.opacity = backgroundOpacity;
