@@ -1165,6 +1165,20 @@
         keyboardHeight -= focusedToolbarBounds.size.height;
     }
     
+    [UIView beginAnimations:@"update" context:accessoryView];
+    if (keyboardVisible)
+    {
+        [UIView setAnimationDuration:enterDuration];
+        [UIView setAnimationCurve:enterCurve];
+    }
+    else
+    {
+        [UIView setAnimationDuration:leaveDuration];
+        [UIView setAnimationCurve:leaveCurve];
+    }
+    
+    [UIView setAnimationDelegate:self];
+    
 	if ((scrolledView != nil) && (keyboardHeight > 0))	//If this isn't IN the toolbar, then we update the scrollviews to compensate.
 	{
 		UIView * possibleScrollView = [scrolledView superview];
@@ -1202,22 +1216,10 @@
 			targetedFrame = [ourView convertRect:endingFrame toView:[accessoryView superview]];
 		}
 
-		[UIView beginAnimations:@"update" context:accessoryView];
-		if (keyboardVisible)
-		{
-			[UIView setAnimationDuration:enterDuration];
-			[UIView setAnimationCurve:enterCurve];		
-		}
-		else
-		{
-			[UIView setAnimationDuration:leaveDuration];
-			[UIView setAnimationCurve:leaveCurve];		
-		}
-
-		[UIView setAnimationDelegate:self];
+		
 		[self placeView:accessoryView nearTopOfRect:targetedFrame aboveTop:YES];
-		[UIView commitAnimations];
 	}
+    [UIView commitAnimations];
 
 
 
