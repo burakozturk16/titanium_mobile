@@ -12,4 +12,9 @@
     return nil;
 }
 
++ (NSArray*) getDirectoryListing:(NSString*)path
+{
+    return nil;
+}
+
 @end
