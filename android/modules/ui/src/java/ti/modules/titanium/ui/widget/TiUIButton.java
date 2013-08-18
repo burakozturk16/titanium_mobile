@@ -46,6 +46,10 @@ public class TiUIButton extends TiUIView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
+		shadowColor = 0;
+		shadowRadius = 1;
+		shadowDx = 0;
+		shadowDy = 0;
 		imageGravity = Gravity.LEFT;
 		titlePadding = new Rect();
 		titlePadding.left = 8;
