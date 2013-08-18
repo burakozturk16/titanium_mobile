@@ -8,10 +8,10 @@
 #import "TiAnimation.h"
 #import "TiGradient.h"
 #import "LayoutConstraint.h"
+#import "TiSelectableBackgroundLayer.h"
 
 //By declaring a scrollView protocol, TiUITextWidget can access 
 @class TiUIView;
-
 /**
  The protocol for scrolling.
  */
@@ -245,8 +245,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)setBackgroundImage_:(id)value;
 
 -(UIView *)backgroundWrapperView;
--(CALayer *)backgroundLayer;
 -(void)setBgState:(UIControlState)state;
+@property (nonatomic, readonly) TiSelectableBackgroundLayer* backgroundLayer;
+@property(nonatomic,assign) BOOL shouldHandleSelection;
 
 -(void)checkBounds;
 

@@ -20,7 +20,6 @@
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 
-#import "TiSelectableBackgroundLayer.h"
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
@@ -152,6 +151,7 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
+    BOOL _shouldHandleSelection;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -168,7 +168,7 @@ DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection;
 
 #pragma mark Internal Methods
 
@@ -248,7 +248,8 @@ DEFINE_EXCEPTIONS
 {
     childViews  =[[NSMutableArray alloc] init];
     transferLock = [[NSRecursiveLock alloc] init];
-    touchPassThrough = false;
+    touchPassThrough = NO;
+    _shouldHandleSelection = YES;
     self.clipsToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -342,6 +343,9 @@ DEFINE_EXCEPTIONS
         [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
     if (needsToSetBackgroundSelectedImage)
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
+    if (_bgLayer) {
+        _bgLayer.readyToCreateDrawables = YES;
+    }
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -508,8 +512,8 @@ DEFINE_EXCEPTIONS
     }
     
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
-    _bgLayer.frame = self.layer.bounds;
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    _bgLayer.bounds = self.layer.bounds;
     
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.cornerRadius = self.layer.cornerRadius;
@@ -804,11 +808,6 @@ DEFINE_EXCEPTIONS
 -(UIView *)backgroundWrapperView
 {
 	return self;
-}
-
--(CALayer *)backgroundLayer
-{
-	return _bgLayer;
 }
 
 
@@ -1491,7 +1490,9 @@ DEFINE_EXCEPTIONS
 {
     
     UITouch *touch = [touches anyObject];
-    [self setBgState:UIControlStateSelected];
+    if (_shouldHandleSelection) {
+        [self setBgState:UIControlStateSelected];
+    }
 	
 	if (handlesTouches)
 	{
@@ -1520,7 +1521,9 @@ DEFINE_EXCEPTIONS
     CGPoint localPoint = [touch locationInView:self];
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
-    [self setBgState:outside?UIControlStateNormal:UIControlStateSelected];
+    if (_shouldHandleSelection) {
+        [self setBgState:outside?UIControlStateNormal:UIControlStateSelected];
+    }
 	if (handlesTouches)
 	{
 		if ([proxy _hasListeners:@"touchmove"])
@@ -1541,7 +1544,9 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+    if (_shouldHandleSelection) {
+        [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+    }
 	if (handlesTouches)
 	{
 		UITouch *touch = [touches anyObject];
