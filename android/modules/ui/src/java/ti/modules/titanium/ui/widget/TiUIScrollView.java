@@ -167,6 +167,7 @@ public class TiUIScrollView extends TiUIView
 		{
 			super(context);
 			setScrollBarStyle(SCROLLBARS_INSIDE_OVERLAY);
+			setScrollContainer(true);
 
 			layout = new TiScrollViewLayout(context, arrangement);
 			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
