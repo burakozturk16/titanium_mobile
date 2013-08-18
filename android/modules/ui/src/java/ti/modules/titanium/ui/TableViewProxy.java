@@ -876,8 +876,9 @@ public class TableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
-	public void scrollToIndex(int index)
+	public void scrollToIndex(int index, @Kroll.argument(optional = true) KrollDict options)
 	{
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		// Message msg = getUIHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		message.arg1 = index;
@@ -893,12 +894,9 @@ public class TableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
-	public void scrollToTop(int y, @Kroll.argument(optional = true) Object obj)
+	public void scrollToTop(int y, @Kroll.argument(optional = true) KrollDict options)
 	{
-		Boolean animated = true;
-		if (obj != null) {
-			animated = TiConvert.toBoolean(obj);
-		}
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
 		message.arg1 = y;
 		message.arg2 = animated?1:0;
@@ -906,12 +904,9 @@ public class TableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
-	public void scrollToBottom(int y, @Kroll.argument(optional = true) Object obj)
+	public void scrollToBottom(int y, @Kroll.argument(optional = true) KrollDict options)
 	{
-		Boolean animated = true;
-		if (obj != null) {
-			animated = TiConvert.toBoolean(obj);
-		}
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_BOTTOM);
 		message.arg1 = y;
 		message.arg2 = animated?1:0;

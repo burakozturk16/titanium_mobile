@@ -133,11 +133,8 @@ public class ListViewProxy extends TiViewProxy {
 	}
 
 	@Kroll.method
-	public void scrollToItem(int sectionIndex, int itemIndex, @Kroll.argument(optional = true) Object obj) {
-		Boolean animated = true;
-		if (obj != null) {
-			animated = TiConvert.toBoolean(obj);
-		}
+	public void scrollToItem(int sectionIndex, int itemIndex, @Kroll.argument(optional = true) KrollDict options) {
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		if (TiApplication.isUIThread()) {
 			handleScrollToItem(sectionIndex, itemIndex, animated);
 		} else {
@@ -150,12 +147,9 @@ public class ListViewProxy extends TiViewProxy {
 	}
 	
 	@Kroll.method
-	public void scrollToTop(int y, @Kroll.argument(optional = true) Object obj)
+	public void scrollToTop(int y, @Kroll.argument(optional = true) KrollDict options)
 	{
-		Boolean animated = true;
-		if (obj != null) {
-			animated = TiConvert.toBoolean(obj);
-		}
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
 		message.arg1 = y;
 		message.arg2 = animated?1:0;
@@ -163,12 +157,9 @@ public class ListViewProxy extends TiViewProxy {
 	}
 
 	@Kroll.method
-	public void scrollToBottom(int y, @Kroll.argument(optional = true) Object obj)
+	public void scrollToBottom(int y, @Kroll.argument(optional = true) KrollDict options)
 	{
-		Boolean animated = true;
-		if (obj != null) {
-			animated = TiConvert.toBoolean(obj);
-		}
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_BOTTOM);
 		message.arg1 = y;
 		message.arg2 = animated?1:0;
