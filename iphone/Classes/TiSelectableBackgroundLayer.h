@@ -17,26 +17,25 @@
 
 @interface TiSelectableBackgroundLayer : CALayer
 {
-    CAShapeLayer* maskLayer;
     NSMutableDictionary* stateLayersMap;
     NSMutableArray* stateLayers;
-    CGFloat cornersRadius;
-    UIRectCorner roundedCorners;
     BOOL _imageRepeat;
-    BOOL animateTransition;
+    BOOL readyToCreateDrawables;
 }
 @property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;
 @property(nonatomic,readonly) NSArray *stateLayers;
+@property(nonatomic,assign) BOOL readyToCreateDrawables;
 @property(nonatomic,assign) BOOL animateTransition;
 
-- (void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect;
+//- (void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect;
 
 - (void)setState:(UIControlState)state;
+- (void)setState:(UIControlState)state animated:(BOOL)animated;
 - (UIControlState)getState;
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state;
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(UIImage*)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
-- (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners;
+-(void) setHidden:(BOOL)hidden animated:(BOOL)animated;
 @end

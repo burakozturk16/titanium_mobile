@@ -11,8 +11,17 @@
 #import "TiViewProxy.h"
 #import "Webcolor.h"
 #import "TiSelectableBackgroundLayer.h"
+#import "ImageLoader.h"
 
-#define GROUP_ROUND_RADIUS 8
+@interface TiUIListItem ()
+{
+    CGFloat cornersRadius;
+    UIRectCorner roundedCorners;
+}
+
+@end
+
+#define GROUP_ROUND_RADIUS 6
 
 @implementation TiUIListItem {
 	TiUIListItemProxy *_proxy;
@@ -20,23 +29,26 @@
 	NSDictionary *_dataItem;
     int _positionMask;
     BOOL _grouped;
-    TiSelectableBackgroundLayer* _bgLayer;
+    TiUIView* _viewHolder;
 }
 
 @synthesize templateStyle = _templateStyle;
 @synthesize proxy = _proxy;
 @synthesize dataItem = _dataItem;
+@synthesize viewHolder = _viewHolder;
 
 - (id)initWithStyle:(UITableViewCellStyle)style position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier proxy:(TiUIListItemProxy *)proxy
 {
     self = [super initWithStyle:style reuseIdentifier:reuseIdentifier];
     if (self) {
 		_templateStyle = style;
+        self.textLabel.backgroundColor = [UIColor clearColor];
+        self.detailTextLabel.backgroundColor = [UIColor clearColor];
 		_proxy = [proxy retain];
-        self.contentView.backgroundColor = [UIColor grayColor];
-		_proxy.listItem = self;
+        [self initialize];
         [self setGrouped:grouped];
         _positionMask = position;
+        [self updateBackgroundLayerCorners];
     }
     return self;
 }
@@ -47,12 +59,28 @@
     if (self) {
 		_templateStyle = TiUIListItemTemplateStyleCustom;
 		_proxy = [proxy retain];
-		_proxy.listItem = self;
+        [self initialize];
         [self setGrouped:grouped];
         _positionMask = position;
-        [proxy applyCellProps];
+        [self updateBackgroundLayerCorners];
     }
     return self;
+}
+
+-(void) initialize
+{
+    self.contentView.backgroundColor = [UIColor clearColor];
+    self.contentView.opaque = NO;
+    _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
+    _viewHolder.proxy = _proxy;
+    _viewHolder.shouldHandleSelection = NO;
+    CGRect bounds = _viewHolder.bounds;
+    [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+    [_viewHolder setClipsToBounds: YES];
+    [_viewHolder.layer setMasksToBounds: YES];
+    [self.contentView addSubview:_viewHolder];
+    _proxy.listItem = self;
+    _proxy.modelDelegate = self;
 }
 
 -(void)setGrouped:(BOOL)grouped
@@ -60,13 +88,39 @@
     _grouped = grouped && ![TiUtils isIOS7OrGreater];
 }
 
+-(void)setFrame:(CGRect)frame
+{
+    if(!CGSizeEqualToSize([self bounds].size, frame.size)) {
+        [self updateMaskOnLayer:_viewHolder.layer];
+    }
+   [super setFrame:frame];
+}
+
+- (void)updateMaskOnLayer:(CALayer*)layer
+{
+    if (layer.mask == nil) return;
+    UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:layer.bounds
+                                                   byRoundingCorners:roundedCorners
+                                                         cornerRadii:CGSizeMake(cornersRadius, cornersRadius)];
+    ((CAShapeLayer*)layer.mask).path = maskPath.CGPath;
+}
+- (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners onLayer:(CALayer*)layer
+{
+    CAShapeLayer* maskLayer = [[CAShapeLayer alloc] init];
+    maskLayer.frame = self.bounds;
+    layer.mask = maskLayer;
+    [maskLayer release];
+    cornersRadius = radius;
+    roundedCorners = corners;
+    [self updateMaskOnLayer:layer];
+}
+
 - (void)dealloc
 {
 	_proxy.listItem = nil;
+    [_viewHolder release];
     [_dataItem release];
 	[_proxy release];
-    [_bgLayer removeFromSuperlayer];
-    [_bgLayer release];
 	[super dealloc];
 }
 
@@ -76,86 +130,29 @@
 	[super prepareForReuse];
 }
 
-- (void)layoutSubviews
+-(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-	[super layoutSubviews];
-    if (_bgLayer != nil) {
-        if (!CGRectEqualToRect(_bgLayer.bounds, self.contentView.frame)) {
-            _bgLayer.frame = self.contentView.bounds;
-        }
-        [self.contentView.layer insertSublayer:_bgLayer atIndex:0];
+	if (_templateStyle != TiUIListItemTemplateStyleCustom && ([key isEqualToString:@"accessoryType"] ||
+                                                              [key isEqualToString:@"selectionStyle"] ||
+                                                              [key isEqualToString:@"title"] ||
+                                                              [key isEqualToString:@"subtitle"] ||
+                                                              [key isEqualToString:@"color"] ||
+                                                              [key isEqualToString:@"image"] ||
+                                                              [key isEqualToString:@"font"])) {
+        DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
     }
-    
-	if (_templateStyle == TiUIListItemTemplateStyleCustom) {
-		// prevent any crashes that could be caused by unsupported layouts
-		_proxy.layoutProperties->layoutStyle = TiLayoutRuleAbsolute;
-		[_proxy layoutChildren:NO];
-	}
-}
-
--(void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if ( ([[event touchesForView:self.contentView] count] > 0) || ([[event touchesForView:self.accessoryView] count] > 0)
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
-        if ([_proxy _hasListeners:@"touchstart"])
-        {
-        	UITouch *touch = [touches anyObject];
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-            [_proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
-        }
+    else if ([key isEqualToString:@"selectedBackgroundColor"]) {
+        DoProxyDelegateChangedValuesWithProxy(_viewHolder, @"backgroundSelectedColor", oldValue, newValue, proxy_);
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+    } else if ([key isEqualToString:@"selectedBackgroundGradient"]) {
+        DoProxyDelegateChangedValuesWithProxy(_viewHolder, @"backgroundSelectedGradient", oldValue, newValue, proxy_);
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+    } else if ([key isEqualToString:@"selectedBackgroundImage"]) {
+        DoProxyDelegateChangedValuesWithProxy(_viewHolder, @"backgroundSelectedImage", oldValue, newValue, proxy_);
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+	} else {
+        DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
     }
-    
-    [super touchesBegan:touches withEvent:event];
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if ([[event touchesForView:self.contentView] count] > 0 || ([[event touchesForView:self.accessoryView] count] > 0)
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
-        if ([_proxy _hasListeners:@"touchmove"])
-        {
-            UITouch *touch = [touches anyObject];
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-            [_proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
-        }
-    }
-    [super touchesMoved:touches withEvent:event];
-}
-
--(void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    if ( ([[event touchesForView:self.contentView] count] > 0) || ([[event touchesForView:self.accessoryView] count] > 0)
-        || ([[event touchesForView:self.imageView] count] > 0) || ([[event touchesForView:self.proxy.view] count]> 0 )) {
-        BOOL hasTouchEnd = [_proxy _hasListeners:@"touchend"];
-        BOOL hasDblclick = [_proxy _hasListeners:@"dblclick"];
-        BOOL hasClick = [_proxy _hasListeners:@"click"];
-		if (hasTouchEnd || hasDblclick || hasClick)
-		{
-            UITouch *touch = [touches anyObject];
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-            if (hasTouchEnd) {
-                [_proxy fireEvent:@"touchend" withObject:evt propagate:YES];
-            }
-            
-            // Click handling is special; don't propagate if we have a delegate,
-            // but DO invoke the touch delegate.
-            // clicks should also be handled by any control the view is embedded in.
-            if (hasDblclick && [touch tapCount] == 2) {
-                [_proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
-                return;
-            }
-            if (hasClick)
-            {
-                [_proxy fireEvent:@"click" withObject:evt propagate:YES];
-            }
-		}
-    }
-    [super touchesEnded:touches withEvent:event];
-}
-
--(void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
-    [super touchesCancelled:touches withEvent:event];
 }
 
 #pragma mark - Background Support
@@ -167,9 +164,9 @@
 -(void)unHighlight:(NSArray*)views
 {
     for (UIView *subview in views) {
-        if ([subview isKindOfClass:[UIButton class] ])
+        if ([subview isKindOfClass:[UIControl class] ])
         {
-            [(UIButton*)subview setHighlighted:NO];
+            [(UIControl*)subview setHighlighted:NO];
         }
         // Get the subviews of the view
         NSArray *subviews = [subview subviews];
@@ -190,15 +187,20 @@
     [self unHighlight:[self subviews]];
 }
 
-
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
     [self unHighlight:[self subviews]];
-    if (_bgLayer != nil) {
+    
+    if (_viewHolder.backgroundLayer != nil) {
         BOOL realSelected = yn|[self isHighlighted];
-        UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
-        [_bgLayer setState:state];
+        if (self.selectionStyle != UITableViewCellSelectionStyleNone) {
+            [_viewHolder.backgroundLayer setHidden:yn animated:animated];
+       }
+        else {
+            UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
+            [_viewHolder.backgroundLayer setState:state animated:animated];
+        }
     }
 }
 
@@ -206,88 +208,28 @@
 {
     [super setHighlighted:yn animated:animated];
     [self unHighlight:[self subviews]];
-    if (_bgLayer != nil) {
-        BOOL realSelected = yn|[self isHighlighted];
-        UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
-        [_bgLayer setState:state];
-    }
-}
-
--(void)setBackgroundOpacity_:(id)opacity
-{
-    CGFloat backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
-    if (_bgLayer!=nil) {
-        _bgLayer.opacity = backgroundOpacity;
-    }
-}
-
--(void)setBorderRadius_:(id)radius
-{
-	self.layer.cornerRadius = [TiUtils floatValue:radius];
-    if (_bgLayer!=nil) {
-        _bgLayer.cornerRadius= self.layer.cornerRadius;
-    }
-}
-
--(void) setBackgroundGradient_:(id)newGradientDict
-{
-    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateNormal];
-}
-
--(void) setSelectedBackgroundGradient_:(id)newGradientDict
-{
-    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
-}
-
--(void) setBackgroundColor_:(id)color
-{
-    self.backgroundColor = [TiUtils colorValue:color].color;
-}
-
--(void) setSelectedBackgroundColor_:(id)color
-{
-    UIColor* uiColor = [TiUtils colorValue:color].color;
-    if (uiColor == nil) {
-        switch (self.selectionStyle) {
-            case UITableViewCellSelectionStyleBlue:uiColor = [Webcolor webColorNamed:@"#0272ed"];break;
-            case UITableViewCellSelectionStyleGray:uiColor = [Webcolor webColorNamed:@"#bbb"];break;
-            case UITableViewCellSelectionStyleNone:uiColor = [UIColor clearColor];break;
-            default:uiColor = [TiUtils isIOS7OrGreater]?[Webcolor webColorNamed:@"#e0e0e0"]:[Webcolor webColorNamed:@"#0272ed"];break;
+    if (_viewHolder.backgroundLayer != nil) {
+        BOOL realSelected = yn|[self isSelected];
+        if (self.selectionStyle != UITableViewCellSelectionStyleNone) {
+            [_viewHolder.backgroundLayer setHidden:yn animated:animated];
+        }
+        else {
+            UIControlState state = realSelected?UIControlStateSelected:UIControlStateNormal;
+            [_viewHolder.backgroundLayer setState:state animated:animated];
         }
     }
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
-}
-
-
--(void) setBackgroundImage_:(id)image
-{
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:_proxy];
-    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateNormal];
-}
-
--(void) setSelectedBackgroundImage_:(id)image
-{
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:_proxy];
-    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
-    self.selectionStyle = UITableViewCellSelectionStyleNone;
 }
 
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped
 {
+    if (position == _positionMask && grouped == _grouped) return;
     _positionMask = position;
     [self setGrouped:grouped];
     [self updateBackgroundLayerCorners];
-    [self setNeedsDisplay];
 }
 
 -(void) updateBackgroundLayerCorners {
-    if (_bgLayer == nil) {
-        return;
-    }
+    
     if (_grouped) {
         UIRectCorner corners = -1;
         switch (_positionMask) {
@@ -304,27 +246,13 @@
                 break;
         }
         if (corners != -1) {
-            [_bgLayer setRoundedRadius:GROUP_ROUND_RADIUS inCorners:corners];
+            [self setRoundedRadius:GROUP_ROUND_RADIUS inCorners:corners onLayer:_viewHolder.layer];
+        }
+        else {
+            _viewHolder.layer.mask = nil;
         }
     }
-}
-
--(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
-{
-    if (_bgLayer != nil) {
-        return _bgLayer;
-    }
-    
-    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
-    _bgLayer.frame = self.contentView.bounds;
-    _bgLayer.animateTransition = YES;
-    [self.contentView.layer insertSublayer:_bgLayer atIndex:0];
-    
-    [self updateBackgroundLayerCorners];
-
-    CGFloat backgroundOpacity = [TiUtils floatValue:[_proxy valueForKey:@"backgroundOpacity"] def:1.0f];
-    _bgLayer.opacity = backgroundOpacity;
-    return _bgLayer;
+    [self setNeedsDisplay];
 }
 
 - (BOOL)canApplyDataItem:(NSDictionary *)otherItem;
@@ -332,25 +260,56 @@
 	id template = [_dataItem objectForKey:@"template"];
 	id otherTemplate = [otherItem objectForKey:@"template"];
 	BOOL same = (template == otherTemplate) || [template isEqual:otherTemplate];
-//	if (same) {
-//		id propertiesValue = [_dataItem objectForKey:@"properties"];
-//		NSDictionary *properties = ([propertiesValue isKindOfClass:[NSDictionary class]]) ? propertiesValue : nil;
-//		id heightValue = [properties objectForKey:@"height"];
-//		
-//		propertiesValue = [otherItem objectForKey:@"properties"];
-//		properties = ([propertiesValue isKindOfClass:[NSDictionary class]]) ? propertiesValue : nil;
-//		id otherHeightValue = [properties objectForKey:@"height"];
-//		same = (heightValue == otherHeightValue) || [heightValue isEqual:otherHeightValue];
-//	}
 	return same;
 }
 
 - (void)setDataItem:(NSDictionary *)dataItem
 {
+//    [_viewHolder configurationStart];
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
+    [_viewHolder configurationSet];
 }
 
+-(void)setAccessoryType_:(id)newValue
+{
+    self.accessoryType = [TiUtils intValue:newValue def:UITableViewCellAccessoryNone];
+}
+
+-(void)setSelectionStyle_:(id)newValue
+{
+    self.selectionStyle = [TiUtils intValue:newValue def:UITableViewCellSelectionStyleBlue];
+}
+
+-(void)setColor_:(id)newValue
+{
+    UIColor *color = newValue != nil ? [[TiUtils colorValue:newValue] _color] : [UIColor blackColor];
+    [self.textLabel setTextColor:color];
+}
+
+-(void)setFont_:(id)fontValue
+{
+    UIFont *font = (fontValue != nil) ? [[TiUtils fontValue:fontValue] font] : nil;
+    [self.textLabel setFont:font];
+}
+
+-(void)setImage_:(id)imageValue
+{
+    NSURL *imageUrl = [TiUtils toURL:imageValue proxy:_proxy];
+    UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:imageUrl];
+    self.imageView.image = image;
+}
+
+
+-(void)setTitle_:(id)newValue
+{
+    self.textLabel.text = [newValue description];
+}
+
+-(void)setSubtitle_:(id)newValue
+{
+    self.detailTextLabel.text = [newValue description];
+}
 
 @end
 

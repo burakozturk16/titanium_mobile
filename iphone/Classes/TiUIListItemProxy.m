@@ -10,7 +10,6 @@
 #import "TiUtils.h"
 #import "TiUIListItem.h"
 #import "TiUIListViewProxy.h"
-#import "ImageLoader.h"
 
 #define CHILD_ACCESSORY_WIDTH 20.0
 #define CHECK_ACCESSORY_WIDTH 20.0
@@ -26,17 +25,30 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	NSMutableDictionary *_currentValues;
 	NSMutableSet *_resetKeys;
     BOOL unarchived;
+    BOOL enumeratingResetKeys;
 }
 
 @synthesize listItem = _listItem;
 @synthesize indexPath = _indexPath;
 @synthesize parentForBubbling = _parentForBubbling;
 
+static NSArray* keysToGetFromListView;
+-(NSArray *)keysToGetFromListView
+{
+	if (keysToGetFromListView == nil)
+	{
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", nil] retain];
+	}
+	return keysToGetFromListView;
+}
+
+
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context
 {
     self = [self _initWithPageContext:context];
     if (self) {
         unarchived = NO;
+        enumeratingResetKeys = NO;
         _initialValues = [[NSMutableDictionary alloc] initWithCapacity:10];
 		_currentValues = [[NSMutableDictionary alloc] initWithCapacity:10];
 		_resetKeys = [[NSMutableSet alloc] initWithCapacity:10];
@@ -45,8 +57,6 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 			[context registerProxy:self];
 			[listViewProxy rememberProxy:self];
 		}];
-		self.modelDelegate = self;
-        [self getCellPropsFromDict:[listViewProxy allProperties]];
     }
     return self;
 }
@@ -63,6 +73,8 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 {
     RELEASE_TO_NIL(_listItem);
     _listItem = [newListItem retain];
+    view = _listItem.viewHolder;
+    [view initializeState];
     viewInitialized = YES;
     [self setReadyToCreateView:YES];
     [self windowWillOpen];
@@ -80,11 +92,6 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	[_indexPath release];
 	[_bindings release];
 	[super dealloc];
-}
-
-- (TiUIView *)view
-{
-	return view = (TiUIView *)_listItem.contentView;
 }
 
 -(TiProxy*)parentForBubbling
@@ -105,51 +112,15 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	[super _destroy];
 }
 
--(void) getCellPropsFromDict:(NSDictionary*)dict {
-    NSArray* keys = [dict allKeys];
-    if ([keys containsObject:@"accessoryType"]) {
-        [self setValue:[dict valueForKey:@"accessoryType"] forKey:@"accessoryType"];
-    }
-    if ([keys containsObject:@"selectionStyle"]) {
-        [self setValue:[dict valueForKey:@"selectionStyle"] forKey:@"selectionStyle"];
-    }
-    if ([keys containsObject:@"selectedBackgroundColor"]) {
-        [self setValue:[dict valueForKey:@"selectedBackgroundColor"] forKey:@"selectedBackgroundColor"];
-    }
-    if ([keys containsObject:@"selectedBackgroundImage"]) {
-        [self setValue:[dict valueForKey:@"selectedBackgroundImage"] forKey:@"selectedBackgroundImage"];
-    }
-    if ([keys containsObject:@"selectedBackgroundGradient"]) {
-        [self setValue:[dict valueForKey:@"selectedBackgroundGradient"] forKey:@"selectedBackgroundGradient"];
-    }
-}
-
 -(void)_initWithProperties:(NSDictionary*)properties
 {
     [super _initWithProperties:properties];
-    if (_listItem != nil) {
-        [self applyCellProps:properties];
-    }
-    else {
-        [self getCellPropsFromDict:properties];
-    }
-}
-
--(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
-{
-	if ([key isEqualToString:@"accessoryType"]) {
-		TiThreadPerformOnMainThread(^{
-			_listItem.accessoryType = [TiUtils intValue:newValue def:UITableViewCellAccessoryNone];
-		}, YES);
-	} else if ([key isEqualToString:@"backgroundColor"]) {
-		TiThreadPerformOnMainThread(^{
-			_listItem.contentView.backgroundColor = [[TiUtils colorValue:newValue] _color];
-		}, YES);
-	} else if ([key isEqualToString:@"selectionStyle"]) {
-		TiThreadPerformOnMainThread(^{
-			_listItem.selectionStyle = [TiUtils intValue:newValue def:UITableViewCellSelectionStyleBlue];
-		}, YES);
-	}
+//    if (_listItem != nil) {
+//        [self applyCellProps:properties];
+//    }
+//    else {
+//        [self getCellPropsFromDict:properties];
+//    }
 }
 
 - (void)unarchiveFromTemplate:(id)viewTemplate
@@ -176,107 +147,36 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	return _bindings;
 }
 
+//-(void)setValue:(id)value forUndefinedKey:(NSString *)key
+//{
+//    if ([self shouldUpdateValue:value forKeyPath:key]) {
+//        [self recordChangeValue:value forKeyPath:key withBlock:^{
+//            [super setValue:value forUndefinedKey:key];
+//        }];
+//    }
+//}
 
-- (void) applyCellProps:(NSDictionary *)properties
+-(void)setValue:(id)value forKey:(NSString *)key
 {
-    //Here we treat all properties that can come from the template or the listview
-    NSArray* keys = [properties allKeys];
-    NSDictionary* currentProps = [self allProperties];
-    
-    
-    if ([keys containsObject:@"accessoryType"]) {
-        id accessoryTypeValue = [properties objectForKey:@"accessoryType"];
-        if ([self shouldUpdateValue:accessoryTypeValue forKeyPath:@"accessoryType"]) {
-            if ([accessoryTypeValue isKindOfClass:[NSNumber class]]) {
-                UITableViewCellAccessoryType accessoryType = [accessoryTypeValue unsignedIntegerValue];
-                [self recordChangeValue:accessoryTypeValue forKeyPath:@"accessoryType" withBlock:^{
-                    _listItem.accessoryType = accessoryType;
-                }];
-            }
-        }
+    if ([self shouldUpdateValue:value forKeyPath:key]) {
+        [self recordChangeValue:value forKeyPath:key withBlock:^{
+            [super setValue:value forKey:key];
+        }];
     }
-    if ([keys containsObject:@"selectionStyle"]) {
-        id selectionStyleValue = [properties objectForKey:@"selectionStyle"];
-        if ([self shouldUpdateValue:selectionStyleValue forKeyPath:@"selectionStyle"]) {
-            if ([selectionStyleValue isKindOfClass:[NSNumber class]]) {
-                UITableViewCellSelectionStyle selectionStyle = [selectionStyleValue unsignedIntegerValue];
-                [self recordChangeValue:selectionStyleValue forKeyPath:@"selectionStyle" withBlock:^{
-                    _listItem.selectionStyle = selectionStyle;
-                }];
-            }
-        }
-	}
-    if ([keys containsObject:@"selectedBackgroundGradient"]) {
-        id value = [properties objectForKey:@"selectedBackgroundGradient"];
-        [_listItem setSelectedBackgroundGradient_:value];
-    }
-    if ([keys containsObject:@"selectedBackgroundColor"]) {
-        id value = [properties objectForKey:@"selectedBackgroundColor"];
-        [_listItem setSelectedBackgroundColor_:value];
-    }
-    if ([keys containsObject:@"selectedBackgroundImage"]) {
-        id value = [properties objectForKey:@"selectedBackgroundImage"];
-        [_listItem setSelectedBackgroundImage_:value];
-    }
-    
-}
-
-- (void) applyCellProps
-{
-    [self applyCellProps:[self allProperties]];
 }
 
 - (void)setDataItem:(NSDictionary *)dataItem
 {
 	[_resetKeys addObjectsFromArray:[_currentValues allKeys]];
 	id propertiesValue = [dataItem objectForKey:@"properties"];
-	NSDictionary *properties = ([propertiesValue isKindOfClass:[NSDictionary class]]) ? propertiesValue : nil;
+    NSMutableDictionary* properties = [NSMutableDictionary dictionaryWithDictionary:propertiesValue];
     NSInteger templateStyle = (_listItem != nil)?_listItem.templateStyle:TiUIListItemTemplateStyleCustom;
 	switch (templateStyle) {
 		case UITableViewCellStyleSubtitle:
 		case UITableViewCellStyleValue1:
 		case UITableViewCellStyleValue2:
-            if (_listItem != nil) {
-                _listItem.detailTextLabel.text = [[properties objectForKey:@"subtitle"] description];
-                _listItem.detailTextLabel.backgroundColor = [UIColor clearColor];
-            }
-			// pass through
 		case UITableViewCellStyleDefault:
-            if (_listItem != nil) {
-                _listItem.textLabel.text = [[properties objectForKey:@"title"] description];
-                _listItem.textLabel.backgroundColor = [UIColor clearColor];
-                if (templateStyle != UITableViewCellStyleValue2) {
-                    id imageValue = [properties objectForKey:@"image"];
-                    if ([self shouldUpdateValue:imageValue forKeyPath:@"imageView.image"]) {
-                        NSURL *imageUrl = [TiUtils toURL:imageValue proxy:self];
-                        UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:imageUrl];
-                        if (image != nil) {
-                            [self recordChangeValue:imageValue forKeyPath:@"imageView.image" withBlock:^{
-                                _listItem.imageView.image = image;
-                            }];
-                        }
-                    }
-                }
-                id fontValue = [properties objectForKey:@"font"];
-                if ([self shouldUpdateValue:fontValue forKeyPath:@"textLabel.font"]) {
-                    UIFont *font = (fontValue != nil) ? [[TiUtils fontValue:fontValue] font] : nil;
-                    if (font != nil) {
-                        [self recordChangeValue:fontValue forKeyPath:@"textLabel.font" withBlock:^{
-                            [_listItem.textLabel setFont:font];
-                        }];
-                    }
-                }
-                
-                id colorValue = [properties objectForKey:@"color"];
-                if ([self shouldUpdateValue:colorValue forKeyPath:@"textLabel.color"]) {
-                    UIColor *color = colorValue != nil ? [[TiUtils colorValue:colorValue] _color] : nil;
-                    if (color != nil) {
-                        [self recordChangeValue:colorValue forKeyPath:@"textLabel.color" withBlock:^{
-                            [_listItem.textLabel setTextColor:color];
-                        }];
-                    }
-                }
-            }
+            unarchived = YES;
 			break;
 			
 		default:
@@ -307,23 +207,41 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 			break;
 	}
     
-    if (_listItem != nil) [self applyCellProps:properties];
+    NSDictionary* listViewProps = [_listViewProxy allProperties];
+    for (NSString* key in [self keysToGetFromListView]) {
+        if ([listViewProps objectForKey:key] && ![properties objectForKey:key]) {
+            [properties setObject:[listViewProps objectForKey:key] forKey:key];
+        }
+    }
     
+    if (_listItem != nil) {
+        [self setValuesForKeysWithDictionary:properties];
+    }
+    
+    
+    enumeratingResetKeys = YES;
 	[_resetKeys enumerateObjectsUsingBlock:^(NSString *keyPath, BOOL *stop) {
 		id value = [_initialValues objectForKey:keyPath];
-		[self setValue:(value != [NSNull null] ? value : nil) forKeyPath:keyPath];
+		[super setValue:(value != [NSNull null] ? value : nil) forKeyPath:keyPath];
 		[_currentValues removeObjectForKey:keyPath];
 	}];
-	[_resetKeys removeAllObjects];
+    enumeratingResetKeys = NO;
 }
 
 - (id)valueForUndefinedKey:(NSString *)key
 {
-	return [self.bindings objectForKey:key];
+    if ([self.bindings objectForKey:key])
+        return [self.bindings objectForKey:key];
+    return [super valueForUndefinedKey:key];
 }
+
 
 - (void)recordChangeValue:(id)value forKeyPath:(NSString *)keyPath withBlock:(void(^)(void))block
 {
+    if (!unarchived) {
+        block();
+        return;
+    }
 	if ([_initialValues objectForKey:keyPath] == nil) {
 		id initialValue = [self valueForKeyPath:keyPath];
 		[_initialValues setObject:(initialValue != nil ? initialValue : [NSNull null]) forKey:keyPath];
@@ -334,14 +252,14 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	} else {
 		[_currentValues removeObjectForKey:keyPath];
 	}
-	[_resetKeys removeObject:keyPath];
+	if (!enumeratingResetKeys) [_resetKeys removeObject:keyPath];
 }
 
 - (BOOL)shouldUpdateValue:(id)value forKeyPath:(NSString *)keyPath
 {
 	id current = [_currentValues objectForKey:keyPath];
 	BOOL sameValue = ((current == value) || [current isEqual:value]);
-	if (sameValue) {
+	if (sameValue && !enumeratingResetKeys) {
 		[_resetKeys removeObject:keyPath];
 	}
 	return !sameValue;
@@ -351,18 +269,35 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 + (void)buildBindingsForViewProxy:(TiViewProxy *)viewProxy intoDictionary:(NSMutableDictionary *)dict
 {
-    NSArray* children = [viewProxy children];
-	[children enumerateObjectsUsingBlock:^(TiViewProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
-		[[self class] buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
-	}];
-    if (![viewProxy isKindOfClass:[self class]]) {
-        id bindId = [viewProxy valueForKey:@"bindId"];
-        if (bindId != nil) {
-            [dict setObject:viewProxy forKey:bindId];
+    NSInteger templateStyle = TiUIListItemTemplateStyleCustom;
+    if ([viewProxy isKindOfClass:[TiUIListItemProxy class]]) {
+        TiUIListItem* listItem = ((TiUIListItemProxy*)viewProxy).listItem;
+        templateStyle = (listItem != nil)?listItem.templateStyle:TiUIListItemTemplateStyleCustom;
+        
+    }
+    switch (templateStyle) {
+        case UITableViewCellStyleSubtitle:
+        case UITableViewCellStyleValue1:
+        case UITableViewCellStyleValue2:
+        case UITableViewCellStyleDefault:
+            [dict setObject:viewProxy forKey:@"imageView"];
+            [dict setObject:viewProxy forKey:@"textLabel"];
+            break;
+        default:
+        {
+            NSArray* children = [viewProxy children];
+            [children enumerateObjectsUsingBlock:^(TiViewProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
+                [[self class] buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
+            }];
+            if (![viewProxy isKindOfClass:[self class]]) {
+                id bindId = [viewProxy valueForKey:@"bindId"];
+                if (bindId != nil) {
+                    [dict setObject:viewProxy forKey:bindId];
+                }
+            }
         }
     }
 }
-
 
 #pragma mark - TiViewEventOverrideDelegate
 

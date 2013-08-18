@@ -271,6 +271,16 @@ TI_INLINE CGRect TiDimensionLayerContentCenter(TiDimension top, TiDimension left
 
 	return result;
 }
+TI_INLINE CGRect TiDimensionLayerContentCenterFromInsents(UIEdgeInsets insents, CGSize imageSize)
+{
+	CGRect result;
+	result.origin.y = insents.top / imageSize.height;
+	result.size.height = 1.0 - insents.bottom / imageSize.height - result.origin.y;
+	result.origin.x = insents.left / imageSize.width;
+	result.size.width = 1.0 - insents.right / imageSize.width - result.origin.x;
+    
+	return result;
+}
 
 TI_INLINE UIEdgeInsets TiUIEdgeInsets(TiDimension top, TiDimension left, TiDimension bottom, TiDimension right, CGSize imageSize)
 {

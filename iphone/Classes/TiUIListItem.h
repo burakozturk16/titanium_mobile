@@ -23,12 +23,13 @@ typedef enum
 } TiGroupedListItemPosition;
 
 
-@interface TiUIListItem : UITableViewCell
+@interface TiUIListItem : UITableViewCell<TiProxyDelegate>
 {
 }
 
 @property (nonatomic, readonly) NSInteger templateStyle;
 @property (nonatomic, readonly) TiUIListItemProxy *proxy;
+@property (nonatomic, readonly) TiUIView *viewHolder;
 @property (nonatomic, readwrite, retain) NSDictionary *dataItem;
 
 - (id)initWithStyle:(UITableViewCellStyle)style position:(int)position grouped:(BOOL)grouped reuseIdentifier:(NSString *)reuseIdentifier proxy:(TiUIListItemProxy *)proxy;
