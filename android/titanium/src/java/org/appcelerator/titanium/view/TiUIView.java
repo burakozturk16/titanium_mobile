@@ -150,6 +150,7 @@ public abstract class TiUIView
 
 	protected Handler handler;
 	
+	private boolean exclusiveTouch = false;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -579,6 +580,8 @@ public abstract class TiUIView
 			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE : View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
 			nativeView.setEnabled(TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
+			exclusiveTouch = TiConvert.toBoolean(newValue);
 		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PADDING)) {
 			Log.i(TAG, key + " not yet implemented.");
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
@@ -712,6 +715,10 @@ public abstract class TiUIView
 
 		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH) && (nativeView instanceof TiCompositeLayout)) {
 			((TiCompositeLayout)nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+		}
+
+		if (d.containsKey(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
+			exclusiveTouch = TiConvert.toBoolean(d, TiC.PROPERTY_EXCLUSIVE_TOUCH);
 		}
 		
 		if (TiConvert.fillLayout(d, layoutParams) && viewForLayout != null) {
@@ -1288,6 +1295,21 @@ public abstract class TiUIView
 
 			public boolean onTouch(View view, MotionEvent event)
 			{
+				if (exclusiveTouch) {
+					ViewGroup parent =  (ViewGroup)view.getParent();
+					if(parent != null) {
+						switch (event.getAction()) {
+					    case MotionEvent.ACTION_MOVE: 
+					        parent.requestDisallowInterceptTouchEvent(true);
+					        break;
+					    case MotionEvent.ACTION_UP:
+					    case MotionEvent.ACTION_CANCEL:
+					    	parent.requestDisallowInterceptTouchEvent(false);
+					        break;
+					    }
+					}
+					
+				}
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					lastUpEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
 					lastUpEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());

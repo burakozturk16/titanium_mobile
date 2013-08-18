@@ -133,13 +133,18 @@ public class ListViewProxy extends TiViewProxy {
 	}
 
 	@Kroll.method
-	public void scrollToItem(int sectionIndex, int itemIndex) {
+	public void scrollToItem(int sectionIndex, int itemIndex, @Kroll.argument(optional = true) Object obj) {
+		Boolean animated = true;
+		if (obj != null) {
+			animated = TiConvert.toBoolean(obj);
+		}
 		if (TiApplication.isUIThread()) {
-			handleScrollToItem(sectionIndex, itemIndex);
+			handleScrollToItem(sectionIndex, itemIndex, animated);
 		} else {
 			KrollDict d = new KrollDict();
 			d.put("itemIndex", itemIndex);
 			d.put("sectionIndex", sectionIndex);
+			d.put("animated", animated);
 			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SCROLL_TO_ITEM), d);
 		}
 	}
@@ -186,7 +191,8 @@ public class ListViewProxy extends TiViewProxy {
 				KrollDict data = (KrollDict) result.getArg();
 				int sectionIndex = data.getInt("sectionIndex");
 				int itemIndex = data.getInt("itemIndex");
-				handleScrollToItem(sectionIndex, itemIndex);
+				boolean animated = data.getBoolean("animated");
+				handleScrollToItem(sectionIndex, itemIndex, animated);
 				result.setResult(null);
 				return true;
 			}
@@ -224,10 +230,10 @@ public class ListViewProxy extends TiViewProxy {
 				return super.handleMessage(msg);
 		}
 	}
-	private void handleScrollToItem(int sectionIndex, int itemIndex) {
+	private void handleScrollToItem(int sectionIndex, int itemIndex, boolean animated) {
 		TiUIView listView = peekView();
 		if (listView != null) {
-			((TiListView) listView).scrollToItem(sectionIndex, itemIndex);
+			((TiListView) listView).scrollToItem(sectionIndex, itemIndex, animated);
 		}
 	}
 

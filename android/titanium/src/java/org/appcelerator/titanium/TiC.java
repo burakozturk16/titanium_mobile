@@ -1112,6 +1112,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_EXCLUSIVE_TOUCH = "exclusiveTouch";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_EXIT_ON_CLOSE = "exitOnClose";
 
 	/**
