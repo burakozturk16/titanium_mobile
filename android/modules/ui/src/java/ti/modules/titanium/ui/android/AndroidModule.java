@@ -49,6 +49,7 @@ public class AndroidModule extends KrollModule
 	@Kroll.constant public static final int PIXEL_FORMAT_TRANSPARENT = PixelFormat.TRANSPARENT;
 	@Kroll.constant public static final int PIXEL_FORMAT_UNKNOWN = PixelFormat.UNKNOWN;
 	
+	@Kroll.constant public static final int SOFT_INPUT_ADJUST_NOTHING = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_PAN = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_RESIZE = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_UNSPECIFIED = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED;
