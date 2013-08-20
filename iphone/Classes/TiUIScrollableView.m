@@ -220,6 +220,11 @@
         return;
     }
     
+    if (!configurationSet) {
+        needsToRefreshScrollView = YES;
+        return;
+    }
+    
     NSRange renderRange = [self cachedFrames:page];
 	int viewsCount = [[self proxy] viewCount];
     
@@ -378,6 +383,22 @@
     }
     
     [super frameSizeChanged:frame bounds:visibleBounds];
+}
+
+-(void)configurationStart
+{
+    [super configurationStart];
+    needsToRefreshScrollView = NO;
+}
+
+-(void)configurationSet
+{
+    [super configurationSet];
+    
+    if (needsToRefreshScrollView)
+    {
+        [self manageCache:[self currentPage]];
+    }
 }
 
 #pragma mark Public APIs

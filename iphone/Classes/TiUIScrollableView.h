@@ -25,6 +25,8 @@
     // Have to correct for an apple goof; rotation stops scrolling, AND doesn't move to the next page.
     BOOL rotatedWhileScrolling;
 
+    BOOL needsToRefreshScrollView;
+
     // See the code for why we need this...
     int lastPage;
     BOOL enforceCacheRecalculation;
