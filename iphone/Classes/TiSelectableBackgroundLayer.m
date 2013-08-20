@@ -34,9 +34,15 @@
     if (_bufferImage == nil && (gradient != nil ||
                                 color != nil ||
                                 image != nil)) {
-        if (CGRectEqualToRect(layer.frame, CGRectZero))
-            return;
-        [self drawBufferFromLayer:layer];
+        if (gradient == nil && color == nil && image != nil) {
+            _bufferImage = [image retain];
+        }
+        else {
+            if (CGRectEqualToRect(layer.frame, CGRectZero))
+                return;
+            [self drawBufferFromLayer:layer];
+            
+        }
     }
     if (onlyCreate) return;
     if (animated) {
@@ -48,12 +54,10 @@
         if (layer.contents != nil) {
             [layer setContents:nil];
         }
-    } else if (layer.contents == nil) {
-        
+    } else {
         if (image != nil) {
             layer.contentsScale = image.scale;
             layer.contentsCenter = TiDimensionLayerContentCenterFromInsents(image.capInsets, [image size]);
-            
         }
         else {
             layer.contentsScale = [[UIScreen mainScreen] scale];
@@ -117,10 +121,8 @@
 
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate
 {
-    if (_bufferImage == nil || imageRepeat) {
-        RELEASE_TO_NIL(_bufferImage);
-        [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
-    }
+    RELEASE_TO_NIL(_bufferImage);
+    [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
 }
 
 @end
@@ -159,7 +161,7 @@
         _animateTransition = NO;
         self.masksToBounds=YES;
         self.contentsScale = [[UIScreen mainScreen] scale];
-   }
+    }
     return self;
 }
 
@@ -178,7 +180,7 @@
 	[super setFrame:frame];
     if (needsToUpdate) {
         CGSize size = self.frame.size;
-       _needsToSetDrawables = NO;
+        _needsToSetDrawables = NO;
         [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
             if (drawable != nil) {
                 [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
@@ -316,8 +318,7 @@
     self.animateTransition = animated;
     [self setHidden:hidden];
     self.animateTransition = NO;
-
+    
 }
-
 
 @end
