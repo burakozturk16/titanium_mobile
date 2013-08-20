@@ -329,6 +329,7 @@ DEFINE_EXCEPTIONS
 	{
 		imageView = [[UIImageView alloc] initWithFrame:[self bounds]];
 		[imageView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+        imageView.backgroundColor = [UIColor clearColor];
 		[imageView setContentMode:[self contentModeForImageView]];
 		[self addSubview:imageView];
 	}
@@ -824,6 +825,7 @@ DEFINE_EXCEPTIONS
             imageview.layer.mask = [CALayer layer];
             imageview.layer.mask.frame = self.layer.bounds;
         }
+        imageview.layer.opaque = NO;
         imageview.layer.mask.contentsScale = [image scale];
         imageview.layer.mask.magnificationFilter = @"nearest";
         imageview.layer.mask.contents = (id)image.CGImage;

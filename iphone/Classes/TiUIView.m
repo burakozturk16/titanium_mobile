@@ -1728,6 +1728,7 @@ DEFINE_EXCEPTIONS
             self.layer.mask = [CALayer layer];
             self.layer.mask.frame = self.layer.bounds;
         }
+        self.layer.opaque = NO;
         self.layer.mask.contentsScale = [image scale];
         self.layer.mask.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [image size]);
         if (!CGPointEqualToPoint(self.layer.mask.contentsCenter.origin,CGPointZero)) {
