@@ -65,7 +65,7 @@ NSString* const INADDR_ANY_token = @"INADDR_ANY";
 	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
 	// wait until done is important to get the right state
-	TiThreadPerformOnMainThread(^{[self startReachability];}, YES);
+	TiThreadPerformOnMainThread(^{[self startReachability];}, NO);
 }
 
 -(void)_destroy
