@@ -369,7 +369,7 @@ public class TiUILabel extends TiUIView
 					if (lastSpace == -1) {
 						lastSpace = newText.length() - 4;
 					}					
-					newText = (CharSequence) newText.subSequence(lastSpace, text.length());
+					newText = (CharSequence) newText.subSequence(0, lastSpace);
 					newText = ellipsisWithStyle(newText,  realWhere);
 				}
 				return newText;
