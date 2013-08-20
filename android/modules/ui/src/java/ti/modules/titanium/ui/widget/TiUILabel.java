@@ -179,8 +179,10 @@ public class TiUILabel extends TiUIView
 		}
 		
 		public void updateEllipsize(){
-			needsEllipsing = true;
-			if (readyToEllipsize == true) ellipseText();
+			if (needsEllipsize())  {
+				needsEllipsing = true;
+				if (readyToEllipsize == true) ellipseText();
+			}
 		}
 
 		@SuppressLint("Override")
@@ -223,10 +225,9 @@ public class TiUILabel extends TiUIView
 
 		@Override
 		public void setText(CharSequence text, BufferType type) {
-			if (!programmaticChange) {
-				fullText = text;
-			}
+			fullText = text;
 			super.setText(text, type);
+			updateEllipsize();
 		}
 
 		@Override
@@ -356,10 +357,10 @@ public class TiUILabel extends TiUIView
 			else {
 				CharSequence newText = ellipsisWithStyle(text, realWhere);
 				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					if (text.length() < 3) return newText;
-					int lastSpace = text.toString().lastIndexOf(' ');
+					if (newText.length() < 3) return newText;
+					int lastSpace = newText.toString().lastIndexOf(' ');
 					if (lastSpace == -1) {
-						lastSpace = text.length() - 4;
+						lastSpace = newText.length() - 4;
 					}					
 					newText = ellipsisWithStyle((CharSequence) text.subSequence(0, lastSpace), realWhere);
 				}
@@ -440,9 +441,13 @@ public class TiUILabel extends TiUIView
 		{
 			
 		}
+		
+		public boolean needsEllipsize(){
+			return fullText != null && fullText.length() > 0 && (ellipsize != null || multiLineEllipsize != null);
+		}
 
 		private void ellipseText() {
-			if (fullText == null || needsEllipsing == false || (ellipsize == null && multiLineEllipsize == null)
+			if (!needsEllipsize() || needsEllipsing == false
 				|| (getWidth() - getPaddingLeft() - getPaddingRight() < 0) || (this.maxLines == 1 || this.singleline == true)) return;
 			
 			boolean ellipsized = false;
@@ -532,11 +537,9 @@ public class TiUILabel extends TiUIView
 			
 			
 			if (!workingText.equals(getText())) {
-				programmaticChange = true;
 				try {
-					setText(workingText);
+					super.setText(workingText, TextView.BufferType.SPANNABLE);
 				} finally {
-					programmaticChange = false;
 					ellipsized = true;
 				}
 			}
@@ -664,6 +667,7 @@ public class TiUILabel extends TiUIView
 
 		super.processProperties(d);
 		if (tv == null) return;
+		((EllipsizingTextView)tv).SetReadyToEllipsize(false);
 
 		// Clear any text style left over here if view is recycled
 //		TiUIHelper.styleText(tv, null, null, null);
