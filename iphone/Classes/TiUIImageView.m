@@ -815,20 +815,21 @@ DEFINE_EXCEPTIONS
 -(void)setImageMask_:(id)arg
 {
     UIImage* image = [self loadImage:arg];
+	UIImageView *imageview = [self imageView];
     if (image == nil) {
-        imageView.layer.mask = nil;
+        imageview.layer.mask = nil;
     }
     else {
-        if (imageView.layer.mask == nil) {
-            imageView.layer.mask = [CALayer layer];
-            imageView.layer.mask.frame = self.layer.bounds;
+        if (imageview.layer.mask == nil) {
+            imageview.layer.mask = [CALayer layer];
+            imageview.layer.mask.frame = self.layer.bounds;
         }
-        imageView.layer.mask.contentsScale = [image scale];
-        imageView.layer.mask.magnificationFilter = @"nearest";
-        imageView.layer.mask.contents = (id)image.CGImage;
+        imageview.layer.mask.contentsScale = [image scale];
+        imageview.layer.mask.magnificationFilter = @"nearest";
+        imageview.layer.mask.contents = (id)image.CGImage;
     }
     
-    [imageView.layer setNeedsDisplay];
+    [imageview.layer setNeedsDisplay];
 }
 
 
