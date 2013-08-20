@@ -321,48 +321,56 @@ public class TiUILabel extends TiUIView
 			return text;
 		}
 		
-		private CharSequence getEllipsedTextForMaxLine(CharSequence text, int maxlines, TruncateAt where){
+		private CharSequence strimText(CharSequence text)
+		{
 			int strimEnd = text.toString().trim().length();
 			if (strimEnd != text.length()){
-				text = text.subSequence(0, strimEnd);
+				return text.subSequence(0, strimEnd);
 			}
+			return text;
+		}
+		
+		private CharSequence getEllipsedTextForMaxLine(CharSequence text, int maxlines, TruncateAt where){
+			
 			TruncateAt realWhere = (maxlines == 1)?where:TruncateAt.END; 
+			CharSequence newText = strimText(text);
 			
 			if (realWhere == TruncateAt.START){
-				CharSequence newText = ellipsisWithStyle(text, realWhere);
+				newText = ellipsisWithStyle(newText, realWhere);
 				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					int firstSpace = text.toString().indexOf(' ');
+					int firstSpace = newText.toString().indexOf(' ');
 					if (firstSpace == -1) {
 						firstSpace = 3;
 					}
-					text = (CharSequence) text.subSequence(firstSpace, text.length());
-					newText = ellipsisWithStyle(text, realWhere);
+					newText = (CharSequence) newText.subSequence(firstSpace, text.length());
+					newText = ellipsisWithStyle(newText, realWhere);
 				}
 				return newText;
 			}
 			else if (realWhere == TruncateAt.MIDDLE){
 						
-				CharSequence newText = ellipsisWithStyle(text, realWhere);
+				newText = ellipsisWithStyle(newText, realWhere);
 				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					if (text.length() < 3) return newText;
-					int middle = text.length() / 2;
-					if (text instanceof SpannableStringBuilder)
-						((SpannableStringBuilder)text).delete(middle - 1, middle + 1);
+					if (newText.length() < 3) return newText;
+					int middle = newText.length() / 2;
+					if (newText instanceof SpannableStringBuilder)
+						((SpannableStringBuilder)newText).delete(middle - 1, middle + 1);
 					else
-						text = TextUtils.concat(text.subSequence(0, middle -1), text.subSequence(middle + 1, text.length()));
+						newText = TextUtils.concat(text.subSequence(0, middle -1), newText.subSequence(middle + 1, text.length()));
 					newText = ellipsisWithStyle(text, realWhere);
 				}
 				return newText;
 			}
 			else {
-				CharSequence newText = ellipsisWithStyle(text, realWhere);
+				newText = ellipsisWithStyle(text, realWhere);
 				while (createWorkingLayout(newText).getLineCount() > maxlines) {
 					if (newText.length() < 3) return newText;
 					int lastSpace = newText.toString().lastIndexOf(' ');
 					if (lastSpace == -1) {
 						lastSpace = newText.length() - 4;
 					}					
-					newText = ellipsisWithStyle((CharSequence) text.subSequence(0, lastSpace), realWhere);
+					newText = (CharSequence) newText.subSequence(lastSpace, text.length());
+					newText = ellipsisWithStyle(newText,  realWhere);
 				}
 				return newText;
 			}
