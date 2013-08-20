@@ -27,8 +27,6 @@ import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
-import ti.modules.titanium.ui.widget.tableview.TiBaseTableViewItem;
-import ti.modules.titanium.ui.widget.tableview.TiTableView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -38,19 +36,15 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.Pair;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AbsListView.OnScrollListener;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemLongClickListener;
 
 @SuppressLint("NewApi")
 public class TiListView extends TiUIView {
@@ -157,6 +151,7 @@ public class TiListView extends TiUIView {
 				ListSectionProxy section = sections.get(i);
 				count += section.getItemCount();
 			}
+			
 			return count;
 		}
 
@@ -225,6 +220,18 @@ public class TiListView extends TiUIView {
 			return content;
 
 		}
+		
+		@Override
+		public void notifyDataSetChanged()
+		{
+			// save index and top position
+			int index = listView.getFirstVisiblePosition();
+			View v = listView.getChildAt(0);
+			int top = (v == null) ? 0 : v.getTop();
+			super.notifyDataSetChanged();
+			// restore
+			listView.setSelectionFromTop(index, top);
+		}
 
 	}
 
@@ -244,7 +251,7 @@ public class TiListView extends TiUIView {
 		wrapper.setAddStatesFromChildren(true);
 		listView = new ListView(activity);
 		listView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+//		listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
 		wrapper.addView(listView);
 		adapter = new TiBaseAdapter(activity);
 		
@@ -706,17 +713,18 @@ public class TiListView extends TiUIView {
 			listView.smoothScrollToPosition(0);
 		}
 		else {
-			listView.setSelectionFromTop(0, y); 
+			listView.setSelection(0); 
 		}
 	}
 
 	public void scrollToBottom(final int y, boolean animated)
 	{
+		//strangely if i put getCount()-1 it doesnt go to the full bottom but make sure the -1 is shown …
 		if (animated) {
-			listView.smoothScrollToPosition(getCount() - 1);
+			listView.smoothScrollToPosition(getCount());
 		}
 		else {
-			listView.setSelection(getCount() - 1);
+			listView.setSelection(getCount());
 		}
 	}
 
