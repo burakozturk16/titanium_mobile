@@ -15,6 +15,7 @@
     if (self = [super init])
     {
         imageRepeat = NO;
+        color = [UIColor clearColor];
     }
     return self;
 }
@@ -30,11 +31,9 @@
 
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
-    
     if (_bufferImage == nil && (gradient != nil ||
-                                color != nil ||
                                 image != nil)) {
-        if (gradient == nil && color == nil && image != nil) {
+        if (gradient == nil && image != nil) {
             _bufferImage = [image retain];
         }
         else {
@@ -85,6 +84,7 @@
         UIGraphicsEndImageContext();
         return;
     }
+    CGContextSetAlpha(ctx, layer.opacity);
     [self drawInContext:UIGraphicsGetCurrentContext() inRect:rect];
     _bufferImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
     UIGraphicsEndImageContext();
@@ -95,10 +95,6 @@
     CGContextSaveGState(ctx);
     
     CGContextSetAllowsAntialiasing(ctx, true);
-    if (color) {
-        CGContextSetFillColorWithColor(ctx, [color CGColor]);
-        CGContextFillRect(ctx, rect);
-    }
     if (gradient){
         [gradient paintContext:ctx bounds:rect];
     }
@@ -133,11 +129,12 @@
     UIControlState currentState;
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
+    CGFloat _opacity;
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, opacity = _opacity;
 
 - (id) initWithLayer:(id)layer {
     if(self = [super initWithLayer:layer]) {
@@ -161,6 +158,7 @@
         _animateTransition = NO;
         self.masksToBounds=YES;
         self.contentsScale = [[UIScreen mainScreen] scale];
+        _opacity = 1.0f;
     }
     return self;
 }
@@ -171,6 +169,17 @@
 	[stateLayersMap release];
 	[stateLayers release];
 	[super dealloc];
+}
+
+-(CGColorRef) applyAlpha:(CGFloat)alpha toColor:(CGColorRef)color
+{
+    const CGFloat* components = CGColorGetComponents(color);
+    size_t size = CGColorGetNumberOfComponents(color);
+    float realAlpha = CGColorGetAlpha(color) * alpha;
+    if (size > 3) {
+        return [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:realAlpha].CGColor;
+    }
+    return [UIColor colorWithRed:components[0] green:components[0] blue:components[0] alpha:realAlpha].CGColor;
 }
 
 -(void)setFrame:(CGRect)frame
@@ -212,6 +221,7 @@
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
         [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        self.backgroundColor = [self applyAlpha:_opacity toColor:currentDrawable.color.CGColor];
     }
     currentState = state;
 }
@@ -268,8 +278,8 @@
 {
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.color = color;
-    if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+    if (state == currentState) {
+        self.backgroundColor = [self applyAlpha:_opacity toColor:drawable.color.CGColor];
     }
 }
 
@@ -291,6 +301,25 @@
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
 }
+
+-(void)setOpacity:(float)opacity
+{
+    _opacity = opacity;
+    if (readyToCreateDrawables) {
+        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+            if (drawable != nil) {
+                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+            }
+        }];
+    }
+    self.backgroundColor = [self applyAlpha:_opacity toColor:currentDrawable.color.CGColor];
+}
+
+-(float)getOpacity
+{
+    return _opacity;
+}
+
 
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
