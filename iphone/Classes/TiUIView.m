@@ -19,6 +19,7 @@
 #import "TiViewProxy.h"
 #import "TiApp.h"
 #import "UIImage+Resize.h"
+#import "TiUIHelper.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -799,42 +800,8 @@ DEFINE_EXCEPTIONS
 -(void)setViewShadow_:(id)arg
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
-    NSDictionary* dict = (NSDictionary*)arg;
-    if ([dict objectForKey:@"offset"]) {
-        CGPoint p = [TiUtils pointValue:[dict objectForKey:@"offset"]];
-        [[self shadowLayer] setShadowOffset:CGSizeMake(p.x, p.y)];
-    }
-    if ([dict objectForKey:@"radius"]) {
-        [[self shadowLayer] setShadowRadius:[TiUtils floatValue:[dict objectForKey:@"radius"]]];
-    }
-    if ([dict objectForKey:@"color"]) {
-        id color = [dict objectForKey:@"color"];
-        if (color==nil)
-        {
-            [[self shadowLayer] setShadowColor:nil];
-            [[self shadowLayer] setShadowOpacity:0.0f];
-            [self shadowLayer].masksToBounds = YES;
-        }
-        else
-        {
-            color = [TiUtils colorValue:color];
-            CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
-            
-            [[self shadowLayer] setShadowOpacity:alpha];
-            [[self shadowLayer] setShadowColor:[color _color].CGColor];
-            if (alpha == 0.0f)
-            {
-                [self shadowLayer].masksToBounds = YES;
-            }
-            else
-            {
-                [self shadowLayer].masksToBounds = NO;
-                [self shadowLayer].shouldRasterize =YES;
-                [self updateViewShadowPath];
-            }
-            
-        }
-    }
+    [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
+    [self updateViewShadowPath];
 }
 
 -(void)updateViewShadowPath
@@ -844,35 +811,6 @@ DEFINE_EXCEPTIONS
         //to speedup things
         [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
     }
-}
-
--(void)setViewShadowColor_:(id)color
-{
-	if (color==nil)
-	{
-		[[self shadowLayer] setShadowColor:nil];
-		[[self shadowLayer] setShadowOpacity:0.0f];
-        [self shadowLayer].masksToBounds = YES;
-	}
-	else
-	{
-		color = [TiUtils colorValue:color];
-        CGFloat alpha = CGColorGetAlpha([color _color].CGColor);
-        
-        [[self shadowLayer] setShadowOpacity:alpha];
-		[[self shadowLayer] setShadowColor:[color _color].CGColor];
-        if (alpha == 0.0f)
-        {
-            [self shadowLayer].masksToBounds = YES;
-        }
-        else
-        {
-            [self shadowLayer].masksToBounds = NO;
-            [self shadowLayer].shouldRasterize =YES;
-            [self updateViewShadowPath];
-        }
-		
-	}
 }
 
 -(NSArray*) childViews
