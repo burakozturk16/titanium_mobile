@@ -62,7 +62,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_FIRE_SYNC_EVENT = KrollObject.MSG_LAST_ID + 108;
 	protected static final int MSG_CALL_PROPERTY_ASYNC = KrollObject.MSG_LAST_ID + 109;
 	protected static final int MSG_CALL_PROPERTY_SYNC = KrollObject.MSG_LAST_ID + 110;
-	protected static final int MSG_LAST_ID = MSG_CALL_PROPERTY_SYNC;
+	protected static final int MSG_MODEL_APPLY_PROPERTIES = KrollObject.MSG_LAST_ID + 111;
+	protected static final int MSG_LAST_ID = MSG_MODEL_APPLY_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
 
@@ -628,25 +629,6 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			return;
 		}
 		HashMap props = (HashMap) arg;
-		if (modelListener == null) {
-			for (Object name : props.keySet()) {
-				setProperty(TiConvert.toString(name), props.get(name));
-			}
-			return;
-		}
-		if (TiApplication.isUIThread()) {
-			for (Object key : props.keySet()) {
-				String name = TiConvert.toString(key);
-				Object value = props.get(key);
-				Object current = getProperty(name);
-				setProperty(name, value);
-				if (shouldFireChange(current, value)) {
-					modelListener.propertyChanged(name, current, value, this);
-				}
-			}
-			return;		
-		}
-		
 		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
 		for (Object key : props.keySet()) {
 			String name = TiConvert.toString(key);
@@ -656,6 +638,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			if (shouldFireChange(current, value)) {
 				changes.addChange(name, current, value);
 			}
+		}
+		if (modelListener != null) {
+			if (TiApplication.isUIThread()) {
+				modelListener.processProperties((KrollDict)props);
+			}
+			else {
+				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, props);
+				message.sendToTarget();
+			}
+
 		}
 		if (changes.entryCount > 0) {
 			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
@@ -1069,6 +1061,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			case MSG_MODEL_PROCESS_PROPERTIES: {
 				if (modelListener != null) {
 					modelListener.processProperties(properties);
+				}
+				return true;
+			}
+			case MSG_MODEL_APPLY_PROPERTIES: {
+				if (modelListener != null) {
+					modelListener.processProperties((KrollDict)msg.obj);
 				}
 				return true;
 			}
