@@ -13,6 +13,7 @@
 @class TiBuffer;
 @class WebFont;
 @class TiScriptError;
+@class TiPoint;
 
 /*	NOTE TO MODULE DEVELOPERS:
  *	The following 4 imports will be going away as it's better to simply
@@ -284,6 +285,8 @@ typedef enum {
  */
 +(TiDimension)dimensionValue:(id)value;
 
++(TiPoint*)tiPointValue:(id)value;
+
 +(id)valueFromDimension:(TiDimension)dimension;
 
 /**
@@ -383,6 +386,8 @@ typedef enum {
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties def:(TiDimension)def;
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def;
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def exists:(BOOL*) exists;
 
 +(WebFont*)fontValue:(NSDictionary*)properties def:(WebFont*)def;
 
@@ -405,6 +410,8 @@ typedef enum {
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
+
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
 +(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;

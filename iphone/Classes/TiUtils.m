@@ -522,6 +522,11 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return TiDimensionFromObject(value);
 }
 
++(TiPoint*)tiPointValue:(id)value
+{
+	return [TiPoint pointWithObject:value];
+}
+
 +(id)valueFromDimension:(TiDimension)dimension
 {
 	switch (dimension.type)
@@ -928,6 +933,33 @@ If the new path starts with / and the base url is app://..., we have to massage 
 }
 
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def exists:(BOOL*) exists
+{
+	if ([properties isKindOfClass:[NSDictionary class]])
+	{
+		id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+		{
+			if (exists != NULL) *exists = YES;
+			return nil;
+		}
+		if (value != nil)
+		{
+			if (exists != NULL)
+			{
+				*exists = YES;
+			}
+			return [self tiPointValue:value];
+		}
+	}
+	if (exists != NULL)
+	{
+		*exists = NO;
+	}
+	return def;
+	
+}
+
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props def:(int)def;
 {
 	return [self intValue:name properties:props def:def exists:NULL];
@@ -968,7 +1000,10 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [self dimensionValue:name properties:properties def:def exists:NULL];
 }
 
-
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def
+{
+	return [self tiPointValue:name properties:properties def:def exists:NULL];
+}
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props;
 {
@@ -1008,6 +1043,11 @@ If the new path starts with / and the base url is app://..., we have to massage 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties
 {
 	return [self dimensionValue:name properties:properties def:TiDimensionUndefined exists:NULL];
+}
+
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties
+{
+	return [self tiPointValue:name properties:properties def:nil exists:NULL];
 }
 
 +(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
