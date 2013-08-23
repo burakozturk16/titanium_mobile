@@ -11,6 +11,11 @@
 @implementation TiPoint
 @synthesize xDimension,yDimension;
 
++(TiPoint*)pointWithObject:(id)object
+{
+    return [[[TiPoint alloc] initWithObject:object] autorelease];
+}
+
 -(id)initWithPoint:(CGPoint)point_
 {
 	if (self = [super init])

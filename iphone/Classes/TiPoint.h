@@ -22,6 +22,7 @@
 -(id)initWithPoint:(CGPoint)point_;
 
 -(id)initWithObject:(id)object;
++(TiPoint*)pointWithObject:(id)object;
 
 -(void)setValues:(id)object;
 
