@@ -210,6 +210,7 @@ self.p = v;\
 	RELEASE_TO_NIL(callback);
 	RELEASE_TO_NIL(view);
 	RELEASE_TO_NIL(animatedView);
+	RELEASE_TO_NIL(reverseAnimation);
     [animatedViewProxy release];
 	[super dealloc];
 }
@@ -301,6 +302,7 @@ self.p = v;\
 	TiAnimation* animation = (TiAnimation*)context;
 	if ([(id)animation.animatedView isKindOfClass:[TiUIView class]]) {
 		TiUIView *v = (TiUIView*)animation.animatedView;
+        RELEASE_TO_NIL(animatedViewProxy);
 		animatedViewProxy = [(TiViewProxy*)v.proxy retain];
 	}
 	if (animation.delegate!=nil && [animation.delegate respondsToSelector:@selector(animationDidStart:)])
@@ -323,7 +325,6 @@ self.p = v;\
 	
 	TiAnimation* animation = (TiAnimation*)context;
     if ([animation isReverse]) {
-        RELEASE_TO_NIL(animation.animatedView);
         
         animation = [animation reverseAnimation]; // Use the original animation for correct eventing
         //Make sure we have the animatedViewProxy so we can correctly signal end of animation
@@ -364,7 +365,6 @@ self.p = v;\
 	}	
 	
     RELEASE_TO_NIL(animatedViewProxy);
-	RELEASE_TO_NIL(animation.animatedView);
 }
 
 -(void)updateViewProxyProperties
@@ -499,7 +499,7 @@ if (value != nil)\
     }
     
     
-	animatedView = [theview retain];
+	self.animatedView = theview;
     
     if (!transitionAnimation) {
         UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState); // Backwards compatible
@@ -523,7 +523,7 @@ if (value != nil)\
                 // Works around radar #11919161 as a fix suggested by apple in animation documentation. Very unlikely
                 // that this bug will be fixed.
                 
-                reverseAnimation = [[TiAnimation alloc] initWithDictionary:nil context:[self pageContext] callback:[[self callback] listener]];
+                self.reverseAnimation = [[[TiAnimation alloc] initWithDictionary:nil context:[self pageContext] callback:[[self callback] listener]] autorelease];
                 [reverseAnimation setReverseAnimation:self];
                 [reverseAnimation setIsReverse:YES];
                 [reverseAnimation setDuration:duration];
@@ -687,7 +687,7 @@ doReposition = YES;\
                     [animatedViewProxy animationCompleted:self];
                 }
                 [reverseAnimation animate:args];
-                RELEASE_TO_NIL(reverseAnimation);
+                self.reverseAnimation = nil;
             }
             else {
                 [self animationCompleted:[self description] finished:[NSNumber numberWithBool:finished] context:self];
@@ -792,7 +792,6 @@ doReposition = YES;\
 	}
 	
     RELEASE_TO_NIL(animatedViewProxy);
-	RELEASE_TO_NIL(self.animatedView);
 }
 
 @end
