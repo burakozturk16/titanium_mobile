@@ -527,6 +527,13 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return [TiPoint pointWithObject:value];
 }
 
++(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def
+{
+    if (value != nil)
+        return [TiPoint pointWithObject:value];
+    return def;
+}
+
 +(id)valueFromDimension:(TiDimension)dimension
 {
 	switch (dimension.type)

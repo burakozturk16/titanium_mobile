@@ -286,6 +286,7 @@ typedef enum {
 +(TiDimension)dimensionValue:(id)value;
 
 +(TiPoint*)tiPointValue:(id)value;
++(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def;
 
 +(id)valueFromDimension:(TiDimension)dimension;
 
