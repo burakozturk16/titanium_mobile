@@ -6,9 +6,16 @@
 //
 //
 
+typedef struct ShadowDef{
+    CGFloat opacity;
+    CGColorRef color;
+    CGSize offset;
+    CGFloat radius;
+} ShadowDef;
+
 @interface TiUIHelper : NSObject
 
-
 +(void)applyShadow:(NSDictionary*)args toLayer:(CALayer *)layer;
++(ShadowDef)getShadow:(NSDictionary*)args;
 
 @end

@@ -22,6 +22,16 @@
     layer.masksToBounds = NO;
     layer.shouldRasterize = YES;
     layer.rasterizationScale = [[UIScreen mainScreen] scale];
+    ShadowDef data = [TiUIHelper getShadow:args];
+    layer.shadowOffset = data.offset;
+    layer.shadowOpacity = data.opacity;
+    layer.shadowColor = data.color;
+    layer.shadowRadius = data.radius;
+}
+
++(ShadowDef)getShadow:(NSDictionary*)args;
+{
+    ShadowDef result;
     if ([args objectForKey:@"offset"]) {
         NSDictionary* offsetDict  = [args objectForKey:@"offset"];
         CGSize offset = CGSizeZero;
@@ -31,25 +41,25 @@
         if ([offsetDict objectForKey:@"y"]) {
             offset.height = [TiUtils floatValue:[offsetDict objectForKey:@"y"]];
         }
-        layer.shadowOffset = offset;
+        result.offset = offset;
     }
     
     if ([args objectForKey:@"opacity"]) {
-        layer.shadowOpacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
+        result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
     }
     else {
-        layer.shadowOpacity = 1.0f;
+        result.opacity = 1.0f;
     }
     
     if ([args objectForKey:@"color"]) {
-        layer.shadowColor = [[TiUtils colorValue:[args objectForKey:@"color"]] _color].CGColor;
+        result.color = [[TiUtils colorValue:[args objectForKey:@"color"]] _color].CGColor;
     }
     else {
-        layer.shadowColor = [UIColor blackColor].CGColor;
+        result.color = [UIColor blackColor].CGColor;
     }
     if ([args objectForKey:@"radius"]) {
-        layer.shadowRadius = [TiUtils floatValue:[args objectForKey:@"radius"]];
+        result.radius = [TiUtils floatValue:[args objectForKey:@"radius"]];
     }
+    return result;
 }
-
 @end
