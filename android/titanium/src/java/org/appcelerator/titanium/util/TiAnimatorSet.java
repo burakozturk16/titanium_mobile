@@ -5,7 +5,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class TiAnimatorSet extends TiAnimationBuilder {
+public class TiAnimatorSet extends TiAnimator {
 	private AnimatorSet set;
 
 	public TiAnimatorSet() {
@@ -17,9 +17,9 @@ public class TiAnimatorSet extends TiAnimationBuilder {
 	}
 	
 	@Override
-	public void cancel() {
+	protected void handleCancel() {
+		super.handleCancel();
 		set.cancel();
-		animating = false; //will prevent the call the handleFinish
 	}
 	
 	public void setAnimating (boolean value) {

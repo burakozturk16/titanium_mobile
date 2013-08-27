@@ -940,6 +940,14 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			firePropertyChanged(name, current, value);
 		}
 	}
+	
+	public void setPropertyAndForceFire(String name, Object value)
+	{
+		Object current = getProperty(name);
+		setProperty(name, value);
+
+		firePropertyChanged(name, current, value);
+	}
 
 	public void onPropertyChanged(String name, Object value)
 	{

@@ -34,7 +34,7 @@ import android.view.MotionEvent;
 /**
  * Base layout class for all Titanium views. 
  */
-public class TiCompositeLayout extends ViewGroup
+public class TiCompositeLayout extends FreeLayout
 	implements OnHierarchyChangeListener
 {
 	/**
@@ -918,7 +918,7 @@ public class TiCompositeLayout extends ViewGroup
 	/**
 	 * A TiCompositeLayout specific version of {@link android.view.ViewGroup.LayoutParams}
 	 */
-	public static class LayoutParams extends ViewGroup.LayoutParams {
+	public static class LayoutParams extends FreeLayout.LayoutParams {
 		protected int index;
 
 		public int optionZIndex = NOT_SET;

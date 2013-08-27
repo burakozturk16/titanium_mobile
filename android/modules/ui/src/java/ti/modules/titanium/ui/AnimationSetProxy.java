@@ -11,14 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.util.TiAnimatorSet;
+import org.appcelerator.titanium.proxy.AnimatableProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 
 
 import android.animation.Animator;
@@ -28,7 +32,6 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.view.View;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
@@ -39,15 +42,18 @@ import android.view.View;
 	TiC.PROPERTY_AUTOREVERSE
 })
 public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
-	private final Map<KrollProxy, TiViewProxy> mAnimations;
-	private final List<KrollProxy> mAnimationsOrder;
-	private AnimatorSet currentlyRunningSet;
-	private boolean animating;
-	private static final String TAG = AnimationSetProxy.class.getSimpleName();
-	
+
 	private static int FOR_NOTHING = 0;
 	private static int FOR_PLAY_SEQ = 1;
 	private static int FOR_PLAY_TOGETHER = 2;
+	
+	private final Map<Object, AnimatableProxy> mAnimations;
+	private final List<Object> mAnimationsOrder;
+	private AnimatorSet currentlyRunningSet;
+	private boolean animating;
+	private static final String TAG = AnimationSetProxy.class.getSimpleName();
+	private int playMode = FOR_PLAY_SEQ;
+	
 	
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
 
@@ -70,8 +76,8 @@ public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
 	// Constructor
 	public AnimationSetProxy() {
 		super();
-		mAnimations = new HashMap<KrollProxy, TiViewProxy>();
-		mAnimationsOrder = new ArrayList<KrollProxy>();
+		mAnimations = new HashMap<Object, AnimatableProxy>();
+		mAnimationsOrder = new ArrayList<Object>();
 		currentlyRunningSet = null;
 		animating = false;
 	}
@@ -102,29 +108,17 @@ public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
 	public List<Animator> getSetList(int mode) {
 		List<Animator> list = new ArrayList<Animator>();
 		for (int i = 0; i < mAnimationsOrder.size(); i++) {
-			KrollProxy proxy = mAnimationsOrder.get(i);
-			if (proxy instanceof AnimationSetProxy) {
-				AnimatorSet set = ((AnimationSetProxy)proxy).getSet(mode);
+			Object animation = mAnimationsOrder.get(i);
+			if (animation instanceof AnimationSetProxy) {
+				AnimatorSet set = ((AnimationSetProxy)animation).getSet(mode);
 				if (set != null) {
 					list.add(set);
 				}
-			} else if(proxy instanceof TiAnimation) {
-				TiViewProxy viewProxy = mAnimations.get(proxy);
-				if (viewProxy != null) {
-					View view = viewProxy.getOuterView();
-					if (view != null) {
-						TiAnimatorSet tiSet = new TiAnimatorSet();
-						tiSet.setViewProxy(viewProxy);
-						tiSet.setAnimation((TiAnimation)proxy);
-						tiSet.applyOptions();
-						viewProxy.peekView().prepareAnimatorSet(tiSet);
-						list.add(tiSet.set());
-					}
-					else {
-						Log.e(TAG, "View is not realized, can't animate it with the set " + viewProxy);
-					}
-				} else {
-					Log.e(TAG, "The animation was not added with a view, can't work " + proxy);
+			} else {
+				AnimatableProxy animatableProxy = mAnimations.get(animation);
+				AnimatorSet set = animatableProxy.getAnimatorSetForAnimation(animation);
+				if (set != null) {
+					list.add(set);
 				}
 			}
 		}
@@ -223,18 +217,23 @@ public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
 	
 	@Kroll.method
 	public void start() {
-		startSequentially();
+		if (!TiApplication.isUIThread()) {
+			Message message = getMainHandler().obtainMessage(MSG_START, playMode);
+			message.sendToTarget();
+		} else {
+			start(playMode);
+		}
 	}
 
 	@Kroll.method
 	public void add(Object arg, @Kroll.argument(optional = true) Object obj) {
 		if (arg instanceof AnimationSetProxy){
-			mAnimations.put((KrollProxy) arg, null);
-			mAnimationsOrder.add((KrollProxy) arg);
-		} else if (arg instanceof TiAnimation){
+			mAnimations.put(arg, null);
+			mAnimationsOrder.add(arg);
+		} else if (arg instanceof TiAnimation || arg instanceof HashMap){
 			if (obj != null) {
-				mAnimations.put((KrollProxy) arg, (TiViewProxy) obj);
-				mAnimationsOrder.add((KrollProxy) arg);
+				mAnimations.put(arg, (AnimatableProxy) obj);
+				mAnimationsOrder.add(arg);
 			} else {
 				Log.e(TAG, "when adding an Animation you must supply a view with it");
 			}
@@ -252,4 +251,5 @@ public class AnimationSetProxy extends KrollProxy implements Handler.Callback{
 			Log.e(TAG, "AnimationSet can only remove Animation or AnimationSet");
 		}
 	}
+
 }

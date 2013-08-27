@@ -11,6 +11,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -26,17 +27,20 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.util.TiAnimationBuilder;
+import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
 import android.util.DisplayMetrics;
+import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -99,7 +103,7 @@ import android.view.View;
 	TiC.PROPERTY_TOUCH_PASSTHROUGH,
 	TiC.PROPERTY_CLIP_CHILDREN
 })
-public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
+public abstract class TiViewProxy extends AnimatableProxy implements Handler.Callback
 {
 	private static final String TAG = "TiViewProxy";
 
@@ -128,8 +132,6 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 	protected WeakReference<TiViewProxy> parent;
 
 	protected TiUIView view;
-	protected Object pendingAnimationLock;
-	protected TiAnimationBuilder pendingAnimation;
 	private boolean isDecorView = false;
 
 	// TODO: Deprecated since Release 3.0.0
@@ -227,14 +229,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		return dict;
 	}
 
-	public TiAnimationBuilder getPendingAnimation()
+	public TiViewAnimator getPendingAnimation()
 	{
 		synchronized(pendingAnimationLock) {
-			return pendingAnimation;
+			return (TiViewAnimator) pendingAnimation;
 		}
 	}
 
-	public void clearAnimation(TiAnimationBuilder builder)
+	public void clearAnimation(TiAnimator builder)
 	{
 		synchronized(pendingAnimationLock) {
 			if (pendingAnimation != null && pendingAnimation == builder) {
@@ -881,50 +883,23 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 	}
 
-	@SuppressLint("NewApi")
-	@Kroll.method
-	public void animate(Object arg, @Kroll.argument(optional=true) KrollFunction callback)
-	{
-		if (pendingAnimation != null) {
-			//already running animation
-			pendingAnimation.cancel();
-		}
-		synchronized (pendingAnimationLock) {
-			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB || peekView() == null) {
-				pendingAnimation = new TiAnimationBuilder();
-			}
-			else {
-				pendingAnimation = new TiAnimatorSet();
-			}
-			if (arg instanceof HashMap) {
-				@SuppressWarnings("rawtypes")
-				HashMap options = (HashMap) arg;
-				pendingAnimation.setOptions(options);
-			} else if (arg instanceof TiAnimation) {
-				TiAnimation anim = (TiAnimation) arg;
-				pendingAnimation.setAnimation(anim);
-			} else {
-				throw new IllegalArgumentException("Unhandled argument to animate: " + arg.getClass().getSimpleName());
-			}
-
-			if (callback != null) {
-				pendingAnimation.setCallback(callback);
-			}
-
-			handlePendingAnimation(false);
+	@Override
+	protected TiAnimator createAnimator(){
+		return new TiViewAnimator();
+	}
+	
+	@Override
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
+		if (view != null) {
+			view.prepareAnimatorSet(tiSet);
 		}
 	}
-
-	@Kroll.method
-	public void cancelAllAnimations()
+	
+	@Override
+	protected void handlePendingAnimation()
 	{
-		
-		if (pendingAnimation != null) {
-			pendingAnimation.cancel();
-			pendingAnimation = null;
-		}
+		handlePendingAnimation(false);
 	}
-
 	public void handlePendingAnimation(boolean forceQueue)
 	{
 		if (pendingAnimation != null) {
@@ -952,7 +927,7 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		View view = getOuterView();
 		if (view == null) {
 			pendingAnimation.applyOptions();
-			pendingAnimation.simulateFinish(this);
+			((TiViewAnimator) pendingAnimation).simulateFinish(this);
 			pendingAnimation = null;
 			return;
 		}
@@ -962,14 +937,14 @@ public abstract class TiViewProxy extends KrollProxy implements Handler.Callback
 		}
 		
 		
-		if (pendingAnimation instanceof TiAnimatorSet) {
-			pendingAnimation.setViewProxy(this);
-			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
-			((TiAnimatorSet) pendingAnimation).set().start();
+		pendingAnimation.applyOptions();
+		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+			((TiViewAnimator) pendingAnimation).animateOnView(this);
 		}
 		else {
-			pendingAnimation.applyOptions();
-			pendingAnimation.animateOnView(this);
+			((TiAnimatorSet) pendingAnimation).setProxy(this);
+			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
+			((TiAnimatorSet) pendingAnimation).set().start();
 		}
 	}
 

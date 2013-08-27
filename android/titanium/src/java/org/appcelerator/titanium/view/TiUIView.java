@@ -24,13 +24,13 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.util.TiAnimationBuilder;
-import org.appcelerator.titanium.util.TiAnimationBuilder.TiMatrixAnimation;
 import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
 import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiViewAnimator;
+import org.appcelerator.titanium.util.TiViewAnimator.TiMatrixAnimation;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.TiBlob;
 
@@ -113,7 +113,6 @@ public abstract class TiUIView
 	protected ArrayList<TiUIView> children = new ArrayList<TiUIView>();
 
 	protected LayoutParams layoutParams;
-	protected TiAnimationBuilder animBuilder;
 	protected TiBackgroundDrawable background;
 	
 	protected KrollDict additionalEventData;
@@ -374,11 +373,8 @@ public abstract class TiUIView
 	public float[] getPreTranslationValue(float[] points)
 	{
 		View view = getOuterView();
-		if (view != null && layoutParams.optionTransform != null) {
-			TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(view, layoutParams.optionTransform);
-			int width = view.getWidth();
-			int height = view.getHeight();
-			Matrix m = matrixAnimation.getFinalMatrix(width, height);
+		if (view != null && layoutParams.matrix != null) {
+			Matrix m = layoutParams.matrix.finalMatrixAfterInterpolation(view);
 			// Get the translation values
 			float[] values = new float[9];
 			m.getValues(values);
@@ -388,24 +384,21 @@ public abstract class TiUIView
 		return points;
 	}
 
-	protected void applyTransform(Ti2DMatrix timatrix)
+	public void applyTransform(Ti2DMatrix timatrix)
 	{
-		layoutParams.optionTransform = timatrix;
-		if (animBuilder == null) {
-			animBuilder = new TiAnimationBuilder();
-		}
-
 		View outerView = getOuterView();
-		if (outerView != null) {
-			if (timatrix != null) {
-				TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(outerView, timatrix);
-				matrixAnimation.interpolate = false;
-				matrixAnimation.setDuration(0);
-				outerView.startAnimation(matrixAnimation);
-			} else {
-				outerView.clearAnimation();
-			}
-		}
+		layoutParams.matrix = timatrix;
+		outerView.setLayoutParams(layoutParams);
+//		if (outerView != null) {
+//			if (timatrix != null) {
+//				TiMatrixAnimation matrixAnimation = TiViewAnimator.createMatrixAnimation(outerView, timatrix);
+//				matrixAnimation.interpolate = false;
+//				matrixAnimation.setDuration(0);
+//				outerView.startAnimation(matrixAnimation);
+//			} else {
+//				outerView.clearAnimation();
+//			}
+//		}
 	}
 
 	public void forceLayoutNativeView(boolean informParent)
@@ -1906,6 +1899,7 @@ public abstract class TiUIView
 	}
 	
 	public int getTiBackgroundColor() {
+//		return TiColorHelper.parseColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR)));
 		if (background == null)
 		{
 			return Color.TRANSPARENT;
@@ -1931,23 +1925,28 @@ public abstract class TiUIView
 	}
 	
 	public void setTi2DMatrix(Ti2DMatrix matrix) {
-		
+		applyTransform(matrix);
 		View outerView =  getOuterView();
-		outerView.clearAnimation();
-		FakeMatrixAnimation matrixAnimation = new FakeMatrixAnimation(matrix.getTransformMatrix());
-		outerView.startAnimation(matrixAnimation);
 		ViewParent viewParent = outerView.getParent();
 		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
 			((View) viewParent).postInvalidate();
 		}
+//		outerView.clearAnimation();
+//		FakeMatrixAnimation matrixAnimation = new FakeMatrixAnimation(matrix.getTransformMatrix());
+//		outerView.startAnimation(matrixAnimation);
+//		ViewParent viewParent = outerView.getParent();
+//		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+//			((View) viewParent).postInvalidate();
+//		}
 	}
 	public Ti2DMatrix getTi2DMatrix() {
-		return layoutParams.optionTransform;
+//		return (Ti2DMatrix) proxy.getProperty(TiC.PROPERTY_TRANSFORM);
+		return layoutParams.matrix;
 	}
 	
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private ValueAnimator tiDimensionAnimator(TiDimension[] dimensions, View view, View parentView, TiAnimation proxy, HashMap options) 
+	private ValueAnimator tiDimensionAnimator(TiDimension[] dimensions, View view, View parentView) 
 	{
 		PropertyValuesHolder[] arrayOfPropertyValuesHolder = new PropertyValuesHolder[dimensions.length];
 		for (int i = 0; i < dimensions.length; i++) {
@@ -1956,34 +1955,7 @@ public abstract class TiUIView
 			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(dimension.getAnimatedProperty() , to);
 			arrayOfPropertyValuesHolder[i] = anim;
 		}		
-		
-		TiAnimatorListener listener = new TiAnimatorListener(view, proxy, options) {
-			public void onAnimationStart(Animator animation) {}
-			public void onAnimationEnd(Animator animation) {
-				
-				TiMessenger.postOnMain(new Runnable() {
-					public void run() {
-						ViewGroup.LayoutParams params = view.getLayoutParams();
-						if (params instanceof TiCompositeLayout.LayoutParams) {
-							if (viewProxy != null) {
-								TiConvert
-										.fillLayout(
-												viewProxy.getProperties(),
-												(TiCompositeLayout.LayoutParams) params);
-							} else if (options != null) {
-								TiConvert
-										.fillLayout(
-												options,
-												(TiCompositeLayout.LayoutParams) params);
-							}
-						}
-						view.setLayoutParams(params);
-					}
-				});
-			}
-		};
 		ObjectAnimator localObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, arrayOfPropertyValuesHolder);
-		localObjectAnimator.addListener(listener);
 		return localObjectAnimator;
 	}
 	
@@ -1992,32 +1964,16 @@ public abstract class TiUIView
 	public void prepareAnimatorSet(TiAnimatorSet tiSet) {
 		AnimatorSet set = tiSet.set();
 		final View view = proxy.getOuterView();
+		((TiViewAnimator)tiSet).setViewProxy(proxy);
 
 		List<Animator> list = new ArrayList<Animator>();
 		HashMap options = tiSet.getOptions();
+		
+		if (tiSet.delay != null)
+			set.setStartDelay(tiSet.delay.longValue());
+		if (tiSet.duration != null)
+			set.setDuration(tiSet.duration.longValue());
 
-		if (options.containsKey(TiC.PROPERTY_DELAY)) {
-			set.setStartDelay(TiConvert.toInt(options, TiC.PROPERTY_DELAY));
-		}
-
-		if (options.containsKey(TiC.PROPERTY_DURATION)) {
-			set.setDuration(TiConvert.toInt(options, TiC.PROPERTY_DURATION));
-		}
-
-		int repeat = 1;
-		final boolean autoreverse = options
-				.containsKey(TiC.PROPERTY_AUTOREVERSE) ? TiConvert.toBoolean(
-				options, TiC.PROPERTY_AUTOREVERSE) : false;
-		tiSet.setAutoreverse(autoreverse);
-		if (options.containsKey(TiC.PROPERTY_REPEAT)) {
-			repeat = TiConvert.toInt(options, TiC.PROPERTY_REPEAT);
-
-			if (repeat == 0) {
-				// A repeat of 0 is probably non-sensical. Titanium iOS
-				// treats it as 1 and so should we.
-				repeat = 1;
-			}
-		}
 		set.addListener(new TiAnimatorListener(this.proxy, tiSet,
 				options));
 
@@ -2107,9 +2063,9 @@ public abstract class TiUIView
 			else
 				dimensions.add(new TiDimension((parentHeight/2), TiDimension.TYPE_CENTER_Y));
 		}
-	
+
 		TiDimension[] dimsArray = {};
-		ValueAnimator layoutAnim = tiDimensionAnimator(dimensions.toArray(dimsArray), view, parentView, tiSet.animationProxy, options);
+		ValueAnimator layoutAnim = tiDimensionAnimator(dimensions.toArray(dimsArray), view, parentView);
 		list.add(layoutAnim);
 		
 		
@@ -2128,30 +2084,29 @@ public abstract class TiUIView
 				}
 			}
 			
-			
-			Ti2DMatrix tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-			if (layoutParams.optionTransform != null) {
-				tdm = layoutParams.optionTransform.invert().multiply(tdm);
+			Ti2DMatrix tdm = new Ti2DMatrix((Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM)); //we must "clone" the matrix or we will modify it
+			if (layoutParams.matrix != null) {
+				tdm = new Ti2DMatrix(layoutParams.matrix).invert().multiply(tdm);
 			}
 			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY), tdm);
-			anim.addListener(new TiAnimatorListener(this.proxy, tiSet, options) {
-				public void onAnimationStart(Animator animation) {}
-				public void onAnimationEnd(Animator animation) {
-					layoutParams.optionTransform = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-				}
-			});
+//			anim.addListener(new TiAnimatorListener(this.proxy, tiSet, options) {
+//				public void onAnimationStart(Animator animation) {}
+//				public void onAnimationEnd(Animator animation) {
+//					layoutParams.optionTransform = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+//				}
+//			});
 			list.add(anim);
 		}
 
 
-		if (autoreverse) {
+		if (tiSet.autoreverse) {
 			for (int i = 0; i < list.size(); i++) {
 				ValueAnimator anim = (ValueAnimator) list.get(i);
 				anim.setRepeatCount(1);
 				anim.setRepeatMode(ValueAnimator.REVERSE);
 			}
-		} else if (repeat > 1) {
-			int realRepeat = repeat - 1;
+		} else if (tiSet.repeat > 1) {
+			int realRepeat = (int) (tiSet.repeat - 1);
 			for (int i = 0; i < list.size(); i++) {
 				ValueAnimator anim = (ValueAnimator) list.get(i);
 				anim.setRepeatCount(realRepeat);

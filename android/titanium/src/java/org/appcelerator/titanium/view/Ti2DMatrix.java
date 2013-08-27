@@ -102,6 +102,14 @@ public class Ti2DMatrix extends KrollProxy
 		}
 		this.op = new Operation(opType);
 	}
+	
+	public Ti2DMatrix(Ti2DMatrix prev)
+	{
+		if (prev != null) {
+			// this.prev represents the previous matrix. This value does not change.
+			this.prev = prev;
+		}
+	}
 
 	@Override
 	public void handleCreationDict(KrollDict dict)
@@ -243,7 +251,20 @@ public class Ti2DMatrix extends KrollProxy
 	
 	public Matrix finalMatrixAfterInterpolation (TiViewProxy proxy)
 	{
-		View view = proxy.getNativeView();
+		View view = proxy.getOuterView();
+		if (view != null) {
+			int width = view.getWidth();
+			int height = view.getHeight();
+			Matrix m = interpolate(view, 1f, width, height, 0.5f, 0.5f);
+			return m;
+		}
+		return null;
+	}
+	
+	public Matrix finalMatrixAfterInterpolation (View view)
+	{
+		if (transformMatrix != null)
+			return transformMatrix;
 		if (view != null) {
 			int width = view.getWidth();
 			int height = view.getHeight();
