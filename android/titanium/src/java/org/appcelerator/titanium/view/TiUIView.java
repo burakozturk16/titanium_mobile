@@ -7,8 +7,6 @@
 package org.appcelerator.titanium.view;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,14 +40,11 @@ import android.animation.PropertyValuesHolder;
 import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -59,7 +54,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -91,7 +85,6 @@ public abstract class TiUIView
 
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
 	private static final boolean JELLY_BEAN_OR_GREATER = (Build.VERSION.SDK_INT >= 16);
-	private static final int LAYER_TYPE_SOFTWARE = 1;
 	private static final String TAG = "TiUIView";
 
 	private static AtomicInteger idGenerator;
@@ -117,14 +110,6 @@ public abstract class TiUIView
 	
 	protected KrollDict additionalEventData;
 
-	// Since Android doesn't have a property to check to indicate
-	// the current animated x/y scale (from a scale animation), we track it here
-	// so if another scale animation is done we can gleen the fromX and fromY values
-	// rather than starting the next animation always from scale 1.0f (i.e., normal scale).
-	// This gives us parity with iPhone for scale animations that use the 2-argument variant
-	// of Ti2DMatrix.scale().
-	private Pair<Float, Float> animatedScaleValues = Pair.create(Float.valueOf(1f), Float.valueOf(1f)); // default = full size (1f)
-
 	private float animatedAlpha = Float.MIN_VALUE; // i.e., no animated alpha.
 
 	protected KrollDict lastUpEvent = new KrollDict(2);
@@ -135,7 +120,6 @@ public abstract class TiUIView
 	// i.e., the view passed to registerForTouch.
 	private WeakReference<View> touchView = null;
 
-	private Method mSetLayerTypeMethod = null; // Honeycomb, for turning off hw acceleration.
 
 	private boolean zIndexChanged = false;
 	protected TiBorderWrapperView borderView;
@@ -150,6 +134,7 @@ public abstract class TiUIView
 	protected Handler handler;
 	
 	private boolean exclusiveTouch = false;
+	public boolean hardwareAccSupported = true;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -322,6 +307,10 @@ public abstract class TiUIView
 			borderView.removeView(nativeView);
 		}
 		
+		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == false) {
+			disableHWAcceleration(view);
+		}
+		
 		this.nativeView = view;
 		boolean clickable = true;
 		
@@ -356,18 +345,6 @@ public abstract class TiUIView
 	}
 
 	public void listenerRemoved(String type, int count, KrollProxy proxy){
-	}
-
-//	private boolean hasBorder(KrollDict d)
-//	{
-//		return d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_COLOR) 
-//			|| d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_RADIUS)
-//			|| d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_WIDTH);
-//	}
-
-	private double computeAngle(float[] v1, float[] v2)
-	{
-		return (180.0 / Math.PI * Math.atan2(v1[0] - v2[0], v2[1] - v1[1]));
 	}
 
 	public float[] getPreTranslationValue(float[] points)
@@ -1043,8 +1020,8 @@ public abstract class TiUIView
 			}
 		}
 		
-		if (borderView.getRadius() > 0f && HONEYCOMB_OR_GREATER) {
-			disableHWAcceleration();
+		if ((borderView.getRadius() > 0f || hardwareAccSupported == false) && HONEYCOMB_OR_GREATER) {
+			disableHWAcceleration(borderView);
 		}
 	}
 	
@@ -1065,6 +1042,7 @@ public abstract class TiUIView
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR))
 				borderView.setColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR))));
 			
+			
 			addBorderView();
 		}
 		return borderView;
@@ -1079,7 +1057,7 @@ public abstract class TiUIView
 	private void setBorderRadius(float radius){
 		float realRadius = (new TiDimension(Float.toString(radius), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
 		getOrCreateBorderView().setRadius(realRadius);
-		if (radius > 0f && HONEYCOMB_OR_GREATER) {
+		if (radius > 0f && HONEYCOMB_OR_GREATER && hardwareAccSupported == true) {
 			disableHWAcceleration();
 		}
 		borderView.postInvalidate();
@@ -1610,43 +1588,22 @@ public abstract class TiUIView
 		});
 	}
 
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void disableHWAcceleration(View view)
+	{
+		view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+	}
+	
+
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	protected void disableHWAcceleration()
 	{
-		View  view = getOuterView();
-		if (view == null) {
-			return;
-		}
-		Log.d(TAG, "Disabling hardware acceleration for instance of " + view.getClass().getSimpleName(),
-			Log.DEBUG_MODE);
-		if (mSetLayerTypeMethod == null) {
-			try {
-				Class<? extends View> c = view.getClass();
-				mSetLayerTypeMethod = c.getMethod("setLayerType", int.class, Paint.class);
-			} catch (SecurityException e) {
-				Log.e(TAG, "SecurityException trying to get View.setLayerType to disable hardware acceleration.", e,
-					Log.DEBUG_MODE);
-			} catch (NoSuchMethodException e) {
-				Log.e(TAG, "NoSuchMethodException trying to get View.setLayerType to disable hardware acceleration.", e,
-					Log.DEBUG_MODE);
-			}
-		}
-
-		if (mSetLayerTypeMethod == null) {
-			return;
-		}
-		try {
-			mSetLayerTypeMethod.invoke(view, LAYER_TYPE_SOFTWARE, null);
-		} catch (IllegalArgumentException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (InvocationTargetException e) {
-			Log.e(TAG, e.getMessage(), e);
-		}
+		hardwareAccSupported = false;
+		disableHWAcceleration(getOuterView());
 	}
 	
 	public boolean hWAccelerationDisabled(){
-		return (mSetLayerTypeMethod != null);
+		return !hardwareAccSupported;
 	}
 
 	/**
