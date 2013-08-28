@@ -217,9 +217,9 @@ public class TiViewAnimator extends TiAnimatorSet
 		super.applyCompletionProperties();
 		final View view = viewProxy.getOuterView();
 		ViewGroup.LayoutParams params = view.getLayoutParams();
-		if (autoreverse == false && params instanceof TiCompositeLayout.LayoutParams)
-			TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
-		view.setLayoutParams(params);
+//		if (autoreverse == false && params instanceof TiCompositeLayout.LayoutParams)
+//			TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
+//		view.setLayoutParams(params);
 	}
 
 	@Override
@@ -228,9 +228,9 @@ public class TiViewAnimator extends TiAnimatorSet
 		super.resetAnimationProperties();
 		final View view = viewProxy.getOuterView();
 		ViewGroup.LayoutParams params = view.getLayoutParams();
-		if (autoreverse == false && params instanceof TiCompositeLayout.LayoutParams)
-			TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
-		view.setLayoutParams(params);
+//		if (autoreverse == true && params instanceof TiCompositeLayout.LayoutParams)
+//			TiConvert.fillLayout(viewProxy.getProperties(), (TiCompositeLayout.LayoutParams)params);
+//		view.setLayoutParams(params);
 	}
 	
 	public void simulateFinish(TiViewProxy proxy)

@@ -267,7 +267,12 @@ public class TiConvert
 			}
 			dirty = true;
 		}
-
+		
+		if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_ZINDEX);
+			dirty = true;
+		}
+		
 		if (hashMap.containsKey(TiC.PROPERTY_ZINDEX)) {
 			Object zIndex = hashMap.get(TiC.PROPERTY_ZINDEX);
 			if (zIndex != null) {
