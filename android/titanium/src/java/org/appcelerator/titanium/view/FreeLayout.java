@@ -15,7 +15,7 @@ public class FreeLayout extends ViewGroup {
     public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
-        setClipChildren(false);
+//        setClipChildren(false);
     }
     
     public static Matrix getViewMatrix(View view) {
@@ -153,13 +153,13 @@ public class FreeLayout extends ViewGroup {
         }
     }
     
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (!preDispatchTouchEvent(this,ev)) {
-            return false;
-        }
-        return super.dispatchTouchEvent(ev);
-    }
+//    @Override
+//    public boolean dispatchTouchEvent(MotionEvent ev) {
+//        if (!preDispatchTouchEvent(this,ev)) {
+//            return false;
+//        }
+//        return super.dispatchTouchEvent(ev);
+//    }
     
     @Override
     public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
@@ -174,12 +174,12 @@ public class FreeLayout extends ViewGroup {
         return result;
     }
     
-    @Override
-    public void getHitRect(Rect hitRect) {
-        super.getHitRect(hitRect);
-        postGetHitRect(this,hitRect);
-    }
-    
+//    @Override
+//    public void getHitRect(Rect hitRect) {
+//        super.getHitRect(hitRect);
+//        postGetHitRect(this,hitRect);
+//    }
+//    
     @Override
     public void invalidate(Rect dirty) {
         dirty=preInvalidate(this,dirty);
