@@ -5,17 +5,17 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.Transformation;
 
 public class FreeLayout extends ViewGroup {
-    private Matrix computedMatrix = null;
     public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
-//        setClipChildren(false);
+        setClipChildren(false);
     }
     
     public static Matrix getViewMatrix(View view) {
@@ -64,11 +64,9 @@ public class FreeLayout extends ViewGroup {
             Matrix mi=new Matrix();
             if (m.invert(mi)) {
                 float[] points=new float[]{event.getX(),event.getY()};
+                Rect rect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
                 mi.mapPoints(points);
-                if (event.getAction()==MotionEvent.ACTION_DOWN && (
-                    points[0]<view.getLeft() || points[0]>=view.getRight() ||
-                    points[1]<view.getTop() || points[1]>=view.getBottom()))
-                {
+                if (event.getAction()==MotionEvent.ACTION_DOWN && !rect.contains((int)points[0],(int)points[1])) {
                     return false;
                 }
                 event.setLocation(points[0],points[1]);
@@ -80,7 +78,10 @@ public class FreeLayout extends ViewGroup {
     public static void postGetHitRect(View view,Rect hitRect) {
         Matrix m=getViewMatrix(view);
         if (m!=null) {
-            transformFrame(hitRect,m);
+        	Matrix realM = new Matrix(m);
+        	realM.preTranslate(-hitRect.left, -hitRect.top);
+        	realM.postTranslate(hitRect.left, hitRect.top);
+            transformFrame(hitRect,realM);
         }
     }
 
@@ -147,6 +148,10 @@ public class FreeLayout extends ViewGroup {
         if (m!=null) {
             t.getMatrix().set(m);
             t.setTransformationType(Transformation.TYPE_MATRIX);
+            Rect r = new Rect();
+            child.getHitRect(r);
+            setTouchDelegate( new TouchDelegate( r , child));
+
             return true;
         } else {
             return false;
@@ -174,12 +179,11 @@ public class FreeLayout extends ViewGroup {
         return result;
     }
     
-//    @Override
-//    public void getHitRect(Rect hitRect) {
-//        super.getHitRect(hitRect);
-//        postGetHitRect(this,hitRect);
-//    }
-//    
+    @Override
+    public void getHitRect(Rect hitRect) {
+        super.getHitRect(hitRect);
+        postGetHitRect(this,hitRect);
+    }    
     @Override
     public void invalidate(Rect dirty) {
         dirty=preInvalidate(this,dirty);
