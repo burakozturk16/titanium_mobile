@@ -11,7 +11,7 @@ import java.lang.ref.WeakReference;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiBorderWrapperView;
+import org.appcelerator.titanium.view.MaskableView;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -28,12 +28,11 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.ZoomControls;
 
-public class TiImageView extends TiBorderWrapperView implements Handler.Callback, OnClickListener
+public class TiImageView extends MaskableView implements Handler.Callback, OnClickListener
 {
 	private static final String TAG = "TiImageView";
 
@@ -443,9 +442,6 @@ public class TiImageView extends TiBorderWrapperView implements Handler.Callback
 			int zoomHeight = zoomControls.getMeasuredHeight();
 			zoomControls.layout(parentRight - zoomWidth, parentBottom - zoomHeight, parentRight, parentBottom);
 		}
-		
-		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
-		TiUIHelper.firePostLayoutEvent(viewProxy);
 	}
 
 	public void setColorFilter(ColorFilter filter)

@@ -17,6 +17,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -79,8 +80,6 @@ public class TiUILabel extends TiUIView
 	private float shadowRadius;
 	private Rect textPadding;
 	
-	private TiCompositeLayout childrenHolder;
-	private FrameLayout layout;
 	private TextView tv;
 	
 	public class CustomTypefaceSpan extends TypefaceSpan {
@@ -624,30 +623,8 @@ public class TiUILabel extends TiUIView
 		TiUIHelper.styleText(tv, null);
 		defaultColor = tv.getCurrentTextColor();
 		
-		layout = new FrameLayout(proxy.getActivity());
-		childrenHolder = new TiCompositeLayout(proxy.getActivity());
-		layout.addView(tv);
-		layout.addView(childrenHolder);
-		setNativeView(tv);
+		setNativeView(tv, true);
 
-	}
-	
-	@Override
-	public View getParentViewForChild()
-	{
-		return childrenHolder;
-	}
-
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
 	}
 		
 	private Spanned fromHtml(String str)

@@ -218,43 +218,19 @@ public class TiUISwitch extends TiUIView
 		switch (style) {
 			case AndroidModule.SWITCH_STYLE_CHECKBOX:
 				if (!(currentButton instanceof CheckBox)) {
-					button = new CheckBox(proxy.getActivity())
-					{
-						@Override
-						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-						{
-							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
-						}
-					};
+					button = new CheckBox(proxy.getActivity());
 				}
 				break;
 
 			case AndroidModule.SWITCH_STYLE_TOGGLEBUTTON:
 				if (!(currentButton instanceof ToggleButton)) {
-					button = new ToggleButton(proxy.getActivity())
-					{
-						@Override
-						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-						{
-							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
-						}
-					};
+					button = new ToggleButton(proxy.getActivity());
 				}
 				break;
 
 			case AndroidModule.SWITCH_STYLE_SWITCH:
 				if (!(currentButton instanceof Switch)) {
-					button = new Switch(proxy.getActivity())
-					{
-						@Override
-						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-						{
-							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
-						}
-					};
+					button = new Switch(proxy.getActivity());
 				}
 				break;
 

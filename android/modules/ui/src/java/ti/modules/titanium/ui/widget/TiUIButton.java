@@ -15,8 +15,6 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -25,7 +23,6 @@ import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.content.res.ColorStateList;
 
 public class TiUIButton extends TiUIView
@@ -41,8 +38,6 @@ public class TiUIButton extends TiUIView
 	private Rect titlePadding;
 	private Drawable imageDrawable;
 	private int imageGravity;
-	private TiCompositeLayout childrenHolder;
-	private FreeLayout layout;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
@@ -56,41 +51,11 @@ public class TiUIButton extends TiUIView
 		titlePadding.left = 8;
 		titlePadding.right = 8;
 		Log.d(TAG, "Creating a button", Log.DEBUG_MODE);
-		Button btn = new Button(proxy.getActivity())
-		{
-			@Override
-			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-			{
-				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
-			}
-		};
-		layout = new FreeLayout(proxy.getActivity());
+		Button btn = new Button(proxy.getActivity());
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
 		defaultColor = btn.getCurrentTextColor();
-		childrenHolder = new TiCompositeLayout(proxy.getActivity());
-		layout.addView(btn);
-		layout.addView(childrenHolder);
-		setNativeView(btn);
-	}
-
-	@Override
-	public View getParentViewForChild()
-	{
-		return childrenHolder;
-	}
-
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
+		setNativeView(btn, true);
 	}
 
 	private void setTextColors(int color, int selectedColor) {

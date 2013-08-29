@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.view;
 
+import org.appcelerator.kroll.common.Log;
+
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -13,7 +15,8 @@ import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 
 public class FreeLayout extends FrameLayout {
-    public FreeLayout(Context context) {
+	public static final int FLAG_TRANSFORMED = 16;
+	public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
         setClipChildren(false);
@@ -31,7 +34,7 @@ public class FreeLayout extends FrameLayout {
     }
     
     public static Matrix getViewMatrix(View view) {
-//    	if (view instanceof FreeLayout) return ((FreeLayout)view).getMyViewMatrix();
+    	if (view instanceof FreeLayout) return ((FreeLayout)view).getMyViewMatrix();
         ViewGroup.LayoutParams layoutParams=view.getLayoutParams();
         if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
             return ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(view);
@@ -190,53 +193,70 @@ public class FreeLayout extends FrameLayout {
             return false;
         }
     }
-
+    
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-    	
-    	for (int i = 0; i < getChildCount(); i++) { //are we iterating by z order?
-            View v = getChildAt(i);
-            if (v.getVisibility() != View.VISIBLE) continue;
-            Matrix m = null;
-        	if (v instanceof FreeLayout) {
-        		m = ((FreeLayout)v).transformedMatrix;
-        	}
-        	else  {
-        		ViewGroup.LayoutParams layoutParams=v.getLayoutParams();
-                if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-                    m = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(v);
-                }
-        	}
-            if (m != null) {
-            	float[] points=new float[]{ev.getX(),ev.getY()};
-            	RectF rect = new RectF(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
-              	Matrix realM = new Matrix(m);
-          		realM.preTranslate(-rect.left, -rect.top);
-          		realM.postTranslate(rect.left, rect.top);
-          		realM.mapRect(rect);
-              if (rect.contains((int)points[0],(int)points[1])) {
-            	  Matrix mi = new Matrix();
-            	  realM.invert(mi);
-            	  if (mi != null) {
-            		  mi.mapPoints(points);
-                	  ev.setLocation(points[0],points[1]);
-                	  return super.dispatchTouchEvent(ev);
-            	  }
-              }
-            }
-        }
-        return super.dispatchTouchEvent(ev);
+    public boolean onTouchEvent(MotionEvent ev) {
+		Log.d("FREELEAYOUT", this.getClass().getSimpleName() + " onTouchEvent");
+        return super.onTouchEvent(ev);
     }
+	@Override
+	public boolean dispatchTouchEvent(MotionEvent ev) {
+
+		for (int i = getChildCount() - 1; i >= 0; i--) {
+			View v = getChildAt(i);
+			if (v.getVisibility() != View.VISIBLE)
+				continue;
+			Matrix m = getViewMatrix(v);
+			if (m != null) {
+				float[] points = new float[] { ev.getX(), ev.getY() };
+				RectF rect = new RectF(v.getLeft(), v.getTop(), v.getRight(),
+						v.getBottom());
+				
+				Matrix realM = new Matrix(m);
+				realM.preTranslate(-rect.left, -rect.top);
+				realM.postTranslate(rect.left, rect.top);
+				realM.mapRect(rect);
+				if (rect.contains((int) points[0], (int) points[1])) {
+					Matrix mi = new Matrix();
+					realM.invert(mi);
+					if (mi != null) {
+						mi.mapPoints(points);
+						ev.setEdgeFlags(ev.getEdgeFlags() | FLAG_TRANSFORMED); //a trick to mark the event as transformed
+						ev.setLocation(points[0], points[1]); //without the transform point the view wont receive it
+						return super.dispatchTouchEvent(ev);
+					}
+				}
+			}
+		}
+		Matrix m = getMyViewMatrix();
+		int flag = ev.getEdgeFlags();
+		if (m != null && ((flag & FLAG_TRANSFORMED) != FLAG_TRANSFORMED) ) {
+			float[] points = new float[] { ev.getX(), ev.getY() }; //untransformed point
+			RectF rect = new RectF(getLeft(), getTop(), getRight(), getBottom()); //untransformed rect
+			Matrix realM = new Matrix(m);
+			realM.preTranslate(-rect.left, -rect.top);
+			realM.postTranslate(rect.left, rect.top);
+			realM.mapRect(rect);
+			points[0] += getLeft();
+			points[1] += getTop();
+			if (!rect.contains(points[0], points[1])) {
+				Log.d("FreeLayout", this + "not dispatching");
+				return false;
+			}
+		}
+		return super.dispatchTouchEvent(ev);
+	}
     
     @Override
     public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
-        if (transformedMatrix==null) {
+    	Matrix m=getMyViewMatrix();
+        if (m==null) {
             return super.invalidateChildInParent(location,dirty);
         }
         m_tempICPRect.set(dirty);
         ViewParent result=super.invalidateChildInParent(location,m_tempICPRect);
         dirty.union(m_tempICPRect);
-        transformFrame(dirty,transformedMatrix);
+        transformFrame(dirty,m);
         return result;
     }
     

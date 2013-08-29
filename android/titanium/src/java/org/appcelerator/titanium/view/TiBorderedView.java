@@ -11,15 +11,12 @@ import java.util.Arrays;
 import org.appcelerator.kroll.common.Log;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.view.ViewParent;
@@ -28,7 +25,7 @@ import android.view.ViewParent;
  * This class is a wrapper for Titanium Views with borders. Any view that specifies a border
  * related property will have a border wrapper view to maintain its border.
  */
-public class TiBorderWrapperView extends FreeLayout
+public class TiBorderedView extends MaskableView
 {
 	public static final int SOLID = 0;
 	private static final String TAG = "TiBorderWrapperView";
@@ -37,28 +34,24 @@ public class TiBorderWrapperView extends FreeLayout
 	private float radius = 0;
 	private float borderWidth = 0;
 	private int alpha = -1;
-	private RectF outerRect, innerRect;
+	private RectF innerRect;
 	private Path innerPath;
 	private Path borderPath;
 	private Paint paint;
 	
-	private Paint maskPaint;
-	Bitmap bitmap;
+	
 
-	public TiBorderWrapperView(Context context)
+	public TiBorderedView(Context context)
 	{
 		super(context);
-		outerRect = new RectF();
 		innerRect = new RectF();
 		paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-		maskPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-	    maskPaint.setColor(0xFFFFFFFF);
-		maskPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_IN));
 		setWillNotDraw(false);
 		updateBorderPath();
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
+		if (borderWidth == 0) return;
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -87,34 +80,21 @@ public class TiBorderWrapperView extends FreeLayout
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
+		if (borderWidth == 0) return;
  		drawBorder(canvas);
  		clipCanvas(canvas);
 	}
 	
 	
-	@Override
-	protected void dispatchDraw(Canvas canvas)
-	{
-		if (bitmap != null) {
-			Rect bounds = new Rect();
-			getDrawingRect(bounds);
-			
-			Bitmap mBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
-			Canvas mCanvas = new Canvas(mBitmap);
-			super.dispatchDraw(mCanvas);
-			mCanvas.drawBitmap(bitmap, new Rect(0,0, bitmap.getWidth(), bitmap.getHeight()), bounds, maskPaint);
-			canvas.drawBitmap(mBitmap, bounds, bounds, new Paint());
-			mBitmap.recycle();
-		}
-		else {
-			super.dispatchDraw(canvas);
-		}
-	}
+	
 
 	private void updateBorderPath()
 	{
+		if (borderWidth == 0) return;
 		Rect bounds = new Rect();
 		getDrawingRect(bounds);
+		
+		RectF outerRect = new RectF();
 		outerRect.set(bounds);
 
 		int padding = 0;
@@ -162,15 +142,15 @@ public class TiBorderWrapperView extends FreeLayout
 	public void setColor(int color)
 	{
 		this.color = color;
+		postInvalidate();
 	}
 
 	public void setRadius(float radius)
 	{
 		this.radius = radius;
 		updateBorderPath();
+		postInvalidate();
 	}
-
-
 
 	public float getRadius()
 	{
@@ -181,15 +161,13 @@ public class TiBorderWrapperView extends FreeLayout
 	{
 		this.borderWidth = borderWidth;
 		updateBorderPath();
+		postInvalidate();
 	}
 
 	public void setBorderAlpha(int alpha)
 	{
 		this.alpha = alpha;
+		postInvalidate();
 	}
 
-	public void setMask(Bitmap bitmap)
-	{
-		this.bitmap = bitmap;
-	}
 }

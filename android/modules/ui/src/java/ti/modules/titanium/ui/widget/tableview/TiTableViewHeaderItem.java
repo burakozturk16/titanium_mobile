@@ -13,7 +13,7 @@ import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiBorderWrapperView;
+import org.appcelerator.titanium.view.TiBorderedView;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.tableview.TableViewModel.Item;
@@ -139,7 +139,7 @@ public class TiTableViewHeaderItem extends TiBaseTableViewItem
 			View view = headerView.getOuterView();
 			view.layout(left, 0, right, bottom - top);
 			// Also layout the inner native view when we have borders
-			if (view instanceof TiBorderWrapperView) {
+			if (view instanceof TiBorderedView) {
 				headerView.getNativeView().layout(left, 0, right, bottom - top);
 			}
 		}
