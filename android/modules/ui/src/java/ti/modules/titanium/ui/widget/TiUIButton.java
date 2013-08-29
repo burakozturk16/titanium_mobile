@@ -15,6 +15,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
@@ -41,7 +42,7 @@ public class TiUIButton extends TiUIView
 	private Drawable imageDrawable;
 	private int imageGravity;
 	private TiCompositeLayout childrenHolder;
-	private FrameLayout layout;
+	private FreeLayout layout;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
@@ -64,7 +65,7 @@ public class TiUIButton extends TiUIView
 				TiUIHelper.firePostLayoutEvent(proxy);
 			}
 		};
-		layout = new FrameLayout(proxy.getActivity());
+		layout = new FreeLayout(proxy.getActivity());
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
 		defaultColor = btn.getCurrentTextColor();

@@ -175,6 +175,7 @@
 		}
 		[button addTarget:self action:@selector(controlAction:forEvent:) forControlEvents:UIControlEventAllTouchEvents];
 		button.exclusiveTouch = YES;
+		button.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         [self addSubview:button];
     }
 	return button;

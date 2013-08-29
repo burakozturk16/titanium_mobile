@@ -20,18 +20,15 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.view.View;
-import android.widget.FrameLayout;
+import android.view.ViewParent;
 
 /**
  * This class is a wrapper for Titanium Views with borders. Any view that specifies a border
  * related property will have a border wrapper view to maintain its border.
  */
-public class TiBorderWrapperView extends FrameLayout
+public class TiBorderWrapperView extends FreeLayout
 {
 	public static final int SOLID = 0;
 	private static final String TAG = "TiBorderWrapperView";
@@ -73,6 +70,14 @@ public class TiBorderWrapperView extends FrameLayout
 			canvas.clipRect(innerRect);
 		}
 	}
+	
+	@Override
+    public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
+		ViewParent result = super.invalidateChildInParent(location,dirty);
+        return result;
+    }
+	
+	
 
 	@Override
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {

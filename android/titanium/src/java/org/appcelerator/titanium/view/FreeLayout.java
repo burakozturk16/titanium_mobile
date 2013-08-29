@@ -10,15 +10,28 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.Transformation;
+import android.widget.FrameLayout;
 
-public class FreeLayout extends ViewGroup {
+public class FreeLayout extends FrameLayout {
     public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
         setClipChildren(false);
     }
+    public Matrix transformedMatrix;
+    
+    public Matrix getMyViewMatrix() {
+    	if (transformedMatrix != null) return transformedMatrix;
+    	ViewGroup.LayoutParams layoutParams=getLayoutParams();
+    	if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
+    		transformedMatrix = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(this);
+    		return transformedMatrix;
+        }
+    	return null;
+    }
     
     public static Matrix getViewMatrix(View view) {
+//    	if (view instanceof FreeLayout) return ((FreeLayout)view).getMyViewMatrix();
         ViewGroup.LayoutParams layoutParams=view.getLayoutParams();
         if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
             return ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(view);
@@ -33,7 +46,7 @@ public class FreeLayout extends ViewGroup {
         m.mapRect(m_tempRectF);
         m_tempRectF.roundOut(rect);
     }
-    
+
     public static Rect preInvalidate(View view,Rect dirty) {
         Matrix m=getViewMatrix(view);
         if (m!=null) {
@@ -58,22 +71,22 @@ public class FreeLayout extends ViewGroup {
         view.invalidate(m_tempRect);
     }
     
-    public static boolean preDispatchTouchEvent(View view,MotionEvent event) {
-        Matrix m=getViewMatrix(view);
-        if (m!=null) {
-            Matrix mi=new Matrix();
-            if (m.invert(mi)) {
-                float[] points=new float[]{event.getX(),event.getY()};
-                Rect rect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-                mi.mapPoints(points);
-                if (event.getAction()==MotionEvent.ACTION_DOWN && !rect.contains((int)points[0],(int)points[1])) {
-                    return false;
-                }
-                event.setLocation(points[0],points[1]);
-            }
-        }
-        return true;
-    }
+//    public static boolean preDispatchTouchEvent(View view,MotionEvent event) {
+//        Matrix m=getViewMatrix(view);
+//        if (m!=null) {
+//            Matrix mi=new Matrix();
+//            if (m.invert(mi)) {
+//                float[] points=new float[]{event.getX(),event.getY()};
+//                Rect rect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+//                mi.mapPoints(points);
+//                if (event.getAction()==MotionEvent.ACTION_DOWN && !rect.contains((int)points[0],(int)points[1])) {
+//                    return false;
+//                }
+//                event.setLocation(points[0],points[1]);
+//            }
+//        }
+//        return true;
+//    }
     
     public static void postGetHitRect(View view,Rect hitRect) {
         Matrix m=getViewMatrix(view);
@@ -87,7 +100,7 @@ public class FreeLayout extends ViewGroup {
 
     ///////////////////////////////////////////// LayoutParams
 
-    public static class LayoutParams extends ViewGroup.LayoutParams {
+    public static class LayoutParams extends FrameLayout.LayoutParams {
         public LayoutParams(int width,int height,Ti2DMatrix matrix) {
             super(width,height);
             this.matrix=matrix;
@@ -95,42 +108,66 @@ public class FreeLayout extends ViewGroup {
         public LayoutParams(int width,int height) {
             this(width,height,null);
         }
+        public LayoutParams(FrameLayout.LayoutParams source) {
+            super(source);
+        }
         public LayoutParams(ViewGroup.LayoutParams source) {
             super(source);
         }
+
 
         public Ti2DMatrix matrix;
     }
     
     ///////////////////////////////////////////// implementation
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
-        measureChildren(widthMeasureSpec,heightMeasureSpec);
-        setMeasuredDimension(
-            resolveSize(getSuggestedMinimumWidth(),widthMeasureSpec),
-            resolveSize(getSuggestedMinimumWidth(),heightMeasureSpec));
-    }
-
-    @Override
-    protected ViewGroup.LayoutParams generateDefaultLayoutParams() {
-        return new LayoutParams(100,100);
-    }
-
-    @Override
-    protected void onLayout(boolean changed,int l,int t,int r,int b) {
-        int count=getChildCount();
-        for (int i=0;i<count;i++) {
-            View child=getChildAt(i);
-            if (child.getVisibility()!=GONE) {
-                child.layout(
-                    0,
-                    0,
-                    child.getMeasuredWidth(),
-                    child.getMeasuredHeight());
-            }
+	@Override
+	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		ViewGroup.LayoutParams layoutParams = getLayoutParams();
+        if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
+        	transformedMatrix = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(this);
         }
+        else transformedMatrix = null;
+	}
+	
+    @Override
+	public void setLayoutParams(ViewGroup.LayoutParams params) {
+		super.setLayoutParams(params);
+		 if (getWidth() != 0 && getHeight() != 0 && params instanceof LayoutParams && ((LayoutParams)params).matrix != null) {
+	        	transformedMatrix = ((LayoutParams)params).matrix.finalMatrixAfterInterpolation(this);
+	        }
+	        else transformedMatrix = null;
+	}
+	
+//    @Override
+//    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
+//        measureChildren(widthMeasureSpec,heightMeasureSpec);
+//        setMeasuredDimension(
+//            resolveSize(getSuggestedMinimumWidth(),widthMeasureSpec),
+//            resolveSize(getSuggestedMinimumWidth(),heightMeasureSpec));
+//    }
+
+    @Override
+    protected FrameLayout.LayoutParams generateDefaultLayoutParams() {
+        return new LayoutParams(super.generateDefaultLayoutParams());
     }
+
+//    @Override
+//    protected void onLayout(boolean changed,int l,int t,int r,int b) {
+//        int count=getChildCount();
+//        for (int i=0;i<count;i++) {
+//            View child=getChildAt(i);
+//            if (child.getVisibility()!=GONE) {
+//                child.layout(
+//                    0,
+//                    0,
+//                    child.getMeasuredWidth(),
+//                    child.getMeasuredHeight());
+//            }
+//        }
+//    }
+//    
 
     @Override
     protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
@@ -148,34 +185,58 @@ public class FreeLayout extends ViewGroup {
         if (m!=null) {
             t.getMatrix().set(m);
             t.setTransformationType(Transformation.TYPE_MATRIX);
-            Rect r = new Rect();
-            child.getHitRect(r);
-            setTouchDelegate( new TouchDelegate( r , child));
-
             return true;
         } else {
             return false;
         }
     }
-    
-//    @Override
-//    public boolean dispatchTouchEvent(MotionEvent ev) {
-//        if (!preDispatchTouchEvent(this,ev)) {
-//            return false;
-//        }
-//        return super.dispatchTouchEvent(ev);
-//    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+    	
+    	for (int i = 0; i < getChildCount(); i++) { //are we iterating by z order?
+            View v = getChildAt(i);
+            if (v.getVisibility() != View.VISIBLE) continue;
+            Matrix m = null;
+        	if (v instanceof FreeLayout) {
+        		m = ((FreeLayout)v).transformedMatrix;
+        	}
+        	else  {
+        		ViewGroup.LayoutParams layoutParams=v.getLayoutParams();
+                if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
+                    m = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(v);
+                }
+        	}
+            if (m != null) {
+            	float[] points=new float[]{ev.getX(),ev.getY()};
+            	RectF rect = new RectF(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
+              	Matrix realM = new Matrix(m);
+          		realM.preTranslate(-rect.left, -rect.top);
+          		realM.postTranslate(rect.left, rect.top);
+          		realM.mapRect(rect);
+              if (rect.contains((int)points[0],(int)points[1])) {
+            	  Matrix mi = new Matrix();
+            	  realM.invert(mi);
+            	  if (mi != null) {
+            		  mi.mapPoints(points);
+                	  ev.setLocation(points[0],points[1]);
+                	  return super.dispatchTouchEvent(ev);
+            	  }
+              }
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
     
     @Override
     public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
-        Matrix m=getViewMatrix(this);
-        if (m==null) {
+        if (transformedMatrix==null) {
             return super.invalidateChildInParent(location,dirty);
         }
         m_tempICPRect.set(dirty);
         ViewParent result=super.invalidateChildInParent(location,m_tempICPRect);
         dirty.union(m_tempICPRect);
-        transformFrame(dirty,m);
+        transformFrame(dirty,transformedMatrix);
         return result;
     }
     
