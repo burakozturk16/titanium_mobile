@@ -256,7 +256,6 @@ DEFINE_EXCEPTIONS
     _shouldHandleSelection = YES;
     self.clipsToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
-    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
     _bgLayer = (TiSelectableBackgroundLayer*)self.layer;
 }
@@ -443,7 +442,7 @@ DEFINE_EXCEPTIONS
             [self.layer.mask setFrame:newBounds];
         }
         
-        [self.layer setFrame:newBounds];
+//        [self.layer setFrame:newBounds]; // not needed and doesnt work
         
         [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
         if (!animating) {

@@ -128,6 +128,7 @@
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
         label.layer.shadowRadius = 0; //for backward compatibility
         label.layer.shadowOffset = CGSizeZero;
+		label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         label.delegate = self;
         [self addSubview:label];
 	}
