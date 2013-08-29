@@ -15,7 +15,7 @@
 		<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
 		android:debuggable="true" android:allowBackup="false"
-		android:hardwareAccelerated="false">
+		android:hardwareAccelerated="true">
 
 		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
 			android:enabled="true"
@@ -28,7 +28,6 @@
 
 		<activity android:name=".TitaniumtestActivity"
 			android:label="TitaniumTest"
-			android:theme="@style/AppTheme"
 			android:configChanges="keyboardHidden|orientation|screenSize">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
@@ -39,14 +38,11 @@
 		<!-- TI_ACTIVITIES -->
 
 		<activity android:name="org.appcelerator.titanium.TiActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
+			android:configChanges="keyboardHidden|orientation|screenSize"/>
 		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
+			android:configChanges="keyboardHidden|orientation|screenSize"/>
 		<activity android:name="org.appcelerator.titanium.TiModalActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
+			android:configChanges="keyboardHidden|orientation|screenSize"/>
 		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
 			android:configChanges="keyboardHidden|orientation|screenSize" />
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
