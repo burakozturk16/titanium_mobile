@@ -425,11 +425,6 @@ public class TiUILabel extends TiUIView
 			return null;
 		}
 		
-		private void updateSpans()
-		{
-			
-		}
-		
 		public boolean needsEllipsize(){
 			return fullText != null && fullText.length() > 0 && (ellipsize != null || multiLineEllipsize != null);
 		}
