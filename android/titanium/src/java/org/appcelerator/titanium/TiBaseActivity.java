@@ -817,6 +817,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 							.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
 						KrollDict event = new KrollDict();
 						event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+						event.put(TiC.EVENT_PROPERTY_WINDOW, window);
 						if (onHomeIconItemSelected != null) {
 							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
 						}

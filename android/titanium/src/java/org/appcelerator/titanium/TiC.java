@@ -385,6 +385,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PROPERTY_WINDOW = "window";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PROPERTY_X = "x";
 
 	/**
