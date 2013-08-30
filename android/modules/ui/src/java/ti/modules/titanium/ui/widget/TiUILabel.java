@@ -7,8 +7,6 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -17,25 +15,19 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.Color;
 import android.text.Html;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.Canvas;
-import android.content.res.TypedArray;
 
 // import android.annotation.SuppressLint;
 
@@ -79,6 +71,7 @@ public class TiUILabel extends TiUIView
 	private int shadowDy;
 	private float shadowRadius;
 	private Rect textPadding;
+	private String ELLIPSIZE_CHAR = "…";
 	
 	private TextView tv;
 	
@@ -122,7 +115,6 @@ public class TiUILabel extends TiUIView
 		private boolean needsEllipsing;
 		private boolean singleline = false;
 		private boolean readyToEllipsize = false;
-		private boolean programmaticChange;
 		private CharSequence fullText;
 		private int maxLines;
 		private float lineSpacingMultiplier = 1.0f;
@@ -131,14 +123,24 @@ public class TiUILabel extends TiUIView
 		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
 		{
-			// Only allow label to exceed the size of parent when it's size behavior with wordwrap disabled
-			if (!wordWrap && layoutParams.optionWidth == null && !layoutParams.autoFillsWidth) {
-				widthMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
-					MeasureSpec.UNSPECIFIED);
-				heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec),
-					MeasureSpec.UNSPECIFIED);
+			int w = MeasureSpec.getSize(widthMeasureSpec);
+//			int wm = MeasureSpec.getMode(widthMeasureSpec);
+			int h = MeasureSpec.getSize(heightMeasureSpec);
+			int hm = MeasureSpec.getMode(heightMeasureSpec);
+			if (hm == 0) h = 100000;
+			
+			if (w > 0) {
+				updateEllipsize(w - getPaddingLeft() - getPaddingRight(), 
+						h - getPaddingTop() - getPaddingBottom());
+		//			 Only allow label to exceed the size of parent when it's size behavior with wordwrap disabled
+				if (!wordWrap && layoutParams.optionWidth == null && !layoutParams.autoFillsWidth) {
+					widthMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
+						MeasureSpec.UNSPECIFIED);
+					heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec),
+						MeasureSpec.UNSPECIFIED);
+				}
 			}
-
+			
 			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		}
 
@@ -146,14 +148,6 @@ public class TiUILabel extends TiUIView
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
 			super.onLayout(changed, left, top, right, bottom);
-			// this.SetReadyToEllipsize(true);
-			if (changed || (isEllipsized && needsEllipsing)){
-				updateEllipsize();
-
-				if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
-					proxy.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
-				}
-			}
 		}
 		
 		public EllipsizingTextView(Context context) {
@@ -166,8 +160,8 @@ public class TiUILabel extends TiUIView
 
 		public void SetReadyToEllipsize(Boolean value){
 			readyToEllipsize = value;
-			// if (readyToEllipsize == true)
-			// 	updateEllipsize();
+			 if (readyToEllipsize == true)
+			 	updateEllipsize();
 		}
 
 		@Override
@@ -177,11 +171,15 @@ public class TiUILabel extends TiUIView
 			updateEllipsize();
 		}
 		
-		public void updateEllipsize(){
+		public void updateEllipsize(int width, int height){
 			if (needsEllipsize())  {
 				needsEllipsing = true;
-				if (readyToEllipsize == true) ellipseText();
+				if (readyToEllipsize == true) ellipseText(width, height);
 			}
+		}
+		
+		public void updateEllipsize(){
+			updateEllipsize(getWidth(), getHeight());
 		}
 
 		@SuppressLint("Override")
@@ -192,11 +190,9 @@ public class TiUILabel extends TiUIView
 		private void resetText(){
 			if (isEllipsized){
 				isEllipsized = false;
-				programmaticChange = true;
 				try {
 					setText(fullText);
 				} finally {
-					programmaticChange = false;
 				}
 			}
 		}
@@ -268,53 +264,54 @@ public class TiUILabel extends TiUIView
 		
 		private CharSequence ellipsisWithStyle(CharSequence text, TruncateAt where)
 		{
-			if (text instanceof SpannableStringBuilder){
+			int length = ELLIPSIZE_CHAR.length();
+			if (text instanceof Spanned){
 				SpannableStringBuilder builder = new SpannableStringBuilder(text);
 				SpannableStringBuilder htmlText = (SpannableStringBuilder) text;
 				if (where == TruncateAt.END){
 					Object[] spans = htmlText.getSpans(text.length() - 1, text.length(), Object.class);
-					builder.append("...");
+					builder.append(ELLIPSIZE_CHAR);
 					for (int i = 0; i < spans.length; i++) {
 						int flags = htmlText.getSpanFlags(spans[i]);
 						int start = htmlText.getSpanStart(spans[i]);
 						int end = htmlText.getSpanEnd(spans[i]);
-						builder.setSpan(spans[i], start, end + 3, flags);
+						builder.setSpan(spans[i], start, end + length, flags);
 					}
 				}
 				else if (where == TruncateAt.START){
 					Object[] spans = htmlText.getSpans(0, 1, Object.class);
-					builder.insert(0, "...");
+					builder.insert(0, ELLIPSIZE_CHAR);
 					for (int i = 0; i < spans.length; i++) {
 						int flags = htmlText.getSpanFlags(spans[i]);
 						int start = htmlText.getSpanStart(spans[i]);
 						int end = htmlText.getSpanEnd(spans[i]);
-						builder.setSpan(spans[i], start, end + 3, flags);
+						builder.setSpan(spans[i], start, end + length, flags);
 					}
 				}
 				else if (where == TruncateAt.MIDDLE){
 					int middle = (int) Math.floor(htmlText.length() / 2);
 					Object[] spans = htmlText.getSpans(middle-1, middle, Object.class);
-					builder.insert(middle, "...");
+					builder.insert(middle, ELLIPSIZE_CHAR);
 					for (int i = 0; i < spans.length; i++) {
 						int flags = htmlText.getSpanFlags(spans[i]);
 						int start = htmlText.getSpanStart(spans[i]);
 						int end = htmlText.getSpanEnd(spans[i]);
-						builder.setSpan(spans[i], start, end + 3, flags);
+						builder.setSpan(spans[i], start, end + length, flags);
 					}
 				}
 				return builder;
 			}
 			else {
 				if (where == TruncateAt.END){
-					return TextUtils.concat(text, "...");
+					return TextUtils.concat(text, ELLIPSIZE_CHAR);
 				}
 				else if (where == TruncateAt.START){
-					return TextUtils.concat( "..." , text);
+					return TextUtils.concat(ELLIPSIZE_CHAR , text);
 
 				}
 				else if (where == TruncateAt.MIDDLE){
 					int middle = (int) Math.floor(text.length() / 2);
-					return TextUtils.concat(text.subSequence(0, middle), "...", text.subSequence(middle, text.length()));
+					return TextUtils.concat(text.subSequence(0, middle), ELLIPSIZE_CHAR, text.subSequence(middle, text.length()));
 				}
 			}
 			return text;
@@ -329,50 +326,34 @@ public class TiUILabel extends TiUIView
 			return text;
 		}
 		
-		private CharSequence getEllipsedTextForMaxLine(CharSequence text, int maxlines, TruncateAt where){
-			
-			TruncateAt realWhere = (maxlines == 1)?where:TruncateAt.END; 
-			CharSequence newText = strimText(text);
-			
-			if (realWhere == TruncateAt.START){
-				newText = ellipsisWithStyle(newText, realWhere);
-				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					int firstSpace = newText.toString().indexOf(' ');
-					if (firstSpace == -1) {
-						firstSpace = 3;
-					}
-					newText = (CharSequence) newText.subSequence(firstSpace, text.length());
-					newText = ellipsisWithStyle(newText, realWhere);
+		private CharSequence getEllipsedTextForOneLine(CharSequence text, TruncateAt where, int width){
+			CharSequence newText = strimText(text);				
+			int length = ELLIPSIZE_CHAR.length();
+			if (where == TruncateAt.START || where == TruncateAt.END){
+				newText = TextUtils.ellipsize(newText, getPaint(), width, where);
+				String textStr = newText.toString();
+				if (where == TruncateAt.START && !textStr.startsWith(ELLIPSIZE_CHAR)) {
+					newText = TextUtils.concat(ELLIPSIZE_CHAR, newText.subSequence(length, textStr.length()));
 				}
-				return newText;
-			}
-			else if (realWhere == TruncateAt.MIDDLE){
-						
-				newText = ellipsisWithStyle(newText, realWhere);
-				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					if (newText.length() < 3) return newText;
-					int middle = newText.length() / 2;
-					if (newText instanceof SpannableStringBuilder)
-						((SpannableStringBuilder)newText).delete(middle - 1, middle + 1);
-					else
-						newText = TextUtils.concat(text.subSequence(0, middle -1), newText.subSequence(middle + 1, text.length()));
-					newText = ellipsisWithStyle(text, realWhere);
+				else if(where == TruncateAt.END && !textStr.endsWith(ELLIPSIZE_CHAR)) {
+					newText = TextUtils.concat(newText.subSequence(0, textStr.length() - length), ELLIPSIZE_CHAR);
 				}
-				return newText;
 			}
 			else {
-				newText = ellipsisWithStyle(text, realWhere);
-				while (createWorkingLayout(newText).getLineCount() > maxlines) {
-					if (newText.length() < 3) return newText;
-					int lastSpace = newText.toString().lastIndexOf(' ');
-					if (lastSpace == -1) {
-						lastSpace = newText.length() - 4;
-					}					
-					newText = (CharSequence) newText.subSequence(0, lastSpace);
-					newText = ellipsisWithStyle(newText,  realWhere);
+				CharSequence newTextLeft = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.END);
+				CharSequence newTextRight = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.START);
+				String textLeftStr = newTextLeft.toString();
+				if (!textLeftStr.endsWith(ELLIPSIZE_CHAR)) {
+					newTextLeft = TextUtils.concat(ELLIPSIZE_CHAR, newTextLeft.subSequence(length, textLeftStr.length()));
 				}
-				return newText;
+				String textRightStr = newTextRight.toString();
+				if (textRightStr.startsWith(ELLIPSIZE_CHAR)) {
+					newTextRight = (CharSequence) newTextRight.subSequence(length, newTextRight.length());
+				}
+				newText = TextUtils.concat(newTextLeft, newTextRight);
 			}
+			return newText;
+
 		}
 		
 		// @SuppressLint("NewApi")
@@ -453,9 +434,9 @@ public class TiUILabel extends TiUIView
 			return fullText != null && fullText.length() > 0 && (ellipsize != null || multiLineEllipsize != null);
 		}
 
-		private void ellipseText() {
+		private void ellipseText(int width, int height) {
 			if (!needsEllipsize() || needsEllipsing == false
-				|| (getWidth() - getPaddingLeft() - getPaddingRight() < 0) || (this.maxLines == 1 || this.singleline == true)) return;
+					|| (width <= 0) || (height <= 0) || (this.maxLines == 1 || this.singleline == true)) return;
 			
 			boolean ellipsized = false;
 			CharSequence workingText = fullText;
@@ -475,7 +456,7 @@ public class TiUILabel extends TiUIView
 							SpannableStringBuilder lineSpanned = (SpannableStringBuilder) htmlWorkingText.subSequence(start, end);
 							Object[] spans = lineSpanned.getSpans(0, lineSpanned.length(), Object.class);
 							
-							//this is a trick to get the Spans for the last line to be used in getEllipsedTextForMaxLine
+							//this is a trick to get the Spans for the last line to be used in getEllipsedTextForOneLine
 							//we append,setSpans, getlastline with spans, ellipse, replace last line with last line ellipsized
 							newText.append(lineSpanned.toString());
 							for (int j = 0; j < spans.length; j++) {
@@ -491,9 +472,9 @@ public class TiUILabel extends TiUIView
 								}
 							}
 
-							SpannableStringBuilder lastLine = (SpannableStringBuilder)newText.subSequence(newStart, newStart + lineSpanned.length());
-							if (createWorkingLayout(lastLine).getLineCount() > 1) 
-								lastLine = (SpannableStringBuilder)getEllipsedTextForMaxLine(lastLine, 1, multiLineEllipsize);
+							CharSequence lastLine = newText.subSequence(newStart, newStart + lineSpanned.length());
+							if (createWorkingLayout(lastLine, width).getLineCount() > 1) 
+								lastLine = getEllipsedTextForOneLine(lastLine, multiLineEllipsize, width);
 
 							newText.replace(newStart, newStart + lineSpanned.length(), lastLine);
 						}
@@ -504,12 +485,20 @@ public class TiUILabel extends TiUIView
 					workingText = newText;
 				}
 				else {
-					Layout layout = createWorkingLayout(workingText);
-					int linesCount = getLinesCount(layout);
+					Layout layout = createWorkingLayout(workingText, width);
+					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						// We have more lines of text than we are allowed to display.
-						workingText = fullText.subSequence(0, layout.getLineEnd(linesCount - 1));
-						workingText = getEllipsedTextForMaxLine(workingText, linesCount, ellipsize);
+						if (linesCount > 2) {
+							int end1 = layout.getLineEnd(linesCount - 2);
+							int end2 = layout.getLineEnd(linesCount - 1);
+							SpannableStringBuilder newText = new SpannableStringBuilder();
+							newText.append(fullText.subSequence(0, end1));
+							// We have more lines of text than we are allowed to display.
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(end1, end2), ellipsize, width));
+							workingText = newText;
+						} else {
+							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
+						}
 					}
 				}
 			}
@@ -521,8 +510,8 @@ public class TiUILabel extends TiUIView
 					for (int i = 0; i < separated.length; i++) {
 						String linestr = separated[i];
 						if (linestr.length() > 0){
-							if (createWorkingLayout(linestr).getLineCount() > 1)
-								newText += getEllipsedTextForMaxLine(linestr, 1, multiLineEllipsize);
+							if (createWorkingLayout(linestr, width).getLineCount() > 1)
+								newText += getEllipsedTextForOneLine(linestr, multiLineEllipsize, width);
 							else
 								newText += linestr;
 						}
@@ -532,12 +521,21 @@ public class TiUILabel extends TiUIView
 					workingText = newText;
 				}
 				else {
-					Layout layout = createWorkingLayout(workingText);
-					int linesCount = getLinesCount(layout);
+					Layout layout = createWorkingLayout(workingText, width);
+					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						// We have more lines of text than we are allowed to display.
-						workingText = fullText.subSequence(0, layout.getLineEnd(linesCount - 1));
-						workingText = getEllipsedTextForMaxLine(workingText, linesCount, ellipsize);
+						if (linesCount > 2) {
+							int end1 = layout.getLineEnd(linesCount - 2);
+							int end2 = layout.getLineEnd(linesCount - 1);
+							SpannableStringBuilder newText = new SpannableStringBuilder();
+							newText.append(fullText.subSequence(0, end1));
+							// We have more lines of text than we are allowed to display.
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(end1, end2), ellipsize, width));
+							workingText = newText;
+						} else {
+							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
+						}
+						
 					}
 				}
 			}
@@ -559,16 +557,16 @@ public class TiUILabel extends TiUIView
 		/**
 		* Get how many lines of text we are allowed to display.
 		*/
-		private int getLinesCount() {
-			int fullyVisibleLinesCount = getFullyVisibleLinesCount();
+		private int getLinesCount(int width, int height) {
+			int fullyVisibleLinesCount = getFullyVisibleLinesCount(width, height);
 			if (fullyVisibleLinesCount == -1) {
 				return fullyVisibleLinesCount = 1;
 			}
 			return (maxLines == 0)?fullyVisibleLinesCount:Math.min(maxLines, fullyVisibleLinesCount);
 		}
 
-		private int getLinesCount(Layout layout) {
-			int fullyVisibleLinesCount = getFullyVisibleLinesCount(layout);
+		private int getLinesCount(Layout layout, int height) {
+			int fullyVisibleLinesCount = getFullyVisibleLinesCount(layout, height);
 			if (fullyVisibleLinesCount == -1) {
 				return fullyVisibleLinesCount = 1;
 			}
@@ -578,15 +576,14 @@ public class TiUILabel extends TiUIView
 		/**
 		* Get how many lines of text we can display so their full height is visible.
 		*/
-		private int getFullyVisibleLinesCount() {
-			Layout layout = createWorkingLayout(fullText);
-			return getFullyVisibleLinesCount(layout);
+		private int getFullyVisibleLinesCount(int width, int height) {
+			Layout layout = createWorkingLayout(fullText, width);
+			return getFullyVisibleLinesCount(layout, height);
 		}
 
-		private int getFullyVisibleLinesCount(Layout layout) {
+		private int getFullyVisibleLinesCount(Layout layout, int height) {
 			int totalLines = layout.getLineCount();
 			int index = totalLines - 1;
-			int height = getHeight() - getPaddingTop() - getPaddingBottom();
 			int lineHeight = layout.getLineBottom(index);
 			while(lineHeight > height) {
 				index -= 1;
@@ -595,9 +592,9 @@ public class TiUILabel extends TiUIView
 			return index + 1;
 		}
 
-		private Layout createWorkingLayout(CharSequence workingText) {
+		private Layout createWorkingLayout(CharSequence workingText, int width) {
 			return new StaticLayout(workingText, getPaint(),
-				getWidth() - getPaddingLeft() - getPaddingRight(),
+				width,
 				Alignment.ALIGN_NORMAL, lineSpacingMultiplier,
 				lineAdditionalVerticalPadding, false /* includepad */);
 		}
