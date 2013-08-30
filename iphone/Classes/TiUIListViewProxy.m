@@ -203,10 +203,18 @@
 {
 	ENSURE_TYPE_OR_NIL(args,NSArray);
 	NSMutableArray *insertedSections = [args mutableCopy];
-	[insertedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
-		ENSURE_TYPE(section, TiUIListSectionProxy);
-		[self rememberProxy:section];
-	}];
+    for (int i = 0; i < [insertedSections count]; i++) {
+        id section = [insertedSections objectAtIndex:i];
+        if ([section isKindOfClass:[NSDictionary class]]) {
+            //wer support directly sending a dictionnary
+            section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
+            [insertedSections replaceObjectAtIndex:i withObject:section];
+        }
+        else {
+            ENSURE_TYPE(section, TiUIListSectionProxy);
+        }
+        [self rememberProxy:section];
+    }
 	[self dispatchBlock:^(UITableView *tableView) {
 		[_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
 			section.delegate = nil;
