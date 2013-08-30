@@ -80,9 +80,11 @@ public class TiBorderedView extends MaskableView
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
-		if (borderWidth == 0) return;
- 		drawBorder(canvas);
- 		clipCanvas(canvas);
+		if (borderWidth != 0) {
+			drawBorder(canvas);
+ 	 		super.onDraw(canvas);//this is only to get masked if necessary
+ 			clipCanvas(canvas);
+		}
 	}
 	
 	
