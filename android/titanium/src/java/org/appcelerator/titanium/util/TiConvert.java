@@ -269,7 +269,7 @@ public class TiConvert
 		}
 		
 		if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_ZINDEX);
+			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
 			dirty = true;
 		}
 		

@@ -745,7 +745,7 @@ public abstract class TiUIView
 		}
 		
 		if (TiConvert.fillLayout(d, layoutParams) && viewForLayout != null) {
-			viewForLayout.requestLayout();
+			getOuterView().requestLayout();
 		}
 		
 		

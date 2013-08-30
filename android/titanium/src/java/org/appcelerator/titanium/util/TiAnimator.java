@@ -128,16 +128,15 @@ public class TiAnimator
 
 		Iterator it = this.options.entrySet().iterator();
 		List<String>animationProperties = animationProperties();
-//		KrollDict resetProps = new KrollDict();
+		KrollDict resetProps = new KrollDict();
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String)pairs.getKey();
 			if (!animationProperties.contains(key)) {
-//				resetProps.put(key, proxy.getProperty(key));
-				proxy.setPropertyAndForceFire(key, proxy.getProperty(key));
-//				proxy.setPropertyAndFire(key, pairs.getValue());
+				resetProps.put(key, proxy.getProperty(key));
 			}
 		}
+		proxy.applyPropertiesInternal(resetProps, true);
 	}
 	
 	protected void handleFinish()
@@ -182,15 +181,16 @@ public class TiAnimator
 		}
 
 		Iterator it = options.entrySet().iterator();
-		List<String>animationProperties = animationProperties();
+		List<String>animationProperties = animationProperties();	
+		KrollDict resetProps = new KrollDict();
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String)pairs.getKey();
 			if (!animationProperties.contains(key)) {
-				//We need to force the fire change because of when an animation is called multiple times
-				proxy.setPropertyAndFire(key, pairs.getValue());
+				resetProps.put(key, pairs.getValue());
 			}
 		}
+		proxy.applyPropertiesInternal(resetProps, true);
 	}
 
 	public void setCallback(KrollFunction callback)

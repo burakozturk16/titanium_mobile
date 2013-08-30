@@ -1337,10 +1337,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 
 	@Override
-	public void applyPropertiesInternal(Object arg)
+	public void applyPropertiesInternal(Object arg, boolean force)
 	{
 		batchPropertyApply.set(true);
-		super.applyPropertiesInternal(arg);
+		super.applyPropertiesInternal(arg, force);
 		if (!isLayoutStarted()) {
 			return;
 		}

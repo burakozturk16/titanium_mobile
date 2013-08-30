@@ -127,20 +127,13 @@ public class FreeLayout extends FrameLayout {
 	@Override
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
 		super.onSizeChanged(w, h, oldw, oldh);
-		ViewGroup.LayoutParams layoutParams = getLayoutParams();
-        if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-        	transformedMatrix = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(this);
-        }
-        else transformedMatrix = null;
+		transformedMatrix = null;
 	}
 	
     @Override
 	public void setLayoutParams(ViewGroup.LayoutParams params) {
 		super.setLayoutParams(params);
-		 if (getWidth() != 0 && getHeight() != 0 && params instanceof LayoutParams && ((LayoutParams)params).matrix != null) {
-	        	transformedMatrix = ((LayoutParams)params).matrix.finalMatrixAfterInterpolation(this);
-	        }
-	        else transformedMatrix = null;
+		 transformedMatrix = null;
 	}
 	
 //    @Override
@@ -156,8 +149,10 @@ public class FreeLayout extends FrameLayout {
         return new LayoutParams(super.generateDefaultLayoutParams());
     }
 
-//    @Override
-//    protected void onLayout(boolean changed,int l,int t,int r,int b) {
+    @Override
+    protected void onLayout(boolean changed,int l,int t,int r,int b) {
+		 transformedMatrix = null;
+		 super.onLayout(changed, l, t, r, b);
 //        int count=getChildCount();
 //        for (int i=0;i<count;i++) {
 //            View child=getChildAt(i);
@@ -169,7 +164,7 @@ public class FreeLayout extends FrameLayout {
 //                    child.getMeasuredHeight());
 //            }
 //        }
-//    }
+    }
 //    
 
     @Override

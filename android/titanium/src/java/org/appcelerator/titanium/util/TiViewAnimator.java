@@ -27,6 +27,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
 import android.os.Build;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.MessageQueue;
 import android.util.FloatMath;
@@ -210,28 +211,27 @@ public class TiViewAnimator extends TiAnimatorSet
 			((View) viewParent).postInvalidate();
 		}
 	}
-	
-	@Override
-	protected void applyCompletionProperties()
-	{
-		super.applyCompletionProperties();
-		final View view = viewProxy.getOuterView();
-		ViewGroup.LayoutParams params = view.getLayoutParams();
-//		if (autoreverse == false && params instanceof TiCompositeLayout.LayoutParams)
-//			TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
-//		view.setLayoutParams(params);
-	}
-
-	@Override
-	protected void resetAnimationProperties()
-	{
-		super.resetAnimationProperties();
-		final View view = viewProxy.getOuterView();
-		ViewGroup.LayoutParams params = view.getLayoutParams();
-//		if (autoreverse == true && params instanceof TiCompositeLayout.LayoutParams)
-//			TiConvert.fillLayout(viewProxy.getProperties(), (TiCompositeLayout.LayoutParams)params);
-//		view.setLayoutParams(params);
-	}
+//	
+//	@Override
+//	protected void applyCompletionProperties()
+//	{
+//		super.applyCompletionProperties();
+////		((View)view.getParent()).postInvalidateDelayed(10);
+//	}
+//
+//	@Override
+//	protected void resetAnimationProperties()
+//	{
+//		super.resetAnimationProperties();
+//		final View viewParent = (View) viewProxy.getOuterView().getParent();
+//		(new Handler()).postDelayed(new Runnable() {
+//		    public void run() {
+//		    	viewParent.requestLayout();
+//		    	viewParent.invalidate();
+//
+//		    }
+//		},1000);
+//	}
 	
 	public void simulateFinish(TiViewProxy proxy)
 	{

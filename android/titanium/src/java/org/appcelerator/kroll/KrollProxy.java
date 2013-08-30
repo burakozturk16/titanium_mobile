@@ -622,7 +622,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
-	public void applyPropertiesInternal(Object arg)
+	public void applyPropertiesInternal(Object arg, boolean force)
 	{
 		if (!(arg instanceof HashMap)) {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
@@ -639,6 +639,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				setProperty(name, value);
 				changedProps.put(name, value);
 			}
+			else if (force)
+				changedProps.put(name, value);
 		}
 		if (modelListener != null && changedProps.size() > 0) {
 			if (TiApplication.isUIThread()) {
@@ -658,7 +660,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	@Kroll.method
 	public void applyProperties(Object arg)
 	{
-		applyPropertiesInternal(arg);
+		applyPropertiesInternal(arg, false);
 	}
 
 	/**
