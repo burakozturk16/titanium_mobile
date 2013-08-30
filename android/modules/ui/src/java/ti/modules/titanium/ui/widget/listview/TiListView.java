@@ -17,6 +17,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
@@ -212,6 +213,7 @@ public class TiListView extends TiUIView {
 			} else {
 				content = inflater.inflate(listItemId, null);
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
+				setMinHeightForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
@@ -219,6 +221,14 @@ public class TiListView extends TiUIView {
 			}
 			return content;
 
+		}
+		
+		private void setMinHeightForBaseItem(TiBaseListViewItem item)  {
+			String minRowHeight = MIN_ROW_HEIGHT;
+			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
+				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
+			}
+			item.setMinimumHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT).getAsPixels(listView));
 		}
 		
 		@Override
@@ -562,6 +572,10 @@ public class TiListView extends TiUIView {
 			section.setTemplateType();
 			//Process preload data if any
 			section.processPreloadData();
+		}
+		else if(sec instanceof HashMap) {
+			ListSectionProxy section = (ListSectionProxy) KrollProxy.createProxy(ListSectionProxy.class, null, new Object[]{sec}, null);
+			processSection(section, index);
 		}
 	}
 	
