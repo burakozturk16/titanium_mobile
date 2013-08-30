@@ -16,7 +16,7 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"title",
+    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"style", @"title",
                                               @"color", @"highlightedColor", @"selectedColor",
                                               @"enabled", @"selected", @"style",
                                               @"image", @"backgroundHighlightedImage",

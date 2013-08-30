@@ -477,12 +477,12 @@
 
 -(CGFloat)contentWidthForWidth:(CGFloat)value
 {
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].width;
+	return [[self button] sizeThatFits:CGSizeMake(value, 0)].width + [self button].titleEdgeInsets.left + [self button].titleEdgeInsets.right;
 }
 
 -(CGFloat)contentHeightForWidth:(CGFloat)value
 {
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].height;
+	return [[self button] sizeThatFits:CGSizeMake(value, 0)].height + [self button].titleEdgeInsets.top + [self button].titleEdgeInsets.bottom;
 }
 
 @end
