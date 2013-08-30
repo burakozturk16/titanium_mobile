@@ -33,6 +33,8 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     id _defaultItemTemplate;
 
     TiDimension _rowHeight;
+    TiDimension _minRowHeight;
+    TiDimension _maxRowHeight;
     TiViewProxy *_headerViewProxy;
     TiViewProxy *_searchWrapper;
     TiViewProxy *_headerWrapper;
@@ -489,6 +491,16 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 	if (TiDimensionIsDip(_rowHeight)) {
 		[_tableView setRowHeight:_rowHeight.value];
 	}
+}
+
+- (void)setMinRowHeight_:(id)height
+{
+	_minRowHeight = [TiUtils dimensionValue:height];
+}
+
+- (void)setMaxRowHeight_:(id)height
+{
+	_maxRowHeight = [TiUtils dimensionValue:height];
 }
 
 - (void)setBackgroundColor_:(id)arg
@@ -1414,6 +1426,25 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     return rowWidth;
 }
 
+-(CGFloat)tableView:(UITableView *)tableView rowHeight:(CGFloat)height
+{
+	if (TiDimensionIsDip(_rowHeight))
+	{
+		if (_rowHeight.value > height)
+		{
+			height = _rowHeight.value;
+		}
+	}
+	if (TiDimensionIsDip(_minRowHeight))
+	{
+		height = MAX(_minRowHeight.value,height);
+	}
+	if (TiDimensionIsDip(_maxRowHeight))
+	{
+		height = MIN(_maxRowHeight.value,height);
+	}
+	return height < 1 ? tableView.rowHeight : height;
+}
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
