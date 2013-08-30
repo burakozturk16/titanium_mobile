@@ -6,6 +6,8 @@
  */
 package org.appcelerator.titanium.proxy;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
@@ -327,5 +329,17 @@ public class ActivityProxy extends KrollProxy
 		}
 		return super.handleMessage(msg);
 	}
-
+	
+	@Override
+	public void handleCreationDict(KrollDict dict) {
+		super.handleCreationDict(dict);
+		if (dict.containsKey(TiC.PROPERTY_ACTION_BAR) && Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+			ActionBarProxy actionBarProxy = getActionBar();
+			if (actionBarProxy != null) {
+				KrollDict options = dict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+				actionBarProxy.applyProperties(options);
+				invalidateOptionsMenu();
+			}
+		}
+	}
 }

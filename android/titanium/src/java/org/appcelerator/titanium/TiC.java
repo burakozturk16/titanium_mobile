@@ -550,6 +550,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_ACTION_BAR = "actionBar";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_ACTION_VIEW = "actionView";
 
 	/**
@@ -1053,6 +1058,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_DISPLAY_ADDRESS = "displayAddress";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISPLAY_HOME_AS_UP = "displayHomeAsUp";
+
 	
 	/**
 	 * @module.api

@@ -6,14 +6,21 @@
  */
 package org.appcelerator.titanium.proxy;
 
+import java.util.List;
+
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUrl;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.drawable.Drawable;
@@ -21,8 +28,10 @@ import android.os.Build;
 import android.os.Message;
 
 @Kroll.proxy(propertyAccessors = {
-	TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED
+		TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED
 })
+
+@SuppressLint("NewApi")
 public class ActionBarProxy extends KrollProxy
 {
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
@@ -53,8 +62,8 @@ public class ActionBarProxy extends KrollProxy
 		actionBar = activity.getActionBar();
 	}
 
-	@Kroll.method @Kroll.setProperty
-	public void setDisplayHomeAsUp(boolean showHomeAsUp)
+//	@Kroll.method @Kroll.setProperty
+	private void setDisplayHomeAsUp(boolean showHomeAsUp)
 	{
 		if(TiApplication.isUIThread()) {
 			handlesetDisplayHomeAsUp(showHomeAsUp);
@@ -220,6 +229,23 @@ public class ActionBarProxy extends KrollProxy
 			actionBar.setBackgroundDrawable(backgroundImage);
 		}
 	}
+	
+	private void activateHomeButton()
+	{
+		if (actionBar == null || Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
+			Log.w(TAG, "ActionBar is not enabled");
+			return;
+		}
+
+		// If we have a listener on the home icon item, then enable the home button (we need to do this for ICS and
+		// above)
+		if (TiApplication.isUIThread()) {
+			actionBar.setHomeButtonEnabled(true);
+		} else {
+			getMainHandler().obtainMessage(MSG_SET_HOME_BUTTON_ENABLED).sendToTarget();
+		}
+	}
+
 
 	private void handlesetDisplayHomeAsUp(boolean showHomeAsUp)
 	{
@@ -289,21 +315,16 @@ public class ActionBarProxy extends KrollProxy
 		}
 		return super.handleMessage(msg);
 	}
-
+	
 	@Override
-	public void onPropertyChanged(String name, Object value)
+	public void setProperty(String key, Object newValue)
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH
-			&& TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED.equals(name)) {
-			// If we have a listener on the home icon item, then enable the home button (we need to do this for ICS and
-			// above)
-			if (TiApplication.isUIThread()) {
-				actionBar.setHomeButtonEnabled(true);
-			} else {
-				getMainHandler().obtainMessage(MSG_SET_HOME_BUTTON_ENABLED).sendToTarget();
-			}
+		super.setProperty(key, newValue);
+		if (key.equals(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED)) {
+			activateHomeButton();
 		}
-		super.onPropertyChanged(name, value);
+		else if (key.equals(TiC.PROPERTY_DISPLAY_HOME_AS_UP)) {
+			setDisplayHomeAsUp(TiConvert.toBoolean(newValue));
+		}
 	}
-
 }
