@@ -629,29 +629,30 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			return;
 		}
 		HashMap props = (HashMap) arg;
-		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
+		KrollDict changedProps = new KrollDict();
+//		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
 		for (Object key : props.keySet()) {
 			String name = TiConvert.toString(key);
 			Object value = props.get(key);
 			Object current = getProperty(name);
-			setProperty(name, value);
 			if (shouldFireChange(current, value)) {
-				changes.addChange(name, current, value);
+				setProperty(name, value);
+				changedProps.put(name, value);
 			}
 		}
-		if (modelListener != null) {
+		if (modelListener != null && changedProps.size() > 0) {
 			if (TiApplication.isUIThread()) {
-				modelListener.processProperties((KrollDict)props);
+				modelListener.processProperties(changedProps);
 			}
 			else {
-				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, props);
+				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
 				message.sendToTarget();
 			}
 
 		}
-		if (changes.entryCount > 0) {
-			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
-		}
+//		if (changes.entryCount > 0) {
+//			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
+//		}
 	}
 
 	@Kroll.method
