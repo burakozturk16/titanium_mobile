@@ -187,7 +187,7 @@ TI_INLINE BOOL TiDimensionDidCalculateValue(TiDimension dimension,CGFloat boundi
 			*result = dimension.value;
 			return YES;
 		case TiDimensionTypePercent:
-			*result = roundf(dimension.value * boundingValue);
+			*result = dimension.value * boundingValue;
 			return YES;
 		default: {
 			break;
