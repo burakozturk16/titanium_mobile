@@ -58,6 +58,13 @@ public class TiAnimator
 		handleCancel();
 	}
 	
+	public void cancelWithoutResetting(){
+		if (animating == false) return;
+		Log.d(TAG, "cancel", Log.DEBUG_MODE);
+		animating = false; //will prevent the call the handleFinish
+	}
+	
+	
 	public void setOptions(HashMap options) {
 		this.options = options;
 	}

@@ -83,7 +83,7 @@ public class AnimatableProxy extends KrollProxy {
 		// }
 		if (pendingAnimation != null) {
 			// already running animation
-			pendingAnimation.cancel();
+			pendingAnimation.cancelWithoutResetting();
 			pendingAnimation = null;
 		}
 		synchronized (pendingAnimationLock) {
