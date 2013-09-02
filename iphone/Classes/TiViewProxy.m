@@ -449,9 +449,7 @@ static NSSet* transferableProps = nil;
 
 -(void)cancelAllAnimations:(id)arg
 {
-	[CATransaction begin];
-	[[[self view] layer] removeAllAnimations];
-	[CATransaction commit];
+	[[self view] cancelAllAnimations];
 }
 
 #define CHECK_LAYOUT_UPDATE(layoutName,value) \

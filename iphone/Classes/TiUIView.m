@@ -839,6 +839,17 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(void)cancelAllAnimations
+{
+    if (animation != nil) {
+        [animation cancel:nil];
+        RELEASE_TO_NIL(animation);
+    }
+    [CATransaction begin];
+	[[self layer] removeAllAnimations];
+	[CATransaction commit];
+}
+
 -(void)animate:(TiAnimation *)newAnimation
 {
 	RELEASE_TO_NIL(animation);
