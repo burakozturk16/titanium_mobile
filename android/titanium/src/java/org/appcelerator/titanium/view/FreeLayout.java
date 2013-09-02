@@ -236,7 +236,7 @@ public class FreeLayout extends FrameLayout {
 			realM.mapRect(rect);
 			points[0] += getLeft();
 			points[1] += getTop();
-			if (!rect.contains(points[0], points[1])) {
+			if (!rect.contains(points[0], points[1]) && ev.getAction() == MotionEvent.ACTION_DOWN) {
 				Log.d("FreeLayout", this + "not dispatching");
 				return false;
 			}
