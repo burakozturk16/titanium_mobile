@@ -88,4 +88,16 @@
 	yDimension = TiDimensionFromObject(y);
 }
 
+
+// In the implementation
+-(id)copyWithZone:(NSZone *)zone
+{
+    // We'll ignore the zone for now
+    TiPoint *another = [[TiPoint alloc] init];
+    another.xDimension = TiDimensionMake(xDimension.type, xDimension.value);
+    another.yDimension = TiDimensionMake(yDimension.type, yDimension.value);
+    
+    return another;
+}
+
 @end

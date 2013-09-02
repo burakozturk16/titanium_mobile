@@ -10,7 +10,7 @@
 /**
  The class for point proxy.
  */
-@interface TiPoint : TiProxy {
+@interface TiPoint : TiProxy <NSCopying>  {
 	TiDimension xDimension;
 	TiDimension yDimension;
 }
