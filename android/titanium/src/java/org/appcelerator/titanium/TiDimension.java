@@ -266,7 +266,7 @@ public class TiDimension
 	}
 	protected double getPixels(View parent)
 	{
-		return getPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	/**
@@ -281,7 +281,7 @@ public class TiDimension
 	}
 	public int getAsPixels(View parent)
 	{
-		return getAsPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	public double getAsMillimeters(Context context, int width, int height)
@@ -295,7 +295,7 @@ public class TiDimension
 	
 	public double getAsMillimeters(View parent)
 	{
-		return getAsMillimeters(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsMillimeters(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	public double getAsCentimeters(Context context, int width, int height)
@@ -309,7 +309,7 @@ public class TiDimension
 	
 	public double getAsCentimeters(View parent)
 	{
-		return getAsCentimeters(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsCentimeters(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	public double getAsInches(Context context, int width, int height)
@@ -322,7 +322,7 @@ public class TiDimension
 	}
 	public double getAsInches(View parent)
 	{
-		return getAsInches(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsInches(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	public int getAsDIP(Context context, int width, int height)
@@ -335,7 +335,7 @@ public class TiDimension
 	}
 	public int getAsDIP(View parent)
 	{
-		return getAsDIP(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsDIP(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 	
 	
@@ -366,7 +366,7 @@ public class TiDimension
 	}
 	public double getAsDefault(View parent)
 	{
-		return getAsDefault(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getAsDefault(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 	
 	protected double getPercentPixels(int width, int height)
@@ -425,7 +425,7 @@ public class TiDimension
 	
 	protected double getScaledPixels(View parent)
 	{
-		return getScaledPixels(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getScaledPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 	
 	protected double getDPIForType(Context context)
@@ -474,7 +474,7 @@ public class TiDimension
 	
 	protected double getSizePixels(View parent)
 	{
-		return getSizePixels(parent.getContext(), parent.getWidth(), parent.getHeight());
+		return getSizePixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	/**
