@@ -154,6 +154,7 @@
 -(NSTimeInterval)animationDuration;
 -(void)animationCompleted:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 -(void)simulateFinish:(TiViewProxy*)proxy;
+-(void)cancel:(id)args;
 
 
 @end

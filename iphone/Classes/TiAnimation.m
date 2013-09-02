@@ -37,6 +37,16 @@ static NSArray *layoutProps;
     return layoutProps;
 }
 
+static NSArray *animProps;
+
++ (NSArray *)animProps
+{
+    if (!animProps)
+        animProps = [[NSArray alloc] initWithObjects:@"backgroundColor", @"color", @"visible", @"opacity", @"zIndex", nil];
+    
+    return animProps;
+}
+
 -(void)setValue:(id)value forKey:(NSString *)key
 {
     [super setValue:value forKey:key];
@@ -211,7 +221,7 @@ self.p = v;\
 	RELEASE_TO_NIL(view);
 	RELEASE_TO_NIL(animatedView);
 	RELEASE_TO_NIL(reverseAnimation);
-    [animatedViewProxy release];
+	RELEASE_TO_NIL(animatedViewProxy);
 	[super dealloc];
 }
 
@@ -322,7 +332,11 @@ self.p = v;\
 #if ANIMATION_DEBUG==1	
 	NSLog(@"[DEBUG] ANIMATION: COMPLETED %@, %@",self,(id)context);
 #endif
-	
+	if (![finished boolValue]) {
+//        RELEASE_TO_NIL(animatedViewProxy);
+//        RELEASE_TO_NIL(animatedView);
+        return;
+    }
 	TiAnimation* animation = (TiAnimation*)context;
     if ([animation isReverse]) {
         
@@ -365,6 +379,7 @@ self.p = v;\
 	}	
 	
     RELEASE_TO_NIL(animatedViewProxy);
+    RELEASE_TO_NIL(animatedView);
 }
 
 -(void)updateViewProxyProperties
@@ -394,6 +409,23 @@ if (value != nil)\
     UPDATE_PROXY_PROP(animatedViewProxy, visible)
     UPDATE_PROXY_PROP(animatedViewProxy, opacity)
     UPDATE_PROXY_PROP(animatedViewProxy, transform)
+}
+
+-(void)resetViewProxyProperties
+{
+    if (animatedViewProxy == nil) return;
+    
+    for (NSString* key in [TiAnimation layoutProps]) {
+        if ([self valueForKey:key]) {
+            [animatedViewProxy setValue:[animatedViewProxy valueForKey:key] forKey:key];
+        }
+    }
+    
+    for (NSString* key in [TiAnimation animProps]) {
+        if ([self valueForKey:key]) {
+            [animatedViewProxy setValue:[animatedViewProxy valueForKey:key] forKey:key];
+        }
+    }
 }
 
 -(BOOL)isTransitionAnimation
@@ -792,6 +824,21 @@ doReposition = YES;\
 	}
 	
     RELEASE_TO_NIL(animatedViewProxy);
+}
+
+-(void)cancel:(id)args
+{
+    // tell our view that we're done
+	if (animatedView != nil) {
+        [animatedView.layer removeAllAnimations];
+        RELEASE_TO_NIL(animatedView);
+	}
+    // tell our view that we're done
+	if (animatedViewProxy != nil) {
+		[self resetViewProxyProperties];
+		[animatedViewProxy animationCompleted:self];
+        RELEASE_TO_NIL(animatedViewProxy);
+	}
 }
 
 @end
