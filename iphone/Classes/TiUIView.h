@@ -55,7 +55,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	TiProxy *proxy;
 	TiAnimation *animation;
 		
-	CGAffineTransform virtualParentTransform;
 	id transformMatrix;
 	BOOL childrenInitialized;
 	BOOL touchEnabled;
@@ -144,6 +143,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  @param newAnimation The animation to start.
  */
 -(void)animate:(TiAnimation *)newAnimation;
+-(void)cancelAllAnimations;
 
 #pragma mark Framework
 
@@ -158,11 +158,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)configurationStart;
 -(void)configurationSet;
 
-/**
- Sets virtual parent transformation for the view.
- @param newTransform The transformation to set.
- */
--(void)setVirtualParentTransform:(CGAffineTransform)newTransform;
 -(void)setTransform_:(id)matrix;
 
 /*

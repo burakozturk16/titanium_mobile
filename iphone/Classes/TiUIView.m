@@ -324,7 +324,6 @@ DEFINE_EXCEPTIONS
 
 -(void)initializeState
 {
-	virtualParentTransform = CGAffineTransformIdentity;
 	
 	[self updateTouchHandling];
 	 
@@ -441,6 +440,7 @@ DEFINE_EXCEPTIONS
         if (self.layer.mask != nil) {
             [self.layer.mask setFrame:newBounds];
         }
+        [self updateTransform];
         
 //        [self.layer setFrame:newBounds]; // not needed and doesnt work
         
@@ -465,30 +465,32 @@ DEFINE_EXCEPTIONS
 	[self checkBounds];
 }
 
+
+- (void)didMoveToSuperview
+{
+	[self updateTransform];
+	[super didMoveToSuperview];
+}
+
 -(void)updateTransform
 {
 #ifdef USE_TI_UI2DMATRIX	
-	if ([transformMatrix isKindOfClass:[Ti2DMatrix class]])
+	if ([transformMatrix isKindOfClass:[Ti2DMatrix class]] && self.superview != nil)
 	{
-		self.transform = CGAffineTransformConcat(virtualParentTransform, [(Ti2DMatrix*)transformMatrix matrix]);
+        CGSize size = self.bounds.size;
+        CGSize parentSize = self.superview.bounds.size;
+		self.transform = [(Ti2DMatrix*)transformMatrix matrixInViewSize:size andParentSize:parentSize];
 		return;
 	}
 #endif
 #if defined(USE_TI_UIIOS3DMATRIX) || defined(USE_TI_UI3DMATRIX)
 	if ([transformMatrix isKindOfClass:[Ti3DMatrix class]])
 	{
-		self.layer.transform = CATransform3DConcat(CATransform3DMakeAffineTransform(virtualParentTransform),[(Ti3DMatrix*)transformMatrix matrix]);
+		self.layer.transform = [(Ti3DMatrix*)transformMatrix matrix];
 		return;
 	}
 #endif
-	self.transform = virtualParentTransform;
-}
-
-
--(void)setVirtualParentTransform:(CGAffineTransform)newTransform
-{
-	virtualParentTransform = newTransform;
-	[self updateTransform];
+	self.transform = CGAffineTransformIdentity;
 }
 
 -(void)fillBoundsToRect:(TiRect*)rect
