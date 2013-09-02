@@ -27,7 +27,7 @@ public class FreeLayout extends FrameLayout {
     	if (transformedMatrix != null) return transformedMatrix;
     	ViewGroup.LayoutParams layoutParams=getLayoutParams();
     	if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-    		transformedMatrix = ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(this);
+    		transformedMatrix = ((LayoutParams)layoutParams).matrix.getMatrix(this);
     		return transformedMatrix;
         }
     	return null;
@@ -37,7 +37,7 @@ public class FreeLayout extends FrameLayout {
     	if (view instanceof FreeLayout) return ((FreeLayout)view).getMyViewMatrix();
         ViewGroup.LayoutParams layoutParams=view.getLayoutParams();
         if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-            return ((LayoutParams)layoutParams).matrix.finalMatrixAfterInterpolation(view);
+            return ((LayoutParams)layoutParams).matrix.getMatrix(view);
         } else {
             return null;
         }
@@ -124,25 +124,27 @@ public class FreeLayout extends FrameLayout {
     
     ///////////////////////////////////////////// implementation
 
-	@Override
-	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
-		transformedMatrix = null;
-	}
+//	@Override
+//	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+////		transformedMatrix = null;
+//		super.onSizeChanged(w, h, oldw, oldh);
+//	}
 	
     @Override
 	public void setLayoutParams(ViewGroup.LayoutParams params) {
-		super.setLayoutParams(params);
 		 transformedMatrix = null;
+		super.setLayoutParams(params);
 	}
 	
-//    @Override
-//    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
+    @Override
+    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
+		 transformedMatrix = null;
+		 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 //        measureChildren(widthMeasureSpec,heightMeasureSpec);
 //        setMeasuredDimension(
 //            resolveSize(getSuggestedMinimumWidth(),widthMeasureSpec),
 //            resolveSize(getSuggestedMinimumWidth(),heightMeasureSpec));
-//    }
+    }
 
     @Override
     protected FrameLayout.LayoutParams generateDefaultLayoutParams() {

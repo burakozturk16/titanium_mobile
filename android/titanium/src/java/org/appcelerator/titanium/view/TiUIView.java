@@ -409,7 +409,7 @@ public abstract class TiUIView
 	{
 		View view = getOuterView();
 		if (view != null && layoutParams.matrix != null) {
-			Matrix m = layoutParams.matrix.finalMatrixAfterInterpolation(view);
+			Matrix m = layoutParams.matrix.getMatrix(view);
 			// Get the translation values
 			float[] values = new float[9];
 			m.getValues(values);
@@ -2062,30 +2062,8 @@ public abstract class TiUIView
 		
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			float anchorX = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
-			float anchorY = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
-			if (options.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
-				Object anchorPoint = options.get(TiC.PROPERTY_ANCHOR_POINT);
-				if (anchorPoint instanceof HashMap) {
-					HashMap point = (HashMap) anchorPoint;
-					anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
-					anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
-				} else {
-					Log.e(TAG, "Invalid argument type for anchorPoint property. Ignoring");
-				}
-			}
-			
-			Ti2DMatrix tdm = new Ti2DMatrix((Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM)); //we must "clone" the matrix or we will modify it
-			if (layoutParams.matrix != null) {
-				tdm = new Ti2DMatrix(layoutParams.matrix).invert().multiply(tdm);
-			}
-			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view, anchorX, anchorY), tdm);
-//			anim.addListener(new TiAnimatorListener(this.proxy, tiSet, options) {
-//				public void onAnimationStart(Animator animation) {}
-//				public void onAnimationEnd(Animator animation) {
-//					layoutParams.optionTransform = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-//				}
-//			});
+
+			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM));
 			list.add(anim);
 		}
 

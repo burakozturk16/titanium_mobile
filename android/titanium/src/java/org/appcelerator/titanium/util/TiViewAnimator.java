@@ -64,8 +64,6 @@ public class TiViewAnimator extends TiAnimatorSet
 	public TiViewAnimator()
 	{
 		super();
-		anchorX = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
-		anchorY = Ti2DMatrix.DEFAULT_ANCHOR_VALUE;
 	}
 	
 
@@ -344,12 +342,9 @@ public class TiViewAnimator extends TiAnimatorSet
 			Ti2DMatrix from = tiView.getLayoutParams().matrix;
 
 			Animation anim;
-			
-			if (tiView.getLayoutParams().matrix != null) {
-				realTdm = (new Ti2DMatrix(tiView.getLayoutParams().matrix)).invert().multiply(new Ti2DMatrix(tdm));
-			}
+		
 
-			anim = new TiMatrixAnimation(tiView, realTdm, anchorX, anchorY);
+			anim = new TiMatrixAnimation(tiView, realTdm);
 			
 			if (tiView.getLayoutParams().matrix != null) {
 			 	((TiMatrixAnimation)anim).setFrom(from);
@@ -565,18 +560,12 @@ public class TiViewAnimator extends TiAnimatorSet
 		protected Ti2DMatrix matrix;
 		protected Ti2DMatrix from;
 		protected int childWidth, childHeight;
-		protected float anchorX = -1, anchorY = -1;
 
-		public boolean interpolate = true;
-
-		public TiMatrixAnimation(TiUIView view, Ti2DMatrix matrix, float anchorX, float anchorY)
+		public TiMatrixAnimation(TiUIView view, Ti2DMatrix matrix)
 		{
 			this.from = null;
 			this.view = view;
 			this.matrix = matrix;
-			this.anchorX = anchorX;
-			this.anchorY = anchorY;
-			this.setFillAfter(true);
 		}
 		
 		public void setFrom(Ti2DMatrix from)
@@ -588,8 +577,6 @@ public class TiViewAnimator extends TiAnimatorSet
 		public void initialize(int width, int height, int parentWidth, int parentHeight)
 		{
 			super.initialize(width, height, parentWidth, parentHeight);
-			this.childWidth = width;
-			this.childHeight = height;
 		}
 
 		@Override
@@ -597,46 +584,37 @@ public class TiViewAnimator extends TiAnimatorSet
 		{
 			super.applyTransformation(interpolatedTime, transformation);
 			View outerView = view.getOuterView();
-			Matrix m;
-			if (interpolate) {
-				m = matrix.interpolate(outerView, interpolatedTime, childWidth, childHeight, anchorX, anchorY);
-				if (from != null){
-					Matrix mFrom = from.interpolate(outerView, 1, childWidth, childHeight, anchorX, anchorY);
-					mFrom.preConcat(m);
-					m = mFrom;
-				}
-			} else {
-				m = getFinalMatrix(childWidth, childHeight);
-			}
-			
-			view.applyTransform(new Ti2DMatrix(m));
+			AffineTransform a = (from != null)?from.getAffineTransform(outerView):(new AffineTransform());
+			AffineTransform b = from.getAffineTransform(outerView);
+			b.blend(a, interpolatedTime);
+			view.applyTransform(new Ti2DMatrix(b));
 		}
 
-		public Matrix getFinalMatrix(int childWidth, int childHeight)
+		public Matrix getFinalMatrix()
 		{
 			View outerView = view.getOuterView();
-			return matrix.finalMatrixAfterInterpolation(outerView);
+			return matrix.getMatrix(outerView);
 		}
 
-		public void invalidateWithMatrix(View view)
-		{
-			int width = view.getWidth();
-			int height = view.getHeight();
-			Matrix m = getFinalMatrix(width, height);
-			RectF rectF = new RectF(0, 0, width, height);
-			m.mapRect(rectF);
-			rectF.inset(-1.0f, -1.0f);
-			Rect rect = new Rect();
-			rectF.round(rect);
-
-			if (view.getParent() instanceof ViewGroup) {
-				int left = view.getLeft();
-				int top = view.getTop();
-
-				((ViewGroup) view.getParent()).invalidate(left + rect.left, top + rect.top, left + rect.width(),
-					top + rect.height());
-			}
-		}
+//		public void invalidateWithMatrix(View view)
+//		{
+//			int width = view.getMeasuredWidth();
+//			int height = view.getMeasuredHeight();
+//			Matrix m = getFinalMatrix();
+//			RectF rectF = new RectF(0, 0, width, height);
+//			m.mapRect(rectF);
+//			rectF.inset(-1.0f, -1.0f);
+//			Rect rect = new Rect();
+//			rectF.round(rect);
+//
+//			if (view.getParent() instanceof ViewGroup) {
+//				int left = view.getLeft();
+//				int top = view.getTop();
+//
+//				((ViewGroup) view.getParent()).invalidate(left + rect.left, top + rect.top, left + rect.width(),
+//					top + rect.height());
+//			}
+//		}
 		
 		@Override
 		public boolean willChangeTransformationMatrix() {
