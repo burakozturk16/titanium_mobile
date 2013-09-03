@@ -1119,6 +1119,7 @@ public abstract class TiUIView
 		float realRadius = (new TiDimension(Float.toString(radius), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
 		if (realRadius > 0f && HONEYCOMB_OR_GREATER && hardwareAccSupported == true) {
 			disableHWAcceleration();
+			getBorderView().setRadius(realRadius);
 		}
 	}
 	
