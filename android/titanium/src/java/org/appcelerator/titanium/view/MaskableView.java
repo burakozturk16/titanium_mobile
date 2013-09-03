@@ -69,7 +69,16 @@ public class MaskableView extends FreeLayout {
 	public void setMask(Bitmap bitmap)
 	{
 		this.bitmap = bitmap;
-		bitmapRect.set(0,0, bitmap.getWidth(), bitmap.getHeight());
-		maskPaint.setShader(new BitmapShader(convertToAlphaMask(bitmap), Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+	
+		if (bitmap != null) {
+			setWillNotDraw(false);
+			bitmapRect.set(0,0, bitmap.getWidth(), bitmap.getHeight());
+			maskPaint.setShader(new BitmapShader(convertToAlphaMask(bitmap), Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+		}
+		else {
+			setWillNotDraw(true);
+
+		}
+		invalidate();
 	}
 }
