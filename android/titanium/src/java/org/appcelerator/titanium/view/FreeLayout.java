@@ -19,7 +19,7 @@ public class FreeLayout extends FrameLayout {
 	public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
-        setClipChildren(false);
+//        setClipChildren(false);
     }
     public Matrix transformedMatrix;
     
