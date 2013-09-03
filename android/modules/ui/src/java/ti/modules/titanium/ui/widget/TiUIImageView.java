@@ -889,7 +889,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		
 		
 		view.setMask(bitmap);
-		view.invalidate();
 	}
 
 	public void onDestroy(Activity activity)
