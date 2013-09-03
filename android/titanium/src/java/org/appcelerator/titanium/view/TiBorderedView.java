@@ -85,6 +85,9 @@ public class TiBorderedView extends MaskableView
  	 		super.onDraw(canvas);//this is only to get masked if necessary
  			clipCanvas(canvas);
 		}
+		else {
+			super.onDraw(canvas);
+		}
 	}
 	
 	
