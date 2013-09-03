@@ -15,6 +15,8 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
@@ -66,18 +68,36 @@ public class TiViewAnimator extends TiAnimatorSet
 		super();
 	}
 	
+	
+	private void cleanupView() {
+		if (view != null) {
+			view.clearAnimation();
+		}
+		if (viewProxy != null && viewProxy.peekView() != null) {
+			viewProxy.peekView().cleanAnimatedParams();
+		}
+	}
 
 	@Override
 	protected void handleCancel() {
 		super.handleCancel();
-		if (view != null) {
-			view.clearAnimation();
-		}	
+		cleanupView();
+	}
+	
+	@Override
+	protected void handleFinish() {
+		cleanupView();
+		super.handleFinish();
+		
 	}
 	
 	public void setViewProxy(TiViewProxy proxy) {
 		setProxy(proxy);
 		this.viewProxy = proxy;
+	}
+	
+	public void setView(View view) {
+		this.view = view;
 	}
 
 	
@@ -349,14 +369,6 @@ public class TiViewAnimator extends TiAnimatorSet
 			if (tiView.getLayoutParams().matrix != null) {
 			 	((TiMatrixAnimation)anim).setFrom(from);
 			}
-			anim.setAnimationListener(new Animation.AnimationListener() {
-				public void onAnimationStart(Animation animation) {}
-				public void onAnimationRepeat(Animation animation) {}
-				public void onAnimationEnd(Animation animation) {
-						tiView.getLayoutParams().optionTransform = tdm;
-				}
-			});
-
 			addAnimation(as, anim);
 
 		}
@@ -674,6 +686,10 @@ public class TiViewAnimator extends TiAnimatorSet
 			animating = false;
 			if (relayoutChild) {
 				ViewGroup.LayoutParams params = view.getLayoutParams();
+				if (params instanceof AnimationLayoutParams) {
+					//we remove any animated params...
+					params = new TiCompositeLayout.LayoutParams((TiCompositeLayout.LayoutParams)params);
+				}
 				if (autoreverse == false && params instanceof TiCompositeLayout.LayoutParams)
 					TiConvert.fillLayout(options, (TiCompositeLayout.LayoutParams)params);
 				view.setLayoutParams(params);

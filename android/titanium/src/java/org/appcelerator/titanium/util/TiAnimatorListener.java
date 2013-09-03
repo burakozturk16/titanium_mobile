@@ -8,12 +8,15 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.annotation.TargetApi;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("rawtypes")
@@ -77,10 +80,9 @@ public class TiAnimatorListener implements AnimatorListener {
 	
 	public void onAnimationCancel(Animator animation) {
 		Log.d(TAG, "onAnimationCancel", Log.DEBUG_MODE);
-		if (tiSet != null) {
-			tiSet.setAnimating(false);
-			tiSet.resetAnimationProperties();
-		}
+		if (tiSet == null || tiSet.getAnimating() == false) return;//prevent double onEnd!
+		tiSet.setAnimating(false);
+		tiSet.handleCancel(); //will fire the EVENT_COMPLETE
 
 	}
 	

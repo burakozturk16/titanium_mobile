@@ -29,6 +29,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.util.TiViewAnimator.TiMatrixAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.TiBlob;
 
@@ -45,6 +46,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -71,6 +73,7 @@ import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.animation.Animation;
+import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -397,6 +400,16 @@ public abstract class TiUIView
 	protected void setLayoutParams(LayoutParams layoutParams)
 	{
 		this.layoutParams = layoutParams;
+	}
+	
+	public void cleanAnimatedParams()
+	{
+		if (layoutParams instanceof AnimationLayoutParams) {
+			//we remove any animated params...
+			layoutParams = new TiCompositeLayout.LayoutParams(layoutParams);
+			if (getOuterView() != null)
+				getOuterView().setLayoutParams(layoutParams);
+		}
 	}
 
 	public void listenerAdded(String type, int count, KrollProxy proxy) {
@@ -1897,24 +1910,7 @@ public abstract class TiUIView
 		}
 		return background.getColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1);
 	}
-	
-	private class FakeMatrixAnimation extends Animation {
-		Matrix matrix;
-		
-		public FakeMatrixAnimation(Matrix matrix){
-			this.setDuration(0);
-			this.setFillAfter(true);
-			this.matrix = matrix;
-		}
-		
-		@Override
-		protected void applyTransformation(float interpolatedTime,
-				Transformation t) {
-			super.applyTransformation(interpolatedTime, t);
-			t.getMatrix().set(matrix);
-		}
-	}
-	
+
 	public void setTi2DMatrix(Ti2DMatrix matrix) {
 		applyTransform(matrix);
 		View outerView =  getOuterView();
@@ -1922,33 +1918,29 @@ public abstract class TiUIView
 		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
 			((View) viewParent).postInvalidate();
 		}
-//		outerView.clearAnimation();
-//		FakeMatrixAnimation matrixAnimation = new FakeMatrixAnimation(matrix.getTransformMatrix());
-//		outerView.startAnimation(matrixAnimation);
-//		ViewParent viewParent = outerView.getParent();
-//		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
-//			((View) viewParent).postInvalidate();
-//		}
 	}
 	public Ti2DMatrix getTi2DMatrix() {
-//		return (Ti2DMatrix) proxy.getProperty(TiC.PROPERTY_TRANSFORM);
 		return layoutParams.matrix;
 	}
 	
-	
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private ValueAnimator tiDimensionAnimator(TiDimension[] dimensions, View view, View parentView) 
-	{
-		PropertyValuesHolder[] arrayOfPropertyValuesHolder = new PropertyValuesHolder[dimensions.length];
-		for (int i = 0; i < dimensions.length; i++) {
-			TiDimension dimension = dimensions[i];
-			int to = dimension.getAsPixels((parentView != null) ? parentView : view);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(dimension.getAnimatedProperty() , to);
-			arrayOfPropertyValuesHolder[i] = anim;
-		}		
-		ObjectAnimator localObjectAnimator = ObjectAnimator.ofPropertyValuesHolder(this, arrayOfPropertyValuesHolder);
-		return localObjectAnimator;
+	public float getAnimatedRectFraction() {
+		if (layoutParams instanceof AnimationLayoutParams)
+			return ((AnimationLayoutParams)layoutParams).animationFraction;
+		return 0.0f;
 	}
+	
+	public void setAnimatedRectFraction(float fraction) {
+		if (layoutParams instanceof AnimationLayoutParams) {
+			((AnimationLayoutParams)layoutParams).animationFraction = fraction;
+			View outerView =  getOuterView();
+			outerView.setLayoutParams(layoutParams);
+			ViewParent viewParent = outerView.getParent();
+			if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
+		}
+	}
+
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -1956,6 +1948,7 @@ public abstract class TiUIView
 		AnimatorSet set = tiSet.set();
 		final View view = proxy.getOuterView();
 		((TiViewAnimator)tiSet).setViewProxy(proxy);
+		((TiViewAnimator)tiSet).setView(view);
 
 		List<Animator> list = new ArrayList<Animator>();
 		HashMap options = tiSet.getOptions();
@@ -1998,75 +1991,59 @@ public abstract class TiUIView
 		if (parent instanceof View) {
 			parentView = (View) parent;
 		}
-		List<TiDimension> dimensions = new ArrayList<TiDimension>();
-		if (options.containsKey(TiC.PROPERTY_WIDTH)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_WIDTH);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_WIDTH));
-			else
-				dimensions.add(new TiDimension(view.getMeasuredWidth(), TiDimension.TYPE_WIDTH));
-		}
-		if (options.containsKey(TiC.PROPERTY_HEIGHT)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_HEIGHT);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_HEIGHT));
-			else
-				dimensions.add(new TiDimension(view.getMeasuredHeight(), TiDimension.TYPE_HEIGHT));
-		}
-		if (options.containsKey(TiC.PROPERTY_TOP)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_TOP);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_TOP));
-			else
-				dimensions.add(new TiDimension(((parentHeight - view.getMeasuredHeight())/2), TiDimension.TYPE_TOP));
-		}
-		if (options.containsKey(TiC.PROPERTY_BOTTOM)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_BOTTOM);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_BOTTOM));
-			else
-				dimensions.add(new TiDimension(((parentHeight + view.getMeasuredHeight())/2), TiDimension.TYPE_BOTTOM));
-		}
-		if (options.containsKey(TiC.PROPERTY_LEFT)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_LEFT);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_LEFT));
-			else
-				dimensions.add(new TiDimension(((parentWidth - view.getMeasuredWidth())/2), TiDimension.TYPE_LEFT));
-		}
-		if (options.containsKey(TiC.PROPERTY_RIGHT)) {
-			String value = TiConvert.toString(options, TiC.PROPERTY_RIGHT);
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_RIGHT));
-			else
-				dimensions.add(new TiDimension(((parentWidth + view.getMeasuredWidth())/2), TiDimension.TYPE_RIGHT));
-		}
-		if (options.containsKey(TiC.PROPERTY_CENTER)) {
-			HashMap center = (HashMap) options.get(TiC.PROPERTY_CENTER);
-			String value = (center == null)?null:TiConvert.toString(center.get(TiC.PROPERTY_X));
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_CENTER_X));
-			else
-				dimensions.add(new TiDimension((parentWidth/2), TiDimension.TYPE_CENTER_X));
-			value = (center == null)?null:TiConvert.toString(center.get(TiC.PROPERTY_Y));
-			if (value != null)
-				dimensions.add(new TiDimension(value, TiDimension.TYPE_CENTER_Y));
-			else
-				dimensions.add(new TiDimension((parentHeight/2), TiDimension.TYPE_CENTER_Y));
-		}
+		
+		if (options.containsKey(TiC.PROPERTY_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_HEIGHT) ||
+				options.containsKey(TiC.PROPERTY_TOP) ||
+				options.containsKey(TiC.PROPERTY_BOTTOM) ||
+				options.containsKey(TiC.PROPERTY_LEFT) ||
+				options.containsKey(TiC.PROPERTY_RIGHT) ||
+				options.containsKey(TiC.PROPERTY_CENTER)) {
+			
+			AnimationLayoutParams animParams = new AnimationLayoutParams(layoutParams);
+			animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+			animParams.animationFraction = 0.0f;
+			
+			if (options.containsKey(TiC.PROPERTY_WIDTH)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_WIDTH));
+				animParams.optionWidth = (value != null)?(new TiDimension(value, TiDimension.TYPE_WIDTH)):null;
+			}
 
-		TiDimension[] dimsArray = {};
-		ValueAnimator layoutAnim = tiDimensionAnimator(dimensions.toArray(dimsArray), view, parentView);
-		list.add(layoutAnim);
-		
-		
+			if (options.containsKey(TiC.PROPERTY_HEIGHT)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_HEIGHT));
+				animParams.optionHeight = (value != null)?(new TiDimension(value, TiDimension.TYPE_HEIGHT)):null;
+			}
+
+			if (options.containsKey(TiC.PROPERTY_LEFT)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_LEFT));
+				animParams.optionLeft = (value != null)?(new TiDimension(value, TiDimension.TYPE_LEFT)):null;
+			}
+
+			if (options.containsKey(TiC.PROPERTY_RIGHT)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_RIGHT));
+				animParams.optionRight = (value != null)?(new TiDimension(value, TiDimension.TYPE_RIGHT)):null;
+			}
+
+			if (options.containsKey(TiC.PROPERTY_TOP)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_TOP));
+				animParams.optionTop = (value != null)?(new TiDimension(value, TiDimension.TYPE_TOP)):null;
+			}
+
+			if (options.containsKey(TiC.PROPERTY_BOTTOM)) {
+				String value = TiConvert.toString(options.get(TiC.PROPERTY_BOTTOM));
+				animParams.optionBottom = (value != null)?(new TiDimension(value, TiDimension.TYPE_BOTTOM)):null;
+			}
+			setLayoutParams(animParams); //we need this because otherwise applying the matrix will override it :s
+			view.setLayoutParams(animParams);
+			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "animatedRectFraction", 1.0f);
+			list.add(anim);
+		}
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
 
 			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM));
 			list.add(anim);
 		}
-
 
 		if (tiSet.autoreverse) {
 			for (int i = 0; i < list.size(); i++) {

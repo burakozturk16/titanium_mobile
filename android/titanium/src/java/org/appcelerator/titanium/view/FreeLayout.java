@@ -111,6 +111,10 @@ public class FreeLayout extends FrameLayout {
         public LayoutParams(int width,int height) {
             this(width,height,null);
         }
+        public LayoutParams(FreeLayout.LayoutParams source) {
+            super(source);
+            this.matrix = source.matrix;
+        }
         public LayoutParams(FrameLayout.LayoutParams source) {
             super(source);
         }
