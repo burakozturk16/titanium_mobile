@@ -51,7 +51,15 @@ public class TiUISlider extends TiUIView
 		this.max = 1;
 		this.pos = 0;
 		
-		SeekBar seekBar = new SeekBar(proxy.getActivity());
+		SeekBar seekBar = new SeekBar(proxy.getActivity())
+		{
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(proxy);
+			}
+		};
 		seekBar.setOnSeekBarChangeListener(this);
 		setNativeView(seekBar);
 	}

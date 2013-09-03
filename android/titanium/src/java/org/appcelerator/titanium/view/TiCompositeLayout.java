@@ -34,8 +34,9 @@ import android.view.MotionEvent;
 /**
  * Base layout class for all Titanium views.
  */
-public class TiCompositeLayout extends TiBorderedView implements
-		OnHierarchyChangeListener {
+public class TiCompositeLayout extends FreeLayout
+	implements OnHierarchyChangeListener
+{
 	/**
 	 * Supported layout arrangements
 	 * 

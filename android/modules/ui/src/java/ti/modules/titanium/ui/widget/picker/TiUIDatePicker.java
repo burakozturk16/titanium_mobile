@@ -38,7 +38,15 @@ public class TiUIDatePicker extends TiUIView
 		this(proxy);
 		Log.d(TAG, "Creating a date picker", Log.DEBUG_MODE);
 		
-		DatePicker picker = new DatePicker(activity);
+		DatePicker picker = new DatePicker(activity)
+		{
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(proxy);
+			}
+		};
 		setNativeView(picker);
 	}
 	

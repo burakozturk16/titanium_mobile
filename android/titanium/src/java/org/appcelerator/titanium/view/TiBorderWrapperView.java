@@ -25,7 +25,7 @@ import android.view.ViewParent;
  * This class is a wrapper for Titanium Views with borders. Any view that specifies a border
  * related property will have a border wrapper view to maintain its border.
  */
-public class TiBorderedView extends MaskableView
+public class TiBorderWrapperView extends MaskableView
 {
 	public static final int SOLID = 0;
 	private static final String TAG = "TiBorderWrapperView";
@@ -41,7 +41,7 @@ public class TiBorderedView extends MaskableView
 	
 	
 
-	public TiBorderedView(Context context)
+	public TiBorderWrapperView(Context context)
 	{
 		super(context);
 		innerRect = new RectF();
@@ -51,7 +51,6 @@ public class TiBorderedView extends MaskableView
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
-		if (borderWidth == 0) return;
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -80,22 +79,13 @@ public class TiBorderedView extends MaskableView
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
-		if (borderWidth != 0) {
-			drawBorder(canvas);
- 	 		super.onDraw(canvas);//this is only to get masked if necessary
- 			clipCanvas(canvas);
-		}
-		else {
-			super.onDraw(canvas);
-		}
+		drawBorder(canvas);
+ 	 	super.onDraw(canvas);
+ 		clipCanvas(canvas);
 	}
-	
-	
-	
 
 	private void updateBorderPath()
 	{
-		if (borderWidth == 0) return;
 		Rect bounds = new Rect();
 		getDrawingRect(bounds);
 		
@@ -137,11 +127,13 @@ public class TiBorderedView extends MaskableView
 
 	private void drawBorder(Canvas canvas)
 	{
-		paint.setColor(color);
-		if (alpha > -1) {
-			paint.setAlpha(alpha);
+		if (borderWidth != 0) {
+			paint.setColor(color);
+			if (alpha > -1) {
+				paint.setAlpha(alpha);
+			}
+			canvas.drawPath(borderPath, paint);
 		}
-		canvas.drawPath(borderPath, paint);
 	}
 
 	public void setColor(int color)

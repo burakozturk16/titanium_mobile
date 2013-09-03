@@ -15,6 +15,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.FreeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
@@ -25,6 +27,7 @@ import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.graphics.Paint;
 import android.graphics.Rect;
@@ -73,6 +76,8 @@ public class TiUILabel extends TiUIView
 	private Rect textPadding;
 	private String ELLIPSIZE_CHAR = "…";
 	
+	private TiCompositeLayout childrenHolder;
+	private FreeLayout layout;
 	private TextView tv;
 	
 	public class CustomTypefaceSpan extends TypefaceSpan {
@@ -615,8 +620,39 @@ public class TiUILabel extends TiUIView
 		TiUIHelper.styleText(tv, null);
 		defaultColor = tv.getCurrentTextColor();
 		
-		setNativeView(tv, true);
+		layout = new FreeLayout(proxy.getActivity());
+		layout.addView(tv);
+		setNativeView(tv);
 
+	}
+
+	@Override
+	public void add(TiUIView child, int index)
+	{
+		if (childrenHolder == null) {
+			childrenHolder = new TiCompositeLayout(proxy.getActivity());
+			layout.addView(childrenHolder);
+			updateLayoutForChildren(proxy.getProperties());
+		}
+		super.add(child, index);
+	}
+	
+	@Override
+	public View getParentViewForChild()
+	{
+		return childrenHolder;
+	}
+
+	@Override
+	public View getOuterView()
+	{
+		return borderView == null ? layout : borderView;
+	}
+
+	@Override
+	public View getRootView()
+	{
+		return layout;
 	}
 		
 	private Spanned fromHtml(String str)

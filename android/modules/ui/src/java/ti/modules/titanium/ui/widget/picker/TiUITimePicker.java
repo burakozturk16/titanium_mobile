@@ -39,7 +39,15 @@ public class TiUITimePicker extends TiUIView
 		this(proxy);
 		Log.d(TAG, "Creating a time picker", Log.DEBUG_MODE);
 		
-		TimePicker picker = new TimePicker(activity);
+		TimePicker picker = new TimePicker(activity)
+		{
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(proxy);
+			}
+		};
 		picker.setIs24HourView(false);
 		picker.setOnTimeChangedListener(this);
 		setNativeView(picker);

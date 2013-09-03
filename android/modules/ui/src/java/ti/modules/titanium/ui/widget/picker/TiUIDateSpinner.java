@@ -80,7 +80,15 @@ public class TiUIDateSpinner extends TiUIView
 		dayWheel.setItemSelectedListener(this);
 		yearWheel.setItemSelectedListener(this);
 		
-		LinearLayout layout = new LinearLayout(activity);
+		LinearLayout layout = new LinearLayout(activity)
+		{
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(proxy);
+			}
+		};
 		layout.setOrientation(LinearLayout.HORIZONTAL);
 	
 		if (proxy.hasProperty("dayBeforeMonth")) {
