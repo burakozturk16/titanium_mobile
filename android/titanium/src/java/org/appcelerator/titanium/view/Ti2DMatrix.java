@@ -205,6 +205,12 @@ public class Ti2DMatrix extends KrollProxy {
 		newMatrix.operations.add(op);
 		return newMatrix;
 	}
+	
+	@Kroll.method @Kroll.setProperty
+	public void setAnchorPoint(KrollDict dict) {
+		setProperty(TiC.PROPERTY_ANCHOR_POINT, dict);
+		anchor = TiConvert.toPoint(dict);
+	}
 
 	@Kroll.method
 	public float[] finalValuesAfterInterpolation(TiViewProxy proxy) {
