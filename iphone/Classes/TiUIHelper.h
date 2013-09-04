@@ -6,6 +6,7 @@
 //
 //
 
+#import <QuartzCore/QuartzCore.h>
 typedef struct ShadowDef{
     CGFloat opacity;
     CGColorRef color;

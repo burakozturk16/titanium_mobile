@@ -465,8 +465,9 @@ static NSDictionary* TI_filterableItemProperties;
 		id transform = [args objectForKey:@"transform"];
 		if (transform!=nil)
 		{
+            CGSize size = [picker view].bounds.size;
 			ENSURE_TYPE(transform,Ti2DMatrix);
-			[picker setCameraViewTransform:[transform matrix]];
+			[picker setCameraViewTransform:[transform matrixInViewSize:size andParentSize:size]];
 		}
 		else if (cameraView!=nil)
 		{

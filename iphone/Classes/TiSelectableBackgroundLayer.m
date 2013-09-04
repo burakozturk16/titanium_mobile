@@ -198,6 +198,22 @@
     }
 }
 
+-(void)setBounds:(CGRect)bounds
+{
+    BOOL needsToUpdate = (bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
+    
+	[super setBounds:bounds];
+    if (needsToUpdate) {
+        CGSize size = self.frame.size;
+        _needsToSetDrawables = NO;
+        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+            if (drawable != nil) {
+                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+            }
+        }];
+    }
+}
+
 -(void)setImageRepeat:(BOOL)imageRepeat
 {
     _imageRepeat = imageRepeat;
