@@ -165,15 +165,11 @@ NSArray* listenerArray = nil;
 
 @implementation TiUIView
 
-+ (Class)layerClass {
-    return [TiSelectableBackgroundLayer class];
-}
-
 DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize, shouldHandleSelection = _shouldHandleSelection;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection;
 
 #pragma mark Internal Methods
 
@@ -197,6 +193,7 @@ DEFINE_EXCEPTIONS
     [transferLock release];
 	[transformMatrix release];
 	[animation release];
+	[_bgLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
 	[twoFingerTapRecognizer release];
@@ -256,8 +253,8 @@ DEFINE_EXCEPTIONS
     _shouldHandleSelection = YES;
     self.clipsToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
-    _bgLayer = (TiSelectableBackgroundLayer*)self.layer;
 }
 
 - (id) init
@@ -346,7 +343,9 @@ DEFINE_EXCEPTIONS
         [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
     if (needsToSetBackgroundSelectedImage)
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
-    _bgLayer.readyToCreateDrawables = YES;
+    if (_bgLayer) {
+        _bgLayer.readyToCreateDrawables = YES;
+    }
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -442,7 +441,9 @@ DEFINE_EXCEPTIONS
         }
         [self updateTransform];
         
-//        [self.layer setFrame:newBounds]; // not needed and doesnt work
+        if (_bgLayer) {
+            [_bgLayer setFrame:newBounds];
+        }
         
         [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
         if (!animating) {
@@ -507,51 +508,68 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Public APIs
 
+-(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
+{
+    if (_bgLayer != nil) {
+        return _bgLayer;
+    }
+    
+    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
+    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    _bgLayer.bounds = self.layer.bounds;
+    
+    _bgLayer.opacity = backgroundOpacity;
+    _bgLayer.cornerRadius = self.layer.cornerRadius;
+    return _bgLayer;
+}
+
 -(void) setBackgroundGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [_bgLayer setGradient:newGradient forState:UIControlStateNormal];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [_bgLayer setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
 }
 
 -(void) setBackgroundDisabledGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [_bgLayer setGradient:newGradient forState:UIControlStateDisabled];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateDisabled];
 }
 
--(UIColor*) colorValue:(id)color_
+-(void) setBackgroundColor_:(id)color
 {
     UIColor* uicolor;
-	if ([color_ isKindOfClass:[UIColor class]])
+	if ([color isKindOfClass:[UIColor class]])
 	{
-        uicolor = (UIColor*)color_;
+        uicolor = (UIColor*)color;
 	}
 	else
 	{
-		uicolor = [[TiUtils colorValue:color_] _color];
+		uicolor = [[TiUtils colorValue:color] _color];
 	}
-    return uicolor;
+    if (backgroundOpacity < 1.0f) {
+        const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
+        float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
+        uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
+    }
+    super.backgroundColor = uicolor;
 }
 
--(void) setBackgroundColor_:(id)color_
+-(void) setBackgroundSelectedColor_:(id)color
 {
-    [_bgLayer setColor:[self colorValue:color_] forState:UIControlStateNormal];
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
 }
 
--(void) setBackgroundSelectedColor_:(id)color_
+-(void) setBackgroundDisabledColor_:(id)color
 {
-    [_bgLayer setColor:[self colorValue:color_] forState:UIControlStateSelected];
-}
-
--(void) setBackgroundDisabledColor_:(id)color_
-{
-    [_bgLayer setColor:[self colorValue:color_] forState:UIControlStateDisabled];
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateDisabled];
 }
 
 -(UIImage*)convertToUIImage:(id)arg
@@ -616,7 +634,7 @@ DEFINE_EXCEPTIONS
         return;
     }
     UIImage* bgImage = [self loadImage:image];
-    [_bgLayer setImage:bgImage forState:UIControlStateNormal];
+    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedImage_:(id)image
@@ -626,7 +644,7 @@ DEFINE_EXCEPTIONS
         return;
     }
     UIImage* bgImage = [self loadImage:image];
-    [_bgLayer setImage:bgImage forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
 }
 
 -(void) setBackgroundDisabledImage_:(id)image
@@ -636,7 +654,7 @@ DEFINE_EXCEPTIONS
         return;
     }
     UIImage* bgImage = [self loadImage:image];
-    [_bgLayer setImage:bgImage forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
 }
 
 -(void)setOpacity_:(id)opacity
@@ -647,12 +665,21 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundRepeat_:(id)repeat
 {
-    _bgLayer.imageRepeat = [TiUtils boolValue:repeat def:NO];
+    [self getOrCreateCustomBackgroundLayer].imageRepeat = [TiUtils boolValue:repeat def:NO];
 }
 
 -(void)setBackgroundOpacity_:(id)opacity
 {
-    self.layer.opacity = [TiUtils floatValue:opacity def:1.0f];
+    backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
+    
+    id value = [proxy valueForKey:@"backgroundColor"];
+    if (value!=nil) {
+        [self setBackgroundColor_:value];
+    }
+
+    if (_bgLayer) {
+        _bgLayer.opacity = backgroundOpacity;
+    }
 }
 
 -(void)setImageCap_:(id)arg
@@ -676,6 +703,9 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
 	self.layer.cornerRadius = [TiUtils floatValue:radius];
+    if (_bgLayer) {
+        _bgLayer.cornerRadius = self.layer.cornerRadius;
+    }
     [self updateViewShadowPath];
 }
 
@@ -745,12 +775,17 @@ DEFINE_EXCEPTIONS
 
 -(void)setBgState:(UIControlState)state
 {
-    [_bgLayer setState:state];
+    if (_bgLayer != nil) {
+        [_bgLayer setState:state];
+    }
 }
 
 -(UIControlState)getBgState
 {
-    return [_bgLayer getState];
+    if (_bgLayer != nil) {
+        return [_bgLayer getState];
+    }
+    return UIControlStateNormal;
 }
 
 -(void)setTouchEnabled_:(id)arg

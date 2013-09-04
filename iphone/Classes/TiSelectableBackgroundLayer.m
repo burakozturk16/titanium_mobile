@@ -15,7 +15,6 @@
     if (self = [super init])
     {
         imageRepeat = NO;
-        color = [UIColor clearColor];
     }
     return self;
 }
@@ -31,9 +30,11 @@
 
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
+    
     if (_bufferImage == nil && (gradient != nil ||
+                                color != nil ||
                                 image != nil)) {
-        if (gradient == nil && image != nil) {
+        if (gradient == nil && color == nil && image != nil) {
             _bufferImage = [image retain];
         }
         else {
@@ -84,7 +85,6 @@
         UIGraphicsEndImageContext();
         return;
     }
-    CGContextSetAlpha(ctx, layer.opacity);
     [self drawInContext:UIGraphicsGetCurrentContext() inRect:rect];
     _bufferImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
     UIGraphicsEndImageContext();
@@ -95,6 +95,10 @@
     CGContextSaveGState(ctx);
     
     CGContextSetAllowsAntialiasing(ctx, true);
+    if (color) {
+        CGContextSetFillColorWithColor(ctx, [color CGColor]);
+        CGContextFillRect(ctx, rect);
+    }
     if (gradient){
         [gradient paintContext:ctx bounds:rect];
     }
@@ -129,12 +133,11 @@
     UIControlState currentState;
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
-    CGFloat _opacity;
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, opacity = _opacity;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
 
 - (id) initWithLayer:(id)layer {
     if(self = [super initWithLayer:layer]) {
@@ -158,7 +161,6 @@
         _animateTransition = NO;
         self.masksToBounds=YES;
         self.contentsScale = [[UIScreen mainScreen] scale];
-        _opacity = 1.0f;
     }
     return self;
 }
@@ -171,32 +173,21 @@
 	[super dealloc];
 }
 
--(CGColorRef) applyAlpha:(CGFloat)alpha toColor:(CGColorRef)color
-{
-    const CGFloat* components = CGColorGetComponents(color);
-    size_t size = CGColorGetNumberOfComponents(color);
-    float realAlpha = CGColorGetAlpha(color) * alpha;
-    if (size > 3) {
-        return [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:realAlpha].CGColor;
-    }
-    return [UIColor colorWithRed:components[0] green:components[0] blue:components[0] alpha:realAlpha].CGColor;
-}
-
--(void)setFrame:(CGRect)frame
-{
-    BOOL needsToUpdate = (frame.size.width != 0 && frame.size.height!= 0 && (!CGSizeEqualToSize(frame.size, self.frame.size) || _needsToSetDrawables));
-    
-	[super setFrame:frame];
-    if (needsToUpdate) {
-        CGSize size = self.frame.size;
-        _needsToSetDrawables = NO;
-        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-            if (drawable != nil) {
-                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
-            }
-        }];
-    }
-}
+//-(void)setFrame:(CGRect)frame
+//{
+//    BOOL needsToUpdate = (frame.size.width != 0 && frame.size.height!= 0 && (!CGSizeEqualToSize(frame.size, self.frame.size) || _needsToSetDrawables));
+//    
+//	[super setFrame:frame];
+//    if (needsToUpdate) {
+//        CGSize size = self.frame.size;
+//        _needsToSetDrawables = NO;
+//        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+//            if (drawable != nil) {
+//                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+//            }
+//        }];
+//    }
+//}
 
 -(void)setBounds:(CGRect)bounds
 {
@@ -237,7 +228,6 @@
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
         [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
-        self.backgroundColor = [self applyAlpha:_opacity toColor:currentDrawable.color.CGColor];
     }
     currentState = state;
 }
@@ -253,18 +243,18 @@
     
 }
 
-- (id<CAAction>)actionForKey:(NSString *)event
-{
-    if (!_animateTransition && ([event isEqualToString:@"contents"] || [event isEqualToString:@"hidden"] || [event isEqualToString:@"mask"]))
-        return nil;
-    if ([event isEqualToString:@"contents"])
-    {
-        return [CATransition animation];
-    }
-    
-    id action = [super actionForKey:event];
-    return action;
-}
+//- (id<CAAction>)actionForKey:(NSString *)event
+//{
+//    if (!_animateTransition && ([event isEqualToString:@"contents"] || [event isEqualToString:@"hidden"] || [event isEqualToString:@"mask"]))
+//        return nil;
+//    if ([event isEqualToString:@"contents"])
+//    {
+//        return [CATransition animation];
+//    }
+//    
+//    id action = [super actionForKey:event];
+//    return action;
+//}
 
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state
 {
@@ -294,8 +284,8 @@
 {
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.color = color;
-    if (state == currentState) {
-        self.backgroundColor = [self applyAlpha:_opacity toColor:drawable.color.CGColor];
+    if (readyToCreateDrawables) {
+        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
 }
 
@@ -318,25 +308,6 @@
     }
 }
 
--(void)setOpacity:(float)opacity
-{
-    _opacity = opacity;
-    if (readyToCreateDrawables) {
-        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-            if (drawable != nil) {
-                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
-            }
-        }];
-    }
-    self.backgroundColor = [self applyAlpha:_opacity toColor:currentDrawable.color.CGColor];
-}
-
--(float)getOpacity
-{
-    return _opacity;
-}
-
-
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
     if (value != readyToCreateDrawables) {
@@ -358,12 +329,12 @@
     }
 }
 
--(void) setHidden:(BOOL)hidden animated:(BOOL)animated
-{
-    self.animateTransition = animated;
-    [self setHidden:hidden];
-    self.animateTransition = NO;
-    
-}
+//-(void) setHidden:(BOOL)hidden animated:(BOOL)animated
+//{
+//    self.animateTransition = animated;
+//    [self setHidden:hidden];
+//    self.animateTransition = NO;
+//    
+//}
 
 @end

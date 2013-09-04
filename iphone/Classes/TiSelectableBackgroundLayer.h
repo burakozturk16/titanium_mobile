@@ -37,5 +37,5 @@
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(UIImage*)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
--(void) setHidden:(BOOL)hidden animated:(BOOL)animated;
+//-(void) setHidden:(BOOL)hidden animated:(BOOL)animated;
 @end
