@@ -173,32 +173,6 @@ public class TiDimension
 	{
 		return valueType;
 	}
-	
-	/**
-	 * @return the TiDimension's valueType.
-	 */
-	public String getAnimatedProperty()
-	{
-		switch (valueType) {
-		case TYPE_TOP:
-			return "tiTop";
-		case TYPE_BOTTOM:
-			return "tiBottom";
-		case TYPE_CENTER_Y:
-			return "tiCenterY";
-		case TYPE_HEIGHT:
-			return "tiHeight";
-		case TYPE_LEFT:
-			return "tiLeft";
-		case TYPE_RIGHT:
-			return "tiRight";
-		case TYPE_CENTER_X:
-			return "tiCenterX";
-		case TYPE_WIDTH:
-			return "tiWidth";
-		}
-		return null;
-	}
 
 	/**
 	 * @return the TiDimension's int value.
@@ -243,6 +217,15 @@ public class TiDimension
 	public void setUnits(int units)
 	{
 		this.units = units;
+	}
+	
+	/**
+	 * Set TiDimension's valueType.
+	 * @param type the type to set.
+	 */
+	public void setValueType(int type)
+	{
+		this.valueType = type;
 	}
 
 	protected double getPixels(Context context, int width, int height)

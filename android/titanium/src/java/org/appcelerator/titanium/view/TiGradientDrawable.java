@@ -14,26 +14,31 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.TiConvert;
 
+import android.content.Context;
 import android.graphics.LinearGradient;
+import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
+import android.graphics.SweepGradient;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.view.View;
 
 public class TiGradientDrawable extends ShapeDrawable {
 	public enum GradientType {
-		LINEAR_GRADIENT, RADIAL_GRADIENT
+		LINEAR_GRADIENT, RADIAL_GRADIENT, SWEEP_GRADIENT
 	}
 
+	private static final float DEFAULT_START_ANGLE = 0;
 	private static final TiPoint DEFAULT_START_POINT = new TiPoint(0, 0);
 	private static final TiPoint DEFAULT_END_POINT = new TiPoint("0", "100%");
-	private static final TiDimension DEFAULT_RADIUS = new TiDimension(1.0, TiDimension.TYPE_UNDEFINED);
+	private static final TiDimension DEFAULT_RADIUS = new TiDimension("100%", TiDimension.TYPE_UNDEFINED);
 	private static final String TAG = "TiGradientDrawable";
 
 	private GradientType gradientType;
 	private TiPoint startPoint = DEFAULT_START_POINT, endPoint = DEFAULT_END_POINT;
-	private TiDimension startRadius;
+	private TiDimension startRadius = DEFAULT_RADIUS;
+	private double startAngle = DEFAULT_START_ANGLE;
 	private int[] colors;
 	private float[] offsets;
 	private View view;
@@ -49,34 +54,25 @@ public class TiGradientDrawable extends ShapeDrawable {
 			gradientType = GradientType.LINEAR_GRADIENT;
 		} else if (type.equals("radial")) {
 			gradientType = GradientType.RADIAL_GRADIENT;
-
-			// TODO: Add support for radial gradients.
-			// Android's RadialGradient only supports a single circle.
-			// We need to figure out how to support two circle gradients
-			// as specified by the HTML Canvas specification.
-			return;
-
+		} else if (type.equals("sweep")) {
+			gradientType = GradientType.SWEEP_GRADIENT;
 		} else {
 			throw new IllegalArgumentException("Invalid gradient type. Must be linear or radial.");
 		}
-
-		// Load the 'startPoint' property which defines the start of the gradient.
-		Object startPointObject = properties.get("startPoint");
-		if (startPointObject instanceof HashMap) {
-			startPoint = new TiPoint((HashMap)startPointObject, 0, 0);
+		
+		if (properties.containsKey("startPoint")) {
+			startPoint = new TiPoint((HashMap) properties.get("startPoint"));
 		}
-
-		// Load the 'endPoint' property which defines the end of the gradient.
-		// Note: this is only used for linear gradient since Android does not
-		// support an ending circle for radial gradients.
-		Object endPointObject = properties.get("endPoint");
-		if (endPointObject instanceof HashMap) {
-			endPoint = new TiPoint((HashMap)endPointObject, 0, 1);
+		
+		if (properties.containsKey("endPoint")) {
+			endPoint = new TiPoint((HashMap) properties.get("endPoint"));
 		}
-
-		startRadius = TiConvert.toTiDimension(properties, "startRadius", TiDimension.TYPE_UNDEFINED);
-		if (startRadius == null) {
-			startRadius = DEFAULT_RADIUS;
+		if (properties.containsKey("startRadius")) {
+			startRadius = TiConvert.toTiDimension(properties, "startRadius", TiDimension.TYPE_WIDTH);
+		}
+		
+		if (properties.containsKey("startAngle")) {
+			startAngle = properties.optFloat("startRadius", DEFAULT_START_ANGLE) * Math.PI/180.0f;
 		}
 
 		Object colors = properties.get("colors");
@@ -134,6 +130,7 @@ public class TiGradientDrawable extends ShapeDrawable {
 	private class GradientShaderFactory extends ShaderFactory {
 		@Override
 		public Shader resize(int width, int height) {
+			Context context = view.getContext();
 			float x0 = startPoint.getX().getAsPixels(view);
 			float y0 = startPoint.getY().getAsPixels(view);
 			float x1 = endPoint.getX().getAsPixels(view);
@@ -143,8 +140,12 @@ public class TiGradientDrawable extends ShapeDrawable {
 			case LINEAR_GRADIENT:
 				return new LinearGradient(x0, y0, x1, y1, colors, offsets, TileMode.CLAMP);
 			case RADIAL_GRADIENT:
-				// TODO: implement radial gradient
-				return null;
+				startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
+				float radius0 = startRadius.getAsPixels(context, width, height);
+				if (radius0 <= 0) return null; 
+				return new RadialGradient(x0, y0, radius0, colors, offsets, TileMode.CLAMP);
+			case SWEEP_GRADIENT:
+				return new SweepGradient(x0, y0, colors, offsets);
 			default:
 				throw new AssertionError("No valid gradient type set.");
 			}

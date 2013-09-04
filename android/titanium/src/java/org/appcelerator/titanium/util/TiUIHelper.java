@@ -686,11 +686,6 @@ public class TiUIHelper
 		if (gradientProperties != null) {
 			try {
 				gradientDrawable = new TiGradientDrawable(view, gradientProperties);
-				if (gradientDrawable.getGradientType() == GradientType.RADIAL_GRADIENT) {
-					// TODO: Remove this once we support radial gradients.
-					Log.w(TAG, "Android does not support radial gradients.");
-					gradientDrawable = null;
-				}
 			}
 			catch (IllegalArgumentException e) {
 				gradientDrawable = null;
