@@ -1459,7 +1459,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         return height.value;
     }
     
-    else if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height))
+    else if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height))
     {
         TiUIListSectionProxy* theSection = [self.listViewProxy sectionForIndex:realIndexPath.section];
         NSDictionary *item = [theSection itemAtIndex:realIndexPath.row];

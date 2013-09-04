@@ -37,6 +37,17 @@ typedef enum
 
 - (BOOL)canApplyDataItem:(NSDictionary *)otherItem;
 - (void)setPosition:(int)position isGrouped:(BOOL)grouped;
+
+
+/**
+ The convenience method to raise an exception for the view.
+ @param reason The exception reason.
+ @param subreason The exception subreason.
+ @param location The exception location.
+ */
++(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
+
+-(void)throwException:(NSString *) reason subreason:(NSString*)subreason location:(NSString *)location;
 @end
 
 #endif
