@@ -417,7 +417,7 @@ void angleGradient(byte* data, int w, int h, int* colors, int colorCount, float*
             float dirX = x - center.x;
             float dirY = y - center.y;
             float angle = atan2f(dirY, dirX);
-            angle += startAngle - M_PI_2;
+            angle += startAngle;
             if (angle < 0) angle += 2 * M_PI;
             angle /= 2 * M_PI;
             
