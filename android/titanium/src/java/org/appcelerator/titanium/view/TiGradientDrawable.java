@@ -54,7 +54,9 @@ public class TiGradientDrawable extends ShapeDrawable {
 			gradientType = GradientType.LINEAR_GRADIENT;
 		} else if (type.equals("radial")) {
 			gradientType = GradientType.RADIAL_GRADIENT;
+			startPoint = new TiPoint("50%", "50%");
 		} else if (type.equals("sweep")) {
+			startPoint = new TiPoint("50%", "50%");
 			gradientType = GradientType.SWEEP_GRADIENT;
 		} else {
 			throw new IllegalArgumentException("Invalid gradient type. Must be linear or radial.");
@@ -130,18 +132,18 @@ public class TiGradientDrawable extends ShapeDrawable {
 	private class GradientShaderFactory extends ShaderFactory {
 		@Override
 		public Shader resize(int width, int height) {
-			Context context = view.getContext();
-			float x0 = startPoint.getX().getAsPixels(view);
-			float y0 = startPoint.getY().getAsPixels(view);
-			float x1 = endPoint.getX().getAsPixels(view);
-			float y1 = endPoint.getY().getAsPixels(view);
+//			Context context = getContext();
+			float x0 = startPoint.getX().getAsPixels(null, width, height);
+			float y0 = startPoint.getY().getAsPixels(null, width, height);
+			float x1 = endPoint.getX().getAsPixels(null, width, height);
+			float y1 = endPoint.getY().getAsPixels(null, width, height);
 
 			switch (gradientType) {
 			case LINEAR_GRADIENT:
 				return new LinearGradient(x0, y0, x1, y1, colors, offsets, TileMode.CLAMP);
 			case RADIAL_GRADIENT:
 				startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
-				float radius0 = startRadius.getAsPixels(context, width, height);
+				float radius0 = startRadius.getAsPixels(null, width, height);
 				if (radius0 <= 0) return null; 
 				return new RadialGradient(x0, y0, radius0, colors, offsets, TileMode.CLAMP);
 			case SWEEP_GRADIENT:
