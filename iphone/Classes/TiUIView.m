@@ -153,6 +153,7 @@ NSArray* listenerArray = nil;
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
     BOOL _shouldHandleSelection;
+    BOOL _customUserInteractionEnabled;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -255,6 +256,7 @@ DEFINE_EXCEPTIONS
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
+    _customUserInteractionEnabled = YES;
 }
 
 - (id) init
@@ -315,7 +317,7 @@ DEFINE_EXCEPTIONS
     // If a user has not explicitly set whether or not the view interacts, base it on whether or
     // not it handles events, and if not, set it to the interaction default.
     if (!changedInteraction) {
-        self.userInteractionEnabled = handlesTouches || [self interactionDefault];
+        _customUserInteractionEnabled = handlesTouches || [self interactionDefault];
     }
 }
 
@@ -790,8 +792,8 @@ DEFINE_EXCEPTIONS
 
 -(void)setTouchEnabled_:(id)arg
 {
-	self.userInteractionEnabled = [TiUtils boolValue:arg];
-    [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+	_customUserInteractionEnabled = [TiUtils boolValue:arg];
+    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     changedInteraction = YES;
 }
 
@@ -1370,7 +1372,7 @@ DEFINE_EXCEPTIONS
 
 - (BOOL)interactionEnabled
 {
-	return self.userInteractionEnabled;
+	return self.userInteractionEnabled && _customUserInteractionEnabled;
 }
 
 - (BOOL)hasTouchableListener
@@ -1382,11 +1384,12 @@ DEFINE_EXCEPTIONS
 {
 	BOOL hasTouchListeners = [self hasTouchableListener];
 
+	UIView *hitView = [super hitTest:point withEvent:event];
 	// if we don't have any touch listeners, see if interaction should
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if (hasTouchListeners == NO && [self interactionEnabled]==NO)
+	if ((hasTouchListeners == NO || [self interactionEnabled]==NO) && hitView == self)
 	{
 		return nil;
 	}
@@ -1403,7 +1406,6 @@ DEFINE_EXCEPTIONS
 	}
      */
 	
-	UIView *hitView = [super hitTest:point withEvent:event];
 	if (touchPassThrough)
 	{
 		if (hitView != self) 
@@ -1496,7 +1498,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+        [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     }
 	if (handlesTouches)
 	{
@@ -1535,7 +1537,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:self.userInteractionEnabled?UIControlStateNormal:UIControlStateDisabled];
+    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
