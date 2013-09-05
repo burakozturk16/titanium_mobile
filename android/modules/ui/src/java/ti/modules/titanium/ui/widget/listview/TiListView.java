@@ -78,7 +78,7 @@ public class TiListView extends TiUIView {
 	 */
 	public static List<String> MUST_SET_PROPERTIES = Arrays.asList(TiC.PROPERTY_VALUE);
 	
-	public static final String MIN_ROW_HEIGHT = "30dp";
+	public static final String MIN_ROW_HEIGHT = "40dp";
 	public static final int HEADER_FOOTER_ITEM_TYPE = 0;
 	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 1;
 	
@@ -215,6 +215,7 @@ public class TiListView extends TiUIView {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
 				setMinHeightForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
+				params.optionHeight = new TiDimension(MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
 				section.generateCellContent(sectionIndex, data, template, itemContent, sectionItemIndex, content);

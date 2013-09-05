@@ -19,7 +19,6 @@ public class Ti2DMatrixEvaluator implements TypeEvaluator<Ti2DMatrix> {
 			Ti2DMatrix endValue) {
 		if (fraction == 0) return startValue;
 		if (fraction == 1) return endValue;
-		
 		AffineTransform a = (startValue != null)?startValue.getAffineTransform(view):(new AffineTransform());
 		AffineTransform b = endValue.getAffineTransform(view);
 		b.blend(a, fraction);
