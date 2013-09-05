@@ -70,9 +70,9 @@ public class TiViewAnimator extends TiAnimatorSet
 	
 	
 	private void cleanupView() {
-		if (view != null) {
-			view.clearAnimation();
-		}
+//		if (view != null) {
+//			view.clearAnimation();
+//		}
 		if (viewProxy != null && viewProxy.peekView() != null) {
 			viewProxy.peekView().cleanAnimatedParams();
 		}
@@ -189,7 +189,7 @@ public class TiViewAnimator extends TiAnimatorSet
 				// Cancel existing animation and
 				// re-queue desired animation.
 				currentAnimation.cancel();
-				view.clearAnimation();
+//				view.clearAnimation();
 				proxy.handlePendingAnimation(true);
 				return;
 			}

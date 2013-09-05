@@ -229,21 +229,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return dict;
 	}
 
-	public TiViewAnimator getPendingAnimation()
-	{
-		synchronized(pendingAnimationLock) {
-			return (TiViewAnimator) pendingAnimation;
-		}
-	}
+//	public TiViewAnimator getPendingAnimation()
+//	{
+//		synchronized(pendingAnimationLock) {
+//			return (TiViewAnimator) pendingAnimation;
+//		}
+//	}
 
-	public void clearAnimation(TiAnimator builder)
-	{
-		synchronized(pendingAnimationLock) {
-			if (pendingAnimation != null && pendingAnimation == builder) {
-				pendingAnimation = null;
-			}
-		}
-	}
+	
 
 	//This handler callback is tied to the UI thread.
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -648,11 +641,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 
-		synchronized(pendingAnimationLock) {
-			if (pendingAnimation != null) {
-				handlePendingAnimation(true);
-			}
-		}
+		handlePendingAnimation(true);
 	}
 	
 	public void realizeViews(TiUIView view)
@@ -873,11 +862,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	protected void handleHide(KrollDict options)
 	{
 		if (view != null) {
-			synchronized(pendingAnimationLock) {
-				if (pendingAnimation != null) {
-					handlePendingAnimation(false);
-				}
-			}
+			handlePendingAnimation(false);
 			view.hide();
 			setProperty(TiC.PROPERTY_VISIBLE, false);
 		}
@@ -902,7 +887,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	public void handlePendingAnimation(boolean forceQueue)
 	{
-		if (pendingAnimation != null) {
+		if (pendingAnimations.size() > 0) {
 			if (forceQueue || !(TiApplication.isUIThread())) {
 				if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
 					// Even this very small delay can help eliminate the bug
@@ -921,9 +906,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
-		if (pendingAnimation == null) {
-			return;
+		TiAnimator pendingAnimation;
+		synchronized (pendingAnimationLock) {
+			if (pendingAnimations.size() == 0) {
+				return;
+			}
+			pendingAnimation = pendingAnimations.remove(0);
 		}
+		
 		View view = getOuterView();
 		if (view == null) {
 			pendingAnimation.applyOptions();

@@ -26,15 +26,23 @@ import android.view.View;
 @Kroll.proxy
 public class AnimatableProxy extends KrollProxy {
 	private static final String TAG = "AnimatableProxy";
-	protected TiAnimator pendingAnimation;
+	protected ArrayList<TiAnimator> pendingAnimations;
 	protected Object pendingAnimationLock;
 
 	public AnimatableProxy() {
 		super();
+		pendingAnimations = new ArrayList<TiAnimator>();
 		pendingAnimationLock = new Object();
 	}
 
 	protected void handlePendingAnimation() {
+		TiAnimator pendingAnimation;
+		synchronized (pendingAnimationLock) {
+			if (pendingAnimations.size() == 0) {
+				return;
+			}
+			pendingAnimation = pendingAnimations.remove(0);
+		}
 		pendingAnimation.setProxy(this);
 		pendingAnimation.applyOptions();
 		TiAnimatorSet tiSet = (TiAnimatorSet) pendingAnimation;
@@ -78,16 +86,14 @@ public class AnimatableProxy extends KrollProxy {
 	@Kroll.method
 	public void animate(Object arg,
 			@Kroll.argument(optional = true) KrollFunction callback) {
-		// if (Build.VERSION.SDK_INT< TiC.API_LEVEL_HONEYCOMB) {
-		// Log.e(TAG, "animate can only work on API >= 11 ");
-		// }
-		if (pendingAnimation != null) {
-			// already running animation
-			pendingAnimation.cancelWithoutResetting();
-			pendingAnimation = null;
-		}
+
+//		if (pendingAnimation != null) {
+//			// already running animation
+//			pendingAnimation.cancelWithoutResetting();
+//			pendingAnimation = null;
+//		}
 		synchronized (pendingAnimationLock) {
-			pendingAnimation = createAnimator();
+			TiAnimator pendingAnimation = createAnimator();
 			if (arg instanceof HashMap) {
 				HashMap options = (HashMap) arg;
 				pendingAnimation.setOptions(options);
@@ -103,9 +109,10 @@ public class AnimatableProxy extends KrollProxy {
 			if (callback != null) {
 				pendingAnimation.setCallback(callback);
 			}
+			pendingAnimations.add(pendingAnimation);
 
-			handlePendingAnimation();
 		}
+		handlePendingAnimation();
 	}
 	
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
@@ -153,20 +160,20 @@ public class AnimatableProxy extends KrollProxy {
 
 	}
 
-	public void clearAnimation(TiAnimator builder) {
-		synchronized (pendingAnimationLock) {
-			if (pendingAnimation != null && pendingAnimation == builder) {
-				pendingAnimation = null;
-			}
+	public void clearAnimation(TiAnimator builder)
+	{
+		synchronized(pendingAnimationLock) {
+			pendingAnimations.remove(builder);
 		}
 	}
 
 	@Kroll.method
 	public void cancelAllAnimations() {
-
-		if (pendingAnimation != null) {
-			pendingAnimation.cancel();
-			pendingAnimation = null;
+		synchronized (pendingAnimationLock) {
+			for (int i = 0; i < pendingAnimations.size(); i++) {
+				pendingAnimations.get(i).cancel();
+			}
+			pendingAnimations.clear();
 		}
 	}
 }
