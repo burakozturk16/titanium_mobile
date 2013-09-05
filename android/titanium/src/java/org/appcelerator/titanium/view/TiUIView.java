@@ -698,7 +698,7 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
 			View rootView = getRootView();
 			if (rootView instanceof ViewGroup) {
-				((ViewGroup) rootView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				((ViewGroup) nativeView).setClipToPadding(false);
+				((ViewGroup) rootView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				
 			}
 		}
 
@@ -1478,7 +1478,9 @@ public abstract class TiUIView
 	}
 	
 	public float getOpacity() {
-		return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
+		if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+			return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
+		return 1;
 	}
 
 	/**
@@ -1889,6 +1891,7 @@ public abstract class TiUIView
 			((View) viewParent).postInvalidate();
 		}
 	}
+	
 	public Ti2DMatrix getTi2DMatrix() {
 		return layoutParams.matrix;
 	}
@@ -2010,8 +2013,12 @@ public abstract class TiUIView
 		}
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
-
-			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM));
+			Ti2DMatrix matrix = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+			if (matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
+			{
+				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+			}
+			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), matrix);
 			list.add(anim);
 		}
 
@@ -2030,5 +2037,7 @@ public abstract class TiUIView
 			}
 		}
 		set.playTogether(list);
+		getOuterView().postInvalidate();
+
 	}
 }
