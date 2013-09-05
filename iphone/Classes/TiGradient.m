@@ -168,7 +168,7 @@
 		return;
 	}
 
-	[self throwException:TiExceptionInvalidType subreason:@"Must be either 'linear' or 'radial'" location:CODELOCATION];
+	[self throwException:TiExceptionInvalidType subreason:@"Must be either 'linear' or 'radial' or 'sweep'" location:CODELOCATION];
 }
 
 -(void)setStartPoint:(id)newStart
@@ -322,6 +322,7 @@
 					[TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],endRadiusPixels,
 					options);
 			}
+			break;
 		case TiGradientTypeSweep:
             if (!CGSizeEqualToSize(sweepCacheSize, bounds.size)){
                 [self clearSweepCache];
