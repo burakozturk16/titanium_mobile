@@ -2,10 +2,13 @@ package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.common.Log;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -14,12 +17,12 @@ import android.view.ViewParent;
 import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 
+@SuppressLint("NewApi")
 public class FreeLayout extends FrameLayout {
 	public static final int FLAG_TRANSFORMED = 16;
 	public FreeLayout(Context context) {
         super(context);
         setStaticTransformationsEnabled(true);
-//        setClipChildren(false);
     }
     public Matrix transformedMatrix;
     
@@ -159,19 +162,7 @@ public class FreeLayout extends FrameLayout {
     protected void onLayout(boolean changed,int l,int t,int r,int b) {
 		 transformedMatrix = null;
 		 super.onLayout(changed, l, t, r, b);
-//        int count=getChildCount();
-//        for (int i=0;i<count;i++) {
-//            View child=getChildAt(i);
-//            if (child.getVisibility()!=GONE) {
-//                child.layout(
-//                    0,
-//                    0,
-//                    child.getMeasuredWidth(),
-//                    child.getMeasuredHeight());
-//            }
-//        }
     }
-//    
 
     @Override
     protected boolean checkLayoutParams(ViewGroup.LayoutParams p) {
@@ -194,7 +185,7 @@ public class FreeLayout extends FrameLayout {
             return false;
         }
     }
-    
+
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
 		Log.d("FREELEAYOUT", this.getClass().getSimpleName() + " onTouchEvent");
