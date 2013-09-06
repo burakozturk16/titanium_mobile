@@ -26,6 +26,7 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final String PROPERTY_LINE_CAP = "lineCap";
 	@Kroll.constant public static final String PROPERTY_LINE_SHADOW = "lineShadow";
 	@Kroll.constant public static final String PROPERTY_LINE_EMBOSS = "lineEmboss";
+	@Kroll.constant public static final String PROPERTY_LINE_INVERSED = "lineInversed";
 	@Kroll.constant public static final String PROPERTY_FILL_COLOR = "fillColor";
 	@Kroll.constant public static final String PROPERTY_FILL_GRADIENT = "fillGradient";
 	@Kroll.constant public static final String PROPERTY_FILL_IMAGE = "fillImage";
@@ -33,6 +34,7 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final String PROPERTY_FILL_OPACITY = "fillOpacity";
 	@Kroll.constant public static final String PROPERTY_FILL_SHADOW = "fillShadow";
 	@Kroll.constant public static final String PROPERTY_FILL_EMBOSS = "fillEmboss";
+	@Kroll.constant public static final String PROPERTY_FILL_INVERSED = "fillInversed";
 	@Kroll.constant public static final String PROPERTY_OPERATIONS = "operations";
 
 	

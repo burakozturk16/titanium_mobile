@@ -95,7 +95,7 @@ public class Utils {
 	public static void styleOpacity(KrollDict dict, String property,
 			Paint[] paints) {
 		if (dict.containsKey(property)) {
-			int alpha  = (int) (dict.getFloat(property) * 255);
+			int alpha  = (int) (dict.optFloat(property, 1.0f) * 255);
 			for (int i = 0; i < paints.length; i++) {
 				Paint paint = paints[i];
 				paint.setAlpha(alpha);
@@ -216,7 +216,7 @@ public class Utils {
 		int color = dict.optColor(property, defaultValue);
 		for (int i = 0; i < paints.length; i++) {
 			Paint paint = paints[i];
-			paint.setColor(color);
+			setColorForPaint(color, paint);
 		}
 	}
 
@@ -228,17 +228,29 @@ public class Utils {
 	public static void styleColor(KrollDict dict, String property, Paint paint) {
 		if (dict.containsKey(property)) {
 			int color = dict.getColor(property);
-			paint.setColor(color);
+			setColorForPaint(color, paint);
 		}
 	}
 
+	public static void setColorForPaint(int color, Paint paint) {
+		int alpha = paint.getAlpha();
+		paint.setColor(color);
+		paint.setAlpha(alpha);
+	}
+	
+	public static void setShaderForPaint(Shader shader, Paint paint) {
+		int alpha = paint.getAlpha();
+		paint.setShader(shader);
+		paint.setAlpha(alpha);
+	}
+	
 	public static void styleColor(KrollDict dict, String property,
 			Paint[] paints) {
 		if (dict.containsKey(property)) {
 			int color = dict.getColor(property);
 			for (int i = 0; i < paints.length; i++) {
 				Paint paint = paints[i];
-				paint.setColor(color);
+				setColorForPaint(color, paint);
 			}
 		}
 	}

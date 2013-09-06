@@ -40,6 +40,7 @@ import android.graphics.MaskFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Path.FillType;
 import android.graphics.Point;
 import android.graphics.RectF;
 import android.graphics.Region;
@@ -82,6 +83,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	
 	private Ti2DMatrix transform;
 	private Matrix matrix;
+	
+	private boolean fillInversed = false;
+	private boolean lineInversed = false;
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public class PointEvaluator implements TypeEvaluator<Point> {
@@ -476,20 +480,14 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	}
 	
 	protected void updateGradients(Context context, Rect bounds) {
-		KrollDict options = getProperties();
 		if (lineGradient != null) {
 			Shader shader = lineGradient.getShaderFactory().resize(bounds.width(), bounds.height());
-			linePaint.setShader(shader);
-			if (options.containsKey(ShapeModule.PROPERTY_LINE_OPACITY)) {
-				Utils.styleOpacity(options, ShapeModule.PROPERTY_LINE_OPACITY, linePaint);
-			}
+			Utils.setShaderForPaint(shader, linePaint);
 		}
 		if (fillGradient != null) {
-			Shader shader = lineGradient.getShaderFactory().resize(bounds.width(), bounds.height());
-			fillPaint.setShader(shader);
-			if (options.containsKey(ShapeModule.PROPERTY_FILL_OPACITY)) {
-				Utils.styleOpacity(options, ShapeModule.PROPERTY_FILL_OPACITY, fillPaint);
-			}
+			Shader shader = fillGradient.getShaderFactory().resize(bounds.width(), bounds.height());
+			Utils.setShaderForPaint(shader, fillPaint);
+
 		}
 	}
 	protected void updateGradients() {
@@ -562,8 +560,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (matrix != null) {
 			path.transform(matrix);
 		}
+		if(fillInversed) {
+			path.setFillType(FillType.INVERSE_EVEN_ODD);
+		}
 			
 		drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW);
+		path.setFillType(FillType.EVEN_ODD);
 		drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW);
 		
 		canvas.save();
@@ -847,28 +849,28 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return result;
 	}
 	public void setLineOpacity(float value) {
-		getOrCreateLinePaint().setAlpha((int) (value * 255));
+		getOrCreateLinePaint().setAlpha((int) (value * 255.0f));
 		redraw();
 	}
 	public float getLineOpacity() {
-		return getOrCreateLinePaint().getAlpha()/255;
+		return getOrCreateLinePaint().getAlpha()/255.0f;
 	}
 	public void setLineColor(int value) {
-		getOrCreateLinePaint().setColor(value);
+		Utils.setColorForPaint(value, getOrCreateLinePaint());
 		redraw();
 	}
 	public int getLineColor() {
 		return getOrCreateLinePaint().getColor();
 	}
 	public void setFillOpacity(float value) {
-		getOrCreateFillPaint().setAlpha((int) (value * 255));
+		getOrCreateFillPaint().setAlpha((int) (value * 255.0f));
 		redraw();
 	}
 	public float getFillOpacity() {
-		return getOrCreateFillPaint().getAlpha()/255;
+		return getOrCreateFillPaint().getAlpha()/255.0f;
 	}
 	public void setFillColor(int value) {
-		getOrCreateFillPaint().setColor(value);
+		Utils.setColorForPaint(value, getOrCreateFillPaint());
 		redraw();
 	}
 	public int getFillColor() {
@@ -953,6 +955,16 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		else if (key.equals(ShapeModule.PROPERTY_ANCHOR)) {
 			this.anchor = AnchorPosition.values()[TiConvert.toInt(newValue)];
 		}
+		else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
+			this.transform = (Ti2DMatrix)newValue;
+			this.matrix = null;
+		}
+		else if (key.equals(ShapeModule.PROPERTY_FILL_INVERSED)) {
+			this.fillInversed = TiConvert.toBoolean(newValue);
+		}
+		else if (key.equals(ShapeModule.PROPERTY_LINE_INVERSED)) {
+			this.lineInversed = TiConvert.toBoolean(newValue);
+		}
 		else return;
 		
 		if (shapeViewProxy != null) {
@@ -1025,6 +1037,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (properties.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			this.transform = (Ti2DMatrix)properties.get(TiC.PROPERTY_TRANSFORM);
 			this.matrix = null;
+		}
+		if (properties.containsKey(ShapeModule.PROPERTY_FILL_INVERSED)) {
+			this.fillInversed = properties.getBoolean(ShapeModule.PROPERTY_FILL_INVERSED);
+		}
+		if (properties.containsKey(ShapeModule.PROPERTY_LINE_INVERSED)) {
+			this.lineInversed = properties.getBoolean(ShapeModule.PROPERTY_LINE_INVERSED);
 		}
 	}
 
