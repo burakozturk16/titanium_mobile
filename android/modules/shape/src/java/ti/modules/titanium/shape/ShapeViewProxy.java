@@ -9,12 +9,17 @@
 package ti.modules.titanium.shape;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
@@ -30,24 +35,30 @@ import android.view.View;
 import android.view.View.MeasureSpec;
 import android.widget.LinearLayout;
 
-
 // This proxy can be created by calling Android.createExample({message: "hello world"})
-@SuppressWarnings({"unused", "unchecked", "rawtypes"})
-@Kroll.proxy(name = "View", creatableInModule = ShapeModule.class, propertyAccessors = {
-})
+@SuppressWarnings({ "unused", "unchecked", "rawtypes" })
+@Kroll.proxy(name = "View", creatableInModule = ShapeModule.class, propertyAccessors = {})
 public class ShapeViewProxy extends TiViewProxy {
 	// Standard Debugging variables
 	private static final String TAG = "ShapeViewProxy";
-	
+
 	private final ArrayList<ShapeProxy> mShapes;
-	
+	private static final List<String> supportedEvents = Arrays.asList(
+			TiC.EVENT_CLICK, TiC.EVENT_DOUBLE_CLICK, TiC.EVENT_DOUBLE_TAP,
+			TiC.EVENT_SINGLE_TAP, TiC.EVENT_TOUCH_CANCEL, TiC.EVENT_TOUCH_END,
+			TiC.EVENT_TOUCH_MOVE, TiC.EVENT_TOUCH_START);
+
 	protected class ShapeView extends TiCompositeLayout {
 
 		public ShapeView(Context context) {
 			super(context);
+			setWillNotDraw(false); // or we wont draw if we dont have a
+									// background
 		}
-		@Override 
+
+		@Override
 		protected void onDraw(Canvas canvas) {
+			super.onDraw(canvas);
 			for (int i = 0; i < mShapes.size(); i++) {
 				ShapeProxy shapeProxy = mShapes.get(i);
 				shapeProxy.drawOnCanvas(canvas);
@@ -58,74 +69,52 @@ public class ShapeViewProxy extends TiViewProxy {
 	protected class TiShapeView extends TiUIView {
 		protected ShapeView nativeView;
 		private Rect nativeViewBounds;
-		
+
 		protected void onLayoutChanged(int left, int top, int right, int bottom) {
 			nativeViewBounds.set(0, 0, right - left, bottom - top);
 			for (int i = 0; i < mShapes.size(); i++) {
 				ShapeProxy shapeProxy = mShapes.get(i);
-				shapeProxy.onLayoutChanged(nativeView.getContext(), nativeViewBounds);
+				shapeProxy.onLayoutChanged(nativeView.getContext(),
+						nativeViewBounds);
 			}
-//			nativeView.requestLayout();
+			// nativeView.requestLayout();
 		}
-		
-		public void update(){
+
+		public void update() {
 			for (int i = 0; i < mShapes.size(); i++) {
 				ShapeProxy shapeProxy = mShapes.get(i);
-				shapeProxy.onLayoutChanged(nativeView.getContext(), nativeViewBounds);
+				shapeProxy.onLayoutChanged(nativeView.getContext(),
+						nativeViewBounds);
 			}
 		}
 
 		protected void createNativeView(Activity activity) {
 			nativeView = new ShapeView(activity) {
 				@Override
-				protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+				protected void onLayout(boolean changed, int left, int top,
+						int right, int bottom) {
 					super.onLayout(changed, left, top, right, bottom);
 					if (changed) {
-						
-						onLayoutChanged( left, top, right, bottom);
-						TiUIHelper.firePostLayoutEvent(proxy);
+						onLayoutChanged(left, top, right, bottom);
 					}
 				}
-				
-//				@Override
-//				protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-//				{
-//					int childCount = getChildCount();
-//					int wSuggested = getSuggestedMinimumWidth();
-//					int hSuggested = getSuggestedMinimumHeight();
-//
-//					int maxWidth = 0;
-//					int maxHeight = 0;
-//
-//					// account for padding
-//					maxWidth += getPaddingLeft() + getPaddingRight();
-//					maxHeight += getPaddingTop() + getPaddingBottom();
-//
-//					// check minimums
-//					maxWidth = Math.max(maxWidth, wSuggested);
-//					maxHeight = Math.max(maxHeight, hSuggested);
-//
-//					int measuredWidth = getMeasuredWidth(maxWidth, widthMeasureSpec);
-//					int measuredHeight = getMeasuredHeight(maxHeight,heightMeasureSpec);
-//					setMeasuredDimension(measuredWidth, measuredHeight);
-//				}
-
 			};
 			setNativeView(nativeView);
+			disableHWAcceleration(nativeView);
 		}
-
 
 		public TiShapeView(final TiViewProxy proxy, Activity activity) {
 			super(proxy);
+			hardwareAccSupported = false;
 			nativeViewBounds = new Rect();
 			createNativeView(activity);
 		}
 
 		@Override
 		public void processProperties(KrollDict d) {
-			
+
 			super.processProperties(d);
-			
+
 			Context context = nativeView.getContext();
 		}
 
@@ -134,22 +123,9 @@ public class ShapeViewProxy extends TiViewProxy {
 			super.release();
 			nativeView = null;
 		}
-		
+
 		public void redrawNativeView() {
 			super.redrawNativeView();
-		}
-		
-		@Override
-		protected void handleTouchEvent(MotionEvent event) {
-			super.handleTouchEvent(event);
-			String motionEvent = motionEvents.get(event.getAction());
-			if (motionEvent != null) {
-				KrollDict dict = dictFromEvent(event);
-				for (int i = 0; i < mShapes.size(); i++) {
-					ShapeProxy shapeProxy = mShapes.get(i);
-					shapeProxy.handleTouchEvent(motionEvent, event, dict);
-				}
-			}
 		}
 	}
 
@@ -160,19 +136,38 @@ public class ShapeViewProxy extends TiViewProxy {
 	}
 
 	@Override
+	public boolean fireEvent(String eventName, Object data, boolean bubbles) {
+		if (supportedEvents.contains(eventName) && mShapes.size() > 0) {
+			int x = -1;
+			int y = -1;
+			if (data instanceof HashMap) {
+				x = TiConvert.toInt((HashMap)data, TiC.PROPERTY_X);
+				y = TiConvert.toInt((HashMap)data, TiC.PROPERTY_Y);
+			}
+			boolean handledByChildren = false;
+			boolean result = false;
+			for (int i = 0; i < mShapes.size(); i++) {
+				ShapeProxy shapeProxy = mShapes.get(i);
+				handledByChildren |= shapeProxy.handleTouchEvent(eventName, data, bubbles, x, y);
+			}
+			if (handledByChildren && bubbles) {
+				return true;
+			}
+		}
+		return super.fireEvent(eventName, data, bubbles);
+	}
+
+	@Override
 	public TiUIView createView(Activity activity) {
 		TiUIView view = new TiShapeView(this, activity);
 		view.getLayoutParams().autoFillsHeight = true;
 		view.getLayoutParams().autoFillsWidth = true;
 		return view;
 	}
-	
 
-	
 	@Override
-	public TiUIView getOrCreateView()
-	{
-		TiUIView view =  super.getOrCreateView(true);
+	public TiUIView getOrCreateView() {
+		TiUIView view = super.getOrCreateView(true);
 		return view;
 	}
 
@@ -182,21 +177,22 @@ public class ShapeViewProxy extends TiViewProxy {
 		Log.d(TAG, "handleCreationDict ");
 		super.handleCreationDict(options);
 	}
-	
+
 	@Kroll.method
 	public void redraw() {
 		if (view != null) {
-			((TiShapeView)view).redrawNativeView();
+			((TiShapeView) view).redrawNativeView();
 		}
 	}
+
 	@Kroll.method
 	public void update() {
 		if (view != null) {
-			((TiShapeView)view).update();
-			((TiShapeView)view).redrawNativeView();
+			((TiShapeView) view).update();
+			((TiShapeView) view).redrawNativeView();
 		}
 	}
-	
+
 	private void addShape(ShapeProxy proxy) {
 		if (!mShapes.contains(proxy)) {
 			mShapes.add(proxy);
@@ -212,24 +208,31 @@ public class ShapeViewProxy extends TiViewProxy {
 		proxy.setShapeViewProxy(null);
 		redraw();
 	}
-	
+
 	@Kroll.method
-	public void add(Object shape) {
+	public void add(Object arg) {
 		Log.d(TAG, "add", Log.DEBUG_MODE);
-		if (!(shape instanceof ShapeProxy)) {
-			Log.e(TAG, "add: must be a Shape");
+		if ((arg instanceof TiViewProxy)) {
+			super.add((TiViewProxy) arg);
 			return;
+		} else if (arg instanceof ShapeProxy) {
+			addShape((ShapeProxy) arg);
+		} else if (arg instanceof HashMap) {
+			ShapeProxy proxy = (ShapeProxy) KrollProxy.createProxy(
+					ShapeProxy.class, null, new Object[] { arg }, null);
+			addShape(proxy);
+		} else {
+			Log.e(TAG, "add: must be a Shape");
 		}
-		addShape((ShapeProxy)shape);
 	}
 
 	@Kroll.method
-	public void remove(Object shape) {
+	public void remove(Object arg) {
 		Log.d(TAG, "remove", Log.DEBUG_MODE);
-		if (!(shape instanceof ShapeProxy)) {
-			Log.e(TAG, "remove: must be a shape");
+		if ((arg instanceof TiViewProxy)) {
+			super.remove((TiViewProxy) arg);
 			return;
 		}
-		removeShape((ShapeProxy)shape);
+		removeShape((ShapeProxy) arg);
 	}
 }

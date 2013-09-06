@@ -12,16 +12,28 @@ public class ShapeModule extends KrollModule
 {
 	private static final String TAG = "ShapeModule";
 	
-	@Kroll.constant public static final String PROPERTY_POINT = "point";
 	@Kroll.constant public static final String PROPERTY_RADIUS = "radius";
 	@Kroll.constant public static final String PROPERTY_ANCHOR = "anchor";
 	@Kroll.constant public static final String PROPERTY_SWEEPANGLE = "sweepAngle";
 	@Kroll.constant public static final String PROPERTY_STARTANGLE = "startAngle";
-	@Kroll.constant public static final String PROPERTY_RECT = "rect";
-	@Kroll.constant public static final String PROPERTY_WIDTH_RADIUS = "widthRadius";
-	@Kroll.constant public static final String PROPERTY_HEIGHT_RADIUS = "heightRadius";
-	@Kroll.constant public static final String PROPERTY_X_RADIUS = "xRadius";
-	@Kroll.constant public static final String PROPERTY_Y_RADIUS = "yRadius";
+	@Kroll.constant public static final String PROPERTY_LINE_COLOR = "lineColor";
+	@Kroll.constant public static final String PROPERTY_LINE_GRADIENT = "lineGradient";
+	@Kroll.constant public static final String PROPERTY_LINE_IMAGE = "lineImage";
+	@Kroll.constant public static final String PROPERTY_LINE_DASH = "lineDash";
+	@Kroll.constant public static final String PROPERTY_LINE_WIDTH = "lineWidth";
+	@Kroll.constant public static final String PROPERTY_LINE_OPACITY = "lineOpacity";
+	@Kroll.constant public static final String PROPERTY_LINE_JOIN = "lineJoin";
+	@Kroll.constant public static final String PROPERTY_LINE_CAP = "lineCap";
+	@Kroll.constant public static final String PROPERTY_LINE_SHADOW = "lineShadow";
+	@Kroll.constant public static final String PROPERTY_LINE_EMBOSS = "lineEmboss";
+	@Kroll.constant public static final String PROPERTY_FILL_COLOR = "fillColor";
+	@Kroll.constant public static final String PROPERTY_FILL_GRADIENT = "fillGradient";
+	@Kroll.constant public static final String PROPERTY_FILL_IMAGE = "fillImage";
+	@Kroll.constant public static final String PROPERTY_FILL_WIDTH = "fillWidth";
+	@Kroll.constant public static final String PROPERTY_FILL_OPACITY = "fillOpacity";
+	@Kroll.constant public static final String PROPERTY_FILL_SHADOW = "fillShadow";
+	@Kroll.constant public static final String PROPERTY_FILL_EMBOSS = "fillEmboss";
+	@Kroll.constant public static final String PROPERTY_OPERATIONS = "operations";
 
 	
 	
@@ -35,6 +47,9 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final int LOCATION_BOTTOM = 7;
 	@Kroll.constant public static final int LOCATION_LEFT = 2;
 	@Kroll.constant public static final int LOCATION_RIGHT = 5;
+
+
+	
 	@Kroll.constant public static final int CAP_BUTT = 0;
 	@Kroll.constant public static final int CAP_ROUND = 1;
 	@Kroll.constant public static final int CAP_SQUARE = 2;

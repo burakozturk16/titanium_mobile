@@ -32,10 +32,9 @@ import android.view.View;
 public class Utils {
 	private static final String TAG = "ChartsUtils";
 
-	private static final TiPoint DEFAULT_START_POINT = new TiPoint(0, 0);
+	private static final TiPoint DEFAULT_START_POINT = new TiPoint("50%", "50%");
 	private static final TiPoint DEFAULT_END_POINT = new TiPoint("0", "100%");
-	private static final TiDimension DEFAULT_RADIUS = new TiDimension(1.0,
-			TiDimension.TYPE_UNDEFINED);
+	private static final TiDimension DEFAULT_RADIUS = new TiDimension("100%", TiDimension.TYPE_UNDEFINED);
 
 	public static float getRawSize(KrollDict dict, String property,
 			String defaultValue, Context context) {
@@ -228,7 +227,8 @@ public class Utils {
 
 	public static void styleColor(KrollDict dict, String property, Paint paint) {
 		if (dict.containsKey(property)) {
-			paint.setColor(dict.getColor(property));
+			int color = dict.getColor(property);
+			paint.setColor(color);
 		}
 	}
 
@@ -362,102 +362,6 @@ public class Utils {
 			String method) {
 		styleValueFormat(dict, null, object, method);
 	}
-
-	// Gradient
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static float[] loadColors(Object[] colors, int[] result) {
-		float[] offsets = null;
-		int offsetCount = 0;
-		for (int i = 0; i < colors.length; i++) {
-			Object color = colors[i];
-			if (color instanceof HashMap) {
-				HashMap<String, Object> colorRefObject = (HashMap) color;
-				result[i] = TiConvert.toColor(colorRefObject, "color");
-
-				if (offsets == null) {
-					offsets = new float[colors.length];
-				}
-
-				float offset = TiConvert.toFloat(colorRefObject, "offset", -1);
-				if (offset >= 0.0f && offset <= 1.0f) {
-					offsets[offsetCount++] = offset;
-				}
-
-			} else {
-				result[i] = TiConvert.toColor(TiConvert.toString(color));
-			}
-		}
-
-		// If the number of offsets doesn't match the number of colors,
-		// just distribute the colors evenly along the gradient line.
-		if (offsetCount != result.length) {
-			offsets = null;
-		}
-		return offsets;
-	}
-
-	@SuppressWarnings("rawtypes")
-	public static Shader styleGradient(KrollDict properties, Context context, Rect rect) {
-		String type = properties.optString("type", "linear");
-		GradientType gradientType = GradientType.LINEAR_GRADIENT;
-		TiDimension startRadius = DEFAULT_RADIUS;
-		TiPoint startPoint = DEFAULT_START_POINT;
-		TiPoint endPoint = DEFAULT_END_POINT;
-		int radiusType = TiDimension.TYPE_WIDTH;
-		int width = rect.width();
-		int height = rect.height();
-		if (width > height)
-			radiusType = TiDimension.TYPE_HEIGHT;
-		
-		if (type.equals("radial")) {
-			startRadius = new TiDimension("50%", radiusType);
-			gradientType = GradientType.RADIAL_GRADIENT;
-			startPoint = endPoint = new TiPoint("50%", "50%");
-		}
-		
-		if (properties.containsKey("startRadius")) {
-			startRadius = TiConvert.toTiDimension(properties, "startRadius", radiusType);
-		}
-		
-		if (properties.containsKey("startPoint")) {
-			startPoint = new TiPoint((HashMap) properties.get("startPoint"), 0, 0);
-		}
-		if (properties.containsKey("endPoint")) {
-			endPoint = new TiPoint((HashMap) properties.get("endPoint"), 0, 1);
-		}
-
-		Object colors = properties.get("colors");
-		if (!(colors instanceof Object[])) {
-			Log.w(TAG, "Android does not support gradients without colors.");
-			return null;
-		}
-
-		Object[] array = (Object[]) colors;
-
-		int[] resultColors = new int[array.length];
-		float[] offsets = loadColors((Object[]) colors, resultColors);
-
-		if (gradientType == GradientType.LINEAR_GRADIENT) {
-			float x0 = rect.left + startPoint.getX().getAsPixels(context, width, height);
-			float y0 = rect.top + startPoint.getY().getAsPixels(context, width, height);
-			float x1 = rect.left + endPoint.getX().getAsPixels(context, width, height);
-			float y1 = rect.top + endPoint.getY().getAsPixels(context, width, height);
-			return new LinearGradient(x0, y0, x1, y1, resultColors, offsets,
-					TileMode.CLAMP);
-		} else {
-			float x0 = rect.left + startPoint.getX().getAsPixels(context, width, height);
-			float y0 = rect.top + startPoint.getY().getAsPixels(context, width, height);
-			float radius0 = startRadius.getAsPixels(context, width, height);
-			if (radius0 <= 0) return null; 
-			return new RadialGradient(x0, y0, radius0, resultColors, offsets, TileMode.CLAMP);
-		}
-	}
-	public static Shader styleGradient(KrollDict properties, View view) {
-		Rect rect = new Rect();
-		view.getDrawingRect(rect);
-		return styleGradient(properties, view.getContext(), rect);
-	}
-
 	
 	// Emboss
 	public static EmbossMaskFilter styleEmboss(KrollDict dict, String property) {
@@ -479,9 +383,7 @@ public class Utils {
 	
 	public static void styleEmboss(KrollDict dict, String property, Paint paint) {
         EmbossMaskFilter emf = styleEmboss(dict, property);
-		if (emf != null) {
-	        paint.setMaskFilter(emf);
-		}
+	    paint.setMaskFilter(emf);
 	}
 	
 	public static void styleEmboss(KrollDict dict, Paint paint) {
@@ -522,23 +424,34 @@ public class Utils {
 		styleDash(dict, "dash", paint, context);
 	}
 	
+	
+	public static void styleShadow(KrollDict shadowOptions, Paint[] paints, Context context) {
+		float offsetx = 0.0f;
+		float offsety = 0.0f;
+		KrollDict offset = shadowOptions.getKrollDict("offset");
+		
+		if (offset != null) {
+			offsetx = Utils.getRawSizeOrZero(offset, "y", context);
+			offsety = Utils.getRawSizeOrZero(offset, "x", context);
+		}
+		float blurRadius =  Utils.getRawSize(shadowOptions, "radius", "3");
+		int color = shadowOptions.optColor("color", Color.BLACK);	
+		for (int i = 0; i < paints.length; i++) {
+			Paint paint = paints[i];
+			paint.setShadowLayer(blurRadius, offsetx, offsety, color);
+		}
+	}
+	
+	public static void styleShadow(KrollDict shadowOptions, Paint paint, Context context) {
+		styleShadow(shadowOptions, new Paint[]{paint}, context);
+	}
+	public static void styleShadow(KrollDict shadowOptions, Paint paint) {
+		styleShadow(shadowOptions, new Paint[]{paint}, null);
+	}
 	public static void styleShadow(KrollDict dict, String property, Paint[] paints, Context context) {
 		if (dict.containsKey(property)) {
 			KrollDict shadowOptions = dict.getKrollDict(property);
-			float offsetx = 0.0f;
-			float offsety = 0.0f;
-			KrollDict offset = shadowOptions.getKrollDict("offset");
-			
-			if (offset != null) {
-				offsetx = Utils.getRawSizeOrZero(offset, "y", context);
-				offsety = Utils.getRawSizeOrZero(offset, "x", context);
-			}
-			float blurRadius = Utils.getRawSizeOrZero(shadowOptions, "radius", context);
-			int color = shadowOptions.optColor("color", Color.BLACK);	
-			for (int i = 0; i < paints.length; i++) {
-				Paint paint = paints[i];
-				paint.setShadowLayer(blurRadius, offsetx, offsety, color);
-			}
+			styleShadow(shadowOptions, paints, context);
 		}
 	}
 	
