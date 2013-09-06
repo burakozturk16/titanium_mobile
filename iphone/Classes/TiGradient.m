@@ -335,6 +335,7 @@
 
 - (CGImageRef)newSweepImageGradientInRect:(CGRect)rect
 {
+    sweepCacheSize = rect.size;
 	int w = CGRectGetWidth(rect);
 	int h = CGRectGetHeight(rect);
 	int bitsPerComponent = 8;
@@ -376,6 +377,7 @@
     if (offsetsDefined == CFArrayGetCount(colorValues))
     {
         locations = colorOffsets;
+        locationCount = offsetsDefined;
     }
     
 	byte* data = malloc(byteCount);
@@ -434,7 +436,7 @@ void angleGradient(byte* data, int w, int h, int* colors, int colorCount, float*
                 if (index >= locationCount) index = locationCount - 1;
                 nextIndex = index + 1;
                 if (nextIndex >= locationCount) nextIndex = locationCount - 1;
-                float ld = locations[nextIndex] - locations[index];
+                float ld = (locations[nextIndex] - locations[index]);
                 t = ld <= 0 ? 0 : (angle - locations[index]) / ld;
             }
             else {
