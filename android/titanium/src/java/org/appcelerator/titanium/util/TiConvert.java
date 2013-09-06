@@ -167,7 +167,7 @@ public class TiConvert
 	}
 
 	// Layout
-	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams)
+	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams, boolean withMatrix)
 	{
 		boolean dirty = false;
 		Object width = null;
@@ -268,7 +268,7 @@ public class TiConvert
 			dirty = true;
 		}
 		
-		if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+		if (withMatrix && hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
 			dirty = true;
 		}
@@ -285,6 +285,10 @@ public class TiConvert
 		}
 
 		return dirty;
+	}
+	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams)
+	{
+		return fillLayout(hashMap, layoutParams, true);
 	}
 
 	public static void updateLayoutCenter(Object value, LayoutParams layoutParams)

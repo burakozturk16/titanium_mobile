@@ -1976,36 +1976,8 @@ public abstract class TiUIView
 			AnimationLayoutParams animParams = new AnimationLayoutParams(layoutParams);
 			animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
 			animParams.animationFraction = 0.0f;
+			TiConvert.fillLayout(options, animParams, false);
 			
-			if (options.containsKey(TiC.PROPERTY_WIDTH)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_WIDTH));
-				animParams.optionWidth = (value != null)?(new TiDimension(value, TiDimension.TYPE_WIDTH)):null;
-			}
-
-			if (options.containsKey(TiC.PROPERTY_HEIGHT)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_HEIGHT));
-				animParams.optionHeight = (value != null)?(new TiDimension(value, TiDimension.TYPE_HEIGHT)):null;
-			}
-
-			if (options.containsKey(TiC.PROPERTY_LEFT)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_LEFT));
-				animParams.optionLeft = (value != null)?(new TiDimension(value, TiDimension.TYPE_LEFT)):null;
-			}
-
-			if (options.containsKey(TiC.PROPERTY_RIGHT)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_RIGHT));
-				animParams.optionRight = (value != null)?(new TiDimension(value, TiDimension.TYPE_RIGHT)):null;
-			}
-
-			if (options.containsKey(TiC.PROPERTY_TOP)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_TOP));
-				animParams.optionTop = (value != null)?(new TiDimension(value, TiDimension.TYPE_TOP)):null;
-			}
-
-			if (options.containsKey(TiC.PROPERTY_BOTTOM)) {
-				String value = TiConvert.toString(options.get(TiC.PROPERTY_BOTTOM));
-				animParams.optionBottom = (value != null)?(new TiDimension(value, TiDimension.TYPE_BOTTOM)):null;
-			}
 			setLayoutParams(animParams); //we need this because otherwise applying the matrix will override it :s
 			view.setLayoutParams(animParams);
 			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "animatedRectFraction", 1.0f);
