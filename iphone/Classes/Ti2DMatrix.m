@@ -136,14 +136,18 @@ typedef enum
     return another;
 }
 
--(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize
+-(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize decaleCenter:(BOOL)decaleCenter
 {
     CGPoint anchor;
     if (type == AffineOpRotate || type == AffineOpScale) {
         anchor = [_anchor pointWithinSize:size];
-        anchor.x = size.width/2 - anchor.x;
-        anchor.y = size.height/2 - anchor.y;
+        if (decaleCenter) {
+            anchor.x = size.width/2 - anchor.x;
+            anchor.y = size.height/2 - anchor.y;
+        }
     }
+    int inFactor = decaleCenter?-1:1;
+    int outFactor = - inFactor;
     switch (type) {
         case AffineOpTranslate: {
             CGPoint translatePoint = [_translateValue pointWithinSize:parentSize];
@@ -155,9 +159,9 @@ typedef enum
                 return CGAffineTransformRotate(transform, angle);
             }
             else {
-                CGAffineTransform result = CGAffineTransformTranslate(transform,-anchor.x,-anchor.y);
+                CGAffineTransform result = CGAffineTransformTranslate(transform, inFactor * anchor.x, inFactor * anchor.y);
                 result = CGAffineTransformRotate(result, angle);
-                return CGAffineTransformTranslate(result,anchor.x,anchor.y);
+                return CGAffineTransformTranslate(result, outFactor * anchor.x, outFactor * anchor.y);
             }
             
             break;
@@ -167,9 +171,9 @@ typedef enum
                 return CGAffineTransformScale(transform, (scaleX == 0)?0.0001:scaleX, (scaleY == 0)?0.0001:scaleY);
             }
             else {
-                CGAffineTransform result = CGAffineTransformTranslate(transform,anchor.x,anchor.y);
+                CGAffineTransform result = CGAffineTransformTranslate(transform, inFactor * anchor.x, inFactor * anchor.y);
                 result = CGAffineTransformScale(result, scaleX, scaleY);
-                return CGAffineTransformTranslate(result,-anchor.x,-anchor.y);
+                return CGAffineTransformTranslate(result, outFactor * anchor.x, outFactor * anchor.y);
             }
             
             break;
@@ -186,6 +190,10 @@ typedef enum
             return transform;
             break;
     }
+}
+-(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize
+{
+    return [self apply:transform inSize:size andParentSize:parentSize decaleCenter:YES];
 }
 @end
 
@@ -263,6 +271,15 @@ typedef enum
     CGAffineTransform result = CGAffineTransformIdentity;
     for (AffineOp* op in _operations) {
         result = [op apply:result inSize:size andParentSize:parentSize];
+    }
+    return result;
+}
+
+-(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize decaleCenter:(BOOL)decaleCenter
+{
+    CGAffineTransform result = CGAffineTransformIdentity;
+    for (AffineOp* op in _operations) {
+        result = [op apply:result inSize:size andParentSize:parentSize decaleCenter:decaleCenter];
     }
     return result;
 }

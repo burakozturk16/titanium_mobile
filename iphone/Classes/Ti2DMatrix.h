@@ -25,6 +25,7 @@
 -(Ti2DMatrix*)multiply:(id)args;
 
 -(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize;
+-(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize decaleCenter:(BOOL)decaleCenter;
 
 @end
 
