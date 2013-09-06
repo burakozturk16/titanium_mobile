@@ -560,12 +560,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (matrix != null) {
 			path.transform(matrix);
 		}
-		if(fillInversed) {
-			path.setFillType(FillType.INVERSE_EVEN_ODD);
-		}
+		path.setFillType(fillInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
 			
 		drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW);
-		path.setFillType(FillType.EVEN_ODD);
+		path.setFillType(lineInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
 		drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW);
 		
 		canvas.save();
