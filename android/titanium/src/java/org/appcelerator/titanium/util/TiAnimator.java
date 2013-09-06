@@ -48,6 +48,9 @@ public class TiAnimator
 	}
 	
 	protected void handleCancel() {
+		if (proxy != null) {
+			proxy.animationFinished(this);
+		}
 		resetAnimationProperties();
 	};
 	
@@ -148,6 +151,9 @@ public class TiAnimator
 	
 	protected void handleFinish()
 	{
+		if (proxy != null) {
+			proxy.animationFinished(this);
+		}
 		if (autoreverse == true) {
 			resetAnimationProperties();
 		}

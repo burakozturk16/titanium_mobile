@@ -27,12 +27,16 @@ import android.view.View;
 public class AnimatableProxy extends KrollProxy {
 	private static final String TAG = "AnimatableProxy";
 	protected ArrayList<TiAnimator> pendingAnimations;
+	protected ArrayList<TiAnimator> runningAnimations;
 	protected Object pendingAnimationLock;
+	protected Object runningAnimationsLock;
 
 	public AnimatableProxy() {
 		super();
 		pendingAnimations = new ArrayList<TiAnimator>();
+		runningAnimations = new ArrayList<TiAnimator>();
 		pendingAnimationLock = new Object();
+		runningAnimationsLock = new Object();
 	}
 
 	protected void handlePendingAnimation() {
@@ -46,6 +50,10 @@ public class AnimatableProxy extends KrollProxy {
 		pendingAnimation.setProxy(this);
 		pendingAnimation.applyOptions();
 		TiAnimatorSet tiSet = (TiAnimatorSet) pendingAnimation;
+		
+		synchronized (runningAnimationsLock) {
+			runningAnimations.add(pendingAnimation);
+		}
 		prepareAnimatorSet(tiSet);
 		tiSet.set().start();
 	}
@@ -159,6 +167,12 @@ public class AnimatableProxy extends KrollProxy {
 		set.addListener(new TiAnimatorListener(tiSet, options));
 
 	}
+	
+	public void animationFinished(TiAnimator animation) {
+		synchronized (runningAnimationsLock) {
+			runningAnimations.remove(animation);
+		}
+	}
 
 	public void clearAnimation(TiAnimator builder)
 	{
@@ -169,11 +183,11 @@ public class AnimatableProxy extends KrollProxy {
 
 	@Kroll.method
 	public void cancelAllAnimations() {
-		synchronized (pendingAnimationLock) {
-			for (int i = 0; i < pendingAnimations.size(); i++) {
-				pendingAnimations.get(i).cancel();
+		synchronized (runningAnimationsLock) {
+			for (int i = 0; i < runningAnimations.size(); i++) {
+				runningAnimations.get(i).cancel();
 			}
-			pendingAnimations.clear();
+			runningAnimations.clear();
 		}
 	}
 }
