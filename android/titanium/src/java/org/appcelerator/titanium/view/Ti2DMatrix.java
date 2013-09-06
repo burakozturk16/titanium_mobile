@@ -18,6 +18,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
+import android.content.Context;
 import android.graphics.Matrix;
 
 import android.view.View;
@@ -60,32 +61,30 @@ public class Ti2DMatrix extends KrollProxy {
 			this.type = type;
 		}
 
-		public void apply(View view, AffineTransform transform) {
+		public void apply(Context context, int width, int height, int parentWidth, int parentHeight, AffineTransform transform) {
 			float anchorX = 0;
 			float anchorY = 0;
 			if (type == TYPE_SCALE || type == TYPE_ROTATE) {
 				TiPoint realAnchor = this.anchor;
 				if (realAnchor == null)
 					realAnchor = DEFAULT_ANCHOR_VALUE;
-				anchorX = realAnchor.getX().getAsPixels(view);
-				anchorY = realAnchor.getY().getAsPixels(view);
+				anchorX = realAnchor.getX().getAsPixels(context, width, height);
+				anchorY = realAnchor.getY().getAsPixels(context, width, height);
 			}
 			switch (type) {
 			case TYPE_SCALE:
 				transform.scale(scaleToX, scaleToY, anchorX, anchorY);
 			case TYPE_TRANSLATE:
-				View parent = (View) view.getParent();
-				if (parent == null)
-					parent = view;
-				float translateToX = translateTo.getX().getAsPixels(parent);
-				float translateToY = translateTo.getY().getAsPixels(parent);
+				
+				float translateToX = translateTo.getX().getAsPixels(context, parentWidth, parentHeight);
+				float translateToY = translateTo.getY().getAsPixels(context, parentWidth, parentHeight);
 				transform.translate(translateToX, translateToY);
 				break;
 			case TYPE_ROTATE:
 				transform.rotate(rotateOf, anchorX, anchorY);
 				break;
 			case TYPE_MULTIPLY:
-				transform.multiply(multiplyWith.getAffineTransform(view));
+				transform.multiply(multiplyWith.getAffineTransform(context, width, height, parentWidth, parentHeight));
 				break;
 			case TYPE_INVERT:
 				transform.inverse();
@@ -228,20 +227,38 @@ public class Ti2DMatrix extends KrollProxy {
 		return getMatrix(proxy.getOuterView());
 	}
 	
-	public AffineTransform getAffineTransform(View view) {
+	public AffineTransform getAffineTransform(Context context, int width, int height, int parentWidth, int parentHeight) {
 		if (transform != null) return transform;
-		if (view == null || view.getMeasuredWidth() == 0 || view.getMeasuredHeight() == 0 ) return null;
+		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return null;
 		AffineTransform result = new AffineTransform();
 		for (Operation op : operations) {
 			if (op != null) {
-				op.apply(view, result);
+				op.apply(context, width, height, parentWidth, parentHeight, result);
 			}
 		}
 		return result;
 	}
+	
+	public AffineTransform getAffineTransform(View view) {
+		View parent = (View) view.getParent();
+		if (parent == null)
+			parent = view;
+		return getAffineTransform(view.getContext(),
+				view.getMeasuredWidth(), view.getMeasuredHeight(),
+				parent.getMeasuredWidth(), parent.getMeasuredHeight());
+	}
 
 	public Matrix getMatrix(View view) {
-		AffineTransform transform = getAffineTransform(view);
-		return (transform != null)?transform.toMatrix():null;
+		View parent = (View) view.getParent();
+		if (parent == null)
+			parent = view;
+		return getMatrix(view.getContext(),
+				view.getMeasuredWidth(), view.getMeasuredHeight(),
+				parent.getMeasuredWidth(), parent.getMeasuredHeight());
+	}
+	
+	public Matrix getMatrix(Context context, int width, int height, int parentWidth, int parentHeight) {
+		AffineTransform transform = getAffineTransform(context, width, height, parentWidth, parentHeight);
+		return (transform != null) ? transform.toMatrix() : null;
 	}
 }
