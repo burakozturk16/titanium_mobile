@@ -173,7 +173,7 @@ public class KrollDict
 		Integer result = defaultValue;
 
 		if (containsKey(key)) {
-			result = getInt(key);
+			result = TiConvert.toInt(get(key), defaultValue);
 		}
 		return result;
 	}
@@ -186,7 +186,7 @@ public class KrollDict
 		Double result = defaultValue;
 
 		if (containsKey(key)) {
-			result = getDouble(key);
+			result =  TiConvert.toDouble(get(key), defaultValue);
 		}
 		return result;
 	}
@@ -199,7 +199,7 @@ public class KrollDict
 		float result = defaultValue;
 
 		if (containsKey(key)) {
-			result = getFloat(key);
+			result = TiConvert.toFloat(get(key), defaultValue);
 		}
 		return result;
 	}

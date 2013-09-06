@@ -530,6 +530,23 @@ public class TiConvert
 			throw new NumberFormatException("Unable to convert " + value.getClass().getName());
 		}
 	}
+	
+	/**
+	 * If value is a Float, Integer, Long or String, converts it to Double. Otherwise
+	 * returns default value.
+	 * @param value the value to convert.
+	 * @param def the default value to return
+	 * @return an double value.
+	 * @module.api
+	 */
+	public static double toDouble(Object value, double def)
+	{
+		try {
+			return toDouble(value);
+		} catch (NumberFormatException e) {
+			return def;
+		}
+	}
 
 	/**
 	 * Takes a value out of a hash table then attempts to convert it using {@link #toDouble(Object)} for more details.
