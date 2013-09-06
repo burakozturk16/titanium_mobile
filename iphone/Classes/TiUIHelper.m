@@ -60,6 +60,9 @@
     if ([args objectForKey:@"radius"]) {
         result.radius = [TiUtils floatValue:[args objectForKey:@"radius"]];
     }
+    else {
+        result.radius = 3.0f; //same as Android
+    }
     return result;
 }
 @end
