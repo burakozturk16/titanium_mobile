@@ -7,6 +7,7 @@
 //
 
 #import "TiShapePieSliceProxy.h"
+#import "UIBezierPath+Additions.h"
 
 static NSString * const kAnimInnerRadius = @"innerRadius";
 

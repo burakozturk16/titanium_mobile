@@ -8,6 +8,7 @@
 
 #import "TiShapeRoundedRectProxy.h"
 #import "CustomShapeLayer.h"
+#import "UIBezierPath+Additions.h"
 
 static NSString * const kAnimCornerRadii = @"cornerRadii";
 

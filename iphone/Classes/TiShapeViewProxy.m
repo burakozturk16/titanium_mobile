@@ -20,6 +20,9 @@
 
 - (void) dealloc
 {
+    for (TiProxy* proxy in mShapes) {
+        [self forgetProxy:proxy];
+    }
 	[mShapes release];
 	[super dealloc];
 }
@@ -35,6 +38,16 @@
     return [mShapes copy];
 }
 
+static NSArray *supportedEvents;
++ (NSArray *)supportedEvents
+{
+    if (!supportedEvents)
+        supportedEvents = [[NSArray arrayWithObjects:@"click",@"dbclick",@"singtap",@"doubletap"
+                          ,@"longpress",@"touchstart", @"touchmove"
+                          , @"touchend", @"touchcancel",nil] retain];
+    
+    return supportedEvents;
+}
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
@@ -72,6 +85,7 @@
    if (shape != nil) {
        if ([mShapes indexOfObject:shape] == NSNotFound) {
            [mShapes addObject:shape];
+           [self rememberProxy:shape];
            [shape setShapeViewProxy:self];
            if ([self viewAttached]) {
                [shape boundsChanged:self.view.bounds];
@@ -98,6 +112,7 @@
     }
     ENSURE_SINGLE_ARG(child, ShapeProxy)
     if ([mShapes indexOfObject:child] != NSNotFound) {
+        [self forgetProxy:child];
         [mShapes removeObject:child];
         [child setShapeViewProxy:nil];
         if ([self viewAttached]) {
@@ -105,5 +120,38 @@
         }
     }
 }
+
+-(BOOL)_hasListeners:(NSString *)type
+{
+    BOOL handledByChildren = NO;
+    for (int i = 0; i < [mShapes count]; i++) {
+        ShapeProxy* shapeProxy = [mShapes objectAtIndex:i];
+        handledByChildren |= [shapeProxy _hasListeners:type];
+    }
+	return [super _hasListeners:type] || handledByChildren;
+}
+
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn
+{
+	if ([[TiShapeViewProxy supportedEvents] indexOfObject:type] != NSNotFound && [mShapes count] > 0) {
+        CGPoint point  = CGPointMake(-1, -1);
+        if ([obj isKindOfClass:[NSDictionary class]]) {
+            point.x = [[((NSDictionary*)obj) objectForKey:@"x"] intValue];
+            point.y = [[((NSDictionary*)obj) objectForKey:@"y"] intValue];
+        }
+        BOOL handledByChildren = NO;
+        
+        for (int i = 0; i < [mShapes count]; i++) {
+            ShapeProxy* shapeProxy = [mShapes objectAtIndex:i];
+            handledByChildren |= [shapeProxy handleTouchEvent:type withObject:obj propagate:yn point:point];
+        }
+        if (handledByChildren && yn) {
+            return YES;
+        }
+    }
+    return [super fireEvent:type withObject:obj propagate:yn];
+}
+
+
 
 @end

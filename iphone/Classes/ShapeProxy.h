@@ -41,7 +41,7 @@ enum
 @interface ShapeProxy : TiProxy<TiAnimatableProxy>
 {
     NSMutableArray* mShapes;
-    CGMutablePathRef path;
+    UIBezierPath* path;
     CGRect _parentBounds;
     CGRect _currentBounds;
     CALayer* _layer;
@@ -54,12 +54,13 @@ enum
     Ti2DMatrix* _transform;
     CGAffineTransform _realTransform;
     NSArray* _operations;
+    int type;
 }
 
 @property(nonatomic,retain) TiShapeViewProxy* shapeViewProxy;
 @property(nonatomic,retain) NSArray* operations;
 @property(nonatomic,retain) Ti2DMatrix* transform;
-@property(nonatomic,assign) int type;
+//@property(nonatomic,assign) int type;
 @property(nonatomic,assign) CGRect currentBounds;
 @property(nonatomic,readonly) CALayer* layer;
 -(void)boundsChanged:(CGRect)bounds;
@@ -75,5 +76,7 @@ enum
 -(void)updateRect:(CGRect) parentBounds;
 -(void)animationDidComplete:(TiShapeAnimation*)animation;
 -(void)update;
+-(CGAffineTransform)getRealTransformSize:(CGSize)size parentSize:(CGSize)parentSize origin:(CGPoint)origin;
+-(BOOL) handleTouchEvent:(NSString*)eventName withObject:(id)data propagate:bubbles point:(CGPoint)point;
 
 @end

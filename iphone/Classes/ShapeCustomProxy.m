@@ -24,6 +24,8 @@ static NSString * const kAnimFillColor = @"fillColor";
 static NSString * const kAnimFillOpacity = @"fillOpacity";
 static NSString * const kAnimFillGradient = @"fillGradient";
 static NSString * const kAnimFillImage = @"fillImage";
+static NSString * const kAnimFillInversed = @"fillInversed";
+static NSString * const kAnimLineInversed = @"lineInversed";
 
 
 @implementation ShapeCustomProxy
@@ -133,13 +135,13 @@ static NSString * const kAnimFillImage = @"fillImage";
 
 -(void)setLineColor:(id)color
 {
-    [self setLayerValue:(id)[[TiUtils colorValue:color] _color].CGColor forKey:kAnimLineColor];
+    [self setLayerValue:(id)[[TiUtils colorValue:color] cgColor] forKey:kAnimLineColor];
 	[self replaceValue:color forKey:kAnimLineColor notification:YES];
 }
 
 -(void)setFillColor:(id)color
 {
-    [self setLayerValue:(id)[[TiUtils colorValue:color] _color].CGColor forKey:kAnimFillColor];
+    [self setLayerValue:(id)[[TiUtils colorValue:color] cgColor] forKey:kAnimFillColor];
 	[self replaceValue:color forKey:kAnimFillColor notification:YES];
 }
 
@@ -261,6 +263,24 @@ static NSString * const kAnimFillImage = @"fillImage";
 {
     [self setLayerValue:[self loadImage:arg] forKey:kAnimFillImage];
 	[self replaceValue:arg forKey:kAnimFillImage notification:YES];
+}
+
+-(void)setLineInversed:(id)arg
+{
+    [self setLayerValue:arg forKey:kAnimLineInversed];
+	[self replaceValue:arg forKey:kAnimLineInversed notification:YES];
+}
+
+-(void)setFillInversed:(id)arg
+{
+    [self setLayerValue:arg forKey:kAnimFillInversed];
+	[self replaceValue:arg forKey:kAnimFillInversed notification:YES];
+}
+
+-(void)setLineClipped:(id)arg
+{
+    [self setLayerValue:arg forKey:@"lineClipped"];
+	[self replaceValue:arg forKey:@"lineClipped" notification:YES];
 }
 
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_

@@ -9,21 +9,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "TiUIHelper.h"
 
-@interface BezierPoint : NSObject<NSCopying>
-@property (nonatomic, readwrite, assign) CGPoint point;
-@property (nonatomic, readwrite, assign) CGPoint curvePoint1;
-@property (nonatomic, readwrite, assign) CGPoint curvePoint2;
-@property (nonatomic, readonly) BOOL curvePoint2Assigned;
-@property (nonatomic, readonly) BOOL curvePoint1Assigned;
 
-@end
-
-@interface UIBezierPath(Custom)
-+ (UIBezierPath *)bezierPathWithCustomRoundedRect:(CGRect)rect byRoundingCorners:(UIRectCorner)corners cornerRadii:(CGSize)cornerRadii;
-+ (UIBezierPath *)bezierPathWithPoints:(NSArray*)points;
-+ (UIBezierPath *)bezierPathWithPieSliceCenter:(CGPoint)center radius:(CGFloat)radius innerRadius:(CGFloat)innerRadius startAngle:(CGFloat)startAngle endAngle:(CGFloat)endAngle;
-
-@end
 
 @class ShapeCustomProxy;
 @class TiPoint;
@@ -36,8 +22,6 @@
     size_t _dashPatternCount;
     CGColorRef _lineColor;
     CGColorRef _fillColor;
-    UIImage* _lineImage;
-    UIImage* _fillImage;
     
     CGColorRef _lineShadowColor;
     CGColorRef _fillShadowColor;
@@ -67,6 +51,9 @@
 @property(nonatomic,assign) CGColorRef fillShadowColor;
 @property(nonatomic,assign) CGFloat fillShadowRadius;
 @property(nonatomic,assign) CGSize fillShadowOffset;
+@property(nonatomic,assign) BOOL lineInversed;
+@property(nonatomic,assign) BOOL fillInversed;
+@property(nonatomic,assign) BOOL lineClipped;
 
 -(void) setDashPattern:(NSArray *)dashPattern;
 +(NSArray *)animationKeys;

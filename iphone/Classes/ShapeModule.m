@@ -63,9 +63,4 @@ MAKE_SYSTEM_PROP(OP_ARC,ShapeOpArc);
 }
 #endif
 
--(id)createShape:(id)args
-{
-	return [[[ShapeProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
-}
-
 @end

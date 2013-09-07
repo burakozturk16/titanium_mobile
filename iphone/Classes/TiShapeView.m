@@ -35,6 +35,11 @@
 }
 
 
+- (BOOL)hasTouchableListener
+{
+	return YES;
+}
+
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
     [super frameSizeChanged:frame bounds:bounds];

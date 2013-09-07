@@ -9,137 +9,10 @@
 #import "CustomShapeLayer.h"
 #import "ShapeCustomProxy.h"
 
-@implementation BezierPoint
-@synthesize curvePoint1, curvePoint2, curvePoint1Assigned, curvePoint2Assigned;
-
-
--(void)setCurvePoint1:(CGPoint)value
-{
-    curvePoint1 = value;
-    curvePoint1Assigned = YES;
-}
-
--(void)setCurvePoint2:(CGPoint)value
-{
-    curvePoint2 = value;
-    curvePoint2Assigned = YES;
-}
-
-- (id)copyWithZone:(NSZone *)zone {
-    BezierPoint* copy = [[BezierPoint alloc] init];
-    copy.point = self.point;
-    if(self.curvePoint1Assigned) {
-        copy.curvePoint1 = self.curvePoint1;
-    }
-    if(self.curvePoint2Assigned) {
-        copy.curvePoint2 = self.curvePoint2;
-    }
-    return copy;
-}
-
-@end
-
-@implementation UIBezierPath(Custom)
-
-+ (UIBezierPath *)bezierPathWithCustomRoundedRect:(CGRect)rect byRoundingCorners:(UIRectCorner)corners cornerRadii:(CGSize)cornerRadii
-{
-    CGMutablePathRef path = CGPathCreateMutable();
-    
-    const CGPoint topLeft = rect.origin;
-    const CGPoint topRight = CGPointMake(CGRectGetMaxX(rect), CGRectGetMinY(rect));
-    const CGPoint bottomRight = CGPointMake(CGRectGetMaxX(rect), CGRectGetMaxY(rect));
-    const CGPoint bottomLeft = CGPointMake(CGRectGetMinX(rect), CGRectGetMaxY(rect));
-    
-    if (corners & UIRectCornerTopLeft) {
-        CGPathMoveToPoint(path, NULL, topLeft.x+cornerRadii.width, topLeft.y);
-    } else {
-        CGPathMoveToPoint(path, NULL, topLeft.x, topLeft.y);
-    }
-    
-    if (corners & UIRectCornerTopRight) {
-        CGPathAddLineToPoint(path, NULL, topRight.x-cornerRadii.width, topRight.y);
-        CGPathAddCurveToPoint(path, NULL, topRight.x, topRight.y, topRight.x, topRight.y+cornerRadii.height, topRight.x, topRight.y+cornerRadii.height);
-    } else {
-        CGPathAddLineToPoint(path, NULL, topRight.x, topRight.y);
-    }
-    
-    if (corners & UIRectCornerBottomRight) {
-        CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y-cornerRadii.height);
-        CGPathAddCurveToPoint(path, NULL, bottomRight.x, bottomRight.y, bottomRight.x-cornerRadii.width, bottomRight.y, bottomRight.x-cornerRadii.width, bottomRight.y);
-    } else {
-        CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y);
-    }
-    
-    if (corners & UIRectCornerBottomLeft) {
-        CGPathAddLineToPoint(path, NULL, bottomLeft.x+cornerRadii.width, bottomLeft.y);
-        CGPathAddCurveToPoint(path, NULL, bottomLeft.x, bottomLeft.y, bottomLeft.x, bottomLeft.y-cornerRadii.height, bottomLeft.x, bottomLeft.y-cornerRadii.height);
-    } else {
-        CGPathAddLineToPoint(path, NULL, bottomLeft.x, bottomLeft.y);
-    }
-    
-    if (corners & UIRectCornerTopLeft) {
-        CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y+cornerRadii.height);
-        CGPathAddCurveToPoint(path, NULL, topLeft.x, topLeft.y, topLeft.x+cornerRadii.width, topLeft.y, topLeft.x+cornerRadii.width, topLeft.y);
-    } else {
-        CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y);
-    }
-    
-    CGPathCloseSubpath(path);
-    
-    return [UIBezierPath bezierPathWithCGPath:path];
-}
-+ (UIBezierPath *)bezierPathWithPoints:(NSArray*)points {
-    CGMutablePathRef path = CGPathCreateMutable();
-    
-    BOOL firstOne = YES;
-    for (BezierPoint* bezierPoint in points) {
-        if (firstOne) {
-            firstOne = NO;
-            CGPoint point = bezierPoint.point;
-            CGPathMoveToPoint(path, NULL,point.x, point.y);
-        }
-        else {
-            if (bezierPoint.curvePoint2Assigned && bezierPoint.curvePoint1Assigned) {
-                CGPoint point = bezierPoint.point;
-                CGPoint curvePoint1 = bezierPoint.curvePoint1;
-                CGPoint curvePoint2 = bezierPoint.curvePoint2;
-                CGPathAddCurveToPoint(path, NULL, curvePoint1.x, curvePoint1.y, curvePoint2.x, curvePoint2.y, point.x, point.y);
-            }
-            else if (bezierPoint.curvePoint1Assigned) {
-                CGPoint point = bezierPoint.point;
-                CGPoint curvePoint1 = bezierPoint.curvePoint1;
-                CGPathAddQuadCurveToPoint(path, NULL, curvePoint1.x, curvePoint1.y, point.x, point.y);
-            }
-            else {
-                CGPoint point = bezierPoint.point;
-                CGPathAddLineToPoint(path, NULL, point.x, point.y);
-            }
-        }
-    }
-    return [UIBezierPath bezierPathWithCGPath:path];
-}
-
-+ (UIBezierPath *)bezierPathWithPieSliceCenter:(CGPoint)center radius:(CGFloat)radius innerRadius:(CGFloat)innerRadius startAngle:(CGFloat)startAngle endAngle:(CGFloat)endAngle
-{
-    CGMutablePathRef path = CGPathCreateMutable();
-    
-    BOOL clockwise = endAngle < startAngle;
-    
-    if (innerRadius == 0.0f) {
-        CGPathMoveToPoint(path, NULL,center.x, center.y);
-        CGPathAddArc(path, NULL, center.x, center.y, radius, startAngle, endAngle, clockwise);
-    }
-    else {
-        CGPathAddArc(path, NULL, center.x, center.y, innerRadius, startAngle, endAngle, clockwise);
-        CGPathAddArc(path, NULL, center.x, center.y, radius, endAngle, startAngle, !clockwise);
-    }
-    CGPathCloseSubpath(path);
-    return [UIBezierPath bezierPathWithCGPath:path];
-}
-@end
+#import "UIBezierPath+Additions.h"
 
 @implementation CustomShapeLayer
-@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage;
+@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed;
 
 - (id)init {
     if (self = [super init])
@@ -151,6 +24,8 @@
         
         fillOpacity = lineOpacity = 1.0f;
         lineShadowOffset = fillShadowOffset = CGSizeZero;
+        lineInversed = fillInversed = NO;
+        lineClipped = NO;
     }
     return self;
 }
@@ -183,6 +58,8 @@
         self.fillShadowRadius = customLayer.fillShadowRadius;
         self.lineImage = customLayer.lineImage;
         self.fillImage = customLayer.fillImage;
+        self.fillInversed = customLayer.fillInversed;
+        self.lineInversed = customLayer.lineInversed;
     }
     return self;
 }
@@ -252,33 +129,63 @@ static NSArray *animationKeys;
     return [UIBezierPath bezierPath];
 }
 
+-(void)addPathToContext:(CGContextRef)context path:(CGPathRef)path_ transform:(CGAffineTransform)transform_
+{
+    CGContextBeginPath(context);
+    if (!CGAffineTransformIsIdentity(transform_)) {
+        path_ = CGPathCreateCopyByTransformingPath(path_, &transform_);
+    }
+    CGContextAddPath(context, path_);
+}
+
+-(void)fillContext:(CGContextRef)context color:(CGColorRef)color image:(UIImage*)image gradient:(TiGradient*)gradient opacity:(CGFloat)opacity
+{
+    CGContextSetAlpha(context, opacity);
+    if (color) {
+        CGContextSetFillColorWithColor(context, color);
+        CGContextFillRect(context, self.bounds);
+    }
+    if (gradient || image) {
+        if (gradient) {
+            [gradient paintContext:context bounds:self.bounds];
+        }
+        if (image) {
+            CGContextScaleCTM (context, 1, -1);
+            CGRect imageRect = CGRectMake(0, 0, image.size.width, image.size.height);
+            CGContextDrawTiledImage(context, imageRect, image.CGImage);
+        }
+    }
+}
+
+-(void)fillPath:(CGContextRef)context color:(CGColorRef)color opacity:(CGFloat)opacity
+{
+    CGContextSetAlpha(context, opacity);
+    if (color) {
+        CGContextSetFillColorWithColor(context, color);
+        CGContextFillPath(context);
+    }
+}
+
 - (void)drawBPath:(UIBezierPath *)bPath_ inContext:(CGContextRef)context
 {
     CGContextSetAllowsAntialiasing(context, YES);
     CGContextSetShouldAntialias(context, YES);
-    CGRect currentBounds = CGRectZero;
+    CGRect currentBounds = bPath_.bounds; //bounds without stroke
+    CGAffineTransform transform = [_proxy getRealTransformSize:currentBounds.size parentSize:self.bounds.size origin:currentBounds.origin];
     if (_fillColor || fillGradient || fillImage) {
         CGContextSaveGState(context);
-        CGContextBeginPath(context);
-        CGContextAddPath(context, bPath_.CGPath);
-        CGContextSetAlpha(context, self.fillOpacity);
         if (_fillShadowColor) CGContextSetShadowWithColor(context, fillShadowOffset, fillShadowRadius, _fillShadowColor);
-        CGContextSetFillColorWithColor(context, _fillColor);
-        CGContextFillPath(context);
-        
-        if (fillGradient || fillImage) {
-            currentBounds = CGContextGetPathBoundingBox(context);
-            CGContextBeginPath(context);
-            CGContextAddPath(context, bPath_.CGPath);
+        if (fillInversed) {
+            [self fillContext:context color:_fillColor image:fillImage gradient:fillGradient opacity:fillOpacity];
+            [self addPathToContext:context path:bPath_.CGPath transform:transform];
+            CGContextSetBlendMode(context, kCGBlendModeDestinationOut);
+            CGContextSetGrayFillColor(context, 1, 1); //to make sure we remove everything
+            CGContextFillPath(context);
+        }
+        else {
+            [self addPathToContext:context path:bPath_.CGPath transform:transform];
             CGContextClip(context);
-            if (fillGradient) {
-                [fillGradient paintContext:context bounds:self.bounds];
-            }
-            if (fillImage) {
-                CGContextScaleCTM (context, 1, -1);
-                CGRect imageRect = CGRectMake(0, 0, fillImage.size.width, fillImage.size.height);
-                CGContextDrawTiledImage(context, imageRect, fillImage.CGImage);
-            }
+            [self fillContext:context color:_fillColor image:fillImage gradient:fillGradient opacity:fillOpacity];
         }
        
         CGContextRestoreGState(context);
@@ -287,35 +194,38 @@ static NSArray *animationKeys;
     if (_lineColor || lineGradient || lineImage) {
         CGContextSaveGState(context);
         
-        CGContextSetAlpha(context, self.lineOpacity);
-        CGContextBeginPath(context);
-        CGContextAddPath(context, bPath_.CGPath);
-        
-        if (_lineShadowColor) CGContextSetShadowWithColor(context, lineShadowOffset, lineShadowRadius, _lineShadowColor);
-        CGContextSetStrokeColorWithColor(context, _lineColor);
+        CGContextSetFillColorWithColor(context, _lineColor);
         CGContextSetLineWidth(context, self.lineWidth);
         CGContextSetLineCap(context, lineCap);
         CGContextSetLineJoin(context, lineJoin);
         if (_dashPattern) {
             CGContextSetLineDash(context, dashPhase, _cgDashPattern, _dashPatternCount);
         }
-        CGContextStrokePath(context);
         
-        CGContextBeginPath(context);
-        CGContextAddPath(context, bPath_.CGPath);
-        CGContextReplacePathWithStrokedPath(context);
-        currentBounds = CGContextGetPathBoundingBox(context);
-        
-        if (lineGradient || lineImage) {
+        if (_lineShadowColor) CGContextSetShadowWithColor(context, lineShadowOffset, lineShadowRadius, _lineShadowColor);
+        if (lineInversed) {
+            [self fillContext:context color:_lineColor image:lineImage gradient:lineGradient opacity:lineOpacity];
+            CGContextSetBlendMode(context, kCGBlendModeDestinationOut);
+            
+            [self addPathToContext:context path:bPath_.CGPath transform:transform];
+            CGContextReplacePathWithStrokedPath(context);
+            currentBounds = CGContextGetPathBoundingBox(context);
+            CGContextFillPath(context);
+        }
+        else {
+            [self addPathToContext:context path:bPath_.CGPath transform:transform];
+            if (lineClipped) {
+                CGPathRef path = CGContextCopyPath(context);
+                CGContextClip(context);
+                CGContextAddPath(context, path);
+            }
+            CGContextReplacePathWithStrokedPath(context);
+            CGPathRef strokePath = CGContextCopyPath(context);
+            currentBounds = CGContextGetPathBoundingBox(context);
+            [self fillPath:context color:_lineColor opacity:lineOpacity]; //to get the shadow
+            CGContextAddPath(context, strokePath);
             CGContextClip(context);
-            if (lineGradient) {
-                [lineGradient paintContext:context bounds:self.bounds];
-            }
-            if (lineImage) {
-                CGContextScaleCTM (context, 1, -1);
-                CGRect imageRect = CGRectMake(0, 0, fillImage.size.width, fillImage.size.height);
-                CGContextDrawTiledImage(context, imageRect, lineImage.CGImage);
-            }
+            [self fillContext:context color:nil image:lineImage gradient:lineGradient opacity:lineOpacity];
         }
         CGContextRestoreGState(context);
     }

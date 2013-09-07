@@ -8,6 +8,7 @@
 
 #import "TiShapeLineProxy.h"
 #import "CustomShapeLayer.h"
+#import "UIBezierPath+Additions.h"
 
 static NSString * const kAnimPoints = @"points";
 @interface CustomLineShapeLayer: CustomShapeLayer
