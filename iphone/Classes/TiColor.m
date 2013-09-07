@@ -74,4 +74,10 @@
 	return self.name;
 }
 
+
+- (CGColorRef)cgColor
+{
+	return self.color.CGColor;
+}
+
 @end
