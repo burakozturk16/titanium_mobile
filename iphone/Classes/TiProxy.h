@@ -111,7 +111,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 	NSString *krollDescription;
 	pthread_rwlock_t listenerLock;
 	BOOL reproxying;
-    BOOL initPropertiesOnCreation;
+//    BOOL initPropertiesOnCreation;
 @protected
 	NSMutableDictionary *dynprops; 
 	pthread_rwlock_t dynpropsLock; // NOTE: You must respect the dynprops lock when accessing dynprops elsewhere!

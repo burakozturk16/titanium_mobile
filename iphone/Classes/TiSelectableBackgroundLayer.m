@@ -68,7 +68,6 @@
         } else {
             layer.magnificationFilter = @"linear";
         }
-        id content = layer.contents;
         [layer setContents:(id)_bufferImage.CGImage];
     }
     if (animated) {
@@ -195,7 +194,6 @@
     
 	[super setBounds:bounds];
     if (needsToUpdate) {
-        CGSize size = self.frame.size;
         _needsToSetDrawables = NO;
         [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
             if (drawable != nil) {
@@ -314,7 +312,6 @@
         readyToCreateDrawables = value;
         if (readyToCreateDrawables) {
             if (self.frame.size.width != 0 && self.frame.size.height!= 0) {
-                CGSize size = self.frame.size;
                 [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
                     if (drawable != nil) {
                         [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];

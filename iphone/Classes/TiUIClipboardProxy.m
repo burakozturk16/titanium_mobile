@@ -54,6 +54,7 @@ static NSString *mimeTypeToUTType(NSString *mimeType)
 		// Should we do this? Lets us copy/paste custom data, anyway.
 		uti = mimeType;
 	}
+    else [uti autorelease];
 	return uti;
 }
 

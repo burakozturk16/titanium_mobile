@@ -40,29 +40,17 @@ enum
 @class Ti2DMatrix;
 @interface ShapeProxy : TiProxy<TiAnimatableProxy>
 {
-    NSMutableArray* mShapes;
-    UIBezierPath* path;
     CGRect _parentBounds;
     CGRect _currentBounds;
     CALayer* _layer;
-    CAShapeLayer* _strokeLayer;
-    CAShapeLayer* _fillLayer;
-    BOOL _configurationSet;
-    TiShapeAnimation* pendingAnimation_;
-//    TiGradientLayer* _strokeGradientLayer;
-//    TiGradientLayer* _fillGradientLayer;
-    Ti2DMatrix* _transform;
-    CGAffineTransform _realTransform;
-    NSArray* _operations;
-    int type;
 }
 
-@property(nonatomic,retain) TiShapeViewProxy* shapeViewProxy;
+@property(nonatomic,assign) TiShapeViewProxy* shapeViewProxy;
 @property(nonatomic,retain) NSArray* operations;
 @property(nonatomic,retain) Ti2DMatrix* transform;
-//@property(nonatomic,assign) int type;
 @property(nonatomic,assign) CGRect currentBounds;
-@property(nonatomic,readonly) CALayer* layer;
+//@property(nonatomic,readonly) CALayer* layer;
+
 -(void)boundsChanged:(CGRect)bounds;
 -(CGPoint) computePoint:(TiPoint*)center withAnchor:(int)anchor inSize:(CGSize)size decale:(CGSize)decale;
 -(CGFloat*) arrayFromNSArray:(NSArray*)array;
@@ -78,5 +66,6 @@ enum
 -(void)update;
 -(CGAffineTransform)getRealTransformSize:(CGSize)size parentSize:(CGSize)parentSize origin:(CGPoint)origin;
 -(BOOL) handleTouchEvent:(NSString*)eventName withObject:(id)data propagate:bubbles point:(CGPoint)point;
-
+-(void)removeFromSuperLayer;
+-(CALayer*) layer;
 @end

@@ -14,7 +14,7 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiUITextWidgetProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"paddingLeft",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"paddingLeft",
                                               @"paddingRight",@"leftButtonPadding",@"rightButtonPadding",
                                               @"editable", @"enabled", @"hintText", @"minimumFontSize",
                                               @"clearOnEdit", @"borderStyle", @"clearButtonMode",

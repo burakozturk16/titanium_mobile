@@ -14,7 +14,7 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiUITextWidgetProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"enabled",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"enabled",
                                               @"scrollable",@"editable",@"autoLink",
                                               @"borderStyle", nil]];
 }

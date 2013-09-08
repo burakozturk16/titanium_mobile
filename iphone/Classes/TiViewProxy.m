@@ -934,7 +934,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	for (TiViewProxy * thisChildProxy in subproxies)
 	{        
         if (isHorizontal) {
-            sandBox = CGRectZero;
             sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
             thisWidth = sandBox.origin.x + sandBox.size.width;
         }
@@ -991,7 +990,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	{
         if ([thisChildProxy isHidden]) continue;
         if (!isAbsolute) {
-            sandBox = CGRectZero;
             sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
             thisHeight = sandBox.origin.y + sandBox.size.height;
         }

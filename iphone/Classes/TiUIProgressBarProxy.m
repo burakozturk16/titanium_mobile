@@ -18,7 +18,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"min",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"min",
                                               @"max", @"value", @"font",
                                               @"color", @"message", nil]];
 }

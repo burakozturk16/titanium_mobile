@@ -334,7 +334,7 @@
 	ENSURE_ARG_COUNT(args, 2);
 	NSUInteger replaceIndex = [TiUtils intValue:[args objectAtIndex:0]];
 	TiUIListSectionProxy *section = [args objectAtIndex:1];
-	ENSURE_TYPE_OR_NIL(section, TiUIListSectionProxy);
+	ENSURE_TYPE(section, TiUIListSectionProxy);
 	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
 	[self rememberProxy:section];

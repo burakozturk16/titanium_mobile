@@ -66,10 +66,10 @@
     BOOL searchActivated;
 	BOOL filterCaseInsensitive;
 	BOOL allowsSelectionSet;
-	id	lastFocusedView; //DOES NOT RETAIN.	
+//	id	lastFocusedView; //DOES NOT RETAIN.	
 	UITableViewController *tableController;
 	UISearchDisplayController *searchController;
-	NSInteger frameChanges;
+//	NSInteger frameChanges;
     TiViewProxy* headerViewProxy;
     TiViewProxy* footerViewProxy;
     BOOL viewWillDetach;

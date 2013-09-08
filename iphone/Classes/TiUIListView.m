@@ -79,10 +79,10 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     _tableView.delegate = nil;
     _tableView.dataSource = nil;
-    [_tableView release];
-    [_templates release];
-    [_templatesSizeProxies release];
-    [_defaultItemTemplate release];
+    RELEASE_TO_NIL(_tableView);
+    RELEASE_TO_NIL(_templates);
+    RELEASE_TO_NIL(_templatesSizeProxies);
+    RELEASE_TO_NIL(_defaultItemTemplate);
     RELEASE_TO_NIL(_searchResults);
     RELEASE_TO_NIL(_pullViewWrapper);
     RELEASE_TO_NIL(_pullViewProxy);
@@ -1575,7 +1575,6 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     BOOL viaSearch = [self isSearchActive];
     UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
     CGPoint point = [recognizer locationInView:theTableView];
-    CGPoint pointInView = [recognizer locationInView:self];
     NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
     indexPath = [self pathForSearchPath:indexPath];
     if (indexPath != nil) {
@@ -1599,7 +1598,6 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         BOOL viaSearch = [self isSearchActive];
         UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
         CGPoint point = [recognizer locationInView:theTableView];
-        CGPoint pointInView = [recognizer locationInView:self];
         NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
         indexPath = [self pathForSearchPath:indexPath];
         

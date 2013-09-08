@@ -246,7 +246,7 @@
 	ENSURE_ARG_COUNT(args, 2);
 	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:0]];
 	NSDictionary *item = [args objectAtIndex:1];
-	ENSURE_TYPE_OR_NIL(item,NSDictionary);
+	ENSURE_TYPE(item,NSDictionary);
 	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
 	

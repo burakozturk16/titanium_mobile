@@ -27,6 +27,12 @@ static NSString * const kAnimInnerRadius = @"innerRadius";
     return self;
 }
 
+
+- (void) dealloc
+{
+    [super dealloc];
+}
+
 - (id) initWithLayer:(id)layer
 {
     self = [super initWithLayer:layer];

@@ -118,7 +118,6 @@
                 [self addQuadCurveToPoint:bezierPoint.point controlPoint:bezierPoint.curvePoint1];
             }
             else {
-                CGPoint point = bezierPoint.point;
                 [self addLineToPoint:bezierPoint.point];
             }
         }
@@ -133,7 +132,7 @@
 
 - (void)addPieSliceCenter:(CGPoint)center radius:(CGFloat)radius innerRadius:(CGFloat)innerRadius startAngle:(CGFloat)startAngle endAngle:(CGFloat)endAngle
 {
-    BOOL clockwise = endAngle < startAngle;
+    BOOL clockwise = endAngle > startAngle;
     
     if (innerRadius == 0.0f) {
         [self moveToPoint:center];
@@ -141,7 +140,7 @@
     }
     else {
         [self addArcWithCenter:center radius:innerRadius startAngle:startAngle endAngle:endAngle clockwise:clockwise];
-        [self addArcWithCenter:center radius:radius startAngle:startAngle endAngle:endAngle clockwise:!clockwise];
+        [self addArcWithCenter:center radius:radius startAngle:endAngle endAngle:startAngle clockwise:!clockwise];
     }
     [self closePath];
 }

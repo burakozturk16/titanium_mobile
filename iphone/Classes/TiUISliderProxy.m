@@ -15,7 +15,7 @@ NSArray* sliderKeySequence;
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"min",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"min",
                                               @"max",@"value",@"enabled",@"leftTrackLeftCap",
                                               @"leftTrackTopCap",@"rightTrackLeftCap",
                                               @"rightTrackTopCap", @"thumbImage",

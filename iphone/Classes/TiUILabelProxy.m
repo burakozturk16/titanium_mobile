@@ -53,7 +53,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"text",@"html",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"text",@"html",
                                               @"color", @"highlightedColor", @"autoLink",
                                               @"verticalAlign", @"textAlign", @"font",
                                               @"minimumFontSize", @"backgroundPaddingLeft",
@@ -87,6 +87,16 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     return self;
 }
 
+
+-(void)dealloc
+{
+    RELEASE_TO_NIL(contentString);
+    RELEASE_TO_NIL(options);
+    RELEASE_TO_NIL(_realLabelContent);
+    [super dealloc];
+}
+
+
 - (void)updateAttributeText {
     
     if (!configSet) {
@@ -94,16 +104,16 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         return; // lazy init
     }
     
-    RELEASE_TO_NIL(realLabelContent);
+    RELEASE_TO_NIL(_realLabelContent);
     switch (_contentType) {
         case kContentTypeHTML:
         {
-            realLabelContent = [[NSAttributedString alloc] initWithHTMLData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
+            _realLabelContent = [[NSAttributedString alloc] initWithHTMLData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
             break;
         }
         default:
         {
-            realLabelContent = [contentString retain];
+            _realLabelContent = [contentString retain];
             break;
         }
     }
@@ -129,7 +139,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         return [(TiUILabel*)[self view] suggestedFrameSizeToFitEntireStringConstraintedToWidth:suggestedWidth];
     else
     {
-        if (realLabelContent != nil)
+        if (_realLabelContent != nil)
         {
             CGSize resultSize = CGSizeZero;
             CGRect textPadding = CGRectZero;
@@ -150,15 +160,15 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             }
             CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
             maxSize.width -= textPadding.origin.x + textPadding.size.width;
-            if ([realLabelContent isKindOfClass:[NSAttributedString class]])
+            if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
             {
 
                 if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
                 {
-                    resultSize = [(NSAttributedString*)realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+                    resultSize = [(NSAttributedString*)_realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
                 }else {
-                    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)realLabelContent);
-                    resultSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [realLabelContent length]), NULL, maxSize, NULL);
+                    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)_realLabelContent);
+                    resultSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [_realLabelContent length]), NULL, maxSize, NULL);
                     CFRelease(framesetter);
                 }
             }
@@ -177,7 +187,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 {
                     font = [UIFont systemFontOfSize:17];
                 }
-                resultSize = [(NSString*)realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+                resultSize = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
             }
             resultSize.width += textPadding.origin.x + textPadding.size.width;
             resultSize.height += textPadding.origin.y + textPadding.size.height;
@@ -313,7 +323,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 - (void)setAttributedTextViewContent:(id)newContentString ofType:(ContentType)contentType {
     if (newContentString == nil) {
         RELEASE_TO_NIL(contentString);
-        RELEASE_TO_NIL(realLabelContent);
+        RELEASE_TO_NIL(_realLabelContent);
         _contentHash = 0;
         return;
     }
@@ -334,7 +344,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 -(id)getLabelContent
 {
-    return realLabelContent;
+    return _realLabelContent;
 }
 
 

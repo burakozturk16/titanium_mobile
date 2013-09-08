@@ -26,7 +26,7 @@
         autoreverse = NO;
         restartFromBeginning = YES;
         delay = 0;
-        repeat = 1;
+        self.repeat = [NSNumber numberWithInt:1];
         duration = 0;
         [super _initWithProperties:properties];
          if (context_!=nil)
@@ -51,6 +51,7 @@
 	RELEASE_TO_NIL(callback);
 	RELEASE_TO_NIL(_animatedProxy);
 	RELEASE_TO_NIL(delegate);
+	RELEASE_TO_NIL(repeat);
 	[super dealloc];
 }
 
@@ -174,4 +175,15 @@
     [self handleCompletedAnimation:self withFinished:!autoreverse];
 }
 
+-(float) getDuration {
+    return duration/1000;
+}
+-(float) getRepeatCount {
+    if ([repeat doubleValue] != HUGE_VALF) {
+        return [repeat intValue] - 1;
+    }
+    else {
+        return HUGE_VALF;
+    }
+}
 @end

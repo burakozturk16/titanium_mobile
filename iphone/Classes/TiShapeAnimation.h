@@ -104,7 +104,7 @@
 @property(nonatomic,readonly) ListenerEntry* callback;
 @property(nonatomic,retain) TiProxy<TiAnimatableProxy>* animatedProxy;
 
-@property(nonatomic,assign) BOOL repeat;
+@property(nonatomic,retain) NSNumber* repeat;
 @property(nonatomic,assign) BOOL autoreverse;
 @property(nonatomic,assign) BOOL restartFromBeginning;
 @property(nonatomic,assign) CGFloat delay;
@@ -115,5 +115,6 @@
 -(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context callback:(KrollCallback*)callback;
 -(void)simulateFinish:(TiProxy<TiAnimatableProxy>*)proxy;
 -(void)setCallBack:(KrollCallback*)callback_ context:(id<TiEvaluator>)context_;
-
+-(float)getRepeatCount;
+-(float) getDuration;
 @end

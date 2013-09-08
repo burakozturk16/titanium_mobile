@@ -475,7 +475,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 - (void)fireSystemEvent:(id)args
 {
-	NSString *eventName;
+	NSString *eventName = nil;
 	id argument = nil;
 	UIAccessibilityNotifications notification;
 	

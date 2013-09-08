@@ -14,7 +14,7 @@ typedef enum {
 } ContentType;
 
 @interface TiUILabelProxy : TiViewProxy {
-    id realLabelContent;
+    id _realLabelContent;
     NSString * contentString;
     int _contentHash;
     ContentType _contentType;

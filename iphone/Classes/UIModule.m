@@ -231,6 +231,11 @@ MAKE_SYSTEM_PROP(MENU_PANNING_NAV_BAR,4);
 MAKE_SYSTEM_PROP(LEFT_VIEW,0);
 MAKE_SYSTEM_PROP(RIGHT_VIEW,1);
 
+-(NSNumber*)INFINITE
+{
+    return [NSNumber numberWithDouble:HUGE_VALF];
+}
+
 
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_NORMAL,kCGBlendModeNormal, @"UI.BLEND_MODE_NORMAL", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_NORMAL");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_MULTIPLY,kCGBlendModeMultiply, @"UI.BLEND_MODE_MULTIPLY", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_MULTIPLY");
@@ -536,8 +541,8 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 {
     ENSURE_ARG_COUNT(args, 2);
     
-	NSString* convertFromValue;
-	NSString* convertToUnits;
+	NSString* convertFromValue = nil;
+	NSString* convertToUnits = nil;
     
 	ENSURE_ARG_AT_INDEX(convertFromValue, args, 0, NSString);
 	ENSURE_ARG_AT_INDEX(convertToUnits, args, 1, NSString);  

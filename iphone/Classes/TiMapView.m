@@ -484,7 +484,7 @@
         MKMapPoint pt = MKMapPointForCoordinate(coord);
         pointArray[i] = pt;             
     }
-    MKPolyline* routeLine = [[MKPolyline polylineWithPoints:pointArray count:[points count]] autorelease];
+    MKPolyline* routeLine = [MKPolyline polylineWithPoints:pointArray count:[points count]];
     free(pointArray);
     
 	// construct the MKPolylineView

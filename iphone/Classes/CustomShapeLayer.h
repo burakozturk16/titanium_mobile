@@ -26,7 +26,7 @@
     CGColorRef _lineShadowColor;
     CGColorRef _fillShadowColor;
 }
-@property(nonatomic,retain) ShapeCustomProxy* proxy;
+@property(nonatomic,assign) ShapeCustomProxy* proxy;
 @property(nonatomic,retain) TiGradient* fillGradient;
 @property(nonatomic,retain) TiGradient* lineGradient;
 @property(nonatomic,retain) UIImage* lineImage;
@@ -54,6 +54,7 @@
 @property(nonatomic,assign) BOOL lineInversed;
 @property(nonatomic,assign) BOOL fillInversed;
 @property(nonatomic,assign) BOOL lineClipped;
+@property(nonatomic,assign) BOOL retina;
 
 -(void) setDashPattern:(NSArray *)dashPattern;
 +(NSArray *)animationKeys;

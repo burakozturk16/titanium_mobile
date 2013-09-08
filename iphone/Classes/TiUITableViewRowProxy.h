@@ -25,7 +25,6 @@
 	TiDimension topCap;
 	BOOL configuredChildren;
 	int dirtyRowFlags;
-	BOOL subviewIsAnimating;
 //	TiUITableViewRowContainer * rowContainerView;
 	BOOL modifyingRow;
 	BOOL attaching;

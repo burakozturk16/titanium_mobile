@@ -228,6 +228,7 @@ DEFINE_EXCEPTIONS
                 [subview removeFromSuperview];
             }
         }
+        [self cancelAllAnimations:nil];
         [self removeFromSuperview];
         self.proxy = nil;
         self.touchDelegate = nil;
@@ -886,6 +887,7 @@ DEFINE_EXCEPTIONS
     }
     [CATransaction begin];
 	[[self layer] removeAllAnimations];
+    [[self backgroundLayer] removeAllAnimations];
 	[CATransaction commit];
 }
 

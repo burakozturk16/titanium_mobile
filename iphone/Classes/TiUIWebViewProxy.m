@@ -17,9 +17,9 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"autoDetect",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"autoDetect",
                                               @"html",@"data",@"scalesPageToFit",
-                                              "url",@"scrollsToTop",@"disableBounce", nil]];
+                                              @"url",@"scrollsToTop",@"disableBounce", nil]];
 }
 
 static NSArray* webKeySequence;

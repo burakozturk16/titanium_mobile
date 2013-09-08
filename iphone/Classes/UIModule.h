@@ -204,6 +204,8 @@
 @property(nonatomic,readonly) NSNumber *EXTEND_EDGE_NONE;
 @property(nonatomic,readonly) NSNumber *EXTEND_EDGE_ALL;
 
+@property(nonatomic,readonly) NSNumber *INFINITE;
+
 #ifdef USE_TI_UI2DMATRIX
 -(id)create2DMatrix:(id)args;
 #endif

@@ -184,7 +184,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   self.resetTapGesture.enabled = NO;
   self.resetStrategy = ECTapping | ECPanning;
   
-  self.topViewSnapshot = [[UIView alloc] initWithFrame:self.topView.bounds];
+  self.topViewSnapshot = [[[UIView alloc] initWithFrame:self.topView.bounds] autorelease];
   [self.topViewSnapshot setAutoresizingMask:self.autoResizeToFillScreen];
   [self.topViewSnapshot addGestureRecognizer:self.resetTapGesture];
   self.grabbableBorderAmount = -1;

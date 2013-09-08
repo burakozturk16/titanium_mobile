@@ -20,22 +20,26 @@
 
 - (void) dealloc
 {
-    for (TiProxy* proxy in mShapes) {
+    for (ShapeProxy* proxy in mShapes) {
+        [proxy setShapeViewProxy:nil];
         [self forgetProxy:proxy];
     }
-	[mShapes release];
-	[super dealloc];
-}
-
--(void)_destroy
-{
 	RELEASE_TO_NIL(mShapes);
-	[super _destroy];
+	[super dealloc];
 }
 
 -(NSArray*)shapes
 {
-    return [mShapes copy];
+    return [[mShapes copy] autorelease];
+}
+
+-(void)detachView
+{
+    ENSURE_UI_THREAD_0_ARGS
+    for (ShapeProxy* shape in mShapes) {
+        [shape removeFromSuperLayer];
+    }
+	[super detachView];
 }
 
 static NSArray *supportedEvents;
@@ -64,8 +68,7 @@ static NSArray *supportedEvents;
     ENSURE_UI_THREAD_1_ARG(arg)
     [CATransaction begin];
     [CATransaction setDisableActions: YES];
-    for (int i = 0; i < [mShapes count]; i++) {
-        ShapeProxy* shapeProxy = [mShapes objectAtIndex:i];
+    for (ShapeProxy* shapeProxy in mShapes) {
         [shapeProxy boundsChanged:[self view].bounds];
     }
     [[self view] setNeedsDisplay];

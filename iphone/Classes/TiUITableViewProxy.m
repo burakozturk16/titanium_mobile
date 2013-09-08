@@ -33,9 +33,9 @@ NSArray * tableKeySequence;
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"scrollsToTop",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"scrollsToTop",
                                               @"selectedBackgroundGradient",@"data",@"allowSelection",
-                                              "allowSelectionDuringEditing",@"separatorStyle",
+                                              @"allowSelectionDuringEditing",@"separatorStyle",
                                               @"search", @"scrollIndicatorStyle", @"showVerticalScrollIndicator",
                                               @"searchHidden", @"hideSearchOnSelection", @"filterAttribute",
                                               @"index", @"filterCaseInsensitive", @"editable",
@@ -582,7 +582,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowBefore;
-    TiUITableViewSectionProxy *actionSection = section;
+//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
@@ -611,7 +611,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionBefore;
-        actionSection = newSection;
+//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -662,7 +662,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowAfter;
-    TiUITableViewSectionProxy *actionSection = section;
+//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
@@ -688,7 +688,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionAfter;
-        actionSection = newSection;
+//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -1038,7 +1038,7 @@ DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 			} else { //UITableView doesn't know we had 0 sections.
 				[ourTable beginUpdates];
-				NSRange insertedSectionRange = NSMakeRange(1, sectionRange.length - 1);
+//				NSRange insertedSectionRange = NSMakeRange(1, sectionRange.length - 1);
 				[ourTable deleteSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:ourAnimation];
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 				[ourTable endUpdates];

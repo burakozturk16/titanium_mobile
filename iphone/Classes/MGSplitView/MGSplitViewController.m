@@ -572,7 +572,7 @@
 
 -(void)loadView
 {
-    [self setView:[[MGSplitView alloc] initWithFrame:CGRectZero controller:self]];
+    [self setView:[[[MGSplitView alloc] initWithFrame:CGRectZero controller:self] autorelease]];
 }
 
 #pragma mark -

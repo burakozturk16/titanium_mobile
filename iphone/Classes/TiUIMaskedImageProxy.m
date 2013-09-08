@@ -16,7 +16,7 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"image",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
                                               @"mask",@"tint",@"mode", nil]];
 }
 

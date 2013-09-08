@@ -67,8 +67,8 @@ static NSString * const kAnimLineInversed = @"lineInversed";
 {
     _layer.frame = _parentBounds = parentBounds;
     
-    CGFloat width = parentBounds.size.width;
-    CGFloat height = parentBounds.size.height;
+//    CGFloat width = parentBounds.size.width;
+//    CGFloat height = parentBounds.size.height;
     CGSize radius = [self getRadius:parentBounds.size inProperties:[self allProperties]];
     CGPoint cgCenter = [self computePoint:_center withAnchor:self.anchor inSize:parentBounds.size decale:radius];
     
@@ -78,6 +78,7 @@ static NSString * const kAnimLineInversed = @"lineInversed";
 
 - (void) dealloc
 {
+    ((CustomShapeLayer*)self.layer).proxy = nil;
     RELEASE_TO_NIL(_center)
 	[super dealloc];
 }
@@ -283,6 +284,12 @@ static NSString * const kAnimLineInversed = @"lineInversed";
 	[self replaceValue:arg forKey:@"lineClipped" notification:YES];
 }
 
+-(void)setRetina:(id)arg
+{
+    [self setLayerValue:arg forKey:@"retina"];
+	[self replaceValue:arg forKey:@"retina" notification:YES];
+}
+
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_
 {
     CABasicAnimation *caAnim = [self animation];
@@ -317,8 +324,8 @@ static NSString * const kAnimLineInversed = @"lineInversed";
     [self addAnimationForKeyPath:kAnimFillOpacity restartFromBeginning:restartFromBeginning animation:animation holder:animations animProps:animProps];
     
     if ([animation valueForKey:kAnimCenter] || [animation valueForKey:kAnimRadius]) {
-        CGFloat width = _layer.bounds.size.width;
-        CGFloat height = _layer.bounds.size.height;
+//        CGFloat width = _layer.bounds.size.width;
+//        CGFloat height = _layer.bounds.size.height;
         CGSize radius = [self getRadius:_layer.bounds.size inProperties:animProps];
         TiPoint* center_ = [self tiPointValue:kAnimCenter properties:animProps def:[self defaultCenter]];
         CGPoint cgCenter = [self computePoint:center_ withAnchor:anchor inSize:_parentBounds.size decale:radius];
@@ -339,23 +346,16 @@ static NSString * const kAnimLineInversed = @"lineInversed";
     return anim;
 }
 
--(void)cancelAllAnimations:(id)arg
-{
-	[CATransaction begin];
-	[[_layer presentationLayer] removeAllAnimations];
-	[CATransaction commit];
-}
-
 -(void)handleAnimation:(TiShapeAnimation*)animation
 {
 	ENSURE_UI_THREAD(handleAnimation,animation)
     
     NSMutableArray* animations = [ NSMutableArray array];
     animation.animatedProxy = self;
-    CGFloat duration = animation.duration/1000;
+    CGFloat duration = [animation getDuration];
     BOOL autoreverse = animation.autoreverse;
     BOOL restartFromBeginning = animation.restartFromBeginning;
-    int repeat = animation.repeat - 1;
+    float repeat = [animation getRepeatCount];
     
     if (restartFromBeginning) {
         [self cancelAllAnimations:nil];
@@ -378,7 +378,7 @@ static NSString * const kAnimLineInversed = @"lineInversed";
         group.autoreverses = autoreverse;
         group.repeatCount = repeat;
         group.fillMode = kCAFillModeBoth;
-        [[_layer presentationLayer] addAnimation:group forKey:nil];
+        [_layer addAnimation:group forKey:nil];
     }
 }
 

@@ -22,7 +22,7 @@ static NSString * const kAnimPoints = @"points";
     //a trick to make sure we add our animationKeys
     if (self = [super init])
     {
-        self.points = [NSDictionary new];
+        self.points = [NSDictionary dictionary];
     }
     return self;
 }
@@ -32,7 +32,7 @@ static NSString * const kAnimPoints = @"points";
     self = [super initWithLayer:layer];
     if (self) {
         CustomLineShapeLayer *customLayer = (CustomLineShapeLayer *)layer;
-        self.points = [[NSDictionary alloc] initWithDictionary:customLayer.points copyItems:YES];
+        self.points = [[[NSDictionary alloc] initWithDictionary:customLayer.points copyItems:YES] autorelease];
 
     }
     return self;

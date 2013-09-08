@@ -12,14 +12,13 @@
 #import "UIBezierPath+Additions.h"
 
 @implementation CustomShapeLayer
-@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed;
+@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed, retina;
 
 - (id)init {
     if (self = [super init])
     {
         self.needsDisplayOnBoundsChange = YES;
-        self.shouldRasterize = NO;
-//        self.allowsEdgeAntialiasing = YES;
+        self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         
         fillOpacity = lineOpacity = 1.0f;
@@ -66,6 +65,7 @@
 
 - (void) dealloc
 {
+    _proxy = nil;
 	if (_fillColor) {
         [(id)_fillColor release];
         _fillColor = nil;
@@ -88,7 +88,6 @@
 	RELEASE_TO_NIL(_dashPattern)
 	RELEASE_TO_NIL(lineImage)
 	RELEASE_TO_NIL(fillImage)
-	RELEASE_TO_NIL(_proxy)
     if (_cgDashPattern) free(_cgDashPattern);
     
 	[super dealloc];
@@ -134,8 +133,12 @@ static NSArray *animationKeys;
     CGContextBeginPath(context);
     if (!CGAffineTransformIsIdentity(transform_)) {
         path_ = CGPathCreateCopyByTransformingPath(path_, &transform_);
+        CGContextAddPath(context, path_);
+        CGPathRelease(path_);
     }
-    CGContextAddPath(context, path_);
+    else {
+        CGContextAddPath(context, path_);
+    }
 }
 
 -(void)fillContext:(CGContextRef)context color:(CGColorRef)color image:(UIImage*)image gradient:(TiGradient*)gradient opacity:(CGFloat)opacity
@@ -166,21 +169,28 @@ static NSArray *animationKeys;
     }
 }
 
+
 - (void)drawBPath:(UIBezierPath *)bPath_ inContext:(CGContextRef)context
 {
+    UIGraphicsPushContext(context);
     CGContextSetAllowsAntialiasing(context, YES);
     CGContextSetShouldAntialias(context, YES);
     CGRect currentBounds = bPath_.bounds; //bounds without stroke
     CGAffineTransform transform = [_proxy getRealTransformSize:currentBounds.size parentSize:self.bounds.size origin:currentBounds.origin];
+    
     if (_fillColor || fillGradient || fillImage) {
         CGContextSaveGState(context);
         if (_fillShadowColor) CGContextSetShadowWithColor(context, fillShadowOffset, fillShadowRadius, _fillShadowColor);
         if (fillInversed) {
-            [self fillContext:context color:_fillColor image:fillImage gradient:fillGradient opacity:fillOpacity];
-            [self addPathToContext:context path:bPath_.CGPath transform:transform];
-            CGContextSetBlendMode(context, kCGBlendModeDestinationOut);
-            CGContextSetGrayFillColor(context, 1, 1); //to make sure we remove everything
-            CGContextFillPath(context);
+            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectInfinite];
+            [inversed appendPath:bPath_];
+            inversed.usesEvenOddFillRule = YES;
+            [inversed applyTransform:transform];
+            CGContextSetAlpha(context, fillOpacity);
+            CGContextSetFillColorWithColor(context, _fillColor);
+            [inversed fill];
+            [inversed addClip];
+            [self fillContext:context color:nil image:fillImage gradient:fillGradient opacity:fillOpacity];
         }
         else {
             [self addPathToContext:context path:bPath_.CGPath transform:transform];
@@ -194,41 +204,46 @@ static NSArray *animationKeys;
     if (_lineColor || lineGradient || lineImage) {
         CGContextSaveGState(context);
         
-        CGContextSetFillColorWithColor(context, _lineColor);
         CGContextSetLineWidth(context, self.lineWidth);
         CGContextSetLineCap(context, lineCap);
         CGContextSetLineJoin(context, lineJoin);
         if (_dashPattern) {
             CGContextSetLineDash(context, dashPhase, _cgDashPattern, _dashPatternCount);
         }
+        [self addPathToContext:context path:bPath_.CGPath transform:transform];
+        CGContextReplacePathWithStrokedPath(context);
+        CGPathRef strokePath = CGContextCopyPath(context);
+        currentBounds = CGContextGetPathBoundingBox(context);
         
         if (_lineShadowColor) CGContextSetShadowWithColor(context, lineShadowOffset, lineShadowRadius, _lineShadowColor);
         if (lineInversed) {
-            [self fillContext:context color:_lineColor image:lineImage gradient:lineGradient opacity:lineOpacity];
-            CGContextSetBlendMode(context, kCGBlendModeDestinationOut);
-            
-            [self addPathToContext:context path:bPath_.CGPath transform:transform];
             CGContextReplacePathWithStrokedPath(context);
-            currentBounds = CGContextGetPathBoundingBox(context);
-            CGContextFillPath(context);
+            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectInfinite];
+            [inversed appendPath:[UIBezierPath bezierPathWithCGPath:strokePath]];
+            inversed.usesEvenOddFillRule = YES;
+            [inversed applyTransform:transform];
+            CGContextSetAlpha(context, lineOpacity);
+            CGContextSetFillColorWithColor(context, _lineColor);
+            [inversed fill];
+            [inversed addClip];
+            [self fillContext:context color:nil image:lineImage gradient:lineGradient opacity:lineOpacity];
         }
         else {
-            [self addPathToContext:context path:bPath_.CGPath transform:transform];
             if (lineClipped) {
-                CGPathRef path = CGContextCopyPath(context);
-                CGContextClip(context);
-                CGContextAddPath(context, path);
+                [bPath_ addClip];
+                CGContextBeginPath(context);
+                CGContextAddPath(context, strokePath);
             }
-            CGContextReplacePathWithStrokedPath(context);
-            CGPathRef strokePath = CGContextCopyPath(context);
-            currentBounds = CGContextGetPathBoundingBox(context);
+            
             [self fillPath:context color:_lineColor opacity:lineOpacity]; //to get the shadow
             CGContextAddPath(context, strokePath);
             CGContextClip(context);
             [self fillContext:context color:nil image:lineImage gradient:lineGradient opacity:lineOpacity];
         }
+        CGPathRelease(strokePath);
         CGContextRestoreGState(context);
     }
+    UIGraphicsPopContext();
     if (_proxy && !CGRectEqualToRect(currentBounds, CGRectZero)) _proxy.currentBounds = currentBounds;
 }
 
@@ -287,5 +302,11 @@ static NSArray *animationKeys;
         _lineShadowColor = nil;
     }
     _lineShadowColor = (CGColorRef)[(id)value retain];
+}
+
+-(void)setRetina:(BOOL)retina_
+{
+    retina = retina_;
+    self.contentsScale = self.rasterizationScale = retina?[UIScreen mainScreen].scale:1;
 }
 @end

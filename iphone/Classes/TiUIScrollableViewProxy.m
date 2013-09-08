@@ -15,9 +15,9 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"currentPage",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"currentPage",
                                               @"pagingControlColor",@"pagingControlHeight",@"showPagingControl",
-                                              "pagingControlAlpha",@"overlayEnabled",
+                                              @"pagingControlAlpha",@"overlayEnabled",
                                               @"pagingControlOnTop", @"cacheSize", @"views",
                                               @"pageControlHeight", @"scrollingEnabled", @"disableBounce", nil]];
 }

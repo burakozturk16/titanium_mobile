@@ -17,6 +17,17 @@
 @interface ShapeProxy()
 {
     TiShapeViewProxy* _shapeViewProxy;
+    NSMutableArray* mShapes;
+    UIBezierPath* path;
+    
+    CAShapeLayer* _strokeLayer;
+    CAShapeLayer* _fillLayer;
+    BOOL _configurationSet;
+    TiShapeAnimation* pendingAnimation_;
+    Ti2DMatrix* _transform;
+    CGAffineTransform _realTransform;
+    NSArray* _operations;
+    int type;
 }
 
 @end
@@ -43,11 +54,14 @@
     return self;
 }
 
+-(CALayer*) layer
+{
+    return _layer;
+}
 
 +(ShapeProxy*)shapeFromArg:(id)args context:(id<TiEvaluator>)context
 {
 	id arg = nil;
-	BOOL isArray = NO;
 	
 	if ([args isKindOfClass:[ShapeProxy class]])
 	{
@@ -55,7 +69,6 @@
 	}
 	else if ([args isKindOfClass:[NSArray class]])
 	{
-		isArray = YES;
 		arg = [args objectAtIndex:0];
 		if ([arg isKindOfClass:[ShapeProxy class]])
 		{
@@ -100,11 +113,10 @@
 }
 
 - (void)setShapeViewProxy:(TiShapeViewProxy*) proxy {
-    _shapeViewProxy = [proxy retain];
+    _shapeViewProxy = proxy;
     
-    for (int i = 0; i < [mShapes count]; i++) {
-        ShapeProxy* shapeProxy = [mShapes objectAtIndex:i];
-        [shapeProxy setShapeViewProxy:proxy];
+    for (ShapeProxy* shape in mShapes) {
+        [shape setShapeViewProxy:proxy];
     }
 }
 
@@ -142,16 +154,29 @@
     for (TiProxy* proxy in mShapes) {
         [self forgetProxy:proxy];
     }
+    
     RELEASE_TO_NIL(mShapes);
-    RELEASE_TO_NIL(_layer);
-    RELEASE_TO_NIL(_fillLayer);
-    RELEASE_TO_NIL(_strokeLayer);
-    RELEASE_TO_NIL(_shapeViewProxy);
     RELEASE_TO_NIL(_transform);
     RELEASE_TO_NIL(_operations);
     RELEASE_TO_NIL(path);
-    
+    RELEASE_TO_NIL(pendingAnimation_);
+    RELEASE_TO_NIL(_fillLayer);
+    RELEASE_TO_NIL(_strokeLayer);
+    [_layer release]; // idont get this yet :s
+    RELEASE_TO_NIL(_layer);
+    _shapeViewProxy = nil;
 	[super dealloc];
+}
+
+-(void)removeFromSuperLayer
+{
+    [self cancelAllAnimations:nil];
+    for (ShapeProxy* proxy in mShapes) {
+        [proxy removeFromSuperLayer];
+    }
+    [_strokeLayer removeFromSuperlayer];
+    [_fillLayer removeFromSuperlayer];
+    [_layer removeFromSuperlayer];
 }
 
 -(void)updatePath
@@ -293,8 +318,6 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
 -(void)applyOperation:(int)operation toPath:(UIBezierPath*)path_ withProperties:(NSDictionary*)properties
 {
     CGSize size = _parentBounds.size;
-    CGFloat width = size.width;
-    CGFloat height = size.height;
     
 
     int anchor = [TiUtils intValue:@"anchor" properties:properties def:ShapeAnchorCenter];
@@ -335,7 +358,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
         {
             NSArray* points = [properties objectForKey:@"points"];
             if (points) {
-                TiPoint* tiPoint = [[TiPoint alloc] init];
+                TiPoint* tiPoint = [[[TiPoint alloc] init] autorelease];
                 NSArray* firstPoint = [points objectAtIndex:0];
                 if ([firstPoint count] >= 2) {
                     [tiPoint setX:[firstPoint objectAtIndex:0]];
@@ -443,21 +466,21 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     return result;
 }
 
--(CGPathRef)getBoudingPath:(CGPathRef)path_
-{
-    CGPathRef result = CGPathCreateCopyByStrokingPath(path_ , NULL,
-                                                      _strokeLayer.lineWidth,
-                                                      _strokeLayer.lineCap,
-                                                      _strokeLayer.lineJoin,
-                                                      _strokeLayer.miterLimit);
-    if ([self valueForKey:@"dashPattern"]) {
-        NSArray* pattern = _strokeLayer.lineDashPattern;
-        CGFloat* array = [self arrayFromNSArray:pattern];
-        result = CGPathCreateCopyByDashingPath(result, NULL, _strokeLayer.lineDashPhase, array, [pattern count]);
-        free(array);
-    }
-    return result;
-}
+//-(CGPathRef)getBoudingPath:(CGPathRef)path_
+//{
+//    CGPathRef result = CGPathCreateCopyByStrokingPath(path_ , NULL,
+//                                                      _strokeLayer.lineWidth,
+//                                                      _strokeLayer.lineCap,
+//                                                      _strokeLayer.lineJoin,
+//                                                      _strokeLayer.miterLimit);
+//    if ([self valueForKey:@"dashPattern"]) {
+//        NSArray* pattern = _strokeLayer.lineDashPattern;
+//        CGFloat* array = [self arrayFromNSArray:pattern];
+//        result = CGPathCreateCopyByDashingPath(result, NULL, _strokeLayer.lineDashPhase, array, [pattern count]);
+//        free(array);
+//    }
+//    return result;
+//}
 
 -(void)setCurrentBounds:(CGRect)currentBounds
 {
@@ -729,6 +752,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if (proxy != nil && [mShapes indexOfObject:proxy] == NSNotFound) {
         [self rememberProxy:proxy];
         [mShapes addObject:proxy];
+        [[proxy layer] removeFromSuperlayer];
         [_layer addSublayer:[proxy layer]];
         if (_strokeLayer)
             _strokeLayer.frame = _parentBounds;
@@ -767,6 +791,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if (_fillLayer) {
         [_fillLayer removeAllAnimations];
     }
+    [_layer removeAllAnimations];
 	[CATransaction commit];
 }
 
@@ -792,7 +817,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     CGFloat duration = animation.duration/1000;
     BOOL autoreverse = animation.autoreverse;
     BOOL restartFromBeginning = animation.restartFromBeginning;
-    int repeat = animation.repeat - 1;
+    int repeat = [animation getRepeatCount];
     NSMutableArray* strokeAnimations = [ NSMutableArray array];
     NSMutableArray* fillAnimations = [ NSMutableArray array];
     CABasicAnimation* animSkeleton = [[CABasicAnimation alloc] init];
@@ -804,20 +829,20 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     animation.animatedProxy = self;
     CGPathRef path_ = [self pathForAnimation:animation];
     if (path_ != nil) {
-        CABasicAnimation *caAnim = [animSkeleton copy];
+        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
         caAnim.keyPath = @"path";
         caAnim.toValue = (id)path_;
         if (restartFromBeginning) caAnim.fromValue = (id)(_strokeLayer?_strokeLayer.path:_fillLayer.path);
         
         [strokeAnimations addObject:caAnim];
         [fillAnimations addObject:caAnim];
-        CFRelease(path_);
+//        CFRelease(path_);
     }
     
     if ([animation valueForKey:@"lineDash"]) {
         NSDictionary* lineDash = [animation valueForKey:@"lineDash"];
         if ([lineDash objectForKey:@"pattern"]) {
-            CABasicAnimation *caAnim = [animSkeleton copy];
+            CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
             caAnim.keyPath = @"lineDashPattern";
             caAnim.toValue = [lineDash objectForKey:@"pattern"];
             if (restartFromBeginning) caAnim.fromValue = (id)[_strokeLayer lineDashPattern];
@@ -825,7 +850,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
             [strokeAnimations addObject:caAnim];
         }
         if ([lineDash objectForKey:@"phase"]) {
-            CABasicAnimation *caAnim = [animSkeleton copy];
+            CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
             caAnim.keyPath = @"lineDashPhase";
             caAnim.toValue = [lineDash objectForKey:@"phase"];
             if (restartFromBeginning) caAnim.fromValue = (id)[NSNumber numberWithFloat:[_strokeLayer lineDashPhase]];
@@ -833,7 +858,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
         }
     }
     if ([animation valueForKey:@"lineJoin"]) {
-        CABasicAnimation *caAnim = [animSkeleton copy];
+        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
         caAnim.keyPath = @"lineJoin";
         caAnim.toValue = [animation valueForKey:@"lineJoin"];
         if (restartFromBeginning) caAnim.fromValue = (id)[NSNumber numberWithInt:[_strokeLayer lineJoin]];
@@ -843,7 +868,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if ([animation valueForKey:@"lineColor"]) {
         UIColor* color = [[TiUtils colorValue:[animation valueForKey:@"lineColor"]] _color];
         if (color == nil) color = [UIColor clearColor];
-        CABasicAnimation *caAnim = [animSkeleton copy];
+        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
         caAnim.keyPath = @"strokeColor";
         caAnim.toValue = (id)color.CGColor;
         if (restartFromBeginning) caAnim.fromValue = (id)[_strokeLayer strokeColor];
@@ -852,7 +877,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if ([animation valueForKey:@"fillColor"]) {
         UIColor* color = [[TiUtils colorValue:[animation valueForKey:@"fillColor"]] _color];
         if (color == nil) color = [UIColor clearColor];
-        CABasicAnimation *caAnim = [animSkeleton copy];
+        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
         caAnim.keyPath = @"fillColor";
         caAnim.toValue = (id)color.CGColor;
         if (restartFromBeginning) caAnim.fromValue = (id)[_fillLayer fillColor];
@@ -861,7 +886,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     
     if (_strokeLayer) {
         CAAnimationGroup *group = [CAAnimationGroup animation];
-        group.animations = [strokeAnimations copy];
+        group.animations = strokeAnimations;
         group.delegate = animation;
         group.duration = duration;
         group.autoreverses = autoreverse;
@@ -871,7 +896,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     }
     if (_fillLayer) {
         CAAnimationGroup *group = [CAAnimationGroup animation];
-        group.animations = [fillAnimations copy];
+        group.animations = fillAnimations;
         group.delegate = animation;
         group.duration = duration;
         group.autoreverses = autoreverse;

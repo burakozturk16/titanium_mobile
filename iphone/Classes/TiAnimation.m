@@ -161,7 +161,7 @@ self.p = v;\
 		SET_FLOAT_PROP(opacity,properties);
 		SET_FLOAT_PROP(delay,properties);
 		SET_INT_PROP(curve,properties);
-		SET_INT_PROP(repeat,properties);
+		SET_FLOAT_PROP(repeat,properties);
 		SET_BOOL_PROP(visible,properties);
 		SET_BOOL_PROP(opaque,properties);
 		SET_BOOL_PROP(autoreverse,properties);

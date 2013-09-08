@@ -33,6 +33,11 @@ static NSString * const kAnimStartAngle = @"startAngle";
     return self;
 }
 
+- (void) dealloc
+{
+    [super dealloc];
+}
+
 static NSArray *animationKeys;
 + (NSArray *)animationKeys
 {

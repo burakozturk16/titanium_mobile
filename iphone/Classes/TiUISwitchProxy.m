@@ -13,7 +13,7 @@
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];
-    return [common setByAddingObjectsFromSet:[[NSSet alloc] initWithObjects:@"enabled",
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"enabled",
                                               @"value", nil]];
 }
 

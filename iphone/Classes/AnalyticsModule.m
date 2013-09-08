@@ -503,7 +503,7 @@ NSString * const TI_DB_VERSION = @"1";
 	
 	NSString * version = [NSString stringWithCString:TI_VERSION_STR encoding:NSUTF8StringEncoding];
 	NSString * os = [platform valueForKey:@"version"];
-	NSString * username = [platform valueForKey:@"username"];
+//	NSString * username = [platform valueForKey:@"username"];
 	NSString * mmodel = [platform valueForKey:@"model"];
 	NSString * nettype = [network valueForKey:@"networkTypeName"];
 	

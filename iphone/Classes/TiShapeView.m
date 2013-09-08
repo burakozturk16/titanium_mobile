@@ -17,8 +17,8 @@
     self = [super initWithFrame:frame];
     if (self) {
         // Initialization code
-        self.layer.opaque = NO;
-        self.layer.needsDisplayOnBoundsChange = YES;
+//        self.layer.opaque = NO;
+//        self.layer.needsDisplayOnBoundsChange = YES;
         
     }
     return self;
@@ -28,12 +28,17 @@
     [super initializeState];
     NSArray* shapes = [(TiShapeViewProxy*)[self proxy] shapes];
     for (ShapeProxy* shape in shapes) {
-        [self.layer addSublayer:[shape layer]];
+        CALayer* layer = [shape layer];
+        [self.layer insertSublayer:layer atIndex:0];
     }
     [(TiShapeViewProxy*)self.proxy frameSizeChanged:self.frame bounds:self.bounds];
     
 }
 
+- (void) dealloc
+{
+	[super dealloc];
+}
 
 - (BOOL)hasTouchableListener
 {

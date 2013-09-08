@@ -25,5 +25,4 @@
 -(CABasicAnimation*) animation;
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_;
 -(CABasicAnimation *)addAnimationForKeyPath:(NSString*)keyPath_ restartFromBeginning:(BOOL)restartFromBeginning_ animation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps;
-
 @end

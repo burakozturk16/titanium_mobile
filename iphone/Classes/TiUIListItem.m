@@ -75,13 +75,12 @@ DEFINE_EXCEPTIONS
     _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
     _viewHolder.proxy = _proxy;
     _viewHolder.shouldHandleSelection = NO;
-    CGRect bounds = _viewHolder.bounds;
     [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
     [_viewHolder setClipsToBounds: YES];
     [_viewHolder.layer setMasksToBounds: YES];
     [self.contentView addSubview:_viewHolder];
     _proxy.listItem = self;
-    _proxy.modelDelegate = self;
+    _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
 }
 
 -(void)setGrouped:(BOOL)grouped
@@ -144,7 +143,6 @@ DEFINE_EXCEPTIONS
             self.backgroundView = _bgView;
         }
         else if(self.backgroundView !=nil){
-            UIView* backgroundView = self.backgroundView;
             [_bgView setFrame:self.backgroundView.bounds];
             [self.backgroundView addSubview:_bgView];
         }
@@ -255,10 +253,13 @@ DEFINE_EXCEPTIONS
 - (void)dealloc
 {
 	_proxy.listItem = nil;
-    [_viewHolder release];
-    [_dataItem release];
-    [_bgView release];
-	[_proxy release];
+	_proxy.modelDelegate = nil;
+    _viewHolder.proxy = nil;
+    
+    RELEASE_TO_NIL(_viewHolder)
+    RELEASE_TO_NIL(_dataItem)
+    RELEASE_TO_NIL(_bgView)
+    RELEASE_TO_NIL(_proxy)
 	[super dealloc];
 }
 

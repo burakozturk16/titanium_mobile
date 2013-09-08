@@ -71,8 +71,9 @@ static NSArray* keysToGetFromListView;
 
 -(void) setListItem:(TiUIListItem *)newListItem
 {
-    RELEASE_TO_NIL(_listItem);
-    _listItem = [newListItem retain];
+    //we must not retain the item or we get a cyclic retain problem
+//    RELEASE_TO_NIL(_listItem);
+    _listItem = newListItem;
     view = _listItem.viewHolder;
     [view initializeState];
     viewInitialized = YES;
@@ -84,8 +85,8 @@ static NSArray* keysToGetFromListView;
 
 -(void)dealloc
 {
-    [_parentForBubbling release];
-    [_listItem release];
+    _listItem = nil;
+    _parentForBubbling = nil;
     [_initialValues release];
 	[_currentValues release];
 	[_resetKeys release];
@@ -140,7 +141,7 @@ static NSArray* keysToGetFromListView;
 {
 	if (_bindings == nil &&  unarchived) {
 		NSMutableDictionary *dict = [[NSMutableDictionary alloc] initWithCapacity:10];
-		[[self class] buildBindingsForViewProxy:self intoDictionary:dict];
+		[self buildBindingsForViewProxy:self intoDictionary:dict];
 		_bindings = [dict copy];
 		[dict release];
 	}
@@ -267,10 +268,10 @@ static NSArray* keysToGetFromListView;
 
 #pragma mark - Static
 
-+ (void)buildBindingsForViewProxy:(TiViewProxy *)viewProxy intoDictionary:(NSMutableDictionary *)dict
+- (void)buildBindingsForViewProxy:(TiViewProxy *)viewProxy intoDictionary:(NSMutableDictionary *)dict
 {
     NSInteger templateStyle = TiUIListItemTemplateStyleCustom;
-    if ([viewProxy isKindOfClass:[TiUIListItemProxy class]]) {
+    if ([viewProxy isKindOfClass:[TiUIListItemProxy class]]) { //toplevel
         TiUIListItem* listItem = ((TiUIListItemProxy*)viewProxy).listItem;
         templateStyle = (listItem != nil)?listItem.templateStyle:TiUIListItemTemplateStyleCustom;
         
@@ -280,16 +281,17 @@ static NSArray* keysToGetFromListView;
         case UITableViewCellStyleValue1:
         case UITableViewCellStyleValue2:
         case UITableViewCellStyleDefault:
-            [dict setObject:viewProxy forKey:@"imageView"];
-            [dict setObject:viewProxy forKey:@"textLabel"];
+            //only called in top level
+            [dict setObject:[viewProxy autorelease] forKey:@"imageView"];
+            [dict setObject:[viewProxy autorelease] forKey:@"textLabel"];
             break;
         default:
         {
-            NSArray* children = [viewProxy children];
-            [children enumerateObjectsUsingBlock:^(TiViewProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
-                [[self class] buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
+            NSArray* myChildren = [viewProxy children];
+            [myChildren enumerateObjectsUsingBlock:^(TiViewProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
+                [self buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
             }];
-            if (![viewProxy isKindOfClass:[self class]]) {
+            if (![viewProxy isKindOfClass:[TiUIListItemProxy class]]) {
                 id bindId = [viewProxy valueForKey:@"bindId"];
                 if (bindId != nil) {
                     [dict setObject:viewProxy forKey:bindId];

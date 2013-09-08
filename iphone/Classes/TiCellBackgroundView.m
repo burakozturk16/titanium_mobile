@@ -52,7 +52,6 @@
 {
     if (layer.mask == nil || CGSizeEqualToSize(self.bounds.size, CGSizeZero)) return;
     
-    CGRect bounds =self.bounds;
     UIBezierPath *maskPath = [UIBezierPath bezierPathWithRoundedRect:layer.bounds
                                                    byRoundingCorners:roundedCorners
                                                          cornerRadii:CGSizeMake(cornersRadius, cornersRadius)];
