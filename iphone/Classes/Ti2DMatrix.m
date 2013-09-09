@@ -136,17 +136,15 @@ typedef enum
     return another;
 }
 
--(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize decaleCenter:(BOOL)decaleCenter
+-(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize decale:(CGSize)decale
 {
     CGPoint anchor;
     if (type == AffineOpRotate || type == AffineOpScale) {
         anchor = [_anchor pointWithinSize:size];
-        if (decaleCenter) {
-            anchor.x = size.width/2 - anchor.x;
-            anchor.y = size.height/2 - anchor.y;
-        }
+        anchor.x = decale.width - anchor.x;
+        anchor.y = decale.height - anchor.y;
     }
-    int inFactor = decaleCenter?-1:1;
+    int inFactor = -1;
     int outFactor = - inFactor;
     switch (type) {
         case AffineOpTranslate: {
@@ -193,7 +191,8 @@ typedef enum
 }
 -(CGAffineTransform) apply:(CGAffineTransform)transform inSize:(CGSize)size andParentSize:(CGSize)parentSize
 {
-    return [self apply:transform inSize:size andParentSize:parentSize decaleCenter:YES];
+    CGSize decale = CGSizeMake(size.width/2, size.height/2);
+    return [self apply:transform inSize:size andParentSize:parentSize decale:decale];
 }
 @end
 
@@ -275,11 +274,11 @@ typedef enum
     return result;
 }
 
--(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize decaleCenter:(BOOL)decaleCenter
+-(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize decale:(CGSize)decale
 {
     CGAffineTransform result = CGAffineTransformIdentity;
     for (AffineOp* op in _operations) {
-        result = [op apply:result inSize:size andParentSize:parentSize decaleCenter:decaleCenter];
+        result = [op apply:result inSize:size andParentSize:parentSize decale:decale];
     }
     return result;
 }
@@ -310,7 +309,12 @@ typedef enum
 {
     Ti2DMatrix* newMatrix = [[Ti2DMatrix alloc] initWithMatrix:self];
     
-    if ([args count] >= 2) {
+    if ([args count] == 1) {
+        AffineOp* operation = [AffineOp scaleOpForMatrix:self];
+        operation.scaleX = operation.scaleY = [[args objectAtIndex:0] floatValue];
+        [newMatrix.operations addObject:operation];
+    }
+    else if ([args count] >= 2) {
         AffineOp* operation = [AffineOp scaleOpForMatrix:self];
         operation.scaleX = [[args objectAtIndex:0] floatValue];
         operation.scaleY = [[args objectAtIndex:1] floatValue];
