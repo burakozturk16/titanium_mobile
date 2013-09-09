@@ -11,21 +11,6 @@
 #import "TiShapeViewProxy.h"
 #import "ImageLoader.h"
 
-static NSString * const kAnimRadius = @"radius";
-static NSString * const kAnimCenter = @"center";
-static NSString * const kAnimLineColor = @"lineColor";
-static NSString * const kAnimLineOpacity = @"lineOpacity";
-static NSString * const kAnimLineGradient = @"lineGradient";
-static NSString * const kAnimLineImage = @"lineImage";
-static NSString * const kAnimLineJoin = @"lineJoin";
-static NSString * const kAnimLineWidth = @"lineWidth";
-static NSString * const kAnimLineCap = @"lineCap";
-static NSString * const kAnimFillColor = @"fillColor";
-static NSString * const kAnimFillOpacity = @"fillOpacity";
-static NSString * const kAnimFillGradient = @"fillGradient";
-static NSString * const kAnimFillImage = @"fillImage";
-static NSString * const kAnimFillInversed = @"fillInversed";
-static NSString * const kAnimLineInversed = @"lineInversed";
 
 
 @implementation ShapeCustomProxy
@@ -58,7 +43,7 @@ static NSString * const kAnimLineInversed = @"lineInversed";
         [CATransaction setDisableActions: YES];
     }
     [super boundsChanged:bounds];
-    if (!animating) {
+       if (!animating) {
         [CATransaction commit];
     }
 }
@@ -67,14 +52,23 @@ static NSString * const kAnimLineInversed = @"lineInversed";
 {
     _layer.frame = _parentBounds = parentBounds;
     
-//    CGFloat width = parentBounds.size.width;
-//    CGFloat height = parentBounds.size.height;
     CGSize radius = [self getRadius:parentBounds.size inProperties:[self allProperties]];
     CGPoint cgCenter = [self computePoint:_center withAnchor:self.anchor inSize:parentBounds.size decale:radius];
     
     [_layer setValue:[NSValue valueWithCGSize:radius] forKey:kAnimRadius];
     [_layer setValue:[NSValue valueWithCGPoint:cgCenter] forKey:kAnimCenter];
+    
+//    CGRect shapeBounds;
+    self.currentBounds = [(CustomShapeLayer*)_layer getBoundingBox];
+//    self.currentShapeBounds = shapeBounds;
 }
+
+-(void)updateRealTransform
+{
+    CGAffineTransform transform = [self getRealTransform:_currentShapeBounds parentSize:_parentBounds.size];
+    [self setLayerValue:[NSValue valueWithCATransform3D:CATransform3DMakeAffineTransform(transform)] forKey:kAnimShapeTransform];
+}
+
 
 - (void) dealloc
 {
@@ -289,6 +283,12 @@ static NSString * const kAnimLineInversed = @"lineInversed";
     [self setLayerValue:arg forKey:@"retina"];
 	[self replaceValue:arg forKey:@"retina" notification:YES];
 }
+//
+//-(void)setTransform:(id)transform
+//{
+//    [super setTransform:transform];
+//    [self replaceValue:transform forKey:@"transform" notification:YES];
+//}
 
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_
 {
@@ -324,8 +324,6 @@ static NSString * const kAnimLineInversed = @"lineInversed";
     [self addAnimationForKeyPath:kAnimFillOpacity restartFromBeginning:restartFromBeginning animation:animation holder:animations animProps:animProps];
     
     if ([animation valueForKey:kAnimCenter] || [animation valueForKey:kAnimRadius]) {
-//        CGFloat width = _layer.bounds.size.width;
-//        CGFloat height = _layer.bounds.size.height;
         CGSize radius = [self getRadius:_layer.bounds.size inProperties:animProps];
         TiPoint* center_ = [self tiPointValue:kAnimCenter properties:animProps def:[self defaultCenter]];
         CGPoint cgCenter = [self computePoint:center_ withAnchor:anchor inSize:_parentBounds.size decale:radius];
@@ -336,6 +334,12 @@ static NSString * const kAnimLineInversed = @"lineInversed";
         if ( !CGSizeEqualToSize(radius, ((CustomShapeLayer*)_layer).radius)) {
             [animations addObject:[self animationForKeyPath:kAnimRadius value:[NSValue valueWithCGSize:radius] restartFromBeginning:restartFromBeginning]];
         }
+    }
+    
+    if ([animation valueForKey:@"transform"]) {
+        Ti2DMatrix* matrix = [animProps objectForKey:@"transform"];
+        CGAffineTransform transform = [self prepareTransform:matrix bounds:_currentShapeBounds parentSize:_parentBounds.size];
+        [animations addObject:[self animationForKeyPath:kAnimShapeTransform value:[NSValue valueWithCATransform3D:CATransform3DMakeAffineTransform(transform)] restartFromBeginning:restartFromBeginning]];
     }
 }
 
@@ -357,9 +361,9 @@ static NSString * const kAnimLineInversed = @"lineInversed";
     BOOL restartFromBeginning = animation.restartFromBeginning;
     float repeat = [animation getRepeatCount];
     
-    if (restartFromBeginning) {
-        [self cancelAllAnimations:nil];
-    }
+//    if (restartFromBeginning) {
+//        [self cancelAllAnimations:nil];
+//    }
     
     NSMutableDictionary* animProps = [NSMutableDictionary dictionaryWithDictionary:[animation allProperties]];
     [[self allProperties] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {

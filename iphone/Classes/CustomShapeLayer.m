@@ -12,7 +12,7 @@
 #import "UIBezierPath+Additions.h"
 
 @implementation CustomShapeLayer
-@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed, retina;
+@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed, retina, shapeTransform;
 
 - (id)init {
     if (self = [super init])
@@ -25,6 +25,7 @@
         lineShadowOffset = fillShadowOffset = CGSizeZero;
         lineInversed = fillInversed = NO;
         lineClipped = NO;
+        self.shapeTransform = CATransform3DIdentity;
     }
     return self;
 }
@@ -59,6 +60,7 @@
         self.fillImage = customLayer.fillImage;
         self.fillInversed = customLayer.fillInversed;
         self.lineInversed = customLayer.lineInversed;
+        self.shapeTransform = customLayer.shapeTransform;
     }
     return self;
 }
@@ -88,6 +90,7 @@
 	RELEASE_TO_NIL(_dashPattern)
 	RELEASE_TO_NIL(lineImage)
 	RELEASE_TO_NIL(fillImage)
+//	RELEASE_TO_NIL(shapeTransform)
     if (_cgDashPattern) free(_cgDashPattern);
     
 	[super dealloc];
@@ -99,7 +102,7 @@ static NSArray *animationKeys;
     if (!animationKeys)
         animationKeys = [[NSArray arrayWithObjects:@"lineColor",@"lineCap",@"lineJoin",@"lineOpacity"
                          ,@"fillColor",@"fillOpacity", @"lineWidth"
-                         , @"center", @"dashPattern", @"dashPhase", @"radius", @"center",@"lineShadowColor",@"fillShadowColor",@"lineShadowOffset",@"fillShadowOffset",@"lineShadowRadius",@"fillShadowRadius",nil] retain];
+                         , @"center", @"dashPattern", @"dashPhase", @"radius", @"center",@"lineShadowColor",@"fillShadowColor",@"lineShadowOffset",@"fillShadowOffset",@"lineShadowRadius",@"fillShadowRadius", @"shapeTransform",nil] retain];
     
     return animationKeys;
 }
@@ -132,9 +135,9 @@ static NSArray *animationKeys;
 {
     CGContextBeginPath(context);
     if (!CGAffineTransformIsIdentity(transform_)) {
-        path_ = CGPathCreateCopyByTransformingPath(path_, &transform_);
-        CGContextAddPath(context, path_);
-        CGPathRelease(path_);
+        CGPathRef transformedPath = CGPathCreateCopyByTransformingPath(path_, &transform_);
+        CGContextAddPath(context, transformedPath);
+        CGPathRelease(transformedPath);
     }
     else {
         CGContextAddPath(context, path_);
@@ -169,20 +172,50 @@ static NSArray *animationKeys;
     }
 }
 
+CG_INLINE CGContextRef CGContextCreate(CGSize size)
+{
+	CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+	CGContextRef ctx = CGBitmapContextCreate(nil, size.width, size.height, 8, size.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
+	CGColorSpaceRelease(space);
+    
+	return ctx;
+}
+
+-(CGRect)getBoundingBox
+{
+    UIBezierPath* bPath = [self getBPath];
+    CGRect currentBounds = bPath.bounds;
+    CGRect currentFrame = self.frame;
+   _proxy.currentShapeBounds = currentBounds;
+    CGContextRef context = CGContextCreate(self.frame.size);
+    CGContextSetLineWidth(context, self.lineWidth);
+    CGContextSetLineCap(context, lineCap);
+    CGContextSetLineJoin(context, lineJoin);
+    if (_dashPattern) {
+        CGContextSetLineDash(context, dashPhase, _cgDashPattern, _dashPatternCount);
+    }
+    CGContextBeginPath(context);
+    CGContextAddPath(context, bPath.CGPath);
+    CGContextReplacePathWithStrokedPath(context);
+    //    currentBounds = CGContextGetPathBoundingBox(context); //needs fixing while rotating
+    CGContextRelease(context);
+    return currentBounds;
+}
 
 - (void)drawBPath:(UIBezierPath *)bPath_ inContext:(CGContextRef)context
 {
     UIGraphicsPushContext(context);
     CGContextSetAllowsAntialiasing(context, YES);
     CGContextSetShouldAntialias(context, YES);
-    CGRect currentBounds = bPath_.bounds; //bounds without stroke
-    CGAffineTransform transform = [_proxy getRealTransformSize:currentBounds.size parentSize:self.bounds.size origin:currentBounds.origin];
+//    CGRect currentBounds = bPath_.bounds; //bounds without stroke
+//    CGAffineTransform transform = _proxy.realTransform;
+    CGAffineTransform transform = CATransform3DGetAffineTransform(self.shapeTransform);
     
     if (_fillColor || fillGradient || fillImage) {
         CGContextSaveGState(context);
         if (_fillShadowColor) CGContextSetShadowWithColor(context, fillShadowOffset, fillShadowRadius, _fillShadowColor);
         if (fillInversed) {
-            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectInfinite];
+            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectMake(-1000000, -1000000, 2000000, 2000000)]; //infinite is too small :s
             [inversed appendPath:bPath_];
             inversed.usesEvenOddFillRule = YES;
             [inversed applyTransform:transform];
@@ -213,7 +246,7 @@ static NSArray *animationKeys;
         [self addPathToContext:context path:bPath_.CGPath transform:transform];
         CGContextReplacePathWithStrokedPath(context);
         CGPathRef strokePath = CGContextCopyPath(context);
-        currentBounds = CGContextGetPathBoundingBox(context);
+//        currentBounds = CGContextGetPathBoundingBox(context);
         
         if (_lineShadowColor) CGContextSetShadowWithColor(context, lineShadowOffset, lineShadowRadius, _lineShadowColor);
         if (lineInversed) {
@@ -244,7 +277,7 @@ static NSArray *animationKeys;
         CGContextRestoreGState(context);
     }
     UIGraphicsPopContext();
-    if (_proxy && !CGRectEqualToRect(currentBounds, CGRectZero)) _proxy.currentBounds = currentBounds;
+//    if (_proxy && !CGRectEqualToRect(currentBounds, CGRectZero)) _proxy.currentBounds = currentBounds;
 }
 
 - (void)drawInContext:(CGContextRef)context
@@ -309,4 +342,9 @@ static NSArray *animationKeys;
     retina = retina_;
     self.contentsScale = self.rasterizationScale = retina?[UIScreen mainScreen].scale:1;
 }
+
+//-(void)setShapeTransform:(CGAffineTransform)shapeTransform_
+//{
+//    shapeTransform = shapeTransform_;
+//}
 @end

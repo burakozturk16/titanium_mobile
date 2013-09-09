@@ -10,6 +10,22 @@
 #import "TiUIHelper.h"
 
 
+static NSString * const kAnimRadius = @"radius";
+static NSString * const kAnimCenter = @"center";
+static NSString * const kAnimLineColor = @"lineColor";
+static NSString * const kAnimLineOpacity = @"lineOpacity";
+static NSString * const kAnimLineGradient = @"lineGradient";
+static NSString * const kAnimLineImage = @"lineImage";
+static NSString * const kAnimLineJoin = @"lineJoin";
+static NSString * const kAnimLineWidth = @"lineWidth";
+static NSString * const kAnimLineCap = @"lineCap";
+static NSString * const kAnimFillColor = @"fillColor";
+static NSString * const kAnimFillOpacity = @"fillOpacity";
+static NSString * const kAnimFillGradient = @"fillGradient";
+static NSString * const kAnimFillImage = @"fillImage";
+static NSString * const kAnimFillInversed = @"fillInversed";
+static NSString * const kAnimLineInversed = @"lineInversed";
+static NSString * const kAnimShapeTransform = @"shapeTransform";
 
 @class ShapeCustomProxy;
 @class TiPoint;
@@ -34,6 +50,7 @@
 @property(nonatomic,retain) NSArray* dashPattern;
 @property(nonatomic) CGColorRef lineColor;
 @property(nonatomic) CGColorRef fillColor;
+@property(nonatomic, assign) CATransform3D shapeTransform;
 
 @property(nonatomic,assign) CGPoint center;
 @property(nonatomic,assign) CGSize radius;
@@ -58,4 +75,5 @@
 
 -(void) setDashPattern:(NSArray *)dashPattern;
 +(NSArray *)animationKeys;
+-(CGRect)getBoundingBox;
 @end

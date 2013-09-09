@@ -32,7 +32,8 @@
 
 @end
 @implementation ShapeProxy
-@synthesize shapeViewProxy = _shapeViewProxy, operations = _operations, currentBounds = _currentBounds, transform = _transform;
+@synthesize shapeViewProxy = _shapeViewProxy, operations = _operations, currentBounds = _currentBounds, transform = _transform, realTransform = _realTransform, currentShapeBounds = _currentShapeBounds,
+parentBounds = _parentBounds;
 
 
 + (Class)layerClass {
@@ -122,32 +123,35 @@
 
 -(void)updateRealTransform
 {
-    _realTransform = [self getRealTransformSize:_currentBounds.size parentSize:_parentBounds.size origin:CGPointZero];
+    _realTransform = [self getRealTransform:_currentShapeBounds parentSize:_parentBounds.size];
+    [path applyTransform:_realTransform];
+    
+    if (_strokeLayer) {
+        _strokeLayer.path = path.CGPath;
+    }
+    if (_fillLayer) {
+        _fillLayer.path = path.CGPath;
+    }
 }
 
--(CGAffineTransform)getRealTransformSize:(CGSize)size parentSize:(CGSize)parentSize origin:(CGPoint)origin
+
+-(CGAffineTransform)prepareTransform:(Ti2DMatrix*)matrix bounds:(CGRect)bounds parentSize:(CGSize)parentSize
+{
+    CGSize decale = CGSizeMake(-bounds.origin.x, -bounds.origin.y);
+//    CGPoint center = CGPointMake(parentSize.width/2 - bounds.origin.x - bounds.size.width/2, parentSize.height/2 - bounds.origin.y - bounds.size.height/2);
+//    CGAffineTransform transform = CGAffineTransformMakeTranslation(center.x, center.y);
+    CGAffineTransform transform = [matrix matrixInViewSize:bounds.size andParentSize:parentSize decale:decale];
+//    transform = CGAffineTransformTranslate(transform, -center.x, -center.y);
+    return transform;
+}
+
+-(CGAffineTransform)getRealTransform:(CGRect)bounds parentSize:(CGSize)parentSize
 {
     if (_transform) {
-//        CGAffineTransform transform = CGAffineTransformMakeTranslation(origin.x, origin.y);
-        CGAffineTransform transform = [_transform matrixInViewSize:size andParentSize:parentSize decaleCenter:NO];
-        transform = CGAffineTransformTranslate(transform, origin.x, origin.y);
-        return transform;
+        return [self prepareTransform:_transform bounds:bounds parentSize:parentSize];
     }
     return CGAffineTransformIdentity;
 }
-
--(void)setTransform:(id)transform
-{
-    ENSURE_SINGLE_ARG_OR_NIL(transform, Ti2DMatrix)
-    _realTransform = CGAffineTransformIdentity;
-    if (transform != nil) {
-        _transform = [transform retain];
-    }
-    else {
-        _transform = nil;
-    }
-}
-
 
 - (void) dealloc
 {
@@ -187,16 +191,7 @@
     
     [self updatePath:path];
     
-    self.currentBounds = [path bounds];
-    [self updateRealTransform];
-    [path applyTransform:_realTransform];
-    
-    if (_strokeLayer) {
-        _strokeLayer.path = path.CGPath;
-    }
-    if (_fillLayer) {
-        _fillLayer.path = path.CGPath;
-    }
+    self.currentBounds = self.currentShapeBounds = [path bounds];
 }
 
 -(CGPoint) computePoint:(TiPoint*)center_ withAnchor:(int)anchor_ inSize:(CGSize)size_ decale:(CGSize)decale_
@@ -485,12 +480,14 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
 -(void)setCurrentBounds:(CGRect)currentBounds
 {
     CGRect roundedBounds = CGRectMake(roundf(currentBounds.origin.x), roundf(currentBounds.origin.y), roundf(currentBounds.size.width), roundf(currentBounds.size.height));
+    
     if (CGRectEqualToRect(_currentBounds, roundedBounds)) return;
     _currentBounds = roundedBounds;
     for (int i = 0; i < [mShapes count]; i++) {
         ShapeProxy* shapeProxy = [mShapes objectAtIndex:i];
         [shapeProxy boundsChanged:_currentBounds];
     }
+    [self updateRealTransform];
 }
 
 -(void)updateRect:(CGRect) parentBounds
@@ -733,6 +730,22 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     [self replaceValue:arg forKey:@"fillShadow" notification:YES];
 }
 
+
+-(void)setTransform:(id)transform
+{
+    ENSURE_SINGLE_ARG_OR_NIL(transform, Ti2DMatrix)
+    _realTransform = CGAffineTransformIdentity;
+    if (transform != nil) {
+        _transform = [transform retain];
+    }
+    else {
+        _transform = nil;
+    }
+    [self updateRealTransform];
+    [self replaceValue:transform forKey:@"transform" notification:YES];
+}
+
+
 -(void)update
 {
     if (!_configurationSet)  return;
@@ -822,9 +835,9 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     NSMutableArray* fillAnimations = [ NSMutableArray array];
     CABasicAnimation* animSkeleton = [[CABasicAnimation alloc] init];
     
-    if (restartFromBeginning) {
-        [self cancelAllAnimations:nil];
-    }
+//    if (restartFromBeginning) {
+//        [self cancelAllAnimations:nil];
+//    }
 
     animation.animatedProxy = self;
     CGPathRef path_ = [self pathForAnimation:animation];

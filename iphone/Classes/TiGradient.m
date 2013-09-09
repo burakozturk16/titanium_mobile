@@ -111,7 +111,10 @@
 
 -(void)clearSweepCache
 {
-    CGImageRelease(cachedSweepImage);
+    if (cachedSweepImage != nil) {
+        CGImageRelease(cachedSweepImage);
+        cachedSweepImage = nil;
+    }
     sweepCacheSize = CGSizeZero;
 }
 
@@ -125,7 +128,7 @@
 	[startPoint release];
 	[self clearCache];
 	free(colorOffsets);
-    CGImageRelease(cachedSweepImage);
+    [self clearSweepCache];
 	[super dealloc];
 }
 

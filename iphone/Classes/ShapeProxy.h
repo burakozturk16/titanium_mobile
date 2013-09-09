@@ -42,13 +42,17 @@ enum
 {
     CGRect _parentBounds;
     CGRect _currentBounds;
+    CGRect _currentShapeBounds;
     CALayer* _layer;
 }
 
 @property(nonatomic,assign) TiShapeViewProxy* shapeViewProxy;
 @property(nonatomic,retain) NSArray* operations;
 @property(nonatomic,retain) Ti2DMatrix* transform;
+@property(nonatomic,readonly) CGRect parentBounds;
 @property(nonatomic,assign) CGRect currentBounds;
+@property(nonatomic,assign) CGRect currentShapeBounds;
+@property(nonatomic,readonly) CGAffineTransform realTransform;
 //@property(nonatomic,readonly) CALayer* layer;
 
 -(void)boundsChanged:(CGRect)bounds;
@@ -64,7 +68,8 @@ enum
 -(void)updateRect:(CGRect) parentBounds;
 -(void)animationDidComplete:(TiShapeAnimation*)animation;
 -(void)update;
--(CGAffineTransform)getRealTransformSize:(CGSize)size parentSize:(CGSize)parentSize origin:(CGPoint)origin;
+-(CGAffineTransform)getRealTransform:(CGRect)bounds parentSize:(CGSize)parentSize;
+-(CGAffineTransform)prepareTransform:(Ti2DMatrix*)matrix bounds:(CGRect)bounds parentSize:(CGSize)parentSize;
 -(BOOL) handleTouchEvent:(NSString*)eventName withObject:(id)data propagate:bubbles point:(CGPoint)point;
 -(void)removeFromSuperLayer;
 -(CALayer*) layer;
