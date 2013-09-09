@@ -27,9 +27,9 @@
 {
     [super initializeState];
     NSArray* shapes = [(TiShapeViewProxy*)[self proxy] shapes];
-    for (ShapeProxy* shape in shapes) {
-        CALayer* layer = [shape layer];
-        [self.layer insertSublayer:layer atIndex:0];
+    for (int i = 0; i < [shapes count]; i++) {
+        ShapeProxy* shapeProxy = [shapes objectAtIndex:i];
+        [self.layer addSublayer:[shapeProxy layer]];
     }
     [(TiShapeViewProxy*)self.proxy frameSizeChanged:self.frame bounds:self.bounds];
     

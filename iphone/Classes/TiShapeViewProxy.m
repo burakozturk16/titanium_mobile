@@ -91,6 +91,7 @@ static NSArray *supportedEvents;
            [self rememberProxy:shape];
            [shape setShapeViewProxy:self];
            if ([self viewAttached]) {
+               [[self view].layer addSublayer:[shape layer]];
                [shape boundsChanged:self.view.bounds];
                [[self view] setNeedsDisplay];
            }
@@ -117,6 +118,7 @@ static NSArray *supportedEvents;
     if ([mShapes indexOfObject:child] != NSNotFound) {
         [self forgetProxy:child];
         [mShapes removeObject:child];
+        [[child layer] removeFromSuperlayer];
         [child setShapeViewProxy:nil];
         if ([self viewAttached]) {
             [[self view] setNeedsDisplay];
