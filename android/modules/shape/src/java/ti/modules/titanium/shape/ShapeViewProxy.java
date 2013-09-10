@@ -45,7 +45,7 @@ public class ShapeViewProxy extends TiViewProxy {
 	private final ArrayList<ShapeProxy> mShapes;
 	private static final List<String> supportedEvents = Arrays.asList(
 			TiC.EVENT_CLICK, TiC.EVENT_DOUBLE_CLICK, TiC.EVENT_DOUBLE_TAP,
-			TiC.EVENT_SINGLE_TAP, TiC.EVENT_TOUCH_CANCEL, TiC.EVENT_TOUCH_END,
+			TiC.EVENT_SINGLE_TAP, TiC.EVENT_LONGPRESS, TiC.EVENT_TOUCH_CANCEL, TiC.EVENT_TOUCH_END,
 			TiC.EVENT_TOUCH_MOVE, TiC.EVENT_TOUCH_START);
 
 	protected class ShapeView extends TiCompositeLayout {

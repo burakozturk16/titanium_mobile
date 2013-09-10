@@ -9,6 +9,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import android.content.Context;
 import android.graphics.RectF;
 
+@SuppressWarnings("rawtypes")
 public class TiRect {
 	private TiDimension x, y, width, height;
 

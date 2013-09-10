@@ -5,7 +5,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollPropertyChange;
@@ -16,20 +15,20 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.Ti2DMatrix;
-import org.appcelerator.titanium.view.TiBackgroundDrawable;
-
 
 import android.animation.Animator;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
 import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -52,10 +51,10 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.os.Build;
-import android.view.MotionEvent;
 import android.view.animation.LinearInterpolator;
 
 @SuppressLint("NewApi")
+@SuppressWarnings({ "unchecked", "rawtypes" })
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	TiC.PROPERTY_NAME
 })
@@ -84,8 +83,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	private Ti2DMatrix transform;
 	private Matrix matrix;
 	
+	private float lineOpacity = 1.0f;
+	private float fillOpacity = 1.0f;
+	
 	private boolean fillInversed = false;
 	private boolean lineInversed = false;
+	private boolean lineClipped = false;
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public class PointEvaluator implements TypeEvaluator<Point> {
@@ -258,48 +261,51 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	}
 	
 	protected class Oval extends Pathable {
-		private Direction direction;
-		private TiRect rect;
-		public Oval(TiRect rect) {
+		public Oval() {
 			super();
-			this.direction = Direction.CW;
-			this.rect = rect;
 		}
 		public void updatePathForRect(Context context, Path path, int width, int height) {
-			path.addOval(rect.getAsPixels(context, width, height), direction);
+			RectF rect = new RectF(center.x - radius.x, center.y - radius.x, center.x + radius.y, center.y + radius.y);
+			path.addOval(rect, direction);
 		}
 	}
 	protected class PRect extends Pathable {
-		private Direction direction;
-		private TiRect rect;
-		public PRect(TiRect rect) {
+		public PRect() {
 			super();
-			this.direction = Direction.CW;
-			this.rect = rect;
 		}
 		public void updatePathForRect(Context context, Path path, int width, int height) {
-			path.addRect(rect.getAsPixels(context, width, height), direction);
+			RectF rect = new RectF(center.x - radius.x, center.y - radius.x, center.x + radius.y, center.y + radius.y);
+			path.addRect(rect, direction);
 		}
 	}
 	protected class PRoundRect extends Pathable {
-		private Direction direction;
-		private TiRect rect;
-		TiDimension radiusx;
-		TiDimension radiusy;
-		public PRoundRect(TiRect rect, String radiusx, String radiusy) {
-			super();
-			this.direction = Direction.CW;
-			this.radiusx = new TiDimension (radiusx, TiDimension.TYPE_WIDTH);
-			this.radiusy = new TiDimension (radiusy, TiDimension.TYPE_HEIGHT);
+		protected Object cornerRadius;
+		public PRoundRect() {
+			cornerRadius = new TiPoint(0,0);
 		}
-		public PRoundRect(TiRect rect, String radius) {
-			super();
-			this.direction = Direction.CW;
-			this.radiusx = new TiDimension (radius, TiDimension.TYPE_WIDTH);
-			this.radiusy = new TiDimension (radius, TiDimension.TYPE_HEIGHT);
+		public void setCornerRadius(Object value) {
+			this.cornerRadius = value;
 		}
 		public void updatePathForRect(Context context, Path path, int width, int height) {
-			path.addRoundRect(rect.getAsPixels(context, width, height), radiusx.getAsPixels(context, width, height), radiusy.getAsPixels(context, width, height), direction);
+			RectF rect = new RectF(center.x - radius.x, center.y - radius.x, center.x + radius.y, center.y + radius.y);
+			Point corners = computeRadius(cornerRadius, width, height);
+			path.addRoundRect(rect, corners.x, corners.y, direction);
+		}
+	}
+	
+	protected class PieSlice extends Arc {
+		public Point innerRadius;
+		public PieSlice() {
+			innerRadius = new Point(0,0);
+		}
+		public void updatePathForRect(Context context, Path path, int width, int height) {
+			float realStart = startAngle-90.0f;
+			
+			RectF rectin = new RectF(center.x - innerRadius.x, center.y - innerRadius.x, center.x + innerRadius.y, center.y + innerRadius.y);
+			RectF rect = new RectF(center.x - radius.x, center.y - radius.x, center.x + radius.y, center.y + radius.y);
+			path.arcTo(rectin,  realStart,  sweepAngle);
+			path.arcTo(rect,  realStart + sweepAngle,  -sweepAngle);
+			path.close();
 		}
 	}
 	
@@ -383,7 +389,6 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 //		}
 	}
 	
-	@SuppressWarnings("rawtypes")
 	private Pathable pathableForOperation(KrollDict properties, int width, int height) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
 		Class className = opFromString(properties.getString(TiC.PROPERTY_TYPE));
 		if (className == null) return null;
@@ -416,9 +421,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return opPathable;
 	}
 	
-	private void appyOperations(Object arg, int width, int height) {
-		if (!(arg instanceof Object[]))return;
-		Object[] ops = (Object[])arg;
+	private void clearPaths(){
 		path.reset();
 		if (pathables == null) {
 			pathables = new ArrayList<Pathable>();
@@ -426,6 +429,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		else {
 			pathables.clear();
 		}
+	}
+	private void appyOperations(Object arg, int width, int height) {
+		if (!(arg instanceof Object[]))return;
+		Object[] ops = (Object[])arg;
 		for (int i = 0; i < ops.length; i++) {
 			Pathable opPathable = null;
 			try {
@@ -448,7 +455,16 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 //			pathable.updatePathForRect(context, path, parentBounds.width(), parentBounds.height());
 		}
 		else if (hasProperty(ShapeModule.PROPERTY_OPERATIONS)) {
+			clearPaths();
 			appyOperations(getProperty(ShapeModule.PROPERTY_OPERATIONS), width, height);
+		}
+		else if (hasProperty(TiC.PROPERTY_TYPE)) {
+			clearPaths();
+			try {
+				Pathable opPathable = pathableForOperation(properties, width, height);
+				if (opPathable != null) pathables.add(opPathable);
+			} catch (Exception e) {
+			}
 		}
 	}
 
@@ -503,20 +519,25 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
-	private void drawPathWithPaint(Path path_, Paint paint_, Canvas canvas_, String shadowProperty_) {
+	private void drawPathWithPaint(Path path_, Paint paint_, Canvas canvas_, String shadowProperty_, float opacity_) {
 		if (paint_ != null) {
 			Shader shader = paint_.getShader();
 			MaskFilter filter = paint_.getMaskFilter();
 			Boolean hasShadow = hasProperty(shadowProperty_);
 			
-			if (hasShadow.booleanValue() && (filter!= null || shader != null)) {
-				Utils.styleShadow(new KrollDict((HashMap<String, Object>)getProperty(shadowProperty_)), paint_);
+			int colorAlpha = paint_.getAlpha();
+			if (hasShadow  || shader != null) {
+				if (hasShadow) Utils.styleShadow(new KrollDict((HashMap<String, Object>)getProperty(shadowProperty_)), paint_);
+				canvas_.save();
+				if (lineClipped) canvas_.clipPath(path_);
 				paint_.setShader(null);
 				paint_.setMaskFilter(null);
+				paint_.setAlpha((int) (colorAlpha * opacity_));
 				canvas_.drawPath(path_, paint_);
+				canvas_.restore();
 				
-				paint_.clearShadowLayer();
+				if (hasShadow) paint_.clearShadowLayer();
+				paint_.setAlpha((int) (opacity_*255));
 				paint_.setShader(shader);
 				paint_.setMaskFilter(filter);
 				canvas_.drawPath(path_, paint_);
@@ -524,6 +545,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			else {
 				canvas_.drawPath(path_, paint_);
 			}
+			paint_.setAlpha(colorAlpha);
 		}
 	}
 	
@@ -561,10 +583,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			path.transform(matrix);
 		}
 		path.setFillType(fillInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
-			
-		drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW);
+		drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW, fillOpacity);
 		path.setFillType(lineInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
-		drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW);
+		drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW, lineOpacity);
 		
 		canvas.save();
 //		canvas.clipRect(currentBounds);
@@ -584,88 +605,102 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return linePaint;
 	}
 	
-	protected void createAnimForColor(String prop, KrollDict animOptions, KrollDict properties, List<Animator> list, int defaultValue) {
+	protected void createAnimForColor(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, int defaultValue) {
 		if(animOptions.containsKey(prop)) {
 			int inValue = properties.optColor(prop, defaultValue);
 			int outValue = animOptions.optColor(prop, inValue);
-			ObjectAnimator anim = ObjectAnimator.ofInt(this, prop, inValue, outValue);
+			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
 			 anim.setEvaluator(new ArgbEvaluator());
 			list.add(anim);
 		}
 	}
 	
-	protected void createAnimForInt(String prop, KrollDict animOptions, KrollDict properties, List<Animator> list, int defaultValue) {
+	protected void createAnimForInt(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, int defaultValue) {
 		if(animOptions.containsKey(prop)) {
 			int inValue = properties.optInt(prop, defaultValue);
 			int outValue = animOptions.optInt(prop, inValue);
-			ObjectAnimator anim = ObjectAnimator.ofInt(this, prop, inValue, outValue);
-			anim.setInterpolator(new LinearInterpolator());
+			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
 			list.add(anim);
 		}
 	}
 	
-	protected void createAnimForRawInt(String prop, KrollDict animOptions, KrollDict properties, List<Animator> list, String defaultValue) {
+	protected void createAnimForRawInt(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, String defaultValue) {
 		if(animOptions.containsKey(prop)) {
 			int inValue = (int) Utils.getRawSize(properties, prop, defaultValue, context);
 			int outValue = (int) Utils.getRawSize(animOptions, prop, context);
-			ObjectAnimator anim = ObjectAnimator.ofInt(this, prop, inValue, outValue);
-			anim.setInterpolator(new LinearInterpolator());
+			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
 			list.add(anim);
 		}
 	}
 	
-	protected void createAnimForFloat(String prop, KrollDict animOptions, KrollDict properties, List<Animator> list, float defaultValue) {
+	protected void createAnimForFloat(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, float defaultValue) {
 		if(animOptions.containsKey(prop)) {
 			float inValue = properties.optFloat(prop, defaultValue);
 			float outValue = animOptions.optFloat(prop, inValue);
-			ObjectAnimator anim = ObjectAnimator.ofFloat(this, prop, inValue, outValue);
-			anim.setInterpolator(new LinearInterpolator());
+			PropertyValuesHolder anim = PropertyValuesHolder.ofFloat(prop, inValue, outValue);
 			list.add(anim);
 		}
 	}
 	
-	protected void createAnimForRawFloat(String prop, KrollDict animOptions, KrollDict properties, List<Animator> list, String defaultValue) {
+	protected void createAnimForRawFloat(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, String defaultValue) {
 		if(animOptions.containsKey(prop)) {
 			float inValue =  Utils.getRawSize(properties, prop, defaultValue, context);
 			float outValue =  Utils.getRawSize(animOptions, prop, context);
-			ObjectAnimator anim = ObjectAnimator.ofFloat(this, prop, inValue, outValue);
-			anim.setInterpolator(new LinearInterpolator());
+			PropertyValuesHolder anim = PropertyValuesHolder.ofFloat(prop, inValue, outValue);
 			list.add(anim);
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
+//		KrollDict properties = getProperties();
+		Boolean animatingCenter = animOptions.containsKey(TiC.PROPERTY_CENTER);
+		Boolean animatingRadius = animOptions.containsKey(ShapeModule.PROPERTY_RADIUS);
+		if (animatingCenter || animatingRadius) {
+			int width = parentBounds.width();
+			int height = parentBounds.height();
+			Point currentRadius = computeRadius(this.radius, width, height);
+			Point animRadius = computeRadius(animatingRadius?animOptions.get(ShapeModule.PROPERTY_RADIUS):this.radius, width, height);
+			Point currentCenter = computePoint(this.center, anchor, width, height, currentRadius);
+			Point animCenter = computePoint(animatingCenter?new TiPoint((HashMap) animOptions.get(TiC.PROPERTY_CENTER)):this.center, anchor, width, height, animRadius);
+			if (animatingRadius) {
+				PropertyValuesHolder anim = PropertyValuesHolder.ofObject("pathableRadius", new PointEvaluator(), currentRadius, animRadius);
+				propertiesList.add(anim);
+			}
+			if (animatingCenter) {
+				PropertyValuesHolder anim = PropertyValuesHolder.ofObject("pathableCenter", new PointEvaluator(), currentCenter, animCenter);
+				propertiesList.add(anim);
+			}
+			
+		}
+		
+		createAnimForRawFloat(ShapeModule.PROPERTY_LINE_WIDTH, animOptions, properties, propertiesList, "1.0");
+		createAnimForFloat(ShapeModule.PROPERTY_LINE_OPACITY, animOptions, properties, propertiesList, 1.0f);
+		createAnimForColor(ShapeModule.PROPERTY_LINE_COLOR, animOptions, properties, propertiesList, Color.TRANSPARENT);
+		createAnimForFloat(ShapeModule.PROPERTY_FILL_OPACITY, animOptions, properties, propertiesList, 1.0f);
+		createAnimForColor(ShapeModule.PROPERTY_FILL_COLOR, animOptions, properties, propertiesList, Color.TRANSPARENT);
+		
+	}
+	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, HashMap options) {
 		super.prepareAnimatorSet(tiSet, list, options);
 		
+		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 		KrollDict animOptions = new KrollDict(options);
-		KrollDict properties = getProperties();
-		Boolean animatingCenter = options.containsKey(TiC.PROPERTY_CENTER);
-		Boolean animatingRadius = options.containsKey(ShapeModule.PROPERTY_RADIUS);
-		if (animatingCenter || animatingRadius) {
-			int width = parentBounds.width();
-			int height = parentBounds.height();
-			Point currentRadius = computeRadius(this.radius, width, height);
-			Point animRadius = computeRadius(animatingRadius?options.get(ShapeModule.PROPERTY_RADIUS):this.radius, width, height);
-			Point currentCenter = computePoint(this.center, anchor, width, height, currentRadius);
-			Point animCenter = computePoint(animatingCenter?new TiPoint((HashMap)options.get(TiC.PROPERTY_CENTER)):this.center, anchor, width, height, animRadius);
-			if (animatingRadius) {
-				ObjectAnimator anim = ObjectAnimator.ofObject(this, "pathableRadius", new PointEvaluator(), currentRadius, animRadius);
-				list.add(anim);
-			}
-			if (animatingCenter) {
-				ObjectAnimator anim = ObjectAnimator.ofObject(this, "pathableCenter", new PointEvaluator(), currentCenter, animCenter);
-				list.add(anim);
+		preparePropertiesSet(tiSet, propertiesList, animOptions);
+		ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(this,propertiesList.toArray(new PropertyValuesHolder[0]));
+		anim.addUpdateListener(new AnimatorUpdateListener(){
+
+			@Override
+			public void onAnimationUpdate(ValueAnimator animation) {
+				redraw();
 			}
 			
-		}
-		createAnimForRawFloat(ShapeModule.PROPERTY_LINE_WIDTH, animOptions, properties, list, "1.0");
-		createAnimForFloat(ShapeModule.PROPERTY_LINE_OPACITY, animOptions, properties, list, 1.0f);
-		createAnimForColor(ShapeModule.PROPERTY_LINE_COLOR, animOptions, properties, list, Color.TRANSPARENT);
-		createAnimForFloat(ShapeModule.PROPERTY_FILL_OPACITY, animOptions, properties, list, 1.0f);
-		createAnimForColor(ShapeModule.PROPERTY_FILL_COLOR, animOptions, properties, list, Color.TRANSPARENT);
+		});
+		anim.setInterpolator(new LinearInterpolator());
+		list.add(anim);
 	}
 
 	// Start Utility Methods
@@ -675,7 +710,6 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		super.finalize();
 	}
 	
-	@SuppressWarnings("unchecked")
 	protected boolean handleTouchEvent(String eventName, Object data, boolean bubbles, int x, int y) {
 		if (context != null) {
 			if (currentBounds.contains(x, y)) {
@@ -685,7 +719,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 					int childrenY = y - currentBounds.top;
 					for (int i = 0; i < mShapes.size(); i++) {
 						ShapeProxy shapeProxy = mShapes.get(i);
-						handledByChildren |= shapeProxy.handleTouchEvent(eventName, data, bubbles, childrenX, childrenX);
+						handledByChildren |= shapeProxy.handleTouchEvent(eventName, data, bubbles, childrenX, childrenY);
 					}
 				}
 				if ((!handledByChildren || bubbles) && hasListeners(eventName)) {
@@ -825,51 +859,47 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	//ANIMATION getter/setter
 	public void setPathableRadius(Point point) {
 		pathable.radius = point;
-		shapeViewProxy.redraw();
 	}
 	public Point getPathableRadius() {
 		return pathable.radius;		
 	}
 	public void setPathableCenter(Point point) {
 		pathable.center = point;
-		shapeViewProxy.redraw();
 	}
+	
 	public Point getPathableCenter() {
 		return pathable.center;		
 	}
 	
 	public void setLineWidth(float value) {
 		getOrCreateLinePaint().setStrokeWidth(value);
-		redraw();
 	}
+	
 	public float getLineWidth() {
 		float result = getOrCreateLinePaint().getStrokeWidth();
 		return result;
 	}
+	
 	public void setLineOpacity(float value) {
-		getOrCreateLinePaint().setAlpha((int) (value * 255.0f));
-		redraw();
+		lineOpacity = value;
 	}
 	public float getLineOpacity() {
-		return getOrCreateLinePaint().getAlpha()/255.0f;
+		return lineOpacity;
 	}
 	public void setLineColor(int value) {
-		Utils.setColorForPaint(value, getOrCreateLinePaint());
-		redraw();
+		getOrCreateLinePaint().setColor(value);
 	}
 	public int getLineColor() {
 		return getOrCreateLinePaint().getColor();
 	}
 	public void setFillOpacity(float value) {
-		getOrCreateFillPaint().setAlpha((int) (value * 255.0f));
-		redraw();
+		fillOpacity = value;
 	}
 	public float getFillOpacity() {
-		return getOrCreateFillPaint().getAlpha()/255.0f;
+		return fillOpacity;
 	}
 	public void setFillColor(int value) {
-		Utils.setColorForPaint(value, getOrCreateFillPaint());
-		redraw();
+		getOrCreateFillPaint().setColor(value);
 	}
 	public int getFillColor() {
 		return getOrCreateFillPaint().getColor();
@@ -915,7 +945,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleCap(properties, ShapeModule.PROPERTY_LINE_CAP, getOrCreateLinePaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_SHADOW)) {
-			Utils.styleShadow(properties, ShapeModule.PROPERTY_LINE_SHADOW, getOrCreateLinePaint());
+//			Utils.styleShadow(properties, ShapeModule.PROPERTY_LINE_SHADOW, getOrCreateLinePaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_DASH)) {
 			Utils.styleDash(properties, ShapeModule.PROPERTY_LINE_DASH, getOrCreateLinePaint());
@@ -939,7 +969,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleColor(properties, ShapeModule.PROPERTY_FILL_COLOR, getOrCreateFillPaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_SHADOW)) {
-			Utils.styleShadow(properties, ShapeModule.PROPERTY_FILL_SHADOW, getOrCreateFillPaint());
+//			Utils.styleShadow(properties, ShapeModule.PROPERTY_FILL_SHADOW, getOrCreateFillPaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_EMBOSS)) {
 			Utils.styleEmboss(properties, ShapeModule.PROPERTY_FILL_EMBOSS, getOrCreateFillPaint());
@@ -963,11 +993,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		else if (key.equals(ShapeModule.PROPERTY_LINE_INVERSED)) {
 			this.lineInversed = TiConvert.toBoolean(newValue);
 		}
+		else if (key.equals(ShapeModule.PROPERTY_LINE_CLIPPED)) {
+			this.lineClipped = TiConvert.toBoolean(newValue);
+		}
 		else return;
 		
-		if (shapeViewProxy != null) {
-			shapeViewProxy.redraw();
-		}
+		redraw();
 	}
 
 	@Override
@@ -992,9 +1023,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_CAP)) {
 			Utils.styleCap(properties, ShapeModule.PROPERTY_LINE_CAP, getOrCreateLinePaint());
 		}
-		if (properties.containsKey(ShapeModule.PROPERTY_LINE_SHADOW)) {
-			Utils.styleShadow(properties, ShapeModule.PROPERTY_LINE_SHADOW, getOrCreateLinePaint());
-		}
+//		if (properties.containsKey(ShapeModule.PROPERTY_LINE_SHADOW)) {
+//			Utils.styleShadow(properties, ShapeModule.PROPERTY_LINE_SHADOW, getOrCreateLinePaint());
+//		}
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_DASH)) {
 			Utils.styleDash(properties, ShapeModule.PROPERTY_LINE_DASH, getOrCreateLinePaint());
 		}
@@ -1016,9 +1047,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_COLOR)) {
 			Utils.styleColor(properties, ShapeModule.PROPERTY_FILL_COLOR, getOrCreateFillPaint());
 		}
-		if (properties.containsKey(ShapeModule.PROPERTY_FILL_SHADOW)) {
-			Utils.styleShadow(properties, ShapeModule.PROPERTY_FILL_SHADOW, getOrCreateFillPaint());
-		}
+//		if (properties.containsKey(ShapeModule.PROPERTY_FILL_SHADOW)) {
+//			Utils.styleShadow(properties, ShapeModule.PROPERTY_FILL_SHADOW, getOrCreateFillPaint());
+//		}
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_EMBOSS)) {
 			Utils.styleEmboss(properties, ShapeModule.PROPERTY_FILL_EMBOSS, getOrCreateFillPaint());
 		}
@@ -1041,6 +1072,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_INVERSED)) {
 			this.lineInversed = properties.getBoolean(ShapeModule.PROPERTY_LINE_INVERSED);
+		}
+		if (properties.containsKey(ShapeModule.PROPERTY_LINE_CLIPPED)) {
+			this.lineClipped = properties.getBoolean(ShapeModule.PROPERTY_LINE_CLIPPED);
 		}
 	}
 

@@ -36,6 +36,9 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final String PROPERTY_FILL_EMBOSS = "fillEmboss";
 	@Kroll.constant public static final String PROPERTY_FILL_INVERSED = "fillInversed";
 	@Kroll.constant public static final String PROPERTY_OPERATIONS = "operations";
+	@Kroll.constant public static final String PROPERTY_CORNERRADIUS = "cornerRadius";
+	@Kroll.constant public static final String PROPERTY_LINE_CLIPPED = "lineClipped";
+	@Kroll.constant public static final String PROPERTY_INNERRADIUS = "innerRadius";
 
 	
 	
