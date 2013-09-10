@@ -6,35 +6,23 @@ import java.text.Format;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.EmbossMaskFilter;
-import android.graphics.LinearGradient;
 import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
-import android.graphics.RadialGradient;
 import android.graphics.Shader;
 import android.graphics.Typeface;
-import android.graphics.Shader.TileMode;
 import android.view.Gravity;
-import android.view.View;
 
 public class Utils {
 	private static final String TAG = "ChartsUtils";
 
-	private static final TiPoint DEFAULT_START_POINT = new TiPoint("50%", "50%");
-	private static final TiPoint DEFAULT_END_POINT = new TiPoint("0", "100%");
-	private static final TiDimension DEFAULT_RADIUS = new TiDimension("100%", TiDimension.TYPE_UNDEFINED);
 
 	public static float getRawSize(KrollDict dict, String property,
 			String defaultValue, Context context) {
@@ -233,15 +221,11 @@ public class Utils {
 	}
 
 	public static void setColorForPaint(int color, Paint paint) {
-		int alpha = paint.getAlpha();
 		paint.setColor(color);
-		paint.setAlpha(alpha);
 	}
 	
 	public static void setShaderForPaint(Shader shader, Paint paint) {
-		int alpha = paint.getAlpha();
 		paint.setShader(shader);
-		paint.setAlpha(alpha);
 	}
 	
 	public static void styleColor(KrollDict dict, String property,
@@ -443,8 +427,8 @@ public class Utils {
 		KrollDict offset = shadowOptions.getKrollDict("offset");
 		
 		if (offset != null) {
-			offsetx = Utils.getRawSizeOrZero(offset, "y", context);
-			offsety = Utils.getRawSizeOrZero(offset, "x", context);
+			offsetx = Utils.getRawSizeOrZero(offset, "x", context);
+			offsety = Utils.getRawSizeOrZero(offset, "y", context);
 		}
 		float blurRadius =  Utils.getRawSize(shadowOptions, "radius", "3");
 		int color = shadowOptions.optColor("color", Color.BLACK);	
