@@ -21,6 +21,8 @@ import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -165,6 +167,9 @@ public class UIModule extends KrollModule implements Handler.Callback
 	
 	@Kroll.constant public static final int LEFT_VIEW = 0;
 	@Kroll.constant public static final int RIGHT_VIEW = 1;
+	
+	@SuppressLint("InlinedApi")
+	@Kroll.constant public static final int INFINITE = ValueAnimator.INFINITE;
 
 	protected static final int MSG_SET_BACKGROUND_COLOR = KrollProxy.MSG_LAST_ID + 100;
 	protected static final int MSG_SET_BACKGROUND_IMAGE = KrollProxy.MSG_LAST_ID + 101;

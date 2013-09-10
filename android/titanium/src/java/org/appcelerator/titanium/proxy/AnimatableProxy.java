@@ -138,20 +138,17 @@ public class AnimatableProxy extends KrollProxy {
 		
 		prepareAnimatorSet(tiSet, list, options);
 		
+		int style = tiSet.autoreverse?ValueAnimator.REVERSE:ValueAnimator.RESTART;
+		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
 		if (tiSet.autoreverse) {
-			for (int i = 0; i < list.size(); i++) {
-				ValueAnimator anim = (ValueAnimator) list.get(i);
-				anim.setRepeatCount(1);
-				anim.setRepeatMode(ValueAnimator.REVERSE);
-			}
-		} else if (tiSet.repeat > 1) {
-			int realRepeat = (int) (tiSet.repeat - 1);
-			for (int i = 0; i < list.size(); i++) {
-				ValueAnimator anim = (ValueAnimator) list.get(i);
-				anim.setRepeatCount(realRepeat);
-				anim.setRepeatMode(ValueAnimator.RESTART);
-			}
-		}		
+			repeatCount = repeatCount * 2 + 1;
+		}
+			
+		for (int i = 0; i < list.size(); i++) {
+			ValueAnimator anim = (ValueAnimator) list.get(i);
+			anim.setRepeatCount(repeatCount);
+			anim.setRepeatMode(style);
+		}
 		set.playTogether(list);
 	}
 
@@ -163,7 +160,6 @@ public class AnimatableProxy extends KrollProxy {
 			set.setStartDelay(tiSet.delay.longValue());
 		if (tiSet.duration != null)
 			set.setDuration(tiSet.duration.longValue());
-
 		set.addListener(new TiAnimatorListener(tiSet, options));
 
 	}

@@ -19,6 +19,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
 import org.appcelerator.titanium.view.TiAnimation;
 
+import android.animation.ValueAnimator;
 import android.os.Build;
 import android.os.Looper;
 import android.os.MessageQueue;
@@ -31,7 +32,7 @@ public class TiAnimator
 
 	public Double delay = null;
 	public Double duration = null;
-	public Double repeat = null;
+	public int repeat = 1;
 	public Boolean autoreverse = false;
 	public Boolean restartFromBeginning = true;
 	protected boolean animating;
@@ -102,15 +103,15 @@ public class TiAnimator
 			duration = TiConvert.toDouble(options, TiC.PROPERTY_DURATION);
 		}
 		if (options.containsKey(TiC.PROPERTY_REPEAT)) {
-			repeat = TiConvert.toDouble(options, TiC.PROPERTY_REPEAT);
+			repeat = TiConvert.toInt(options, TiC.PROPERTY_REPEAT);
 
-			if (repeat == 0d) {
+			if (repeat == 0) {
 				// A repeat of 0 is probably non-sensical. Titanium iOS
 				// treats it as 1 and so should we.
-				repeat = 1d;
+				repeat = 1;
 			}
 		} else {
-			repeat = 1d; // Default as indicated in our documentation.
+			repeat = 1; // Default as indicated in our documentation.
 		}
 
 		if (options.containsKey(TiC.PROPERTY_AUTOREVERSE)) {
@@ -218,7 +219,7 @@ public class TiAnimator
 
 		// We need to reduce the repeat count by 1, since for native Android
 		// 1 would mean repeating it once.
-		int repeatCount = (repeat == null ? 0 : repeat.intValue() - 1);
+		int repeatCount = (repeat == ValueAnimator.INFINITE ? repeat : repeat - 1);
 
 		// In Android (native), the repeat count includes reverses. So we
 		// need to double-up and add one to the repeat count if we're reversing.
