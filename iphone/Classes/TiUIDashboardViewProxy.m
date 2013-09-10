@@ -46,7 +46,7 @@ NSArray* dashboardKeySequence;
 }
 
 //TODO: Remove when deprication is done.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj;
 {
 	if ([type isEqual:@"click"])
 	{
@@ -57,21 +57,7 @@ NSArray* dashboardKeySequence;
 			return;
 		}
 	}
-	[super fireEvent:type withObject:obj withSource:source propagate:propagate];
-}
-
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-{
-	if ([type isEqual:@"click"])
-	{
-		TiUIDashboardView *v = (TiUIDashboardView*)[self view];
-		LauncherView *launcher = [v launcher];
-		if (launcher.editing)
-		{
-			return;
-		}
-	}
-	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message];
+	[super fireEvent:type withObject:obj];
 }
 
 -(void)setData:(id)data

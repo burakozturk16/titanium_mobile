@@ -208,31 +208,12 @@ DEFINE_EXCEPTIONS
 {
     if (arg==nil) return nil;
     UIImage *image = nil;
-	
-    if ([arg isKindOfClass:[TiBlob class]]) {
-        TiBlob *blob = (TiBlob*)arg;
-        image = [blob image];
-    }
-    else if ([arg isKindOfClass:[UIImage class]]) {
-		// called within this class
-        image = (UIImage*)arg;
+	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        image =  [TiUtils loadBackgroundImage:arg forProxy:_proxy];
     }
     else {
-        NSURL *url;
-        if ([arg isKindOfClass:[TiFile class]]) {
-            TiFile *file = (TiFile*)arg;
-            url = [NSURL fileURLWithPath:[file path]];
-        }
-        else {
-            url = [TiUtils toURL:arg proxy:_proxy];
-        }
-        if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
-            TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
-            image =  [[ImageLoader sharedLoader]loadImmediateImage:url];
-        }
-        else {
-            image = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
-        }
+        image =  [TiUtils loadBackgroundImage:arg forProxy:_proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
     }
 	return image;
 }

@@ -489,12 +489,17 @@ public class TiBlob extends KrollProxy
 		// If the image is not available but the width and height of the image are successfully fetched, the image can
 		// be created by decoding the data.
 		if (image == null && (width > 0 && height > 0)) {
-			switch (type) {
-				case TYPE_FILE:
-					return BitmapFactory.decodeStream(getInputStream());
-				case TYPE_DATA:
-					byte[] byteArray = (byte[]) data;
-					return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+			try {
+				switch (type) {
+					case TYPE_FILE:
+						return BitmapFactory.decodeStream(getInputStream());
+					case TYPE_DATA:
+						byte[] byteArray = (byte[]) data;
+						return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+				}
+			} catch (OutOfMemoryError e) {
+				Log.e(TAG, "Unable to get the image. Not enough memory: " + e.getMessage(), e);
+				return null;
 			}
 		}
 		return image;
@@ -517,8 +522,13 @@ public class TiBlob extends KrollProxy
 		int heightCropped = options.optInt(TiC.PROPERTY_HEIGHT, height);
 		int x = options.optInt(TiC.PROPERTY_X, (width - widthCropped) / 2);
 		int y = options.optInt(TiC.PROPERTY_Y, (height - heightCropped) / 2);
-		Bitmap imageCropped = Bitmap.createBitmap(img, x, y, widthCropped, heightCropped);
-		return blobFromImage(imageCropped);
+		try {
+			Bitmap imageCropped = Bitmap.createBitmap(img, x, y, widthCropped, heightCropped);
+			return blobFromImage(imageCropped);
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to crop the image. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 	@Kroll.method
@@ -531,8 +541,13 @@ public class TiBlob extends KrollProxy
 
 		int dstWidth = width.intValue();
 		int dstHeight = height.intValue();
-		Bitmap imageResized = Bitmap.createScaledBitmap(img, dstWidth, dstHeight, true);
-		return blobFromImage(imageResized);
+		try {
+			Bitmap imageResized = Bitmap.createScaledBitmap(img, dstWidth, dstHeight, true);
+			return blobFromImage(imageResized);
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to resize the image. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 	@Kroll.method
@@ -545,7 +560,6 @@ public class TiBlob extends KrollProxy
 		}
 
 		int thumbnailSize = size.intValue();
-		Bitmap imageThumbnail = ThumbnailUtils.extractThumbnail(img, thumbnailSize, thumbnailSize);
 
 		float border = 1f;
 		if (borderSize != null) {
@@ -556,12 +570,20 @@ public class TiBlob extends KrollProxy
 			radius = cornerRadius.floatValue();
 		}
 
-		if (border == 0 && radius == 0) {
-			return blobFromImage(imageThumbnail);
-		}
+		try {
+			Bitmap imageThumbnail = ThumbnailUtils.extractThumbnail(img, thumbnailSize, thumbnailSize);
 
-		Bitmap imageThumbnailBorder = TiImageHelper.imageWithRoundedCorner(imageThumbnail, radius, border);
-		return blobFromImage(imageThumbnailBorder);
+			if (border == 0 && radius == 0) {
+				return blobFromImage(imageThumbnail);
+			}
+
+			Bitmap imageThumbnailBorder = TiImageHelper.imageWithRoundedCorner(imageThumbnail, radius, border);
+			return blobFromImage(imageThumbnailBorder);
+
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to get the thumbnail image. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 	@Kroll.method
@@ -572,8 +594,13 @@ public class TiBlob extends KrollProxy
 			return null;
 		}
 
-		Bitmap imageWithAlpha = TiImageHelper.imageWithAlpha(img);
-		return blobFromImage(imageWithAlpha);
+		try {
+			Bitmap imageWithAlpha = TiImageHelper.imageWithAlpha(img);
+			return blobFromImage(imageWithAlpha);
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to get the image with alpha. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 	@Kroll.method
@@ -590,8 +617,13 @@ public class TiBlob extends KrollProxy
 			border = borderSize.floatValue();
 		}
 
-		Bitmap imageRoundedCorner = TiImageHelper.imageWithRoundedCorner(img, radius, border);
-		return blobFromImage(imageRoundedCorner);
+		try {
+			Bitmap imageRoundedCorner = TiImageHelper.imageWithRoundedCorner(img, radius, border);
+			return blobFromImage(imageRoundedCorner);
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to get the image with rounded corner. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 	@Kroll.method
@@ -603,8 +635,13 @@ public class TiBlob extends KrollProxy
 		}
 
 		int borderSize = size.intValue();
-		Bitmap imageWithBorder = TiImageHelper.imageWithTransparentBorder(img, borderSize);
-		return blobFromImage(imageWithBorder);
+		try {
+			Bitmap imageWithBorder = TiImageHelper.imageWithTransparentBorder(img, borderSize);
+			return blobFromImage(imageWithBorder);
+		} catch (OutOfMemoryError e) {
+			Log.e(TAG, "Unable to get the image with transparent border. Not enough memory: " + e.getMessage(), e);
+			return null;
+		}
 	}
 
 }

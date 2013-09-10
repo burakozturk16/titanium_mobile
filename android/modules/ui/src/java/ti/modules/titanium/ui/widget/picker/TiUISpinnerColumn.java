@@ -143,7 +143,10 @@ public class TiUISpinnerColumn extends TiUIView implements WheelView.OnItemSelec
 			}
 			suppressItemSelected = false;
 		}
-		TextWheelAdapter adapter = new TextWheelAdapter(rows);
+		TextWheelAdapter adapter = null;
+		if (rows != null) {
+			adapter = new TextWheelAdapter(rows);
+		}
 		view.setAdapter(adapter);
 	}
 	

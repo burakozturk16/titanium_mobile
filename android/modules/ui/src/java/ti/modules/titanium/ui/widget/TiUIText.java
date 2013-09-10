@@ -389,6 +389,8 @@ public class TiUIText extends TiUIView
 		
 		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT) || d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION) || d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
+		} else if (!field) {
+			realtv.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
@@ -468,7 +470,6 @@ public class TiUIText extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
 			tv.setRightView(newValue);
 		} else {
-		
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
@@ -677,6 +678,9 @@ public class TiUIText extends TiUIView
 		if (autocorrect != InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS || passwordMask) {
 			textTypeAndClass = textTypeAndClass | InputType.TYPE_CLASS_TEXT;
 		}
+		if (!field) {
+			realtv.setSingleLine(false);
+		}
 		realtv.setCursorVisible(true);
 		switch(type) {
 			case KEYBOARD_DEFAULT:
@@ -746,9 +750,6 @@ public class TiUIText extends TiUIView
 			realtv.setCursorVisible(false);
 		}
 
-		if (!field) {
-			realtv.setSingleLine(false);
-		}
 	}
 
 	public void setSelection(int start, int end) 
@@ -763,6 +764,9 @@ public class TiUIText extends TiUIView
 
 	public void handleReturnKeyType(int type)
 	{
+		if (!field) {
+			realtv.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);
+		}
 		switch(type) {
 			case RETURNKEY_GO:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);

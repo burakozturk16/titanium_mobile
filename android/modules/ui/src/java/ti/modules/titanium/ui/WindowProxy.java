@@ -47,6 +47,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 {
 	private static final String TAG = "WindowProxy";
 	private static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
+	private static final String PROPERTY_LOAD_URL = "loadUrl";
 
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SET_PIXEL_FORMAT = MSG_FIRST_ID + 100;
@@ -86,12 +87,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	}
 	
 	@Override
-	public void onWindowActivityCreated()
-	{
-		super.onWindowActivityCreated();
-	}
-	
-	@Override
 	public void onFirstLayout()
 	{
 		super.onFirstLayout();
@@ -111,8 +106,8 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 					decorView.add(this);
 					windowActivity = new WeakReference<TiBaseActivity>(baseActivity);
 
-					// Need to handle the cached activity proxy properties and url window in the JS side.
-					callPropertySync(PROPERTY_POST_WINDOW_CREATED, null);
+					// Need to handle the url window in the JS side.
+					callPropertySync(PROPERTY_LOAD_URL, null);
 
 					opened = true;
 					// fireEvent(TiC.EVENT_OPEN, null);
@@ -192,6 +187,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
+		if (!(opened || opening)) {
+			return;
+		}
 		if (lightweight) {
 			removeLightweightWindowFromStack();
 		} else {
@@ -292,11 +290,19 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 
 		// Need to handle the cached activity proxy properties and url window in the JS side.
 		callPropertySync(PROPERTY_POST_WINDOW_CREATED, null);
+	}
 
+	@Override
+	public void onWindowActivityCreated()
+	{
+		// Fire the open event after setContentView() because getActionBar() need to be called
+		// after setContentView(). (TIMOB-14914)
 		opened = true;
 		opening = false;
 		// fireEvent(TiC.EVENT_OPEN, null);
 		handlePostOpen();
+
+		super.onWindowActivityCreated();
 	}
 
 	@Override
@@ -440,5 +446,12 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		} else {
 			return null;
 		}
+	}
+
+	@Kroll.method(name = "_isLightweight")
+	public boolean isLightweight()
+	{
+		// We know whether a window is lightweight or not only after it opens.
+		return (opened && lightweight);
 	}
 }

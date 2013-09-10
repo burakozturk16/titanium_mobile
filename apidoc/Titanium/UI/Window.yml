@@ -119,8 +119,10 @@ events:
         just call the *close* method of the window.
 
         This event replaces the android:back event. Some behavior
-        changes way exist such as the event no longer firing when the
-        user dismisses the keyboard with the back button.
+        changes may exist such as the event no longer firing when the
+        user dismisses the keyboard with the back button or when the
+        user closes a full-screen video which is embedded in a web view
+        with the back button.
 
     since: '3.0.0'
 
@@ -203,6 +205,7 @@ events:
 properties:
   - name: activity
     summary: |
+        For lightweight windows, this property returns undefined.
         For heavyweight windows, this property contains a reference to the
         Android Activity object associated with this window.
     description: |
@@ -215,6 +218,7 @@ properties:
         for example, [actionBar](Titanium.Android.Activity.actionBar).
     platforms: [android]
     type: Titanium.Android.Activity
+    permission: read-only
 
   - name: backButtonTitle
     summary: Title for the back button. This is only valid when the window is a child of a tab.

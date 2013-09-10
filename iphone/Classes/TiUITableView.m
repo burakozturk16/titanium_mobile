@@ -16,7 +16,6 @@
 #import "TiUITableViewProxy.h"
 #import "TiApp.h"
 #import "TiLayoutQueue.h"
-#import "TiRootController.h"
 
 #define DEFAULT_SECTION_HEADERFOOTER_HEIGHT 20.0
 #define GROUPED_MARGIN_WIDTH 18.0
@@ -208,8 +207,6 @@
 		return;
 	}
 
-	CALayer * ourLayer = [self layer];
-	
 	if(gradientLayer == nil)
 	{
 		gradientLayer = [[TiGradientLayer alloc] init];
@@ -218,6 +215,9 @@
 	}
 
 	[gradientLayer setGradient:currentGradient];
+
+	CALayer* ourLayer = [[[self contentView] layer] superlayer];
+	
 	if([gradientLayer superlayer] != ourLayer)
 	{
         CALayer* contentLayer = [[self contentView] layer];
@@ -1532,8 +1532,10 @@
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *) searchBar
 {
-	// called when cancel button pressed
-	[searchBar setText:nil];
+    // called when cancel button pressed
+    [searchBar setText:nil];
+    [self setSearchString:nil];
+    [self updateSearchResultIndexes];
     if (searchActivated) {
         searchActivated = NO;
         [tableview reloadData];
@@ -2571,6 +2573,15 @@ return result;	\
         return;
     }
 
+    //IOS7 DP3. TableView seems to be adding the searchView to
+    //tableView. Bug on IOS7?
+    if ([TiUtils isIOS7OrGreater]) {
+        if (![[[controller searchBar] superview] isKindOfClass:[TiUIView class]]) {
+            if ([[searchField view] respondsToSelector:@selector(searchBar)]) {
+                [[searchField view] performSelector:@selector(searchBar)];
+            }
+        }
+    }
     animateHide = YES;
     [self performSelector:@selector(hideSearchScreen:) withObject:nil afterDelay:0.2];
 }

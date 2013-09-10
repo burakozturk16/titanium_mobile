@@ -186,6 +186,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_LONGPRESS = "longpress";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_MARKER = "marker";
 
 	/**
 	 * @module.api
@@ -486,6 +491,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_PROPERTY_URL = "url";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_USER_LEAVE_HINT = "userleavehint";
 	
 
 	/**
@@ -848,6 +858,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BYTE_ORDER = "byteOrder";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_CACHE_MODE = "cacheMode";
 
 	/**
 	 * @module.api

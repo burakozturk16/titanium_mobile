@@ -29,9 +29,9 @@
         [proxy windowDidOpen];
         if([proxy respondsToSelector:@selector(controller)])
         {
-            return [(TiWindowProxy *)proxy controller];
+            return [(TiWindowProxy *)proxy hostingController];
         }
-        return [[[TiViewController alloc] initWithViewProxy:(TiViewProxy<TiUIViewController>*)proxy] autorelease];
+        return [[[TiViewController alloc] initWithViewProxy:proxy] autorelease];
     }
     return nil;
 }

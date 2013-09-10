@@ -228,7 +228,7 @@ DEFINE_EXCEPTIONS
                 [subview removeFromSuperview];
             }
         }
-        [self cancelAllAnimations:nil];
+        [self cancelAllAnimations];
         [self removeFromSuperview];
         self.proxy = nil;
         self.touchDelegate = nil;
@@ -511,18 +511,27 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Public APIs
 
+-(void)setTintColor_:(id)color
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        TiColor *ticolor = [TiUtils colorValue:color];
+        [self performSelector:@selector(setTintColor:) withObject:[ticolor _color]];
+    }
+}
+
 -(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
     if (_bgLayer != nil) {
         return _bgLayer;
     }
-    
+
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-    _bgLayer.bounds = self.layer.bounds;
+    _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
     
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.cornerRadius = self.layer.cornerRadius;
+    _bgLayer.readyToCreateDrawables = configurationSet;
     return _bgLayer;
 }
 
@@ -601,31 +610,12 @@ DEFINE_EXCEPTIONS
 {
     if (arg==nil) return nil;
     UIImage *image = nil;
-	
-    if ([arg isKindOfClass:[TiBlob class]]) {
-        TiBlob *blob = (TiBlob*)arg;
-        image = [blob image];
-    }
-    else if ([arg isKindOfClass:[UIImage class]]) {
-		// called within this class
-        image = (UIImage*)arg;
+	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        image =  [TiUtils loadBackgroundImage:arg forProxy:proxy];
     }
     else {
-        NSURL *url;
-        if ([arg isKindOfClass:[TiFile class]]) {
-            TiFile *file = (TiFile*)arg;
-            url = [NSURL fileURLWithPath:[file path]];
-        }
-        else {
-            url = [TiUtils toURL:arg proxy:proxy];
-        }
-        if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
-            TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
-            image =  [[ImageLoader sharedLoader]loadImmediateImage:url];
-        }
-        else {
-            image = [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
-        }
+        image =  [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
     }
 	return image;
 }

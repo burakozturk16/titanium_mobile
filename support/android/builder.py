@@ -2254,8 +2254,10 @@ class Builder(object):
 			if not os.path.exists(self.assets_resources_dir):
 				os.makedirs(self.assets_resources_dir)
 
-			self.tiapp = TiAppXML(self.project_tiappxml)
-			# self.tiapp.setDeployType(deploy_type)
+			shutil.copy(self.project_tiappxml, self.assets_dir)
+			finalxml = os.path.join(self.assets_dir,'tiapp.xml')
+			self.tiapp = TiAppXML(finalxml)
+			self.tiapp.setDeployType(deploy_type)
 			self.sdcard_copy = False
 			sdcard_property = "ti.android.loadfromsdcard"
 			if self.tiapp.has_app_property(sdcard_property):
@@ -2263,7 +2265,7 @@ class Builder(object):
 
 			fastdev_property = "ti.android.fastdev"
 			fastdev_enabled = (self.deploy_type == 'development' and not self.build_only)
-			if self.tiapp.has_app_property(fastdev_property):
+			if self.tiapp.has_app_property(fastdev_property) and self.deploy_type == 'development':
 				fastdev_enabled = self.tiapp.to_bool(self.tiapp.get_app_property(fastdev_property))
 
 			if fastdev_enabled:
