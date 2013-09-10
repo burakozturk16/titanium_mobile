@@ -5,7 +5,6 @@
 
 var Shape = Ti.Shape;
 
-var Charts = Ti.Charts;
 // open a single window
 var win = Ti.UI.createWindow({
 	backgroundColor : 'black',
