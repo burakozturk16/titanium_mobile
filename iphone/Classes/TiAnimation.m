@@ -24,7 +24,7 @@
 @synthesize delegate;
 @synthesize zIndex;
 @synthesize duration, color, backgroundColor, opacity, opaque, view;
-@synthesize visible, curve, repeat, autoreverse, delay, transform, transition;
+@synthesize visible, curve, repeat, autoreverse, delay, transition;
 @synthesize animatedView, callback, isReverse, reverseAnimation;
 
 static NSArray *layoutProps;
@@ -408,7 +408,10 @@ if (value != nil)\
     UPDATE_PROXY_PROP(animatedViewProxy, backgroundColor)
     UPDATE_PROXY_PROP(animatedViewProxy, visible)
     UPDATE_PROXY_PROP(animatedViewProxy, opacity)
-    UPDATE_PROXY_PROP(animatedViewProxy, transform)
+    
+    if ([self valueForKey:@"transform"])
+        [animatedViewProxy replaceValue:[self valueForKey:@"transform"] forKey:@"transform" notification:NO];
+//    UPDATE_PROXY_PROP(animatedViewProxy, transform)
 }
 
 -(void)resetViewProxyProperties

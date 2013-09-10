@@ -133,7 +133,7 @@
 @property(nonatomic,retain,readwrite) NSNumber	*repeat;
 @property(nonatomic,retain,readwrite) NSNumber	*autoreverse;
 @property(nonatomic,retain,readwrite) NSNumber	*delay;
-@property(nonatomic,retain,readwrite) TiProxy	*transform;
+//@property(nonatomic,retain,readwrite) TiProxy	*transform;
 @property(nonatomic,retain,readwrite) NSNumber	*transition;
 @property(nonatomic,retain,readwrite) TiProxy	*view;
 
