@@ -152,6 +152,8 @@ enum
     
     id observer;
 	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
+    
+    TiAnimation * pendingAnimation;
 }
 
 #pragma mark public API

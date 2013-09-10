@@ -432,6 +432,10 @@ static NSSet* transferableProps = nil;
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
+    if (![self view]) {
+        pendingAnimation = [newAnimation retain];
+        return;
+    }
 	[self rememberProxy:newAnimation];
 	TiThreadPerformOnMainThread(^{
 		if ([view superview]==nil)
@@ -1259,6 +1263,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 			[self relayout];
 		}
 		viewInitialized = YES;
+        if (pendingAnimation != nil) {
+            [self animate:[pendingAnimation autorelease]];
+        }
 	}
 
 	CGRect bounds = [view bounds];
@@ -1683,6 +1690,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)dealloc
 {
+	RELEASE_TO_NIL(pendingAnimation);
 	RELEASE_TO_NIL(pendingAdds);
 	RELEASE_TO_NIL(destroyLock);
 	pthread_rwlock_destroy(&childrenLock);
