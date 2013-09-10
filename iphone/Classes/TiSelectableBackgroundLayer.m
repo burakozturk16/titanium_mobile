@@ -56,6 +56,7 @@
         }
     } else {
         if (image != nil) {
+            CGRect rect = layer.frame;
             layer.contentsScale = image.scale;
             layer.contentsCenter = TiDimensionLayerContentCenterFromInsents(image.capInsets, [image size]);
         }
