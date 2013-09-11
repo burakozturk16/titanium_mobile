@@ -22,6 +22,7 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.AffineTransform.DecomposedType;
 import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
 import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
@@ -1990,8 +1991,21 @@ public abstract class TiUIView
 			{
 				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
 			}
-			ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), matrix);
-			list.add(anim);
+			
+			if (parentView instanceof FreeLayout) {
+				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), matrix);
+				list.add(anim);
+			}
+			else {
+				DecomposedType decompose = matrix.getAffineTransform(view, true).decompose();
+				List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+				propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
+				propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
+				propertiesList.add(PropertyValuesHolder.ofFloat("rotation", (float)(decompose.angle*180/Math.PI)));
+				propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", (float)decompose.scaleX));
+				propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
+				list.add(ObjectAnimator.ofPropertyValuesHolder(view,propertiesList.toArray(new PropertyValuesHolder[0])));
+			}
 		}
 
 		int style = tiSet.autoreverse?ValueAnimator.REVERSE:ValueAnimator.RESTART;

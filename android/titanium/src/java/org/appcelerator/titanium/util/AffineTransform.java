@@ -370,10 +370,10 @@ public Matrix toMatrix()
 
 
 public static class DecomposedType {
-    double scaleX, scaleY;
-    double angle;
-    double remainderA, remainderB, remainderC, remainderD;
-    double translateX, translateY;
+	public double scaleX, scaleY;
+	public double angle;
+	public double remainderA, remainderB, remainderC, remainderD;
+	public double translateX, translateY;
 } ;
 
 public DecomposedType decompose()
