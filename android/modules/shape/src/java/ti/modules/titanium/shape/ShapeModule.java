@@ -7,6 +7,12 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.kroll.common.Log;
 
+import ti.modules.titanium.shape.ShapeProxy.Arc;
+import ti.modules.titanium.shape.ShapeProxy.Circle;
+import ti.modules.titanium.shape.ShapeProxy.Oval;
+import ti.modules.titanium.shape.ShapeProxy.PRect;
+import ti.modules.titanium.shape.ShapeProxy.PRoundRect;
+
 @Kroll.module
 public class ShapeModule extends KrollModule
 {
@@ -39,6 +45,7 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final String PROPERTY_CORNERRADIUS = "cornerRadius";
 	@Kroll.constant public static final String PROPERTY_LINE_CLIPPED = "lineClipped";
 	@Kroll.constant public static final String PROPERTY_INNERRADIUS = "innerRadius";
+	@Kroll.constant public static final String PROPERTY_SHAPES = "shapes";
 
 	
 	
@@ -89,5 +96,37 @@ public class ShapeModule extends KrollModule
 		Log.d(TAG, "inside onAppCreate");
 		// put module init code that needs to run when the application is created
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public static Class ShapeClassFromString(String value)
+	{
+	    if (value == null) return ShapeProxy.class;
+		if (value.equals("circle"))
+		{
+			return CircleProxy.class;
+		}
+		else if (value.equals("rect"))
+		{
+			return ShapeProxy.class;
+		}
+	    else if (value.equals("roundedrect"))
+		{
+			return RoundedRectProxy.class;
+		}
+	    else if (value.equals("arc"))
+		{
+			return ArcProxy.class;
+		}
+	    else if (value.equals("pieslice"))
+		{
+			return PieSliceProxy.class;
+		}
+	    else if (value.equals("points"))
+		{
+			return ShapeProxy.class;
+		}
+		return ShapeProxy.class;
+	}
+
 }
 

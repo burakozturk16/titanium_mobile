@@ -17,6 +17,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
+import org.appcelerator.titanium.util.AffineTransform;
+import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -89,6 +91,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	private boolean fillInversed = false;
 	private boolean lineInversed = false;
 	private boolean lineClipped = false;
+	private boolean needsMatrix = false;
+	
+	protected Object paintLock;
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public class PointEvaluator implements TypeEvaluator<Point> {
@@ -309,7 +314,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	
-	private Class opFromString(String value)
+	public static Class PathableClassFromString(String value)
 	{
 	    if (value == null) return null;
 		if (value.equals("circle"))
@@ -350,6 +355,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		this.center = new TiPoint(0,0);
 		this.radius = getDefaultRadius();
 		this.anchor = AnchorPosition.CENTER;
+		paintLock = new Object();
 	}
 	
 	private Paint getOrCreateFillPaint() {
@@ -390,7 +396,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	}
 	
 	private Pathable pathableForOperation(KrollDict properties, int width, int height) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-		Class className = opFromString(properties.getString(TiC.PROPERTY_TYPE));
+		Class className = PathableClassFromString(properties.getString(TiC.PROPERTY_TYPE));
 		if (className == null) return null;
 		Pathable opPathable = (Pathable) className.getConstructors()[0].newInstance(this);
 		TiPoint center = getDefaultCenter();
@@ -507,7 +513,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	protected void updateGradients() {
-		updateGradients(context, currentBounds);
+		updateGradients(context, parentBounds);
 	}
 
 	
@@ -537,7 +543,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 				canvas_.restore();
 				
 				if (hasShadow) paint_.clearShadowLayer();
-				paint_.setAlpha((int) (opacity_*255));
+				paint_.setAlpha((int) (opacity_*255.0f));
 				paint_.setShader(shader);
 				paint_.setMaskFilter(filter);
 				canvas_.drawPath(path_, paint_);
@@ -563,17 +569,27 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		{
 			this.currentRegion = clipRectWithPath(parentBounds, path);
 			Rect rect = currentRegion.getBounds();
-			if (!rect.equals(currentBounds)) {
+			boolean sizeChanged = !rect.equals(currentBounds);
+			if (sizeChanged) {
 				this.currentBounds = rect;
 				for (int i = 0; i < mShapes.size(); i++) {
 					ShapeProxy shapeProxy = mShapes.get(i);
 					shapeProxy.onLayoutChanged(this.context, currentBounds);
 				}
+				
+			}
+			if (sizeChanged || needsMatrix) {
 				if (transform != null) {
-					matrix = new Matrix();
-					matrix = transform.getMatrix(context,
-							currentBounds.width(), currentBounds.height(),
-							parentBounds.width(), parentBounds.height());
+					if (transform.getAffineTransform() != null) {
+						matrix = transform.getAffineTransform().toMatrix();
+					}
+					else {
+						matrix = new Matrix();
+						matrix = transform.getMatrix(context,
+								currentBounds.width(), currentBounds.height(),
+								parentBounds.width(), parentBounds.height());
+					}
+					
 					matrix.postTranslate(currentBounds.left, currentBounds.top);
 					matrix.preTranslate(-currentBounds.left, -currentBounds.top);
 				}
@@ -582,11 +598,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (matrix != null) {
 			path.transform(matrix);
 		}
-		path.setFillType(fillInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
-		drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW, fillOpacity);
-		path.setFillType(lineInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
-		drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW, lineOpacity);
-		
+		synchronized (paintLock) {
+			path.setFillType(fillInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
+			drawPathWithPaint(path, fillPaint, canvas, ShapeModule.PROPERTY_FILL_SHADOW, fillOpacity);
+			path.setFillType(lineInversed?FillType.INVERSE_EVEN_ODD:FillType.EVEN_ODD);
+			drawPathWithPaint(path, linePaint, canvas, ShapeModule.PROPERTY_LINE_SHADOW, lineOpacity);
+		}
 		canvas.save();
 //		canvas.clipRect(currentBounds);
 		canvas.translate(currentBounds.left, currentBounds.top);
@@ -651,6 +668,28 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	
+	private class Ti2DMatrixEvaluator implements TypeEvaluator<Ti2DMatrix> {
+		private ShapeProxy proxy;
+		
+		public Ti2DMatrixEvaluator(ShapeProxy proxy) {
+			this.proxy = proxy;
+		}
+		
+		public Ti2DMatrix evaluate(float fraction, Ti2DMatrix startValue,
+				Ti2DMatrix endValue) {
+			
+			int width = proxy.currentBounds.width();
+			int height = proxy.currentBounds.height();
+			int parentWidth = proxy.parentBounds.width();
+			int parentHeight = proxy.parentBounds.height();
+			AffineTransform a = (startValue != null)?startValue.getAffineTransform(context, width, height, parentWidth, parentHeight, false):(new AffineTransform());
+			AffineTransform b = endValue.getAffineTransform(context, width, height, parentWidth, parentHeight, false);
+			b.blend(a, fraction);
+			return new Ti2DMatrix(b);
+		}
+
+	}
+	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
 //		KrollDict properties = getProperties();
@@ -680,6 +719,14 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		createAnimForFloat(ShapeModule.PROPERTY_FILL_OPACITY, animOptions, properties, propertiesList, 1.0f);
 		createAnimForColor(ShapeModule.PROPERTY_FILL_COLOR, animOptions, properties, propertiesList, Color.TRANSPARENT);
 		
+		if(animOptions.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			Ti2DMatrix matrix = (Ti2DMatrix) animOptions.get(TiC.PROPERTY_TRANSFORM);
+			if (matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
+			{
+				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+			}
+			propertiesList.add(PropertyValuesHolder.ofObject("animated2DMatrix", new Ti2DMatrixEvaluator(this), matrix));
+		}
 	}
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -887,10 +934,14 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return lineOpacity;
 	}
 	public void setLineColor(int value) {
-		getOrCreateLinePaint().setColor(value);
+		synchronized (paintLock) {
+			getOrCreateLinePaint().setColor(value);
+		}
 	}
 	public int getLineColor() {
-		return getOrCreateLinePaint().getColor();
+		synchronized (paintLock) {
+			return getOrCreateLinePaint().getColor();
+		}
 	}
 	public void setFillOpacity(float value) {
 		fillOpacity = value;
@@ -899,10 +950,25 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return fillOpacity;
 	}
 	public void setFillColor(int value) {
-		getOrCreateFillPaint().setColor(value);
+		synchronized (paintLock) {
+			getOrCreateFillPaint().setColor(value);
+		}
 	}
 	public int getFillColor() {
-		return getOrCreateFillPaint().getColor();
+		synchronized (paintLock) {
+			return getOrCreateFillPaint().getColor();
+		}
+	}
+	
+	public void setAnimated2DMatrix(Ti2DMatrix matrix) {
+		this.transform = matrix;
+		this.matrix = transform.getAffineTransform().toMatrix();
+		this.matrix.postTranslate(currentBounds.left, currentBounds.top);
+		this.matrix.preTranslate(-currentBounds.left, -currentBounds.top);
+	}
+	
+	public Ti2DMatrix getAnimated2DMatrix() {
+		return this.transform;
 	}
 	
 	private void setPaintImageDrawable(Object object, Paint _paint) {
@@ -933,7 +999,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleStrokeWidth(properties, ShapeModule.PROPERTY_LINE_WIDTH, "1", getOrCreateLinePaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_OPACITY)) {
-			Utils.styleOpacity(properties, ShapeModule.PROPERTY_LINE_OPACITY, getOrCreateLinePaint());
+			lineOpacity = TiConvert.toFloat(newValue, 1.0f);
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_JOIN)) {
 			Utils.styleJoin(properties, ShapeModule.PROPERTY_LINE_JOIN, getOrCreateLinePaint());
@@ -951,7 +1017,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleDash(properties, ShapeModule.PROPERTY_LINE_DASH, getOrCreateLinePaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_OPACITY)) {
-			Utils.styleOpacity(properties, ShapeModule.PROPERTY_FILL_OPACITY, getOrCreateFillPaint());
+			fillOpacity = TiConvert.toFloat(newValue, 1.0f);
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_IMAGE)) {
 			setPaintImageDrawable(newValue, getOrCreateLinePaint());
@@ -1011,7 +1077,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleStrokeWidth(properties, ShapeModule.PROPERTY_LINE_WIDTH, "1", getOrCreateLinePaint());
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_OPACITY)) {
-			Utils.styleOpacity(properties, ShapeModule.PROPERTY_LINE_OPACITY, getOrCreateLinePaint());
+			lineOpacity = properties.optFloat(ShapeModule.PROPERTY_LINE_OPACITY, 1.0f);
 		}
 		
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_JOIN)) {
@@ -1030,7 +1096,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			Utils.styleDash(properties, ShapeModule.PROPERTY_LINE_DASH, getOrCreateLinePaint());
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_OPACITY)) {
-			Utils.styleOpacity(properties, ShapeModule.PROPERTY_FILL_OPACITY, getOrCreateFillPaint());
+			fillOpacity = properties.optFloat(ShapeModule.PROPERTY_FILL_OPACITY, 1.0f);
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_IMAGE)) {
 			setPaintImageDrawable(properties.get(ShapeModule.PROPERTY_LINE_IMAGE), getOrCreateLinePaint());
@@ -1066,6 +1132,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		if (properties.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			this.transform = (Ti2DMatrix)properties.get(TiC.PROPERTY_TRANSFORM);
 			this.matrix = null;
+			needsMatrix = (this.transform != null);
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_INVERSED)) {
 			this.fillInversed = properties.getBoolean(ShapeModule.PROPERTY_FILL_INVERSED);
@@ -1077,7 +1144,13 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			this.lineClipped = properties.getBoolean(ShapeModule.PROPERTY_LINE_CLIPPED);
 		}
 	}
-
+	
+	@Override
+	public void animationFinished(TiAnimator animation) {
+		super.animationFinished(animation);
+		redraw();
+	}
+	
 	@Override
 	public void propertiesChanged(List<KrollPropertyChange> changes,KrollProxy proxy) {}
 
