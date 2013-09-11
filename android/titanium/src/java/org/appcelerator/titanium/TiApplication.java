@@ -94,6 +94,10 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	// Whether or not using legacy window. This is set in the application's tiapp.xml with the
 	// "ti.android.useLegacyWindow" property.
 	public static boolean USE_LEGACY_WINDOW = false;
+	
+	private int nbRunningActivities = 0;
+	private boolean startingActivity = false;
+	private boolean finishingActivity = false;
 
 	private boolean restartPending = false;
 	private String baseUrl;
@@ -941,5 +945,27 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	}
 
 	public abstract void verifyCustomModules(TiRootActivity rootActivity);
+	
+	public void setStartingActivity(boolean starting) {
+		startingActivity = starting;
+	}
+	
+	public void activityPaused(Activity activity) {
+		nbRunningActivities -= 1;
+		if (activity.isFinishing()) {
+			finishingActivity = true;
+		}
+		if (!startingActivity && !activity.isFinishing() && nbRunningActivities == 0) {
+			fireAppEvent(TiC.EVENT_PAUSE, null);
+		}
+	}
+	
+	public void activityResumed(Activity activity) {
+		if (!startingActivity && !finishingActivity && nbRunningActivities == 0) {
+			fireAppEvent(TiC.EVENT_RESUME, null);
+		}
+		finishingActivity = false;
+		nbRunningActivities += 1;
+	}
 }
 

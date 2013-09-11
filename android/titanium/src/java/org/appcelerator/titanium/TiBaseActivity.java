@@ -93,6 +93,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
 	public boolean firstLayout = true;
+	
+	static boolean isPaused = true;
 
 	public class DialogWrapper {
 		boolean isPersistent;
@@ -982,6 +984,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
 		}
+		TiApplication.getInstance().activityPaused(this);
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1032,6 +1035,10 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_RESUME, null);
 		}
+		
+		TiApplication.getInstance().activityResumed(this);
+		TiApplication.getInstance().setStartingActivity(false);
+
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1050,7 +1057,13 @@ public abstract class TiBaseActivity extends FragmentActivity
 		String deployType = tiApp.getSystemProperties().getString("ti.deploytype", "unknown");
 		tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppStartEvent(tiApp, deployType));
 	}
-
+	
+	@Override
+	public void startActivity(Intent intent)	{
+		TiApplication.getInstance().setStartingActivity(true);
+		super.startActivity(intent);
+	}
+	
 	@Override
 	/**
 	 * When this activity starts, this method updates the current activity to this if necessary and
