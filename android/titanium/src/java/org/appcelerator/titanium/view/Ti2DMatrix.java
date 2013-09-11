@@ -243,6 +243,10 @@ public class Ti2DMatrix extends KrollProxy {
 		return result;
 	}
 	
+	public AffineTransform getAffineTransform() {
+		return transform;
+	}
+	
 	public AffineTransform getAffineTransform(View view, boolean decaleFromCenter) {
 		View parent = (View) view.getParent();
 		if (parent == null)
