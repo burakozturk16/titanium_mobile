@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -23,6 +25,8 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
+
+import ti.modules.titanium.shape.ShapeProxy.PRoundRect;
 
 import android.app.Activity;
 import android.app.NativeActivity;
@@ -43,6 +47,7 @@ public class ShapeViewProxy extends TiViewProxy {
 	private static final String TAG = "ShapeViewProxy";
 
 	private final ArrayList<ShapeProxy> mShapes;
+	protected HashMap<String, ShapeProxy> mShapeBindings;
 	private static final List<String> supportedEvents = Arrays.asList(
 			TiC.EVENT_CLICK, TiC.EVENT_DOUBLE_CLICK, TiC.EVENT_DOUBLE_TAP,
 			TiC.EVENT_SINGLE_TAP, TiC.EVENT_LONGPRESS, TiC.EVENT_TOUCH_CANCEL, TiC.EVENT_TOUCH_END,
@@ -114,8 +119,24 @@ public class ShapeViewProxy extends TiViewProxy {
 		public void processProperties(KrollDict d) {
 
 			super.processProperties(d);
-
-			Context context = nativeView.getContext();
+			for (Entry<String, ShapeProxy> entry : mShapeBindings.entrySet()) {
+			    String key = entry.getKey();
+			    if (d.containsKey(key)) {
+			    	KrollDict dict = d.getKrollDict(key);
+			    	if (dict != null) {
+				    	entry.getValue().processProperties(dict);
+			    	}
+			    }
+			}
+			redrawNativeView();
+		}
+		
+		@Override
+		public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
+			if (mShapeBindings.containsKey(key)) {
+				mShapeBindings.get(key).processProperties((KrollDict) newValue);
+			}
+			else super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 
 		@Override
@@ -133,6 +154,7 @@ public class ShapeViewProxy extends TiViewProxy {
 	public ShapeViewProxy() {
 		super();
 		mShapes = new ArrayList<ShapeProxy>();
+		mShapeBindings = new HashMap<String, ShapeProxy>();
 	}
 
 	@Override
@@ -170,12 +192,33 @@ public class ShapeViewProxy extends TiViewProxy {
 		TiUIView view = super.getOrCreateView(true);
 		return view;
 	}
+	
+
+	private void processShapesAndBindings (Object[] array) {
+		for (int i = 0; i < array.length; i++) {
+		    HashMap dict = (HashMap) array[i];
+		    if (dict != null) {
+			    String bindId = TiConvert.toString(dict, TiC.PROPERTY_BIND_ID);
+			    String type = TiConvert.toString(dict, TiC.PROPERTY_TYPE);
+			    Class shapeClass = ShapeModule.ShapeClassFromString(type);
+			    ShapeProxy proxy = (ShapeProxy) KrollProxy.createProxy(shapeClass, null, new Object[] { dict }, null);
+				addShape(proxy);
+				if (bindId != null) {
+					mShapeBindings.put(bindId, proxy);
+				}
+		    }
+		}
+	}
 
 	// Handle creation options
 	@Override
 	public void handleCreationDict(KrollDict options) {
 		Log.d(TAG, "handleCreationDict ");
+		if (options.containsKey(ShapeModule.PROPERTY_SHAPES)) {
+			processShapesAndBindings((Object[]) options.get(ShapeModule.PROPERTY_SHAPES));
+		}
 		super.handleCreationDict(options);
+		
 	}
 
 	@Kroll.method
@@ -218,8 +261,8 @@ public class ShapeViewProxy extends TiViewProxy {
 		} else if (arg instanceof ShapeProxy) {
 			addShape((ShapeProxy) arg);
 		} else if (arg instanceof HashMap) {
-			ShapeProxy proxy = (ShapeProxy) KrollProxy.createProxy(
-					ShapeProxy.class, null, new Object[] { arg }, null);
+			Class shapeClass = ShapeModule.ShapeClassFromString(TiConvert.toString(arg, TiC.PROPERTY_TYPE));
+		    ShapeProxy proxy = (ShapeProxy) KrollProxy.createProxy(shapeClass, null, new Object[] { arg }, null);
 			addShape(proxy);
 		} else {
 			Log.e(TAG, "add: must be a Shape");
