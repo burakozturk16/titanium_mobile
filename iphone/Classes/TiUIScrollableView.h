@@ -31,6 +31,8 @@
     int lastPage;
     BOOL enforceCacheRecalculation;
     int cacheSize;
+    BOOL verticalLayout;
+    CGFloat pageMargin;
     
 }
 @property(nonatomic,readwrite,assign)CGFloat switchPageAnimationDuration;
