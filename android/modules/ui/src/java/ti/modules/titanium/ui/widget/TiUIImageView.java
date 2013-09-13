@@ -157,7 +157,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 								.hashCode() == hash)) {
 							setImage(bitmap);
 							if (!firedLoad) {
-								fireLoad(TiC.PROPERTY_IMAGE);
+								fireLoad(TiC.PROPERTY_IMAGE, bitmap);
 								firedLoad = true;
 							}
 						}
@@ -279,7 +279,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					}
 					setImage(bitmap);
 					if (!firedLoad) {
-						fireLoad(TiC.PROPERTY_IMAGE);
+						fireLoad(TiC.PROPERTY_IMAGE, bitmap);
 						firedLoad = true;
 					}
 				}
@@ -512,6 +512,14 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private void fireLoad(String state)
 	{
 		KrollDict data = new KrollDict();
+		data.put(TiC.EVENT_PROPERTY_STATE, state);
+		fireEvent(TiC.EVENT_LOAD, data);
+	}
+	
+	private void fireLoad(String state, Bitmap bitmap)
+	{
+		KrollDict data = new KrollDict();
+		data.put("image", TiBlob.blobFromImage(bitmap));
 		data.put(TiC.EVENT_PROPERTY_STATE, state);
 		fireEvent(TiC.EVENT_LOAD, data);
 	}
@@ -749,7 +757,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				if (!bitmap.isRecycled()) {
 					setImage(bitmap);
 					if (!firedLoad) {
-						fireLoad(TiC.PROPERTY_IMAGE);
+						fireLoad(TiC.PROPERTY_IMAGE, bitmap);
 						firedLoad = true;
 					}
 					return;
@@ -775,6 +783,19 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				if (!isCachedInDisk && uri != null) {
 					TiDownloadManager.getInstance().download(uri, downloadListener);
 					return;
+				}
+			}
+			else {
+				bitmap = imageref.getBitmap(false);
+				if (bitmap != null) {
+					if (!bitmap.isRecycled()) {
+						setImage(bitmap);
+						if (!firedLoad) {
+							fireLoad(TiC.PROPERTY_IMAGE, bitmap);
+							firedLoad = true;
+						}
+						return;
+					}
 				}
 			}
 			if (localLoadSync == true)

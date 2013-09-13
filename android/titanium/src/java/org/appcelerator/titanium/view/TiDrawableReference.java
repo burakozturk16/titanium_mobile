@@ -297,6 +297,11 @@ public class TiDrawableReference
 	 */
 	public Bitmap getBitmap(boolean needRetry)
 	{
+		if(isTypeBlob())
+		{
+			Bitmap bitmap = blob.getImage();
+			if (bitmap != null) return bitmap;
+		}
 		InputStream is = getInputStream();
 		Bitmap b = null;
 		BitmapFactory.Options opts = new BitmapFactory.Options();
