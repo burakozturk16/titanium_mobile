@@ -14,12 +14,10 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import android.app.Activity;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
-import android.view.ViewGroup;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
@@ -110,7 +108,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		menuWidth = -100;
 		slidingMenu.setFadeDegree(0.0f);
 		slidingMenu.setBehindScrollScale(0.0f);
-		slidingMenu.setShadowWidth(0);
+		slidingMenu.setShadowWidth(20);
 		
 		updateMenuWidth();
 		
@@ -252,6 +250,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (d.containsKey(TiC.PROPERTY_SHADOW_WIDTH)) {
 			slidingMenu.setShadowWidth(d.getInt(TiC.PROPERTY_SHADOW_WIDTH));
 		}
+		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
+			slidingMenu.setSlidingEnabled(d.getBoolean(TiC.PROPERTY_ENABLED));
+		}
 		super.processProperties(d);
 	}
 	
@@ -316,6 +317,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			slidingMenu.setBehindScrollScale(TiConvert.toFloat(newValue));
 		} else if (key.equals(TiC.PROPERTY_SHADOW_WIDTH)) {
 			slidingMenu.setShadowWidth(TiConvert.toInt(newValue));
+		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
+				slidingMenu.setSlidingEnabled(TiConvert.toBoolean(newValue));
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
