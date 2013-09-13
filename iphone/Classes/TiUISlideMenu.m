@@ -22,31 +22,31 @@
 
 -(UIViewController *) controllerForViewProxy:(TiViewProxy * )proxy
 {
-    if([proxy respondsToSelector:@selector(childViewController)]) {
+//    if([proxy respondsToSelector:@selector(childViewController)]) {
         [[proxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
         [proxy windowWillOpen];
         [proxy reposition];
         [proxy windowDidOpen];
-        if([proxy respondsToSelector:@selector(controller)])
+        if([proxy respondsToSelector:@selector(hostingController)])
         {
             return [(TiWindowProxy *)proxy hostingController];
         }
         return [[[TiViewController alloc] initWithViewProxy:proxy] autorelease];
-    }
-    return nil;
+//    }
+//    return nil;
 }
 
 -(TiViewProxy *) proxyWithControllerFromProxy:(TiViewProxy * )proxy
 {
-    if([proxy respondsToSelector:@selector(childViewController)]) {
+//    if([proxy respondsToSelector:@selector(childViewController)]) {
         return proxy;
-    }
-    else{
-        TiWindowProxy* windowProxy = [[TiWindowProxy alloc] init];
-        [windowProxy add:proxy];
-        return [windowProxy autorelease];
-    }
-    return nil;
+//    }
+//    else{
+//        TiWindowProxy* windowProxy = [[TiWindowProxy alloc] init];
+//        [windowProxy add:proxy];
+//        return [windowProxy autorelease];
+//    }
+//    return nil;
 }
 
 -(id)init
