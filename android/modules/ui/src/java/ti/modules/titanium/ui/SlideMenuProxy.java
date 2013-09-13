@@ -48,7 +48,7 @@ import android.view.WindowManager;
 	TiC.PROPERTY_MENU_SCROLL_SCALE,
 	TiC.PROPERTY_SHADOW_WIDTH
 })
-public class SlideMenuProxy extends WindowProxy implements TiActivityWindow
+public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 {
 	private static final String TAG = "SlideMenuProxy";
 
