@@ -276,7 +276,16 @@ public class ScrollableViewProxy extends TiViewProxy
 			fireEvent(TiC.EVENT_SCROLL, options);
 		}
 	}
-
+	
+	public void fireScrollStart(int currentPage, TiViewProxy currentView)
+	{
+		if (hasListeners(TiC.EVENT_SCROLLSTART)) {
+			KrollDict options = new KrollDict();
+			options.put("view", currentView);
+			options.put("currentPage", currentPage);
+			fireEvent(TiC.EVENT_SCROLLSTART, options);
+		}
+	}
 	@Kroll.setProperty @Kroll.method
 	public void setScrollingEnabled(Object enabled)
 	{

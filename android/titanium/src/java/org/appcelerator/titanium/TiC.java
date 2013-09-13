@@ -430,6 +430,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_SCROLLSTART= "scrollstart";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_DRAGEND = "dragend";
 
 	/**
@@ -863,6 +868,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CACHE_MODE = "cacheMode";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_CACHE_SIZE = "cacheSize";
 
 	/**
 	 * @module.api
@@ -1752,6 +1762,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PACKAGE_NAME = "packageName";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PAGE_WIDTH = "pageWidth";
+	
 	/**
 	 * @module.api
 	 */
