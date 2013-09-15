@@ -13,7 +13,10 @@ import java.lang.Math;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiBaseActivity;
+import org.appcelerator.titanium.TiBaseActivity.ConfigurationChangedListener;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
@@ -25,9 +28,11 @@ import org.appcelerator.titanium.view.TiUIView;
 import com.lambergar.verticalviewpager.VerticalViewPager;
 
 import ti.modules.titanium.ui.ScrollableViewProxy;
+import ti.modules.titanium.ui.SlideMenuProxy;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
@@ -43,7 +48,7 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
 @SuppressLint("NewApi")
-public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageChangeListener, VerticalViewPager.OnPageChangeListener
+public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageChangeListener, VerticalViewPager.OnPageChangeListener, ConfigurationChangedListener
 {
 	private static final String TAG = "TiUIScrollableView";
 
@@ -51,7 +56,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private static final int PAGE_RIGHT = 201;
 	private static final Class<?>[] DISALLOWINTERCEPTTOUCH_CLASSES = {ScrollView.class, ListView.class};
 	private int pageMargin = 0;
+	private TiDimension pageDimension = new TiDimension("100%", TiDimension.TYPE_WIDTH);
 	private float pageWidth = 1.0f;
+	public boolean needsRepopulate = false;
 	private interface IPageAdapter {
 
 		void notifyDataSetChanged();
@@ -99,6 +106,19 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			setAdapter((PagerAdapter)adapter);
 			
 		}
+		@Override
+		protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+			int parentWidth = MeasureSpec.getSize(widthMeasureSpec);
+			float realDimension = pageDimension.getAsPixels(getContext(), parentWidth, parentWidth);
+			pageWidth = realDimension/parentWidth;
+			if (needsRepopulate == true) {
+				mAdapter.notifyDataSetChanged(); //heavy but seems to be the only way to have pageWidth
+				//ask for again after orientation change
+				needsRepopulate = false;
+			}
+			
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		}
 	}
 	private class VViewPager extends VerticalViewPager implements IViewPager{
 
@@ -128,6 +148,20 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			setAdapter((com.lambergar.verticalviewpager.PagerAdapter)adapter);
 			
 		}
+		@Override
+		protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec) {
+			
+			int parentHeight = MeasureSpec.getSize(heightMeasureSpec);
+			float realDimension = pageDimension.getAsPixels(getContext(), parentHeight, parentHeight);
+			pageWidth = realDimension/parentHeight;
+			if (needsRepopulate == true) {
+				mAdapter.notifyDataSetChanged(); //heavy but seems to be the only way to have pageWidth
+				//ask for again after orientation change
+				needsRepopulate = false;
+			}
+			
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		}
 	}
 	
 	private IViewPager mPager;
@@ -141,10 +175,11 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	
 	
 
-	public TiUIScrollableView(ScrollableViewProxy proxy)
+	public TiUIScrollableView(ScrollableViewProxy proxy, TiBaseActivity activity)
 	{
 		super(proxy);
-		Activity activity = proxy.getActivity();
+		activity.addConfigurationChangedListener(this);
+
 		mViews = new ArrayList<TiViewProxy>();
 		
 		buildViewPager(activity);
@@ -160,6 +195,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	
 	private boolean isValidScroll = false;
 	private boolean justFiredDragEnd = false;
+
 	@Override
 	public void onPageScrollStateChanged(int scrollState) {
 		if (scrollState == ViewPager.SCROLL_STATE_DRAGGING) {
@@ -385,7 +421,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_PAGE_WIDTH)) {
-			pageWidth = TiConvert.toFloat(d, TiC.PROPERTY_PAGE_WIDTH);
+			pageDimension = new TiDimension(d.getString(TiC.PROPERTY_PAGE_WIDTH), TiDimension.TYPE_WIDTH);
 		}
 
 		super.processProperties(d);
@@ -679,7 +715,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		{
 
 			TiViewProxy proxy = (TiViewProxy) object;
-			if (proxy == null) return POSITION_NONE;
+			if (proxy == null || needsRepopulate == true) return POSITION_NONE;
 
 			for(int i = 0; i < getCount(); i++) {
 				if(mViewProxies.get(i).equals(proxy)) {
@@ -855,5 +891,12 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			}
 			return handled || super.dispatchKeyEvent(event);
 		}
+	}
+	
+	@Override
+	public void onConfigurationChanged(TiBaseActivity activity,
+			Configuration newConfig) {
+		needsRepopulate = true;
+		
 	}
 }
