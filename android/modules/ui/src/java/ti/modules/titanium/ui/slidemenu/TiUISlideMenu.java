@@ -146,6 +146,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_MARGIN);
 		if (panningMode == UIModule.MENU_PANNING_BORDERS) {
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
+		} else if (panningMode == UIModule.MENU_PANNING_NON_SCROLLVIEW) {
+			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_NON_VIEWPAGER);
 		} else if (panningMode == UIModule.MENU_PANNING_CENTER_VIEW)
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 		else if (panningMode == UIModule.MENU_PANNING_ALL_VIEWS) {
@@ -291,6 +293,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			}
 			if (newValue != null && newValue instanceof TiViewProxy) {
 					newProxy = (TiViewProxy)newValue;
+					newProxy.setActivity(proxy.getActivity());
 					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
 					params.autoFillsHeight = true;
 					params.autoFillsWidth = true;

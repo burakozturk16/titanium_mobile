@@ -12,6 +12,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.VelocityTrackerCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.view.ViewConfigurationCompat;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.FloatMath;
 import android.util.Log;
@@ -623,6 +624,52 @@ public class CustomViewAbove extends ViewGroup {
 	public int getTouchMode() {
 		return mTouchMode;
 	}
+	
+	private View findViewAtPosition(View parent, int x, int y) {
+	    if (parent instanceof ViewGroup) {
+	        ViewGroup viewGroup = (ViewGroup)parent;
+	        for (int i=0; i<viewGroup.getChildCount(); i++) {
+	            View child = viewGroup.getChildAt(i);
+	            View viewAtPosition = findViewAtPosition(child, x, y);
+	            if (viewAtPosition != null) {
+	                return viewAtPosition;
+	            }
+	        }
+	        return null;
+	    } else {
+	        Rect rect = new Rect();
+	        parent.getGlobalVisibleRect(rect);
+	        if (rect.contains(x, y)) {
+	            return parent;
+	        } else {
+	            return null;
+	        }
+	    }
+	}
+	
+	@SuppressWarnings("unchecked")
+	private boolean findClassAtPosition(View parent, int x, int y, Class lookupClass) {
+		Rect rect = new Rect();
+        parent.getGlobalVisibleRect(rect);
+        if (rect.contains(x, y)) {
+        	if (lookupClass.isAssignableFrom(parent.getClass())) {
+                return true;
+    		}
+    	    if (parent instanceof ViewGroup) {
+    	        ViewGroup viewGroup = (ViewGroup)parent;
+    	        for (int i=0; i<viewGroup.getChildCount(); i++) {
+    	            View child = viewGroup.getChildAt(i);
+    	            if (findClassAtPosition(child, x, y, lookupClass)) return true;
+    	        }
+    	    }
+        }
+		
+	    return false;
+	}
+	
+	private boolean isTopViewPager(View parent, float x, float y) {
+		return (findClassAtPosition(parent, (int)x, (int)y, ViewPager.class));
+	}
 
 	private boolean thisTouchAllowed(MotionEvent ev) {
 		int x = (int) (ev.getX() + mScrollX);
@@ -636,6 +683,8 @@ public class CustomViewAbove extends ViewGroup {
 				return false;
 			case SlidingMenu.TOUCHMODE_MARGIN:
 				return mViewBehind.marginTouchAllowed(mContent, x);
+			case SlidingMenu.TOUCHMODE_NON_VIEWPAGER:
+				return !isTopViewPager(mContent, ev.getX(), ev.getY());
 			}
 		}
 		return false;
