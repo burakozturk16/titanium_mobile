@@ -708,6 +708,10 @@ DEFINE_EXCEPTIONS
 	localLoadSync = [TiUtils boolValue:arg];
 }
 
+-(UIImage*)getUIImage {
+    return [self imageView].image;
+}
+
 -(void)setImage_:(id)arg
 {
 	id currentImage = [self.proxy valueForUndefinedKey:@"image"];
