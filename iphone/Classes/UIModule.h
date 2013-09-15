@@ -204,6 +204,13 @@
 @property(nonatomic,readonly) NSNumber *EXTEND_EDGE_NONE;
 @property(nonatomic,readonly) NSNumber *EXTEND_EDGE_ALL;
 
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_NONE;
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_ALL_VIEWS;
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_BORDERS;
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_NAV_BAR;
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_CENTER_VIEW;
+@property(nonatomic,readonly) NSNumber *MENU_PANNING_NON_SCROLLVIEW;
+
 @property(nonatomic,readonly) NSNumber *INFINITE;
 
 #ifdef USE_TI_UI2DMATRIX
