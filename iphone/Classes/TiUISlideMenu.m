@@ -211,6 +211,11 @@
         {
             [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
         }
+        else if (panningMode == PanningModeNonScrollView)
+        {
+            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+            [self controller].disableOnScrollView = YES;
+        }
     }
 }
 
@@ -231,6 +236,9 @@
                 break;
             case 4: // MENU_PANNING_NAV_BAR
                 panningMode = PanningModeNavBar;
+                break;
+            case 5: // MENU_PANNING_NON_SCROLLVIEW
+                panningMode = PanningModeNonScrollView;
                 break;
             case 2: // MENU_PANNING_CENTER_VIEW
             default:

@@ -13,6 +13,7 @@ typedef enum {
     PanningModeNone,
     PanningModeFullscreen,
     PanningModeNavBar,
+    PanningModeNonScrollView,
     PanningModeBorders
 } PanningMode;
 
