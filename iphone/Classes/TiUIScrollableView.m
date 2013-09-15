@@ -309,10 +309,12 @@
 
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd
 {
+    if (CGSizeEqualToSize(visibleBounds.size, CGSizeZero)) return;
 	CGRect viewBounds;
 	viewBounds.size.width = visibleBounds.size.width;
 	viewBounds.size.height = visibleBounds.size.height;
     viewBounds.origin = CGPointMake(0, 0);
+    
     
     if(!overlayEnabled || !showPageControl ) {
         if (verticalLayout) {
@@ -695,11 +697,17 @@
 	}
 }
 
--(void)setVerticalLayout_:(id)arg
+
+-(void)setLayout_:(id)arg
 {
-    verticalLayout = [TiUtils boolValue:arg];
-    [self refreshScrollView:[self bounds] readd:NO];
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSString)
+    if ([arg caseInsensitiveCompare:@"vertical"]==NSOrderedSame)
+    {
+        verticalLayout = YES;
+        [self refreshScrollView:[self bounds] readd:NO];
+    }
 }
+
 
 -(void)setScrollingEnabled_:(id)enabled
 {
