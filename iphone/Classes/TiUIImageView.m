@@ -361,7 +361,7 @@ DEFINE_EXCEPTIONS
 		// do a nice fade in animation to replace the new incoming image
 		// with our placeholder
 		[UIView beginAnimations:nil context:nil];
-		[UIView setAnimationDuration:0.5];
+		[UIView setAnimationDuration:0.2];
 		[UIView setAnimationDelegate:self];
 		[UIView setAnimationDidStopSelector:@selector(animationCompleted:finished:context:)];
 		
