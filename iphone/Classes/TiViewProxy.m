@@ -203,6 +203,10 @@ static NSSet* transferableProps = nil;
 		}
 		return;
 	}
+    if ([arg isKindOfClass:[NSDictionary class]]) {
+        [self add:[[[TiViewProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:arg]] autorelease]];
+        return;
+    }
 	
     if ([arg conformsToProtocol:@protocol(TiWindowProtocol)]) {
         DebugLog(@"Can not add a window as a child of a view. Returning");
