@@ -377,21 +377,32 @@ public abstract class TiUIView
 		return points;
 	}
 
+	@SuppressLint("NewApi")
 	public void applyTransform(Ti2DMatrix timatrix)
 	{
 		View outerView = getOuterView();
-		layoutParams.matrix = timatrix;
-		outerView.setLayoutParams(layoutParams);
-//		if (outerView != null) {
-//			if (timatrix != null) {
-//				TiMatrixAnimation matrixAnimation = TiViewAnimator.createMatrixAnimation(outerView, timatrix);
-//				matrixAnimation.interpolate = false;
-//				matrixAnimation.setDuration(0);
-//				outerView.startAnimation(matrixAnimation);
-//			} else {
-//				outerView.clearAnimation();
-//			}
-//		}
+		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
+		if (parent instanceof FreeLayout) {
+			layoutParams.matrix = timatrix;
+			outerView.setLayoutParams(layoutParams);
+		}
+		else {
+			if (timatrix != null) {
+				DecomposedType decompose = timatrix.getAffineTransform(outerView, true).decompose();
+				outerView.setTranslationX((float)decompose.translateX);
+				outerView.setTranslationY((float)decompose.translateY);
+				outerView.setRotation((float)(decompose.angle*180/Math.PI));
+				outerView.setScaleX((float)decompose.scaleX);
+				outerView.setScaleY((float)decompose.scaleY);
+			}
+			else {
+				outerView.setTranslationX(0);
+				outerView.setTranslationY(0);
+				outerView.setRotation(0);
+				outerView.setScaleX(1);
+				outerView.setScaleY(1);
+			}
+		}
 	}
 
 	public void forceLayoutNativeView(boolean informParent)
@@ -1919,13 +1930,16 @@ public abstract class TiUIView
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void prepareAnimatorSet(TiAnimatorSet tiSet) {
+		List<Animator> list = new ArrayList<Animator>();
+		HashMap options = tiSet.getOptions();
 		AnimatorSet set = tiSet.set();
-		final View view = proxy.getOuterView();
+		
+		
+		View view = proxy.getOuterView();
 		((TiViewAnimator)tiSet).setViewProxy(proxy);
 		((TiViewAnimator)tiSet).setView(view);
 
-		List<Animator> list = new ArrayList<Animator>();
-		HashMap options = tiSet.getOptions();
+		
 		
 		if (tiSet.delay != null)
 			set.setStartDelay(tiSet.delay.longValue());
@@ -1987,9 +2001,12 @@ public abstract class TiUIView
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			Ti2DMatrix matrix = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-			if (matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
+			if (matrix != null && matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
 			{
 				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+			}
+			else if(matrix == null) {
+				matrix = new Ti2DMatrix();
 			}
 			
 			if (parentView instanceof FreeLayout) {

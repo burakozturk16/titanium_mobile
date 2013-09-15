@@ -11,7 +11,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -28,24 +27,17 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.util.TiAnimator;
-import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
-import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
 import android.util.DisplayMetrics;
-import android.animation.Animator;
-import android.animation.AnimatorSet;
-import android.animation.Animator.AnimatorListener;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.graphics.Matrix;
-import android.graphics.RectF;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -499,6 +491,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return null;
 	}
 
+	public View getParentViewForChild()
+	{
+		if (view  != null)
+			return view.getParentViewForChild();
+		return null;
+	}
+
 	public void setView(TiUIView view)
 	{
 		this.view = view;
@@ -695,8 +694,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	 * @module.api
 	 */
 	@Kroll.method
-	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		
 		int i = -1; // no index by default
 		if (index instanceof Number) {
 			i = ((Number)index).intValue();
@@ -709,7 +712,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (children == null) {
 			children = new ArrayList<TiViewProxy>();
 		}
-
+		
 		if (peekView() != null) {
 			if (TiApplication.isUIThread()) {
 				handleAdd(child, i);

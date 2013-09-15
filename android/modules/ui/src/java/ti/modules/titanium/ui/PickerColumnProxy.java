@@ -6,7 +6,10 @@
  */
 package ti.modules.titanium.ui;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -102,8 +105,14 @@ public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
 	}
 
 	@Override
-	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		else if (args instanceof HashMap) {
+			child = (PickerRowProxy) KrollProxy.createProxy(PickerRowProxy.class, null, new Object[] { args }, null);
+		}
 		if (TiApplication.isUIThread()) {
 			handleAddRow(child);
 		} else {

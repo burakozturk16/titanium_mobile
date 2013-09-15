@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -130,8 +131,15 @@ public class TableViewRowProxy extends TiViewProxy
 	}
 
 	@Override
-	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		else if (args instanceof HashMap) {
+			child = (TiViewProxy) KrollProxy.createProxy(TiViewProxy.class, null, new Object[] { args }, null);
+		}
+		
 		if (controls == null) {
 			controls = new ArrayList<TiViewProxy>();
 		}
