@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "UIImage+ImageWithUIView.h"
+#import <QuartzCore/QuartzCore.h>
 
 /** Notification that gets posted when the underRight view will appear */
 extern NSString *const ECSlidingViewUnderRightWillAppear;
@@ -76,7 +76,7 @@ typedef enum {
 /** ECSlidingViewController is a view controller container that presents its child view controllers in two layers. The top layer can be panned to reveal the layers below it. */
 @interface ECSlidingViewController : UIViewController{
   CGPoint startTouchPosition;
-  id <ECSlidingViewDelegate> delegate;
+  __unsafe_unretained id <ECSlidingViewDelegate> delegate;
   BOOL topViewHasFocus;
   BOOL panning;
 }
@@ -185,6 +185,21 @@ typedef enum {
  */
 @property (nonatomic, assign) CGFloat animationDuration;
 
+@property (nonatomic, assign) BOOL disableOnScrollView;
+
+
+/** Returns the X-axis velocity threshold used for determining whether or not to process a pan to the left or right
+
+ By default, this is set to 100
+ */
+@property (nonatomic, assign) NSUInteger panningVelocityXThreshold;
+
+/** Can be set to provide a continuous callback as the top view slides.
+ 
+ Useful for animations synchronized to the sliding.
+ 
+ */
+@property (nonatomic,copy) void (^topViewCenterMoved)(float xPos);
 
 /** Returns a horizontal panning gesture for moving the top view.
  
