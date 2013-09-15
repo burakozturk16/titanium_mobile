@@ -51,7 +51,10 @@ static NSArray* imageKeySequence;
     }
     
     if ([self _hasListeners:@"load"]) {
-        NSDictionary *event = [NSDictionary dictionaryWithObject:stateString forKey:@"state"];
+        TiUIImageView *iv = (TiUIImageView*)[self view];
+        TiBlob* blob = [[TiBlob alloc] initWithImage:[iv getUIImage]];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
+        
         [self fireEvent:@"load" withObject:event];
     }
 }
