@@ -42,7 +42,6 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.AbsListView.OnScrollListener;
@@ -83,7 +82,7 @@ public class TiListView extends TiUIView {
 	public static final int HEADER_FOOTER_ITEM_TYPE = 0;
 	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 1;
 	
-	class ListViewWrapper extends FrameLayout {
+	class ListViewWrapper extends TiCompositeLayout {
 
 		public ListViewWrapper(Context context) {
 			super(context);
@@ -276,9 +275,11 @@ public class TiListView extends TiUIView {
 		wrapper.setFocusableInTouchMode(false);
 		wrapper.setAddStatesFromChildren(true);
 		listView = new ListView(activity);
-		listView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+		params.autoFillsHeight = true;
+		params.autoFillsWidth = true;
 //		listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
-		wrapper.addView(listView);
+		wrapper.addView(listView, params);
 		adapter = new TiBaseAdapter(activity);
 		
 		final KrollProxy fProxy = proxy;
@@ -358,7 +359,7 @@ public class TiListView extends TiUIView {
 		
 		setNativeView(wrapper);
 	}
-	
+
 	private void resetMarker() 
 	{
 		marker[0] = Integer.MAX_VALUE;
