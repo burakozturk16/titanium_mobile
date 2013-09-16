@@ -11,7 +11,11 @@
 #import "TiUtils.h"
 #import "TiViewProxy.h"
 
-@interface TiUIScrollableView(redefiningProxy)
+@interface TiUIScrollableView()
+{
+    TiDimension pageDimension;
+    TiDimension pageOffset;
+}
 @property(nonatomic,readonly)	TiUIScrollableViewProxy * proxy;
 @end
 
@@ -30,6 +34,8 @@
 -(id)init
 {
 	if (self = [super init]) {
+        pageDimension = TiDimensionFromObject(@"100%");
+        pageOffset = TiDimensionFromObject(@"50%");
         verticalLayout = NO;
         switchPageAnimationDuration = 250;
         cacheSize = 3;
@@ -39,13 +45,14 @@
         overlayEnabled = NO;
         pagingControlAlpha = 1.0;
         showPageControl = YES;
-        pageMargin = 0;
 	}
 	return self;
 }
 
--(void)initializerState
+-(void)initializeState
 {
+    [super initializeState];
+    verticalLayout = self.proxy.verticalLayout;
 }
 
 -(CGRect)pageControlRect
@@ -95,41 +102,14 @@
 	return pageControl;
 }
 
-- (UIView *)hitTest:(CGPoint)point withEvent:(UIEvent *)event 
+
+-(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent*)event
 {
-    id value = [self.proxy valueForKey:@"hitRect"];
-
-    if (value != nil) 
-    {
-        CGRect hitRect = [TiUtils rectValue:value];
-        // As long as we're inside of hitRect..
-        if (CGRectContainsPoint(hitRect, point))
-        {
-            UIView * test = [super hitTest:point withEvent:event];
-
-            // If it misses super's hitTest then it's outside of the
-            // scrollview.  Just return scrollview; at least the scrolling
-            // events can be processed, though no touches will go through
-            // to the view inside of scrollview. otherwise just return 
-            // whatever super got.
-
-            return test == nil ? scrollview : test;
-        }
-        else
-        {
-            return nil;
-        }
-    }
-    else 
-    {
-        return [super hitTest:point withEvent:event];
-    }
+    UIView* child = nil;
+    if ((child = [super hitTest:point withEvent:event]) == self)
+    	return [self scrollview];
+    return child;
 }
-//
-//- (BOOL)touchesShouldBegin:(NSSet *)touches withEvent:(UIEvent *)event inContentView:(UIView *)view
-//{
-//    return NO;
-//}
 
 -(UIScrollView*)scrollview 
 {
@@ -145,15 +125,9 @@
 		[scrollview setDelaysContentTouches:NO];
 		[scrollview setCanCancelContentTouches:YES];
 		[scrollview setScrollsToTop:NO];
-		BOOL clipsToBounds = [TiUtils boolValue:[self.proxy valueForKey:@"clipViews"] def:YES];
-		[scrollview setClipsToBounds:clipsToBounds];
-        [self setClipsToBounds:clipsToBounds];
+		[scrollview setClipsToBounds:NO];
+        [self setClipsToBounds:YES];
 		[self insertSubview:scrollview atIndex:0];
-        
-        //Update clips to bounds only if cornerRadius and backgroundImage are not set
-//        if ( (self.layer.cornerRadius == 0) && (self.backgroundImage == nil) ) {
-//            [self setClipsToBounds:clipsToBounds];
-//        }
 	}
 	return scrollview;
 }
@@ -283,28 +257,16 @@
 {
 	int result = currentPage;
     if (scrollview != nil) {
-        if (verticalLayout) {
-            CGPoint offset = [[self scrollview] contentOffset];
-            if (offset.y > 0) {
-                CGSize scrollFrame = [self bounds].size;
-                if (scrollFrame.height != 0) {
-                    result = floor(offset.y/scrollFrame.height);
-                }
-            }
-        }
-        else {
-            CGPoint offset = [[self scrollview] contentOffset];
-            if (offset.x > 0) {
-                CGSize scrollFrame = [self bounds].size;
-                if (scrollFrame.width != 0) {
-                    result = floor(offset.x/scrollFrame.width);
-                }
-            }
-        }
-        
+        float nextPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
+        result = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
     }
-	[pageControl setCurrentPage:result];
+    [pageControl setCurrentPage:result];
     return result;
+}
+
+-(void)refreshScrollView:(BOOL)readd
+{
+    [self refreshScrollView:[self scrollview].bounds readd:readd];
 }
 
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd
@@ -315,17 +277,14 @@
 	viewBounds.size.height = visibleBounds.size.height;
     viewBounds.origin = CGPointMake(0, 0);
     
-    
     if(!overlayEnabled || !showPageControl ) {
         if (verticalLayout) {
             if(pagingControlOnTop) viewBounds.origin = CGPointMake(pageControlHeight, 0);
             viewBounds.size.width -= (showPageControl ? pageControlHeight : 0);
-            viewBounds.size.height -=  2*pageMargin;
         }
         else {
             if(pagingControlOnTop) viewBounds.origin = CGPointMake(0, pageControlHeight);
             viewBounds.size.height -= (showPageControl ? pageControlHeight : 0);
-            viewBounds.size.width -=  2*pageMargin;
         }
     }
 	UIScrollView *sv = [self scrollview];
@@ -353,10 +312,10 @@
 	for (int c=0;c<viewsCount;c++)
 	{
         if (verticalLayout) {
-            viewBounds.origin.y = c*visibleBounds.size.height + pageMargin;
+            viewBounds.origin.y = c*viewBounds.size.height;
         }
         else {
-            viewBounds.origin.x = c*visibleBounds.size.width + pageMargin;
+            viewBounds.origin.x = c*viewBounds.size.width;
         }
 		
 		if (readd)
@@ -380,25 +339,41 @@
 	CGRect contentBounds;
 //	contentBounds.origin.x = viewBounds.origin.x;
 //	contentBounds.origin.y = viewBounds.origin.y;
-	contentBounds.size.width = visibleBounds.size.width;
-	contentBounds.size.height = visibleBounds.size.height;
+	contentBounds.size.width = viewBounds.size.width;
+	contentBounds.size.height = viewBounds.size.height;
     
     if (verticalLayout) {
-        contentBounds.size.width = visibleBounds.size.width-(showPageControl ? pageControlHeight : 0);
         contentBounds.size.height *= viewsCount;
 
     }
     else {
-        contentBounds.size.height = visibleBounds.size.height-(showPageControl ? pageControlHeight : 0);
         contentBounds.size.width *= viewsCount;
-
-        
     }
 	
 	
 	[sv setContentSize:contentBounds.size];
-	[sv setFrame:CGRectMake(0, 0, visibleBounds.size.width, visibleBounds.size.height)];
+//	[sv setFrame:CGRectMake(0, 0, visibleBounds.size.width, visibleBounds.size.height)];
 }
+
+-(void) updateScrollViewFrame:(CGRect)visibleBounds
+{
+    if (verticalLayout) {
+        CGFloat pageWidth = TiDimensionCalculateValue(pageDimension, visibleBounds.size.height);
+        CGRect bounds = visibleBounds;
+        bounds.size.height = pageWidth;
+        CGFloat offset = TiDimensionCalculateValue(pageOffset, visibleBounds.size.height - bounds.size.height);
+        bounds.origin.y = offset;
+        [scrollview setFrame:bounds];
+    } else {
+        CGFloat pageWidth = TiDimensionCalculateValue(pageDimension, visibleBounds.size.width);
+        CGRect bounds = visibleBounds;
+        bounds.size.width = pageWidth;
+        CGFloat offset = TiDimensionCalculateValue(pageOffset, visibleBounds.size.width - bounds.size.width);
+        bounds.origin.x = offset;
+        [scrollview setFrame:bounds];
+    }
+}
+
 
 // We have to cache the current page because we need to scroll to the new (logical) position of the view
 // within the scrollable view.  Doing so, if we're resizing to a SMALLER frame, causes a content offset
@@ -413,6 +388,7 @@
     enforceCacheRecalculation = NO;
 }
 
+
 -(void)setBounds:(CGRect)bounds_
 {
     lastPage = [self currentPage];
@@ -421,17 +397,13 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)visibleBounds
 {
-	if (!CGRectIsEmpty(visibleBounds))
-	{
-		[self refreshScrollView:visibleBounds readd:NO];
-        if (verticalLayout) {
-            [scrollview setContentOffset:CGPointMake(0, lastPage*visibleBounds.size.height)];
-        }
-        else {
-            [scrollview setContentOffset:CGPointMake(lastPage*visibleBounds.size.width,0)];
-        }
-        [self manageCache:[self currentPage]];
-	}
+    if (CGSizeEqualToSize(visibleBounds.size, CGSizeZero)) return;
+	
+    [self updateScrollViewFrame:visibleBounds];
+    [self refreshScrollView:NO];
+    [self setContentOffsetForPage:currentPage animated:NO];
+    [self manageCache:[self currentPage]];
+	
     //To make sure all subviews are properly resized.
     UIScrollView *sv = [self scrollview];
     for(UIView *view in [sv subviews]){
@@ -477,13 +449,12 @@
     [self manageCache:[self currentPage]];
 }
 
--(void)setPageMargin_:(id)args
+-(void)setPageWidth_:(id)args
 {
-    ENSURE_SINGLE_ARG(args, NSNumber);
-    pageMargin = [args intValue];
+    pageDimension = TiDimensionFromObject(args);
     if ((scrollview!=nil) && ([[scrollview subviews] count]>0)) {
         //No need to readd. Just set up the correct frame bounds
-        [self refreshScrollView:[self bounds] readd:NO];
+        [self refreshScrollView:NO];
     }
 }
 
@@ -491,7 +462,7 @@
 {
 	if ((scrollview!=nil) && ([scrollview subviews]>0))
 	{
-		[self refreshScrollView:[self bounds] readd:YES];
+		[self refreshScrollView:YES];
 	}
 }
 
@@ -510,7 +481,7 @@
 	
     if ((scrollview!=nil) && ([[scrollview subviews] count]>0)) {
         //No need to readd. Just set up the correct frame bounds
-        [self refreshScrollView:[self bounds] readd:NO];
+        [self refreshScrollView:NO];
     }
 	
 }
@@ -525,7 +496,7 @@
     
     if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count]>0)) {
         //No need to readd. Just set up the correct frame bounds
-        [self refreshScrollView:[self bounds] readd:NO];
+        [self refreshScrollView:NO];
     }
 }
 
@@ -566,7 +537,7 @@
     pagingControlOnTop = [TiUtils boolValue:args def:NO];
     if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count] > 0)) {
         //No need to readd. Just set up the correct frame bounds
-        [self refreshScrollView:[self bounds] readd:NO];
+        [self refreshScrollView:NO];
     }
 }
 
@@ -575,7 +546,7 @@
     overlayEnabled = [TiUtils boolValue:args def:NO];
     if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count] > 0)) {
         //No need to readd. Just set up the correct frame bounds
-        [self refreshScrollView:[self bounds] readd:NO];
+        [self refreshScrollView:NO];
     }
 }
 
@@ -583,12 +554,14 @@
 {
     CGPoint offset;
     if (verticalLayout) {
-        offset = CGPointMake(0, [self bounds].size.height * pageNumber);
+        float pageHeight = [scrollview bounds].size.height;
+        offset = CGPointMake(0, pageHeight * pageNumber);
     }
     else {
-        offset = CGPointMake([self bounds].size.width * pageNumber, 0);
+        float pageWidth = [scrollview bounds].size.width;
+        offset = CGPointMake(pageWidth * pageNumber, 0);
     }
-    [[self scrollview] setContentOffset:offset animated:animated];
+    [scrollview setContentOffset:offset animated:animated];
 }
 
 -(int)pageNumFromArg:(id)args
@@ -663,7 +636,7 @@
 
 -(void)addView:(id)viewproxy
 {
-	[self refreshScrollView:[self bounds] readd:YES];
+	[self refreshScrollView:YES];
 }
 
 -(void)removeView:(id)args
@@ -672,11 +645,11 @@
 	int pageCount = [[self proxy] viewCount];
 	if (page==pageCount)
 	{
-		currentPage = pageCount-1;
+		currentPage = lastPage = pageCount-1;
 		[pageControl setCurrentPage:currentPage];
 		[self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
 	}
-	[self refreshScrollView:[self bounds] readd:YES];
+	[self refreshScrollView:YES];
 }
 
 -(void)setCurrentPage_:(id)page
@@ -688,7 +661,7 @@
 	if (newPage >=0 && newPage < viewsCount)
 	{
         [self setContentOffsetForPage:newPage animated:NO];
-		currentPage = newPage;
+		currentPage = lastPage = newPage;
 		pageControl.currentPage = newPage;
 		
         [self manageCache:newPage];
@@ -698,14 +671,10 @@
 }
 
 
--(void)setLayout_:(id)arg
+-(void)setVerticalLayout:(BOOL)value
 {
-    ENSURE_SINGLE_ARG_OR_NIL(arg, NSString)
-    if ([arg caseInsensitiveCompare:@"vertical"]==NSOrderedSame)
-    {
-        verticalLayout = YES;
-        [self refreshScrollView:[self bounds] readd:NO];
-    }
+    verticalLayout = value;
+    [self refreshScrollView:NO];
 }
 
 
@@ -737,7 +706,7 @@
     [self setContentOffsetForPage:pageNum animated:YES];
 	handlingPageControlEvent = YES;
 	
-	currentPage = pageNum;
+	currentPage = lastPage = pageNum;
 	[self manageCache:currentPage];
 	
 	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
@@ -751,20 +720,27 @@
 	
 }
 
--(void)scrollViewDidScroll:(UIScrollView *)sender
+
+-(CGFloat)getPageFromOffset:(CGPoint)offset
 {
-	//switch page control at 50% across the center - this visually looks better
-    int page = currentPage;
     float nextPageAsFloat;
     if (verticalLayout) {
         CGFloat pageHeight = scrollview.frame.size.height;
-        nextPageAsFloat = ((scrollview.contentOffset.y - pageHeight / 2) / pageHeight) + 0.5;
+        nextPageAsFloat = ((offset.y - pageHeight / 2) / pageHeight) + 0.5;
     }
     else {
         CGFloat pageWidth = scrollview.frame.size.width;
-        nextPageAsFloat = ((scrollview.contentOffset.x - pageWidth / 2) / pageWidth) + 0.5;
+        nextPageAsFloat = ((offset.x - pageWidth / 2) / pageWidth) + 0.5;
     }
-    int nextPage = floor(nextPageAsFloat - 0.5) + 1;
+    return nextPageAsFloat;
+}
+
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+	//switch page control at 50% across the center - this visually looks better
+    int page = currentPage;
+    float nextPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
+    int nextPage = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
 	if ([self.proxy _hasListeners:@"scroll"])
 	{
 		[self.proxy fireEvent:@"scroll" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -823,7 +799,7 @@
 													   NUMINT(pageNum),@"currentPage",
 													   [[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
 	}
-	currentPage=pageNum;
+	currentPage = lastPage = pageNum;
 	[pageControl setCurrentPage:currentPage];
 	[self manageCache:currentPage];
 }

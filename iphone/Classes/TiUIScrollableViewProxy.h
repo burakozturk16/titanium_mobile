@@ -16,6 +16,7 @@
 }
 
 @property(nonatomic,readonly)	NSArray * viewProxies;
+@property(nonatomic,assign)	BOOL  verticalLayout;
 -(TiViewProxy *)viewAtIndex:(int)index;
 -(void)lockViews;
 -(void)unlockViews;

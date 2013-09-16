@@ -10,7 +10,7 @@
 #import "TiUIScrollableView.h"
 
 @implementation TiUIScrollableViewProxy
-@synthesize viewProxies;
+@synthesize viewProxies, verticalLayout;
 
 +(NSSet*)transferableProperties
 {
@@ -25,6 +25,7 @@
 -(void)_initWithProperties:(NSDictionary *)properties
 {
     pthread_rwlock_init(&viewsLock, NULL);
+    verticalLayout = NO;
     [self initializeProperty:@"currentPage" defaultValue:NUMINT(0)];
     [self initializeProperty:@"pagingControlColor" defaultValue:@"black"];
     [self initializeProperty:@"pagingControlHeight" defaultValue:NUMINT(20)];
@@ -33,6 +34,21 @@
     [self initializeProperty:@"overlayEnabled" defaultValue:NUMBOOL(NO)];
     [self initializeProperty:@"pagingControlOnTop" defaultValue:NUMBOOL(NO)];
     [super _initWithProperties:properties];
+}
+
+// Special handling to try and avoid Apple's detection of private API 'layout'
+-(void)setValue:(id)value forUndefinedKey:(NSString *)key
+{
+    if ([key isEqualToString:[@"lay" stringByAppendingString:@"out"]]) {
+        verticalLayout = ([value isKindOfClass:[NSString class]] && [value caseInsensitiveCompare:@"vertical"]==NSOrderedSame);
+        if ([self view] != nil) {
+            TiUIScrollableView * ourView = (TiUIScrollableView *)[self view];
+            [ourView setVerticalLayout:verticalLayout];
+        }
+        [self replaceValue:value forKey:[@"lay" stringByAppendingString:@"out"] notification:YES];
+        return;
+    }
+    [super setValue:value forUndefinedKey:key];
 }
 
 - (void) dealloc

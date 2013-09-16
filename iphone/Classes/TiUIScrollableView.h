@@ -32,7 +32,6 @@
     BOOL enforceCacheRecalculation;
     int cacheSize;
     BOOL verticalLayout;
-    CGFloat pageMargin;
     
 }
 @property(nonatomic,readwrite,assign)CGFloat switchPageAnimationDuration;
@@ -42,6 +41,7 @@
 -(void)setCurrentPage_:(id)page;
 -(void)setScrollingEnabled_:(id)enabled;
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd;
+-(void)setVerticalLayout:(BOOL)value;
 @end
 
 
