@@ -23,6 +23,9 @@
 #define IMAGEVIEW_MIN_INTERVAL 30
 
 @interface TiUIImageView()
+{
+    CGFloat animationDuration;
+}
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
 @end
@@ -38,6 +41,7 @@ DEFINE_EXCEPTIONS
     if (self = [super init]) {
         localLoadSync = NO;
         scaleType = UIViewContentModeScaleAspectFit;
+        animationDuration = 0.5;
     }
     return self;
 }
@@ -361,7 +365,7 @@ DEFINE_EXCEPTIONS
 		// do a nice fade in animation to replace the new incoming image
 		// with our placeholder
 		[UIView beginAnimations:nil context:nil];
-		[UIView setAnimationDuration:0.2];
+		[UIView setAnimationDuration:animationDuration];
 		[UIView setAnimationDelegate:self];
 		[UIView setAnimationDidStopSelector:@selector(animationCompleted:finished:context:)];
 		
@@ -794,6 +798,10 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+-(void)setAnimationDuration_:(id)duration
+{
+    animationDuration = [TiUtils floatValue:duration]/1000;
+}
 
 -(void)setDuration_:(id)duration
 {
