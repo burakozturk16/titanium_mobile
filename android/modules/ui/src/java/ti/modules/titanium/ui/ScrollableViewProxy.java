@@ -27,6 +27,9 @@ import android.app.Activity;
 import android.os.Message;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
+	TiC.PROPERTY_PAGE_OFFSET,
+	TiC.PROPERTY_PAGE_WIDTH,
+	TiC.PROPERTY_CACHE_SIZE,
 	TiC.PROPERTY_SHOW_PAGING_CONTROL,
 	TiC.PROPERTY_OVER_SCROLL_MODE
 })
