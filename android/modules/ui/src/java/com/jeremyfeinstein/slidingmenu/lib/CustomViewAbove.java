@@ -3,6 +3,8 @@ package com.jeremyfeinstein.slidingmenu.lib;
 import java.util.ArrayList;
 import java.util.List;
 
+import ti.modules.titanium.ui.widget.TiUIScrollableView.TiViewPagerLayout;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -668,7 +670,7 @@ public class CustomViewAbove extends ViewGroup {
 	}
 	
 	private boolean isTopViewPager(View parent, float x, float y) {
-		return (findClassAtPosition(parent, (int)x, (int)y, ViewPager.class));
+		return (findClassAtPosition(parent, (int)x, (int)y, TiViewPagerLayout.class));
 	}
 
 	private boolean thisTouchAllowed(MotionEvent ev) {
