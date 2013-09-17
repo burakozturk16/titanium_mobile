@@ -934,7 +934,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	                break;
 	        }
 	 
-	        return ((View) mPager).dispatchTouchEvent(ev);
+	        return ((View) mPager).onTouchEvent(ev);
 	    }
 
 		@Override
