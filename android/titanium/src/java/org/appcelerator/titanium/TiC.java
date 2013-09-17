@@ -641,6 +641,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ANIMATED = "animated";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ANIMATION_DURATION = "animationDuration";
 	
 	/**
 	 * @module.api
@@ -1762,6 +1767,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PACKAGE_NAME = "packageName";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PAGE_OFFSET = "pageOffset";
+	
 	/**
 	 * @module.api
 	 */
