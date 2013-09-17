@@ -51,6 +51,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.view.View.MeasureSpec;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.ImageView.ScaleType;
 
@@ -88,7 +89,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private static final int STOP = 10003;
 	
 	private TiCompositeLayout childrenHolder;
-	private FreeLayout layout;
 
 	// This handles the memory cache of images.
 	private TiImageLruCache mMemoryCache = TiImageLruCache.getInstance();
@@ -97,10 +97,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	{
 		super(proxy);
 		imageViewProxy = (ImageViewProxy) proxy;
-
-//		requestedWidth = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_WIDTH);
-//		requestedHeight = new TiDimension(TiDimension.UNIT_AUTO, TiDimension.TYPE_HEIGHT);
-
 		Log.d(TAG, "Creating an ImageView", Log.DEBUG_MODE);
 
 		TiImageView view = new TiImageView(proxy.getActivity(), proxy);
@@ -181,7 +177,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	{
 		if (childrenHolder == null) {
 			childrenHolder = new TiCompositeLayout(proxy.getActivity());
-			layout.addView(childrenHolder);
+			getView().addView(childrenHolder);
 			updateLayoutForChildren(proxy.getProperties());
 		}
 		super.add(child, index);
@@ -193,18 +189,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		return childrenHolder;
 	}
 
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
-	}
-	
 	@Override
 	public void setProxy(TiViewProxy proxy)
 	{
@@ -850,8 +834,13 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		if (d.containsKey(TiC.PROPERTY_DEFAULT_IMAGE)) {
 			setDefaultImageSource(d.get(TiC.PROPERTY_DEFAULT_IMAGE));
 		}
+		
+		if(d.containsKey(TiC.PROPERTY_ANIMATION_DURATION)) {
+			view.setAnimationDuration(TiConvert.toInt(d, TiC.PROPERTY_ANIMATION_DURATION));
+		}
 		if(d.containsKey(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
 			localLoadSync = TiConvert.toBoolean(d, TiC.PROPERTY_LOCAL_LOAD_SYNC, localLoadSync);
+			view.setAnimateTransition(!localLoadSync);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_IMAGE)) {
@@ -905,8 +894,11 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 
 		if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(newValue));
+		} else if(key.equals(TiC.PROPERTY_ANIMATION_DURATION)) {
+			view.setAnimationDuration( TiConvert.toInt(newValue));
 		} else if(key.equals(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
 			localLoadSync = TiConvert.toBoolean(newValue);
+			view.setAnimateTransition(!localLoadSync);
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_IMAGE_MASK)) {

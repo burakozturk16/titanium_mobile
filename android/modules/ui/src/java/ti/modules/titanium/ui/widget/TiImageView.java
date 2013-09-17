@@ -23,9 +23,11 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.v4.view.ViewCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -62,6 +64,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 
 	private Boolean readyToLayout = false;
 	private Boolean configured = false;
+	private boolean animateTransition = true;
+	private int  animationDuration = 500;
 	
 	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
 	
@@ -181,18 +185,68 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	}
 
 	public Drawable getImageDrawable() {
-		return imageView.getDrawable();
+		Drawable drawable = imageView.getDrawable();
+		if (drawable instanceof BitmapDrawable) {
+			return drawable;
+			
+		}
+		else if (drawable instanceof TransitionDrawable) {
+			TransitionDrawable td = (TransitionDrawable) drawable;
+			return td.getDrawable(td.getNumberOfLayers() - 1);
+		}
+		return null;
 	}
-
+	
+	public void setAnimateTransition(boolean value)
+	{
+		this.animateTransition = value;
+	}
+	
+	public void setAnimationDuration(int value)
+	{
+		this.animationDuration = value;
+	}
+	
+	public void setImageDrawableWithFade(final ImageView imageView,
+			final Drawable drawable) {
+		Drawable currentDrawable = getImageDrawable();
+		if (currentDrawable != null) {
+			Drawable[] arrayDrawable = new Drawable[2];
+			arrayDrawable[0] = currentDrawable;
+			arrayDrawable[1] = drawable;
+			TransitionDrawable transitionDrawable = new TransitionDrawable(
+					arrayDrawable) {
+				@Override
+			    public void draw(Canvas canvas) {
+			        super.draw(canvas);
+			        postInvalidate();
+				}
+			};
+			transitionDrawable.setCrossFadeEnabled(true);
+			imageView.setImageDrawable(transitionDrawable);
+			transitionDrawable.startTransition(animationDuration);
+			(new Handler()).postDelayed(new Runnable() {
+			    public void run() {
+					imageView.setImageDrawable(drawable);
+					postInvalidate();
+			    }
+			},animationDuration);
+			
+		} else {
+			imageView.setImageDrawable(drawable);
+		}
+	}
 	/**
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void setImageBitmap(Bitmap bitmap) {
-		imageView.setImageBitmap(bitmap);
-
-		// using that code we can create TransitionDrawable
-		// setImageDrawable(new BitmapDrawable(mContext.getResources(), bm));
+		if (animateTransition && animationDuration > 0) {
+			setImageDrawableWithFade(imageView, new BitmapDrawable(getContext().getResources(), bitmap));
+		}
+		else {
+			imageView.setImageBitmap(bitmap);
+		}
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -364,14 +418,15 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	
 	private float getImageRatio(){
 		float ratio = 0;
-		BitmapDrawable drawable = (BitmapDrawable)imageView.getDrawable();
-		if (drawable != null) {
-			Bitmap bitmap = drawable.getBitmap();
+		Drawable drawable = getImageDrawable();
+		if (drawable instanceof BitmapDrawable) {
+			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
 			if (bitmap != null && bitmap.getHeight() > 0)
 				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
 		}
 		return ratio;
 	}
+	
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
