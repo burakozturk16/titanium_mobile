@@ -24,7 +24,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
 import com.jeremyfeinstein.slidingmenu.lib.CustomViewAbove.OnPageChangeListener;
@@ -325,6 +324,8 @@ public class SlidingMenu extends RelativeLayout {
 			ViewGroup decorChild = (ViewGroup) decor.getChildAt(0);
 			// save ActionBar themes that have transparent assets
 			decorChild.setBackgroundResource(background);
+			decor.setBackgroundResource(0);
+			setBackgroundResource(0);
 			decor.removeView(decorChild);
 			decor.addView(this);
 			setContent(decorChild);
@@ -606,9 +607,33 @@ public class SlidingMenu extends RelativeLayout {
 		//		int left = params.leftMargin;
 		//		params.setMargins(left, top, i, bottom);
 		mViewBehind.setWidthOffset(i);
+//		if (isMenuShowing()) {
+//			mHandler.post(new Runnable() {
+//				public void run() {
+//					mViewAbove.setCurrentItemInternal(0, true, true);
+//				}
+//			});
+//		}
 	}
 	
+	/**
+	 * Sets the behind secondary menu offset
+	 * 
+	 * @param i The margin, in pixels, on the right of the screen that the behind view scrolls to.
+	 */
+	public void setSecondaryBehindOffset(int i){
+		mViewBehind.setSecondaryWidthOffset(i);
+//		if (isSecondaryMenuShowing()) {
+//			mViewAbove.setCurrentItemInternal(2, true, true);
+//		}
+	}
+
+	
 	public int getBehindWidth() {
+		return mViewBehind.getBehindWidth();
+	}
+	
+	public int getSecondaryBehindWidth() {
 		return mViewBehind.getBehindWidth();
 	}
 	
@@ -621,6 +646,17 @@ public class SlidingMenu extends RelativeLayout {
 	public void setBehindOffsetRes(int resID) {
 		int i = (int) getContext().getResources().getDimension(resID);
 		setBehindOffset(i);
+	}
+	
+	/**
+	 * Sets the behind secondary offset
+	 * 
+	 * @param resID The dimension resource id to be set as the behind offset.
+	 * The menu, when open, will leave this width margin on the right of the screen.
+	 */
+	public void setSecondaryBehindOffsetRes(int resID){
+		int i = (int) getContext().getResources().getDimension(resID);
+		setSecondaryBehindOffset(i);
 	}
 
 	/**
@@ -663,6 +699,40 @@ public class SlidingMenu extends RelativeLayout {
 			width = display.getWidth();
 		}
 		setBehindOffset(width-i);
+	}
+
+	/**
+	 * Sets the behind width.
+	 *
+	 * @param res The dimension resource id to be set as the behind width offset.
+	 * The menu, when open, will open this wide.
+	 */
+	public void setSecondaryBehindWidthRes(int res) {
+		int i = (int) getContext().getResources().getDimension(res);
+		setSecondaryBehindWidth(i);
+	}
+	
+	/**
+	 * Sets the behind width.
+	 *
+	 * @param i The width the Sliding Menu will open to, in pixels
+	 */
+	@SuppressWarnings("deprecation")
+	public void setSecondaryBehindWidth(int i) {
+		int width;
+		Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE))
+				.getDefaultDisplay();
+		try {
+			Class<?> cls = Display.class;
+			Class<?>[] parameterTypes = {Point.class};
+			Point parameter = new Point();
+			Method method = cls.getMethod("getSize", parameterTypes);
+			method.invoke(display, parameter);
+			width = parameter.x;
+		} catch (Exception e) {
+			width = display.getWidth();
+		}
+		setSecondaryBehindOffset(width-i);
 	}
 
 	/**
