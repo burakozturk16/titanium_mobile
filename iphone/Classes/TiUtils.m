@@ -585,7 +585,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		}
 		if (!CGSizeEqualToSize(newSize, imageSize))
 		{
-			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationDefault image:image hires:NO];
+			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationLow image:image hires:NO];
+            imageSize = [image size];
 		}
 	}
 	return image;

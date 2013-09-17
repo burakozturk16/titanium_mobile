@@ -48,7 +48,7 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
         case 0:
         {
             [self setCurrentFilter:[GPUImageFastBlurFilter class]];
-            CGFloat blurSize = [TiUtils intValue:@"blurSize" properties:options def:1.0f];
+            CGFloat blurSize = [TiUtils floatValue:@"blurSize" properties:options def:1.0f] *1.2f; //multiplicator to get closer result to android version
             ((GPUImageFastBlurFilter*)currentFilter).blurSize = blurSize;
             return [currentFilter imageByFilteringImage:inputImage];
             break;
