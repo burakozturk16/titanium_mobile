@@ -265,6 +265,11 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 		super.setOrientationModes(modes);
 	}
 	
+//	@Kroll.method @Kroll.getProperty
+//	public int getLeftViewWidth() {
+//		return  ((TiUISlideMenu)view).getLeftMenuWidth();
+//	}
+
 	private void handleToggleLeftView(boolean animated)
 	{
 		SlidingMenu menu = slidingMenu.get();

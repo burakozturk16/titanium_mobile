@@ -32,6 +32,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private static final String TAG = "TiUISlideMenu";
 	private TiBaseActivity activity;
 	private int menuWidth;
+	private int rightMenuWidth;
 	
 	
 	public TiUISlideMenu(final SlideMenuProxy proxy, TiBaseActivity activity)
@@ -106,6 +107,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		slidingMenu.setMode(SlidingMenu.LEFT);
 		slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 		menuWidth = -100;
+		rightMenuWidth = -100;
 		slidingMenu.setFadeDegree(0.0f);
 		slidingMenu.setBehindScrollScale(0.0f);
 		slidingMenu.setShadowWidth(20);
@@ -134,11 +136,20 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			slidingMenu.setBehindWidth(menuWidth);
 		else
 			slidingMenu.setBehindOffset(-menuWidth);
+		if (rightMenuWidth > 0)
+			slidingMenu.setSecondaryBehindWidth(rightMenuWidth);
+		else
+			slidingMenu.setSecondaryBehindOffset(-rightMenuWidth);
 	}
 	
-	public int getMenuWidth()
+	public int getLeftMenuWidth()
 	{
 		return menuWidth;
+	}
+	
+	public int getRightMenuWidth()
+	{
+		return rightMenuWidth;
 	}
 	
 	private void updatePanningMode(int panningMode)
@@ -239,7 +250,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			updateMenuWidth();
 		}
 		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW_WIDTH)) {
-			menuWidth = d.getInt(TiC.PROPERTY_RIGHT_VIEW_WIDTH);
+			rightMenuWidth = d.getInt(TiC.PROPERTY_RIGHT_VIEW_WIDTH);
 			updateMenuWidth();
 		}
 		
