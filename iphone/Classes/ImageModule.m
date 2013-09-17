@@ -35,10 +35,14 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
 }
 
 -(void)setCurrentFilter:(Class)class {
-    if (currentFilter == nil || ![currentFilter isKindOfClass:class])
+    if (currentFilter != nil)
     {
-        currentFilter = [[class alloc] init];
+        RELEASE_TO_NIL(currentFilter);
     }
+//    if (currentFilter == nil || ![currentFilter isKindOfClass:class])
+//    {
+        currentFilter = [[class alloc] init];
+//    }
 }
 
 -(UIImage*)getFilteredImage:(UIImage*)inputImage withFilter:(NSNumber*)filterType options:(NSDictionary*)options
@@ -93,13 +97,16 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
             image = [TiUtils scaleImage:image toSize:imageSize];
         }
         if ([options objectForKey:@"callback"]) {
-           __block KrollCallback *callback = [options objectForKey:@"callback"];
+            KrollCallback *callback = [options objectForKey:@"callback"];
             if (callback != nil) {
-                TiThreadPerformOnMainThread(^{
-                    // Retrieve the screenshot image
+                TiThreadPerformOnMainThread(^{                   
                     TiBlob* blob = [[TiBlob alloc] initWithImage:[self getFilteredImage:image withFilter:filterType options:options]];
-                    NSDictionary *event = [NSDictionary dictionaryWithObject:[blob autorelease] forKey:@"image"];
-                    [self _fireEventToListener:@"screenshot" withObject:event listener:callback thisObject:nil];
+                    NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+                    KrollEvent * invocationEvent = [[KrollEvent alloc] initWithCallback:callback
+                                                                            eventObject:event
+                                                                             thisObject:self];
+                    [[callback context] enqueue:invocationEvent];
+                    [blob release];
                 }, NO);
                 return nil;
             }
