@@ -167,8 +167,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				Log.w(TAG, "Unable to load image", Log.DEBUG_MODE);
 			}
 		};
-		layout = new FreeLayout(proxy.getActivity());
-		layout.addView(view);
 		setNativeView(view);
 	}
 	
