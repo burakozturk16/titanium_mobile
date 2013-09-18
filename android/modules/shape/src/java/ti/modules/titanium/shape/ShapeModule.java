@@ -46,6 +46,7 @@ public class ShapeModule extends KrollModule
 	@Kroll.constant public static final String PROPERTY_LINE_CLIPPED = "lineClipped";
 	@Kroll.constant public static final String PROPERTY_INNERRADIUS = "innerRadius";
 	@Kroll.constant public static final String PROPERTY_SHAPES = "shapes";
+	@Kroll.constant public static final String PROPERTY_POINTS = "points";
 
 	
 	

@@ -63,6 +63,8 @@ import android.view.animation.LinearInterpolator;
 public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	// Standard Debugging variables
 	private static final String TAG = "PathProxy";
+	
+	private static final Point NODECALEPOINT = new Point(0,0);
 	private ShapeViewProxy shapeViewProxy;
 	protected Paint fillPaint;
 	protected Paint linePaint;
@@ -103,7 +105,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		
 		public Point evaluate(float fraction, Point startValue,
 				Point endValue) {
-			return new Point((int)(fraction*(endValue.x  - startValue.x) + startValue.x), (int)(fraction*(endValue.x  - startValue.x) + startValue.x));
+			return new Point((int)(fraction*(endValue.x  - startValue.x) + startValue.x), (int)(fraction*(endValue.y  - startValue.y) + startValue.y));
 		}
 
 	}
@@ -159,7 +161,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 		return result;
 	}
-	
+	public Point computePoint(TiPoint point_, AnchorPosition anchor_ , int width, int height)
+	{
+		return computePoint(point_, anchor_, width, height, NODECALEPOINT);
+	}
 	
 	public Point computeRadius(Object radius_ , int width, int height)
 	{
@@ -210,21 +215,72 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			this.radius = radius;
 		}
 		
-		
 		public void updatePathForRect(Context context, Path path, int width, int height) {}
 	}
 	
-	public class MoveTo extends Pathable {
-		private TiPoint point;
-		public MoveTo(TiPoint point) {
+	public Point fractionPoints(float fraction, Point point1, Point point2) {
+		return new Point((int)(fraction*(point2.x  - point1.x) + point1.x), (int)(fraction*(point2.y  - point1.y) + point1.y));
+	}
+	public Point fractionPoint(float fraction, Point point) {
+		return new Point((int)(fraction*point.x), (int)(fraction*point.y));
+	}
+	
+	public class BezierPoint {
+		public Point point = null;
+		public Point curvePoint1 = null;
+		public Point curvePoint2 = null;
+		public BezierPoint() {
+		}
+		public BezierPoint fraction(float fraction) {
+			BezierPoint result = new BezierPoint();
+			result.point = fractionPoint(fraction, point);
+			if (curvePoint1 != null) result.curvePoint1 = fractionPoint(fraction, curvePoint1);
+			if (curvePoint2 != null) result.curvePoint2 = fractionPoint(fraction, curvePoint2);
+			return result;
+		}
+		
+		public BezierPoint fraction(float fraction, BezierPoint otherPoint) {
+			BezierPoint result = new BezierPoint();
+			result.point = fractionPoints(fraction, point, otherPoint.point);
+			if (curvePoint1 != null) result.curvePoint1 = fractionPoints(fraction, curvePoint1, otherPoint.curvePoint1);
+			if (curvePoint2 != null) result.curvePoint2 = fractionPoints(fraction, curvePoint2, otherPoint.curvePoint2);
+			return result;
+		}
+	}
+	
+	public class Line extends Pathable {
+		private ArrayList<BezierPoint> points;
+		public Line() {
 			super();
-			this.point = point;
+			this.points = new ArrayList<BezierPoint>();
+		}
+		
+		public void setPoints(ArrayList<BezierPoint> points) {
+			this.points = points;
+		}
+		
+		public ArrayList<BezierPoint> getPoints() {
+			return this.points;
 		}
 		public void updatePathForRect(Context context, Path path, int width, int height) {
 			
-			float pointX = point.getX().getAsPixels(context, width, height);
-			float pointY = point.getY().getAsPixels(context, width, height);
-			path.moveTo(pointX, pointY);
+			for (int i = 0; i < points.size(); i++) {
+				BezierPoint bezierPoint = points.get(i);
+				if (i == 0) {
+					path.moveTo(bezierPoint.point.x, bezierPoint.point.y);
+				}
+				else {
+					if (bezierPoint.curvePoint1 != null && bezierPoint.curvePoint2 != null) {
+						path.cubicTo(bezierPoint.curvePoint1.x, bezierPoint.curvePoint1.y, bezierPoint.curvePoint2.x, bezierPoint.curvePoint2.y, bezierPoint.point.x, bezierPoint.point.y);
+					}
+					else if (bezierPoint.curvePoint1 != null) {
+						path.quadTo(bezierPoint.curvePoint1.x, bezierPoint.curvePoint1.y, bezierPoint.point.x, bezierPoint.point.y);
+					}
+					else {
+						path.lineTo(bezierPoint.point.x, bezierPoint.point.y);
+					}
+				}
+			}
 		}
 	}
 	
