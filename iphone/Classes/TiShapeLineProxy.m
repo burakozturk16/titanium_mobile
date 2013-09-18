@@ -132,19 +132,21 @@ static NSArray *animationKeys;
                 [tiPoint setX:[point objectAtIndex:0]];
                 [tiPoint setY:[point objectAtIndex:1]];
                 [bezierPoint setObject:tiPoint forKey:@"point"];
+                if ([point count] >= 4) {
+                    TiPoint* tiPoint = [[[TiPoint alloc] init] autorelease];
+                    [tiPoint setX:[point objectAtIndex:2]];
+                    [tiPoint setY:[point objectAtIndex:3]];
+                    [bezierPoint setObject:tiPoint forKey:@"curvePoint1"];
+                    if ([point count] >= 6) {
+                        TiPoint* tiPoint = [[[TiPoint alloc] init] autorelease];
+                        [tiPoint setX:[point objectAtIndex:4]];
+                        [tiPoint setY:[point objectAtIndex:5]];
+                        [bezierPoint setObject:tiPoint forKey:@"curvePoint2"];
+                    }
+                }
+                
             }
-            if ([point count] >= 4) {
-                TiPoint* tiPoint = [[[TiPoint alloc] init] autorelease];
-                [tiPoint setX:[point objectAtIndex:2]];
-                [tiPoint setY:[point objectAtIndex:3]];
-                [bezierPoint setObject:tiPoint forKey:@"curvePoint1"];
-            }
-            if ([point count] >= 6) {
-                TiPoint* tiPoint = [[[TiPoint alloc] init] autorelease];
-                [tiPoint setX:[point objectAtIndex:4]];
-                [tiPoint setY:[point objectAtIndex:5]];
-                [bezierPoint setObject:tiPoint forKey:@"curvePoint2"];
-            }
+            
             [result setObject:bezierPoint forKey:[NSString stringWithFormat:@"%d", i]];
         }
     }
@@ -184,25 +186,27 @@ static NSArray *animationKeys;
                         NSString* keyPath = [NSString stringWithFormat:@"%@.%@.point", kAnimPoints, key];
                         [animations addObject:[self animationForKeyPath:keyPath value:[NSValue valueWithCGPoint:newPoint] restartFromBeginning:restartFromBeginning]];
                     }
-                }
-                if ([point count] >= 4) {
-                    [tiPoint setX:[point objectAtIndex:2]];
-                    [tiPoint setY:[point objectAtIndex:3]];
-                    CGPoint newPoint = [self computePoint:tiPoint withAnchor:self.anchor inSize:size decale:CGSizeZero];
-                    if (!CGPointEqualToPoint(currentPoint.curvePoint1, newPoint)) {
-                        NSString* keyPath = [NSString stringWithFormat:@"%@.%@.curvePoint1", kAnimPoints, key];
-                        [animations addObject:[self animationForKeyPath:keyPath value:[NSValue valueWithCGPoint:newPoint] restartFromBeginning:restartFromBeginning]];
+                    if ([point count] >= 4) {
+                        [tiPoint setX:[point objectAtIndex:2]];
+                        [tiPoint setY:[point objectAtIndex:3]];
+                        CGPoint newPoint = [self computePoint:tiPoint withAnchor:self.anchor inSize:size decale:CGSizeZero];
+                        if (!CGPointEqualToPoint(currentPoint.curvePoint1, newPoint)) {
+                            NSString* keyPath = [NSString stringWithFormat:@"%@.%@.curvePoint1", kAnimPoints, key];
+                            [animations addObject:[self animationForKeyPath:keyPath value:[NSValue valueWithCGPoint:newPoint] restartFromBeginning:restartFromBeginning]];
+                        }
+                        if ([point count] >= 6) {
+                            [tiPoint setX:[point objectAtIndex:4]];
+                            [tiPoint setY:[point objectAtIndex:5]];
+                            CGPoint newPoint = [self computePoint:tiPoint withAnchor:self.anchor inSize:size decale:CGSizeZero];
+                            if (!CGPointEqualToPoint(currentPoint.curvePoint2, newPoint)) {
+                                NSString* keyPath = [NSString stringWithFormat:@"%@.%@.curvePoint2", kAnimPoints, key];
+                                [animations addObject:[self animationForKeyPath:keyPath value:[NSValue valueWithCGPoint:newPoint] restartFromBeginning:restartFromBeginning]];
+                            }
+                        }
                     }
+                    
                 }
-                if ([point count] >= 6) {
-                    [tiPoint setX:[point objectAtIndex:4]];
-                    [tiPoint setY:[point objectAtIndex:5]];
-                    CGPoint newPoint = [self computePoint:tiPoint withAnchor:self.anchor inSize:size decale:CGSizeZero];
-                    if (!CGPointEqualToPoint(currentPoint.curvePoint2, newPoint)) {
-                        NSString* keyPath = [NSString stringWithFormat:@"%@.%@.curvePoint2", kAnimPoints, key];
-                        [animations addObject:[self animationForKeyPath:keyPath value:[NSValue valueWithCGPoint:newPoint] restartFromBeginning:restartFromBeginning]];
-                    }
-                }
+                
             }
         }
         
