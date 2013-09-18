@@ -237,8 +237,13 @@ public class TiFileHelper
 				if (found) {
 					is = context.getAssets().open(path);
 				}
+				else throw new FileNotFoundException();
 			} else if (path.startsWith(SD_CARD_PREFIX)) {
-				is = new FileInputStream(new File(path));
+				File file = new File(path);
+				if (file.exists()) {
+					is = context.getAssets().open(path);
+				}
+				else throw new FileNotFoundException();
 			} else if (URLUtil.isFileUrl(path)) {
 				URL u = new URL(path);
 				is = u.openStream();

@@ -6,6 +6,7 @@
  */
 package ti.modules.titanium.media.android;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -70,7 +71,11 @@ public class AndroidModule extends KrollModule
 		if (scale) {
 			b = ref.getBitmap(wm.getDesiredMinimumWidth());
 		} else {
-			b = ref.getBitmap();
+			try {
+				b = ref.getBitmap();
+			} catch (FileNotFoundException e) {
+				b = null;
+			}
 		}
 		if (b != null) {
 			try {
