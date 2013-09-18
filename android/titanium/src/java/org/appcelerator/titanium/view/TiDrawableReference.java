@@ -271,7 +271,7 @@ public class TiDrawableReference
 	
 	public boolean isSVG()
 	{
-		return url.endsWith(".svg");
+		return (url != null && url.endsWith(".svg"));
 	}
 
 	public boolean isTypeResourceId()
