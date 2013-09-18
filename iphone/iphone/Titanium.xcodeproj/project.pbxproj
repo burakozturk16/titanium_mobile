@@ -882,6 +882,7 @@
 		D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D585BBCF17E62E700062275E /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D585BBCE17E62E700062275E /* ImageModule.m */; };
 		D585BBD017E62E700062275E /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D585BBCE17E62E700062275E /* ImageModule.m */; };
@@ -2395,6 +2396,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */,
 				D585BC8B17E630DA0062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */,
 				D93DAA6B16CBFD6400AD64C9 /* EventKit.framework in Frameworks */,
