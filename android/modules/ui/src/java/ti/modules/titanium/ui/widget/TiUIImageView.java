@@ -102,6 +102,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		Log.d(TAG, "Creating an ImageView", Log.DEBUG_MODE);
 
 		TiImageView view = new TiImageView(proxy.getActivity(), proxy);
+		setImage(null); //this actually creates a drawable which will allow transition
 
 		downloadListener = new TiDownloadListener()
 		{
@@ -779,12 +780,11 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		// Set default image or clear previous image first.
 		if (defaultImageSource != null) {
 			setDefaultImage();
-		} else {
-			setImage(null); //this actually creates a drawable which will allow transition
 		}
 
 		if (imageSources == null || imageSources.size() == 0 || imageSources.get(0) == null
 			|| imageSources.get(0).isTypeNull()) {
+			setImage(null);
 			return;
 		}
 
