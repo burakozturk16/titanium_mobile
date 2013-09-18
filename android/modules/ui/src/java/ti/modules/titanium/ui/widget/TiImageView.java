@@ -212,23 +212,10 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			Drawable[] arrayDrawable = new Drawable[2];
 			arrayDrawable[0] = currentDrawable;
 			arrayDrawable[1] = drawable;
-			TransitionDrawable transitionDrawable = new TransitionDrawable(
-					arrayDrawable) {
-				@Override
-			    public void draw(Canvas canvas) {
-			        super.draw(canvas);
-			        postInvalidate();
-				}
-			};
+			TransitionDrawable transitionDrawable = new TransitionDrawable(arrayDrawable);
 			transitionDrawable.setCrossFadeEnabled(true);
 			imageView.setImageDrawable(transitionDrawable);
 			transitionDrawable.startTransition(animationDuration);
-			(new Handler()).postDelayed(new Runnable() {
-			    public void run() {
-					imageView.setImageDrawable(drawable);
-					postInvalidate();
-			    }
-			},animationDuration);
 			
 		} else {
 			imageView.setImageDrawable(drawable);
@@ -239,12 +226,12 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void setImageBitmap(Bitmap bitmap) {
-		if (animateTransition && animationDuration > 0) {
-			setImageDrawableWithFade(imageView, new BitmapDrawable(getContext().getResources(), bitmap));
-		}
-		else {
+//		if (animateTransition && animationDuration > 0) {
+//			setImageDrawableWithFade(imageView, new BitmapDrawable(getContext().getResources(), bitmap));
+//		}
+//		else {
 			imageView.setImageBitmap(bitmap);
-		}
+//		}
 	}
 	
 	/**
