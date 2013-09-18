@@ -14,6 +14,8 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.MaskableView;
 import org.appcelerator.titanium.view.TiBorderWrapperView;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -186,15 +188,11 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 
 	public Drawable getImageDrawable() {
 		Drawable drawable = imageView.getDrawable();
-		if (drawable instanceof BitmapDrawable) {
-			return drawable;
-			
-		}
-		else if (drawable instanceof TransitionDrawable) {
+		if (drawable instanceof TransitionDrawable) {
 			TransitionDrawable td = (TransitionDrawable) drawable;
 			return td.getDrawable(td.getNumberOfLayers() - 1);
 		}
-		return null;
+		return drawable;
 	}
 	
 	public void setAnimateTransition(boolean value)
@@ -247,6 +245,19 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		else {
 			imageView.setImageBitmap(bitmap);
 		}
+	}
+	
+	/**
+	 * Sets a Bitmap as the content of imageView
+	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
+	 */
+	public void setImageDrawable(Drawable drawable) {
+//		if (animateTransition && animationDuration > 0) {
+//			setImageDrawableWithFade(imageView, drawable);
+//		}
+//		else {
+			imageView.setImageDrawable(drawable);
+//		}
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -323,8 +334,9 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		scheduleControlTimeout();
 	}
 
-	private void computeBaseMatrix()
+	private boolean computeBaseMatrix()
 	{
+		if (imageView.getScaleType() != ScaleType.MATRIX) return false;
 		Drawable d = imageView.getDrawable();
 		baseMatrix.reset();
 
@@ -363,7 +375,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				dRectF = new RectF(0, -dheight, dwidth, 0);
 			} else {
 				Log.e(TAG, "Invalid value for orientation. Cannot compute the base matrix for the image.");
-				return;
+				return false;
 			}
 
 			Matrix m = new Matrix();
@@ -376,6 +388,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			m.setRectToRect(dRectF, vRectF, scaleType);
 			baseMatrix.postConcat(m);
 		}
+		return true;
 	}
 
 	private void updateChangeMatrix(float dscale)
@@ -424,6 +437,10 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			if (bitmap != null && bitmap.getHeight() > 0)
 				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
 		}
+		else if (drawable instanceof SVGDrawable) {
+			SVGDrawable svg = (SVGDrawable)drawable;
+			ratio = (float)svg.getIntrinsicWidth() /  (float)svg.getIntrinsicHeight();
+		}
 		return ratio;
 	}
 	
@@ -452,7 +469,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		int measuredHeight = imageView.getMeasuredHeight();
 		
 		
-		if (imageView.getMeasuredWidth() > 0 && measuredHeight > 0) {
+		if (measuredWidth > 0 && measuredHeight > 0) {
 			if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
 				maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
 				float ratio =  getImageRatio();
@@ -465,8 +482,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 					maxHeight = (int) Math.floor(maxWidth / ratio);
 			}
 			else {
-				maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
-				maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
+				maxWidth = Math.max(maxWidth, measuredWidth);
+				maxHeight = Math.max(maxHeight, measuredHeight);
 			}
 		}
 
@@ -484,8 +501,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
-		computeBaseMatrix();
-		imageView.setImageMatrix(getViewMatrix());
+		if (computeBaseMatrix()) imageView.setImageMatrix(getViewMatrix());
 
 		int parentLeft = 0;
 		int parentRight = right - left;

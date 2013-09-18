@@ -43,6 +43,10 @@ import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+import com.trevorpage.tpsvg.SVGFlyweightFactory;
+import com.trevorpage.tpsvg.SVGParserRenderer;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -979,8 +983,12 @@ public class TiUIHelper
 		if (id == 0) {
 			return null;
 		}
-		Drawable d = getResourceDrawable(id);
-		return d;
+		if (url.endsWith(".svg")) {
+			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(id, TiApplication.getInstance().getCurrentActivity()));
+		}
+		else {
+			return getResourceDrawable(id);
+		}
 	}
 	
 	public static Drawable getResourceDrawable(int res_id)

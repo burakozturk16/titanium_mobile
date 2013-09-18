@@ -33,6 +33,9 @@ import java.util.zip.ZipInputStream;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+import com.trevorpage.tpsvg.SVGFlyweightFactory;
+
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -266,6 +269,17 @@ public class TiFileHelper
 	public Drawable loadDrawable(String path, boolean report) {
 		return loadDrawable(path, report, false);
 	}
+	
+	private Drawable getDrawableFromStream(String path, InputStream is) 
+	{
+		if (path.endsWith(".svg")) {
+			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, path, TiApplication.getInstance().getCurrentActivity()));
+		}
+		else {
+			Bitmap b = TiUIHelper.createBitmap(is);
+			return nph.process(b);
+		}
+	}
 
 	/**
 	 * This method creates a Drawable given the bitmap's path, and converts it to a NinePatch Drawable
@@ -308,16 +322,12 @@ public class TiFileHelper
 					is = openInputStream(path, report);
 				}
 				if (is != null) {
-					Bitmap b = TiUIHelper.createBitmap(is);
-					d = nph.process(b);
+					d = getDrawableFromStream(path, is);
 				}
 			} else {
 				is = openInputStream(path, report);
 				if (is != null) {
-					Bitmap b = TiUIHelper.createBitmap(is);
-					if (b != null) {
-						d = new BitmapDrawable(b);
-					}
+					d = getDrawableFromStream(path, is);
 				}
 			}
 		} catch (IOException e) {

@@ -35,6 +35,9 @@ import org.appcelerator.titanium.util.TiImageLruCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+import com.trevorpage.tpsvg.SVGFlyweightFactory;
+
 import android.app.Activity;
 import android.content.pm.ApplicationInfo;
 import android.content.res.Resources;
@@ -265,6 +268,11 @@ public class TiDrawableReference
 	{
 		return type == DrawableReferenceType.BLOB;
 	}
+	
+	public boolean isSVG()
+	{
+		return url.endsWith(".svg");
+	}
 
 	public boolean isTypeResourceId()
 	{
@@ -389,6 +397,11 @@ public class TiDrawableReference
 		}
 
 		return b;
+	}
+	
+	private Drawable getSVG() throws FileNotFoundException {
+		InputStream is = getInputStream();
+		return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, url, TiApplication.getInstance().getCurrentActivity()));
 	}
 
 	private Resources getResources()

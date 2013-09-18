@@ -675,7 +675,7 @@ public abstract class TiUIView
 			drawable = TiUIHelper.buildImageDrawable(TiConvert.toString(object), backgroundRepeat, proxy);
 		}
 		for (int i = 0; i < states.length; i++) {
-			bgdDrawable.setImageDrawableForState(states[i], drawable);			
+			bgdDrawable.setImageDrawableForState(states[i], drawable);
 		}
 	}
 	
