@@ -11,6 +11,9 @@ import java.util.HashMap;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.util.TiConvert;
 
+import android.content.Context;
+import android.graphics.Point;
+
 public class TiPoint {
 	private TiDimension x, y;
 
@@ -49,6 +52,12 @@ public class TiPoint {
 		}
 	}
 	
+	public TiPoint(Object xObj, Object yObj) {
+		x = TiConvert.toTiDimension(xObj, TiDimension.TYPE_LEFT);
+		y = TiConvert.toTiDimension(yObj, TiDimension.TYPE_TOP);
+	}
+	
+	
 	/*
 	 * Create a new point with the 'x' and 'y'
 	 * coordinates as string.
@@ -67,5 +76,12 @@ public class TiPoint {
 
 	public TiDimension getY() {
 		return y;
+	}
+	
+	public Point compute(Context context, int width, int height) {
+		Point result = new Point();
+		result.x  = x.getAsPixels(context, width, height);
+		result.y  = y.getAsPixels(context, width, height);
+		return result;
 	}
 }
