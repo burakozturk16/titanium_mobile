@@ -90,5 +90,12 @@ public class SVGDrawable extends Drawable {
 	@Override
 	public void setColorFilter(ColorFilter cf) {
 	}
-
+	
+	
+	 public Bitmap toBitmap() {
+		Bitmap bitmap = Bitmap.createBitmap(mRenderer.getDocumentWidth(), mRenderer.getDocumentHeight(), Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(bitmap);
+		mRenderer.paintImage(canvas, null, 0, 0, 0, null, false);
+		return bitmap;
+	}
 }
