@@ -20,6 +20,7 @@
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 #import "TiUIHelper.h"
+#import "SVGKit.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -605,19 +606,32 @@ DEFINE_EXCEPTIONS
 }
 
 
-
+-(id)loadImageOrSVG:(id)arg
+{
+    if (arg==nil) return nil;
+	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        return [TiUtils loadBackgroundImage:arg forProxy:proxy];
+    }
+    else {
+        return [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+    }
+	return nil;
+}
 -(UIImage*)loadImage:(id)arg
 {
     if (arg==nil) return nil;
-    UIImage *image = nil;
+    id result = nil;
 	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
         TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
-        image =  [TiUtils loadBackgroundImage:arg forProxy:proxy];
+        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy];
     }
     else {
-        image =  [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
     }
-	return image;
+    if ([result isKindOfClass:[UIImage class]]) return result;
+    else if ([result isKindOfClass:[SVGKImage class]]) return [((SVGKImage*)result) UIImage];
+	return nil;
 }
 
 -(void) setBackgroundImage_:(id)image
@@ -626,8 +640,7 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundImage = YES;
         return;
     }
-    UIImage* bgImage = [self loadImage:image];
-    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateNormal];
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedImage_:(id)image
@@ -636,8 +649,7 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundSelectedImage = YES;
         return;
     }
-    UIImage* bgImage = [self loadImage:image];
-    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
 }
 
 -(void) setBackgroundDisabledImage_:(id)image
@@ -646,8 +658,7 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundDisabledImage = YES;
         return;
     }
-    UIImage* bgImage = [self loadImage:image];
-    [[self getOrCreateCustomBackgroundLayer] setImage:bgImage forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
 }
 
 -(void)setOpacity_:(id)opacity

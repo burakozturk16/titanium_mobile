@@ -1,17 +1,20 @@
 #import <QuartzCore/QuartzCore.h>
 
 @class TiGradient;
+@class SVGKImage;
 @interface TiDrawable : NSObject
 {
     NSArray* states;
     UIColor* color;
     UIImage* image;
+    SVGKImage* svg;
     TiGradient* gradient;
     BOOL imageRepeat;
 }
 @property(nonatomic,retain) UIColor *color;
 @property(nonatomic,retain) UIImage *image;
 @property(nonatomic,retain) TiGradient *gradient;
+@property(nonatomic,retain) SVGKImage *svg;
 @property(nonatomic,assign) BOOL imageRepeat;
 @end
 
@@ -35,7 +38,7 @@
 - (UIControlState)getState;
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state;
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
-- (void)setImage:(UIImage*)image forState:(UIControlState)state;
+- (void)setImage:(id)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
 //-(void) setHidden:(BOOL)hidden animated:(BOOL)animated;
 @end

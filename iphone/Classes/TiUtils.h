@@ -633,8 +633,9 @@ typedef enum
 
 +(NSString*)getResponseHeader:(NSString*)header fromHeaders:(NSDictionary*)responseHeaders;
 
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy;
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy;
 +(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom;
++ (BOOL) isSVG:(id)arg;
 
 /**
  Convenience method to extract a useful error message from NSError, or nil if none exist.

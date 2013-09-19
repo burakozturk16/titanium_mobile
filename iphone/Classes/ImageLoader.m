@@ -12,6 +12,7 @@
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 #import <CommonCrypto/CommonDigest.h>
+#import "SVGKit.h"
 
 //#define DEBUG_IMAGE_CACHE
 
@@ -65,6 +66,28 @@
 
 +(NSString*)cachePathForURL:(NSURL*)url;
 
+@end
+
+
+@interface SVGImageCacheEntry : NSObject
+{
+	SVGKImage * svgImage;
+	UIImage * fullImage;
+ 	UIImage * recentlyResizedImage;
+   
+    NSString* localPath;
+    NSURL* remoteURL;
+    
+    NSDate* lastModified;
+    BOOL local;
+}
+@property(nonatomic,readonly) NSString * localPath;
+@property(nonatomic,readwrite) BOOL hires;
+@property(nonatomic,readonly) NSDate* lastModified;
+@property(nonatomic,readonly) BOOL local;
+@property(nonatomic,readwrite,retain) SVGKImage * svgImage;
+@property(nonatomic,readwrite,retain) UIImage * fullImage;
+@property(nonatomic,readwrite,retain) UIImage* recentlyResizedImage;
 @end
 
 @implementation ImageCacheEntry
@@ -338,6 +361,184 @@
 
 @end
 
+@implementation SVGImageCacheEntry
+
+
+@synthesize fullImage, svgImage, recentlyResizedImage, localPath, lastModified, local;
+
+- (SVGKImage *)svgImage {
+	if(svgImage == nil) {
+		if(localPath == nil) {
+			return nil;
+		}
+#ifdef DEBUG_IMAGE_CACHE
+		NSLog(@"[CACHE DEBUG] Retrieving local image [lazy]: %@", localPath);
+#endif
+        RELEASE_TO_NIL(lastModified);
+		svgImage = [[SVGKImage alloc] initWithContentsOfFile:localPath];
+        if (local) {
+            lastModified = [[[[NSFileManager defaultManager] attributesOfItemAtPath:localPath error:nil]  objectForKey:NSFileModificationDate] retain];
+        }
+	}
+	return svgImage;
+}
+
+- (UIImage *)fullImage {
+	if(fullImage == nil) {
+		fullImage = [[[self svgImage] UIImage] retain];
+	}
+	return fullImage;
+}
+
+- (void)setData:(NSData *)data
+{
+    RELEASE_TO_NIL(svgImage);
+    RELEASE_TO_NIL(recentlyResizedImage);
+    RELEASE_TO_NIL(fullImage);
+    RELEASE_TO_NIL(lastModified);
+    svgImage = [[SVGKImage alloc] initWithData:data];
+    [self serialize:data];
+}
+
+-(UIImage *)imageForSize:(CGSize)imageSize scalingStyle:(TiImageScalingStyle)scalingStyle
+{
+	CGSize fullImageSize = [[self fullImage] size];
+    
+	if (scalingStyle != TiImageScalingNonProportional)
+    {
+		BOOL validScale = NO;
+		CGFloat scale = 1.0;
+		
+		if (imageSize.height > 1.0)
+        {
+			scale = imageSize.height/fullImageSize.height;
+			validScale = YES;
+        }
+		if (imageSize.width > 1.0)
+        {
+			CGFloat widthScale = imageSize.width/fullImageSize.width;
+			if (!validScale || (widthScale<scale))
+            {
+				scale = widthScale;
+				validScale = YES;
+            }
+        }
+		
+		if (validScale && ((scalingStyle != TiImageScalingThumbnail) || (scale < 1.0)))
+        {
+			imageSize = CGSizeMake(ceilf(scale*fullImageSize.width),
+								   ceilf(scale*fullImageSize.height));
+        }
+		else
+        {
+			imageSize = fullImageSize;
+        }
+    }
+	
+	if (CGSizeEqualToSize(imageSize, fullImageSize))
+    {
+		return [self fullImage];
+    }
+	
+	if (CGSizeEqualToSize(imageSize, [recentlyResizedImage size]))
+    {
+		return recentlyResizedImage;
+    }
+	
+	//TODO: Tweak quality depending on how large the result will be.
+	CGInterpolationQuality quality = kCGInterpolationDefault;
+	
+	[self setRecentlyResizedImage:[UIImageResize
+								   resizedImage:imageSize
+								   interpolationQuality:quality
+								   image:fullImage
+								   hires:NO]];
+	return recentlyResizedImage;
+}
+
+
+-(UIImage *)imageForSize:(CGSize)imageSize
+{
+	return [self imageForSize:imageSize scalingStyle:TiImageScalingDefault];
+}
+
+-(SVGImageCacheEntry*)initWithURL:(NSURL *)url
+{
+    if (self = [super init]) {
+        remoteURL = [url retain];
+        local = NO;
+        
+        if ([remoteURL isFileURL]) {
+            localPath = [[remoteURL path] retain];
+            local = YES;
+            lastModified = [[[[NSFileManager defaultManager] attributesOfItemAtPath:localPath error:nil]  objectForKey:NSFileModificationDate] retain];
+        }
+        else {
+            localPath = [[ImageCacheEntry cachePathForURL:url] retain];
+        }
+    }
+    return self;
+}
+
+- (void) dealloc
+{
+	RELEASE_TO_NIL(localPath);
+	RELEASE_TO_NIL(svgImage);
+	RELEASE_TO_NIL(recentlyResizedImage);
+	RELEASE_TO_NIL(fullImage);
+    RELEASE_TO_NIL(remoteURL);
+    RELEASE_TO_NIL(lastModified);
+	[super dealloc];
+}
+
+-(void)serialize:(NSData*)imageData
+{
+    if (!local && imageData != nil) {
+        NSFileManager* fm = [NSFileManager defaultManager];
+        NSString* path = localPath;
+        
+        if ([fm isDeletableFileAtPath:path]) {
+            [fm removeItemAtPath:path error:nil];
+        }
+        if (![fm createFileAtPath:path contents:imageData  attributes:nil]) {
+            NSLog(@"[ERROR] Unknown error serializing image %@ to path %@", remoteURL, path);
+        }
+    }
+}
+
+-(NSString*)description
+{
+    return [NSString stringWithFormat:@"<SVGImageCache:%x> %@[%@]",self,remoteURL,localPath];
+}
+
++(NSString*)cachePathForURL:(NSURL *)url
+{
+    if ([url isFileURL]) {
+        return [url path];
+    }
+    
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSError* error = nil;
+    
+    NSURL* cacheFile = [fm URLForDirectory:NSCachesDirectory
+                                  inDomain:(NSUserDomainMask | NSLocalDomainMask)
+                         appropriateForURL:nil
+                                    create:YES
+                                     error:&error];
+    if (error != nil) {
+        NSLog(@"[ERROR] Error finding cache directory: %@", [error localizedDescription]);
+        return nil;
+    }
+    
+    NSString* urlStr = [url absoluteString];
+    const char* data = [urlStr UTF8String];
+    NSString* md5key = [TiUtils md5:[NSData dataWithBytes:data length:strlen(data)]];
+    
+    cacheFile = [cacheFile URLByAppendingPathComponent:[NSString stringWithFormat:@"%@.%@",md5key,[url pathExtension]]];
+    return [cacheFile path];
+}
+@end
+
 ImageLoader *sharedLoader = nil;
 
 @implementation ImageLoaderRequest
@@ -491,6 +692,46 @@ DEFINE_EXCEPTIONS
 	return newEntry;
 }
 
+-(SVGImageCacheEntry *)setSVGImage:(id)image forKey:(NSURL *)url;
+{
+	NSString *urlString = [url absoluteString];
+	if (image==nil)
+	{
+		return nil;
+	}
+	if (cache==nil)
+	{
+		cache = [[NSCache alloc] init];
+        [cache setName:@"TiImageCache"];
+#ifdef DEBUG_IMAGE_CACHE
+        [cache setDelegate:self];
+        NSLog(@"[CACHE DEBUG] Count limit: %d", [cache countLimit]);
+        NSLog(@"[CACHE DEBUG] Cost limit: %d", [cache totalCostLimit]);
+#endif
+	}
+	SVGImageCacheEntry * newEntry = [[[SVGImageCacheEntry alloc] initWithURL:url] autorelease];
+    
+    if ([image isKindOfClass:[SVGKImage class]]) {
+        [newEntry setSvgImage:image];
+    }
+    else if ([image isKindOfClass:[NSData class]]) {
+        [newEntry setData:image];
+    }
+    else {
+        DebugLog(@"[DEBUG] Unexpected image data type %@; not caching", [image class]);
+        return nil;
+    }
+	
+#ifdef DEBUG_IMAGE_CACHE
+    NSLog(@"[CACHE DEBUG] Caching: %@",newEntry);
+#endif
+    
+    [cache setObject:newEntry forKey:urlString];
+    
+	return newEntry;
+}
+
+
 -(void)purge:(NSURL*)url
 {
     NSString* urlStr = [url absoluteString];
@@ -505,6 +746,60 @@ DEFINE_EXCEPTIONS
 	}
 	return 1.0;
 }
+
+-(SVGImageCacheEntry *)svgEntryForKey:(NSURL *)url
+{
+	if (url == nil)
+	{
+		return nil;
+	}
+    
+	NSString * urlString = [url absoluteString];
+	SVGImageCacheEntry * result = [cache objectForKey:urlString];
+    
+    
+#ifdef DEBUG_IMAGE_CACHE
+    NSLog(@"[CACHE DEBUG] cache[%@] : %@", urlString, result);
+#endif
+    if (result != nil) {
+        if ([result local]) {
+            NSError* error = nil;
+            NSDate* currentTimeStamp = [[[NSFileManager defaultManager] attributesOfItemAtPath:result.localPath  error:&error]  objectForKey:NSFileModificationDate];
+            
+            if (![currentTimeStamp isEqualToDate:result.lastModified]) {
+                //We should remove the cached image as the local file backing cached image has changed.
+                [self purge:url];
+                result = nil;
+            }
+        }
+    }
+    
+    if (result == nil) {
+        if ([url isFileURL]) // Load up straight from disk
+        {
+			NSString * path = [url path];
+#ifdef DEBUG_IMAGE_CACHE
+            NSLog(@"[CACHE DEBUG] Loading locally from path %@", path);
+#endif
+			SVGKImage * resultImage = [SVGKImage imageWithContentsOfFile:path];
+					    result = [self setSVGImage:resultImage forKey:url];
+		}
+        else // Check and see if we cached a file to disk
+        {
+            NSString* diskCache = [ImageCacheEntry cachePathForURL:url];
+            if ([[NSFileManager defaultManager] fileExistsAtPath:diskCache]) {
+#ifdef DEBUG_IMAGE_CACHE
+                NSLog(@"[CACHE DEBUG] Retrieving local image [prefetch]: %@", diskCache);
+#endif
+                SVGKImage * resultImage = [SVGKImage imageWithContentsOfFile:diskCache];
+                result = [self setSVGImage:resultImage forKey:url];
+            }
+        }
+	}
+	
+	return result;
+}
+
 
 -(ImageCacheEntry *)entryForKey:(NSURL *)url
 {
@@ -584,9 +879,20 @@ DEFINE_EXCEPTIONS
 	return [self cache:image forURL:url size:CGSizeZero hires:NO];
 }
 
+-(id)cacheSVG:(id)svg forURL:(NSURL*)url
+{
+	return [[self setSVGImage:svg forKey:url] fullImage];
+}
+
+-(id)cacheSVG:(id)svg forURL:(NSURL*)url size:(CGSize)imageSize
+{
+	return [[self setSVGImage:svg forKey:url] imageForSize:imageSize];
+}
+
 -(id)loadRemote:(NSURL*)url
 {
 	if (url==nil) return nil;
+    if ([TiUtils isSVG:url]) return [self loadRemoteSVG:url];
 	UIImage *image = [[self entryForKey:url] imageForSize:CGSizeZero];
 	if (image!=nil)
 	{
@@ -611,9 +917,49 @@ DEFINE_EXCEPTIONS
 	return nil;
 }
 
--(UIImage *)loadImmediateImage:(NSURL *)url
+-(id)loadRemoteSVG:(NSURL*)url
 {
-	return [self loadImmediateImage:url withSize:CGSizeZero];
+	if (url==nil) return nil;
+	SVGKImage *image = [[self svgEntryForKey:url] svgImage];
+	if (image!=nil)
+	{
+		return image;
+	}
+	
+	ASIHTTPRequest *req = [ASIHTTPRequest requestWithURL:url];
+	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
+	[[TiApp app] startNetwork];
+	[req start];
+	[[TiApp app] stopNetwork];
+	
+	if (req!=nil && [req error]==nil)
+	{
+        NSData *data = [req responseData];
+        SVGKImage *resultImage = [SVGKImage imageWithData:data];
+        SVGImageCacheEntry *result = [self setSVGImage:resultImage forKey:url];
+        [result setData:data];
+        return [result svgImage];
+	}
+	
+	return nil;
+}
+
+-(SVGKImage *)loadImmediateSVGImage:(NSURL *)url
+{
+	return [self loadImmediateSVGImage:url withSize:CGSizeZero];
+}
+
+-(SVGKImage *)loadImmediateSVGImage:(NSURL *)url withSize:(CGSize)imageSize;
+{
+	return [[self svgEntryForKey:url] svgImage];
+}
+
+-(id)loadImmediateImage:(NSURL *)url
+{
+    if ([TiUtils isSVG:url])
+        return [self loadImmediateSVGImage:url withSize:CGSizeZero];
+    else
+        return [self loadImmediateImage:url withSize:CGSizeZero];
 }
 
 -(UIImage *)loadImmediateImage:(NSURL *)url withSize:(CGSize)imageSize;
@@ -634,8 +980,9 @@ DEFINE_EXCEPTIONS
 	return [image stretchableImage];    
 }
 
--(UIImage *)loadImmediateStretchableImage:(NSURL *)url withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
+-(id)loadImmediateStretchableImage:(NSURL *)url withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
 {
+    if ([TiUtils isSVG:url]) return [self loadImmediateSVGImage:url withSize:CGSizeZero];
     ImageCacheEntry* image = [self entryForKey:url];
     image.leftCap = left;
     image.topCap = top;
@@ -666,8 +1013,13 @@ DEFINE_EXCEPTIONS
 -(void)doImageLoader:(ImageLoaderRequest*)request
 {
 	NSURL *url = [request url];
-	
-	UIImage *image = [[self entryForKey:url] imageForSize:[request imageSize]];
+    UIImage *image = nil;
+    if ([TiUtils isSVG:url]) {
+        image = [[self svgEntryForKey:url] imageForSize:[request imageSize]];
+    }
+	else {
+        image = [[self entryForKey:url] imageForSize:[request imageSize]];
+    }
 	if (image!=nil)
 	{
 		TiThreadPerformOnMainThread(^{[self notifyRequest:request imageCompleted:image];}, NO);
@@ -778,6 +1130,49 @@ DEFINE_EXCEPTIONS
 #pragma mark Delegates
 
 
+-(void)handleImageData:(NSData*)data fromReq:(ImageLoaderRequest*)req cacheable:(BOOL)cacheable
+{
+    // Previously, we were creating the image here, then caching the image, then setting the data.
+    // This created TWO images in memory from the same binary data, which the system might not be
+    // smart enough to avoid dual allocations of (and for big remote images: Obviously a problem).
+    // So now, we cache (if we can) and then pull the created image, or just create the image if
+    // we need to, and then dump the entry from the cache if there was a problem.
+    
+    UIImage* image = nil;
+    
+    if (cacheable)
+    {
+        NSURL* url = [req url];
+        if ([TiUtils isSVG:url]) {
+           image = [self cacheSVG:data forURL:[req url]];
+        }
+        else {
+            BOOL hires = [TiUtils boolValue:[[req userInfo] valueForKey:@"hires"] def:NO];
+            
+            image = [self cache:data forURL:[req url] size:CGSizeZero hires:hires];
+        }
+        
+    }
+    else {
+        image = [UIImage imageWithData:data];
+    }
+    
+    if (image == nil)
+    {
+        if (cacheable) {
+            [self purge:[req url]];
+        }
+        
+        NSMutableDictionary* errorDetail = [NSMutableDictionary dictionary];
+        [errorDetail setValue:@"Returned invalid image data" forKey:NSLocalizedDescriptionKey];
+        NSError* error = [NSError errorWithDomain:@"com.appcelerator.titanium.imageloader" code:1 userInfo:errorDetail];
+        [[req delegate] imageLoadFailed:req error:error];
+        return;
+    }
+    
+    [self notifyRequest:req imageCompleted:image];
+}
+
 -(void)queueRequestDidFinish:(ASIHTTPRequest*)request
 {
 	ENSURE_UI_THREAD_1_ARG(request);
@@ -824,54 +1219,10 @@ DEFINE_EXCEPTIONS
 				}
 			}
 		}
-		
-        // Previously, we were creating the image here, then caching the image, then setting the data.
-        // This created TWO images in memory from the same binary data, which the system might not be
-        // smart enough to avoid dual allocations of (and for big remote images: Obviously a problem). 
-        // So now, we cache (if we can) and then pull the created image, or just create the image if
-        // we need to, and then dump the entry from the cache if there was a problem.
-        
-		UIImage* image = nil;
-
-		if (cacheable)
-		{
-			BOOL hires = [TiUtils boolValue:[[req userInfo] valueForKey:@"hires"] def:NO];
-            
-		    [self cache:data forURL:[req url] size:CGSizeZero hires:hires];
-			ImageCacheEntry *entry = [self entryForKey:[req url]];
-            
-            image = [entry fullImage];
-		}
-        else {
-            image = [UIImage imageWithData:data];
-        }
-        
-		if (image == nil) 
-		{
-            if (cacheable) {
-                [self purge:[req url]];
-            }
-                 
-			NSMutableDictionary* errorDetail = [NSMutableDictionary dictionary];
-			[errorDetail setValue:@"Returned invalid image data" forKey:NSLocalizedDescriptionKey];
-			NSError* error = [NSError errorWithDomain:@"com.appcelerator.titanium.imageloader" code:1 userInfo:errorDetail];
-			[[req delegate] imageLoadFailed:req error:error];
-			[request setUserInfo:nil];
-			[request release];
-			return;
-		}
-		
-		[self notifyRequest:req imageCompleted:image];
-	}
-	else
-	{
-		if ([[req delegate] respondsToSelector:@selector(imageLoadCancelled:)])
-		{
-			[[req delegate] performSelector:@selector(imageLoadCancelled:) withObject:req];
-		}
-	}
+        [self handleImageData:data fromReq:req cacheable:cacheable];
+    }
 	[request setUserInfo:nil];
-	[request release];
+    [request release];
 }
 
 -(void)queueRequestDidFail:(ASIHTTPRequest*)request

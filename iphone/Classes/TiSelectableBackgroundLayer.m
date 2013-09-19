@@ -1,5 +1,6 @@
 #import "TiSelectableBackgroundLayer.h"
 #import "TiGradient.h"
+#import "SVGKit.h"
 
 @interface TiDrawable()
 {
@@ -9,7 +10,7 @@
 
 @end
 @implementation TiDrawable
-@synthesize gradient, color, image, imageRepeat;
+@synthesize gradient, color, image, svg, imageRepeat;
 
 - (id)init {
     if (self = [super init])
@@ -25,6 +26,7 @@
 	[gradient release];
 	[color release];
 	[image release];
+	[svg release];
 	[super dealloc];
 }
 
@@ -33,7 +35,8 @@
     
     if (_bufferImage == nil && (gradient != nil ||
                                 color != nil ||
-                                image != nil)) {
+                                image != nil ||
+                                svg != nil)) {
         if (gradient == nil && color == nil && image != nil) {
             _bufferImage = [image retain];
         }
@@ -115,6 +118,19 @@
             [image drawInRect:rect];
             UIGraphicsPopContext();
         }
+    }
+    if (svg) {
+//        UIGraphicsPushContext(ctx);
+        CGSize scale = CGSizeMake( rect.size.width /  svg.size.width, rect.size.height / svg.size.height);
+        
+//        CGContextSaveGState(ctx);
+        
+//        CGContextTranslateCTM(ctx, svg.size.width, svg.size.height );
+        CGContextScaleCTM( ctx, scale.width, scale.height );
+        [svg.CALayerTree renderInContext:ctx];
+		
+//        CGContextRestoreGState(ctx);
+//        UIGraphicsPopContext();
     }
     CGContextRestoreGState(ctx);
 }
@@ -289,10 +305,14 @@
 }
 
 
-- (void)setImage:(UIImage*)image forState:(UIControlState)state
+- (void)setImage:(id)image forState:(UIControlState)state
 {
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
-    drawable.image = image;
+    if ([image isKindOfClass:[UIImage class]])
+        drawable.image = image;
+    else if ([image isKindOfClass:[SVGKImage class]])
+        drawable.svg = image;
+    else return;
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }

@@ -20,6 +20,7 @@
 #import "TiBlob.h"
 #import "Base64Transcoder.h"
 #import "TiExceptionHandler.h"
+#import "SVGKit.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -794,12 +795,13 @@ If the new path starts with / and the base url is app://..., we have to massage 
         return [(TiBlob*)object image];
     }
     else if ([object isKindOfClass:[NSString class]]) {
-        return [[ImageLoader sharedLoader] loadImmediateImage:[self toURL:object proxy:proxy]];
+        id result = [[ImageLoader sharedLoader] loadImmediateImage:[self toURL:object proxy:proxy]];
+        if ([result isKindOfClass:[UIImage class]]) return result;
+        else if ([result isKindOfClass:[SVGKImage class]]) return [((SVGKImage*)result) UIImage];
     }
     
     return nil;
 }
-
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)properties def:(int)def exists:(BOOL*) exists
 {
@@ -1920,7 +1922,34 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return responseHeader;
 }
 
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy
+{
+    if ([image isKindOfClass:[UIImage class]]) {
+        return image;
+    } else if ([image isKindOfClass:[TiBlob class]]) {
+        return ((TiBlob*)image).image;
+    }
+    else if ([image isKindOfClass:[NSString class]]) {
+        NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
+        id resultImage = [[ImageLoader sharedLoader] loadImmediateImage:bgURL];
+        if (resultImage==nil && [image isEqualToString:@"Default.png"])
+        {
+            // special case where we're asking for Default.png and it's in Bundle not path
+            return [UIImage imageNamed:image];
+        }
+        if((resultImage != nil) && ([resultImage isKindOfClass:[UIImage class]]) && ([resultImage imageOrientation] != UIImageOrientationUp))
+        {
+            return [UIImageResize resizedImage:[(UIImage*)resultImage size]
+                                 interpolationQuality:kCGInterpolationNone 
+                                                image:resultImage 
+                                                hires:NO];
+        }
+        return resultImage;
+    }
+    return nil;
+}
+
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
 {
     UIImage* resultImage = nil;
     if ([image isKindOfClass:[UIImage class]]) {
@@ -1930,54 +1959,30 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     }
     else if ([image isKindOfClass:[NSString class]]) {
         NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
-        resultImage = [[ImageLoader sharedLoader] loadImmediateImage:bgURL];
+        id resultImage = [[ImageLoader sharedLoader] loadImmediateStretchableImage:bgURL withLeftCap:left topCap:top rightCap:right bottomCap:bottom];
         if (resultImage==nil && [image isEqualToString:@"Default.png"])
         {
             // special case where we're asking for Default.png and it's in Bundle not path
-            resultImage = [UIImage imageNamed:image];
+            return [UIImage imageNamed:image];
         }
-        if((resultImage != nil) && ([resultImage imageOrientation] != UIImageOrientationUp))
+        if((resultImage != nil) && ([resultImage isKindOfClass:[UIImage class]]) && ([resultImage imageOrientation] != UIImageOrientationUp))
         {
-            resultImage = [UIImageResize resizedImage:[resultImage size] 
-                                 interpolationQuality:kCGInterpolationNone 
-                                                image:resultImage 
-                                                hires:NO];
+            return [UIImageResize resizedImage:[(UIImage*)resultImage size]
+                          interpolationQuality:kCGInterpolationNone
+                                         image:resultImage
+                                         hires:NO];
         }
-    }
+        return resultImage;    }
     else if ([image isKindOfClass:[TiBlob class]]) {
         resultImage = [image image];
     }
     return resultImage;
 }
 
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
++ (BOOL) isSVG:(id)arg
 {
-    UIImage* resultImage = nil;
-    if ([image isKindOfClass:[UIImage class]]) {
-        resultImage = image;
-    } else if ([image isKindOfClass:[TiBlob class]]) {
-        resultImage = ((TiBlob*)image).image;
-    }
-    else if ([image isKindOfClass:[NSString class]]) {
-        NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
-        resultImage = [[ImageLoader sharedLoader] loadImmediateStretchableImage:bgURL withLeftCap:left topCap:top rightCap:right bottomCap:bottom];
-        if (resultImage==nil && [image isEqualToString:@"Default.png"])
-        {
-            // special case where we're asking for Default.png and it's in Bundle not path
-            resultImage = [UIImage imageNamed:image];
-        }
-        if((resultImage != nil) && ([resultImage imageOrientation] != UIImageOrientationUp))
-        {
-            resultImage = [UIImageResize resizedImage:[resultImage size]
-                                 interpolationQuality:kCGInterpolationNone
-                                                image:resultImage
-                                                hires:NO];
-        }
-    }
-    else if ([image isKindOfClass:[TiBlob class]]) {
-        resultImage = [image image];
-    }
-    return resultImage;
+    return ([arg isKindOfClass:[NSString class]] && [((NSString*)arg) hasSuffix:@".svg"]) ||
+        ([arg isKindOfClass:[NSURL class]] && [[((NSURL*)arg) absoluteString] hasSuffix:@".svg"]);
 }
 
 + (NSString*)messageFromError:(NSError *)error

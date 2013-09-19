@@ -217,7 +217,7 @@
 
 -(void)setImage_:(id)value
 {
-	UIImage *image = value==nil ? nil : [TiUtils image:value proxy:(TiProxy*)self.proxy];
+	UIImage *image = [self loadImage:value];
 	if (image!=nil)
 	{
 		[[self button] setImage:image forState:UIControlStateNormal];
