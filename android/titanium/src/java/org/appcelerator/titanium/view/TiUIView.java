@@ -468,8 +468,9 @@ public abstract class TiUIView
 	{
 		if (key.equals(TiC.PROPERTY_LAYOUT)) {
 			String layout = TiConvert.toString(newValue);
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout)getParentViewForChild()).setLayoutArrangement(layout);
+			View parentViewForChild = getParentViewForChild();
+			if (parentViewForChild instanceof TiCompositeLayout) {
+				((TiCompositeLayout)parentViewForChild).setLayoutArrangement(layout);
 			}
 		} else if (key.equals(TiC.PROPERTY_LEFT)) {
 			resetPostAnimationValues();
