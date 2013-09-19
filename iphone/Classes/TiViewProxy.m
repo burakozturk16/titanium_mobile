@@ -1273,7 +1273,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		}
 		viewInitialized = YES;
         if (pendingAnimation != nil) {
-            [self animate:[pendingAnimation autorelease]];
+            TiAnimation* animation = [pendingAnimation autorelease];
+            pendingAnimation = nil;
+            [self animate:animation];
         }
 	}
 
