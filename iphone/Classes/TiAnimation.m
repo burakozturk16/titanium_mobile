@@ -645,38 +645,7 @@ doReposition = YES;\
                 
                 if (doReposition)
                 {
-                    CABasicAnimation *boundsAnimation = nil;
-                    CABasicAnimation *positionAnimation = nil;
-                    bool hasBgLayer = ([uiview backgroundLayer] != nil);
-                    if (hasBgLayer) {
-                        [[uiview backgroundLayer] removeAllAnimations];
-                        boundsAnimation = [CABasicAnimation animationWithKeyPath:@"bounds"];
-                        boundsAnimation.fromValue = [NSValue valueWithCGRect:[uiview bounds]];
-                        boundsAnimation.duration = animationDuration;
-                        boundsAnimation.timingFunction = [self timingFunction];
-                        
-                        positionAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
-                        positionAnimation.fromValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
-                        positionAnimation.duration = animationDuration;
-                        positionAnimation.timingFunction = [self timingFunction];
-                    }
-                    
                     [(TiViewProxy *)[uiview proxy] repositionWithinAnimation:self];
-                    
-                    if (hasBgLayer) {
-                        boundsAnimation.toValue = [NSValue valueWithCGRect:[uiview bounds]];
-                        positionAnimation.toValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
-                        if (repeatCount > 0) {
-                            boundsAnimation.autoreverses = (reverseAnimation != nil);
-                            boundsAnimation.repeatCount = repeatCount;
-                            
-                            positionAnimation.autoreverses = (reverseAnimation != nil);
-                            positionAnimation.repeatCount = repeatCount;
-                        }
-                        
-                        [[uiview backgroundLayer] addAnimation:boundsAnimation forKey:@"animateBounds"];
-                        [[uiview backgroundLayer] addAnimation:positionAnimation forKey:@"animatePosition"];
-                    }
                 }
             }
             

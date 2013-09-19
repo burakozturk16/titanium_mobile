@@ -436,23 +436,25 @@ DEFINE_EXCEPTIONS
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
         oldSize = newBounds.size;
         //TIMOB-11197, TC-1264
+        [CATransaction begin];
         if (!animating) {
-            [CATransaction begin];
-            [CATransaction setDisableActions:YES];
+            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+        }
+        else {
+            [CATransaction setAnimationDuration:[animation animationDuration]];
+            [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
+        }
+        
+        if (_bgLayer) {
+            _bgLayer.frame = newBounds;
         }
         if (self.layer.mask != nil) {
             [self.layer.mask setFrame:newBounds];
         }
         [self updateTransform];
         
-        if (_bgLayer) {
-            [_bgLayer setFrame:newBounds];
-        }
-        
         [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
-        if (!animating) {
-            [CATransaction commit];
-        }
+        [CATransaction commit];
     }
 }
 
@@ -533,6 +535,11 @@ DEFINE_EXCEPTIONS
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.cornerRadius = self.layer.cornerRadius;
     _bgLayer.readyToCreateDrawables = configurationSet;
+    return _bgLayer;
+}
+
+-(CALayer*)backgroundLayer
+{
     return _bgLayer;
 }
 

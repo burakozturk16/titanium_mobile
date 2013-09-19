@@ -152,6 +152,7 @@
 -(BOOL)isTransitionAnimation;
 
 -(NSTimeInterval)animationDuration;
+-(CAMediaTimingFunction*) timingFunction;
 -(void)animationCompleted:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
 -(void)simulateFinish:(TiViewProxy*)proxy;
 -(void)cancel:(id)args;
