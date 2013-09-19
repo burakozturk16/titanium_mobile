@@ -39,6 +39,8 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+
 import ti.modules.titanium.filesystem.FileProxy;
 import ti.modules.titanium.ui.ImageViewProxy;
 import ti.modules.titanium.ui.ScrollViewProxy;
@@ -1064,14 +1066,20 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 		TiImageView view = getView();
 		if (view != null) {
 			Drawable drawable = view.getImageDrawable();
-			if (drawable != null && drawable instanceof BitmapDrawable) {
-				Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-				if (bitmap == null && imageSources != null && imageSources.size() == 1) {
-					try {
-						bitmap = imageSources.get(0).getBitmap(true);
-					} catch (FileNotFoundException e) {
-						bitmap = null;
-					}
+			if (drawable == null && imageSources != null && imageSources.size() == 1) {
+				try {
+					drawable = imageSources.get(0).getDrawable();
+				} catch (FileNotFoundException e) {
+				}
+			}
+			if (drawable != null) {
+				Bitmap bitmap = null;
+				if (drawable instanceof BitmapDrawable) {
+					bitmap = ((BitmapDrawable) drawable).getBitmap();
+					
+				}
+				else if (drawable instanceof SVGDrawable) {
+					bitmap =  ((SVGDrawable) drawable).toBitmap();
 				}
 				return bitmap == null ? null : TiBlob.blobFromImage(bitmap);
 			}
