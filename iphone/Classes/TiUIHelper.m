@@ -43,6 +43,9 @@
         }
         result.offset = offset;
     }
+    else {
+        result.offset = CGSizeZero;
+    }
     
     if ([args objectForKey:@"opacity"]) {
         result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
