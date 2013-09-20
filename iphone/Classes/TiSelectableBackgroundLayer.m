@@ -363,17 +363,20 @@
 //
 - (id<CAAction>)actionForKey:(NSString *)event
 {
-    if (!_animateTransition) return nil;
+    id action  = [super actionForKey:event];
     if ([event isEqualToString:@"contents"])
     {
         CATransition *transition = [CATransition animation];
-        transition.duration = 0.2;
-        transition.type = kCATransitionReveal;
-        transition.subtype = kCATransitionFade;
+        if (_animateTransition && transition.duration == 0)
+        {
+            transition.duration = 0.2;
+            transition.type = kCATransitionReveal;
+            transition.subtype = kCATransitionFade;
+        }
         [self addAnimation:transition forKey:nil];
     }
 
-    return [super actionForKey:event];
+    return action;
 }
 
 
