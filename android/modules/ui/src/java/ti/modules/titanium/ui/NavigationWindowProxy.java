@@ -8,69 +8,80 @@
 package ti.modules.titanium.ui;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiActivity;
 import org.appcelerator.titanium.TiActivityWindow;
 import org.appcelerator.titanium.TiActivityWindows;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiTranslucentActivity;
+import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
+import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.proxy.ActivityProxy;
-import org.appcelerator.titanium.proxy.DecorViewProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiRHelper;
+import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
+import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIFragment;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
-import android.support.v4.app.Fragment;
+import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.os.Bundle;
-import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
-@SuppressLint("ValidFragment")
+import android.os.Bundle;
+import android.view.ViewGroup;
+
+@SuppressLint({ "ValidFragment", "NewApi" })
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_ACTIVITY,
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class WindowProxy extends TiWindowProxy implements TiActivityWindow
+public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager
 {
-	private static final String TAG = "WindowProxy";
+	private static final String TAG = "NavigationWindowProxy";
 	private static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
-	private static final String PROPERTY_LOAD_URL = "loadUrl";
 
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SET_PIXEL_FORMAT = MSG_FIRST_ID + 100;
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
+	private static final int MSG_PUSH = MSG_FIRST_ID + 103;
+	private static final int MSG_POP = MSG_FIRST_ID + 104;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
 	private WeakReference<TiBaseActivity> windowActivity;
+	FragmentManager manager = null;
 
-	// This flag is just for a temporary use. We won't need it after the lightweight window
-	// is completely removed.
-	private boolean lightweight = false;
-
-
-	public WindowProxy()
+	public NavigationWindowProxy()
 	{
 		super();
 		defaultValues.put(TiC.PROPERTY_WINDOW_PIXEL_FORMAT, PixelFormat.UNKNOWN);
@@ -83,7 +94,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		table.put(TiC.PROPERTY_TITLE, TiC.PROPERTY_TITLEID);
 		return table;
 	}
-	
+
 	@Override
 	public TiUIView createView(Activity activity)
 	{
@@ -101,53 +112,15 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		fireEvent(TiC.EVENT_OPEN, null);
 	}
 
-	public void addLightweightWindowToStack() 
-	{
-		// Add LW window to the decor view and add it to stack.
-		Activity topActivity = TiApplication.getAppCurrentActivity();
-		if (topActivity instanceof TiBaseActivity) {
-			TiBaseActivity baseActivity = (TiBaseActivity) topActivity;
-			ActivityProxy activityProxy = baseActivity.getActivityProxy();
-			if (activityProxy != null) {
-				DecorViewProxy decorView = activityProxy.getDecorView();
-				if (decorView != null) {
-					decorView.add(this);
-					windowActivity = new WeakReference<TiBaseActivity>(baseActivity);
-
-					// Need to handle the url window in the JS side.
-					callPropertySync(PROPERTY_LOAD_URL, null);
-
-					opened = true;
-					// fireEvent(TiC.EVENT_OPEN, null);
-
-					baseActivity.addWindowToStack(this);
-					return;
-				}
-			}
-		}
-		Log.e(TAG, "Unable to open the lightweight window because the current activity is not available.");
-	}
-
-	public void removeLightweightWindowFromStack()
-	{
-		// Remove LW window from decor view and remove it from stack
-		TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
-		if (activity != null) {
-			ActivityProxy activityProxy = activity.getActivityProxy();
-			if (activityProxy != null) {
-				activityProxy.getDecorView().remove(this);
-			}
-			releaseViews();
-			opened = false;
-
-			activity.removeWindowFromStack(this);
-			fireEvent(TiC.EVENT_CLOSE, null);
-		}
-	}
+	
 
 	@Override
-	public void open(@Kroll.argument(optional = true) Object arg)
+	public void open(@Kroll.argument(optional = true) Object arg)throws IllegalArgumentException
 	{
+		
+		if (!hasProperty(TiC.PROPERTY_WINDOW) || !(getProperty(TiC.PROPERTY_WINDOW) instanceof WindowProxy)) {
+			throw new IllegalArgumentException("You must set a 'window' property");
+		}
 		HashMap<String, Object> option = null;
 		if (arg instanceof HashMap) {
 			option = (HashMap<String, Object>) arg;
@@ -163,33 +136,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			}
 		}
 
-		// When we open a window using tab.open(win), we treat it as opening a HW window on top of the tab.
-		if (hasProperty("tabOpen")) {
-			lightweight = false;
-
-		// If "ti.android.useLegacyWindow" is set to true in the tiapp.xml, follow the old window behavior:
-		// create a HW window if any of the four properties, "fullscreen", "navBarHidden", "windowSoftInputMode" and
-		// "modal", is specified; otherwise create a LW window.
-		} else if (TiApplication.USE_LEGACY_WINDOW && !hasProperty(TiC.PROPERTY_FULLSCREEN)
-			&& !hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN) && !hasProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)
-			&& !hasProperty(TiC.PROPERTY_MODAL)) {
-			lightweight = true;
-		}
-
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "open the window: lightweight = " + lightweight);
-		}
-
-		if (lightweight) {
-			addLightweightWindowToStack();
-		} else {
-			// The "top", "bottom", "left" and "right" properties do not work for heavyweight windows.
-//			properties.remove(TiC.PROPERTY_TOP);
-//			properties.remove(TiC.PROPERTY_BOTTOM);
-//			properties.remove(TiC.PROPERTY_LEFT);
-//			properties.remove(TiC.PROPERTY_RIGHT);
-			super.open(arg);
-		}
+		super.open(arg);
 	}
 
 	@Override
@@ -198,13 +145,30 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		if (!(opened || opening)) {
 			return;
 		}
-		if (lightweight) {
-			removeLightweightWindowFromStack();
-		} else {
-			super.close(arg);
-		}
+		super.close(arg);
 	}
-
+	
+	
+	public boolean removeCurrentFragment()
+	{
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());
+		 if (activity.getFragmentManager().getBackStackEntryCount() > 0){
+	        // Get the fragment fragment manager - and pop the backstack
+	    	activity.getFragmentManager().popBackStackImmediate();
+	    	TiWindowProxy toRemove = windows.get(windows.size() - 1);
+	    	windows.remove(windows.size() - 1);
+			if (windows.size() > 0) {
+				getMainHandler().obtainMessage(MSG_SET_TITLE, windows.get(windows.size() - 1).getProperty(TiC.PROPERTY_TITLE, "")).sendToTarget();
+			}
+			KrollDict data = null;
+			data = new KrollDict();
+			data.put("_closeFromActivityForcedToDestroy", true);
+			toRemove.fireSyncEvent(TiC.EVENT_CLOSE, data);
+			return true;
+	    }
+		 return false;
+	}
+	
 	@Override
 	protected void handleOpen(KrollDict options)
 	{
@@ -295,9 +259,22 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 
 		activity.getActivityProxy().getDecorView().add(this);
 		activity.addWindowToStack(this);
+		
 
 		// Need to handle the cached activity proxy properties and url window in the JS side.
 		callPropertySync(PROPERTY_POST_WINDOW_CREATED, null);
+	}
+	
+	private static int viewId = 10000;
+	@Override
+	public void handlePostOpen()
+	{
+		TiBaseActivity activity = (TiBaseActivity) getActivity();
+		getParentViewForChild().setId(viewId++);
+		handlePush((WindowProxy)getProperty(TiC.PROPERTY_WINDOW), true, null);
+		activity.addOnLifecycleEventListener(this);
+		activity.addInterceptOnBackPressedEventListener(this);
+		super.handlePostOpen();
 	}
 
 	@Override
@@ -307,16 +284,21 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		// after setContentView(). (TIMOB-14914)
 		opened = true;
 		opening = false;
+
 		// fireEvent(TiC.EVENT_OPEN, null);
 		handlePostOpen();
 
 		super.onWindowActivityCreated();
 	}
+	
+	protected int getContainerId(){
+		return getParentViewForChild().getId();
+	}
 
 	@Override
 	protected Activity getWindowActivity()
 	{
-		return (windowActivity != null) ? windowActivity.get() : null;
+		return (windowActivity != null) ? windowActivity.get() : getActivity();
 	}
 
 	private void fillIntent(Activity activity, Intent intent)
@@ -352,16 +334,14 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	public void onPropertyChanged(String name, Object value)
 	{
-		if (!lightweight) {
-			if (TiC.PROPERTY_WINDOW_PIXEL_FORMAT.equals(name)) {
-				getMainHandler().obtainMessage(MSG_SET_PIXEL_FORMAT, value).sendToTarget();
-			} else if (TiC.PROPERTY_TITLE.equals(name)) {
-				getMainHandler().obtainMessage(MSG_SET_TITLE, value).sendToTarget();
-			} else if (TiC.PROPERTY_TOP.equals(name) || TiC.PROPERTY_BOTTOM.equals(name) || TiC.PROPERTY_LEFT.equals(name)
-				|| TiC.PROPERTY_RIGHT.equals(name)) {
-				// The "top", "bottom", "left" and "right" properties do not work for heavyweight windows.
-				return;
-			}
+		if (TiC.PROPERTY_WINDOW_PIXEL_FORMAT.equals(name)) {
+			getMainHandler().obtainMessage(MSG_SET_PIXEL_FORMAT, value).sendToTarget();
+		} else if (TiC.PROPERTY_TITLE.equals(name)) {
+			getMainHandler().obtainMessage(MSG_SET_TITLE, value).sendToTarget();
+		} else if (TiC.PROPERTY_TOP.equals(name) || TiC.PROPERTY_BOTTOM.equals(name) || TiC.PROPERTY_LEFT.equals(name)
+			|| TiC.PROPERTY_RIGHT.equals(name)) {
+			// The "top", "bottom", "left" and "right" properties do not work for heavyweight windows.
+			return;
 		}
 
 		super.onPropertyChanged(name, value);
@@ -371,16 +351,14 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Kroll.setProperty(retain=false) @Kroll.method
 	public void setWidth(Object width)
 	{
-		if (!lightweight) {
-			Object current = getProperty(TiC.PROPERTY_WIDTH);
-			if (shouldFireChange(current, width)) {
-				int w = TiConvert.toInt(width, LayoutParams.MATCH_PARENT);
-				int h = TiConvert.toInt(getProperty(TiC.PROPERTY_HEIGHT), LayoutParams.MATCH_PARENT);
-				if (TiApplication.isUIThread()) {
-					setWindowWidthHeight(w, h);
-				} else {
-					getMainHandler().obtainMessage(MSG_SET_WIDTH_HEIGHT, w, h).sendToTarget();
-				}
+		Object current = getProperty(TiC.PROPERTY_WIDTH);
+		if (shouldFireChange(current, width)) {
+			int w = TiConvert.toInt(width, LayoutParams.MATCH_PARENT);
+			int h = TiConvert.toInt(getProperty(TiC.PROPERTY_HEIGHT), LayoutParams.MATCH_PARENT);
+			if (TiApplication.isUIThread()) {
+				setWindowWidthHeight(w, h);
+			} else {
+				getMainHandler().obtainMessage(MSG_SET_WIDTH_HEIGHT, w, h).sendToTarget();
 			}
 		}
 		super.setWidth(width);
@@ -390,16 +368,14 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Kroll.setProperty(retain=false) @Kroll.method
 	public void setHeight(Object height)
 	{
-		if (!lightweight) {
-			Object current = getProperty(TiC.PROPERTY_HEIGHT);
-			if (shouldFireChange(current, height)) {
-				int h = TiConvert.toInt(height, LayoutParams.MATCH_PARENT);
-				int w = TiConvert.toInt(getProperty(TiC.PROPERTY_WIDTH), LayoutParams.MATCH_PARENT);
-				if (TiApplication.isUIThread()) {
-					setWindowWidthHeight(w, h);
-				} else {
-					getMainHandler().obtainMessage(MSG_SET_WIDTH_HEIGHT, w, h).sendToTarget();
-				}
+		Object current = getProperty(TiC.PROPERTY_HEIGHT);
+		if (shouldFireChange(current, height)) {
+			int h = TiConvert.toInt(height, LayoutParams.MATCH_PARENT);
+			int w = TiConvert.toInt(getProperty(TiC.PROPERTY_WIDTH), LayoutParams.MATCH_PARENT);
+			if (TiApplication.isUIThread()) {
+				setWindowWidthHeight(w, h);
+			} else {
+				getMainHandler().obtainMessage(MSG_SET_WIDTH_HEIGHT, w, h).sendToTarget();
 			}
 		}
 		super.setHeight(height);
@@ -431,6 +407,19 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 				setWindowWidthHeight(msg.arg1, msg.arg2);
 				return true;
 			}
+			case MSG_PUSH: {
+				AsyncResult result = (AsyncResult) msg.obj;
+				Pair<WindowProxy, Object> pair = (Pair<WindowProxy, Object>) result.getArg();
+				handlePush(pair.first, false, pair.second);
+				result.setResult(null); // signal opened
+				return true;
+			}
+			case MSG_POP: {
+				AsyncResult result = (AsyncResult) msg.obj;
+				Pair<WindowProxy, Object> pair = (Pair<WindowProxy, Object>) result.getArg();
+				result.setResult(handlePop(pair.first, pair.second)); // signal opened
+				return true;
+			}
 		}
 		return super.handleMessage(msg);
 	}
@@ -455,11 +444,171 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			return null;
 		}
 	}
-
-	@Kroll.method(name = "_isLightweight")
-	public boolean isLightweight()
+	
+	ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
+	
+	private boolean handlePop(final WindowProxy proxy, Object arg) 
 	{
-		// We know whether a window is lightweight or not only after it opens.
-		return (opened && lightweight);
+		if (!opened || opening) return false;
+		if (!windows.contains(proxy)) return false;
+		proxy.setWindowManager(null);
+		if (windows.get(windows.size() - 1) == proxy)
+		{
+			removeCurrentFragment();
+			return true;
+		}
+		else {
+			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+			transaction.remove(proxy.getFragment());
+			transaction.commit();
+		}
+		return false;
+	}
+	
+	private void handlePush(final WindowProxy proxy, boolean isFirst, Object arg) 
+	{
+		if (!opened || opening) return;
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		Fragment fragment = proxy.getFragment();
+		if (isFirst) {
+			transaction.add(getContainerId(), fragment);
+		}
+		else {
+			proxy.setWindowManager(this);
+			if (arg != null) {
+				try {
+					transaction.setCustomAnimations(
+							TiRHelper.getResource("anim.card_flip_right_in"),TiRHelper.getResource("anim.card_flip_right_out"),
+							TiRHelper.getResource("anim.card_flip_left_in"), TiRHelper.getResource("anim.card_flip_left_out"));
+				} catch (ResourceNotFoundException e) {
+					e.printStackTrace();
+				}
+			}	
+			transaction.replace(getContainerId(), fragment);
+			transaction.addToBackStack(null);
+		}
+		transaction.commit();
+		if (!windows.contains(proxy)) windows.add(proxy);
+		proxy.onWindowActivityCreated();
+		proxy.setActivity(getActivity());
+		getMainHandler().obtainMessage(MSG_SET_TITLE, proxy.getProperty(TiC.PROPERTY_TITLE, "")).sendToTarget();
+	}
+	
+	@Kroll.method
+	public void push(final WindowProxy proxy, @Kroll.argument(optional = true) Object arg)
+	{
+		if (TiApplication.isUIThread()) {
+			handlePush(proxy, false, arg);
+			return;
+		}
+
+		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_PUSH), new Pair<WindowProxy, Object>(proxy, arg));
+	}
+	
+	@Kroll.method
+	public void pop(final WindowProxy proxy, @Kroll.argument(optional = true) Object arg)
+	{
+		if (TiApplication.isUIThread()) {
+			handlePop(proxy, arg);
+			return;
+		}
+
+		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<WindowProxy, Object>(proxy, arg));
+	}
+	
+	public FragmentManager getFragmentManager() {
+		return ((TiBaseActivity) getActivity()).getFragmentManager();
+//		if (manager == null) {
+//			manager = getFragment().getChildFragmentManager();
+//		}
+//		return manager;
+	}
+	
+	@Override
+	public Fragment getFragment() {
+		if (fragment == null) {
+			fragment = new Fragment() {
+				@Override
+				public View onCreateView(LayoutInflater inflater,
+						ViewGroup container, Bundle savedInstanceState) {
+					View view = getOrCreateView().getParentViewForChild();
+					return view;
+				}
+			};
+		}
+		return fragment;
+	}
+
+
+	@Override
+	public boolean interceptOnBackPressed() {
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());
+		TiWindowProxy topWindow = activity.topWindowOnStack();
+
+		// Prevent default Android behavior for "back" press
+		// if the top window has a listener to handle the event.
+		if (topWindow != null && topWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
+			topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
+			return true;
+		}
+		return removeCurrentFragment();
+	}
+
+	@Override
+	public boolean handleClose(TiWindowProxy proxy, Object arg) {
+		
+		if (TiApplication.isUIThread()) {
+			return handlePop((WindowProxy) proxy, arg);
+		}
+		Object result = TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<WindowProxy, Object>((WindowProxy) proxy, arg));
+		if (result instanceof Boolean) {
+			return ((Boolean) result).booleanValue();
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean handleOpen(TiWindowProxy proxy, Object arg) {
+		return false;
+	}
+
+	@Override
+	public void onStart(Activity activity) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onResume(Activity activity) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPause(Activity activity) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStop(Activity activity) {
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		for (int i = 0; i < windows.size(); i++) {
+			TiWindowProxy proxy = windows.get(i);
+			transaction.remove(proxy.getFragment());
+			KrollDict data = null;
+			data = new KrollDict();
+			data.put("_closeFromActivityForcedToDestroy", true);
+			proxy.fireSyncEvent(TiC.EVENT_CLOSE, data);
+		}
+		transaction.commit();
+		windows.clear();
+	}
+
+	@Override
+	public void onDestroy(Activity activity) {
+		// TODO Auto-generated method stub
+		
 	}
 }

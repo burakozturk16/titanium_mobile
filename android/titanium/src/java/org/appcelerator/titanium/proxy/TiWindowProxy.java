@@ -18,17 +18,25 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Message;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 @Kroll.proxy(propertyAccessors={
 	TiC.PROPERTY_EXIT_ON_CLOSE,
@@ -57,6 +65,8 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected boolean inTab;
 	protected PostOpenListener postOpenListener;
 	protected boolean windowActivityCreated = false;
+	
+	private TiWindowManager winManager = null;
 
 
 	public static interface PostOpenListener
@@ -107,6 +117,9 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void open(@Kroll.argument(optional = true) Object arg)
 	{
 		if (opened || opening) { return; }
+		if (winManager != null && winManager.handleOpen(this, arg)) {
+			return;
+		}
 
 		waitingForOpen = new WeakReference<TiWindowProxy>(this);
 		opening = true;
@@ -142,7 +155,9 @@ public abstract class TiWindowProxy extends TiViewProxy
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
-
+		if (winManager != null && winManager.handleClose(this, arg)) {
+			return;
+		}
 		KrollDict options = null;
 		TiAnimation animation = null;
 
@@ -411,7 +426,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	 * Sub-classes will need to call handlePostOpen after their window is visible
 	 * so any pending dialogs can successfully show after the window is opened
 	 */
-	protected void handlePostOpen()
+	public void handlePostOpen()
 	{
 		if (postOpenListener != null)
 		{
@@ -427,7 +442,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 			waitingForOpen = null;
 		}
 
-		View nativeView = view.getNativeView();
+		View nativeView = (view != null)?view.getNativeView():null;
 
 		// Make sure we draw the view during the layout pass. This does not seem to cause another layout pass. We need
 		// to force the view to be drawn due to TIMOB-7685
@@ -458,5 +473,34 @@ public abstract class TiWindowProxy extends TiViewProxy
 			return null;
 		}
 		return super.getParentForBubbling();
+	}
+	
+	protected Fragment fragment = null;
+	@SuppressLint("ValidFragment")
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public Fragment getFragment() {
+		if (fragment == null) {
+			fragment = new Fragment() {
+				@Override
+				public View onCreateView(LayoutInflater inflater,
+						ViewGroup container, Bundle savedInstanceState) {
+					View view = getOrCreateView().getOuterView();
+					TiCompositeLayout.LayoutParams params = (TiCompositeLayout.LayoutParams) view
+							.getLayoutParams();
+					if (params == null)
+						params = new TiCompositeLayout.LayoutParams();
+					params.autoFillsHeight = true;
+					params.autoFillsWidth = true;
+					view.setLayoutParams(params);
+					return view;
+				}
+			};
+		}
+		return fragment;
+	}
+	
+	public void setWindowManager(TiWindowManager manager)
+	{
+		this.winManager = manager;
 	}
 }

@@ -558,6 +558,20 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		return properties.get(name);
 	}
+	
+	/**
+	 * Returns the property value given its key.
+	 * Properties are cached on the Proxy and updated from JS for relevant annotated APIs
+	 * @param name  the lookup key.
+	 * @return the property object or null if a property for the given key does not exist.
+	 * @module.api
+	 */
+	public Object getProperty(String name, Object defaultValue)
+	{
+		if (properties.containsKey(name))
+			return properties.get(name);
+		else return defaultValue;
+	}
 
 	/**
 	 * @deprecated use setPropertyAndFire instead

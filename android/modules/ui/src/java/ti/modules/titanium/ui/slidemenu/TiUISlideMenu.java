@@ -10,6 +10,7 @@ import org.appcelerator.titanium.TiBaseActivity.ConfigurationChangedListener;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
@@ -23,6 +24,7 @@ import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.SlideMenuProxy;
 import ti.modules.titanium.ui.UIModule;
+import ti.modules.titanium.ui.WindowProxy;
 
 public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListener{
 	private SlidingMenu slidingMenu;
@@ -226,17 +228,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_CENTER_VIEW)) {
-			Object centerView = d.get(TiC.PROPERTY_CENTER_VIEW);
-			if (centerView != null && centerView instanceof TiViewProxy) {
-				this.centerView = (TiViewProxy)centerView;
-				TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
-				TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
-				params.autoFillsHeight = true;
-				params.autoFillsWidth = true;
-				content.addView(((TiViewProxy)centerView).getOrCreateView().getOuterView(), params);						
-			} else {
-				Log.e(TAG, "Invalid type for centerView");
-			}
+			setCenterView((TiViewProxy) d.get(TiC.PROPERTY_CENTER_VIEW));
 		}
 		
 		updateMenus();	
@@ -294,29 +286,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			this.rightView = newProxy;
 			updateMenus();
 		} else if (key.equals(TiC.PROPERTY_CENTER_VIEW)) {
-			if (newValue == this.centerView) return;
-			TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
-			TiViewProxy newProxy = null;
-			int index = 0;
-			if (this.centerView != null)
-			{
-				index = content.indexOfChild(this.centerView.getOrCreateView().getNativeView());
-			}
-			if (newValue != null && newValue instanceof TiViewProxy) {
-					newProxy = (TiViewProxy)newValue;
-					newProxy.setActivity(proxy.getActivity());
-					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
-					params.autoFillsHeight = true;
-					params.autoFillsWidth = true;
-					content.addView(newProxy.getOrCreateView().getOuterView(), index, params);						
-			} else {
-				Log.e(TAG, "Invalid type for centerView");
-			}
-			if (this.centerView != null)
-			{
-				content.removeView(this.centerView.getNativeView());
-			}
-			this.centerView = newProxy;	
+			setCenterView((TiViewProxy) newValue);
 		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {
 			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_CENTER_VIEW));
 		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
@@ -343,5 +313,40 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			Configuration newConfig) {
 		updateMenuWidth();
 	}
-
+	
+	
+	private void setCenterView(TiViewProxy proxy) 
+	{
+		if (proxy == this.centerView) return;
+		TiCompositeLayout content = ((TiCompositeLayout) activity.getLayout());
+		int index = 0;
+		if (this.centerView != null)
+		{
+			index = content.indexOfChild(this.centerView.getOrCreateView().getNativeView());
+		}
+		if (proxy != null && proxy instanceof TiViewProxy) {
+				proxy.setActivity(this.proxy.getActivity());
+				TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+				params.autoFillsHeight = true;
+				params.autoFillsWidth = true;
+				content.addView(proxy.getOrCreateView().getOuterView(), index, params);		
+				if (proxy instanceof TiWindowProxy) {
+					((TiWindowProxy)proxy).onWindowActivityCreated();
+				}
+		} else {
+			Log.e(TAG, "Invalid type for centerView");
+		}
+		if (this.centerView != null)
+		{
+			content.removeView(this.centerView.getNativeView());
+			if (this.centerView instanceof TiWindowProxy) 
+			{
+				KrollDict data = null;
+				data = new KrollDict();
+				data.put("_closeFromActivityForcedToDestroy", true);
+				this.centerView.fireSyncEvent(TiC.EVENT_CLOSE, data);
+			}
+		}
+		this.centerView = proxy;	
+	}
 }
