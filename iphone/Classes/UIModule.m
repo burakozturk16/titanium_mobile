@@ -54,7 +54,7 @@
 #import "ImageLoader.h"
 #import "Webcolor.h"
 #import "TiUtils.h"
-#import "UIButton+BackgroundColors.h"
+#import "UIControl+TiUIView.h"
 
 
 #define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
@@ -72,7 +72,7 @@ return ivarName;	\
 
 +(void)swizzle
 {
-    [UIButton swizzle];
+    [UIControl swizzle];
 }
 
 -(void)startup

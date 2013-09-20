@@ -48,18 +48,13 @@
         }
     }
     if (onlyCreate) return;
-    if (animated) {
-        layer.animateTransition = YES;
-        [CATransaction begin];
-        [CATransaction setDisableActions:NO];
-    }
+
     if (_bufferImage == nil) {
         if (layer.contents != nil) {
             [layer setContents:nil];
         }
     } else {
         if (image != nil) {
-            CGRect rect = layer.frame;
             layer.contentsScale = image.scale;
             layer.contentsCenter = TiDimensionLayerContentCenterFromInsents(image.capInsets, [image size]);
         }
@@ -72,11 +67,8 @@
         } else {
             layer.magnificationFilter = @"linear";
         }
+
         [layer setContents:(id)_bufferImage.CGImage];
-    }
-    if (animated) {
-        [CATransaction commit];
-        layer.animateTransition = NO;
     }
 }
 -(void)drawBufferFromLayer:(CALayer*)layer
@@ -155,14 +147,20 @@
 @implementation TiSelectableBackgroundLayer
 @synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
 
-- (id) initWithLayer:(id)layer {
-    if(self = [super initWithLayer:layer]) {
-        if([layer isKindOfClass:[TiSelectableBackgroundLayer class]]) {
-            TiSelectableBackgroundLayer *other = (TiSelectableBackgroundLayer*)layer;
-        }
-    }
-    return self;
-}
+//- (id) initWithLayer:(id)layer {
+//    if(self = [super initWithLayer:layer]) {
+//        if([layer isKindOfClass:[TiSelectableBackgroundLayer class]]) {
+//            TiSelectableBackgroundLayer *other = (TiSelectableBackgroundLayer*)layer;
+//            self.imageRepeat = other.imageRepeat;
+//            stateLayersMap = [[NSMutableDictionary dictionaryWithDictionary:other.stateLayersMap] retain];
+//            stateLayers = [[NSMutableArray arrayWithArray:other.stateLayers] retain];
+//            currentState = [other getState];
+//            readyToCreateDrawables = YES;
+//            currentDrawable = [self getOrCreateDrawableForState:currentState];
+//        }
+//    }
+//    return self;
+//}
 
 - (id)init {
     if (self = [super init])
@@ -176,7 +174,13 @@
         _needsToSetDrawables = NO;
         _animateTransition = NO;
         self.masksToBounds=YES;
-        self.contentsScale = [[UIScreen mainScreen] scale];
+        self.opaque = NO;
+//        self.needsDisplayOnBoundsChange = YES;
+        self.shouldRasterize = YES;
+        self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
+//        self.actions = [NSDictionary dictionaryWithObjectsAndKeys:
+//                        [NSNull null], @"bounds",
+//                        nil];
     }
     return self;
 }
@@ -249,7 +253,7 @@
 
 - (void)setState:(UIControlState)state
 {
-    [self setState:state animated:NO];
+    [self setState:state animated:_animateTransition];
 }
 
 - (UIControlState)getState
@@ -257,19 +261,6 @@
     return currentState;
     
 }
-
-//- (id<CAAction>)actionForKey:(NSString *)event
-//{
-//    if (!_animateTransition && ([event isEqualToString:@"contents"] || [event isEqualToString:@"hidden"] || [event isEqualToString:@"mask"]))
-//        return nil;
-//    if ([event isEqualToString:@"contents"])
-//    {
-//        return [CATransition animation];
-//    }
-//    
-//    id action = [super actionForKey:event];
-//    return action;
-//}
 
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state
 {
@@ -347,12 +338,44 @@
     }
 }
 
-//-(void) setHidden:(BOOL)hidden animated:(BOOL)animated
+//
+//static NSArray *animationKeys;
+//+ (NSArray *)animationKeys
 //{
-//    self.animateTransition = animated;
-//    [self setHidden:hidden];
-//    self.animateTransition = NO;
+//    if (!animationKeys)
+//        animationKeys = [[NSArray arrayWithObjects:@"bounds",@"contents",nil] retain];
 //    
+//    return animationKeys;
 //}
+//
+//+(BOOL)needsDisplayForKey:(NSString*)key
+//{
+//    if ([key isEqualToString:@"contents"] || [key isEqualToString:@"bounds"])
+//        return YES;
+//    return [super needsDisplayForKey:key];
+//}
+
+//
+//- (void)drawInContext:(CGContextRef)ctx
+//{
+//    [currentDrawable drawInContext:ctx inRect:self.bounds];
+//}
+
+
+- (id<CAAction>)actionForKey:(NSString *)event
+{
+    if (!_animateTransition) return nil;
+    if ([event isEqualToString:@"contents"])
+    {
+        CATransition *transition = [CATransition animation];
+        transition.duration = 0.2;
+        transition.type = kCATransitionReveal;
+        transition.subtype = kCATransitionFade;
+        [self addAnimation:transition forKey:nil];
+    }
+
+    return [super actionForKey:event];
+}
+
 
 @end

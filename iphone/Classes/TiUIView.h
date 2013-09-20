@@ -244,6 +244,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)setBgState:(UIControlState)state;
 @property (nonatomic, readonly) TiSelectableBackgroundLayer* backgroundLayer;
 @property(nonatomic,assign) BOOL shouldHandleSelection;
+@property(nonatomic,assign) BOOL animateBgdTransition;
 
 -(void)checkBounds;
 
@@ -276,6 +277,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)detach;
 
+-(void)setHighlighted:(BOOL)isHiglighted;
+-(void)setSelected:(BOOL)isSelected;
 @end
 
 #pragma mark TO REMOVE, used only during transition.

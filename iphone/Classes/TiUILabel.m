@@ -164,6 +164,7 @@
 
 -(void)setHighlighted:(BOOL)newValue
 {
+    [super setHighlighted:newValue];
     [[self label] setHighlighted:newValue];
 }
 

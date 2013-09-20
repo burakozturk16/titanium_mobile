@@ -6,12 +6,12 @@
  */
 #import <UIKit/UIKit.h>
 
-@interface UIButton (BackgroundColors)
-+ (void) swizzle;
-@property(nonatomic,retain)	UIColor* backgroundDefaultColor;
-@property(nonatomic,retain)	UIColor* backgroundSelectedColor;
-@property(nonatomic,retain)	UIColor* backgroundDisabledColor;
-@property(nonatomic,retain)	UIColor* backgroundHighlightedColor;
-
--(void)updateBackgroundColor;
-@end
+//@interface UIButton (BackgroundColors)
+//+ (void) swizzle;
+//@property(nonatomic,retain)	UIColor* backgroundDefaultColor;
+//@property(nonatomic,retain)	UIColor* backgroundSelectedColor;
+//@property(nonatomic,retain)	UIColor* backgroundDisabledColor;
+//@property(nonatomic,retain)	UIColor* backgroundHighlightedColor;
+//
+//-(void)updateBackgroundColor;
+//@end

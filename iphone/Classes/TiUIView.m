@@ -171,7 +171,7 @@ DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition;
 
 #pragma mark Internal Methods
 
@@ -259,6 +259,7 @@ DEFINE_EXCEPTIONS
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
+    animateBgdTransition = NO;
 }
 
 - (id) init
@@ -535,6 +536,7 @@ DEFINE_EXCEPTIONS
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.cornerRadius = self.layer.cornerRadius;
     _bgLayer.readyToCreateDrawables = configurationSet;
+    _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
 }
 
@@ -553,6 +555,13 @@ DEFINE_EXCEPTIONS
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
     [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledGradient_:(id)newGradientDict
@@ -584,6 +593,13 @@ DEFINE_EXCEPTIONS
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledColor_:(id)color
@@ -650,13 +666,24 @@ DEFINE_EXCEPTIONS
     [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateNormal];
 }
 
--(void) setBackgroundSelectedImage_:(id)image
+-(void) setBackgroundSelectedImage_:(id)arg
 {
     if (!configurationSet) {
         needsToSetBackgroundSelectedImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
+    id image = [self loadImageOrSVG:arg];
+    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateHighlighted];
+    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
+}
+
+-(void) setBackgroundHighlightedImage_:(id)image
+{
+    if (!configurationSet) {
+        needsToSetBackgroundSelectedImage = YES;
+        return;
+    }
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledImage_:(id)image
@@ -1454,7 +1481,7 @@ DEFINE_EXCEPTIONS
     
     UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
-        [self setBgState:UIControlStateSelected];
+        [self setHighlighted:YES];
     }
 	
 	if (handlesTouches)
@@ -1485,7 +1512,7 @@ DEFINE_EXCEPTIONS
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
     if (_shouldHandleSelection) {
-        [self setBgState:outside?UIControlStateNormal:UIControlStateSelected];
+        [self setHighlighted:!outside];
     }
 	if (handlesTouches)
 	{
@@ -1508,7 +1535,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+        [self setHighlighted:NO];
     }
 	if (handlesTouches)
 	{
@@ -1547,7 +1574,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    [self setHighlighted:NO];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -1705,5 +1732,26 @@ DEFINE_EXCEPTIONS
     [self.layer setNeedsDisplay];
 }
 
-
+-(void)setHighlighted:(BOOL)isHiglighted
+{
+    [self setBgState:isHiglighted?UIControlStateHighlighted:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+	for (TiUIView * thisView in [self childViews])
+	{
+		if ([thisView respondsToSelector:@selector(setHighlighted:)])
+		{
+			[(id)thisView setHighlighted:isHiglighted];
+		}
+	}
+}
+-(void)setSelected:(BOOL)isSelected
+{
+    [self setBgState:isSelected?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+	for (TiUIView * thisView in [self childViews])
+	{
+		if ([thisView respondsToSelector:@selector(setSelected:)])
+		{
+			[(id)thisView setSelected:isSelected];
+		}
+	}
+}
 @end

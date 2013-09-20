@@ -12,8 +12,9 @@
 #import "TiUtils.h"
 #import "ImageLoader.h"
 #import "TiButtonUtil.h"
-#import "UIButton+BackgroundColors.h"
 #import "TiUIView.h"
+#import "UIControl+TiUIView.h"
+
 
 @implementation TiUIButton
 
@@ -23,39 +24,39 @@
 {
 	[button removeTarget:self action:NULL forControlEvents:UIControlEventAllTouchEvents];
 	RELEASE_TO_NIL(button);
-	RELEASE_TO_NIL(backgroundImageCache)
-	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
+//	RELEASE_TO_NIL(backgroundImageCache)
+//	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	[super dealloc];
 }
 
--(void)configurationSet
-{
-    [super configurationSet];
-    
-    if (needsToSetBackgroundImage)
-    {
-        // to prevent multiple calls because of topCap and leftCap
-
-        id value = [[self proxy] valueForKey:@"backgroundImage"];
-        if (value)
-            [self setBackgroundImage_:value];
-        value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
-        if (value)
-            [self setBackgroundSelectedImage_:value];
-        
-        value = [[self proxy] valueForKey:@"backgroundHighlightedImage"];
-        if (value)
-            [self setBackgroundHighlightedImage_:value];
-        
-        value = [[self proxy] valueForKey:@"backgroundFocusedImage"];
-        if (value)
-            [self setBackgroundFocusedImage_:value];
-
-        value = [[self proxy] valueForKey:@"backgroundDisabledImage"];
-        if (value)
-            [self setBackgroundDisabledImage_:value];
-    }
-}
+//-(void)configurationSet
+//{
+//    [super configurationSet];
+//    
+//    if (needsToSetBackgroundImage)
+//    {
+//        // to prevent multiple calls because of topCap and leftCap
+//
+//        id value = [[self proxy] valueForKey:@"backgroundImage"];
+//        if (value)
+//            [self setBackgroundImage_:value];
+//        value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
+//        if (value)
+//            [self setBackgroundSelectedImage_:value];
+//        
+//        value = [[self proxy] valueForKey:@"backgroundHighlightedImage"];
+//        if (value)
+//            [self setBackgroundHighlightedImage_:value];
+//        
+//        value = [[self proxy] valueForKey:@"backgroundFocusedImage"];
+//        if (value)
+//            [self setBackgroundFocusedImage_:value];
+//
+//        value = [[self proxy] valueForKey:@"backgroundDisabledImage"];
+//        if (value)
+//            [self setBackgroundDisabledImage_:value];
+//    }
+//}
 
 -(BOOL)hasTouchableListener
 {
@@ -64,52 +65,52 @@
 	return YES;
 }
 
--(void)setHighlighting:(BOOL)isHiglighted
-{
-	for (TiUIView * thisView in [self subviews])
-	{
-		if ([thisView respondsToSelector:@selector(setHighlighted:)])
-		{
-			[(id)thisView setHighlighted:isHiglighted];
-		}
-	}
-}
+//-(void)setHighlighting:(BOOL)isHiglighted
+//{
+//	for (TiUIView * thisView in [self subviews])
+//	{
+//		if ([thisView respondsToSelector:@selector(setHighlighted:)])
+//		{
+//			[(id)thisView setHighlighted:isHiglighted];
+//		}
+//	}
+//}
 
--(void)updateBackgroundImage
-{
-	CGRect bounds = [self bounds];
-	[button setFrame:bounds];
-	if ((backgroundImageCache == nil) || (bounds.size.width == 0) || (bounds.size.height == 0)) {
-		[button setBackgroundImage:nil forState:UIControlStateNormal];
-		return;
-	}
-	CGSize imageSize = [backgroundImageCache size];
-	if((bounds.size.width>=imageSize.width) && (bounds.size.height>=imageSize.height)){
-		[button setBackgroundImage:backgroundImageCache forState:UIControlStateNormal];
-		return;
-	}
-    //If the bounds are smaller than the image size render it in an imageView and get the image of the view.
-    //Should be pretty inexpensive since it happens rarely. TIMOB-9166
-    CGSize unstrechedSize = (backgroundImageUnstretchedCache != nil) ? [backgroundImageUnstretchedCache size] : CGSizeZero;
-    if (backgroundImageUnstretchedCache == nil || !CGSizeEqualToSize(unstrechedSize,bounds.size) ) {
-        UIImageView* theView = [[UIImageView alloc] initWithFrame:bounds];
-        [theView setImage:backgroundImageCache];
-        UIGraphicsBeginImageContextWithOptions(bounds.size, [theView.layer isOpaque], 0.0);
-        [theView.layer renderInContext:UIGraphicsGetCurrentContext()];
-        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-        UIGraphicsEndImageContext();
-        RELEASE_TO_NIL(backgroundImageUnstretchedCache);
-        backgroundImageUnstretchedCache = [image retain];
-        [theView release];
-    }
-	[button setBackgroundImage:backgroundImageUnstretchedCache forState:UIControlStateNormal];	
-}
+//-(void)updateBackgroundImage
+//{
+//	CGRect bounds = [self bounds];
+//	[button setFrame:bounds];
+//	if ((backgroundImageCache == nil) || (bounds.size.width == 0) || (bounds.size.height == 0)) {
+//		[button setBackgroundImage:nil forState:UIControlStateNormal];
+//		return;
+//	}
+//	CGSize imageSize = [backgroundImageCache size];
+//	if((bounds.size.width>=imageSize.width) && (bounds.size.height>=imageSize.height)){
+//		[button setBackgroundImage:backgroundImageCache forState:UIControlStateNormal];
+//		return;
+//	}
+//    //If the bounds are smaller than the image size render it in an imageView and get the image of the view.
+//    //Should be pretty inexpensive since it happens rarely. TIMOB-9166
+//    CGSize unstrechedSize = (backgroundImageUnstretchedCache != nil) ? [backgroundImageUnstretchedCache size] : CGSizeZero;
+//    if (backgroundImageUnstretchedCache == nil || !CGSizeEqualToSize(unstrechedSize,bounds.size) ) {
+//        UIImageView* theView = [[UIImageView alloc] initWithFrame:bounds];
+//        [theView setImage:backgroundImageCache];
+//        UIGraphicsBeginImageContextWithOptions(bounds.size, [theView.layer isOpaque], 0.0);
+//        [theView.layer renderInContext:UIGraphicsGetCurrentContext()];
+//        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+//        UIGraphicsEndImageContext();
+//        RELEASE_TO_NIL(backgroundImageUnstretchedCache);
+//        backgroundImageUnstretchedCache = [image retain];
+//        [theView release];
+//    }
+//	[button setBackgroundImage:backgroundImageUnstretchedCache forState:UIControlStateNormal];	
+//}
 
--(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
-{
-	[super frameSizeChanged:frame bounds:bounds];
-	[self updateBackgroundImage];
-}
+//-(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
+//{
+//	[super frameSizeChanged:frame bounds:bounds];
+//	[self updateBackgroundImage];
+//}
 
 - (void)controlAction:(id)sender forEvent:(UIEvent *)event
 {
@@ -146,7 +147,7 @@
         default:
             return;
     }
-    [self setHighlighting:button.highlighted];
+//    [self setHighlighted:button.highlighted];
     if ((fireActionEvent != nil) && [self.proxy _hasListeners:fireActionEvent]) {
         [self.proxy fireEvent:fireActionEvent withObject:evt];
     }
@@ -176,6 +177,8 @@
 		[button addTarget:self action:@selector(controlAction:forEvent:) forControlEvents:UIControlEventAllTouchEvents];
 		button.exclusiveTouch = YES;
 		button.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        
+        [button setTiUIView:self];
         [self addSubview:button];
     }
 	return button;
@@ -247,95 +250,96 @@
 	[[self button] setTitle:[TiUtils stringValue:value] forState:UIControlStateNormal];
 }
 
--(void)setBackgroundImage_:(id)value
-{
-    if (!configurationSet) {
-        needsToSetBackgroundImage = YES;
-        return;
-    }
-	[backgroundImageCache release];
-	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
-	backgroundImageCache = [[self loadImage:value] retain];
-//    self.backgroundImage = value;
-	[self updateBackgroundImage];
-}
+//-(void)setBackgroundImage_:(id)value
+//{
+//    if (!configurationSet) {
+//        needsToSetBackgroundImage = YES;
+//        return;
+//    }
+//	[backgroundImageCache release];
+//	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
+//	backgroundImageCache = [[self loadImage:value] retain];
+////    self.backgroundImage = value;
+//	[self updateBackgroundImage];
+//}
 
--(void)setBackgroundHighlightedImage_:(id)value
-{
-    if (!configurationSet) {
-        needsToSetBackgroundImage = YES;
-        return;
-    }
-	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateHighlighted];
-}
+//-(void)setBackgroundHighlightedImage_:(id)value
+//{
+//    if (!configurationSet) {
+//        needsToSetBackgroundImage = YES;
+//        return;
+//    }
+//	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateHighlighted];
+//}
 
--(void)setBackgroundSelectedImage_:(id)value
-{
-    if (!configurationSet) {
-        needsToSetBackgroundImage = YES;
-        return;
-    }
-    UIImage* image = [self loadImage:value];
-	[[self button] setBackgroundImage:image forState:UIControlStateHighlighted];
-	[[self button] setBackgroundImage:image forState:UIControlStateSelected];
-}
+//-(void)setBackgroundSelectedImage_:(id)value
+//{
+//    if (!configurationSet) {
+//        needsToSetBackgroundImage = YES;
+//        return;
+//    }
+//    UIImage* image = [self loadImage:value];
+//	[[self button] setBackgroundImage:image forState:UIControlStateHighlighted];
+//	[[self button] setBackgroundImage:image forState:UIControlStateSelected];
+//}
+//
+//-(void)setBackgroundDisabledImage_:(id)value
+//{
+//    if (!configurationSet) {
+//        needsToSetBackgroundImage = YES;
+//        return;
+//    }
+//	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateDisabled];
+//}
 
--(void)setBackgroundDisabledImage_:(id)value
-{
-    if (!configurationSet) {
-        needsToSetBackgroundImage = YES;
-        return;
-    }
-	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateDisabled];
-}
+//-(void)setBackgroundFocusedImage_:(id)value
+//{
+//    if (!configurationSet) {
+//        needsToSetBackgroundImage = YES;
+//        return;
+//    }
+//	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateSelected];
+//}
+//
+//
+//-(void)setBackgroundColor_:(id)value
+//{
+//	if (value!=nil)
+//	{
+//		TiColor *color = [TiUtils colorValue:value];
+//		[[self button] setBackgroundDefaultColor:[color _color]];
+//	}
+//}
 
--(void)setBackgroundFocusedImage_:(id)value
-{
-    if (!configurationSet) {
-        needsToSetBackgroundImage = YES;
-        return;
-    }
-	[[self button] setBackgroundImage:[self loadImage:value] forState:UIControlStateSelected];
-}
+//-(void)setBackgroundSelectedColor_:(id)value
+//{
+//    if (value!=nil)
+//    {
+//        TiColor *color = [TiUtils colorValue:value];
+//        [[self button] setBackgroundSelectedColor:[color _color]];
+//        [[self button] updateBackgroundColor];
+//    }
+//}
 
--(void)setBackgroundColor_:(id)value
-{
-	if (value!=nil)
-	{
-		TiColor *color = [TiUtils colorValue:value];
-		[[self button] setBackgroundDefaultColor:[color _color]];
-	}
-}
-
--(void)setBackgroundSelectedColor_:(id)value
-{
-    if (value!=nil)
-    {
-        TiColor *color = [TiUtils colorValue:value];
-        [[self button] setBackgroundSelectedColor:[color _color]];
-        [[self button] updateBackgroundColor];
-    }
-}
-
--(void)setBackgroundHighlightedColor_:(id)value
-{
-    if (value!=nil)
-    {
-        TiColor *color = [TiUtils colorValue:value];
-        [[self button] setBackgroundHighlightedColor:[color _color]];
-        [[self button] updateBackgroundColor];
-    }
-}
-
--(void)setBackgroundDisabledColor_:(id)value
-{
-    if (value!=nil)
-    {
-        TiColor *color = [TiUtils colorValue:value];
-        [[self button] setBackgroundDisabledColor:[color _color]];
-        [[self button] updateBackgroundColor];
-    }
-}
+//-(void)setBackgroundHighlightedColor_:(id)value
+//{
+//    if (value!=nil)
+//    {
+//        TiColor *color = [TiUtils colorValue:value];
+//        [[self button] setBackgroundHighlightedColor:[color _color]];
+//        [[self button] updateBackgroundColor];
+//    }
+//}
+//
+//-(void)setBackgroundDisabledColor_:(id)value
+//{
+//    if (value!=nil)
+//    {
+//        TiColor *color = [TiUtils colorValue:value];
+//        [[self button] setBackgroundDisabledColor:[color _color]];
+//        [[self button] updateBackgroundColor];
+//    }
+//}
 
 -(void)setFont_:(id)font
 {
