@@ -914,6 +914,9 @@
 		D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
 		D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
 		D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */ = {isa = PBXBuildFile; fileRef = D599484B16DE7CA10080836F /* TiUISlideMenu.m */; };
+		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
+		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
+		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
@@ -2372,6 +2375,8 @@
 		D599484616DE7C080080836F /* TiUISlideMenuProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenuProxy.m; sourceTree = "<group>"; };
 		D599484A16DE7CA10080836F /* TiUISlideMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUISlideMenu.h; sourceTree = "<group>"; };
 		D599484B16DE7CA10080836F /* TiUISlideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenu.m; sourceTree = "<group>"; };
+		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
+		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
 		D5B891EC17CB4EF900B9C8CF /* TiShapeEllipseProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeEllipseProxy.h; sourceTree = "<group>"; };
 		D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeEllipseProxy.m; sourceTree = "<group>"; };
 		D5B891F117CB510700B9C8CF /* TiShapeLineProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeLineProxy.h; sourceTree = "<group>"; };
@@ -3245,6 +3250,8 @@
 				24CA8C69111166AB0084E2DE /* Text widgets */,
 				24A1E872112DF7E4003DA834 /* Picker */,
 				24CA8C67111166A10084E2DE /* Toolbar */,
+				D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */,
+				D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */,
 			);
 			name = Widgets;
 			sourceTree = "<group>";
@@ -4962,6 +4969,7 @@
 				DA864E3211A2314A00B9CD68 /* TiMediaMusicPlayer.m in Sources */,
 				DAA905CE11A359F10030B119 /* TiMediaItem.m in Sources */,
 				B468B4F111B5816F007D1C1E /* TiLayoutQueue.m in Sources */,
+				D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */,
 				242E967711BAD2F20046A0D0 /* AsyncSocket.m in Sources */,
 				242E967811BAD2F20046A0D0 /* AsyncUdpSocket.m in Sources */,
 				DA4E12D711C0A55F00A55BAB /* TiContactsGroup.m in Sources */,
@@ -5361,6 +5369,7 @@
 				24D8E492119B9D8A00F8CAA6 /* TiUIiPadSplitWindow.m in Sources */,
 				24D8E493119B9D8A00F8CAA6 /* TopTiModule.m in Sources */,
 				24D8E494119B9D8A00F8CAA6 /* TiApp.m in Sources */,
+				D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */,
 				24D8E495119B9D8A00F8CAA6 /* TiErrorController.m in Sources */,
 				DAA905CF11A35A010030B119 /* TiMediaMusicPlayer.m in Sources */,
 				DAA905D011A35A010030B119 /* TiMediaItem.m in Sources */,
@@ -5760,6 +5769,7 @@
 				DABB376A12E8CB280026A6EA /* TiUIiPadSplitWindow.m in Sources */,
 				DABB376B12E8CB280026A6EA /* TopTiModule.m in Sources */,
 				DABB376C12E8CB280026A6EA /* TiApp.m in Sources */,
+				D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */,
 				DABB376D12E8CB280026A6EA /* TiErrorController.m in Sources */,
 				DABB376F12E8CB280026A6EA /* TiMediaMusicPlayer.m in Sources */,
 				DABB377012E8CB280026A6EA /* TiMediaItem.m in Sources */,

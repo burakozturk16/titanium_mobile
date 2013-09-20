@@ -287,9 +287,9 @@ DEFINE_EXCEPTIONS
 -(void)unHighlight:(NSArray*)views
 {
     for (UIView *subview in views) {
-        if ([subview isKindOfClass:[UIControl class] ])
+		if ([subview respondsToSelector:@selector(setHighlighted:)])
         {
-            [(UIControl*)subview setHighlighted:NO];
+            [subview setHighlighted:NO];
         }
         // Get the subviews of the view
         NSArray *subviews = [subview subviews];

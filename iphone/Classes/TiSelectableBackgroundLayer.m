@@ -174,7 +174,6 @@
         _needsToSetDrawables = NO;
         _animateTransition = NO;
         self.masksToBounds=YES;
-        self.opaque = NO;
 //        self.needsDisplayOnBoundsChange = YES;
         self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
@@ -361,7 +360,7 @@
 //    [currentDrawable drawInContext:ctx inRect:self.bounds];
 //}
 
-
+//
 - (id<CAAction>)actionForKey:(NSString *)event
 {
     if (!_animateTransition) return nil;
