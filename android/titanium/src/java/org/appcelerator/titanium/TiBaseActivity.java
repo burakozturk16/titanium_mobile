@@ -39,6 +39,7 @@ import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -245,6 +246,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 	 * Sets the window proxy.
 	 * @param proxy
 	 */
+	@SuppressLint("NewApi")
 	public void setWindowProxy(TiWindowProxy proxy)
 	{
 		this.window = proxy;
@@ -252,12 +254,22 @@ public abstract class TiBaseActivity extends FragmentActivity
 		
 		KrollDict props = this.window.getProperties();
 		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.fullscreen);
-		boolean navBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.navBarHidden);
+		boolean newNavBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.navBarHidden);
 		int softInputMode = props.optInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, this.softInputMode);
 		boolean hasSoftInputMode = softInputMode != -1;
 		
-		if (fullscreen != this.fullscreen) setFullscreen(fullscreen);
-		if (navBarHidden != this.navBarHidden) setNavBarHidden(navBarHidden);
+		if (fullscreen != this.fullscreen) {
+			this.fullscreen = fullscreen;
+			setFullscreen(fullscreen);
+		}
+		if (newNavBarHidden != this.navBarHidden) {
+			this.navBarHidden = newNavBarHidden;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+				if (this.navBarHidden) getActionBar().hide();
+				else getActionBar().show();
+			}
+			
+		}
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
@@ -454,6 +466,9 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		if (fullscreen) {
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
+		else {
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
 	}
 
