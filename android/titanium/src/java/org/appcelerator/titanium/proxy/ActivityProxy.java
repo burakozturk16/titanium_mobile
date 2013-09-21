@@ -330,9 +330,8 @@ public class ActivityProxy extends KrollProxy
 		return super.handleMessage(msg);
 	}
 	
-	@Override
-	public void handleCreationDict(KrollDict dict) {
-		super.handleCreationDict(dict);
+	public void processProperties(KrollDict dict) 
+	{
 		if (dict.containsKey(TiC.PROPERTY_ACTION_BAR) && Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
 			ActionBarProxy actionBarProxy = getActionBar();
 			if (actionBarProxy != null) {
@@ -341,5 +340,11 @@ public class ActivityProxy extends KrollProxy
 				invalidateOptionsMenu();
 			}
 		}
+	}
+	
+	@Override
+	public void handleCreationDict(KrollDict dict) {
+		super.handleCreationDict(dict);
+		processProperties(dict);
 	}
 }

@@ -8,6 +8,8 @@ package org.appcelerator.titanium.proxy;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -32,17 +34,29 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
+import android.R;
 import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncTask;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewParent;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
+import android.widget.ViewFlipper;
+import android.widget.ViewSwitcher;
 
 /**
  * The parent class of view proxies.
@@ -829,6 +843,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			if (child != null) {
 				child.releaseViews();
+				child.setActivity(null);
 			}
 		}
 	}
@@ -905,7 +920,34 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 	}
+	
+	private static ViewGroup create(Class childClass, Context context) throws Exception
+	{
+	  Constructor c = childClass.getConstructor(new Class[]{Context.class});
+	  c.setAccessible(true);
+	  return (ViewGroup) c.newInstance(new Object[]{context}) ; 
+	}
+	
+	private ViewGroup createDuplicateHolder() {
+		View parentForChildren = getParentViewForChild();
+		if (!(parentForChildren instanceof ViewGroup)) return null;
+		ViewGroup holder = (ViewGroup) parentForChildren;
+		ViewGroup newHolder = null;
+		try {
+			newHolder = create(holder.getClass(), holder.getContext());
+		} catch (Exception e) {
+			Log.e(TAG, "cant instantiate");
+			return null;
+		}
+//		newHolder.setLayoutParams(holder.getLayoutParams());
 
+		if (holder instanceof TiCompositeLayout) {
+			((TiCompositeLayout) newHolder).setLayoutArrangement(TiConvert.toString(getProperty(TiC.PROPERTY_LAYOUT)));
+		}
+		return newHolder;
+	}
+	
+	ViewSwitcher flipper = null;
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
@@ -931,11 +973,75 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		
 		
 		pendingAnimation.applyOptions();
+		((TiAnimatorSet) pendingAnimation).setProxy(this);
+		
+		
+//		final View parentForChildren = getParentViewForChild();
+//		if (flipper == null && pendingAnimation.isTransition && parentForChildren instanceof ViewGroup) {
+//			Context context = getActivity();
+//			
+//			final ViewGroup parent = (ViewGroup) parentForChildren;
+//			
+//			flipper = new ViewSwitcher(context);
+//			flipper.setBackgroundColor(Color.GREEN);
+//
+//			final ViewGroup holder = createDuplicateHolder();
+//			holder.setBackgroundColor(Color.YELLOW);
+//
+//			flipper.addView(holder);
+//			for(int i = 0; i < parent.getChildCount(); i++)
+//		    {
+//		        View child = parent.getChildAt(i);     
+//		        parent.removeView(child);
+//		        holder.addView(child);
+//		    }
+//
+//			parent.addView(flipper);
+			
+//			final TiViewProxy transitionViewProxy = pendingAnimation.getTransitionView();			
+//			flipper.setInAnimation(inFromRightAnimation());
+//			flipper.setOutAnimation(outToLeftAnimation());
+//			flipper.getInAnimation().setAnimationListener(
+//					new Animation.AnimationListener() {
+//						public void onAnimationStart(Animation animation) {
+//						}
+//
+//						public void onAnimationRepeat(Animation animation) {
+//						}
+//
+//						public void onAnimationEnd(Animation animation) {
+//							Log.w(TAG, "transition ended");
+//							for(int i = 0; i < flipper.getChildCount(); i++)
+//						    {
+//						        View child = flipper.getChildAt(i);   
+//						        if(child instanceof ViewGroup){
+//						        	((ViewGroup) child).removeAllViews();
+//						        }
+//						    }
+//							flipper.removeAllViews();
+//							parent.removeView(flipper);
+//							removeAllChildren();
+//							add(transitionViewProxy);
+//							flipper = null;
+//						}
+//					});
+//			
+//			if (transitionViewProxy != this) {
+//				
+//				ViewGroup holder2 = createDuplicateHolder();
+//				flipper.addView(holder2);
+//				holder2.addView(transitionViewProxy.getOrCreateView().getOuterView());
+////				flipper.showNext();
+//			}
+//			else {
+//				flipper.setDisplayedChild(0);
+//			}
+//			flipper.showNext();
+//		}
 		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
 			((TiViewAnimator) pendingAnimation).animateOnView(this);
 		}
 		else {
-			((TiAnimatorSet) pendingAnimation).setProxy(this);
 			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
 			((TiAnimatorSet) pendingAnimation).set().start();
 		}

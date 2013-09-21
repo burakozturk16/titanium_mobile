@@ -25,7 +25,6 @@ import org.appcelerator.titanium.proxy.DecorViewProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiUIFragment;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiView;
@@ -36,11 +35,6 @@ import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.os.Bundle;
-import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
@@ -137,11 +131,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			if (activityProxy != null) {
 				activityProxy.getDecorView().remove(this);
 			}
-			releaseViews();
-			opened = false;
-
+			closeFromActivity(false);
 			activity.removeWindowFromStack(this);
-			fireEvent(TiC.EVENT_CLOSE, null);
+			
 		}
 	}
 
@@ -191,7 +183,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			super.open(arg);
 		}
 	}
-
+	
 	@Override
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
@@ -234,6 +226,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	protected void handleClose(KrollDict options)
 	{
+		if (windowActivity == null) {
+			//we must have been opened without creating the activity.
+			closeFromActivity(false);
+			return;
+		}
 		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
 		if (activity != null && !activity.isFinishing()) {
@@ -258,17 +255,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		windowActivity = new WeakReference<TiBaseActivity>(activity);
 		activity.setWindowProxy(this);
 		setActivity(activity);
-
-		// Handle the "activity" property.
-		ActivityProxy activityProxy = activity.getActivityProxy();
-		KrollDict options = null;
-		if (hasProperty(TiC.PROPERTY_ACTIVITY)) {
-			Object activityObject = getProperty(TiC.PROPERTY_ACTIVITY);
-			if (activityObject instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) activityObject);
-				activityProxy.handleCreationDict(options);
-			}
-		}
 
 		Window win = activity.getWindow();
 		// Handle the background of the window activity if it is a translucent activity.

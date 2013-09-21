@@ -20,12 +20,13 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.util.TiOrientationHelper;
-import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
-import org.appcelerator.titanium.TiBlob;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -64,10 +65,19 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected TiViewProxy tab;
 	protected boolean inTab;
 	protected PostOpenListener postOpenListener;
+	protected FragmentAnimationEndListener fragmentAnimEndListener;
 	protected boolean windowActivityCreated = false;
 	
 	private TiWindowManager winManager = null;
-
+	
+	/**
+	 * An interface to intercept OnBackPressed events.
+	 */
+	public static interface FragmentAnimationEndListener 
+	{
+		public void onFragmentAnimationEnd(TiWindowProxy proxy);
+	}
+	
 
 	public static interface PostOpenListener
 	{
@@ -243,6 +253,11 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void setPostOpenListener(PostOpenListener listener)
 	{
 		this.postOpenListener = listener;
+	}
+
+	public void setFragmentAnimEndListener(FragmentAnimationEndListener listener)
+	{
+		this.fragmentAnimEndListener = listener;
 	}
 
 //	 public TiBlob handleToImage(Number scale)
@@ -421,7 +436,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected abstract void handleOpen(KrollDict options);
 	protected abstract void handleClose(KrollDict options);
 	protected abstract Activity getWindowActivity();
-
+	
 	/**
 	 * Sub-classes will need to call handlePostOpen after their window is visible
 	 * so any pending dialogs can successfully show after the window is opened
@@ -475,6 +490,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 		return super.getParentForBubbling();
 	}
 	
+	
 	protected Fragment fragment = null;
 	@SuppressLint("ValidFragment")
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -493,6 +509,32 @@ public abstract class TiWindowProxy extends TiViewProxy
 					params.autoFillsWidth = true;
 					view.setLayoutParams(params);
 					return view;
+				}
+
+				@Override
+				public Animator onCreateAnimator(int transit, boolean enter,
+						int nextAnim) {
+					if (nextAnim != 0) {
+						Animator anim = AnimatorInflater.loadAnimator(
+								getActivity(), nextAnim);
+						if (anim != null) {
+							anim.addListener(new AnimatorListenerAdapter() {
+								@Override
+								public void onAnimationStart(Animator animation) {
+								}
+
+								@Override
+								public void onAnimationEnd(Animator animation) {
+									if (fragmentAnimEndListener != null) {
+										fragmentAnimEndListener
+												.onFragmentAnimationEnd(TiWindowProxy.this);
+									}
+								}
+							});
+							return anim;
+						}
+					}
+					return null;
 				}
 			};
 		}

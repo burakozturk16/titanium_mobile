@@ -7,6 +7,7 @@
 package org.appcelerator.titanium;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,6 +21,7 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.OnWindowFocusChangedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
+import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
@@ -72,6 +74,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 	private TiWeakList<OnLifecycleEvent> lifecycleListeners = new TiWeakList<OnLifecycleEvent>();
 	private TiWeakList<OnWindowFocusChangedEvent> windowFocusChangedListeners = new TiWeakList<OnWindowFocusChangedEvent>();
 	protected TiWeakList<interceptOnBackPressedEvent> interceptOnBackPressedListeners = new TiWeakList<interceptOnBackPressedEvent>();
+	protected TiWeakList<interceptOnHomePressedEvent> interceptOnHomePressedListeners = new TiWeakList<interceptOnHomePressedEvent>();
 
 	protected View layout;
 	protected TiActivitySupportHelper supportHelper;
@@ -95,6 +98,10 @@ public abstract class TiBaseActivity extends FragmentActivity
 	public boolean firstLayout = true;
 	
 	static boolean isPaused = true;
+	
+	private boolean fullscreen = false;
+	private boolean navBarHidden = false;
+	private int softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
 
 	public class DialogWrapper {
 		boolean isPersistent;
@@ -242,6 +249,26 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		this.window = proxy;
 		updateTitle(this.window);
+		
+		KrollDict props = this.window.getProperties();
+		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.fullscreen);
+		boolean navBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.navBarHidden);
+		int softInputMode = props.optInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, this.softInputMode);
+		boolean hasSoftInputMode = softInputMode != -1;
+		
+		if (fullscreen != this.fullscreen) setFullscreen(fullscreen);
+		if (navBarHidden != this.navBarHidden) setNavBarHidden(navBarHidden);
+		if (hasSoftInputMode && softInputMode != this.softInputMode) {
+			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
+			getWindow().setSoftInputMode(softInputMode);  
+		}
+		
+		if (this.window.hasProperty(TiC.PROPERTY_ACTIVITY)) {
+			Object activityObject = this.window.getProperty(TiC.PROPERTY_ACTIVITY);
+			if (activityObject instanceof HashMap<?, ?>) {
+				getActivityProxy().processProperties(new KrollDict((HashMap<String, Object>) activityObject));
+			}
+		}
 	}
 
 	/**
@@ -446,14 +473,15 @@ public abstract class TiBaseActivity extends FragmentActivity
 			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		}
 	}
-
+	
+	
 	// Subclasses can override to handle post-creation (but pre-message fire) logic
 	protected void windowCreated()
 	{
-		boolean fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
-		boolean navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
+		fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
+		navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
-		int softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
 		
 		setFullscreen(fullscreen);
@@ -827,6 +855,19 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		switch (item.getItemId()) {
 			case android.R.id.home:
+				synchronized (interceptOnHomePressedListeners.synchronizedList()) {
+					for (interceptOnHomePressedEvent listener : interceptOnHomePressedListeners.nonNull()) {
+						try {
+							if (listener.interceptOnHomePressed()) {
+								return true;
+							}
+
+						} catch (Throwable t) {
+							Log.e(TAG, "Error dispatching interceptOnHomePressed event: " + t.getMessage(), t);
+						}
+					}
+				}
+				
 				if (activityProxy != null) {
 					ActionBarProxy actionBarProxy = activityProxy.getActionBar();
 					if (actionBarProxy != null) {
@@ -837,9 +878,12 @@ public abstract class TiBaseActivity extends FragmentActivity
 						event.put(TiC.EVENT_PROPERTY_WINDOW, window);
 						if (onHomeIconItemSelected != null) {
 							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
+							return true;
 						}
 					}
 				}
+				
+				
 				return true;
 			default:
 				return menuHelper.onOptionsItemSelected(item);
@@ -905,10 +949,43 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		interceptOnBackPressedListeners.add(new WeakReference<interceptOnBackPressedEvent>(listener));
 	}
+	
+	public void removeInterceptOnBackPressedEventListener(interceptOnBackPressedEvent listener)
+	{
+		for (int i = 0; i < interceptOnBackPressedListeners.size(); i++) {
+			interceptOnBackPressedEvent iListener = interceptOnBackPressedListeners.get(i).get();
+			if (listener == iListener) {
+				interceptOnBackPressedListeners.remove(i);
+				return;
+			}
+		}
+	}
+	
+	public void addInterceptOnHomePressedEventListener(interceptOnHomePressedEvent listener)
+	{
+		interceptOnHomePressedListeners.add(new WeakReference<interceptOnHomePressedEvent>(listener));
+	}
+	
+	public void removeInterceptOnHomePressedEventListener(interceptOnHomePressedEvent listener)
+	{
+		for (int i = 0; i < interceptOnHomePressedListeners.size(); i++) {
+			interceptOnHomePressedEvent iListener = interceptOnHomePressedListeners.get(i).get();
+			if (listener == iListener) {
+				interceptOnHomePressedListeners.remove(i);
+				return;
+			}
+		}
+	}
 
 	public void removeOnLifecycleEventListener(OnLifecycleEvent listener)
 	{
-		// TODO stub
+		for (int i = 0; i < lifecycleListeners.size(); i++) {
+			OnLifecycleEvent iListener = lifecycleListeners.get(i).get();
+			if (listener == iListener) {
+				lifecycleListeners.remove(i);
+				return;
+			}
+		}
 	}
 
 	private void releaseDialogs(boolean finish)
