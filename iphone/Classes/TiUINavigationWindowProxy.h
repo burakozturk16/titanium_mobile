@@ -5,12 +5,32 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
+typedef enum NWTransition {
+    NWTransitionSwipe,
+    NWTransitionSwipeFade,
+    NWTransitionCube,
+    NWTransitionCarousel,
+    NWTransitionCross,
+    NWTransitionFlip,
+    NWTransitionSwap,
+    NWTransitionBackFade,
+    NWTransitionGhost,
+    NWTransitionZoom,
+    NWTransitionScale,
+    NWTransitionGlue,
+    NWTransitionPushRotate,
+    NWTransitionFold,
+    NWTransitionSlide
+} NWTransition;
+
 #ifdef USE_TI_UINAVIGATIONWINDOW
 #import "TiWindowProxy.h"
+#import "ADTransitionController.h"
 
-@interface TiUINavigationWindowProxy : TiWindowProxy<UINavigationControllerDelegate,TiOrientationController,TiTab> {
+
+@interface TiUINavigationWindowProxy : TiWindowProxy<ADTransitionControllerDelegate,TiOrientationController,TiTab> {
 @private
-    UINavigationController *navController;
+    ADTransitionController *navController;
     TiWindowProxy *rootWindow;
     TiWindowProxy *current;
     BOOL transitionIsAnimating;

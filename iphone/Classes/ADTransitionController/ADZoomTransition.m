@@ -1,0 +1,39 @@
+//
+//  ADZoomTransition.m
+//  AppLibrary
+//
+//  Created by Romain Goyet on 14/03/11.
+//  Copyright 2011 Applidium. All rights reserved.
+//
+
+#import "ADZoomTransition.h"
+
+
+
+@implementation ADZoomTransition
+
+CGPoint CGRectGetCenter(CGRect rect) {
+    return CGPointMake(rect.origin.x + rect.size.width/2.0f, rect.origin.y + rect.size.height/2.0f);
+}
+
+- (id)initWithSourceRect:(CGRect)sourceRect andTargetRect:(CGRect)targetRect forDuration:(double)duration {
+    CABasicAnimation * zoomAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
+    CATransform3D transform = CATransform3DIdentity;
+    CGPoint sourceCenter = CGRectGetCenter(sourceRect);
+    CGPoint targetCenter = CGRectGetCenter(targetRect);
+    transform = CATransform3DTranslate(transform, sourceCenter.x - targetCenter.x, sourceCenter.y - targetCenter.y, 0.0f);
+    transform = CATransform3DScale(transform, sourceRect.size.width/targetRect.size.width, sourceRect.size.height/targetRect.size.height, 1.0f);
+    zoomAnimation.fromValue = [NSValue valueWithCATransform3D:transform];
+    zoomAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
+    zoomAnimation.duration = duration;
+
+    CABasicAnimation * outAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
+    outAnimation.fromValue = [NSNumber numberWithDouble:-0.001f];
+    outAnimation.toValue = [NSNumber numberWithDouble:-0.001f];
+    outAnimation.duration = duration;
+
+    self = [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation];
+    return self;
+}
+
+@end

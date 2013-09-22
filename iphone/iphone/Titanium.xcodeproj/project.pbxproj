@@ -926,6 +926,72 @@
 		D5C06C1F17C7D8F700FA0E98 /* TiUIHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */; };
 		D5C06C2017C7D8F700FA0E98 /* TiUIHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */; };
 		D5C06C2117C7D8F700FA0E98 /* TiUIHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */; };
+		D5C8C96717EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96A17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96D17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97017EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97417EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97517EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97617EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97717EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97817EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97917EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97A17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97B17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97C17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98217EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98317EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98417EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98817EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98B17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98C17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98D17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98E17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99117EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99317EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99417EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99717EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99817EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99917EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99A17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99B17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; };
+		D5C8C99C17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A017EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A317EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A417EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A517EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
+		D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
+		D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
@@ -2383,6 +2449,50 @@
 		D5B891F217CB510700B9C8CF /* TiShapeLineProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeLineProxy.m; sourceTree = "<group>"; };
 		D5C06C1D17C7D8F700FA0E98 /* TiUIHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIHelper.h; sourceTree = "<group>"; };
 		D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIHelper.m; sourceTree = "<group>"; };
+		D5C8C93D17EF45C900F54C19 /* ADBackFadeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADBackFadeTransition.h; path = ../Classes/ADTransitionController/ADBackFadeTransition.h; sourceTree = "<group>"; };
+		D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADBackFadeTransition.m; path = ../Classes/ADTransitionController/ADBackFadeTransition.m; sourceTree = "<group>"; };
+		D5C8C93F17EF45C900F54C19 /* ADCarrouselTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADCarrouselTransition.h; path = ../Classes/ADTransitionController/ADCarrouselTransition.h; sourceTree = "<group>"; };
+		D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADCarrouselTransition.m; path = ../Classes/ADTransitionController/ADCarrouselTransition.m; sourceTree = "<group>"; };
+		D5C8C94117EF45C900F54C19 /* ADCrossTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADCrossTransition.h; path = ../Classes/ADTransitionController/ADCrossTransition.h; sourceTree = "<group>"; };
+		D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADCrossTransition.m; path = ../Classes/ADTransitionController/ADCrossTransition.m; sourceTree = "<group>"; };
+		D5C8C94317EF45C900F54C19 /* ADCubeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADCubeTransition.h; path = ../Classes/ADTransitionController/ADCubeTransition.h; sourceTree = "<group>"; };
+		D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADCubeTransition.m; path = ../Classes/ADTransitionController/ADCubeTransition.m; sourceTree = "<group>"; };
+		D5C8C94517EF45C900F54C19 /* ADDualTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADDualTransition.h; path = ../Classes/ADTransitionController/ADDualTransition.h; sourceTree = "<group>"; };
+		D5C8C94617EF45C900F54C19 /* ADDualTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADDualTransition.m; path = ../Classes/ADTransitionController/ADDualTransition.m; sourceTree = "<group>"; };
+		D5C8C94717EF45C900F54C19 /* ADFadeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADFadeTransition.h; path = ../Classes/ADTransitionController/ADFadeTransition.h; sourceTree = "<group>"; };
+		D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADFadeTransition.m; path = ../Classes/ADTransitionController/ADFadeTransition.m; sourceTree = "<group>"; };
+		D5C8C94917EF45C900F54C19 /* ADFlipTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADFlipTransition.h; path = ../Classes/ADTransitionController/ADFlipTransition.h; sourceTree = "<group>"; };
+		D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADFlipTransition.m; path = ../Classes/ADTransitionController/ADFlipTransition.m; sourceTree = "<group>"; };
+		D5C8C94B17EF45C900F54C19 /* ADFoldTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADFoldTransition.h; path = ../Classes/ADTransitionController/ADFoldTransition.h; sourceTree = "<group>"; };
+		D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADFoldTransition.m; path = ../Classes/ADTransitionController/ADFoldTransition.m; sourceTree = "<group>"; };
+		D5C8C94D17EF45C900F54C19 /* ADGhostTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADGhostTransition.h; path = ../Classes/ADTransitionController/ADGhostTransition.h; sourceTree = "<group>"; };
+		D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADGhostTransition.m; path = ../Classes/ADTransitionController/ADGhostTransition.m; sourceTree = "<group>"; };
+		D5C8C94F17EF45C900F54C19 /* ADGlueTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADGlueTransition.h; path = ../Classes/ADTransitionController/ADGlueTransition.h; sourceTree = "<group>"; };
+		D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADGlueTransition.m; path = ../Classes/ADTransitionController/ADGlueTransition.m; sourceTree = "<group>"; };
+		D5C8C95117EF45C900F54C19 /* ADPushRotateTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADPushRotateTransition.h; path = ../Classes/ADTransitionController/ADPushRotateTransition.h; sourceTree = "<group>"; };
+		D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADPushRotateTransition.m; path = ../Classes/ADTransitionController/ADPushRotateTransition.m; sourceTree = "<group>"; };
+		D5C8C95317EF45C900F54C19 /* ADScaleTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADScaleTransition.h; path = ../Classes/ADTransitionController/ADScaleTransition.h; sourceTree = "<group>"; };
+		D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADScaleTransition.m; path = ../Classes/ADTransitionController/ADScaleTransition.m; sourceTree = "<group>"; };
+		D5C8C95517EF45C900F54C19 /* ADSlideTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADSlideTransition.h; path = ../Classes/ADTransitionController/ADSlideTransition.h; sourceTree = "<group>"; };
+		D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADSlideTransition.m; path = ../Classes/ADTransitionController/ADSlideTransition.m; sourceTree = "<group>"; };
+		D5C8C95717EF45C900F54C19 /* ADSwapTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADSwapTransition.h; path = ../Classes/ADTransitionController/ADSwapTransition.h; sourceTree = "<group>"; };
+		D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADSwapTransition.m; path = ../Classes/ADTransitionController/ADSwapTransition.m; sourceTree = "<group>"; };
+		D5C8C95917EF45C900F54C19 /* ADSwipeFadeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADSwipeFadeTransition.h; path = ../Classes/ADTransitionController/ADSwipeFadeTransition.h; sourceTree = "<group>"; };
+		D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADSwipeFadeTransition.m; path = ../Classes/ADTransitionController/ADSwipeFadeTransition.m; sourceTree = "<group>"; };
+		D5C8C95B17EF45C900F54C19 /* ADSwipeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADSwipeTransition.h; path = ../Classes/ADTransitionController/ADSwipeTransition.h; sourceTree = "<group>"; };
+		D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADSwipeTransition.m; path = ../Classes/ADTransitionController/ADSwipeTransition.m; sourceTree = "<group>"; };
+		D5C8C95D17EF45C900F54C19 /* ADTransformTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADTransformTransition.h; path = ../Classes/ADTransitionController/ADTransformTransition.h; sourceTree = "<group>"; };
+		D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADTransformTransition.m; path = ../Classes/ADTransitionController/ADTransformTransition.m; sourceTree = "<group>"; };
+		D5C8C95F17EF45C900F54C19 /* ADTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADTransition.h; path = ../Classes/ADTransitionController/ADTransition.h; sourceTree = "<group>"; };
+		D5C8C96017EF45C900F54C19 /* ADTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADTransition.m; path = ../Classes/ADTransitionController/ADTransition.m; sourceTree = "<group>"; };
+		D5C8C96117EF45C900F54C19 /* ADTransitionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADTransitionController.h; path = ../Classes/ADTransitionController/ADTransitionController.h; sourceTree = "<group>"; };
+		D5C8C96217EF45C900F54C19 /* ADTransitionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADTransitionController.m; path = ../Classes/ADTransitionController/ADTransitionController.m; sourceTree = "<group>"; };
+		D5C8C96317EF45C900F54C19 /* ADZoomTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADZoomTransition.h; path = ../Classes/ADTransitionController/ADZoomTransition.h; sourceTree = "<group>"; };
+		D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADZoomTransition.m; path = ../Classes/ADTransitionController/ADZoomTransition.m; sourceTree = "<group>"; };
+		D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIViewController+ADTransitionController.h"; path = "../Classes/ADTransitionController/UIViewController+ADTransitionController.h"; sourceTree = "<group>"; };
+		D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIViewController+ADTransitionController.m"; path = "../Classes/ADTransitionController/UIViewController+ADTransitionController.m"; sourceTree = "<group>"; };
+		D5C8C9A617EF5E6D00F54C19 /* TiUITransitionStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUITransitionStyleProxy.h; sourceTree = "<group>"; };
+		D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUITransitionStyleProxy.m; sourceTree = "<group>"; };
 		D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
 		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
@@ -2692,6 +2802,7 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
 				D5014CD117EB4A740013F37A /* SVGKit */,
 				D585BBE017E62F350062275E /* GPUImage */,
 				D5FE437F16E488CB00FC1A44 /* ECSlidingViewController */,
@@ -3073,6 +3184,8 @@
 		24CA8C14111164040084E2DE /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				D5C8C9A617EF5E6D00F54C19 /* TiUITransitionStyleProxy.h */,
+				D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */,
 				24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */,
 				24CA8A9B111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.h */,
 				24ADC5081299F4730014DB75 /* Clipboard */,
@@ -4455,6 +4568,55 @@
 			name = SlideMenu;
 			sourceTree = "<group>";
 		};
+		D5C8C93C17EF45BA00F54C19 /* ADTransitionController */ = {
+			isa = PBXGroup;
+			children = (
+				D5C8C93D17EF45C900F54C19 /* ADBackFadeTransition.h */,
+				D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */,
+				D5C8C93F17EF45C900F54C19 /* ADCarrouselTransition.h */,
+				D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */,
+				D5C8C94117EF45C900F54C19 /* ADCrossTransition.h */,
+				D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */,
+				D5C8C94317EF45C900F54C19 /* ADCubeTransition.h */,
+				D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */,
+				D5C8C94517EF45C900F54C19 /* ADDualTransition.h */,
+				D5C8C94617EF45C900F54C19 /* ADDualTransition.m */,
+				D5C8C94717EF45C900F54C19 /* ADFadeTransition.h */,
+				D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */,
+				D5C8C94917EF45C900F54C19 /* ADFlipTransition.h */,
+				D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */,
+				D5C8C94B17EF45C900F54C19 /* ADFoldTransition.h */,
+				D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */,
+				D5C8C94D17EF45C900F54C19 /* ADGhostTransition.h */,
+				D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */,
+				D5C8C94F17EF45C900F54C19 /* ADGlueTransition.h */,
+				D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */,
+				D5C8C95117EF45C900F54C19 /* ADPushRotateTransition.h */,
+				D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */,
+				D5C8C95317EF45C900F54C19 /* ADScaleTransition.h */,
+				D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */,
+				D5C8C95517EF45C900F54C19 /* ADSlideTransition.h */,
+				D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */,
+				D5C8C95717EF45C900F54C19 /* ADSwapTransition.h */,
+				D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */,
+				D5C8C95917EF45C900F54C19 /* ADSwipeFadeTransition.h */,
+				D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */,
+				D5C8C95B17EF45C900F54C19 /* ADSwipeTransition.h */,
+				D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */,
+				D5C8C95D17EF45C900F54C19 /* ADTransformTransition.h */,
+				D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */,
+				D5C8C95F17EF45C900F54C19 /* ADTransition.h */,
+				D5C8C96017EF45C900F54C19 /* ADTransition.m */,
+				D5C8C96117EF45C900F54C19 /* ADTransitionController.h */,
+				D5C8C96217EF45C900F54C19 /* ADTransitionController.m */,
+				D5C8C96317EF45C900F54C19 /* ADZoomTransition.h */,
+				D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */,
+				D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */,
+				D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */,
+			);
+			name = ADTransitionController;
+			sourceTree = "<group>";
+		};
 		D5E0D00C179916C300BA7272 /* Image */ = {
 			isa = PBXGroup;
 			children = (
@@ -4772,6 +4934,7 @@
 				24CA895B111161050084E2DE /* AFItemView.m in Sources */,
 				24CA895C111161050084E2DE /* AFOpenFlowView.m in Sources */,
 				24CA895D111161050084E2DE /* AFUIImageReflection.m in Sources */,
+				D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				24CA895E111161050084E2DE /* ASIAuthenticationDialog.m in Sources */,
 				24CA895F111161050084E2DE /* ASIFormDataRequest.m in Sources */,
 				24CA8960111161050084E2DE /* ASIHTTPRequest.m in Sources */,
@@ -4817,6 +4980,7 @@
 				24CA8B7A111161FE0084E2DE /* TiUITextField.m in Sources */,
 				24CA8B7B111161FE0084E2DE /* TiUITextAreaProxy.m in Sources */,
 				24CA8B7C111161FE0084E2DE /* TiUITextArea.m in Sources */,
+				D5C8C96717EF45C900F54C19 /* ADBackFadeTransition.m in Sources */,
 				24CA8B7D111161FE0084E2DE /* TiUITabProxy.m in Sources */,
 				24CA8B80111161FE0084E2DE /* TiUITableViewProxy.m in Sources */,
 				24CA8B84111161FE0084E2DE /* TiUITableView.m in Sources */,
@@ -4824,6 +4988,7 @@
 				24CA8B86111161FE0084E2DE /* TiUITabGroup.m in Sources */,
 				24CA8B89111161FE0084E2DE /* TiUIiPhoneSystemIconProxy.m in Sources */,
 				24CA8B8A111161FE0084E2DE /* TiUIiPhoneSystemButtonStyleProxy.m in Sources */,
+				D5C8C98B17EF45C900F54C19 /* ADSlideTransition.m in Sources */,
 				D5E9F82317C8CC480084384C /* TiShapeCircleProxy.m in Sources */,
 				24CA8B8B111161FE0084E2DE /* TiUIiPhoneSystemButtonProxy.m in Sources */,
 				24CA8B8C111161FE0084E2DE /* TiUISwitchProxy.m in Sources */,
@@ -4871,12 +5036,16 @@
 				24CA8BBF111161FE0084E2DE /* TiMapViewProxy.m in Sources */,
 				24CA8BC0111161FE0084E2DE /* TiMapView.m in Sources */,
 				24CA8BC1111161FE0084E2DE /* TiMapAnnotationProxy.m in Sources */,
+				D5C8C98217EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				24CA8BC2111161FE0084E2DE /* TiHost.m in Sources */,
 				24CA8BC3111161FE0084E2DE /* TiFilesystemFileProxy.m in Sources */,
 				24CA8BC7111161FE0084E2DE /* TiDimension.m in Sources */,
 				24CA8BC8111161FE0084E2DE /* TiDatabaseResultSetProxy.m in Sources */,
 				24CA8BC9111161FE0084E2DE /* TiDatabaseProxy.m in Sources */,
+				D5C8C99417EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
+				D5C8C96D17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				24CA8BCA111161FE0084E2DE /* TiContactsPerson.m in Sources */,
+				D5C8C97617EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				24CA8BCB111161FE0084E2DE /* TiComplexValue.m in Sources */,
 				24CA8BCC111161FE0084E2DE /* TiColor.m in Sources */,
 				84E00A9C17B646EE00B6DCE2 /* TiUINavigationWindowProxy.m in Sources */,
@@ -4932,6 +5101,7 @@
 				24A1E519112D33AF003DA834 /* TiMediaAudioSession.m in Sources */,
 				24A1E875112DF80B003DA834 /* TiUIPickerProxy.m in Sources */,
 				24A1E87B112DF83E003DA834 /* TiUIPicker.m in Sources */,
+				D5C8C99717EF45C900F54C19 /* ADTransformTransition.m in Sources */,
 				24A1E8A8112DFACA003DA834 /* TiUIPickerRowProxy.m in Sources */,
 				24A1E992112E1363003DA834 /* TiUIPickerColumnProxy.m in Sources */,
 				24A1EAF6112F4C02003DA834 /* UIImage+Alpha.m in Sources */,
@@ -5019,11 +5189,13 @@
 				EF0ADD1A143FA0CD00977386 /* GeolocationModule.m in Sources */,
 				EF0ADD1F143FA0E200977386 /* AnalyticsModule.m in Sources */,
 				2B1F65771431031E006C5D37 /* ApplicationDefaults.m in Sources */,
+				D5C8C96A17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				2BCD59C51429561D00DEC2E8 /* TiUIiOSToolbar.m in Sources */,
 				2BCD59C61429561D00DEC2E8 /* TiUIiOSToolbarProxy.m in Sources */,
 				848C2594145F37A300E1B0F1 /* TiDOMCDATANodeProxy.m in Sources */,
 				848C259A145F3FE200E1B0F1 /* TiDOMCommentProxy.m in Sources */,
 				848C259F145F46C300E1B0F1 /* TiDOMPIProxy.m in Sources */,
+				D5C8C97917EF45C900F54C19 /* ADFlipTransition.m in Sources */,
 				848C25A4145F501700E1B0F1 /* TiDOMDocFragProxy.m in Sources */,
 				84D541A31460B2E0005338D1 /* TiDOMNotationProxy.m in Sources */,
 				D5B891F317CB510700B9C8CF /* TiShapeLineProxy.m in Sources */,
@@ -5053,6 +5225,7 @@
 				502A68E316EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E616EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				502A68EB16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				D5C8C97017EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				84C3870217417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815C168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D590815F168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
@@ -5069,11 +5242,14 @@
 				D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5FE438416E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
 				D56064161705A78100781E6B /* DTHTMLParser.m in Sources */,
+				D5C8C98E17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D560641C1705A79100781E6B /* NSString+DTUTI.m in Sources */,
+				D5C8C9A017EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D56064281705A7A000781E6B /* DTZipArchive.m in Sources */,
 				D560642B1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
 				D560642E1705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
 				D56064311705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
+				D5C8C98817EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56064641705A7E500781E6B /* DTASN1BitString.m in Sources */,
 				D56064671705A7E500781E6B /* DTASN1Parser.m in Sources */,
 				D5CD8CB017CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
@@ -5097,10 +5273,13 @@
 				D560649A1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
 				D560649D1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
 				D56064A01705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
+				D5C8C97C17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
 				D56064A31705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
 				D56064A61705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
+				D5C8C99117EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
 				D56064A91705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
 				D56065141705A89800781E6B /* CGUtils.m in Sources */,
+				D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
 				D560651A1705A89800781E6B /* DTAttributedLabel.m in Sources */,
 				D560651D1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
 				D56065201705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
@@ -5120,12 +5299,14 @@
 				D56065471705A89800781E6B /* DTCSSStylesheet.m in Sources */,
 				D560654A1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
 				D560654D1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
+				D5C8C99A17EF45C900F54C19 /* ADTransition.m in Sources */,
 				D56065501705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
 				D56065561705A89800781E6B /* DTHTMLElement.m in Sources */,
 				D56065591705A89800781E6B /* DTHTMLElementA.m in Sources */,
 				D560655C1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
 				D560655F1705A89800781E6B /* DTHTMLElementBR.m in Sources */,
 				D56065621705A89800781E6B /* DTHTMLElementHR.m in Sources */,
+				D5C8C9A317EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D56065651705A89800781E6B /* DTHTMLElementLI.m in Sources */,
 				D56065681705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
 				D560656B1705A89800781E6B /* DTHTMLElementText.m in Sources */,
@@ -5142,13 +5323,16 @@
 				D560658C1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
 				D560658F1705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
 				D56065921705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
+				D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D56065951705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
+				D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D56065981705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
 				D560659B1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
 				D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
 				D560659E1705A89800781E6B /* NSScanner+HTML.m in Sources */,
 				D56065A11705A89800781E6B /* NSString+CSS.m in Sources */,
 				D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
+				D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D56065A41705A89800781E6B /* NSString+HTML.m in Sources */,
 				D56065A71705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
@@ -5172,6 +5356,7 @@
 				24D8E3BB119B9D8A00F8CAA6 /* TiUITableViewAction.m in Sources */,
 				24D8E3BC119B9D8A00F8CAA6 /* TiFile.m in Sources */,
 				24D8E3BD119B9D8A00F8CAA6 /* TiMapPinAnnotationView.m in Sources */,
+				D5C8C97417EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				24D8E3BE119B9D8A00F8CAA6 /* main.m in Sources */,
 				24D8E3BF119B9D8A00F8CAA6 /* AFItemView.m in Sources */,
 				24D8E3C0119B9D8A00F8CAA6 /* AFOpenFlowView.m in Sources */,
@@ -5217,6 +5402,7 @@
 				24D8E3F3119B9D8A00F8CAA6 /* TiUIWebViewProxy.m in Sources */,
 				24D8E3F4119B9D8A00F8CAA6 /* TiUIViewProxy.m in Sources */,
 				24D8E3F5119B9D8A00F8CAA6 /* TiUIView.m in Sources */,
+				D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */,
 				24D8E3F8119B9D8A00F8CAA6 /* TiUITextFieldProxy.m in Sources */,
 				24D8E3F9119B9D8A00F8CAA6 /* TiUITextField.m in Sources */,
 				24D8E3FA119B9D8A00F8CAA6 /* TiUITextAreaProxy.m in Sources */,
@@ -5224,6 +5410,7 @@
 				24D8E3FC119B9D8A00F8CAA6 /* TiUITabProxy.m in Sources */,
 				24D8E3FD119B9D8A00F8CAA6 /* TiUITableViewProxy.m in Sources */,
 				24D8E3FE119B9D8A00F8CAA6 /* TiUITableView.m in Sources */,
+				D5C8C98C17EF45C900F54C19 /* ADSlideTransition.m in Sources */,
 				24D8E3FF119B9D8A00F8CAA6 /* TiUITabGroupProxy.m in Sources */,
 				D5E9F82417C8CC480084384C /* TiShapeCircleProxy.m in Sources */,
 				24D8E400119B9D8A00F8CAA6 /* TiUITabGroup.m in Sources */,
@@ -5271,12 +5458,16 @@
 				24D8E42C119B9D8A00F8CAA6 /* TiModule.m in Sources */,
 				24D8E42D119B9D8A00F8CAA6 /* TiMediaVideoPlayerProxy.m in Sources */,
 				24D8E42E119B9D8A00F8CAA6 /* TiMediaSoundProxy.m in Sources */,
+				D5C8C98317EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				24D8E42F119B9D8A00F8CAA6 /* TiMediaAudioPlayerProxy.m in Sources */,
 				24D8E430119B9D8A00F8CAA6 /* TiMapViewProxy.m in Sources */,
 				24D8E431119B9D8A00F8CAA6 /* TiMapView.m in Sources */,
 				24D8E432119B9D8A00F8CAA6 /* TiMapAnnotationProxy.m in Sources */,
 				24D8E433119B9D8A00F8CAA6 /* TiHost.m in Sources */,
+				D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
+				D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				24D8E434119B9D8A00F8CAA6 /* TiFilesystemFileProxy.m in Sources */,
+				D5C8C97717EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				24D8E437119B9D8A00F8CAA6 /* TiDimension.m in Sources */,
 				24D8E438119B9D8A00F8CAA6 /* TiDatabaseResultSetProxy.m in Sources */,
 				24D8E439119B9D8A00F8CAA6 /* TiDatabaseProxy.m in Sources */,
@@ -5332,6 +5523,7 @@
 				24D8E46C119B9D8A00F8CAA6 /* CAStreamBasicDescription.cpp in Sources */,
 				24D8E46D119B9D8A00F8CAA6 /* CAXException.cpp in Sources */,
 				24D8E46E119B9D8A00F8CAA6 /* AQRecorder.mm in Sources */,
+				D5C8C99817EF45C900F54C19 /* ADTransformTransition.m in Sources */,
 				24D8E46F119B9D8A00F8CAA6 /* SCListener.m in Sources */,
 				24D8E470119B9D8A00F8CAA6 /* TiMediaAudioSession.m in Sources */,
 				24D8E471119B9D8A00F8CAA6 /* TiUIPickerProxy.m in Sources */,
@@ -5419,11 +5611,13 @@
 				1DCC543013FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
 				1D19459713FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459C13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
+				D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				EF0ADCFB143F9ABF00977386 /* NSData+Additions.m in Sources */,
 				EF0ADD1B143FA0CD00977386 /* GeolocationModule.m in Sources */,
 				EF0ADD20143FA0E200977386 /* AnalyticsModule.m in Sources */,
 				2B1F65781431031E006C5D37 /* ApplicationDefaults.m in Sources */,
 				848C2595145F37A300E1B0F1 /* TiDOMCDATANodeProxy.m in Sources */,
+				D5C8C97A17EF45C900F54C19 /* ADFlipTransition.m in Sources */,
 				848C259B145F3FE200E1B0F1 /* TiDOMCommentProxy.m in Sources */,
 				848C25A0145F46C300E1B0F1 /* TiDOMPIProxy.m in Sources */,
 				D5B891F417CB510700B9C8CF /* TiShapeLineProxy.m in Sources */,
@@ -5453,6 +5647,7 @@
 				502A68E116EEAA7500661EF6 /* TiUIListSectionProxy.m in Sources */,
 				502A68E416EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E716EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
+				D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				502A68EC16F0428500661EF6 /* TiViewTemplate.m in Sources */,
 				D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908160168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
@@ -5469,11 +5664,14 @@
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5FE438516E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
 				D56064171705A78100781E6B /* DTHTMLParser.m in Sources */,
+				D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D560641D1705A79100781E6B /* NSString+DTUTI.m in Sources */,
+				D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D56064291705A7A000781E6B /* DTZipArchive.m in Sources */,
 				D560642C1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
 				D560642F1705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
 				D56064321705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
+				D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56064651705A7E500781E6B /* DTASN1BitString.m in Sources */,
 				D56064681705A7E500781E6B /* DTASN1Parser.m in Sources */,
 				D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
@@ -5497,10 +5695,13 @@
 				D560649B1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
 				D560649E1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
 				D56064A11705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
+				D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
 				D56064A41705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
 				D56064A71705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
+				D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
 				D56064AA1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
 				D56065151705A89800781E6B /* CGUtils.m in Sources */,
+				D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
 				D560651B1705A89800781E6B /* DTAttributedLabel.m in Sources */,
 				D560651E1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
 				D56065211705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
@@ -5520,12 +5721,14 @@
 				D56065481705A89800781E6B /* DTCSSStylesheet.m in Sources */,
 				D560654B1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
 				D560654E1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
+				D5C8C99B17EF45C900F54C19 /* ADTransition.m in Sources */,
 				D56065511705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
 				D56065571705A89800781E6B /* DTHTMLElement.m in Sources */,
 				D560655A1705A89800781E6B /* DTHTMLElementA.m in Sources */,
 				D560655D1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
 				D56065601705A89800781E6B /* DTHTMLElementBR.m in Sources */,
 				D56065631705A89800781E6B /* DTHTMLElementHR.m in Sources */,
+				D5C8C9A417EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D56065661705A89800781E6B /* DTHTMLElementLI.m in Sources */,
 				D56065691705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
 				D560656C1705A89800781E6B /* DTHTMLElementText.m in Sources */,
@@ -5542,13 +5745,16 @@
 				D560658D1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
 				D56065901705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
 				D56065931705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
+				D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D56065961705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
+				D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D56065991705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
 				D560659C1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
 				D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
 				D560659F1705A89800781E6B /* NSScanner+HTML.m in Sources */,
 				D56065A21705A89800781E6B /* NSString+CSS.m in Sources */,
 				D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
+				D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D56065A51705A89800781E6B /* NSString+HTML.m in Sources */,
 				D56065A81705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
@@ -5572,6 +5778,7 @@
 				DABB36A112E8CB280026A6EA /* TiUITableViewAction.m in Sources */,
 				DABB36A212E8CB280026A6EA /* TiFile.m in Sources */,
 				DABB36A312E8CB280026A6EA /* TiMapPinAnnotationView.m in Sources */,
+				D5C8C97517EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				DABB36A412E8CB280026A6EA /* main.m in Sources */,
 				DABB36A512E8CB280026A6EA /* AFItemView.m in Sources */,
 				DABB36A612E8CB280026A6EA /* AFOpenFlowView.m in Sources */,
@@ -5617,6 +5824,7 @@
 				DABB36CE12E8CB280026A6EA /* TiUIWebViewProxy.m in Sources */,
 				DABB36CF12E8CB280026A6EA /* TiUIViewProxy.m in Sources */,
 				DABB36D012E8CB280026A6EA /* TiUIView.m in Sources */,
+				D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */,
 				DABB36D312E8CB280026A6EA /* TiUITextFieldProxy.m in Sources */,
 				DABB36D412E8CB280026A6EA /* TiUITextField.m in Sources */,
 				DABB36D512E8CB280026A6EA /* TiUITextAreaProxy.m in Sources */,
@@ -5624,6 +5832,7 @@
 				DABB36D712E8CB280026A6EA /* TiUITabProxy.m in Sources */,
 				DABB36D812E8CB280026A6EA /* TiUITableViewProxy.m in Sources */,
 				DABB36D912E8CB280026A6EA /* TiUITableView.m in Sources */,
+				D5C8C98D17EF45C900F54C19 /* ADSlideTransition.m in Sources */,
 				DABB36DA12E8CB280026A6EA /* TiUITabGroupProxy.m in Sources */,
 				D5E9F82517C8CC480084384C /* TiShapeCircleProxy.m in Sources */,
 				DABB36DB12E8CB280026A6EA /* TiUITabGroup.m in Sources */,
@@ -5671,12 +5880,16 @@
 				DABB370712E8CB280026A6EA /* TiModule.m in Sources */,
 				DABB370812E8CB280026A6EA /* TiMediaVideoPlayerProxy.m in Sources */,
 				DABB370912E8CB280026A6EA /* TiMediaSoundProxy.m in Sources */,
+				D5C8C98417EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				DABB370A12E8CB280026A6EA /* TiMediaAudioPlayerProxy.m in Sources */,
 				DABB370B12E8CB280026A6EA /* TiMapViewProxy.m in Sources */,
 				DABB370C12E8CB280026A6EA /* TiMapView.m in Sources */,
 				DABB370D12E8CB280026A6EA /* TiMapAnnotationProxy.m in Sources */,
 				DABB370E12E8CB280026A6EA /* TiHost.m in Sources */,
+				D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
+				D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				DABB370F12E8CB280026A6EA /* TiFilesystemFileProxy.m in Sources */,
+				D5C8C97817EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				DABB371012E8CB280026A6EA /* TiDimension.m in Sources */,
 				DABB371112E8CB280026A6EA /* TiDatabaseResultSetProxy.m in Sources */,
 				DABB371212E8CB280026A6EA /* TiDatabaseProxy.m in Sources */,
@@ -5732,6 +5945,7 @@
 				DABB374412E8CB280026A6EA /* CAStreamBasicDescription.cpp in Sources */,
 				DABB374512E8CB280026A6EA /* CAXException.cpp in Sources */,
 				DABB374612E8CB280026A6EA /* AQRecorder.mm in Sources */,
+				D5C8C99917EF45C900F54C19 /* ADTransformTransition.m in Sources */,
 				DABB374712E8CB280026A6EA /* SCListener.m in Sources */,
 				DABB374812E8CB280026A6EA /* TiMediaAudioSession.m in Sources */,
 				DABB374912E8CB280026A6EA /* TiUIPickerProxy.m in Sources */,
@@ -5819,11 +6033,13 @@
 				1DCC543113FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
 				1D19459813FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459D13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
+				D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				EF0ADCFC143F9ABF00977386 /* NSData+Additions.m in Sources */,
 				EF0ADD1C143FA0CD00977386 /* GeolocationModule.m in Sources */,
 				EF0ADD21143FA0E200977386 /* AnalyticsModule.m in Sources */,
 				2B1F65791431031E006C5D37 /* ApplicationDefaults.m in Sources */,
 				848C2596145F37A300E1B0F1 /* TiDOMCDATANodeProxy.m in Sources */,
+				D5C8C97B17EF45C900F54C19 /* ADFlipTransition.m in Sources */,
 				848C259C145F3FE200E1B0F1 /* TiDOMCommentProxy.m in Sources */,
 				848C25A1145F46C300E1B0F1 /* TiDOMPIProxy.m in Sources */,
 				D5B891F517CB510700B9C8CF /* TiShapeLineProxy.m in Sources */,
@@ -5853,6 +6069,7 @@
 				502A68E216EEAA7500661EF6 /* TiUIListSectionProxy.m in Sources */,
 				502A68E516EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E816EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
+				D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				502A68ED16F0428500661EF6 /* TiViewTemplate.m in Sources */,
 				84C3870417417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
@@ -5869,11 +6086,14 @@
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5FE438616E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
+				D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D56064181705A78100781E6B /* DTHTMLParser.m in Sources */,
+				D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D560641E1705A79100781E6B /* NSString+DTUTI.m in Sources */,
 				D560642A1705A7A000781E6B /* DTZipArchive.m in Sources */,
 				D560642D1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
 				D56064301705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
+				D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56064331705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
 				D56064661705A7E500781E6B /* DTASN1BitString.m in Sources */,
 				D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
@@ -5897,10 +6117,13 @@
 				D56064991705A7E500781E6B /* NSScanner+DTScripting.m in Sources */,
 				D560649C1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
 				D560649F1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
+				D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
 				D56064A21705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
 				D56064A51705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
+				D5C8C99317EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
 				D56064A81705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
 				D56064AB1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
+				D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
 				D56065161705A89800781E6B /* CGUtils.m in Sources */,
 				D560651C1705A89800781E6B /* DTAttributedLabel.m in Sources */,
 				D560651F1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
@@ -5920,12 +6143,14 @@
 				D56065461705A89800781E6B /* DTCSSListStyle.m in Sources */,
 				D56065491705A89800781E6B /* DTCSSStylesheet.m in Sources */,
 				D560654C1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
+				D5C8C99C17EF45C900F54C19 /* ADTransition.m in Sources */,
 				D560654F1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
 				D56065521705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
 				D56065581705A89800781E6B /* DTHTMLElement.m in Sources */,
 				D560655B1705A89800781E6B /* DTHTMLElementA.m in Sources */,
 				D560655E1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
 				D56065611705A89800781E6B /* DTHTMLElementBR.m in Sources */,
+				D5C8C9A517EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D56065641705A89800781E6B /* DTHTMLElementHR.m in Sources */,
 				D56065671705A89800781E6B /* DTHTMLElementLI.m in Sources */,
 				D560656A1705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
@@ -5942,13 +6167,16 @@
 				D560658B1705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */,
 				D560658E1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
 				D56065911705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
+				D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D56065941705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
+				D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D56065971705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
 				D560659A1705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
 				D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
 				D560659D1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
 				D56065A01705A89800781E6B /* NSScanner+HTML.m in Sources */,
 				D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
+				D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D56065A31705A89800781E6B /* NSString+CSS.m in Sources */,
 				D56065A61705A89800781E6B /* NSString+HTML.m in Sources */,
 				D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,

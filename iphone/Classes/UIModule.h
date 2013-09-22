@@ -38,6 +38,9 @@
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	TiProxy *listViewSeparatorStyle;
 #endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+	TiProxy *transitionStyle;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -211,6 +214,9 @@
 @property(nonatomic,readonly) NSNumber *MENU_PANNING_CENTER_VIEW;
 @property(nonatomic,readonly) NSNumber *MENU_PANNING_NON_SCROLLVIEW;
 
+
+
+
 @property(nonatomic,readonly) NSNumber *INFINITE;
 
 #ifdef USE_TI_UI2DMATRIX
@@ -253,6 +259,9 @@
 @property(nonatomic,readonly) TiProxy* ListViewSeparatorStyle;
 #endif
 
+#ifdef USE_TI_UITRANSITIONSTYLE
+@property(nonatomic,readonly) TiProxy* TransitionStyle;
+#endif
 @end
 
 

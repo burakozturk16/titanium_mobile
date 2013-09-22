@@ -13,6 +13,7 @@
 #import "TiComplexValue.h"
 #import "TiApp.h"
 #import "TiLayoutQueue.h"
+#import "UIViewController+ADTransitionController.h"
 
 // this is how long we should wait on the new JS context to be loaded
 // holding the UI thread before we return during an window open. we 
@@ -269,12 +270,19 @@
 	return [super _handleClose:args];
 }
 
+-(id) navControllerForController:(UIViewController*)theController
+{
+    if ([theController transitionController] != nil)
+        return [theController transitionController];
+    return [theController navigationController];
+}
+
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
     //Update the barImage here as well. Might have the wrong bounds but that will be corrected
     //in the call from frameSizeChanged in TiUIWindow. Avoids the visual glitch
-    if ( (shouldUpdateNavBar) && (controller != nil) && ([controller navigationController] != nil) ) {
+    if ( (shouldUpdateNavBar) && (controller != nil) && ([self navControllerForController:controller] != nil) ) {
         id barImageValue = [self valueForKey:@"barImage"];
         if ((barImageValue != nil) && (barImageValue != [NSNull null])) {
             [self updateBarImage];
@@ -316,9 +324,10 @@
 	[self replaceValue:[NSNumber numberWithBool:NO] forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
 	{
+        id navController = [self navControllerForController:controller];
 		id properties = (args!=nil && [args count] > 0) ? [args objectAtIndex:0] : nil;
 		BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
-		[[controller navigationController] setNavigationBarHidden:NO animated:animated];
+		[navController setNavigationBarHidden:NO animated:animated];
 	}
 }
 
@@ -328,9 +337,10 @@
 	[self replaceValue:[NSNumber numberWithBool:YES] forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
 	{
+        id navController = [self navControllerForController:controller];
 		id properties = (args!=nil && [args count] > 0) ? [args objectAtIndex:0] : nil;
 		BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
-		[[controller navigationController] setNavigationBarHidden:YES animated:animated];
+		[navController setNavigationBarHidden:YES animated:animated];
 		//TODO: need to fix height
 	}
 }
@@ -345,8 +355,9 @@
     NSString *color = [TiUtils stringValue:colorString];
     [self replaceValue:color forKey:@"navTintColor" notification:NO];
     if (controller!=nil) {
+        id navController = [self navControllerForController:controller];
         TiColor * newColor = [TiUtils colorValue:color];
-        UINavigationBar * navBar = [[controller navigationController] navigationBar];
+        UINavigationBar * navBar = [navController navigationBar];
         [navBar setTintColor:[newColor color]];
         [self performSelector:@selector(refreshBackButton) withObject:nil afterDelay:0.0];
     }
@@ -357,7 +368,8 @@
     ENSURE_UI_THREAD(setBarColor,colorString);
     NSString *color = [TiUtils stringValue:colorString];
     [self replaceValue:color forKey:@"barColor" notification:NO];
-    if (shouldUpdateNavBar && controller!=nil && [controller navigationController] != nil)
+    id navController = [self navControllerForController:controller];
+    if (shouldUpdateNavBar && controller!=nil && navController != nil)
     {
         TiColor * newColor = [TiUtils colorValue:color];
         if (newColor == nil)
@@ -368,7 +380,7 @@
         UIColor * barColor = [TiUtils barColorForColor:newColor];
         UIBarStyle navBarStyle = [TiUtils barStyleForColor:newColor];
 
-        UINavigationBar * navBar = [[controller navigationController] navigationBar];
+        UINavigationBar * navBar = [navController navigationBar];
         [navBar setBarStyle:barStyle];
         if([TiUtils isIOS7OrGreater]) {
             [navBar performSelector:@selector(setBarTintColor:) withObject:barColor];
@@ -381,7 +393,8 @@
 
 -(void)updateBarImage
 {
-	UINavigationBar * ourNB = [[controller navigationController] navigationBar];
+    id navController = [self navControllerForController:controller];
+	UINavigationBar * ourNB = [navController navigationBar];
 	CGRect barFrame = [ourNB bounds];
 	UIImage * newImage = [TiUtils toImage:[self valueForUndefinedKey:@"barImage"]
                                     proxy:self size:barFrame.size];
@@ -424,8 +437,9 @@
 	[self replaceValue:value forKey:@"translucent" notification:NO];
 	if (controller!=nil)
 	{
+        id navController = [self navControllerForController:controller];
         BOOL def = [TiUtils isIOS7OrGreater] ? YES: NO;
-		[controller navigationController].navigationBar.translucent = [TiUtils boolValue:value def:def];
+		[navController navigationBar].translucent = [TiUtils boolValue:value def:def];
 	}
 }
 
@@ -439,8 +453,8 @@
         [self setValue:properties forKey:@"rightNavSettings"];
     }
 	
-	if (controller!=nil && 
-		[controller navigationController] != nil)
+    id navController = [self navControllerForController:controller];
+	if (controller!=nil && navController != nil)
 	{
 		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
 		[self replaceValue:proxy forKey:@"rightNavButton" notification:NO];
@@ -487,7 +501,8 @@
         [self setValue:properties forKey:@"leftNavSettings"];
     }
     
-	if (controller!=nil && [controller navigationController] != nil)
+    id navController = [self navControllerForController:controller];
+	if (controller!=nil && navController != nil)
 	{
 		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
 		[self replaceValue:proxy forKey:@"leftNavButton" notification:NO];
@@ -549,7 +564,8 @@
 {
 	ENSURE_UI_THREAD_0_ARGS;
 	
-	if (controller == nil || [controller navigationController] == nil) {
+    id navController = [self navControllerForController:controller];
+	if (controller == nil || navController == nil) {
 		return; // No need to refresh
 	}
 	
@@ -612,7 +628,8 @@
 {
     //Called from the view when the screen rotates. 
     //Resize titleControl and barImage based on navbar bounds
-    if (!shouldUpdateNavBar || controller == nil || [controller navigationController] == nil) {
+    id navController = [self navControllerForController:controller];
+    if (!shouldUpdateNavBar || controller == nil || navController == nil) {
         return; // No need to update the title if not in a nav controller
     }
     TiThreadPerformOnMainThread(^{
@@ -630,12 +647,13 @@
 {
 	UIView * newTitleView = nil;
 	
-	if (!shouldUpdateNavBar || controller == nil || [controller navigationController] == nil) {
+    id navController = [self navControllerForController:controller];
+	if (!shouldUpdateNavBar || controller == nil || navController == nil) {
 		return; // No need to update the title if not in a nav controller
 	}
 	
     UINavigationItem * ourNavItem = [controller navigationItem];
-    UINavigationBar * ourNB = [[controller navigationController] navigationBar];
+    UINavigationBar * ourNB = [navController navigationBar];
     CGRect barFrame = [ourNB bounds];
     CGSize availableTitleSize = CGSizeZero;
     availableTitleSize.width = barFrame.size.width - (2*TI_NAVBAR_BUTTON_WIDTH);
@@ -719,7 +737,8 @@
 	ENSURE_UI_THREAD(setTitle,title_);
 	NSString *title = [TiUtils stringValue:title_];
 	[self replaceValue:title forKey:@"title" notification:NO];
-	if (controller!=nil && [controller navigationController] != nil)
+    id navController = [self navControllerForController:controller];
+	if (controller!=nil && navController != nil)
 	{
 		controller.navigationItem.title = title;
 	}
@@ -730,7 +749,8 @@
 	ENSURE_UI_THREAD(setTitlePrompt,title_);
 	NSString *title = [TiUtils stringValue:title_];
 	[self replaceValue:title forKey:@"titlePrompt" notification:NO];
-	if (controller!=nil && [controller navigationController] != nil)
+    id navController = [self navControllerForController:controller];
+	if (controller!=nil && navController != nil)
 	{
 		controller.navigationItem.prompt = title;
 	}
@@ -765,10 +785,11 @@
 	}
 	[self replaceValue:items forKey:@"toolbar" notification:NO];
 	TiThreadPerformOnMainThread( ^{
-		if (shouldUpdateNavBar && controller!=nil && [controller navigationController] != nil)
+        id navController = [self navControllerForController:controller];
+		if (shouldUpdateNavBar && controller!=nil && navController != nil)
 		{
 			NSArray *existing = [controller toolbarItems];
-			UINavigationController * ourNC = [controller navigationController];
+			UINavigationController * ourNC = navController;
 			if (existing!=nil)
 			{
 				for (id current in existing)
@@ -796,13 +817,13 @@
 			UIColor* barColor = [TiUtils barColorForColor:toolbarColor];
 			[controller setToolbarItems:array animated:animated];
 			[ourNC setToolbarHidden:(hasToolbar == NO ? YES : NO) animated:animated];
-			[ourNC.toolbar setTranslucent:translucent];
+			[[ourNC toolbar] setTranslucent:translucent];
 			if ([TiUtils isIOS7OrGreater]) {
 				UIColor* tintColor = [[TiUtils colorValue:@"tintColor" properties:properties] color];
-				[ourNC.toolbar performSelector:@selector(setBarTintColor:) withObject:barColor];
-				[ourNC.toolbar setTintColor:tintColor];
+				[[ourNC toolbar] performSelector:@selector(setBarTintColor:) withObject:barColor];
+				[[ourNC toolbar] setTintColor:tintColor];
 			} else {
-				[ourNC.toolbar setTintColor:barColor];
+				[[ourNC toolbar] setTintColor:barColor];
 			}
 			[array release];
 			
@@ -846,11 +867,12 @@ else{\
 
 -(void)setupWindowDecorations
 {
-    if ((controller == nil) || ([controller navigationController] == nil)) {
+    id navController = [self navControllerForController:controller];
+    if ((controller == nil) || navController == nil) {
         return;
     }
     
-    [[controller navigationController] setToolbarHidden:!hasToolbar animated:YES];
+    [navController setToolbarHidden:!hasToolbar animated:YES];
 
     SETPROP(@"title",setTitle);
     SETPROP(@"titlePrompt",setTitlePrompt);
@@ -879,7 +901,8 @@ else{\
 
 -(void)cleanupWindowDecorations
 {
-    if ((controller == nil) || ([controller navigationController] == nil)) {
+    id navController = [self navControllerForController:controller];
+    if ((controller == nil) || (navController == nil)) {
         return;
     }
     UIBarButtonItem *item = controller.navigationItem.leftBarButtonItem;

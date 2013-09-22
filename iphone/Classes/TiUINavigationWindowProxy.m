@@ -20,6 +20,23 @@
     [super _destroy];
 }
 
+
+-(void)dealloc
+{
+	RELEASE_TO_NIL(rootWindow);
+    RELEASE_TO_NIL(navController);
+    RELEASE_TO_NIL(current);
+	[super dealloc];
+}
+
+-(id)init
+{
+	if ((self = [super init]))
+	{
+	}
+	return self;
+}
+
 -(void)_initWithProperties:(NSDictionary *)properties
 {
     [super _initWithProperties:properties];
@@ -59,10 +76,10 @@
     return nil;
 }
 
--(UINavigationController*)controller
+-(ADTransitionController*)controller
 {
     if (navController == nil) {
-        navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];;
+        navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];;
         navController.delegate = self;
         [TiUtils configureController:navController withObject:self];
     }
@@ -111,6 +128,11 @@
     }, YES);
 }
 
+-(id)stackSize
+{
+    return [NSNumber numberWithInt:[[navController viewControllers] count]];
+}
+
 -(void)windowClosing:(TiWindowProxy*)window animated:(BOOL)animated
 {
     //NO OP NOW
@@ -120,7 +142,7 @@
 #pragma mark - UINavigationControllerDelegate
 
 
-- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+- (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
 	transitionIsAnimating = YES;
     if (current != nil) {
@@ -152,7 +174,7 @@
     }
 }
 
-- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+- (void)transitionController:(ADTransitionController *)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
     transitionIsAnimating = NO;
     if (current != nil) {
@@ -196,6 +218,26 @@
     return [rootWindow hostingController];
 }
 
+-(UIViewAnimationTransition)popTransition:(UIViewAnimationTransition)pushTransition {
+    switch (pushTransition) {
+        case UIViewAnimationTransitionFlipFromLeft:
+            return UIViewAnimationTransitionFlipFromRight;
+            break;
+        case UIViewAnimationTransitionFlipFromRight:
+            return UIViewAnimationTransitionFlipFromLeft;
+            break;
+        case UIViewAnimationTransitionCurlDown:
+            return UIViewAnimationTransitionCurlUp;
+            break;
+        case UIViewAnimationTransitionCurlUp:
+            return UIViewAnimationTransitionCurlDown;
+            break;
+        default:
+            return pushTransition;
+            break;
+    }
+}
+
 -(void)pushOnUIThread:(NSArray*)args
 {
 	if (transitionIsAnimating)
@@ -204,9 +246,86 @@
 		return;
 	}
 	TiWindowProxy *window = [args objectAtIndex:0];
-	BOOL animated = args!=nil && [args count] > 1 ? [TiUtils boolValue:@"animated" properties:[args objectAtIndex:1] def:YES] : YES;
+    NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     
-    [navController pushViewController:[window hostingController] animated:animated];
+    if (animated) {
+        if ([props objectForKey:@"animationStyle"]) {
+            float duration = [TiUtils floatValue:@"animationDuration" properties:props def:300]/1000;
+            NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
+            [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition withDuration:duration]];
+        }
+        else {
+            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:0.3]];
+        }
+    }
+    else {
+        [navController pushViewController:[window hostingController] withTransition:nil];
+    }
+}
+
+-(ADTransition*) defaultTransitionWithDuration:(float)duration
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+    }
+    else {
+        return [[ADSwipeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+    }
+}
+
+-(ADTransition*) transitionForType:(NWTransition)type withDuration:(float)duration
+{
+    switch (type) {
+        case NWTransitionSwipe:
+            return [[ADSwipeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionSwipeFade:
+            return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionCube:
+            return [[ADCubeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionCarousel:
+            return [[ADCarrouselTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionCross:
+            return [[ADCrossTransition alloc] initWithDuration:duration sourceRect:self.view.frame];
+            break;
+        case NWTransitionFlip:
+            return [[ADFlipTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionSwap:
+            return [[ADSwapTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionBackFade:
+            return [[ADBackFadeTransition alloc] initWithDuration:duration];
+            break;
+        case NWTransitionGhost:
+            return [[ADGhostTransition alloc] initWithDuration:duration];
+            break;
+        case NWTransitionZoom:
+            return [[ADZoomTransition alloc] initWithDuration:duration];
+            break;
+        case NWTransitionScale:
+            return [[ADScaleTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionGlue:
+            return [[ADGlueTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionPushRotate:
+            return [[ADPushRotateTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionFold:
+            return [[ADFoldTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        case NWTransitionSlide:
+            return [[ADSlideTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            break;
+        default:
+            return [self defaultTransitionWithDuration:duration];
+            break;
+    }
 }
 
 -(void)popOnUIThread:(NSArray*)args
@@ -219,8 +338,22 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
     
     if (window == current) {
-        BOOL animated = args!=nil && [args count] > 1 ? [TiUtils boolValue:@"animated" properties:[args objectAtIndex:1] def:YES] : YES;
-        [navController popViewControllerAnimated:animated];
+        NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+        BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
+        if (animated) {
+            if ([props objectForKey:@"animationStyle"]) {
+                float duration = [TiUtils floatValue:@"animationDuration" properties:props def:300]/1000;
+                
+                NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
+                [navController popViewControllerWithTransition:[self transitionForType:transition withDuration:duration]];
+            }
+            else {
+                [navController popViewController];
+            }
+        }
+        else {
+            [navController popViewControllerWithTransition:nil];
+        }
     }
     else {
         [self closeWindow:window animated:NO];
@@ -236,7 +369,7 @@
 	// Manage the navigation controller stack
 	NSMutableArray* newControllerStack = [NSMutableArray arrayWithArray:[navController viewControllers]];
 	[newControllerStack removeObject:windowController];
-	[navController setViewControllers:newControllerStack animated:animated];
+	[navController setViewControllers:newControllerStack];
     [window setTab:nil];
 	[window setParentOrientationController:nil];
 	
@@ -254,7 +387,7 @@
         if (navController != nil) {
             [navController setDelegate:nil];
             NSArray* currentControllers = [navController viewControllers];
-            [navController setViewControllers:[NSArray array]];
+            [navController setViewControllers:[NSMutableArray array]];
             
             for (UIViewController* viewController in currentControllers) {
                 TiWindowProxy* win = (TiWindowProxy *)[(TiViewController*)viewController proxy];

@@ -47,6 +47,7 @@
 #ifdef USE_TI_UIACTIVITYINDICATORSTYLE
 #import "TiUIActivityIndicatorStyleProxy.h"
 #endif
+
 #ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
 #import "TiUITableViewSeparatorStyleProxy.h"
 #endif
@@ -56,6 +57,12 @@
 #import "TiUtils.h"
 #import "UIControl+TiUIView.h"
 
+#ifdef USE_TI_UINAVIGATIONWINDOW
+#import "TiUINavigationWindowProxy.h"
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+#import "TiUITransitionStyleProxy.h"
+#endif
 
 #define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
 -(TiProxy*)methodName	\
@@ -104,6 +111,9 @@ return ivarName;	\
 #endif
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	FORGET_AND_RELEASE(listViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+    FORGET_AND_RELEASE(transitionStyle);
 #endif
 	[super dealloc];
 }
@@ -476,6 +486,17 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
         [self rememberProxy:tableViewSeparatorStyle];
 	}
 	return tableViewSeparatorStyle;
+}
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+-(id)TransitionStyle
+{
+	if (transitionStyle==nil)
+	{
+		transitionStyle = [[TiUITransitionStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:transitionStyle];
+	}
+	return transitionStyle;
 }
 #endif
 #endif
