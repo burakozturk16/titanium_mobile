@@ -4,13 +4,13 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
+#ifdef USE_TI_UINAVIGATIONWINDOW
 
-#import "TiUIiOSNavWindowProxy.h"
-#import "TiUIiOSNavWindow.h"
+#import "TiUINavigationWindowProxy.h"
+#import "TiUINavigationWindow.h"
 #import "TiApp.h"
 
-@implementation TiUIiOSNavWindowProxy
+@implementation TiUINavigationWindowProxy
 
 -(void)_destroy
 {
@@ -378,7 +378,7 @@
 -(TiUIView*)newView
 {
 	CGRect frame = [self appFrame];
-	TiUIiOSNavWindow * win = [[TiUIiOSNavWindow alloc] initWithFrame:frame];
+	TiUINavigationWindow * win = [[TiUINavigationWindow alloc] initWithFrame:frame];
 	return win;
 }
 

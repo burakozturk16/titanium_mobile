@@ -4,15 +4,15 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
-#import "TiUIiOSNavWindow.h"
-#import "TiUIiOSNavWindowProxy.h"
+#ifdef USE_TI_UINAVIGATIONWINDOW
+#import "TiUINavigationWindow.h"
+#import "TiUINavigationWindowProxy.h"
 
-@implementation TiUIiOSNavWindow
+@implementation TiUINavigationWindow
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    [(TiUIiOSNavWindowProxy*)[self proxy] setFrame:bounds];
+    [(TiUINavigationWindowProxy*)[self proxy] setFrame:bounds];
     [super frameSizeChanged:frame bounds:bounds];
 }
 

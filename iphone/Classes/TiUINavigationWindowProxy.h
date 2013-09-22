@@ -5,10 +5,10 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
+#ifdef USE_TI_UINAVIGATIONWINDOW
 #import "TiWindowProxy.h"
 
-@interface TiUIiOSNavWindowProxy : TiWindowProxy<UINavigationControllerDelegate,TiOrientationController,TiTab> {
+@interface TiUINavigationWindowProxy : TiWindowProxy<UINavigationControllerDelegate,TiOrientationController,TiTab> {
 @private
     UINavigationController *navController;
     TiWindowProxy *rootWindow;

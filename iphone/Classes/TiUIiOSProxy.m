@@ -33,10 +33,6 @@
 #if defined(USE_TI_UIIPADDOCUMENTVIEWER) || defined(USE_TI_UIIOSDOCUMENTVIEWER)
     #import "TiUIiOSDocumentViewerProxy.h"
 #endif
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
-    #import "TiUIiOSNavWindowProxy.h"
-#endif
-
 
 @implementation TiUIiOSProxy
 
@@ -98,14 +94,6 @@
 	return [[[TiUIiOSDocumentViewerProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
--(id)createNavigationWindow:(id)args
-{
-    return [[[TiUIiOSNavWindowProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
-}
-#endif
-
-
 
 #ifdef USE_TI_UIIOS
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(ANIMATION_CURVE_EASE_IN_OUT, UIViewAnimationOptionCurveEaseInOut, @"UI.iOS.ANIMATION_CURVE_EASE_IN_OUT", @"2.1.0", @"Ti.UI.ANIMATION_CURVE_EASE_IN_OUT");
