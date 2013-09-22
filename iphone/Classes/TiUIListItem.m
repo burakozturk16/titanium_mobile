@@ -117,7 +117,8 @@ DEFINE_EXCEPTIONS
     
     self.selectedBackgroundView = [[[TiCellBackgroundView alloc] initWithFrame:CGRectZero] autorelease];
     _bgSelectedView = (TiCellBackgroundView*)self.selectedBackgroundView;
-    
+    [_bgSelectedView selectableLayer].animateTransition = YES;
+
     [self updateBackgroundLayerCorners:_bgSelectedView];
     return _bgSelectedView;
 }
