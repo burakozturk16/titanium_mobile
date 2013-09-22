@@ -72,6 +72,7 @@ static NSString * const kAnimShapeTransform = @"shapeTransform";
 @property(nonatomic,assign) BOOL fillInversed;
 @property(nonatomic,assign) BOOL lineClipped;
 @property(nonatomic,assign) BOOL retina;
+@property(nonatomic,assign) BOOL antialiasing;
 
 -(void) setDashPattern:(NSArray *)dashPattern;
 +(NSArray *)animationKeys;

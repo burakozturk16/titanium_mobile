@@ -741,8 +741,9 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     else {
         _transform = nil;
     }
-    [self updateRealTransform];
     [self replaceValue:transform forKey:@"transform" notification:YES];
+    if (!_configurationSet)  return;
+    [self updateRealTransform];
 }
 
 

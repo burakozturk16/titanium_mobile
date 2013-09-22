@@ -283,6 +283,12 @@
     [self setLayerValue:arg forKey:@"retina"];
 	[self replaceValue:arg forKey:@"retina" notification:YES];
 }
+
+-(void)setAntialiasing:(id)arg
+{
+    [self setLayerValue:arg forKey:@"antialiasing"];
+	[self replaceValue:arg forKey:@"antialiasing" notification:YES];
+}
 //
 //-(void)setTransform:(id)transform
 //{

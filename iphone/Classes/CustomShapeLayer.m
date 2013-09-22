@@ -12,7 +12,7 @@
 #import "UIBezierPath+Additions.h"
 
 @implementation CustomShapeLayer
-@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed, retina, shapeTransform;
+@synthesize dashPhase, lineWidth, lineOpacity, fillOpacity, lineColor = _lineColor, proxy = _proxy, fillColor = _fillColor, fillGradient, lineGradient, lineCap, lineJoin, center, lineShadowRadius, lineShadowColor = _lineShadowColor, lineShadowOffset, radius, fillShadowOffset, fillShadowColor = _fillShadowColor, fillShadowRadius, lineImage, fillImage, lineClipped, lineInversed, fillInversed, retina, shapeTransform, antialiasing;
 
 - (id)init {
     if (self = [super init])
@@ -26,6 +26,8 @@
         lineInversed = fillInversed = NO;
         lineClipped = NO;
         self.shapeTransform = CATransform3DIdentity;
+        antialiasing = YES;
+        retina = YES;
     }
     return self;
 }
@@ -61,6 +63,8 @@
         self.fillInversed = customLayer.fillInversed;
         self.lineInversed = customLayer.lineInversed;
         self.shapeTransform = customLayer.shapeTransform;
+        self.retina = customLayer.retina;
+        self.antialiasing = customLayer.antialiasing;
     }
     return self;
 }
@@ -205,8 +209,8 @@ CG_INLINE CGContextRef CGContextCreate(CGSize size)
 - (void)drawBPath:(UIBezierPath *)bPath_ inContext:(CGContextRef)context
 {
     UIGraphicsPushContext(context);
-    CGContextSetAllowsAntialiasing(context, YES);
-    CGContextSetShouldAntialias(context, YES);
+    CGContextSetAllowsAntialiasing(context, antialiasing);
+    CGContextSetShouldAntialias(context, antialiasing);
 //    CGRect currentBounds = bPath_.bounds; //bounds without stroke
 //    CGAffineTransform transform = _proxy.realTransform;
     CGAffineTransform transform = CATransform3DGetAffineTransform(self.shapeTransform);
@@ -215,13 +219,12 @@ CG_INLINE CGContextRef CGContextCreate(CGSize size)
         CGContextSaveGState(context);
         if (_fillShadowColor) CGContextSetShadowWithColor(context, fillShadowOffset, fillShadowRadius, _fillShadowColor);
         if (fillInversed) {
-            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectMake(-1000000, -1000000, 2000000, 2000000)]; //infinite is too small :s
-            [inversed appendPath:bPath_];
+            UIBezierPath* inversed = [UIBezierPath bezierPathWithRect:CGRectInfinite];            [inversed appendPath:bPath_];
             inversed.usesEvenOddFillRule = YES;
             [inversed applyTransform:transform];
             CGContextSetAlpha(context, fillOpacity);
             CGContextSetFillColorWithColor(context, _fillColor);
-            [inversed fill];
+            [inversed fill]; // to get the shadow
             [inversed addClip];
             [self fillContext:context color:nil image:fillImage gradient:fillGradient opacity:fillOpacity];
         }
@@ -341,6 +344,11 @@ CG_INLINE CGContextRef CGContextCreate(CGSize size)
 {
     retina = retina_;
     self.contentsScale = self.rasterizationScale = retina?[UIScreen mainScreen].scale:1;
+}
+
+-(void)setAntialiasing:(BOOL)aliasing_
+{
+    antialiasing = aliasing_;
 }
 
 //-(void)setShapeTransform:(CGAffineTransform)shapeTransform_
