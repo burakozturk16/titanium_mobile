@@ -66,39 +66,6 @@ public class SVGDrawable extends Drawable {
 		mOriginalAspectRatio = ((double) mOriginalWidth) / ((double) mOriginalHeight);
 	}
 
-	//
-	// @Override
-	// public void draw(Canvas canvas) {
-	// Rect bounds = getBounds();
-	// int height = bounds.height();
-	// int width = bounds.width();
-	//
-	// float scaleX = (float) width / mRenderer.getDocumentWidth();
-	// float scaleY = (float) height / mRenderer.getDocumentHeight();
-	//
-	// if (mCacheBitmap == null) {
-	// mCacheBitmap = Bitmap.createBitmap(width, height,
-	// Bitmap.Config.ARGB_8888);
-	// Canvas cacheCanvas = new Canvas(mCacheBitmap);
-	// cacheCanvas.scale(scaleX, scaleY);
-	// mRenderer.paintImage(cacheCanvas, null, 0, 0, 0, null, false);
-	// }
-	//
-	// canvas.drawBitmap(mCacheBitmap, 0, 0, null);
-	// }
-
-	// @Override
-	// public void setBounds (int left, int top, int right, int bottom) {
-	// super.setBounds(left, top, right, bottom);
-	// mCacheBitmap = null;
-	// }
-	//
-	// @Override
-	// public void setBounds (Rect bounds) {
-	// super.setBounds(bounds);
-	// mCacheBitmap = null;
-	// }
-
 	public final Paint getPaint() {
 		return mPaint;
 	}
@@ -233,11 +200,6 @@ public class SVGDrawable extends Drawable {
 		mBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(),
 				Bitmap.Config.ARGB_8888);
 		canvas.setBitmap(mBitmap);
-//		float scaleX;
-//		float scaleY;
-//		scaleX = (float) bounds.width() / mWidth;
-//		scaleY = (float) bounds.height() / mHeight;
-		// Render SVG with use of libandroidsvg
 		switch (mScaleType) {
 		case FIT_XY:
 			float scaleX = bounds.width() / mOriginalWidth;
