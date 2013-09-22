@@ -110,6 +110,40 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
 			    imageView.setImageDrawable(drawable);
 			}
+			
+			@Override
+			public void setScaleType (ScaleType scaleType) {
+				super.setScaleType(scaleType);
+			    Drawable drawable  = getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    setImageDrawable(null); 
+			    ((SVGDrawable)drawable).setScaleType(scaleType);
+			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    setImageDrawable(drawable);
+			} 
+			
+			@Override
+			public void setImageDrawable(Drawable drawable) {
+				if (!(drawable instanceof SVGDrawable)) {
+					super.setImageDrawable(drawable);
+					return;
+				}
+				if (getDrawable() == drawable) {
+					return;
+				}
+				SVGDrawable svg = (SVGDrawable) drawable;
+				svg.setScaleType(getScaleType());
+				int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+				int vHeight = getHeight() - getPaddingTop()
+						- getPaddingBottom();
+				svg.adjustToParentSize(vWidth, vHeight);
+				super.setImageDrawable(svg);
+			}
 		};
 		addView(imageView);
 		setEnableScale(true);
@@ -253,26 +287,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void setImageDrawable(Drawable drawable) {
-//		if (animateTransition && animationDuration > 0) {
-//			setImageDrawableWithFade(imageView, drawable);
-//		}
-//		else {
-//			imageView.setImageDrawable(drawable);
-//		}
-			
-			if (! (drawable instanceof SVGDrawable)) {
-				imageView.setImageDrawable(drawable);
-				return;
-			}
-			if (imageView.getDrawable() == drawable) {
-				return;
-			}
-			SVGDrawable svg = (SVGDrawable) drawable;
-			svg.setScaleType(imageView.getScaleType());
-	        int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-	        int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
-			svg.adjustToParentSize(vWidth, vHeight);
-			imageView.setImageDrawable(svg);
+		imageView.setImageDrawable(drawable);
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -540,38 +555,25 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		imageView.setColorFilter(filter);
 	}
 	
-	public void setScaleType (ScaleType scaleType) {
-		imageView.setScaleType(scaleType);
-	    Drawable drawable  = imageView.getDrawable(); 
-		
-	    if (!(drawable instanceof SVGDrawable)) {
-	        return;
-	    } 
-	    imageView.setImageDrawable(null); 
-	    ((SVGDrawable)drawable).setScaleType(scaleType);
-	    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-	    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
-	    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
-	    imageView.setImageDrawable(drawable);
-	} 
+	
 
 	private void updateScaleType()
 	{
 		if (!configured) return;
 		if (orientation > 0 || enableZoomControls) {
-			setScaleType(ScaleType.MATRIX);
+			imageView.setScaleType(ScaleType.MATRIX);
 			imageView.setAdjustViewBounds(false);
 		} else {
 			if (viewWidthDefined && viewHeightDefined) {
 				imageView.setAdjustViewBounds(false);
-				setScaleType(wantedScaleType);
+				imageView.setScaleType(wantedScaleType);
 			}
 			else if(!enableScale) {
 				imageView.setAdjustViewBounds(false);
-				setScaleType(ScaleType.CENTER);
+				imageView.setScaleType(ScaleType.CENTER);
 			} else {
 				imageView.setAdjustViewBounds(true);
-				setScaleType(ScaleType.FIT_CENTER);
+				imageView.setScaleType(ScaleType.FIT_CENTER);
 			}
 		}
 		if (readyToLayout) requestLayout();
