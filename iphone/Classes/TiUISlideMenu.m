@@ -77,10 +77,14 @@
         
         
         UIView * controllerView = [controller view];
+        [self setBackgroundColor:[UIColor clearColor]];
+        [controllerView setBackgroundColor:[UIColor clearColor]];
         [controllerView setFrame:[self bounds]];
         [self addSubview:controllerView];
         
         controller.delegate = [self proxy];
+        
+        [self setCenterView_:[[[UIViewController alloc] init] autorelease]];
         
         [controller setAnchorLeftPeekAmount:40.0f];
         [controller setAnchorRightPeekAmount:40.0f];
@@ -108,14 +112,38 @@
 
 -(void)setCenterView_:(id)args
 {
-    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
-    ENSURE_UI_THREAD(setCenterView_,args);
-    
-	RELEASE_TO_NIL(centerView);
-    centerView = [[self proxyWithControllerFromProxy:args] retain];
-    UIViewController* ctlr = [self controllerForViewProxy:centerView];
+    UIViewController* ctlr;
+    if ([args isKindOfClass:[UIViewController class]]) {
+        ctlr = args;
+    }
+    else {
+        ENSURE_TYPE_OR_NIL(args,TiViewProxy);
+        ENSURE_UI_THREAD(setCenterView_,args);
+        
+        RELEASE_TO_NIL(centerView);
+        centerView = [[self proxyWithControllerFromProxy:args] retain];
+        ctlr = [self controllerForViewProxy:centerView];
+    }
     
     [[ctlr view] setFrame:[self bounds]];
+    
+    if ([self controller].topViewController) {
+        UIViewController * localcontroller = [self controller].topViewController;
+        [localcontroller.view removeGestureRecognizer:[self controller].panGesture];
+        if ([localcontroller isKindOfClass:[UINavigationController class]])
+            [((UINavigationController*)localcontroller).navigationBar addGestureRecognizer:[self controller].panGesture];
+        else
+            [localcontroller.navigationController.navigationBar addGestureRecognizer:[self controller].panGesture];
+    }
+    else {
+        UIViewController * localcontroller = [self controller];
+        [localcontroller.view removeGestureRecognizer:[self controller].panGesture];
+        if ([localcontroller isKindOfClass:[UINavigationController class]])
+            [((UINavigationController*)localcontroller).navigationBar removeGestureRecognizer:[self controller].panGesture];
+        else
+            [localcontroller.navigationController.navigationBar removeGestureRecognizer:[self controller].panGesture];
+
+    }
     [self controller].topViewController = ctlr;
     
     [self updatePanningMode];
@@ -185,19 +213,17 @@
 
 -(void) updatePanningMode
 {
-    if (![self controller].topViewController) return;
-    [[self controller].topViewController.view removeGestureRecognizer:[self controller].panGesture];
-    UIViewController* localcontroller = [self controller].topViewController;
-    if ([localcontroller isKindOfClass:[UINavigationController class]])
-        [((UINavigationController*)localcontroller).navigationBar removeGestureRecognizer:[self controller].panGesture];
-    else
-        [localcontroller.navigationController.navigationBar removeGestureRecognizer:[self controller].panGesture];
+    UIViewController* localcontroller = nil;
+    ;
+    if ([self controller].topViewController) localcontroller = [self controller].topViewController;
+    else localcontroller = [self controller];
+
     [self controller].grabbableBorderAmount = -1.0f;
     if (panningMode != PanningModeNone)
     {
         if (panningMode == PanningModeBorders)
         {
-            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
             [self controller].grabbableBorderAmount = 50.0f;
         }
         else if (panningMode == PanningModeNavBar)
@@ -209,11 +235,11 @@
         }
         else if (panningMode == PanningModeFullscreen)
         {
-            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
         }
         else if (panningMode == PanningModeNonScrollView)
         {
-            [[self controller].topViewController.view addGestureRecognizer:[self controller].panGesture];
+            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
             [self controller].disableOnScrollView = YES;
         }
     }
