@@ -293,7 +293,7 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			
 			toRemove.setFragmentAnimEndListener(this);
 			FragmentTransaction transaction = getFragmentManager().beginTransaction();
-			transaction.setCustomAnimations(anim.out.first, anim.out.second, anim.in.first, anim.in.second);
+			transaction.setCustomAnimations(anim.out.first, anim.out.second);
 			transaction.replace(getContainerId(), winToFocus.getFragment());
 			transaction.commit();
 			
@@ -412,20 +412,24 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	
 	
 	@Override
-	public void setActivity(Activity newActivity)
+	public void setActivity(Activity activity)
 	{
-		if (this.activity != null) {
-			TiBaseActivity activity = (TiBaseActivity) getActivity();
-			activity.removeOnLifecycleEventListener(this);
-			activity.removeInterceptOnBackPressedEventListener(this);
-			activity.removeInterceptOnHomePressedEventListener(this);
+		TiBaseActivity oldActivity = (TiBaseActivity) getActivity();
+		TiBaseActivity newActivity = (TiBaseActivity) activity;
+		
+		if (newActivity == oldActivity) return;
+		super.setActivity(activity);
+		
+		if (oldActivity != null) {
+			oldActivity.removeOnLifecycleEventListener(this);
+			oldActivity.removeInterceptOnBackPressedEventListener(this);
+			oldActivity.removeInterceptOnHomePressedEventListener(this);
 		}
-		super.setActivity(newActivity);
+		
 		if (newActivity != null) {
-			TiBaseActivity activity = (TiBaseActivity) getActivity();
-			activity.addOnLifecycleEventListener(this);
-			activity.addInterceptOnBackPressedEventListener(this);
-			activity.addInterceptOnHomePressedEventListener(this);
+			newActivity.addOnLifecycleEventListener(this);
+			newActivity.addInterceptOnBackPressedEventListener(this);
+			newActivity.addInterceptOnHomePressedEventListener(this);
 		}
 	}
 
@@ -636,6 +640,8 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 		if (isFirst) {
 			transaction.add(getContainerId(), fragment);
 			pushing = false;
+			transaction.commit();
+			getFragmentManager().executePendingTransactions();
 		}
 		else {
 			proxy.setWindowManager(this);
@@ -644,8 +650,8 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			addWindow(proxy, anim);
 			transaction.setCustomAnimations(anim.in.first, anim.in.second);
 			transaction.replace(getContainerId(), fragment);
+			transaction.commit();
 		}
-		transaction.commit();
 		
 		
 		TiBaseActivity activity = (TiBaseActivity) getActivity();
