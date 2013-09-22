@@ -96,7 +96,21 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		baseMatrix = new Matrix();
 		changeMatrix = new Matrix();
 
-		imageView = new ImageView(context);
+		imageView = new ImageView(context) {
+			@Override
+			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+				Drawable drawable  = imageView.getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    imageView.setImageDrawable(null); 
+			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    imageView.setImageDrawable(drawable);
+			}
+		};
 		addView(imageView);
 		setEnableScale(true);
 
@@ -243,8 +257,22 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 //			setImageDrawableWithFade(imageView, drawable);
 //		}
 //		else {
-			imageView.setImageDrawable(drawable);
+//			imageView.setImageDrawable(drawable);
 //		}
+			
+			if (! (drawable instanceof SVGDrawable)) {
+				imageView.setImageDrawable(drawable);
+				return;
+			}
+			if (imageView.getDrawable() == drawable) {
+				return;
+			}
+			SVGDrawable svg = (SVGDrawable) drawable;
+			svg.setScaleType(imageView.getScaleType());
+	        int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+	        int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			svg.adjustToParentSize(vWidth, vHeight);
+			imageView.setImageDrawable(svg);
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -511,24 +539,39 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	{
 		imageView.setColorFilter(filter);
 	}
+	
+	public void setScaleType (ScaleType scaleType) {
+		imageView.setScaleType(scaleType);
+	    Drawable drawable  = imageView.getDrawable(); 
+		
+	    if (!(drawable instanceof SVGDrawable)) {
+	        return;
+	    } 
+	    imageView.setImageDrawable(null); 
+	    ((SVGDrawable)drawable).setScaleType(scaleType);
+	    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+	    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+	    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+	    imageView.setImageDrawable(drawable);
+	} 
 
 	private void updateScaleType()
 	{
 		if (!configured) return;
 		if (orientation > 0 || enableZoomControls) {
-			imageView.setScaleType(ScaleType.MATRIX);
+			setScaleType(ScaleType.MATRIX);
 			imageView.setAdjustViewBounds(false);
 		} else {
 			if (viewWidthDefined && viewHeightDefined) {
 				imageView.setAdjustViewBounds(false);
-				imageView.setScaleType(wantedScaleType);
+				setScaleType(wantedScaleType);
 			}
 			else if(!enableScale) {
 				imageView.setAdjustViewBounds(false);
-				imageView.setScaleType(ScaleType.CENTER);
+				setScaleType(ScaleType.CENTER);
 			} else {
 				imageView.setAdjustViewBounds(true);
-				imageView.setScaleType(ScaleType.FIT_CENTER);
+				setScaleType(ScaleType.FIT_CENTER);
 			}
 		}
 		if (readyToLayout) requestLayout();

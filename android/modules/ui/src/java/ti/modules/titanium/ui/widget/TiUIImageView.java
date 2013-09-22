@@ -915,6 +915,10 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			view.setAnimateTransition(!localLoadSync);
 		}
 		
+		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
+			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
+		}
+		
 		if (d.containsKey(TiC.PROPERTY_IMAGE)) {
 			// processProperties is also called from TableView, we need check if we changed before re-creating the
 			// bitmap
@@ -947,9 +951,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 			}
 		}
 
-		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
-			setWantedScaleType(TiConvert.toInt(d, TiC.PROPERTY_SCALE_TYPE));
-		}
+		
 		if (d.containsKey(TiC.PROPERTY_IMAGE_MASK)) {
 			setImageMask(d.get(TiC.PROPERTY_IMAGE_MASK));
 		}
@@ -1079,7 +1081,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 					
 				}
 				else if (drawable instanceof SVGDrawable) {
-					bitmap =  ((SVGDrawable) drawable).toBitmap();
+					bitmap =  ((SVGDrawable) drawable).getBitmap();
 				}
 				return bitmap == null ? null : TiBlob.blobFromImage(bitmap);
 			}
