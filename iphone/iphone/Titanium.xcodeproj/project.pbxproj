@@ -911,9 +911,6 @@
 		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
-		D5ADB11317F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
-		D5ADB11417F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
-		D5ADB11517F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
 		D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
@@ -995,6 +992,9 @@
 		D5CD8CB017CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
+		D5DFBB1717F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5DFBB1817F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5DFBB1917F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		D5E7977617B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
 		D5E7977717B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
 		D5E7977817B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
@@ -2437,8 +2437,6 @@
 		D599484B16DE7CA10080836F /* TiUISlideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenu.m; sourceTree = "<group>"; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
-		D5ADB11117F08820004550AF /* ADIOS7Transition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADIOS7Transition.h; sourceTree = "<group>"; };
-		D5ADB11217F08820004550AF /* ADIOS7Transition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADIOS7Transition.m; sourceTree = "<group>"; };
 		D5B891EC17CB4EF900B9C8CF /* TiShapeEllipseProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeEllipseProxy.h; sourceTree = "<group>"; };
 		D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeEllipseProxy.m; sourceTree = "<group>"; };
 		D5B891F117CB510700B9C8CF /* TiShapeLineProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeLineProxy.h; sourceTree = "<group>"; };
@@ -2493,6 +2491,8 @@
 		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
 		D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapePieSliceProxy.m; sourceTree = "<group>"; };
+		D5DFBB1517F09F1F003B58E0 /* ADIOS7Transition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADIOS7Transition.h; path = ../Classes/ADTransitionController/ADIOS7Transition.h; sourceTree = "<group>"; };
+		D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADIOS7Transition.m; path = ../Classes/ADTransitionController/ADIOS7Transition.m; sourceTree = "<group>"; };
 		D5E7977417B61EFC00F1D088 /* ShapeModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShapeModule.h; sourceTree = "<group>"; };
 		D5E7977517B61EFC00F1D088 /* ShapeModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ShapeModule.m; sourceTree = "<group>"; };
 		D5E7977917B61F4600F1D088 /* ShapeProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShapeProxy.h; sourceTree = "<group>"; };
@@ -4605,8 +4605,8 @@
 				D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */,
 				D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */,
 				D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */,
-				D5ADB11117F08820004550AF /* ADIOS7Transition.h */,
-				D5ADB11217F08820004550AF /* ADIOS7Transition.m */,
+				D5DFBB1517F09F1F003B58E0 /* ADIOS7Transition.h */,
+				D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */,
 			);
 			name = ADTransitionController;
 			sourceTree = "<group>";
@@ -4991,6 +4991,7 @@
 				24CA8B97111161FE0084E2DE /* TiUIOptionDialogProxy.m in Sources */,
 				24CA8B98111161FE0084E2DE /* TiUINavBarButton.m in Sources */,
 				D5C06C1F17C7D8F700FA0E98 /* TiUIHelper.m in Sources */,
+				D5DFBB1717F09F1F003B58E0 /* ADIOS7Transition.m in Sources */,
 				24CA8B99111161FE0084E2DE /* TiUILabelOldProxy.m in Sources */,
 				24CA8B9A111161FE0084E2DE /* TiUILabelOld.m in Sources */,
 				24CA8B9B111161FE0084E2DE /* TiUIiPhoneProxy.m in Sources */,
@@ -5006,7 +5007,6 @@
 				24CA8BAB111161FE0084E2DE /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24CA8BAC111161FE0084E2DE /* TiUIAlertDialogProxy.m in Sources */,
 				24CA8BAD111161FE0084E2DE /* TiUIActivityIndicatorStyleProxy.m in Sources */,
-				D5ADB11317F08820004550AF /* ADIOS7Transition.m in Sources */,
 				24CA8BAE111161FE0084E2DE /* TiUIActivityIndicatorProxy.m in Sources */,
 				24CA8BAF111161FE0084E2DE /* TiUIActivityIndicator.m in Sources */,
 				24CA8BB5111161FE0084E2DE /* TiRect.m in Sources */,
@@ -5413,6 +5413,7 @@
 				24D8E40D119B9D8A00F8CAA6 /* TiUIiPhoneRowAnimationStyleProxy.m in Sources */,
 				24D8E40E119B9D8A00F8CAA6 /* TiUIiPhoneProgressBarStyleProxy.m in Sources */,
 				D5C06C2017C7D8F700FA0E98 /* TiUIHelper.m in Sources */,
+				D5DFBB1817F09F1F003B58E0 /* ADIOS7Transition.m in Sources */,
 				24D8E40F119B9D8A00F8CAA6 /* TiUIProgressBarProxy.m in Sources */,
 				24D8E410119B9D8A00F8CAA6 /* TiUIProgressBar.m in Sources */,
 				24D8E411119B9D8A00F8CAA6 /* TiUIOptionDialogProxy.m in Sources */,
@@ -5428,7 +5429,6 @@
 				24D8E41D119B9D8A00F8CAA6 /* TiUIButtonProxy.m in Sources */,
 				24D8E41E119B9D8A00F8CAA6 /* TiUIButtonBarProxy.m in Sources */,
 				24D8E41F119B9D8A00F8CAA6 /* TiUIButtonBar.m in Sources */,
-				D5ADB11417F08820004550AF /* ADIOS7Transition.m in Sources */,
 				24D8E420119B9D8A00F8CAA6 /* TiUIButton.m in Sources */,
 				24D8E421119B9D8A00F8CAA6 /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24D8E422119B9D8A00F8CAA6 /* TiUIAlertDialogProxy.m in Sources */,
@@ -5835,6 +5835,7 @@
 				DABB36E812E8CB280026A6EA /* TiUIiPhoneRowAnimationStyleProxy.m in Sources */,
 				DABB36E912E8CB280026A6EA /* TiUIiPhoneProgressBarStyleProxy.m in Sources */,
 				D5C06C2117C7D8F700FA0E98 /* TiUIHelper.m in Sources */,
+				D5DFBB1917F09F1F003B58E0 /* ADIOS7Transition.m in Sources */,
 				DABB36EA12E8CB280026A6EA /* TiUIProgressBarProxy.m in Sources */,
 				DABB36EB12E8CB280026A6EA /* TiUIProgressBar.m in Sources */,
 				DABB36EC12E8CB280026A6EA /* TiUIOptionDialogProxy.m in Sources */,
@@ -5850,7 +5851,6 @@
 				DABB36F812E8CB280026A6EA /* TiUIButtonProxy.m in Sources */,
 				DABB36F912E8CB280026A6EA /* TiUIButtonBarProxy.m in Sources */,
 				DABB36FA12E8CB280026A6EA /* TiUIButtonBar.m in Sources */,
-				D5ADB11517F08820004550AF /* ADIOS7Transition.m in Sources */,
 				DABB36FB12E8CB280026A6EA /* TiUIButton.m in Sources */,
 				DABB36FC12E8CB280026A6EA /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				DABB36FD12E8CB280026A6EA /* TiUIAlertDialogProxy.m in Sources */,
