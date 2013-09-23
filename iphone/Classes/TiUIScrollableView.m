@@ -257,8 +257,11 @@
 {
 	int result = currentPage;
     if (scrollview != nil) {
-        float nextPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
-        result = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
+        CGSize scrollFrame = [self bounds].size;
+        if (scrollFrame.width != 0 && scrollFrame.height != 0) {
+            float nextPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
+            result = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
+        }
     }
     [pageControl setCurrentPage:result];
     return result;
