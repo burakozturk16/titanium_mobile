@@ -1481,7 +1481,7 @@ DEFINE_EXCEPTIONS
     
     UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
-        [self setHighlighted:YES];
+        [self setBgState:UIControlStateSelected];
     }
 	
 	if (handlesTouches)
@@ -1512,7 +1512,7 @@ DEFINE_EXCEPTIONS
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
     if (_shouldHandleSelection) {
-        [self setHighlighted:!outside];
+        [self setBgState:!outside?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     }
 	if (handlesTouches)
 	{
@@ -1535,7 +1535,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setHighlighted:NO];
+        [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     }
 	if (handlesTouches)
 	{
@@ -1574,7 +1574,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setHighlighted:NO];
+    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
