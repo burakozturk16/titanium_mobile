@@ -1004,7 +1004,7 @@ DEFINE_EXCEPTIONS
 	}
 }
 
--(void)notifyRequest:(ImageLoaderRequest*) request imageCompleted:(UIImage*)image
+-(void)notifyRequest:(ImageLoaderRequest*) request imageCompleted:(id)image
 {
 	[[request delegate] imageLoadSuccess:request image:image];
 	[request setRequest:nil];
@@ -1013,9 +1013,9 @@ DEFINE_EXCEPTIONS
 -(void)doImageLoader:(ImageLoaderRequest*)request
 {
 	NSURL *url = [request url];
-    UIImage *image = nil;
+    id image = nil;
     if ([TiUtils isSVG:url]) {
-        image = [[self svgEntryForKey:url] imageForSize:[request imageSize]];
+        image = [[self svgEntryForKey:url] svgImage];
     }
 	else {
         image = [[self entryForKey:url] imageForSize:[request imageSize]];

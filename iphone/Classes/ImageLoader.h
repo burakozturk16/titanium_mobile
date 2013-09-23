@@ -31,7 +31,7 @@ typedef enum {
  @param request The load request.
  @param image The loaded image.
  */
--(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(UIImage*)image;
+-(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image;
 
 /**
  Tells the delegate that the image load request failed.

@@ -217,7 +217,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	}
 }
 
--(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(UIImage*)image
+-(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
 	if (request != urlRequest)
 	{

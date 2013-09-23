@@ -46,7 +46,7 @@
 -(void)stop;
 -(void)pause;
 -(void)resume;
--(UIImage*)getUIImage;
+-(id)getImage;
 
 -(void)setImage_:(id)arg;
 

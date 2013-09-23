@@ -17,6 +17,7 @@
 #import "TiFile.h"
 #import "UIImage+Resize.h"
 #import "TiUIImageViewProxy.h"
+#import "SVGKImage.h"
 
 #define IMAGEVIEW_DEBUG 0
 
@@ -25,6 +26,7 @@
 @interface TiUIImageView()
 {
     CGFloat animationDuration;
+    SVGKImage* _svg;
 }
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
@@ -57,6 +59,7 @@ DEFINE_EXCEPTIONS
 	RELEASE_TO_NIL(container);
 	RELEASE_TO_NIL(previous);
 	RELEASE_TO_NIL(imageView);
+	RELEASE_TO_NIL(_svg);
 	[super dealloc];
 }
 
@@ -345,7 +348,7 @@ DEFINE_EXCEPTIONS
 	return [self imageView];
 }
 
--(void)setURLImageOnUIThread:(UIImage*)image
+-(void)setURLImageOnUIThread:(id)image
 {
 	ENSURE_UI_THREAD(setURLImageOnUIThread,image);
 	if (self.proxy==nil)
@@ -355,7 +358,7 @@ DEFINE_EXCEPTIONS
 		return;
 	}
 	UIImageView *iv = [self imageView];
-	iv.image = image;
+	iv.image = [self convertToUIImage:image];
 	if (placeholderLoading)
 	{
 		iv.alpha = 0;
@@ -607,9 +610,9 @@ DEFINE_EXCEPTIONS
 	return container;
 }
 
--(UIImage*)convertToUIImage:(id)arg
+-(id)convertToUIImage:(id)arg
 {
-    UIImage *image = nil;
+    UIImage* image = nil;
 	
     if ([arg isKindOfClass:[TiBlob class]]) {
         TiBlob *blob = (TiBlob*)arg;
@@ -624,17 +627,22 @@ DEFINE_EXCEPTIONS
 		// called within this class
         image = (UIImage*)arg; 
     }
-	
-    UIImage *imageToUse = [self rotatedImage:image];
+    else if ([arg isKindOfClass:[SVGKImage class]]) {
+        _svg = [arg retain];
+		// called within this class
+//        image = _svg ;
+    }
+	if ([image isKindOfClass:[UIImage class]])
+        image = [self rotatedImage:image];
     
-    if (imageToUse != nil) {
-        autoHeight = imageToUse.size.height;
-        autoWidth = imageToUse.size.width;
+    if (image != nil) {
+        autoHeight = image.size.height;
+        autoWidth = image.size.width;
     }
     else {
         autoHeight = autoWidth = 0;
     }
-    return imageToUse;
+    return image;
 }
 
 #pragma mark Public APIs
@@ -725,26 +733,26 @@ DEFINE_EXCEPTIONS
 	localLoadSync = [TiUtils boolValue:arg];
 }
 
--(UIImage*)getUIImage {
-    return [self imageView].image;
+-(id)getImage {
+    return [[self imageView] image];
 }
 
 -(void)setImage_:(id)arg
 {
 	id currentImage = [self.proxy valueForUndefinedKey:@"image"];
 	
-	UIImageView *imageview = [self imageView];
+	id imageview = [self imageView];
 	
 	[self removeAllImagesFromContainer];
 	[self cancelPendingImageLoads];
 	
-	if (arg==nil || arg==imageview.image || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
+	if (arg==nil || arg==[imageview image] || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
 	{
 		return;
 	}
 	
 	BOOL replaceProperty = YES;
-	UIImage *image = nil;
+	id image = nil;
     NSURL* imageURL = nil;
     
     if (localLoadSync || ![arg isKindOfClass:[NSString class]])
@@ -780,7 +788,7 @@ DEFINE_EXCEPTIONS
 	
 	if (imageView!=nil)
 	{
-		imageView.image = nil;
+		[imageView setImage:nil];
 	}
 	
 	// remove any existing images
@@ -862,12 +870,14 @@ DEFINE_EXCEPTIONS
 
 #pragma mark ImageLoader delegates
 
--(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(UIImage*)image
+-(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
-    UIImage *imageToUse = [self rotatedImage:image];
+    id imageToUse = image;
+    if ([imageToUse isKindOfClass:[UIImage class]])
+        imageToUse = [self rotatedImage:image];
 
-    autoWidth = imageToUse.size.width;
-    autoHeight = imageToUse.size.height;
+    autoWidth = [imageToUse size].width;
+    autoHeight = [imageToUse size].height;
     
     //Setting hires to true causes image to de displayed at 50%
     if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]]) {
