@@ -920,9 +920,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                     break;
             }
             
-            textRect.origin.y += yOffset;
+            rect.origin.y = textRect.origin.y + yOffset;
+            rect.size.height = textRect.size.height;
         }
-        [super drawTextInRect:textRect];
+        [super drawTextInRect:rect];
         return;
     }
         
