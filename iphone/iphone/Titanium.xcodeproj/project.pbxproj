@@ -887,12 +887,6 @@
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
-		D585BBCF17E62E700062275E /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D585BBCE17E62E700062275E /* ImageModule.m */; };
-		D585BBD017E62E700062275E /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D585BBCE17E62E700062275E /* ImageModule.m */; };
-		D585BBD117E62E700062275E /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D585BBCE17E62E700062275E /* ImageModule.m */; };
-		D585BC8117E6302E0062275E /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8017E6302E0062275E /* libGPUImage.a */; };
-		D585BC8217E6302E0062275E /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8017E6302E0062275E /* libGPUImage.a */; };
-		D585BC8317E6302E0062275E /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8017E6302E0062275E /* libGPUImage.a */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -992,6 +986,9 @@
 		D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
+		D5C8C9AD17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
+		D5C8C9AE17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
+		D5C8C9AF17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
 		D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
@@ -2267,8 +2264,6 @@
 		D56915D3168F538F00C3F89F /* TTTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TTTAttributedLabel.h; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.h; sourceTree = "<group>"; };
 		D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TTTAttributedLabel.m; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.m; sourceTree = "<group>"; };
 		D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
-		D585BBCD17E62E700062275E /* ImageModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageModule.h; sourceTree = "<group>"; };
-		D585BBCE17E62E700062275E /* ImageModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageModule.m; sourceTree = "<group>"; };
 		D585BBE117E62F3E0062275E /* GLProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLProgram.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GLProgram.h"; sourceTree = "<group>"; };
 		D585BBE217E62F3E0062275E /* GPUImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImage.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImage.h"; sourceTree = "<group>"; };
 		D585BBE317E62F3E0062275E /* GPUImage3x3ConvolutionFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImage3x3ConvolutionFilter.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImage3x3ConvolutionFilter.h"; sourceTree = "<group>"; };
@@ -2428,7 +2423,6 @@
 		D585BC7D17E62F3E0062275E /* GPUImageWhiteBalanceFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImageWhiteBalanceFilter.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImageWhiteBalanceFilter.h"; sourceTree = "<group>"; };
 		D585BC7E17E62F3E0062275E /* GPUImageXYDerivativeFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImageXYDerivativeFilter.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImageXYDerivativeFilter.h"; sourceTree = "<group>"; };
 		D585BC7F17E62F3E0062275E /* GPUImageZoomBlurFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImageZoomBlurFilter.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImageZoomBlurFilter.h"; sourceTree = "<group>"; };
-		D585BC8017E6302E0062275E /* libGPUImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGPUImage.a; path = ../lib/libGPUImage.a; sourceTree = "<group>"; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		D5908158168B593B00362307 /* TiUIHorizontalTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIHorizontalTableView.m; sourceTree = "<group>"; };
@@ -2493,6 +2487,8 @@
 		D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIViewController+ADTransitionController.m"; path = "../Classes/ADTransitionController/UIViewController+ADTransitionController.m"; sourceTree = "<group>"; };
 		D5C8C9A617EF5E6D00F54C19 /* TiUITransitionStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUITransitionStyleProxy.h; sourceTree = "<group>"; };
 		D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUITransitionStyleProxy.m; sourceTree = "<group>"; };
+		D5C8C9AB17EF619400F54C19 /* SVGImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGImageView.h; sourceTree = "<group>"; };
+		D5C8C9AC17EF619400F54C19 /* SVGImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGImageView.m; sourceTree = "<group>"; };
 		D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
 		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
@@ -2605,7 +2601,6 @@
 				24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */,
 				24CA8C86111167B60084E2DE /* OpenGLES.framework in Frameworks */,
 				24CA8C88111167B60084E2DE /* QuartzCore.framework in Frameworks */,
-				D585BC8117E6302E0062275E /* libGPUImage.a in Frameworks */,
 				24CA8C8A111167B60084E2DE /* SystemConfiguration.framework in Frameworks */,
 				24CA8C8E111167B60084E2DE /* libsqlite3.dylib in Frameworks */,
 				24CA8C90111167B60084E2DE /* libz.dylib in Frameworks */,
@@ -2632,7 +2627,6 @@
 				D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */,
 				D93DAA6B16CBFD6400AD64C9 /* EventKit.framework in Frameworks */,
 				D93DAA6C16CBFD6400AD64C9 /* EventKitUI.framework in Frameworks */,
-				D585BC8217E6302E0062275E /* libGPUImage.a in Frameworks */,
 				D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */,
 				D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */,
 				D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */,
@@ -2692,7 +2686,6 @@
 				DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */,
 				DABB37AB12E8CB280026A6EA /* MobileCoreServices.framework in Frameworks */,
 				DABB37AC12E8CB280026A6EA /* OpenGLES.framework in Frameworks */,
-				D585BC8317E6302E0062275E /* libGPUImage.a in Frameworks */,
 				DABB37AD12E8CB280026A6EA /* QuartzCore.framework in Frameworks */,
 				DABB37AE12E8CB280026A6EA /* SystemConfiguration.framework in Frameworks */,
 				DABB37AF12E8CB280026A6EA /* libsqlite3.dylib in Frameworks */,
@@ -2979,7 +2972,6 @@
 			isa = PBXGroup;
 			children = (
 				D5E7977317B61ED200F1D088 /* Shape */,
-				D5E0D00C179916C300BA7272 /* Image */,
 				D93DAA4C16CBF8A000AD64C9 /* Calendar */,
 				24F6204D1199F1F400EEAD3C /* TopTiModule.h */,
 				24F6204E1199F1F400EEAD3C /* TopTiModule.m */,
@@ -3381,6 +3373,8 @@
 				24C012881140D30B00A94CE2 /* TiUIMaskedImageProxy.m */,
 				24C0128D1140D31C00A94CE2 /* TiUIMaskedImage.h */,
 				24C0128E1140D31C00A94CE2 /* TiUIMaskedImage.m */,
+				D5C8C9AB17EF619400F54C19 /* SVGImageView.h */,
+				D5C8C9AC17EF619400F54C19 /* SVGImageView.m */,
 			);
 			name = ImageView;
 			sourceTree = "<group>";
@@ -4617,16 +4611,6 @@
 			name = ADTransitionController;
 			sourceTree = "<group>";
 		};
-		D5E0D00C179916C300BA7272 /* Image */ = {
-			isa = PBXGroup;
-			children = (
-				D585BC8017E6302E0062275E /* libGPUImage.a */,
-				D585BBCD17E62E700062275E /* ImageModule.h */,
-				D585BBCE17E62E700062275E /* ImageModule.m */,
-			);
-			name = Image;
-			sourceTree = "<group>";
-		};
 		D5E7977317B61ED200F1D088 /* Shape */ = {
 			isa = PBXGroup;
 			children = (
@@ -5055,7 +5039,6 @@
 				24CA8BCF111161FE0084E2DE /* TiBase.m in Sources */,
 				24CA8BD0111161FE0084E2DE /* TiAppPropertiesProxy.m in Sources */,
 				24CA8BD1111161FE0084E2DE /* TiAnimation.m in Sources */,
-				D585BBCF17E62E700062275E /* ImageModule.m in Sources */,
 				24CA8BD2111161FE0084E2DE /* TiAction.m in Sources */,
 				24CA8BD4111161FE0084E2DE /* Ti2DMatrix.m in Sources */,
 				24CA8BD9111161FE0084E2DE /* TiPlatformDisplayCaps.m in Sources */,
@@ -5206,6 +5189,7 @@
 				DAA72343156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8115901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0C15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
+				D5C8C9AD17EF619400F54C19 /* SVGImageView.m in Sources */,
 				4688700715E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				D5FF95BA1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */,
 				1D1029A815F9769200372EC0 /* TiBindingEvent.m in Sources */,
@@ -5477,7 +5461,6 @@
 				24D8E43B119B9D8A00F8CAA6 /* TiComplexValue.m in Sources */,
 				24D8E43C119B9D8A00F8CAA6 /* TiColor.m in Sources */,
 				24D8E43D119B9D8A00F8CAA6 /* TiButtonUtil.m in Sources */,
-				D585BBD017E62E700062275E /* ImageModule.m in Sources */,
 				24D8E43E119B9D8A00F8CAA6 /* TiBlob.m in Sources */,
 				24D8E43F119B9D8A00F8CAA6 /* TiBase.m in Sources */,
 				24D8E440119B9D8A00F8CAA6 /* TiAppPropertiesProxy.m in Sources */,
@@ -5628,6 +5611,7 @@
 				2BDEA4F514490546004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F7F14883A3700F5424C /* TiDOMValidator.m in Sources */,
 				DAA72344156D642400757987 /* TiConsole.m in Sources */,
+				D5C8C9AE17EF619400F54C19 /* SVGImageView.m in Sources */,
 				2B353A8215901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0D15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
 				4688700815E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
@@ -5899,7 +5883,6 @@
 				DABB371412E8CB280026A6EA /* TiComplexValue.m in Sources */,
 				DABB371512E8CB280026A6EA /* TiColor.m in Sources */,
 				DABB371612E8CB280026A6EA /* TiButtonUtil.m in Sources */,
-				D585BBD117E62E700062275E /* ImageModule.m in Sources */,
 				DABB371712E8CB280026A6EA /* TiBlob.m in Sources */,
 				DABB371812E8CB280026A6EA /* TiBase.m in Sources */,
 				DABB371912E8CB280026A6EA /* TiAppPropertiesProxy.m in Sources */,
@@ -6050,6 +6033,7 @@
 				2BDEA4F614490547004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F8014883A3700F5424C /* TiDOMValidator.m in Sources */,
 				DAA72345156D642400757987 /* TiConsole.m in Sources */,
+				D5C8C9AF17EF619400F54C19 /* SVGImageView.m in Sources */,
 				2B353A8315901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0E15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
 				4688700915E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
@@ -6206,13 +6190,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"\\\\\\\"$(SRCROOT)/../Classes/CorePlot\\\\\\\"",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6248,13 +6225,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-weak_framework",
@@ -6282,13 +6252,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6318,13 +6281,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6372,6 +6328,12 @@
 					"${BUILT_PRODUCTS_DIR}/include/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
+				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6413,6 +6375,12 @@
 					"${BUILT_PRODUCTS_DIR}/include/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
+				);
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
 				PROVISIONING_PROFILE = "";
@@ -6451,6 +6419,12 @@
 					"${BUILT_PRODUCTS_DIR}/include/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../lib\"",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
+				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6479,13 +6453,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6522,13 +6489,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6560,13 +6520,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6604,13 +6557,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6646,13 +6592,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\\\\\\\"$(SRCROOT)/../lib\\\\\\\"",
-					"/Volumes/data/dev/ios/GPUImage/build/Release-iphone/lib",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
