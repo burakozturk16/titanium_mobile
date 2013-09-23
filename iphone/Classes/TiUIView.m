@@ -410,6 +410,14 @@ DEFINE_EXCEPTIONS
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    
+    if (_bgLayer) {
+        _bgLayer.frame = bounds;
+    }
+    if (self.layer.mask != nil) {
+        [self.layer.mask setFrame:bounds];
+    }
+    [self updateTransform];
     [self updateViewShadowPath];
 }
 
@@ -431,31 +439,29 @@ DEFINE_EXCEPTIONS
 }
 
 
+-(void)updateBounds:(CGRect)newBounds
+{
+    //TIMOB-11197, TC-1264
+    [CATransaction begin];
+    if (!animating) {
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+    }
+    else {
+        [CATransaction setAnimationDuration:[animation animationDuration]];
+        [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
+    }
+    
+    [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
+    [CATransaction commit];
+}
+
+
 -(void)checkBounds
 {
     CGRect newBounds = [self bounds];
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
+        [self updateBounds:newBounds];
         oldSize = newBounds.size;
-        //TIMOB-11197, TC-1264
-        [CATransaction begin];
-        if (!animating) {
-            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-        }
-        else {
-            [CATransaction setAnimationDuration:[animation animationDuration]];
-            [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
-        }
-        
-        if (_bgLayer) {
-            _bgLayer.frame = newBounds;
-        }
-        if (self.layer.mask != nil) {
-            [self.layer.mask setFrame:newBounds];
-        }
-        [self updateTransform];
-        
-        [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
-        [CATransaction commit];
     }
 }
 

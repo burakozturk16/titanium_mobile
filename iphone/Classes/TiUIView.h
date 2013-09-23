@@ -247,6 +247,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 @property(nonatomic,assign) BOOL animateBgdTransition;
 
 -(void)checkBounds;
+-(void)updateBounds:(CGRect)newBounds;
 
 -(BOOL)clipChildren;
 -(void)updateViewShadowPath;
