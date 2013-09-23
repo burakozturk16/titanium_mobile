@@ -98,8 +98,8 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FIT = 1; //ImageView.ScaleType.FIT_CENTER
 	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FILL = 2; //ImageView.ScaleType.CENTER_CROP
 	@Kroll.constant public static final int SCALE_TYPE_CENTER = 3; //ImageView.ScaleType.CENTER
-	@Kroll.constant public static final int SCALE_TYPE_TOPLEFT = 4; //ImageView.ScaleType.FIT_START
-	@Kroll.constant public static final int SCALE_TYPE_BOTTOMRIGHT = 5; //ImageView.ScaleType.FIT_END
+	@Kroll.constant public static final int SCALE_TYPE_LEFT = 4; //ImageView.ScaleType.FIT_START
+	@Kroll.constant public static final int SCALE_TYPE_RIGHT = 5; //ImageView.ScaleType.FIT_END
 
 	@Kroll.constant public static final int TABLEVIEW_POSITION_ANY = 0;
 	@Kroll.constant public static final int TABLEVIEW_POSITION_TOP = 1;
