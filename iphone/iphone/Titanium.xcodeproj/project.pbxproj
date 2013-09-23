@@ -911,6 +911,9 @@
 		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
+		D5ADB11317F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
+		D5ADB11417F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
+		D5ADB11517F08820004550AF /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5ADB11217F08820004550AF /* ADIOS7Transition.m */; };
 		D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
@@ -986,9 +989,6 @@
 		D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
-		D5C8C9AD17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
-		D5C8C9AE17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
-		D5C8C9AF17EF619400F54C19 /* SVGImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9AC17EF619400F54C19 /* SVGImageView.m */; };
 		D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
@@ -2437,6 +2437,8 @@
 		D599484B16DE7CA10080836F /* TiUISlideMenu.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenu.m; sourceTree = "<group>"; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
+		D5ADB11117F08820004550AF /* ADIOS7Transition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ADIOS7Transition.h; sourceTree = "<group>"; };
+		D5ADB11217F08820004550AF /* ADIOS7Transition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ADIOS7Transition.m; sourceTree = "<group>"; };
 		D5B891EC17CB4EF900B9C8CF /* TiShapeEllipseProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeEllipseProxy.h; sourceTree = "<group>"; };
 		D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeEllipseProxy.m; sourceTree = "<group>"; };
 		D5B891F117CB510700B9C8CF /* TiShapeLineProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeLineProxy.h; sourceTree = "<group>"; };
@@ -2487,8 +2489,6 @@
 		D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIViewController+ADTransitionController.m"; path = "../Classes/ADTransitionController/UIViewController+ADTransitionController.m"; sourceTree = "<group>"; };
 		D5C8C9A617EF5E6D00F54C19 /* TiUITransitionStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUITransitionStyleProxy.h; sourceTree = "<group>"; };
 		D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUITransitionStyleProxy.m; sourceTree = "<group>"; };
-		D5C8C9AB17EF619400F54C19 /* SVGImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SVGImageView.h; sourceTree = "<group>"; };
-		D5C8C9AC17EF619400F54C19 /* SVGImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SVGImageView.m; sourceTree = "<group>"; };
 		D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
 		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
@@ -3373,8 +3373,6 @@
 				24C012881140D30B00A94CE2 /* TiUIMaskedImageProxy.m */,
 				24C0128D1140D31C00A94CE2 /* TiUIMaskedImage.h */,
 				24C0128E1140D31C00A94CE2 /* TiUIMaskedImage.m */,
-				D5C8C9AB17EF619400F54C19 /* SVGImageView.h */,
-				D5C8C9AC17EF619400F54C19 /* SVGImageView.m */,
 			);
 			name = ImageView;
 			sourceTree = "<group>";
@@ -4607,6 +4605,8 @@
 				D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */,
 				D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */,
 				D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */,
+				D5ADB11117F08820004550AF /* ADIOS7Transition.h */,
+				D5ADB11217F08820004550AF /* ADIOS7Transition.m */,
 			);
 			name = ADTransitionController;
 			sourceTree = "<group>";
@@ -5006,6 +5006,7 @@
 				24CA8BAB111161FE0084E2DE /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24CA8BAC111161FE0084E2DE /* TiUIAlertDialogProxy.m in Sources */,
 				24CA8BAD111161FE0084E2DE /* TiUIActivityIndicatorStyleProxy.m in Sources */,
+				D5ADB11317F08820004550AF /* ADIOS7Transition.m in Sources */,
 				24CA8BAE111161FE0084E2DE /* TiUIActivityIndicatorProxy.m in Sources */,
 				24CA8BAF111161FE0084E2DE /* TiUIActivityIndicator.m in Sources */,
 				24CA8BB5111161FE0084E2DE /* TiRect.m in Sources */,
@@ -5189,7 +5190,6 @@
 				DAA72343156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8115901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0C15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
-				D5C8C9AD17EF619400F54C19 /* SVGImageView.m in Sources */,
 				4688700715E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				D5FF95BA1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */,
 				1D1029A815F9769200372EC0 /* TiBindingEvent.m in Sources */,
@@ -5428,6 +5428,7 @@
 				24D8E41D119B9D8A00F8CAA6 /* TiUIButtonProxy.m in Sources */,
 				24D8E41E119B9D8A00F8CAA6 /* TiUIButtonBarProxy.m in Sources */,
 				24D8E41F119B9D8A00F8CAA6 /* TiUIButtonBar.m in Sources */,
+				D5ADB11417F08820004550AF /* ADIOS7Transition.m in Sources */,
 				24D8E420119B9D8A00F8CAA6 /* TiUIButton.m in Sources */,
 				24D8E421119B9D8A00F8CAA6 /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				24D8E422119B9D8A00F8CAA6 /* TiUIAlertDialogProxy.m in Sources */,
@@ -5611,7 +5612,6 @@
 				2BDEA4F514490546004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F7F14883A3700F5424C /* TiDOMValidator.m in Sources */,
 				DAA72344156D642400757987 /* TiConsole.m in Sources */,
-				D5C8C9AE17EF619400F54C19 /* SVGImageView.m in Sources */,
 				2B353A8215901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0D15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
 				4688700815E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
@@ -5850,6 +5850,7 @@
 				DABB36F812E8CB280026A6EA /* TiUIButtonProxy.m in Sources */,
 				DABB36F912E8CB280026A6EA /* TiUIButtonBarProxy.m in Sources */,
 				DABB36FA12E8CB280026A6EA /* TiUIButtonBar.m in Sources */,
+				D5ADB11517F08820004550AF /* ADIOS7Transition.m in Sources */,
 				DABB36FB12E8CB280026A6EA /* TiUIButton.m in Sources */,
 				DABB36FC12E8CB280026A6EA /* TiUIiPhoneAnimationStyleProxy.m in Sources */,
 				DABB36FD12E8CB280026A6EA /* TiUIAlertDialogProxy.m in Sources */,
@@ -6033,7 +6034,6 @@
 				2BDEA4F614490547004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F8014883A3700F5424C /* TiDOMValidator.m in Sources */,
 				DAA72345156D642400757987 /* TiConsole.m in Sources */,
-				D5C8C9AF17EF619400F54C19 /* SVGImageView.m in Sources */,
 				2B353A8315901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0E15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
 				4688700915E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
