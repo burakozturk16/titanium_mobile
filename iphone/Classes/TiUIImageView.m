@@ -139,6 +139,10 @@ DEFINE_EXCEPTIONS
     if (imageView.layer.mask != nil) {
         [imageView.layer.mask setFrame:bounds];
     }
+    
+    if (_svg != nil) {
+        imageView.image = [self getImageFromSVG:_svg forSize:bounds.size];
+    }
 
 	for (UIView *child in [self subviews])
 	{
@@ -610,9 +614,40 @@ DEFINE_EXCEPTIONS
 	return container;
 }
 
+-(UIImage*)getImageFromSVG:(SVGKImage*)svg forSize:(CGSize)size
+{
+    if (svg == nil || CGSizeEqualToSize(size, CGSizeZero)) return nil;
+    if (_lastSVGImage != nil, CGSizeEqualToSize(size, _lastSVGImage.size)) return _lastSVGImage;
+    CGSize svgSize = [svg hasSize]?[svg size]:size;
+    CGFloat SVGRatio = svgSize.width/svgSize.height;
+    CGSize realSize;
+    if (size.width > size.height) {
+        realSize = CGSizeMake(size.width, size.width / SVGRatio);
+    }
+    else {
+        realSize = CGSizeMake(size.height * SVGRatio, size.height);
+    }
+    float screenScale = [UIScreen mainScreen].scale;
+    realSize.width *= screenScale;
+    realSize.height *= screenScale;
+    UIGraphicsBeginImageContextWithOptions( realSize, FALSE, screenScale );
+	CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGSize scale = CGSizeMake( realSize.width /  svgSize.width, realSize.height / svgSize.height);
+    CGContextScaleCTM( context, scale.width, scale.height );
+    [svg.CALayerTree renderInContext:context];
+	UIImage* result = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+    _lastSVGImage = [result retain];
+	return result;
+}
+
 -(id)convertToUIImage:(id)arg
 {
-    UIImage* image = nil;
+    RELEASE_TO_NIL(_svg);
+    RELEASE_TO_NIL(_lastSVGImage);
+    id image = nil;
+    UIImage* imageToUse = nil;
 	
     if ([arg isKindOfClass:[TiBlob class]]) {
         TiBlob *blob = (TiBlob*)arg;
@@ -630,19 +665,23 @@ DEFINE_EXCEPTIONS
     else if ([arg isKindOfClass:[SVGKImage class]]) {
         _svg = [arg retain];
 		// called within this class
-//        image = _svg ;
+        image = (SVGKImage*)arg;
     }
-	if ([image isKindOfClass:[UIImage class]])
-        image = [self rotatedImage:image];
-    
-    if (image != nil) {
-        autoHeight = image.size.height;
-        autoWidth = image.size.width;
+	if ([image isKindOfClass:[UIImage class]]) {
+        imageToUse = [self rotatedImage:image];
+        autoHeight = imageToUse.size.height;
+        autoWidth = imageToUse.size.width;
+    }
+    else if([image isKindOfClass:[SVGKImage class]]) {
+        autoHeight = _svg.size.height;
+        autoWidth = _svg.size.width;
+        imageToUse = [self getImageFromSVG:_svg forSize:self.bounds.size] ;
     }
     else {
         autoHeight = autoWidth = 0;
     }
-    return image;
+
+    return imageToUse;
 }
 
 #pragma mark Public APIs

@@ -40,6 +40,7 @@
 	UIImageView * imageView;
     UIViewContentMode scaleType;
 	BOOL localLoadSync;
+    UIImage* _lastSVGImage;
 }
 
 -(void)start;
