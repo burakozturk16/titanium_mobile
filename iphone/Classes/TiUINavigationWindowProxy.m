@@ -9,6 +9,7 @@
 #import "TiUINavigationWindowProxy.h"
 #import "TiUINavigationWindow.h"
 #import "TiApp.h"
+#import "ADIOS7Transition.h"
 
 @implementation TiUINavigationWindowProxy
 
@@ -248,15 +249,16 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-    
+    int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
+    [window windowWillOpen];
     if (animated) {
         if ([props objectForKey:@"animationStyle"]) {
-            float duration = [TiUtils floatValue:@"animationDuration" properties:props def:300]/1000;
+            float duration = [TiUtils floatValue:@"animationDuration" properties:props def:defaultDuration]/1000;
             NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
             [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition withDuration:duration]];
         }
         else {
-            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:0.3]];
+            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:defaultDuration/1000]];
         }
     }
     else {
@@ -267,7 +269,7 @@
 -(ADTransition*) defaultTransitionWithDuration:(float)duration
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+        return [[ADIOS7Transition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
     }
     else {
         return [[ADSwipeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
