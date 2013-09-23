@@ -62,8 +62,8 @@
 @property(nonatomic,readonly) NSNumber *SCALE_TYPE_ASPECT_FIT;
 @property(nonatomic,readonly) NSNumber *SCALE_TYPE_ASPECT_FILL;
 @property(nonatomic,readonly) NSNumber *SCALE_TYPE_CENTER;
-@property(nonatomic,readonly) NSNumber *SCALE_TYPE_TOPLEFT;
-@property(nonatomic,readonly) NSNumber *SCALE_TYPE_BOTTOMRIGHT;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_LEFT;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_RIGHT;
 
 @property(nonatomic,readonly) NSNumber *RETURNKEY_DEFAULT;
 @property(nonatomic,readonly) NSNumber *RETURNKEY_GO;
