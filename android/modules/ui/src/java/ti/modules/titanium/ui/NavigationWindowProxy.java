@@ -8,7 +8,6 @@
 package ti.modules.titanium.ui;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -34,32 +33,31 @@ import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.util.TiRHelper;
-import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
-import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiUIFragment;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.Animator.AnimatorListener;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.ValueAnimator;
+
+import ti.module.titanium.ui.transitionstyle.TransitionStyleModule;
+import ti.module.titanium.ui.transitionstyle.TransitionStyleModule.Transition;
 import ti.modules.titanium.ui.widget.TiView;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.util.Pair;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
-import android.os.Bundle;
 import android.view.ViewGroup;
 
 @SuppressLint({ "ValidFragment", "NewApi" })
@@ -70,7 +68,7 @@ import android.view.ViewGroup;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent, TiWindowProxy.FragmentAnimationEndListener
+public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent
 {
 	private static final String TAG = "NavigationWindowProxy";
 	private static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
@@ -83,49 +81,15 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	private static final int MSG_POP = MSG_FIRST_ID + 104;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 	
-	public static class Anim {
-		public int type;
-		public Pair<Integer, Integer> in;
-		public Pair<Integer, Integer> out;
-		public Anim(int type){
-			type = 1;
-			try {
-				in =  inAnimationForType(type);
-				out =  outAnimationForType(type);
-			} catch (ResourceNotFoundException e) {
-				e.printStackTrace();
-			}
-		}
-	};
 	
-	private static Pair<Integer, Integer> pairFromString(String str1, String str2) throws ResourceNotFoundException {
-		return new Pair<Integer, Integer>(TiRHelper.getResource(str1),TiRHelper.getResource(str2));
-	}
 	
-	private static Pair<Integer, Integer> inAnimationForType(int type) throws ResourceNotFoundException {
-		switch (type) {
-		case 1:
-			return pairFromString("anim.card_flip_right_in","anim.card_flip_right_out");
-		default:
-			return pairFromString("anim.slide_in_left","anim.slide_out_right");
-		}
-	}
 	
-	private static Pair<Integer, Integer> outAnimationForType(int type) throws ResourceNotFoundException {
-		switch (type) {
-		case 1:
-			return pairFromString("anim.card_flip_left_in","anim.card_flip_left_out");
-		default:
-			return pairFromString("anim.slide_out_right","anim.slide_in_left");
-		}
-	}
 	
-	private static Anim defaultAnim = new Anim(0);
+	private static int defaultAnim = TransitionStyleModule.CUBE;
 
 	private WeakReference<TiBaseActivity> windowActivity;
-	FragmentManager manager = null;
 	ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
-	HashMap<TiWindowProxy, Anim> animations = new HashMap<TiWindowProxy, Anim>();
+	HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
 
 	public NavigationWindowProxy()
 	{
@@ -224,14 +188,16 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	}
 	
 	private void removeWindow(TiWindowProxy proxy) {
+		proxy.setWindowManager(null);
 		windows.remove(proxy);
 		animations.remove(proxy);
 	}
-	private void addWindow(TiWindowProxy proxy, Anim animation) {
+	private void addWindow(TiWindowProxy proxy, Transition animation) {
 		if (!windows.contains(proxy)) {
+			proxy.setWindowManager(this);
 			windows.add(proxy);
 		}
-		animations.put(proxy, animation);
+		if (animation != null) animations.put(proxy, animation);
 	}
 	
 	public TiWindowProxy getCurrentWindow()
@@ -251,51 +217,96 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 
 	private boolean pushing = false;
 	private boolean poping = false;
-	public void onFragmentAnimationEnd(TiWindowProxy proxy) {
-		proxy.setFragmentAnimEndListener(null);
-		if (pushing) {
-			pushing = false;
-		}
-		else if (poping) {
-			poping = false;
-			proxy.closeFromActivity(false);
-		}
-	}
 	
 	public boolean popWindow(TiWindowProxy proxy)
 	{
+		int index = windows.indexOf(proxy);
+		if (index <= 0) {
+			poping = false;		
+			return true;
+		}
 		if (proxy == getCurrentWindow()) 
 		{
 			return popCurrentWindow();
 		}
-		if (windows.contains(proxy)){
+		else {
 			removeWindow(proxy);
-			FragmentTransaction transaction = getFragmentManager().beginTransaction();
-			transaction.remove(proxy.getFragment());
-			transaction.commit();
+			ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
+			View viewToRemove = proxy.getOuterView();
+			
+			if (viewToRemove != null) {
+				viewToRemoveFrom.removeView(proxy.getOuterView());
+			}
+//			FragmentTransaction transaction = getFragmentManager().beginTransaction();
+//			transaction.remove(proxy.getFragment());
+//			transaction.commit();
 			
 			proxy.closeFromActivity(false);
 			poping = false;
 			return true;
 		}
-		poping = false;		
-		return false;
 	}
 	public boolean popCurrentWindow()
 	{
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());
-		 if (windows.size() > 1)
+		 if (windows.size() > 1) //we dont pop the window 0!
 		 {
 			Log.d(TAG, "poping current window");
-			TiWindowProxy toRemove = popWindow();
+			final TiWindowProxy toRemove = popWindow();
 			TiWindowProxy winToFocus = getCurrentWindow();
-			Anim anim = animations.get(toRemove);
+			Transition transition = animations.get(toRemove);
 			
-			toRemove.setFragmentAnimEndListener(this);
-			FragmentTransaction transaction = getFragmentManager().beginTransaction();
-			transaction.setCustomAnimations(anim.out.first, anim.out.second);
-			transaction.replace(getContainerId(), winToFocus.getFragment());
-			transaction.commit();
+			
+			final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
+			
+			if (viewToRemoveFrom != null) {
+				final View viewToRemove = toRemove.getOuterView();
+				final View viewToFocus = winToFocus.getOuterView();
+				TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+				params.autoFillsHeight = params.autoFillsWidth = true;
+				if (transition != null) {
+					viewToFocus.setVisibility(View.GONE);
+					TiUIHelper.addView(viewToRemoveFrom, viewToFocus, params);
+					
+					Animator inAnim = transition.out.first;
+					Animator outAnim = transition.out.second;
+					inAnim.setTarget(viewToFocus);
+					outAnim.setTarget(viewToRemove);
+					AnimatorSet set = new AnimatorSet();
+					set.addListener(new AnimatorListener() {
+						@Override
+						public void onAnimationStart(Animator arg0) {							
+							viewToFocus.setVisibility(View.VISIBLE);
+						}
+						
+						@Override
+						public void onAnimationRepeat(Animator arg0) {							
+						}
+						
+						@Override
+						public void onAnimationEnd(Animator arg0) {	
+							poping = false;
+							viewToRemoveFrom.removeView(viewToRemove);
+							toRemove.closeFromActivity(false);
+						}
+
+						@Override
+						public void onAnimationCancel(Animator arg0) {		
+							poping = false;
+							viewToRemoveFrom.removeView(viewToRemove);
+							toRemove.closeFromActivity(false);
+						}
+					});
+					set.playTogether(inAnim, outAnim);
+					set.start();
+				}
+				else {
+					poping = false;
+					TiUIHelper.addView(viewToRemoveFrom, viewToFocus, params);
+					viewToRemoveFrom.removeView(viewToRemove);
+					toRemove.closeFromActivity(false);
+				}
+			}
 			
 	    	removeWindow(toRemove);
 	    	
@@ -621,9 +632,8 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	{
 		if (!opened || opening || !windows.contains(proxy)) {
 			poping = false;
-			return false;
+			return true;
 		}
-		proxy.setWindowManager(null);
 		return popWindow(proxy);
 	}
 
@@ -635,27 +645,82 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			pushing = false;
 			return;
 		}
-		FragmentTransaction transaction = getFragmentManager().beginTransaction();
-		Fragment fragment = proxy.getFragment();
-		if (isFirst) {
-			transaction.add(getContainerId(), fragment);
-			pushing = false;
-			transaction.commit();
-			getFragmentManager().executePendingTransactions();
+		Transition transition = null;
+		KrollDict options = null;
+		if (arg != null && arg instanceof HashMap<?, ?>) {
+				options = new KrollDict((HashMap<String, Object>) arg);
+		} else {
+			options = new KrollDict();
 		}
-		else {
-			proxy.setWindowManager(this);
-			proxy.setFragmentAnimEndListener(this);
-			Anim anim = defaultAnim;
-			addWindow(proxy, anim);
-			transaction.setCustomAnimations(anim.in.first, anim.in.second);
-			transaction.replace(getContainerId(), fragment);
-			transaction.commit();
-		}
+		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, !isFirst);
+		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultAnim);
+		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
 		
+		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
+		
+		if (animated) {
+			transition = TransitionStyleModule.transitionForType(transitionStyle);
+		}		
+		if (viewToAddTo != null) {
+			final View viewToAdd = proxy.getOrCreateView().getOuterView();
+			TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+			params.autoFillsHeight = params.autoFillsWidth = true;
+			TiUIHelper.addView(viewToAddTo, viewToAdd, params); //make sure it s removed from its parent
+			if (!isFirst && animated) {
+				TiWindowProxy winToBlur = getCurrentWindow();
+				final View viewToHide = winToBlur.getOuterView();
+				viewToHide.bringToFront();
+				Animator inAnim = transition.in.first;
+				Animator outAnim = transition.in.second;
+				inAnim.setTarget(viewToAdd);
+				outAnim.setTarget(viewToHide);
+				AnimatorSet set = new AnimatorSet();
+				if (duration != -1) {
+					inAnim.setDuration(duration);
+					outAnim.setDuration(duration);
+				}
+				
+				ValueAnimator va = ValueAnimator.ofFloat(0, 1.0f);
+			    va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+			    	private boolean done = false;
+			        public void onAnimationUpdate(ValueAnimator animation) {
+			            float value =  ((Float)animation.getAnimatedValue()).floatValue();
+			           if (value > 0 && !done) {
+							viewToAdd.bringToFront();
+							done = true;
+			           }
+			        }
+			    });
+
+				set.addListener(new AnimatorListener() {
+					@Override
+					public void onAnimationStart(Animator arg0) {							
+					}
+					
+					@Override
+					public void onAnimationRepeat(Animator arg0) {							
+					}
+					
+					@Override
+					public void onAnimationEnd(Animator arg0) {	
+						viewToAddTo.removeView(viewToHide);
+						pushing = false;
+					}
+
+					@Override
+					public void onAnimationCancel(Animator arg0) {		
+						viewToAddTo.removeView(viewToHide);
+						pushing = false;
+					}
+				});
+				set.playTogether(va, inAnim, outAnim);
+				set.start();
+			}
+			
+		}
+		addWindow(proxy, transition);
 		
 		TiBaseActivity activity = (TiBaseActivity) getActivity();
-		if (!windows.contains(proxy)) windows.add(proxy);
 		updateHomeButton();
 		proxy.onWindowActivityCreated();
 		proxy.setActivity(activity);
@@ -694,30 +759,6 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(proxy, arg));
 	}
-	
-	public FragmentManager getFragmentManager() {
-		return ((TiBaseActivity) getActivity()).getFragmentManager();
-//		if (manager == null) {
-//			manager = getFragment().getChildFragmentManager();
-//		}
-//		return manager;
-	}
-	
-	@Override
-	public Fragment getFragment() {
-		if (fragment == null) {
-			fragment = new Fragment() {
-				@Override
-				public View onCreateView(LayoutInflater inflater,
-						ViewGroup container, Bundle savedInstanceState) {
-					View view = getOrCreateView().getParentViewForChild();
-					return view;
-				}
-			};
-		}
-		return fragment;
-	}
-
 
 	@Override
 	public boolean interceptOnBackPressed() {
@@ -775,16 +816,15 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	
 	public void clearWindowsStack(){
 		if (windows.size() == 0) return;
-		FragmentTransaction transaction = getFragmentManager().beginTransaction();
+		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		for (int i = 0; i < windows.size(); i++) {
 			TiWindowProxy proxy = windows.get(i);
-			transaction.remove(proxy.getFragment());
-			KrollDict data = null;
-			data = new KrollDict();
-			data.put("_closeFromActivityForcedToDestroy", true);
-			proxy.fireSyncEvent(TiC.EVENT_CLOSE, data);
+			View viewToRemove = proxy.getOuterView();
+			if (viewToRemove != null) {
+				viewToRemoveFrom.removeView(viewToRemove);
+			}
+			proxy.closeFromActivity(false);
 		}
-		transaction.commit();
 		windows.clear();
 	}
 

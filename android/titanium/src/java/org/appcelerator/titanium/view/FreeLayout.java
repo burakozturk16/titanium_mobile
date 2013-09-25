@@ -2,13 +2,17 @@ package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.common.Log;
 
+import com.nineoldandroids.view.ViewHelper;
+
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Region;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -19,6 +23,7 @@ import android.widget.FrameLayout;
 
 @SuppressLint("NewApi")
 public class FreeLayout extends FrameLayout {
+	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
 	public static final int FLAG_TRANSFORMED = 16;
 	public FreeLayout(Context context) {
         super(context);
@@ -272,6 +277,135 @@ public class FreeLayout extends FrameLayout {
     public void invalidate(int left,int top,int right,int bottom) {
         invalidate(this,left,top,right,bottom);
     }
+    
+	
+	public void setTranslationFloatX(float val) {
+		int width = getWidth();
+//		if (width == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
+//			View parent = (View) getParent();
+//			if (parent != null) {
+//				width = parent.getWidth();
+//			}
+//		}
+		ViewHelper.setTranslationX(this, width*val);
+
+	}
+	public float getTranslationFloatX() {
+		int width = getWidth();
+//		if (width == 0) {
+//			View parent = (View) getParent();
+//			if (parent != null) {
+//				width = parent.getWidth();
+//			}
+//		}
+		return (width != 0)?(ViewHelper.getTranslationX(this)/getWidth()):0;
+	}
+	
+	public void setTranslationFloatY(float val) {
+		int height = getHeight();
+//		if (height == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
+//			View parent = (View) getParent();
+//			if (parent != null) {
+//				height = parent.getHeight();
+//			}
+//		}
+		ViewHelper.setTranslationY(this, height*val);
+
+	}
+	public float getTranslationFloatY() {
+		int height = getHeight();
+//		if (height == 0) {
+//			View parent = (View) getParent();
+//			if (parent != null) {
+//				height = parent.getHeight();
+//			}
+//		}
+		return (height != 0)?(ViewHelper.getTranslationY(this)/getHeight()):0;
+	}
+	
+	public void setPivotFloatX(float val) {
+		ViewHelper.setPivotX(this, getWidth()*val);
+
+	}
+	public float getPivotFloatX() {
+		return (ViewHelper.getPivotX(this)/getWidth());
+	}
+	
+	public void setPivotFloatY(float val) {
+		ViewHelper.setPivotX(this, getWidth()*val);
+
+	}
+	public float getPivotFloatY() {
+		return (ViewHelper.getPivotY(this)/getWidth());
+	}
+	
+	public void setScaleX(float val) {
+		if (HONEYCOMB_OR_GREATER) {
+			super.setScaleX(val);
+		}
+		else {
+			ViewHelper.setScaleX(this, val);
+		}
+	}
+	public float getScaleX() {
+		if (HONEYCOMB_OR_GREATER) {
+			return super.getScaleX();
+		}
+		return (ViewHelper.getScaleX(this));
+	}
+	
+	public void setScaleY(float val) {
+		if (HONEYCOMB_OR_GREATER) {
+			super.setScaleY(val);
+		}
+		else {
+			ViewHelper.setScaleY(this, val);
+		}
+	}
+	public float getScaleY() {
+		if (HONEYCOMB_OR_GREATER) {
+			return super.getScaleY();
+		}
+		return (ViewHelper.getScaleY(this));
+	}
+	
+	public void setRotationX(float val) {
+		if (HONEYCOMB_OR_GREATER) {
+			super.setRotationX(val);
+		}
+		else {
+			ViewHelper.setRotationX(this, val);
+		}
+	}
+	public float getRotationX() {
+		if (HONEYCOMB_OR_GREATER) {
+			return super.getRotationX();
+		}
+		return (ViewHelper.getRotationX(this));
+	}
+	
+	public void setRotationY(float val) {
+		if (HONEYCOMB_OR_GREATER) {
+			super.setRotationY(val);
+		}
+		else {
+			ViewHelper.setRotationY(this, val);
+		}
+
+	}
+	public float getRotationY() {
+		if (HONEYCOMB_OR_GREATER) {
+			return super.getRotationY();
+		}
+		return (ViewHelper.getRotationY(this));
+	}
+	
+//	public void setMatrix(Matrix value) {
+//		transformedMatrix = value;
+//	}
+//	public Matrix getMatrix() {
+//		return transformedMatrix;
+//	}
     
     ///////////////////////////////////////////// data
 
