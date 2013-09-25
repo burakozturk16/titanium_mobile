@@ -2,12 +2,10 @@ package org.appcelerator.titanium.util;
 
 import org.appcelerator.titanium.view.Ti2DMatrix;
 
-import android.animation.TypeEvaluator;
-import android.annotation.TargetApi;
-import android.os.Build;
+import com.nineoldandroids.animation.TypeEvaluator;
+
 import android.view.View;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class Ti2DMatrixEvaluator implements TypeEvaluator<Ti2DMatrix> {
 	private View view;
 	

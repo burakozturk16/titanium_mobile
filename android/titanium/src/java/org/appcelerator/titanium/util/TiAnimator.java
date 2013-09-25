@@ -19,12 +19,9 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
 import org.appcelerator.titanium.view.TiAnimation;
 
-import android.animation.ValueAnimator;
 import android.os.Build;
 import android.os.Looper;
 import android.os.MessageQueue;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
 
 public class TiAnimator
 {
@@ -213,23 +210,23 @@ public class TiAnimator
 		this.callback = callback;
 	}
 
-	protected void addAnimation(AnimationSet animationSet, Animation animation)
-	{
-		// repeatCount is ignored at the AnimationSet level, so it needs to
-		// be set for each child animation manually.
-
-		// We need to reduce the repeat count by 1, since for native Android
-		// 1 would mean repeating it once.
-		int repeatCount = (repeat == ValueAnimator.INFINITE ? repeat : repeat - 1);
-
-		// In Android (native), the repeat count includes reverses. So we
-		// need to double-up and add one to the repeat count if we're reversing.
-		if (autoreverse != null && autoreverse.booleanValue()) {
-			repeatCount = repeatCount * 2 + 1;
-		}
-
-		animation.setRepeatCount(repeatCount);
-
-		animationSet.addAnimation(animation);
-	}
+//	protected void addAnimation(AnimationSet animationSet, Animation animation)
+//	{
+//		// repeatCount is ignored at the AnimationSet level, so it needs to
+//		// be set for each child animation manually.
+//
+//		// We need to reduce the repeat count by 1, since for native Android
+//		// 1 would mean repeating it once.
+//		int repeatCount = (repeat == ValueAnimator.INFINITE ? repeat : repeat - 1);
+//
+//		// In Android (native), the repeat count includes reverses. So we
+//		// need to double-up and add one to the repeat count if we're reversing.
+//		if (autoreverse != null && autoreverse.booleanValue()) {
+//			repeatCount = repeatCount * 2 + 1;
+//		}
+//
+//		animation.setRepeatCount(repeatCount);
+//
+//		animationSet.addAnimation(animation);
+//	}
 }

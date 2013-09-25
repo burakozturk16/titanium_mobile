@@ -13,6 +13,7 @@ import org.appcelerator.titanium.view.TiAnimation;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_ANCHOR_POINT,
+	TiC.PROPERTY_TRANSITION,
 	TiC.PROPERTY_TRANSFORM,
 	TiC.PROPERTY_DELAY,
 	TiC.PROPERTY_DURATION,
