@@ -81,6 +81,7 @@ import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.MeasureSpec;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
@@ -1169,5 +1170,32 @@ public class TiUIHelper
 				return isViewInsideViewOfClass((View)parent, testClass);
 		}
 		return false;
+	}
+	
+	public static void removeViewFromSuperView(View view) {
+		 ViewGroup parentViewGroup = (ViewGroup) view.getParent();
+        if (parentViewGroup != null) {
+            parentViewGroup.removeAllViews();
+        }
+	}
+	
+	public static void addView(ViewGroup parent, View view) {
+		removeViewFromSuperView(view);
+		parent.addView(view);
+	}
+	
+	public static void addView(ViewGroup parent, View view, int index) {
+		removeViewFromSuperView(view);
+		parent.addView(view, index);
+	}
+	
+	public static void addView(ViewGroup parent, View view, ViewGroup.LayoutParams params) {
+		removeViewFromSuperView(view);
+		parent.addView(view, params);
+	}
+	
+	public static void addView(ViewGroup parent, View view, int index, ViewGroup.LayoutParams params) {
+		removeViewFromSuperView(view);
+		parent.addView(view, index, params);
 	}
 }
