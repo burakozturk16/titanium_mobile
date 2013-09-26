@@ -1080,10 +1080,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			setPaintImageDrawable(newValue, getOrCreateFillPaint());
 		}
 		else if (key.equals(ShapeModule.PROPERTY_LINE_GRADIENT)) {
-			 lineGradient = TiUIHelper.buildGradientDrawable(null, properties.getKrollDict(ShapeModule.PROPERTY_LINE_GRADIENT));
+			 lineGradient = TiUIHelper.buildGradientDrawable(properties.getKrollDict(ShapeModule.PROPERTY_LINE_GRADIENT));
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_GRADIENT)) {
-			 fillGradient = TiUIHelper.buildGradientDrawable(null, properties.getKrollDict(ShapeModule.PROPERTY_FILL_GRADIENT));
+			 fillGradient = TiUIHelper.buildGradientDrawable(properties.getKrollDict(ShapeModule.PROPERTY_FILL_GRADIENT));
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_COLOR)) {
 			Utils.styleColor(properties, ShapeModule.PROPERTY_FILL_COLOR, getOrCreateFillPaint());
@@ -1159,10 +1159,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			setPaintImageDrawable(properties.get(ShapeModule.PROPERTY_FILL_IMAGE), getOrCreateFillPaint());
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_LINE_GRADIENT)) {
-			 lineGradient = TiUIHelper.buildGradientDrawable(null, properties.getKrollDict(ShapeModule.PROPERTY_LINE_GRADIENT));
+			 lineGradient = TiUIHelper.buildGradientDrawable(properties.getKrollDict(ShapeModule.PROPERTY_LINE_GRADIENT));
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_GRADIENT)) {
-			 fillGradient = TiUIHelper.buildGradientDrawable(null, properties.getKrollDict(ShapeModule.PROPERTY_FILL_GRADIENT));
+			 fillGradient = TiUIHelper.buildGradientDrawable(properties.getKrollDict(ShapeModule.PROPERTY_FILL_GRADIENT));
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_FILL_COLOR)) {
 			Utils.styleColor(properties, ShapeModule.PROPERTY_FILL_COLOR, getOrCreateFillPaint());
