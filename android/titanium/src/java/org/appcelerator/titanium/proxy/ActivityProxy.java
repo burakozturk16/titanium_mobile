@@ -7,10 +7,13 @@
 package org.appcelerator.titanium.proxy;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
@@ -35,7 +38,7 @@ import android.os.Message;
  * for more details.
  */
 public class ActivityProxy extends KrollProxy
-	implements TiActivityResultHandler
+	implements TiActivityResultHandler, KrollProxyListener
 {
 	private static final String TAG = "ActivityProxy";
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
@@ -51,10 +54,12 @@ public class ActivityProxy extends KrollProxy
 	
 	public ActivityProxy()
 	{
+		setModelListener(this, false);
 	}
 
 	public ActivityProxy(Activity activity)
 	{
+		this();
 		setActivity(activity);
 		setWrappedActivity(activity);
 	}
@@ -330,21 +335,39 @@ public class ActivityProxy extends KrollProxy
 		return super.handleMessage(msg);
 	}
 	
+
 	public void processProperties(KrollDict dict) 
 	{
-		if (dict.containsKey(TiC.PROPERTY_ACTION_BAR) && Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
 			ActionBarProxy actionBarProxy = getActionBar();
 			if (actionBarProxy != null) {
-				KrollDict options = dict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
-				actionBarProxy.applyProperties(options);
+				KrollDict actionBarDict = null;
+				if (dict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
+					actionBarDict = dict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+				}
+//				else if (hasProperty(TiC.PROPERTY_ACTION_BAR)) {
+//					actionBarDict = new KrollDict((HashMap)getProperty(TiC.PROPERTY_ACTION_BAR));
+//				}
+				else {
+					actionBarDict = new KrollDict(); //to make sure we go into processProperties
+				}
+				actionBarProxy.setProperties(actionBarDict); //apply to actually update properties
 				invalidateOptionsMenu();
 			}
 		}
 	}
-	
-	@Override
-	public void handleCreationDict(KrollDict dict) {
-		super.handleCreationDict(dict);
-		processProperties(dict);
+
+	public void propertyChanged(String key, Object oldValue, Object newValue,
+			KrollProxy proxy) {
+	}
+
+	public void propertiesChanged(List<KrollPropertyChange> changes,
+			KrollProxy proxy) {
+	}
+
+	public void listenerAdded(String type, int count, KrollProxy proxy) {
+	}
+
+	public void listenerRemoved(String type, int count, KrollProxy proxy) {
 	}
 }
