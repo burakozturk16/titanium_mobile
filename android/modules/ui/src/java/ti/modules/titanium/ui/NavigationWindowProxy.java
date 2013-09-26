@@ -36,13 +36,11 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.ValueAnimator;
 
 import ti.modules.titanium.ui.transitionstyle.TransitionStyleModule;
 import ti.modules.titanium.ui.widget.TiView;
@@ -695,7 +693,7 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 
 					public void onAnimationCancel(Animator arg0) {		
 						viewToAddTo.removeView(viewToHide);
-						pushing = false;
+						pushing = false; 
 					}
 				});
 				set.start();
