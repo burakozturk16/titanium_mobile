@@ -101,8 +101,11 @@ public abstract class TiBaseActivity extends FragmentActivity
 	static boolean isPaused = true;
 	
 	private boolean fullscreen = false;
+	private boolean defaultFullscreen = false;
 	private boolean navBarHidden = false;
-	private int softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
+	private boolean defaultNavBarHidden = false;
+	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
+	private int softInputMode = defaultSoftInputMode;
 
 	public class DialogWrapper {
 		boolean isPersistent;
@@ -253,9 +256,9 @@ public abstract class TiBaseActivity extends FragmentActivity
 		updateTitle(this.window);
 		
 		KrollDict props = this.window.getProperties();
-		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.fullscreen);
-		boolean newNavBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.navBarHidden);
-		int softInputMode = props.optInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, this.softInputMode);
+		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.defaultFullscreen);
+		boolean newNavBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.defaultFullscreen);
+		int softInputMode = props.optInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, this.defaultSoftInputMode);
 		boolean hasSoftInputMode = softInputMode != -1;
 		
 		if (fullscreen != this.fullscreen) {
@@ -274,13 +277,14 @@ public abstract class TiBaseActivity extends FragmentActivity
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
 		}
-		
+		KrollDict activityDict = null;
 		if (this.window.hasProperty(TiC.PROPERTY_ACTIVITY)) {
-			Object activityObject = this.window.getProperty(TiC.PROPERTY_ACTIVITY);
-			if (activityObject instanceof HashMap<?, ?>) {
-				getActivityProxy().processProperties(new KrollDict((HashMap<String, Object>) activityObject));
-			}
+			activityDict = new KrollDict((HashMap)this.window.getProperty(TiC.PROPERTY_ACTIVITY));
 		}
+		else {
+			activityDict = new KrollDict(); //to make sure we update actionbar
+		}
+		getActivityProxy().setProperties(activityDict);
 	}
 
 	/**
@@ -493,8 +497,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 	// Subclasses can override to handle post-creation (but pre-message fire) logic
 	protected void windowCreated()
 	{
-		fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
-		navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
+		defaultFullscreen = fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
+		defaultNavBarHidden = navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
 		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
@@ -888,10 +892,10 @@ public abstract class TiBaseActivity extends FragmentActivity
 					if (actionBarProxy != null) {
 						KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
 							.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
-						KrollDict event = new KrollDict();
-						event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
-						event.put(TiC.EVENT_PROPERTY_WINDOW, window);
 						if (onHomeIconItemSelected != null) {
+							KrollDict event = new KrollDict();
+							event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+							event.put(TiC.EVENT_PROPERTY_WINDOW, window);
 							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
 							return true;
 						}
