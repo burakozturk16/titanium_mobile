@@ -24,6 +24,8 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.animation.TransitionHelper;
+import org.appcelerator.titanium.animation.TransitionHelper.Transition;
 import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
@@ -32,6 +34,10 @@ import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
+
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.Animator.AnimatorListener;
 
 import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
@@ -112,11 +118,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static final int MSG_TOIMAGE = MSG_FIRST_ID + 109;
 	private static final int MSG_GETSIZE = MSG_FIRST_ID + 110;
 	private static final int MSG_GETRECT = MSG_FIRST_ID + 111;
-	private static final int MSG_FINISH_LAYOUT = MSG_FIRST_ID + 112;
-	private static final int MSG_UPDATE_LAYOUT = MSG_FIRST_ID + 113;
-	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 114;
-	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 115;
-	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 116;
+	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 112;
+	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 113;
+	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 114;
+	private static final int MSG_TRANSFERVIEWS = MSG_FIRST_ID + 115;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -128,6 +133,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
 
+	private static int defaultTransition = TransitionHelper.Types.kTransitionSwipe.ordinal();
+	
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
@@ -1412,4 +1419,71 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 	}
+	
+	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
+		if (!children.contains(viewOut)) return;
+		Transition transition = null;
+		KrollDict options = null;
+		if (arg != null && arg instanceof HashMap<?, ?>) {
+				options = new KrollDict((HashMap<String, Object>) arg);
+		} else {
+			options = new KrollDict();
+		}
+		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
+		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransition);
+		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
+		
+		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
+		
+		if (animated) { 
+			transition = TransitionHelper.transitionForType(transitionStyle, false, duration);
+		}		
+		if (viewToAddTo != null) {
+			viewIn.setActivity(getActivity());
+			final View viewToAdd = viewIn.getOrCreateView().getOuterView();
+			viewToAdd.setVisibility(View.GONE);
+			TiUIHelper.addView(viewToAddTo, viewToAdd, viewIn.peekView().getLayoutParams()); //make sure it s removed from its parent
+			if (transition != null) {
+				final View viewToHide = viewOut.getOuterView();
+				transition.setTargets(viewToAdd, viewToHide);
+
+				AnimatorSet set = transition.getSet(new AnimatorListener() {
+					public void onAnimationEnd(Animator arg0) {	
+						add(viewIn);
+						viewToAddTo.removeView(viewToHide);
+						remove(viewOut);
+					}
+
+					public void onAnimationCancel(Animator arg0) {		
+						add(viewIn);
+						viewToAddTo.removeView(viewToHide);
+						remove(viewOut);
+					}
+
+					public void onAnimationRepeat(Animator arg0) {
+					}
+
+					public void onAnimationStart(Animator arg0) {						
+					}
+				});
+				set.start();
+			}
+   			viewToAdd.setVisibility(View.VISIBLE);						
+		}
+	}
+	
+	@Kroll.method
+	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg)
+	{
+		if (TiApplication.isUIThread()) {
+			handleTransitionViews(viewOut, viewIn, arg);
+		} else {
+			ArrayList<Object> args = new ArrayList<Object>();
+			args.add(viewOut);
+			args.add(viewIn);
+			args.add(arg);
+			getMainHandler().obtainMessage(MSG_TRANSFERVIEWS, args).sendToTarget();
+		}
+	}
+	
 }
