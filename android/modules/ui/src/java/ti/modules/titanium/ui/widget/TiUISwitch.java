@@ -115,7 +115,7 @@ public class TiUISwitch extends TiUIView
 			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, d.getKrollDict(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT));
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT));
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		}
 		if (cb instanceof ToggleButton) {
@@ -185,7 +185,7 @@ public class TiUISwitch extends TiUIView
 			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(newValue), repeat, proxy);
 			getOrCreateBackground().setImageDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(cb, (KrollDict)newValue);
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, drawable);
 		} else if (cb instanceof ToggleButton) {
 			propertyChangedToggleButton((ToggleButton) cb, key, oldValue, newValue, proxy);

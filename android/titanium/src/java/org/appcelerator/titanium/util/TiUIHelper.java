@@ -6,14 +6,11 @@
  */
 package org.appcelerator.titanium.util;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,12 +38,11 @@ import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
-import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 import com.trevorpage.tpsvg.SVGFlyweightFactory;
-import com.trevorpage.tpsvg.SVGParserRenderer;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -70,8 +66,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -90,6 +84,7 @@ import android.widget.TextView;
 /**
  * A set of utility methods focused on UI and View operations.
  */
+@SuppressLint("DefaultLocale")
 public class TiUIHelper
 {
 	private static final String TAG = "TiUIHelper";
@@ -485,6 +480,7 @@ public class TiUIHelper
 		return toTypeface(null, fontFamily);
 	}
 
+	@SuppressLint("DefaultLocale")
 	private static Typeface loadTypeface(Context context, String fontFamily)
 	{
 		if (context == null) {
@@ -687,11 +683,11 @@ public class TiUIHelper
 		return imageDrawable;
 	}
 	
-	public static TiGradientDrawable buildGradientDrawable(View view, KrollDict gradientProperties) {
+	public static TiGradientDrawable buildGradientDrawable(KrollDict gradientProperties) {
 		TiGradientDrawable gradientDrawable = null;
 		if (gradientProperties != null) {
 			try {
-				gradientDrawable = new TiGradientDrawable(view, gradientProperties);
+				gradientDrawable = new TiGradientDrawable(gradientProperties);
 			}
 			catch (IllegalArgumentException e) {
 				gradientDrawable = null;
@@ -808,7 +804,6 @@ public class TiUIHelper
 
 	public static TiBlob viewToImage(KrollDict proxyDict, View view, float scale)
 	{
-		TiBlob image = null;
 		Bitmap bitmap = viewToBitmap(proxyDict, view, scale);
 		if (bitmap != null) {
 			return TiBlob.blobFromImage(bitmap);
@@ -1173,9 +1168,10 @@ public class TiUIHelper
 	}
 	
 	public static void removeViewFromSuperView(View view) {
+		if (view == null) return;
 		 ViewGroup parentViewGroup = (ViewGroup) view.getParent();
         if (parentViewGroup != null) {
-            parentViewGroup.removeAllViews();
+            parentViewGroup.removeView(view);
         }
 	}
 	

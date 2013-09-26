@@ -14,7 +14,6 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.TiConvert;
 
-import android.content.Context;
 import android.graphics.LinearGradient;
 import android.graphics.RadialGradient;
 import android.graphics.Shader;
@@ -22,14 +21,13 @@ import android.graphics.Shader.TileMode;
 import android.graphics.SweepGradient;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
-import android.view.View;
 
 public class TiGradientDrawable extends ShapeDrawable {
 	public enum GradientType {
 		LINEAR_GRADIENT, RADIAL_GRADIENT, SWEEP_GRADIENT
 	}
 
-	private static final float DEFAULT_START_ANGLE = 0;
+//	private static final float DEFAULT_START_ANGLE = 0;
 	private static final TiPoint DEFAULT_START_POINT = new TiPoint(0, 0);
 	private static final TiPoint DEFAULT_END_POINT = new TiPoint("0", "100%");
 	private static final TiDimension DEFAULT_RADIUS = new TiDimension("100%", TiDimension.TYPE_UNDEFINED);
@@ -38,13 +36,12 @@ public class TiGradientDrawable extends ShapeDrawable {
 	private GradientType gradientType;
 	private TiPoint startPoint = DEFAULT_START_POINT, endPoint = DEFAULT_END_POINT;
 	private TiDimension startRadius = DEFAULT_RADIUS;
-	private double startAngle = DEFAULT_START_ANGLE;
+//	private double startAngle = DEFAULT_START_ANGLE;
 	private int[] colors;
 	private float[] offsets;
-	private View view;
 
 	@SuppressWarnings("rawtypes")
-	public TiGradientDrawable(View view, KrollDict properties) {
+	public TiGradientDrawable(KrollDict properties) {
 		super(new RectShape());
 
 		// Determine which type of gradient is being used.
@@ -73,9 +70,9 @@ public class TiGradientDrawable extends ShapeDrawable {
 			startRadius = TiConvert.toTiDimension(properties, "startRadius", TiDimension.TYPE_WIDTH);
 		}
 		
-		if (properties.containsKey("startAngle")) {
-			startAngle = properties.optFloat("startRadius", DEFAULT_START_ANGLE) * Math.PI/180.0f;
-		}
+//		if (properties.containsKey("startAngle")) {
+//			startAngle = properties.optFloat("startRadius", DEFAULT_START_ANGLE) * Math.PI/180.0f;
+//		}
 
 		Object colors = properties.get("colors");
 		if (!(colors instanceof Object[])) {
@@ -84,15 +81,15 @@ public class TiGradientDrawable extends ShapeDrawable {
 		}
 		loadColors((Object[])colors);
 
-		this.view = view;
+//		this.view = view;
 
 		setShaderFactory(new GradientShaderFactory());
 	}
 	
-	public void setView(View view)
-	{
-		this.view = view;
-	}
+//	public void setView(View view)
+//	{
+//		this.view = view;
+//	}
 
 	public GradientType getGradientType() {
 		return gradientType;

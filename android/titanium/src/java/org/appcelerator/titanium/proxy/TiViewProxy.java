@@ -7,13 +7,9 @@
 package org.appcelerator.titanium.proxy;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
@@ -31,28 +27,21 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
-import android.R;
 import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncTask;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
-import android.view.ViewParent;
-import android.widget.ViewFlipper;
 import android.widget.ViewSwitcher;
 
 /**
@@ -137,8 +126,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	protected TiUIView view;
 	private boolean isDecorView = false;
 
-	// TODO: Deprecated since Release 3.0.0
-	@Deprecated private AtomicBoolean layoutStarted = new AtomicBoolean();
 	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
 
 	/**
@@ -157,80 +144,80 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Override
 	public void handleCreationDict(KrollDict options)
 	{
-		options = handleStyleOptions(options);
+//		options = handleStyleOptions(options);
 		super.handleCreationDict(options);
 
 		//TODO eventManager.addOnEventChangeListener(this);
 	}
 	
-	private static HashMap<TiUrl,String> styleSheetUrlCache = new HashMap<TiUrl,String>(5);
-	protected String getBaseUrlForStylesheet()
-	{
-		TiUrl creationUrl = getCreationUrl();
-		if (styleSheetUrlCache.containsKey(creationUrl)) {
-			return styleSheetUrlCache.get(creationUrl);
-		}
+//	private static HashMap<TiUrl,String> styleSheetUrlCache = new HashMap<TiUrl,String>(5);
+//	protected String getBaseUrlForStylesheet()
+//	{
+//		TiUrl creationUrl = getCreationUrl();
+//		if (styleSheetUrlCache.containsKey(creationUrl)) {
+//			return styleSheetUrlCache.get(creationUrl);
+//		}
+//
+//		String baseUrl = creationUrl.baseUrl;
+//		if (baseUrl == null || (baseUrl.equals("app://") && creationUrl.url.equals(""))) {
+//			baseUrl = "app://app.js";
+//		} else {
+//			baseUrl = creationUrl.resolve();
+//		}
+//
+//		int idx = baseUrl.lastIndexOf("/");
+//		if (idx != -1) {
+//			baseUrl = baseUrl.substring(idx + 1).replace(".js", "");
+//		}
+//		
+//		styleSheetUrlCache.put(creationUrl,baseUrl);
+//		return baseUrl;
+//	}
 
-		String baseUrl = creationUrl.baseUrl;
-		if (baseUrl == null || (baseUrl.equals("app://") && creationUrl.url.equals(""))) {
-			baseUrl = "app://app.js";
-		} else {
-			baseUrl = creationUrl.resolve();
-		}
-
-		int idx = baseUrl.lastIndexOf("/");
-		if (idx != -1) {
-			baseUrl = baseUrl.substring(idx + 1).replace(".js", "");
-		}
-		
-		styleSheetUrlCache.put(creationUrl,baseUrl);
-		return baseUrl;
-	}
-
-	protected KrollDict handleStyleOptions(KrollDict options)
-	{
-		String viewId = getProxyId();
-		TreeSet<String> styleClasses = new TreeSet<String>();
-		// TODO styleClasses.add(getShortAPIName().toLowerCase());
-
-		if (options.containsKey(TiC.PROPERTY_ID)) {
-			viewId = TiConvert.toString(options, TiC.PROPERTY_ID);
-		}
-		if (options.containsKey(TiC.PROPERTY_CLASS_NAME)) {
-			String className = TiConvert.toString(options, TiC.PROPERTY_CLASS_NAME);
-			for (String clazz : className.split(" ")) {
-				styleClasses.add(clazz);
-			}
-		}
-		if (options.containsKey(TiC.PROPERTY_CLASS_NAMES)) {
-			Object c = options.get(TiC.PROPERTY_CLASS_NAMES);
-			if (c.getClass().isArray()) {
-				int length = Array.getLength(c);
-				for (int i = 0; i < length; i++) {
-					Object clazz = Array.get(c, i);
-					if (clazz != null) {
-						styleClasses.add(clazz.toString());
-					}
-				}
-			}
-		}
-
-		String baseUrl = getBaseUrlForStylesheet();
-		KrollDict dict = TiApplication.getInstance().getStylesheet(baseUrl, styleClasses, viewId);
-		if (dict == null || dict.isEmpty()) {
-			return options;
-		}
-		
-		extend(dict);
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "trying to get stylesheet for base:" + baseUrl + ",classes:" + styleClasses + ",id:" + viewId + ",dict:"
-				+ dict, Log.DEBUG_MODE);
-		}
-		// merge in our stylesheet details to the passed in dictionary
-		// our passed in dictionary takes precedence over the stylesheet
-		dict.putAll(options);
-		return dict;
-	}
+//	protected KrollDict handleStyleOptions(KrollDict options)
+//	{
+//		String viewId = getProxyId();
+//		TreeSet<String> styleClasses = new TreeSet<String>();
+//		// TODO styleClasses.add(getShortAPIName().toLowerCase());
+//
+//		if (options.containsKey(TiC.PROPERTY_ID)) {
+//			viewId = TiConvert.toString(options, TiC.PROPERTY_ID);
+//		}
+//		if (options.containsKey(TiC.PROPERTY_CLASS_NAME)) {
+//			String className = TiConvert.toString(options, TiC.PROPERTY_CLASS_NAME);
+//			for (String clazz : className.split(" ")) {
+//				styleClasses.add(clazz);
+//			}
+//		}
+//		if (options.containsKey(TiC.PROPERTY_CLASS_NAMES)) {
+//			Object c = options.get(TiC.PROPERTY_CLASS_NAMES);
+//			if (c.getClass().isArray()) {
+//				int length = Array.getLength(c);
+//				for (int i = 0; i < length; i++) {
+//					Object clazz = Array.get(c, i);
+//					if (clazz != null) {
+//						styleClasses.add(clazz.toString());
+//					}
+//				}
+//			}
+//		}
+//
+//		String baseUrl = getBaseUrlForStylesheet();
+//		KrollDict dict = TiApplication.getInstance().getStylesheet(baseUrl, styleClasses, viewId);
+//		if (dict == null || dict.isEmpty()) {
+//			return options;
+//		}
+//		
+//		extend(dict);
+//		if (Log.isDebugModeEnabled()) {
+//			Log.d(TAG, "trying to get stylesheet for base:" + baseUrl + ",classes:" + styleClasses + ",id:" + viewId + ",dict:"
+//				+ dict, Log.DEBUG_MODE);
+//		}
+//		// merge in our stylesheet details to the passed in dictionary
+//		// our passed in dictionary takes precedence over the stylesheet
+//		dict.putAll(options);
+//		return dict;
+//	}
 
 //	public TiViewAnimator getPendingAnimation()
 //	{
@@ -242,7 +229,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 
 	//This handler callback is tied to the UI thread.
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public boolean handleMessage(Message msg)
 	{
 		switch(msg.what) {
@@ -387,16 +373,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				result.setResult(d);
 				return true;
 			}
-			case MSG_FINISH_LAYOUT : {
-				handleFinishLayout();
-				return true;
-			}
 			case MSG_FINISH_APPLY_PROPS : {
 				handleFinishBatchPropertyApply();
 				return true;
 			}
-			case MSG_UPDATE_LAYOUT : {
-				handleUpdateLayout((HashMap) msg.obj);
+			case MSG_TRANSFERVIEWS : {
+				ArrayList<Object> args = (ArrayList<Object>)msg.obj;
+				handleTransitionViews((TiViewProxy)args.get(0), (TiViewProxy)args.get(1), args.get(2));
 				return true;
 			}
 		}
@@ -746,7 +729,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	public void add(TiViewProxy child)
 	{
-		add(child, new Integer(-1));
+		add(child, Integer.valueOf(-1));
 	}
 
 	public void handleAdd(TiViewProxy child, int index)
@@ -918,32 +901,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 	
-	private static ViewGroup create(Class childClass, Context context) throws Exception
-	{
-	  Constructor c = childClass.getConstructor(new Class[]{Context.class});
-	  c.setAccessible(true);
-	  return (ViewGroup) c.newInstance(new Object[]{context}) ; 
-	}
-	
-	private ViewGroup createDuplicateHolder() {
-		View parentForChildren = getParentViewForChild();
-		if (!(parentForChildren instanceof ViewGroup)) return null;
-		ViewGroup holder = (ViewGroup) parentForChildren;
-		ViewGroup newHolder = null;
-		try {
-			newHolder = create(holder.getClass(), holder.getContext());
-		} catch (Exception e) {
-			Log.e(TAG, "cant instantiate");
-			return null;
-		}
-//		newHolder.setLayoutParams(holder.getLayoutParams());
-
-		if (holder instanceof TiCompositeLayout) {
-			((TiCompositeLayout) newHolder).setLayoutArrangement(TiConvert.toString(getProperty(TiC.PROPERTY_LAYOUT)));
-		}
-		return newHolder;
-	}
-	
 	ViewSwitcher flipper = null;
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
@@ -972,76 +929,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		pendingAnimation.applyOptions();
 		((TiAnimatorSet) pendingAnimation).setProxy(this);
 		
-		
-//		final View parentForChildren = getParentViewForChild();
-//		if (flipper == null && pendingAnimation.isTransition && parentForChildren instanceof ViewGroup) {
-//			Context context = getActivity();
-//			
-//			final ViewGroup parent = (ViewGroup) parentForChildren;
-//			
-//			flipper = new ViewSwitcher(context);
-//			flipper.setBackgroundColor(Color.GREEN);
-//
-//			final ViewGroup holder = createDuplicateHolder();
-//			holder.setBackgroundColor(Color.YELLOW);
-//
-//			flipper.addView(holder);
-//			for(int i = 0; i < parent.getChildCount(); i++)
-//		    {
-//		        View child = parent.getChildAt(i);     
-//		        parent.removeView(child);
-//		        holder.addView(child);
-//		    }
-//
-//			parent.addView(flipper);
-			
-//			final TiViewProxy transitionViewProxy = pendingAnimation.getTransitionView();			
-//			flipper.setInAnimation(inFromRightAnimation());
-//			flipper.setOutAnimation(outToLeftAnimation());
-//			flipper.getInAnimation().setAnimationListener(
-//					new Animation.AnimationListener() {
-//						public void onAnimationStart(Animation animation) {
-//						}
-//
-//						public void onAnimationRepeat(Animation animation) {
-//						}
-//
-//						public void onAnimationEnd(Animation animation) {
-//							Log.w(TAG, "transition ended");
-//							for(int i = 0; i < flipper.getChildCount(); i++)
-//						    {
-//						        View child = flipper.getChildAt(i);   
-//						        if(child instanceof ViewGroup){
-//						        	((ViewGroup) child).removeAllViews();
-//						        }
-//						    }
-//							flipper.removeAllViews();
-//							parent.removeView(flipper);
-//							removeAllChildren();
-//							add(transitionViewProxy);
-//							flipper = null;
-//						}
-//					});
-//			
-//			if (transitionViewProxy != this) {
-//				
-//				ViewGroup holder2 = createDuplicateHolder();
-//				flipper.addView(holder2);
-//				holder2.addView(transitionViewProxy.getOrCreateView().getOuterView());
-////				flipper.showNext();
-//			}
-//			else {
-//				flipper.setDisplayedChild(0);
-//			}
-//			flipper.showNext();
-//		}
-//		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
-//			((TiViewAnimator) pendingAnimation).animateOnView(this);
-//		}
-//		else {
-			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
-			((TiAnimatorSet) pendingAnimation).set().start();
-//		}
+		peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
+		((TiAnimatorSet) pendingAnimation).set().start();
 	}
 
 	protected void handleQueuedAnimate()
@@ -1125,7 +1014,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	public TiBlob toImage(@Kroll.argument(optional=true) KrollFunction callback, @Kroll.argument(optional=true) Number scale)
 	{
 		if (scale == null) {
-			scale = new Float(1.0f);
+			scale = Float.valueOf(1.0f);
 		}
 		if (callback == null) {
 			if (TiApplication.isUIThread()) {
@@ -1271,19 +1160,19 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	@Kroll.method
-	public void addClass(Object[] classNames)
-	{
-		// This is a pretty naive implementation right now,
-		// but it will work for our current needs
-		String baseUrl = getBaseUrlForStylesheet();
-		ArrayList<String> classes = new ArrayList<String>();
-		for (Object c : classNames) {
-			classes.add(TiConvert.toString(c));
-		}
-		KrollDict options = TiApplication.getInstance().getStylesheet(baseUrl, classes, null);
-		extend(options);
-	}
+//	@Kroll.method
+//	public void addClass(Object[] classNames)
+//	{
+//		// This is a pretty naive implementation right now,
+//		// but it will work for our current needs
+//		String baseUrl = getBaseUrlForStylesheet();
+//		ArrayList<String> classes = new ArrayList<String>();
+//		for (Object c : classNames) {
+//			classes.add(TiConvert.toString(c));
+//		}
+//		KrollDict options = TiApplication.getInstance().getStylesheet(baseUrl, classes, null);
+//		extend(options);
+//	}
 
 	@Kroll.method @Kroll.getProperty
 	public boolean getKeepScreenOn()
@@ -1400,33 +1289,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return destPoint;
 	}
 
-	// TODO: Deprecated since Release 3.0.0
-	@Kroll.method @Deprecated
-	public void startLayout()
-	{
-		Log.w(TAG, "startLayout() is deprecated.", Log.DEBUG_MODE);
-
-		layoutStarted.set(true);
-	}
-
-	// TODO: Deprecated since Release 3.0.0
-	@Kroll.method @Deprecated
-	public void finishLayout()
-	{
-		Log.w(TAG, "finishLayout() is deprecated.", Log.DEBUG_MODE);
-
-		// Don't force a layout if startLayout() was never called
-		if (!isLayoutStarted()) {
-			return;
-		}
-		if (TiApplication.isUIThread()) {
-			handleFinishLayout();
-		} else {
-			getMainHandler().sendEmptyMessage(MSG_FINISH_LAYOUT);
-		}
-		layoutStarted.set(false);
-	}
-
 	public boolean inBatchPropertyApply()
 	{
 		return batchPropertyApply.get();
@@ -1437,9 +1299,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	{
 		batchPropertyApply.set(true);
 		super.applyPropertiesInternal(arg, force);
-		if (!isLayoutStarted()) {
-			return;
-		}
 		if (TiApplication.isUIThread()) {
 			handleFinishBatchPropertyApply();
 		} else {
@@ -1448,29 +1307,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		batchPropertyApply.set(false);
 	}
 
-	// TODO: Deprecated since Release 3.0.0
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@Kroll.method @Deprecated
-	public void updateLayout(Object params)
-	{
-		Log.w(TAG, "updateLayout() is deprecated.", Log.DEBUG_MODE);
-
-		HashMap<String, Object> paramsMap;
-
-		if (!(params instanceof HashMap)) {
-			Log.e(TAG, "Argument for updateLayout must be a dictionary");
-			return;
-		}
-		paramsMap = (HashMap) params;
-
-		layoutStarted.set(true);
-		if (TiApplication.isUIThread()) {
-			handleUpdateLayout(paramsMap);
-		} else {
-			getMainHandler().obtainMessage(MSG_UPDATE_LAYOUT, paramsMap).sendToTarget();
-		}
-		layoutStarted.set(false);
-	}
 
 	protected void handleFinishBatchPropertyApply()
 	{
@@ -1482,32 +1318,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	private void handleFinishLayout()
-	{
-		if (view.iszIndexChanged()) {
-			view.forceLayoutNativeView(true);
-			view.setzIndexChanged(false);
-		} else {
-			view.forceLayoutNativeView(false);
-		}
-	}
-
-	private void handleUpdateLayout(HashMap<String, Object> params)
-	{
-		for (String key : params.keySet()) {
-			setPropertyAndFire(key, params.get(key));
-		}
-		handleFinishLayout();
-	}
-
-	// TODO: Deprecated since Release 3.0.0
-	// This is used to check if the user has called startLayout(). We mainly use this to perform a check before running
-	// deprecated behavior. (i.e. performing layout when a property has changed, and the user didn't call startLayout)
-	@Deprecated
-	public boolean isLayoutStarted()
-	{
-		return layoutStarted.get();
-	}
 
 	@Kroll.method
 	public void hideKeyboard()

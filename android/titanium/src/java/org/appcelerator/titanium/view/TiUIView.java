@@ -73,9 +73,6 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.Transformation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 
@@ -412,9 +409,7 @@ public abstract class TiUIView
 
 	protected void layoutNativeView()
 	{
-		if (!this.proxy.isLayoutStarted()) {
-			layoutNativeView(false);
-		}
+		layoutNativeView(false);
 	}
 	
 	protected void redrawNativeView() {
@@ -435,7 +430,6 @@ public abstract class TiUIView
 			}
 		}
 		if (nativeView != null) {
-			Animation a = nativeView.getAnimation();
 			if (informParent) {				
 				if (parent != null) {
 					TiUIView uiv = parent.peekView();
@@ -563,11 +557,7 @@ public abstract class TiUIView
 			} else {
 				layoutParams.optionZIndex = 0;
 			}
-			if (!this.proxy.isLayoutStarted()) {
-				layoutNativeView(true);
-			} else {
-				setzIndexChanged(true);
-			}
+			layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
 			registerForKeyPress(nativeView, TiConvert.toBoolean(newValue, false));
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
@@ -608,17 +598,17 @@ public abstract class TiUIView
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(getRootView(), (KrollDict)newValue);
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(getRootView(), (KrollDict)newValue);
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(getRootView(), (KrollDict)newValue);
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(getRootView(), (KrollDict)newValue);
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
@@ -766,20 +756,20 @@ public abstract class TiUIView
 			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT));
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT));
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT));
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT));
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT));
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT));
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
 		} 
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(nativeView, d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
 //			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
@@ -837,7 +827,7 @@ public abstract class TiUIView
 			propertyChanged(change.getName(), change.getOldValue(), change.getNewValue(), proxy);
 		}
 	}
-
+	
 	public void onFocusChange(final View v, boolean hasFocus)
 	{
 		if (hasFocus) {
@@ -982,7 +972,8 @@ public abstract class TiUIView
 		return background;
 	}
 	
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	@SuppressLint("NewApi")
+	@SuppressWarnings("deprecation")
 	private void setBackgroundDrawable(View view, Drawable drawable) {
 		if(JELLY_BEAN_OR_GREATER) {
 			view.setBackground(drawable);
@@ -1971,14 +1962,7 @@ public abstract class TiUIView
 		
 		ViewParent parent = view.getParent();
 		View parentView = null;
-		int parentWidth = 0;
-		int parentHeight = 0;
 
-		if (parent instanceof ViewGroup) {
-			ViewGroup group = (ViewGroup) parent;
-			parentHeight = group.getMeasuredHeight();
-			parentWidth = group.getMeasuredWidth();
-		}
 		if (parent instanceof View) {
 			parentView = (View) parent;
 		}

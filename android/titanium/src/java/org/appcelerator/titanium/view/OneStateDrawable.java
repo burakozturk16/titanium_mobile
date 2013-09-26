@@ -151,7 +151,7 @@ public class OneStateDrawable extends Drawable {
 	{
 		if (gradientDrawable != null && imageDrawable instanceof TiGradientDrawable) {
 			TiGradientDrawable drawable  = (TiGradientDrawable)gradientDrawable;
-			drawable.setView(view);
+//			drawable.setView(view);
 			drawable.invalidateSelf();
 		}
 	}
