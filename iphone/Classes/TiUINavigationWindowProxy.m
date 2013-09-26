@@ -252,9 +252,9 @@
     int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
     [window windowWillOpen];
     if (animated) {
-        if ([props objectForKey:@"animationStyle"]) {
-            float duration = [TiUtils floatValue:@"animationDuration" properties:props def:defaultDuration]/1000;
-            NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
+        if ([props objectForKey:@"transitionStyle"]) {
+            float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
+            NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
             [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition withDuration:duration]];
         }
         else {
