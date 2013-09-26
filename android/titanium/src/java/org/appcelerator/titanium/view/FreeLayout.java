@@ -281,46 +281,46 @@ public class FreeLayout extends FrameLayout {
 	
 	public void setTranslationFloatX(float val) {
 		int width = getWidth();
-//		if (width == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
-//			View parent = (View) getParent();
-//			if (parent != null) {
-//				width = parent.getWidth();
-//			}
-//		}
+		if (width == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
+			View parent = (View) getParent();
+			if (parent != null) {
+				width = parent.getWidth();
+			}
+		}
 		ViewHelper.setTranslationX(this, width*val);
 
 	}
 	public float getTranslationFloatX() {
 		int width = getWidth();
-//		if (width == 0) {
-//			View parent = (View) getParent();
-//			if (parent != null) {
-//				width = parent.getWidth();
-//			}
-//		}
-		return (width != 0)?(ViewHelper.getTranslationX(this)/getWidth()):0;
+		if (width == 0) {
+			View parent = (View) getParent();
+			if (parent != null) {
+				width = parent.getWidth();
+			}
+		}
+		return (width != 0)?(ViewHelper.getTranslationX(this)/width):0;
 	}
 	
 	public void setTranslationFloatY(float val) {
 		int height = getHeight();
-//		if (height == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
-//			View parent = (View) getParent();
-//			if (parent != null) {
-//				height = parent.getHeight();
-//			}
-//		}
+		if (height == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
+			View parent = (View) getParent();
+			if (parent != null) {
+				height = parent.getHeight();
+			}
+		}
 		ViewHelper.setTranslationY(this, height*val);
 
 	}
 	public float getTranslationFloatY() {
 		int height = getHeight();
-//		if (height == 0) {
-//			View parent = (View) getParent();
-//			if (parent != null) {
-//				height = parent.getHeight();
-//			}
-//		}
-		return (height != 0)?(ViewHelper.getTranslationY(this)/getHeight()):0;
+		if (height == 0) {
+			View parent = (View) getParent();
+			if (parent != null) {
+				height = parent.getHeight();
+			}
+		}
+		return (height != 0)?(ViewHelper.getTranslationY(this)/height):0;
 	}
 	
 	public void setPivotFloatX(float val) {
@@ -338,75 +338,7 @@ public class FreeLayout extends FrameLayout {
 	public float getPivotFloatY() {
 		return (ViewHelper.getPivotY(this)/getWidth());
 	}
-	
-	public void setScaleX(float val) {
-		if (HONEYCOMB_OR_GREATER) {
-			super.setScaleX(val);
-		}
-		else {
-			ViewHelper.setScaleX(this, val);
-		}
-	}
-	public float getScaleX() {
-		if (HONEYCOMB_OR_GREATER) {
-			return super.getScaleX();
-		}
-		return (ViewHelper.getScaleX(this));
-	}
-	
-	public void setScaleY(float val) {
-		if (HONEYCOMB_OR_GREATER) {
-			super.setScaleY(val);
-		}
-		else {
-			ViewHelper.setScaleY(this, val);
-		}
-	}
-	public float getScaleY() {
-		if (HONEYCOMB_OR_GREATER) {
-			return super.getScaleY();
-		}
-		return (ViewHelper.getScaleY(this));
-	}
-	
-	public void setRotationX(float val) {
-		if (HONEYCOMB_OR_GREATER) {
-			super.setRotationX(val);
-		}
-		else {
-			ViewHelper.setRotationX(this, val);
-		}
-	}
-	public float getRotationX() {
-		if (HONEYCOMB_OR_GREATER) {
-			return super.getRotationX();
-		}
-		return (ViewHelper.getRotationX(this));
-	}
-	
-	public void setRotationY(float val) {
-		if (HONEYCOMB_OR_GREATER) {
-			super.setRotationY(val);
-		}
-		else {
-			ViewHelper.setRotationY(this, val);
-		}
 
-	}
-	public float getRotationY() {
-		if (HONEYCOMB_OR_GREATER) {
-			return super.getRotationY();
-		}
-		return (ViewHelper.getRotationY(this));
-	}
-	
-//	public void setMatrix(Matrix value) {
-//		transformedMatrix = value;
-//	}
-//	public Matrix getMatrix() {
-//		return transformedMatrix;
-//	}
-    
     ///////////////////////////////////////////// data
 
     private static Rect m_tempRect=new Rect();
