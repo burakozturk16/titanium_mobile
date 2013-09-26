@@ -605,6 +605,44 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
+	
+	/**
+	 * This sets the named property as well as updating the actual JS object.
+	 * @module.api
+	 */
+	public void setProperties(KrollDict newProps)
+	{
+		KrollDict realProperties = (newProps!= null)?new KrollDict(newProps):new KrollDict();
+		for (String key : properties.keySet()) {
+			if (!realProperties.containsKey(key)) {
+				realProperties.put(key, null);
+			}
+		}
+		
+		KrollDict changedProps = new KrollDict();
+		for (Object key : realProperties.keySet()) {
+			String name = TiConvert.toString(key);
+			Object value = realProperties.get(key);
+			Object current = getProperty(name);
+			if (shouldFireChange(current, value)) {
+				changedProps.put(name, value);
+			}
+		}
+		
+		properties.clear();
+		if (newProps!= null) properties.putAll(newProps);
+		
+		if (modelListener != null) {
+			if (TiApplication.isUIThread()) {
+				modelListener.processProperties(changedProps);
+			}
+			else {
+				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
+				message.sendToTarget();
+			}
+
+		}
+	}
 	public class KrollPropertyChangeSet extends KrollPropertyChange {
 		public int entryCount;
 		public String[] keys;
@@ -656,7 +694,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			else if (force)
 				changedProps.put(name, value);
 		}
-		if (modelListener != null && changedProps.size() > 0) {
+//		if (modelListener != null && changedProps.size() > 0) {
+		if (modelListener != null) {
 			if (TiApplication.isUIThread()) {
 				modelListener.processProperties(changedProps);
 			}
