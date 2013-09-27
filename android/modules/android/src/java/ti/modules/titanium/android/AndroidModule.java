@@ -20,6 +20,7 @@ import org.appcelerator.titanium.proxy.RProxy;
 import org.appcelerator.titanium.proxy.ServiceProxy;
 import org.appcelerator.titanium.util.TiConvert;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -34,6 +35,7 @@ import android.content.pm.ActivityInfo;
 import android.media.AudioManager;
 import android.view.MenuItem;
 
+@SuppressLint("InlinedApi")
 @Kroll.module
 public class AndroidModule extends KrollModule
 {

@@ -59,11 +59,9 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Vibrator;
-import android.os.AsyncTask;
 import android.provider.MediaStore;
 import android.provider.MediaStore.Images;
 import android.view.Window;
-import android.view.View;
 
 @Kroll.module @ContextSpecific
 public class MediaModule extends KrollModule

@@ -18,7 +18,6 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
-import android.os.Build;
 import android.content.Context;
 import android.graphics.Rect;
 import android.text.Editable;
@@ -35,7 +34,6 @@ import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -64,7 +62,6 @@ public class TiUIText extends TiUIView
 	private static final int KEYBOARD_NUMBER_PAD = 3;
 	private static final int KEYBOARD_PHONE_PAD = 4;
 	private static final int KEYBOARD_EMAIL_ADDRESS = 5;
-	@SuppressWarnings("unused")
 	private static final int KEYBOARD_NAMEPHONE_PAD = 6;
 	private static final int KEYBOARD_DEFAULT = 7;
 	private static final int KEYBOARD_DECIMAL_PAD = 8;

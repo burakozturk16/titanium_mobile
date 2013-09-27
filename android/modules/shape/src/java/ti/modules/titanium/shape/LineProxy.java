@@ -1,22 +1,18 @@
 
 package ti.modules.titanium.shape;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.TiAnimatorSet;
-import org.appcelerator.titanium.util.TiConvert;
 
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.animation.TypeEvaluator;
 
-import android.graphics.Point;
 
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	ShapeModule.PROPERTY_POINTS

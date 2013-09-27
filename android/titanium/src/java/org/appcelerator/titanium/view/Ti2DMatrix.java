@@ -15,14 +15,12 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.AffineTransform;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
 import android.content.Context;
 import android.graphics.Matrix;
 
 import android.view.View;
-import android.view.ViewParent;
 
 @Kroll.proxy
 public class Ti2DMatrix extends KrollProxy {

@@ -6,7 +6,6 @@
  */
 package org.appcelerator.titanium.proxy;
 
-import java.util.HashMap;
 import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;

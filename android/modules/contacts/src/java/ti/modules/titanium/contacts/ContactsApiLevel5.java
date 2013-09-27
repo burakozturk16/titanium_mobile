@@ -49,6 +49,7 @@ import android.provider.ContactsContract.CommonDataKinds.Website;
 import android.provider.ContactsContract.Data;
 import android.provider.ContactsContract.RawContacts;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ContactsApiLevel5 extends CommonContactsApi
 {
 	protected boolean loadedOk;
@@ -509,7 +510,6 @@ public class ContactsApiLevel5 extends CommonContactsApi
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected PersonProxy addContact(KrollDict options) 
 	{
 

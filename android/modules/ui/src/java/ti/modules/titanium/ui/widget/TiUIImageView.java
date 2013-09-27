@@ -34,7 +34,6 @@ import org.appcelerator.titanium.util.TiLoadImageManager;
 import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
-import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUIView;
@@ -46,7 +45,6 @@ import ti.modules.titanium.ui.ImageViewProxy;
 import ti.modules.titanium.ui.ScrollViewProxy;
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -54,8 +52,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.view.View.MeasureSpec;
-import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.widget.ImageView.ScaleType;
 
 public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler.Callback

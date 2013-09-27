@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 @Kroll.proxy
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class MenuProxy extends KrollProxy
 {
 	private static final String TAG = "MenuProxy";

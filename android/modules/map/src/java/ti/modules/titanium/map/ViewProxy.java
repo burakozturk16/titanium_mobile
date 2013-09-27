@@ -37,6 +37,7 @@ import android.view.Window;
 	TiC.PROPERTY_USER_LOCATION,
 	TiC.PROPERTY_HIDE_ANNOTATION_WHEN_TOUCH_MAP
 })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ViewProxy extends TiViewProxy implements OnLifecycleEvent
 {
 	private static LocalActivityManager lam;

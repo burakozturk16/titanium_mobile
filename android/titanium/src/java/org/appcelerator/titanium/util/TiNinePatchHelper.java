@@ -8,6 +8,8 @@ package org.appcelerator.titanium.util;
 
 import java.util.ArrayList;
 
+import org.appcelerator.titanium.TiApplication;
+
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -31,7 +33,7 @@ public class TiNinePatchHelper
 			if (b != null) {
 				if (isNinePatch(b)) {
 			        byte[] newChunk = createChunk(b);
-			        nd = new NinePatchDrawable(cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
+			        nd = new NinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
 				}
 			}
 		}
@@ -46,9 +48,9 @@ public class TiNinePatchHelper
 		if (b != null) {
 			if (isNinePatch(b)) {
 		        byte[] newChunk = createChunk(b);
-		        nd = new NinePatchDrawable(cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
+		        nd = new NinePatchDrawable(TiApplication.getInstance().getResources(), cropNinePatch(b), newChunk, new Rect(1,1,1,1), "");
 			} else {
-				nd = new BitmapDrawable(b);
+				nd = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
 			}
 		}
 
@@ -223,16 +225,16 @@ public class TiNinePatchHelper
     	return chunk;
     }
 
-    private int toInt(byte[] a, int offset) {
-    	int i = 0;
-
-    	i |= a[offset];
-    	i |= a[offset+1] << 8;
-    	i |= a[offset+2] << 16;
-    	i |= a[offset+3] << 24;
-
-    	return i;
-    }
+//    private int toInt(byte[] a, int offset) {
+//    	int i = 0;
+//
+//    	i |= a[offset];
+//    	i |= a[offset+1] << 8;
+//    	i |= a[offset+2] << 16;
+//    	i |= a[offset+3] << 24;
+//
+//    	return i;
+//    }
 
     private void toBytes(byte[] a, int offset, int v) {
     	a[offset] = (byte) (0x000000FF & v);

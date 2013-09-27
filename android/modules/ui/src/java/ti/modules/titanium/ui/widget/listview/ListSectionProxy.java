@@ -34,6 +34,7 @@ import android.view.View;
 
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ListSectionProxy extends ViewProxy{
 
 	private static final String TAG = "ListSectionProxy";

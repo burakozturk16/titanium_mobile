@@ -8,20 +8,16 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
-import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiAnimation;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ValueAnimator;
 
-import android.os.Build;
-import android.view.View;
-
+@SuppressWarnings({"rawtypes"})
 @Kroll.proxy
 public class AnimatableProxy extends KrollProxy {
 	private static final String TAG = "AnimatableProxy";

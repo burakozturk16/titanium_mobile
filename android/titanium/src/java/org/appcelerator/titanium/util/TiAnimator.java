@@ -23,6 +23,7 @@ import android.os.Build;
 import android.os.Looper;
 import android.os.MessageQueue;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class TiAnimator
 {
 	private static final String TAG = "TiAnimator";
@@ -36,7 +37,6 @@ public class TiAnimator
 
 	public TiAnimation animationProxy;
 	protected KrollFunction callback;
-	@SuppressWarnings("rawtypes")
 	public HashMap options;
 	protected AnimatableProxy proxy;
 
@@ -83,7 +83,6 @@ public class TiAnimator
 		return (this.animationProxy != null)?this.animationProxy.getProperties():this.options ;
 	}
 
-	@SuppressWarnings({"unchecked", "rawtypes"})
 	public void applyOptions()
 	{
 		HashMap options = getOptions();
@@ -127,7 +126,6 @@ public class TiAnimator
 		return Arrays.asList(TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY, TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT);
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected void resetAnimationProperties()
 	{
 		if (this.options == null || proxy == null) {
@@ -184,7 +182,6 @@ public class TiAnimator
 		}
 	}
 
-	@SuppressWarnings("rawtypes")
 	protected void applyCompletionProperties()
 	{
 		HashMap options = getOptions();

@@ -42,6 +42,7 @@ import org.json.JSONObject;
  * the view object is a proxy itself.
  */
 @Kroll.proxy(name = "KrollProxy", propertyAccessors = { KrollProxy.PROPERTY_HAS_JAVA_LISTENER })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class KrollProxy implements Handler.Callback, KrollProxySupport
 {
 	private static final String TAG = "KrollProxy";
@@ -827,7 +828,6 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		return false;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean doFireEvent(String event, Object data)
 	{
 		boolean bubbles = false;

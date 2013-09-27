@@ -18,6 +18,7 @@ import org.appcelerator.titanium.util.TiRHelper;
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.widget.TiUIProgressIndicator;
 import ti.modules.titanium.ui.widget.webview.TiUIWebView;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -27,6 +28,8 @@ import android.webkit.WebSettings;
 import android.preference.PreferenceManager;
 import android.content.Context;
 
+@SuppressLint("InlinedApi")
+@SuppressWarnings("deprecation")
 @Kroll.module(parentModule=UIModule.class)
 @Kroll.dynamicApis(properties = {
 	"currentActivity"

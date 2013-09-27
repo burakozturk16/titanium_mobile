@@ -43,6 +43,7 @@ import android.widget.TimePicker;
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	"locale", "visibleItems", "value"
 })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PickerProxy extends TiViewProxy implements PickerColumnListener
 {
 	private int type = UIModule.PICKER_TYPE_PLAIN;

@@ -34,6 +34,7 @@ import android.os.Message;
  * The main purpose of this class beyond providing a Android specific namespace under Ti.Geolocation is 
  * to support managing manual location providers and location rules.
  */
+@SuppressWarnings({"rawtypes"})
 @Kroll.module(parentModule=GeolocationModule.class)
 public class AndroidModule extends KrollModule
 	implements Handler.Callback
@@ -112,6 +113,7 @@ public class AndroidModule extends KrollModule
 	 * @param manualMode			<code>boolean</code> value to indicate whether 
 	 * 								the manual providers should be used
 	 */
+	@SuppressWarnings("deprecation")
 	@Kroll.setProperty
 	public void setManualMode(boolean manualMode)
 	{

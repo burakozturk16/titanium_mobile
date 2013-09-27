@@ -32,7 +32,6 @@ import android.os.Message;
 import android.text.util.Linkify;
 import android.view.View;
 import android.webkit.WebViewClient;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 @Kroll.module

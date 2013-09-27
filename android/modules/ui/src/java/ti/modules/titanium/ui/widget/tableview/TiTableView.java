@@ -41,9 +41,6 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-
 public class TiTableView extends FrameLayout
 	implements OnSearchChangeListener
 {

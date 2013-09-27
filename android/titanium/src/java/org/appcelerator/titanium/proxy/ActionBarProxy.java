@@ -466,6 +466,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	}
 
 	public void processProperties(KrollDict properties) {
+		if (actionBar == null) return;
 		if (!properties.containsKey(TiC.PROPERTY_BACKGROUND_COLOR) && 
 				!properties.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE) &&  
 				!properties.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT) )

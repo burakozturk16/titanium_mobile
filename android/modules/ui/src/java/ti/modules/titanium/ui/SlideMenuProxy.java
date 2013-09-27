@@ -9,9 +9,7 @@ import java.lang.ref.WeakReference;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiActivity;
 import org.appcelerator.titanium.TiActivityWindow;
 import org.appcelerator.titanium.TiActivityWindows;
@@ -19,8 +17,6 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -29,13 +25,9 @@ import org.appcelerator.titanium.TiBlob;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
-import ti.modules.titanium.ui.widget.webview.TiUIWebView;
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Message;
-import android.view.Display;
-import android.view.WindowManager;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_LEFT_VIEW,

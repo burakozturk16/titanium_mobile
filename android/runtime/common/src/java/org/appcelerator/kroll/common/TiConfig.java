@@ -15,6 +15,7 @@ import android.util.Config;
  * @author Don Thorp
  *
  */
+@SuppressWarnings("deprecation")
 public class TiConfig
 {
 	/**

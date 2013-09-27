@@ -54,6 +54,7 @@ import android.webkit.URLUtil;
 /**
  * Helper class for loading, scaling, and caching images if necessary.
  */
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class TiDrawableReference
 {
 	private static Map<Integer, Bounds> boundsCache;
@@ -429,6 +430,7 @@ public class TiDrawableReference
 	 * Gets a resource drawable directly if the reference is to a resource, else
 	 * makes a BitmapDrawable with the given attributes.
 	 */
+	@SuppressWarnings("deprecation")
 	public Drawable getDrawable(View parent, TiDimension destWidthDimension, TiDimension destHeightDimension)
 	{
 		Drawable drawable = getResourceDrawable();
@@ -450,7 +452,7 @@ public class TiDrawableReference
 		if (drawable == null) {
 			Bitmap b = getBitmap(destWidth, destHeight);
 			if (b != null) {
-				drawable = new BitmapDrawable(b);
+				drawable = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
 			}
 		}
 		return drawable;
@@ -479,7 +481,7 @@ public class TiDrawableReference
 		if (drawable == null) {
 			Bitmap b = getBitmap(needsRetry);
 			if (b != null) {
-				drawable = new BitmapDrawable(b);
+				drawable = new BitmapDrawable(TiApplication.getInstance().getResources(), b);
 			}
 		}
 		return drawable;
@@ -493,8 +495,8 @@ public class TiDrawableReference
 	public Bitmap getBitmap(int destWidth, int destHeight)
 	{
 		return getBitmap(null,
-			TiConvert.toTiDimension(new Integer(destWidth), TiDimension.TYPE_WIDTH),
-			TiConvert.toTiDimension(new Integer(destHeight), TiDimension.TYPE_HEIGHT));
+			TiConvert.toTiDimension(Integer.valueOf(destWidth), TiDimension.TYPE_WIDTH),
+			TiConvert.toTiDimension(Integer.valueOf(destHeight), TiDimension.TYPE_HEIGHT));
 	}
 	/**
 	 * Gets the bitmap, scaled to a specific width, with the height matching the

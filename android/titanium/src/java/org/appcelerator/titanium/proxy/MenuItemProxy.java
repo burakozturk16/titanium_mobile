@@ -6,9 +6,6 @@
  */
 package org.appcelerator.titanium.proxy;
 
-import java.util.HashMap;
-
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
@@ -21,6 +18,7 @@ import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
 
+import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
@@ -28,6 +26,7 @@ import android.view.MenuItem;
 import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
 
+@SuppressLint("NewApi")
 @Kroll.proxy
 public class MenuItemProxy extends KrollProxy
 {
