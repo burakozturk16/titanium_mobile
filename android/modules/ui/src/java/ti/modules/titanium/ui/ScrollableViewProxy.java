@@ -31,7 +31,8 @@ import android.os.Message;
 	TiC.PROPERTY_PAGE_WIDTH,
 	TiC.PROPERTY_CACHE_SIZE,
 	TiC.PROPERTY_SHOW_PAGING_CONTROL,
-	TiC.PROPERTY_OVER_SCROLL_MODE
+	TiC.PROPERTY_OVER_SCROLL_MODE,
+	TiC.PROPERTY_CURRENT_PAGE
 })
 public class ScrollableViewProxy extends TiViewProxy
 {
@@ -238,6 +239,7 @@ public class ScrollableViewProxy extends TiViewProxy
 	}
 
 	public void fireDragEnd(int currentPage, TiViewProxy currentView) {
+		setProperty(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 		if (hasListeners(TiC.EVENT_DRAGEND)) {
 			KrollDict options = new KrollDict();
 			options.put("view", currentView);
@@ -255,6 +257,7 @@ public class ScrollableViewProxy extends TiViewProxy
 
 	public void fireScrollEnd(int currentPage, TiViewProxy currentView)
 	{
+		setProperty(TiC.PROPERTY_CURRENT_PAGE, currentPage);
 		if (hasListeners(TiC.EVENT_SCROLLEND)) {
 			KrollDict options = new KrollDict();
 			options.put("view", currentView);
