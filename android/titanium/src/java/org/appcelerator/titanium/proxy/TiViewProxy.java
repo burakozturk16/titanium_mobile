@@ -24,8 +24,8 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.animation.TransitionHelper;
-import org.appcelerator.titanium.animation.TransitionHelper.Transition;
+import org.appcelerator.titanium.transition.Transition;
+import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
@@ -34,6 +34,7 @@ import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
+
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -133,8 +134,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	private AtomicBoolean batchPropertyApply = new AtomicBoolean();
 
-	private static int defaultTransition = TransitionHelper.Types.kTransitionSwipe.ordinal();
-	
+	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
+	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
@@ -516,7 +517,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	public TiUIView forceCreateView(boolean enableModelListener, boolean processProperties)
 	{
-		view = null;
+		this.view = null;
 		return getOrCreateView(enableModelListener, processProperties);
 	}
 	
@@ -1430,13 +1431,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			options = new KrollDict();
 		}
 		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
-		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransition);
+		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransitionStyle);
+		int transitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
 		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
 		
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
 		if (animated) { 
-			transition = TransitionHelper.transitionForType(transitionStyle, false, duration);
+			transition = TransitionHelper.transitionForType(transitionStyle, transitionSubStyle, false, duration);
 		}		
 		if (viewToAddTo != null) {
 			viewIn.setActivity(getActivity());
