@@ -40,6 +40,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -268,8 +269,11 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (newNavBarHidden != this.navBarHidden) {
 			this.navBarHidden = newNavBarHidden;
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				if (this.navBarHidden) getActionBar().hide();
-				else getActionBar().show();
+				ActionBar actionBar = getActionBar();
+				if (actionBar != null) {
+					if (this.navBarHidden) actionBar.hide();
+					else actionBar.show();
+				}
 			}
 			
 		}
