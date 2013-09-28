@@ -2386,6 +2386,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_TRANSITION_SUBSTYLE = "transitionSubStyle";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_TRANSITION_STYLE = "transitionStyle";
 
 	/**

@@ -28,12 +28,13 @@ import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
 import org.appcelerator.titanium.TiTranslucentActivity;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiWindowManager;
-import org.appcelerator.titanium.animation.TransitionHelper;
-import org.appcelerator.titanium.animation.TransitionHelper.Transition;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
+import org.appcelerator.titanium.transition.Transition;
+import org.appcelerator.titanium.transition.TransitionHelper;
+import org.appcelerator.titanium.transition.TransitionInAndOut;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
@@ -80,11 +81,12 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 	private static final int MSG_POP = MSG_FIRST_ID + 104;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
-	private static int defaultTransition = TransitionStyleModule.CUBE;
+	private static int defaultTransitionStyle = TransitionStyleModule.SWIPE;
+	private static int defaultTransitionSubStyle = TransitionStyleModule.RIGHT_TO_LEFT;
 
 	private WeakReference<TiBaseActivity> windowActivity;
 	ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
-	HashMap<TiWindowProxy, Integer> animations = new HashMap<TiWindowProxy, Integer>();
+	HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
 
 	public NavigationWindowProxy()
 	{
@@ -195,12 +197,12 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 		windows.remove(proxy);
 		animations.remove(proxy);
 	}
-	private void addWindow(TiWindowProxy proxy, Integer transitionStyle) {
+	private void addWindow(TiWindowProxy proxy, Transition transition) {
 		if (!windows.contains(proxy)) {
 			proxy.setWindowManager(this);
 			windows.add(proxy);
 		}
-		if (transitionStyle != null) animations.put(proxy, transitionStyle);
+		if (transition != null) animations.put(proxy, transition);
 	}
 	
 	public TiWindowProxy getCurrentWindow()
@@ -254,8 +256,12 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			final TiWindowProxy toRemove = popWindow();
 			TiWindowProxy winToFocus = getCurrentWindow();
 			
+			int transitionStyle = -1;
 			Transition transition = null;
-			int transitionStyle = animations.containsKey(toRemove)?animations.get(toRemove).intValue():-1;
+			if (animations.containsKey(toRemove)) {
+				transition = animations.get(toRemove);
+				transitionStyle = transition.getType();
+			}
 			KrollDict options = null;
 			if (arg != null && arg instanceof HashMap<?, ?>) {
 					options = new KrollDict((HashMap<String, Object>) arg);
@@ -263,10 +269,12 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 				options = new KrollDict();
 			}
 			boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
-			transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, transitionStyle);
+			int  optTransitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
+			int  optTransitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
 			int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
-			if (transitionStyle != -1 && animated) {
-				transition = TransitionHelper.transitionForType(transitionStyle, true, duration);
+			if ((optTransitionStyle != -1 || duration != -1) && animated) {
+				if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
+				transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
 			}
 			
 			
@@ -278,8 +286,8 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 				viewToFocus.setVisibility(View.GONE);
 				TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
 				if (transition != null && animated) {
-					transition.setTargets(viewToFocus, viewToRemove);
-					AnimatorSet set = transition.getSet(new AnimatorListener() {
+					transition.setTargetsForReversed(viewToFocus, viewToRemove);
+					AnimatorSet set = transition.getReversedSet(new AnimatorListener() {
 						@Override
 						public void onAnimationStart(Animator arg0) {	
 						}
@@ -661,22 +669,23 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			options = new KrollDict();
 		}
 		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, !isFirst);
-		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransition);
+		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransitionStyle);
+		int transitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
 		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
 		
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
 		if (!isFirst && animated) {
-			transition = TransitionHelper.transitionForType(transitionStyle, false, duration);
+			transition = TransitionHelper.transitionForType(transitionStyle , transitionSubStyle, duration);
 		}		
 		if (viewToAddTo != null) {
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();
    			viewToAdd.setVisibility(View.GONE);			
 			TiUIHelper.addView(viewToAddTo, viewToAdd, proxy.peekView().getLayoutParams());
-			if (transition != null) {
-				
+			if (transition != null) {	
 				TiWindowProxy winToBlur = getCurrentWindow();
 				final View viewToHide = winToBlur.getOuterView();
+				
 				transition.setTargets(viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
@@ -700,7 +709,7 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 			}
    			viewToAdd.setVisibility(View.VISIBLE);			
 		}
-		addWindow(proxy, transitionStyle);
+		addWindow(proxy, transition);
 		
 		TiBaseActivity activity = (TiBaseActivity) getActivity();
 		proxy.setActivity(activity);
