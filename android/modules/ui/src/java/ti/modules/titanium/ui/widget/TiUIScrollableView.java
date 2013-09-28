@@ -528,6 +528,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		if (mViews == null || mViews.size() == 0) {
 			return;
 		}
+		mPager.removeAllViews();
 		for (TiViewProxy viewProxy : mViews) {
 			viewProxy.releaseViews();
 		}
