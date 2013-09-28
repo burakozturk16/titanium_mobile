@@ -1,20 +1,15 @@
 package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.common.Log;
-
-import com.nineoldandroids.view.ViewHelper;
+import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Region;
 import android.os.Build;
 import android.view.MotionEvent;
-import android.view.TouchDelegate;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -23,7 +18,6 @@ import android.widget.FrameLayout;
 
 @SuppressLint("NewApi")
 public class FreeLayout extends FrameLayout {
-	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
 	public static final int FLAG_TRANSFORMED = 16;
 	public FreeLayout(Context context) {
         super(context);
@@ -277,67 +271,6 @@ public class FreeLayout extends FrameLayout {
     public void invalidate(int left,int top,int right,int bottom) {
         invalidate(this,left,top,right,bottom);
     }
-    
-	
-	public void setTranslationFloatX(float val) {
-		int width = getWidth();
-		if (width == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
-			View parent = (View) getParent();
-			if (parent != null) {
-				width = parent.getWidth();
-			}
-		}
-		ViewHelper.setTranslationX(this, width*val);
-
-	}
-	public float getTranslationFloatX() {
-		int width = getWidth();
-		if (width == 0) {
-			View parent = (View) getParent();
-			if (parent != null) {
-				width = parent.getWidth();
-			}
-		}
-		return (width != 0)?(ViewHelper.getTranslationX(this)/width):0;
-	}
-	
-	public void setTranslationFloatY(float val) {
-		int height = getHeight();
-		if (height == 0) { // a cheat for NavigationWindowProxy where animation will start before layout
-			View parent = (View) getParent();
-			if (parent != null) {
-				height = parent.getHeight();
-			}
-		}
-		ViewHelper.setTranslationY(this, height*val);
-
-	}
-	public float getTranslationFloatY() {
-		int height = getHeight();
-		if (height == 0) {
-			View parent = (View) getParent();
-			if (parent != null) {
-				height = parent.getHeight();
-			}
-		}
-		return (height != 0)?(ViewHelper.getTranslationY(this)/height):0;
-	}
-	
-	public void setPivotFloatX(float val) {
-		ViewHelper.setPivotX(this, getWidth()*val);
-
-	}
-	public float getPivotFloatX() {
-		return (ViewHelper.getPivotX(this)/getWidth());
-	}
-	
-	public void setPivotFloatY(float val) {
-		ViewHelper.setPivotX(this, getWidth()*val);
-
-	}
-	public float getPivotFloatY() {
-		return (ViewHelper.getPivotY(this)/getWidth());
-	}
 
     ///////////////////////////////////////////// data
 
