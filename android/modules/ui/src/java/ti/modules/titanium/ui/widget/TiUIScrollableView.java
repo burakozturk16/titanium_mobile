@@ -694,7 +694,6 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	public class TiViewPagerLayout extends TiCompositeLayout
 	{
 		
-		private boolean hardwareDisabled = false;
 		public TiViewPagerLayout(Context context)
 		{
 			super(context, proxy);      
@@ -714,52 +713,58 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 ////		pageWidth = realDimension/parentWidth;
 	    }
 	    
+	    private boolean clipping = false;
+
+	    @Override
+		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	    	int maxWidth = MeasureSpec.getSize(widthMeasureSpec);
+			int maxHeight = MeasureSpec.getSize(heightMeasureSpec);
+			
+			if (verticalLayout) {	    		
+	    		int realHeight = pageDimension.getAsPixels(getContext(), maxHeight, maxHeight);
+	    		if (realHeight != maxHeight) {
+	    			if (clipping == false) {
+	    				disableHWAcceleration();
+	    				setClipChildren(false);
+	    			}
+	    			maxHeight = realHeight;
+	    		}
+	    	}
+	    	else {	    		
+	    		int realWidth = pageDimension.getAsPixels(getContext(), maxWidth, maxWidth);
+	    		if (realWidth != maxWidth) {
+	    			if (clipping == false) {
+	    				disableHWAcceleration();
+	    				setClipChildren(false);
+	    			}
+	    			maxWidth = realWidth;
+	    		}
+	    	}
+			int widthSpec = MeasureSpec.makeMeasureSpec(maxWidth,
+					MeasureSpec.EXACTLY);
+			int heightSpec = MeasureSpec.makeMeasureSpec(maxHeight,
+					MeasureSpec.EXACTLY);
+
+			mPager.measure(widthSpec, heightSpec);
+		}
 	    @Override
 	    protected void onLayout(boolean changed, int l, int t, int r, int b) {
 	    	super.onLayout(changed, l, t, r, b);
 	    	if (verticalLayout) {
-	    		View view = (View) mPager;
-	    		int height =  getMeasuredHeight();
-	    		
-	    		int realHeight = pageDimension.getAsPixels(getContext(), height, height);
-	    		int offset = 0;
-	    		if (realHeight != height) {
-	    			if (hardwareDisabled == false) {
-	    		        setClipChildren(false);
-	    		        setLayerType(LAYER_TYPE_SOFTWARE, null);
-	    		        hardwareDisabled = true;
-	    			}
-		    		offset = pageOffset.getAsPixels(getContext(), height - realHeight, height);
-	    			int newWidthSpec = MeasureSpec.makeMeasureSpec(getMeasuredWidth(),
-							MeasureSpec.EXACTLY);
-					int newHeightSpec = MeasureSpec.makeMeasureSpec(realHeight,
-							MeasureSpec.EXACTLY);
-					view.measure(newWidthSpec, newHeightSpec);
-	    		}
-		    	view.layout(0, offset, getMeasuredWidth(),offset + realHeight);
+	    		int pagerHeight = mPager.getMeasuredHeight();
+		    	int layoutHeight = getMeasuredHeight();
+		    	int offset = pageOffset.getAsPixels(getContext(), layoutHeight - pagerHeight, layoutHeight);
+		    	mPager.layout(0, offset, mPager.getMeasuredWidth(),offset + pagerHeight);
 	    	}
 	    	else {
-	    		View view = (View) mPager;
-	    		int width =  getMeasuredWidth();
-	    		
-	    		int realWidth = pageDimension.getAsPixels(getContext(), width, width);
-	    		int offset = 0;
-	    		if (realWidth != width) {
-	    			if (hardwareDisabled == false) {
-	    		        setClipChildren(false);
-	    		        setLayerType(LAYER_TYPE_SOFTWARE, null);
-	    		        hardwareDisabled = true;
-	    			}
-		    		offset = pageOffset.getAsPixels(getContext(), width - realWidth, width);
-	    			int newWidthSpec = MeasureSpec.makeMeasureSpec(realWidth,
-							MeasureSpec.EXACTLY);
-					int newHeightSpec = MeasureSpec.makeMeasureSpec(getMeasuredHeight(),
-							MeasureSpec.EXACTLY);
-					view.measure(newWidthSpec, newHeightSpec);
-	    		}
-		    	view.layout(offset, 0,offset + realWidth, getMeasuredHeight());
+	    		int pagerWidth =  mPager.getMeasuredWidth();
+		    	int layoutWidth = nativeView.getWidth();
+		    	int offset = pageOffset.getAsPixels(getContext(), layoutWidth - pagerWidth, layoutWidth);
+		    	mPager.layout(offset, 0, offset + pagerWidth, mPager.getMeasuredHeight());
 	    	}
 	    }
+	    
 	    
 	    @Override
 	    public boolean onTouchEvent(MotionEvent ev) {
