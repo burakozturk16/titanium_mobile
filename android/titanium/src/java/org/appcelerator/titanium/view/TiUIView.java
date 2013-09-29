@@ -1511,6 +1511,10 @@ public abstract class TiUIView
 				clearOpacity(view);
 			}
 		}
+		if (nativeView instanceof TiCompositeLayout) {
+			TiCompositeLayout layout = (TiCompositeLayout) nativeView;
+			layout.setAlphaCompat(opacity);
+		}
 	}
 
 	public void clearOpacity(View view)
