@@ -728,6 +728,41 @@ public class TiUIHelper
 		return null;
 	}
 	
+	 /**
+     * Draw the view into a bitmap.
+     */
+    private static Bitmap getViewBitmap(View v) {
+        v.clearFocus();
+        v.setPressed(false);
+
+        boolean willNotCache = v.willNotCacheDrawing();
+        v.setWillNotCacheDrawing(false);
+
+        // Reset the drawing cache background color to fully transparent
+        // for the duration of this operation
+        int color = v.getDrawingCacheBackgroundColor();
+        v.setDrawingCacheBackgroundColor(0);
+
+        if (color != 0) {
+            v.destroyDrawingCache();
+        }
+        v.buildDrawingCache();
+        Bitmap cacheBitmap = v.getDrawingCache();
+        if (cacheBitmap == null) {
+            Log.e(TAG, "failed getViewBitmap(" + v + ")", new RuntimeException());
+            return null;
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
+
+        // Restore the view
+        v.destroyDrawingCache();
+        v.setWillNotCacheDrawing(willNotCache);
+        v.setDrawingCacheBackgroundColor(color);
+
+        return bitmap;
+    }
+	
 	public static Bitmap viewToBitmap(KrollDict proxyDict, View view, float scale)
 	{
 		Bitmap bitmap = null;
@@ -735,68 +770,75 @@ public class TiUIHelper
 		if (view != null) {
 			int width = view.getWidth();
 			int height = view.getHeight();
-
-			// maybe move this out to a separate method once other refactor regarding "getWidth", etc is done
-			if (view.getWidth() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_WIDTH)) {
-				TiDimension widthDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_WIDTH), TiDimension.TYPE_WIDTH);
-				width = widthDimension.getAsPixels(view);
-			}
-			if (view.getHeight() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_HEIGHT)) {
-				TiDimension heightDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_HEIGHT),
-					TiDimension.TYPE_HEIGHT);
-				height = heightDimension.getAsPixels(view);
-			}
-
-			int wmode = width == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
-			int hmode = height == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
-			view.measure(MeasureSpec.makeMeasureSpec(width, wmode), MeasureSpec.makeMeasureSpec(height, hmode));
-
-			// Will force the view to layout itself, grab dimensions
-			width = view.getMeasuredWidth();
-			height = view.getMeasuredHeight();
-
-			// set a default BS value if the dimension is still 0 and log a warning
-			if (width == 0) {
-				width = 100;
-				Log.e(TAG, "Width property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
-			}
-			if (height == 0) {
-				height = 100;
-				Log.e(TAG, "Height property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
-			}
-
-			if (view.getParent() == null) {
-				Log.i(TAG, "View does not have parent, calling layout", Log.DEBUG_MODE);
-				view.layout(0, 0, width, height);
-			}
-
-
-			width *= scale;
-			height *= scale;
-			// opacity should support transparency by default
-			Config bitmapConfig = Config.ARGB_8888;
-
-			Drawable viewBackground = view.getBackground();
-			if (viewBackground != null) {
-				/*
-				 * If the background is opaque then we should be able to safely use a space saving format that
-				 * does not support the alpha channel. Basically, if a view has a background color set then the
-				 * the pixel format will be opaque. If a background image supports an alpha channel, the pixel
-				 * format will report transparency (even if the image doesn't actually look transparent). In
-				 * short, most of the time the Config.ARGB_8888 format will be used when viewToImage is used
-				 * but in the cases where the background is opaque, the lower memory approach will be used.
-				 */
-				if (viewBackground.getOpacity() == PixelFormat.OPAQUE) {
-					bitmapConfig = Config.RGB_565;
+			bitmap = getViewBitmap(view);
+			if (bitmap == null) {
+				if (view.getWidth() == 0 || view.getHeight() == 0) {
+					// maybe move this out to a separate method once other refactor regarding "getWidth", etc is done
+					if (view.getWidth() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_WIDTH)) {
+						TiDimension widthDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_WIDTH), TiDimension.TYPE_WIDTH);
+						width = widthDimension.getAsPixels(view);
+					}
+					if (view.getHeight() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_HEIGHT)) {
+						TiDimension heightDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_HEIGHT),
+							TiDimension.TYPE_HEIGHT);
+						height = heightDimension.getAsPixels(view);
+					}
+		
+					int wmode = width == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
+					int hmode = height == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
+					view.measure(MeasureSpec.makeMeasureSpec(width, wmode), MeasureSpec.makeMeasureSpec(height, hmode));
+		
+					// Will force the view to layout itself, grab dimensions
+					width = view.getMeasuredWidth();
+					height = view.getMeasuredHeight();
+					
+					// set a default BS value if the dimension is still 0 and log a warning
+					if (width == 0) {
+						width = 100;
+						Log.e(TAG, "Width property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
+					}
+					if (height == 0) {
+						height = 100;
+						Log.e(TAG, "Height property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
+					}
+	
 				}
+				
+				if (view.getParent() == null) {
+					Log.i(TAG, "View does not have parent, calling layout", Log.DEBUG_MODE);
+					view.layout(0, 0, width, height);
+				}
+	//			float viewRatio = height / width;
+	
+	//			int bmpWidth =  (int) (width * scale);
+	//			int bmpHeight = (int) (width * viewRatio);
+				// opacity should support transparency by default
+				Config bitmapConfig = Config.ARGB_8888;
+	
+				Drawable viewBackground = view.getBackground();
+				if (viewBackground != null) {
+					/*
+					 * If the background is opaque then we should be able to safely use a space saving format that
+					 * does not support the alpha channel. Basically, if a view has a background color set then the
+					 * the pixel format will be opaque. If a background image supports an alpha channel, the pixel
+					 * format will report transparency (even if the image doesn't actually look transparent). In
+					 * short, most of the time the Config.ARGB_8888 format will be used when viewToImage is used
+					 * but in the cases where the background is opaque, the lower memory approach will be used.
+					 */
+					if (viewBackground.getOpacity() == PixelFormat.OPAQUE) {
+						bitmapConfig = Config.RGB_565;
+					}
+				}
+	
+				bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
+				Canvas canvas = new Canvas(bitmap);
+				view.draw(canvas);
+				canvas = null;
+			}
+			if (scale != 1.0f) {
+				bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()*scale), (int)(bitmap.getHeight()*scale), true);
 			}
 
-			bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
-			Canvas canvas = new Canvas(bitmap);
-			canvas.scale(scale, scale);
-			view.draw(canvas);
-
-			canvas = null;
 		}
 
 		return bitmap;
