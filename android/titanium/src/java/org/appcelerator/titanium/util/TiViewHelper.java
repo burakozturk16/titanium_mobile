@@ -67,4 +67,13 @@ public class TiViewHelper {
 	public static float getPivotFloatY(View view) {
 		return (ViewHelper.getPivotY(view) / getHeightForView(view));
 	}
+	
+	public static void setScale(View view, float valx, float valy) {
+		ViewHelper.setScaleX(view, valx);
+		ViewHelper.setScaleY(view, valy);
+	}
+	public static void setScale(View view, float val) {
+		ViewHelper.setScaleX(view, val);
+		ViewHelper.setScaleY(view, val);
+	}
 }
