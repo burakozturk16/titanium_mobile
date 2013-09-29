@@ -68,7 +68,7 @@ import android.view.ViewGroup;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent
+public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent
 {
 	private static final String TAG = "NavigationWindowProxy";
 	private static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
@@ -102,22 +102,15 @@ public class NavigationWindowProxy extends TiWindowProxy implements OnLifecycleE
 		return table;
 	}
 
-	@Override
-	public TiUIView createView(Activity activity)
-	{
-		TiUIView v = new TiView(this);
-		v.getLayoutParams().autoFillsHeight = true;
-		v.getLayoutParams().autoFillsWidth = true;
-		setView(v);
-		return v;
-	}
-	
-	@Override
-	public void onFirstLayout()
-	{
-		super.onFirstLayout();
-		fireEvent(TiC.EVENT_OPEN, null);
-	}
+//	@Override
+//	public TiUIView createView(Activity activity)
+//	{
+//		TiUIView v = new TiView(this);
+//		v.getLayoutParams().autoFillsHeight = true;
+//		v.getLayoutParams().autoFillsWidth = true;
+//		setView(v);
+//		return v;
+//	}
 
 	
 
