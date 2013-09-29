@@ -100,7 +100,8 @@ import android.widget.ViewSwitcher;
 	TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS,
 	TiC.PROPERTY_TRANSFORM,
 	TiC.PROPERTY_TOUCH_PASSTHROUGH,
-	TiC.PROPERTY_CLIP_CHILDREN
+	TiC.PROPERTY_CLIP_CHILDREN,
+	TiC.PROPERTY_VIEW_MASK,
 })
 public abstract class TiViewProxy extends AnimatableProxy implements Handler.Callback
 {
