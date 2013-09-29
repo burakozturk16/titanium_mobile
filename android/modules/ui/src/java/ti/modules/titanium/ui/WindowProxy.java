@@ -306,7 +306,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		// Fire the open event after setContentView() because getActionBar() need to be called
 		// after setContentView(). (TIMOB-14914)
-		firstLayout = true;
 
 		opened = true;
 		opening = false;
@@ -314,6 +313,13 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		handlePostOpen();
 
 		super.onWindowActivityCreated();
+	}
+	
+	@Override
+	public void closeFromActivity(boolean activityIsFinishing)
+	{
+		super.closeFromActivity(activityIsFinishing);
+		firstLayout = true;
 	}
 
 	@Override
