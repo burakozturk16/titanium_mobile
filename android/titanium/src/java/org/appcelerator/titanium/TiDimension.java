@@ -308,15 +308,15 @@ public class TiDimension
 		return getAsInches(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
-	public int getAsDIP(Context context, int width, int height)
+	public double getAsDIP(Context context, int width, int height)
 	{
 		if (units == TypedValue.COMPLEX_UNIT_DIP) {
-			return (int) this.value;
+			return this.value;
 		}
 
-		return (int) Math.round((getPixels(context, width, height) / getDisplayMetrics(context).density));
+		return (getPixels(context, width, height) / getDisplayMetrics(context).density);
 	}
-	public int getAsDIP(View parent)
+	public double getAsDIP(View parent)
 	{
 		return getAsDIP(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
@@ -332,7 +332,7 @@ public class TiDimension
 	{
 		String defaultUnit = TiApplication.getInstance().getDefaultUnit();
 		if (UNIT_DP.equals(defaultUnit) || UNIT_DIP.equals(defaultUnit)) {
-			return (double) getAsDIP(context, width, height);
+			return getAsDIP(context, width, height);
 		}
 		else if (UNIT_MM.equals(defaultUnit)) {
 			return getAsMillimeters(context, width, height);
