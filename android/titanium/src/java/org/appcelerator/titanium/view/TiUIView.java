@@ -134,7 +134,7 @@ public abstract class TiUIView
 
 	protected Handler handler;
 	
-	private boolean exclusiveTouch = false;
+	protected boolean exclusiveTouch = false;
 	public boolean hardwareAccSupported = true;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
