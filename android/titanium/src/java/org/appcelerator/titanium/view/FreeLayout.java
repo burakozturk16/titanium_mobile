@@ -185,11 +185,6 @@ public class FreeLayout extends FrameLayout {
         }
     }
 
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-		Log.d("FREELEAYOUT", this.getClass().getSimpleName() + " onTouchEvent");
-        return super.onTouchEvent(ev);
-    }
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent ev) {
 
