@@ -378,28 +378,28 @@ public abstract class TiUIView
 	public void applyTransform(Ti2DMatrix timatrix)
 	{
 		View outerView = getOuterView();
-		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
-		if (parent instanceof FreeLayout) {
+//		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
+//		if (parent instanceof FreeLayout) {
 			layoutParams.matrix = timatrix;
 			outerView.setLayoutParams(layoutParams);
-		}
-		else if (HONEYCOMB_OR_GREATER) {
-			if (timatrix != null) {
-				DecomposedType decompose = timatrix.getAffineTransform(outerView, true).decompose();
-				outerView.setTranslationX((float)decompose.translateX);
-				outerView.setTranslationY((float)decompose.translateY);
-				outerView.setRotation((float)(decompose.angle*180/Math.PI));
-				outerView.setScaleX((float)decompose.scaleX);
-				outerView.setScaleY((float)decompose.scaleY);
-			}
-			else {
-				outerView.setTranslationX(0);
-				outerView.setTranslationY(0);
-				outerView.setRotation(0);
-				outerView.setScaleX(1);
-				outerView.setScaleY(1);
-			}
-		}
+//		}
+//		else if (HONEYCOMB_OR_GREATER) {
+//			if (timatrix != null) {
+//				DecomposedType decompose = timatrix.getAffineTransform(outerView, true).decompose();
+//				outerView.setTranslationX((float)decompose.translateX);
+//				outerView.setTranslationY((float)decompose.translateY);
+//				outerView.setRotation((float)(decompose.angle*180/Math.PI));
+//				outerView.setScaleX((float)decompose.scaleX);
+//				outerView.setScaleY((float)decompose.scaleY);
+//			}
+//			else {
+//				outerView.setTranslationX(0);
+//				outerView.setTranslationY(0);
+//				outerView.setRotation(0);
+//				outerView.setScaleX(1);
+//				outerView.setScaleY(1);
+//			}
+//		}
 	}
 
 	public void forceLayoutNativeView(boolean informParent)
