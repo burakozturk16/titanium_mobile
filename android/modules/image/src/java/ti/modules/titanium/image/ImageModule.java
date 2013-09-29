@@ -91,6 +91,7 @@ public class ImageModule extends KrollModule
 			if (options != null) {
 				blurSize = TiConvert.toFloat(options.get("blurSize"), 1.0f);
 			}
+//			return Blur.fastblur(TiApplication.getInstance().getBaseContext(), bitmap, (int) blurSize);
 			mGPUImage.setFilter(new GPUImageGaussianBlurFilter(blurSize));
 			return mGPUImage.getBitmapWithFilterApplied(bitmap);
 		}
@@ -181,16 +182,65 @@ public class ImageModule extends KrollModule
 		return null;
 	}
 	
+	private class FilterViewTask extends AsyncTask< Object, Void, Bitmap >
+	{
+		KrollFunction callback;
+		KrollProxy proxy;
+
+		@Override
+		protected Bitmap doInBackground(Object... params)
+		{
+			proxy = (KrollProxy)params[0];
+			TiViewProxy viewProxy = (TiViewProxy)params[1];
+			int filterType = ((Integer)params[2]).intValue();
+			HashMap options = (HashMap)params[3];
+			float scale = 1.0f;
+			if (options != null) {
+				if (options.containsKey("scale")) {
+					scale = TiConvert.toFloat(options, "scale", 1.0f);
+				}
+			}
+			TiUIView view = viewProxy.getOrCreateView();
+			Bitmap bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView(), scale);
+			callback = (KrollFunction)params[4];
+			return getFilteredBitmap(bitmap, filterType, options);
+		}
+		/**
+		 * Always invoked on UI thread.
+		 */
+		@Override
+		protected void onPostExecute(Bitmap image)
+		{
+			KrollDict result = new KrollDict();
+			if (image != null) {
+				result.put("image", TiBlob.blobFromImage(image));
+			}
+			this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
+		}
+	}
+	
 	@Kroll.method
 	public TiBlob getFilteredViewToImage(TiViewProxy viewProxy, int filterType, @Kroll.argument(optional=true) HashMap options) {
+		
+		float scale = 1.0f;
+		if (options != null) {
+			if (options.containsKey("scale")) {
+				scale = TiConvert.toFloat(options, "scale", 1.0f);
+			}
+			if (options.containsKey("callback")) {
+				KrollFunction callback = (KrollFunction) options.get("callback");
+				if (callback != null) {
+					(new FilterViewTask()).execute(this, viewProxy, Integer.valueOf(filterType), options, callback);
+					return null;
+				}
+			}
+		}
+		
 		TiUIView view = viewProxy.getOrCreateView();
 		if (view == null) {
 			return null;
 		}
-		float scale = 1.0f;
-		if (options != null) {
-			scale = TiConvert.toFloat(options, "scale", scale);
-		}
+		
 		Bitmap bitmap = null;
 		if (TiApplication.isUIThread()) {
 			bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView(), scale);
