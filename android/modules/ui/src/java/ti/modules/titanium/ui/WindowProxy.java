@@ -25,6 +25,7 @@ import org.appcelerator.titanium.proxy.DecorViewProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiView;
@@ -36,6 +37,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.view.ViewGroup.LayoutParams;
+import android.view.View;
 import android.view.Window;
 
 @SuppressLint("ValidFragment")
@@ -56,6 +58,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
+	public boolean firstLayout = true;
 
 	private WeakReference<TiBaseActivity> windowActivity;
 
@@ -78,21 +81,33 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		return table;
 	}
 	
+	private class TiWindowView extends TiUIView{
+		public TiWindowView(TiViewProxy proxy) {
+			super(proxy);
+			layoutParams.autoFillsHeight = true;
+			layoutParams.autoFillsWidth = true;
+			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), proxy) {
+				@Override
+				protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+				{
+					super.onLayout(changed, left, top, right, bottom);
+					if (firstLayout) {
+						firstLayout = false;
+						fireEvent(TiC.EVENT_OPEN, null);
+					}
+				}
+			};
+			setNativeView(layout);
+		}
+	}
+	 
+	
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		TiUIView v = new TiView(this);
-		v.getLayoutParams().autoFillsHeight = true;
-		v.getLayoutParams().autoFillsWidth = true;
+		TiUIView v = new TiWindowView(this);
 		setView(v);
 		return v;
-	}
-	
-	@Override
-	public void onFirstLayout()
-	{
-		super.onFirstLayout();
-		fireEvent(TiC.EVENT_OPEN, null);
 	}
 
 	public void addLightweightWindowToStack() 
@@ -291,6 +306,8 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		// Fire the open event after setContentView() because getActionBar() need to be called
 		// after setContentView(). (TIMOB-14914)
+		firstLayout = true;
+
 		opened = true;
 		opening = false;
 		// fireEvent(TiC.EVENT_OPEN, null);

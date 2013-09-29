@@ -97,7 +97,6 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
-	public boolean firstLayout = true;
 	
 	static boolean isPaused = true;
 	
@@ -454,20 +453,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 		}
 
 		// set to null for now, this will get set correctly in setWindowProxy()
-		return new TiCompositeLayout(this, arrangement, null){
-			@Override
-			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-			{
-				super.onLayout(changed, left, top, right, bottom);
-				if (window != null) {
-					if (firstLayout) {
-						firstLayout = false;
-						window.onFirstLayout();
-					}
-				}
-
-			}
-		};
+		return new TiCompositeLayout(this, arrangement, null);
 	}
 
 	protected void setFullscreen(boolean fullscreen)
