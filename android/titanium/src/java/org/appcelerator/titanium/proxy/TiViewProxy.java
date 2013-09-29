@@ -1407,19 +1407,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 		return true;
 	}
-
-
-	public void prepareForReuse(){
-		if (children != null) {
-			//children might be altered while we loop through it (threading)
-			//so we first copy children as it was when asked to remove all children
-			ArrayList<TiViewProxy> childViews = new ArrayList<TiViewProxy>();
-			childViews.addAll(children);
-			for (TiViewProxy child : childViews) {
-				child.prepareForReuse();
-			}
-		}
-	}
 	
 	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
 		if (!children.contains(viewOut)) return;
