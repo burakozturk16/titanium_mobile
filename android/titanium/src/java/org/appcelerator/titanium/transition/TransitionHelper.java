@@ -173,7 +173,7 @@ public class TransitionHelper {
 			
 			inAnimator = new AnimatorSet();
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloat(translateProp), destTrans, 0));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp), destTrans, 0));
 			inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
 			inAnimator.setDuration(duration);

@@ -29,12 +29,12 @@ public class TransitionSwipeFade extends Transition {
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
 		}
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloat(translateProp),indest, 0.0f);
+		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp),indest, 0.0f);
 		inAnimator.setDuration(duration);
 
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 		propertiesList.add(PropertyValuesHolder.ofFloat("alpha", 1, alpha));
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloat(translateProp),0, -outdest));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp),0, -outdest));
 		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
 		outAnimator.setDuration(duration);

@@ -33,13 +33,12 @@ public class TransitionScale extends Transition {
 			translateProp = "y";
 		}
 			inAnimator = ObjectAnimator
-					.ofFloat(null, new TranslationFloat(translateProp), dest, 0.0f);
+					.ofFloat(null, new TranslationFloatProperty(translateProp), dest, 0.0f);
 			inAnimator.setDuration(duration);
 
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 			propertiesList.add(PropertyValuesHolder.ofFloat("alpha", 1, alpha));
-			propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", 1, scale));
-			propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", 1, scale));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale));
 			outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
 			outAnimator.setDuration(duration);
@@ -49,8 +48,7 @@ public class TransitionScale extends Transition {
 		super.setTargets(reversed, inTarget, outTarget);
 		if (reversed) {
 			ViewHelper.setAlpha(inTarget, alpha);
-			ViewHelper.setScaleX(inTarget, scale);
-			ViewHelper.setScaleY(inTarget, scale);
+			TiViewHelper.setScale(inTarget, scale);
 			outTarget.bringToFront();
 		}
 		else {

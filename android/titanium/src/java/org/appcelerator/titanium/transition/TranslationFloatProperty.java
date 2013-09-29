@@ -6,9 +6,9 @@ import android.view.View;
 
 import com.nineoldandroids.util.FloatProperty;
 
-public class TranslationFloat extends FloatProperty<View> {
+public class TranslationFloatProperty extends FloatProperty<View> {
 
-	public TranslationFloat(String name) {
+	public TranslationFloatProperty(String name) {
 		super(name);
 	}
 

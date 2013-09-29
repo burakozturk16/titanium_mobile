@@ -27,10 +27,10 @@ public class TransitionSwipe extends Transition {
 			translateProp = "y";
 		}
 
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloat(translateProp), dest, 0.0f);
+		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp), dest, 0.0f);
 		inAnimator.setDuration(duration);
 
-		outAnimator = ObjectAnimator.ofFloat(null, new TranslationFloat(translateProp), 0, -dest);
+		outAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp), 0, -dest);
 		outAnimator.setDuration(duration);
 	}
 

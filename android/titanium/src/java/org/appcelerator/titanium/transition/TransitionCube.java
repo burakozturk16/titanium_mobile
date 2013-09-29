@@ -42,7 +42,7 @@ public class TransitionCube extends Transition {
 		}
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloat(translateProp), destTranslation, 0.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp), destTranslation, 0.0f));
 		propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", scale, 1.0f));
 		propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", scale, 1.0f));
 		propertiesList.add(PropertyValuesHolder.ofFloat(rotateProp, destAngle, 0.0f));
@@ -52,7 +52,7 @@ public class TransitionCube extends Transition {
 		inAnimator.setDuration(duration);
 
 		propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloat(translateProp), 0, -destTranslation));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp), 0, -destTranslation));
 		propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", 1, scale));
 		propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", 1, scale));
 		propertiesList.add(PropertyValuesHolder.ofFloat(rotateProp, 0,
