@@ -146,7 +146,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 	
 	public void addControl(TiViewProxy proxy)
 	{
-		clearChildViews(proxy);
+		proxy.clearViews();
 		TiUIView view = proxy.forceCreateView(); 
 		views.add(view);
 		View v = view.getOuterView();
@@ -186,7 +186,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 			views = new ArrayList<TiUIView>(len);
 		} else if (views.size() != len) {
 			for (TiUIView view : views) {
-				View v = view.getNativeView();
+				View v = view.getOuterView();
 				if (v != null && v.getParent().equals(content)) {
 					content.removeView(v);
 				}
@@ -205,7 +205,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				len++;
 			}
 			else if (view == null) {
-				clearChildViews(proxy);
+				proxy.clearViews();
 				view = proxy.forceCreateView();  // false means don't set modelListener, second false not to process Properties
 				if (i >= views.size()) {
 					views.add(view);

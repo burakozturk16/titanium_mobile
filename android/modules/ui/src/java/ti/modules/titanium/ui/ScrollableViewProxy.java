@@ -72,6 +72,14 @@ public class ScrollableViewProxy extends TiViewProxy
 	{
 		return new TiUIScrollableView(this, (TiBaseActivity) activity);
 	}
+	
+	//only for tableview magic
+	@Override
+	public void clearViews()
+	{
+		super.clearViews();
+		getView().clearViewsForTableView();
+	}
 
 	protected TiUIScrollableView getView()
 	{

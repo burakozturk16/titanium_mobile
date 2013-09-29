@@ -196,12 +196,8 @@ public abstract class TiBaseTableViewItem extends ViewGroup implements Handler.C
 		handler = null;
 	}
 	
-	protected static void clearChildViews(TiViewProxy parent)
-	{
-		for (TiViewProxy childProxy : parent.getChildren()) {
-			childProxy.setView(null);
-			TiBaseTableViewItem.clearChildViews(childProxy);
-		}
+	public void prepareForReuse(){
+		clearViews();
 	}
 
 	

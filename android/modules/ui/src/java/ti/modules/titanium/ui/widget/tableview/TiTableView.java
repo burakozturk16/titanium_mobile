@@ -265,36 +265,12 @@ public class TiTableView extends FrameLayout
 			}
             else if (sameView == false) 
             {
-            	v.getRowData().proxy.prepareForReuse();
-
-            	if (proxy.hasListeners("reuse"))
-            	{
-	                //we are reusing a cell
-	                KrollDict event = new KrollDict();
-	                TableViewRowProxy.fillClickEvent(event, viewModel, v.getRowData());
-	                proxy.fireSyncEvent("reuse", event);
-            	}
-
+            	v.prepareForReuse();
             }
             if (v.getRowData() != item || sameView == false)
             {
                 v.setRowData(item);
-                if (proxy.hasListeners("rowappear"))
-                {
-                	 //now it means the view will appear
-                    KrollDict event = new KrollDict();
-                    TableViewRowProxy.fillClickEvent(event, viewModel, item);
-                    proxy.fireEvent("rowappear", event);
-                }
-               
             }
-
-//            if (item.proxy instanceof TableViewRowProxy && ((TableViewRowProxy)item.proxy).needsAnimation == true) {
-//				TableViewRowProxy row = (TableViewRowProxy)item.proxy;
-//				row.needsAnimation = false;
-//				Animation animation = AnimationUtils.makeInAnimation(getContext(), false);
-//    			v.startAnimation(animation);
-//			}
 			return v;
 		}
 
@@ -536,7 +512,7 @@ public class TiTableView extends FrameLayout
 				((ViewGroup)vParent).removeView(outerView);
 			}
 		}
-		TiBaseTableViewItem.clearChildViews(viewProxy);
+		viewProxy.clearViews();
 		TiUIView tiView = viewProxy.forceCreateView();
 		View nativeView = tiView.getOuterView();
 		TiCompositeLayout.LayoutParams params = tiView.getLayoutParams();
