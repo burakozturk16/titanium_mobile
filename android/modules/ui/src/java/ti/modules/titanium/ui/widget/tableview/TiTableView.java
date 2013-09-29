@@ -25,10 +25,12 @@ import ti.modules.titanium.ui.TableViewProxy;
 import ti.modules.titanium.ui.TableViewRowProxy;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.tableview.TableViewModel.Item;
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -41,6 +43,7 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
+@SuppressLint("DefaultLocale")
 public class TiTableView extends FrameLayout
 	implements OnSearchChangeListener
 {
@@ -334,6 +337,7 @@ public class TiTableView extends FrameLayout
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState)
 			{
+				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
 					scrollValid = false;
 					KrollDict eventArgs = new KrollDict();

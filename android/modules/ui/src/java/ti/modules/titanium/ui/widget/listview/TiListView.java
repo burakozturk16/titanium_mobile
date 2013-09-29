@@ -35,6 +35,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.support.v4.view.ViewPager;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -68,6 +69,7 @@ public class TiListView extends TiUIView {
 	private View headerView;
 	private View footerView;
 	private static final String TAG = "TiListView";
+
 	
 	/* We cache properties that already applied to the recycled list tiem in ViewItem.java
 	 * However, since Android randomly selects a cached view to recycle, our cached properties
@@ -291,6 +293,7 @@ public class TiListView extends TiUIView {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState)
 			{
+				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
 					scrollValid = false;
 					if (!fProxy.hasListeners(TiC.EVENT_SCROLLEND)) return;

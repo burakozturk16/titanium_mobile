@@ -7,7 +7,6 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.lang.Math;
 
 import org.appcelerator.kroll.KrollDict;
@@ -16,7 +15,6 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
@@ -40,9 +38,7 @@ import android.view.View;
 import android.view.ViewParent;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 
 @SuppressLint("NewApi")
 public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageChangeListener
@@ -56,9 +52,6 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private TiDimension pageOffset = new TiDimension("50%", TiDimension.TYPE_WIDTH);
 	private boolean verticalLayout = false;
 	boolean mNeedsRedraw = false;
-	private View mTouchTarget;
-	private int mPreviousState = ViewPager.SCROLL_STATE_IDLE;
-
 	
 	private DirectionalViewPager mPager;
 	private final ArrayList<TiViewProxy> mViews;
@@ -95,21 +88,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	@Override
 	public void onPageScrollStateChanged(int scrollState) {
 		mNeedsRedraw = (scrollState != ViewPager.SCROLL_STATE_IDLE);
-		
-		// All of this is to inhibit any scrollable container from consuming our touch events as the user is changing pages
-        if (mPreviousState == ViewPager.SCROLL_STATE_IDLE) {
-            if (scrollState == ViewPager.SCROLL_STATE_DRAGGING) {
-                mTouchTarget = mPager;
-                mContainer.requestDisallowInterceptTouchEvent(true);
-           }
-        } else {
-            if (scrollState == ViewPager.SCROLL_STATE_IDLE || scrollState == ViewPager.SCROLL_STATE_SETTLING) {
-                mTouchTarget = null;
-                mContainer.requestDisallowInterceptTouchEvent(false);
-           }
-        }
-
-        mPreviousState = scrollState;
+		mPager.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 		
 		if (scrollState == ViewPager.SCROLL_STATE_DRAGGING) {
 			((ScrollableViewProxy)proxy).fireScrollStart(mCurIndex, mViews.get(mCurIndex));
@@ -154,8 +133,6 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			// handler below doesn't fire a `scrollend`.  Read below comment.
 			justFiredDragEnd = true;
 		}
-		
-		 mPreviousState = scrollState;
 	}
 
 	@Override
@@ -793,10 +770,6 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	                mInitialTouch.x = (int)ev.getX();
 	                mInitialTouch.y = (int)ev.getY();
 	            case MotionEvent.ACTION_UP:
-				case MotionEvent.ACTION_CANCEL:
-	                mTouchTarget = null;
-					requestDisallowInterceptTouchEvent(false);
-					break;
 	            default:
 	                ev.offsetLocation(mCenter.x - mInitialTouch.x, mCenter.y - mInitialTouch.y);
 	                break;
@@ -816,21 +789,21 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		}
 
 
-		@Override
-		public boolean dispatchTouchEvent(MotionEvent ev)
-		{
-			if (mTouchTarget != null) {
-	            boolean wasProcessed = mTouchTarget.dispatchTouchEvent(ev);
-
-	            if (!wasProcessed) {
-	                mTouchTarget = null;
-					requestDisallowInterceptTouchEvent(false);
-	            }
-
-	            return wasProcessed;
-	        }
-			return super.dispatchTouchEvent(ev);
-		}
+//		@Override
+//		public boolean dispatchTouchEvent(MotionEvent ev)
+//		{
+//			if (mTouchTarget != null) {
+//	            boolean wasProcessed = mTouchTarget.dispatchTouchEvent(ev);
+//
+//	            if (!wasProcessed) {
+//	                mTouchTarget = null;
+//					requestDisallowInterceptTouchEvent(false);
+//	            }
+//
+//	            return wasProcessed;
+//	        }
+//			return super.dispatchTouchEvent(ev);
+//		}
 
 		@Override
 		public boolean dispatchKeyEvent(KeyEvent event)
