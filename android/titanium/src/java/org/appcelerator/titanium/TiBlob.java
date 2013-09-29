@@ -23,9 +23,12 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.util.KrollStreamHelper;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TitaniumBlob;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
@@ -499,7 +502,7 @@ public class TiBlob extends KrollProxy
 	}
 
 	@Kroll.method
-	public TiBlob imageAsCropped(Object params)
+	public TiBlob imageAsCropped(Object params, @Kroll.argument(optional=true) HashMap options)
 	{
 		Bitmap img = getImage();
 		if (img == null) {
@@ -509,17 +512,32 @@ public class TiBlob extends KrollProxy
 			Log.e(TAG, "Argument for imageAsCropped must be a dictionary");
 			return null;
 		}
+		float scale = 1.0f;
+		if (options != null) {
+			if (options.containsKey("scale")) {
+				scale = TiConvert.toFloat(options, "scale", 1.0f);
+			}
+		}
+		Context context = TiApplication.getInstance().getApplicationContext();
+		
 
-		KrollDict options = new KrollDict((HashMap) params);
-		int widthCropped = options.optInt(TiC.PROPERTY_WIDTH, width);
-		int heightCropped = options.optInt(TiC.PROPERTY_HEIGHT, height);
-		int x = options.optInt(TiC.PROPERTY_X, (width - widthCropped) / 2);
-		int y = options.optInt(TiC.PROPERTY_Y, (height - heightCropped) / 2);
+		KrollDict rect = new KrollDict((HashMap) params);
+		int widthCropped = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_WIDTH, width),
+				context) * scale);
+		int heightCropped = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_HEIGHT, height),
+				context)* scale);
+		int x = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_X, (width - widthCropped) / 2),
+				context)* scale);
+		int y = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_Y, (height - heightCropped) / 2),
+				context)* scale);
 		try {
 			Bitmap imageCropped = Bitmap.createBitmap(img, x, y, widthCropped, heightCropped);
 			return blobFromImage(imageCropped);
 		} catch (OutOfMemoryError e) {
 			Log.e(TAG, "Unable to crop the image. Not enough memory: " + e.getMessage(), e);
+			return null;
+		} catch (IllegalArgumentException e) {
+			Log.e(TAG, "Unable to crop the image: " + e.getMessage(), e);
 			return null;
 		}
 	}
