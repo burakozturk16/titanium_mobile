@@ -1,8 +1,10 @@
 package org.appcelerator.titanium.util;
 
-import com.nineoldandroids.animation.AnimatorSet;
+import android.animation.AnimatorSet;
+import android.annotation.TargetApi;
+import android.os.Build;
 
-
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class TiAnimatorSet extends TiAnimator {
 	private AnimatorSet set;
 

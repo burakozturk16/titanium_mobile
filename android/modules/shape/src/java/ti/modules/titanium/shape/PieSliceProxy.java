@@ -8,9 +8,13 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 
-import com.nineoldandroids.animation.PropertyValuesHolder;
+import ti.modules.titanium.shape.ShapeProxy.PRoundRect;
+import ti.modules.titanium.shape.ShapeProxy.PointEvaluator;
 
+import android.animation.PropertyValuesHolder;
+import android.annotation.TargetApi;
 import android.graphics.Point;
+import android.os.Build;
 
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	ShapeModule.PROPERTY_INNERRADIUS
@@ -54,6 +58,7 @@ public class PieSliceProxy extends ArcProxy{
 		redraw();
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
 		super.preparePropertiesSet(tiSet, propertiesList, animOptions);

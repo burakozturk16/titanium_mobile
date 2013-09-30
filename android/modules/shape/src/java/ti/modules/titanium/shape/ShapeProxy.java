@@ -24,14 +24,13 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.ArgbEvaluator;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.animation.PropertyValuesHolder;
-import com.nineoldandroids.animation.TypeEvaluator;
-import com.nineoldandroids.animation.ValueAnimator;
-import com.nineoldandroids.animation.ValueAnimator.AnimatorUpdateListener;
-
+import android.animation.Animator;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.TypeEvaluator;
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -56,6 +55,7 @@ import android.graphics.Shader;
 import android.os.Build;
 import android.view.animation.LinearInterpolator;
 
+@SuppressLint("NewApi")
 @SuppressWarnings({ "unchecked", "rawtypes" })
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	TiC.PROPERTY_NAME
@@ -746,6 +746,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
 //		KrollDict properties = getProperties();
 		Boolean animatingCenter = animOptions.containsKey(TiC.PROPERTY_CENTER);
@@ -784,6 +785,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, HashMap options) {
 		super.prepareAnimatorSet(tiSet, list, options);

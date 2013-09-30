@@ -1,16 +1,24 @@
 package org.appcelerator.titanium.util;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.Animator.AnimatorListener;
-
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @SuppressWarnings("rawtypes")
 public class TiAnimatorListener implements AnimatorListener {
 	private static final String TAG = "TiAnimatorListener";

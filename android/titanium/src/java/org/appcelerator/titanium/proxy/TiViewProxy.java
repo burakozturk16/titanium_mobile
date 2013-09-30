@@ -49,6 +49,11 @@ import android.os.Message;
 import android.os.AsyncTask;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewParent;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ViewSwitcher;
 
 /**
@@ -938,8 +943,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		pendingAnimation.applyOptions();
 		((TiAnimatorSet) pendingAnimation).setProxy(this);
 		
-		peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
-		((TiAnimatorSet) pendingAnimation).set().start();
+
+		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+			((TiViewAnimator) pendingAnimation).animateOnView(this);
+		}
+		else {
+			peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
+			((TiAnimatorSet) pendingAnimation).set().start();
+		}
 	}
 
 	protected void handleQueuedAnimate()

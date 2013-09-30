@@ -9,7 +9,9 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 
-import com.nineoldandroids.animation.PropertyValuesHolder;
+import android.animation.PropertyValuesHolder;
+import android.annotation.TargetApi;
+import android.os.Build;
 
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	ShapeModule.PROPERTY_SWEEPANGLE,ShapeModule.PROPERTY_STARTANGLE
@@ -50,6 +52,7 @@ public class ArcProxy extends ShapeProxy{
 		redraw();
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
 		super.preparePropertiesSet(tiSet, propertiesList, animOptions);

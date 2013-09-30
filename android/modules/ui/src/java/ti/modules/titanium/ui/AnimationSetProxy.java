@@ -24,13 +24,16 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.Animator.AnimatorListener;
-import com.nineoldandroids.animation.AnimatorSet;
 
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.Animator.AnimatorListener;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_DELAY,
 	TiC.PROPERTY_DURATION,

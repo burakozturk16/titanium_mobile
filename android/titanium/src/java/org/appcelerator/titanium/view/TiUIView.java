@@ -29,17 +29,17 @@ import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
+import org.appcelerator.titanium.util.TiViewAnimator.TiMatrixAnimation;
 import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.TiBlob;
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.ArgbEvaluator;
-import com.nineoldandroids.animation.ObjectAnimator;
-import com.nineoldandroids.animation.PropertyValuesHolder;
-import com.nineoldandroids.animation.ValueAnimator;
-
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ArgbEvaluator;
+import android.animation.ObjectAnimator;
+import android.animation.PropertyValuesHolder;
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -1871,8 +1871,6 @@ public abstract class TiUIView
 		View view =  getOuterView();
 		return (view.getTop() + view.getMeasuredHeight()) / 2;
 	}
-
-	
 	
 	public void setTiBackgroundColor(int color) {
 		int currentColor = getTiBackgroundColor();

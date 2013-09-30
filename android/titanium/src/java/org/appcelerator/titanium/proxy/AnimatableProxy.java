@@ -8,16 +8,20 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiAnimator;
 import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.view.TiAnimation;
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.ValueAnimator;
+import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
+import android.os.Build;
+import android.view.View;
 
-@SuppressWarnings({"rawtypes"})
+@SuppressLint("NewApi")
 @Kroll.proxy
 public class AnimatableProxy extends KrollProxy {
 	private static final String TAG = "AnimatableProxy";
@@ -54,6 +58,10 @@ public class AnimatableProxy extends KrollProxy {
 	}
 
 	public AnimatorSet getAnimatorSetForAnimation(Object arg) {
+		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
+			Log.e(TAG, "animate can only work on API >= 11 ");
+			return null;
+		}
 		TiAnimator tiAnimator = createAnimator();
 		if (!(tiAnimator instanceof TiAnimatorSet)) {
 			Log.e(TAG, "must be a TiAnimatorSet");
