@@ -25,6 +25,11 @@ public AffineTransform(AffineTransform transform)
     setMatrix(transform.m_transform);
 }
 
+public AffineTransform(DecomposedType decomp)
+{
+    recompose(decomp);
+}
+
 public AffineTransform(Matrix matrix)
 {
     setMatrix(matrix);
