@@ -188,7 +188,9 @@ public class TiViewAnimator extends TiAnimatorSet
 			if (currentAnimation != null && currentAnimation.hasStarted() && !currentAnimation.hasEnded()) {
 				// Cancel existing animation and
 				// re-queue desired animation.
+				
 				currentAnimation.cancel();
+				simulateFinish(proxy);
 //				view.clearAnimation();
 				proxy.handlePendingAnimation(true);
 				return;
@@ -597,7 +599,7 @@ public class TiViewAnimator extends TiAnimatorSet
 			super.applyTransformation(interpolatedTime, transformation);
 			View outerView = view.getOuterView();
 			AffineTransform a = (from != null)?from.getAffineTransform(outerView):(new AffineTransform());
-			AffineTransform b = from.getAffineTransform(outerView);
+			AffineTransform b = matrix.getAffineTransform(outerView);
 			b.blend(a, interpolatedTime);
 			view.applyTransform(new Ti2DMatrix(b));
 		}
