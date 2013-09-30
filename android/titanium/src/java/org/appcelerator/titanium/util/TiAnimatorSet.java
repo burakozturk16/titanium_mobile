@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.util;
 
+import org.appcelerator.titanium.TiC;
+
 import android.animation.AnimatorSet;
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -9,7 +11,10 @@ public class TiAnimatorSet extends TiAnimator {
 	private AnimatorSet set;
 
 	public TiAnimatorSet() {
-		set = new AnimatorSet();
+		
+		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+			set = new AnimatorSet();
+		}
 	}
 
 	public AnimatorSet set() {
