@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.transition;
 
+import org.appcelerator.titanium.animation.AlphaProperty;
+
 import android.view.View;
 
 import com.nineoldandroids.animation.ObjectAnimator;
@@ -14,11 +16,11 @@ public class TransitionFade extends Transition {
 	}
 	protected void prepareAnimators() {
 		inAnimator = ObjectAnimator
-				.ofFloat(null, "alpha", 0.0f, 1.0f);
+				.ofFloat(null, new AlphaProperty(), 0.0f, 1.0f);
 		inAnimator.setDuration(duration);
 		
 		outAnimator = ObjectAnimator
-				.ofFloat(null, "alpha", 1.0f, 0.0f);
+				.ofFloat(null, new AlphaProperty(), 1.0f, 0.0f);
 		outAnimator.setDuration(duration);
 	}
 	public void setTargets(boolean reversed, View inTarget, View outTarget) {

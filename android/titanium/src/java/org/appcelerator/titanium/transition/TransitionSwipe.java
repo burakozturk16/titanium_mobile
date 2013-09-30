@@ -1,5 +1,6 @@
 package org.appcelerator.titanium.transition;
 
+import org.appcelerator.titanium.animation.TranslationProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 import org.appcelerator.titanium.view.FreeLayout;
@@ -27,10 +28,10 @@ public class TransitionSwipe extends Transition {
 			translateProp = "y";
 		}
 
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp), dest, 0.0f);
+		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp), dest, 0.0f);
 		inAnimator.setDuration(duration);
 
-		outAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp), 0, -dest);
+		outAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp), 0, -dest);
 		outAnimator.setDuration(duration);
 	}
 

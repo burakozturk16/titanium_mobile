@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.transition;
 
+import org.appcelerator.titanium.animation.AlphaProperty;
+import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 
 import android.view.View;
@@ -23,30 +25,30 @@ public class TransitionFlip extends Transition {
 			destAngle = -destAngle;
 		}
 		
-		String rotateProp = "rotationY";
+		String rotateProp = "y";
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			rotateProp = "rotationX";
+			rotateProp = "x";
 		}
 		if (!TransitionHelper.isPushSubType(subType)) {
 			destAngle = -destAngle;
 		}
 		
 		inAnimator = new AnimatorSet();
-		Animator anim1 = ObjectAnimator.ofFloat(null, rotateProp,
+		Animator anim1 = ObjectAnimator.ofFloat(null, new RotationProperty(rotateProp),
 				destAngle, 0);
 		anim1.setInterpolator(new AccelerateDecelerateInterpolator());
 		anim1.setDuration(duration);
-		Animator anim2 = ObjectAnimator.ofFloat(null, "alpha", 0, 1);
+		Animator anim2 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 0, 1);
 		anim2.setDuration(0);
 		anim2.setStartDelay(duration / 2);
 		((AnimatorSet) inAnimator).playTogether(anim1, anim2);
 
 		outAnimator = new AnimatorSet();
-		Animator anim3 = ObjectAnimator.ofFloat(null, rotateProp, 0.0f,
+		Animator anim3 = ObjectAnimator.ofFloat(null, new RotationProperty(rotateProp), 0.0f,
 				-destAngle);
 		anim3.setDuration(duration);
 		anim3.setInterpolator(new AccelerateDecelerateInterpolator());
-		Animator anim4 = ObjectAnimator.ofFloat(null, "alpha", 1, 0);
+		Animator anim4 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 1, 0);
 		anim4.setDuration(0);
 		anim4.setStartDelay(duration / 2);
 		((AnimatorSet) outAnimator).playTogether(anim3, anim4);

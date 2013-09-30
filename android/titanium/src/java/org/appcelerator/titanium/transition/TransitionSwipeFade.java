@@ -3,6 +3,8 @@ package org.appcelerator.titanium.transition;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.appcelerator.titanium.animation.AlphaProperty;
+import org.appcelerator.titanium.animation.TranslationProperty;
 import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.view.View;
@@ -29,12 +31,12 @@ public class TransitionSwipeFade extends Transition {
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
 		}
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationFloatProperty(translateProp),indest, 0.0f);
+		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp),indest, 0.0f);
 		inAnimator.setDuration(duration);
 
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat("alpha", 1, alpha));
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp),0, -outdest));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, alpha));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),0, -outdest));
 		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
 		outAnimator.setDuration(duration);

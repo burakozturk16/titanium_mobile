@@ -3,6 +3,9 @@ package org.appcelerator.titanium.transition;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.appcelerator.titanium.animation.AlphaProperty;
+import org.appcelerator.titanium.animation.ScaleProperty;
+import org.appcelerator.titanium.animation.TranslationProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 import org.appcelerator.titanium.view.FreeLayout;
@@ -33,11 +36,11 @@ public class TransitionScale extends Transition {
 			translateProp = "y";
 		}
 			inAnimator = ObjectAnimator
-					.ofFloat(null, new TranslationFloatProperty(translateProp), dest, 0.0f);
+					.ofFloat(null, new TranslationProperty(translateProp), dest, 0.0f);
 			inAnimator.setDuration(duration);
 
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat("alpha", 1, alpha));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, alpha));
 			propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale));
 			outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));

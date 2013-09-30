@@ -3,6 +3,9 @@ package org.appcelerator.titanium.transition;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.appcelerator.titanium.animation.RotationProperty;
+import org.appcelerator.titanium.animation.ScaleProperty;
+import org.appcelerator.titanium.animation.TranslationProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 
@@ -30,7 +33,7 @@ public class TransitionCube extends Transition {
 		float destTranslation = translation;
 		float destAngle = angle;
 		
-		String rotateProp = "rotationY";
+		String rotateProp = "y";
 		String translateProp = "x";
 		if (!TransitionHelper.isPushSubType(subType)) {
 			destTranslation = -destTranslation;
@@ -38,24 +41,22 @@ public class TransitionCube extends Transition {
 		}
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
-			rotateProp = "rotationX";
+			rotateProp = "x";
 		}
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp), destTranslation, 0.0f));
-		propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", scale, 1.0f));
-		propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", scale, 1.0f));
-		propertiesList.add(PropertyValuesHolder.ofFloat(rotateProp, destAngle, 0.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTranslation, 0.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), scale, 1.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), destAngle, 0.0f));
 		inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
 		inAnimator.setInterpolator(new AccelerateDecelerateInterpolator());
 		inAnimator.setDuration(duration);
 
 		propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationFloatProperty(translateProp), 0, -destTranslation));
-		propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", 1, scale));
-		propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", 1, scale));
-		propertiesList.add(PropertyValuesHolder.ofFloat(rotateProp, 0,
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0, -destTranslation));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), 0,
 				-destAngle));
 		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
