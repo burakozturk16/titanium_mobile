@@ -117,10 +117,10 @@ public class AnimatableProxy extends KrollProxy {
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
 		AnimatorSet set = tiSet.set();
 		HashMap options = tiSet.getOptions();
-		if (tiSet.delay != null)
-			set.setStartDelay(tiSet.delay.longValue());
-		if (tiSet.duration != null)
-			set.setDuration(tiSet.duration.longValue());
+//		if (tiSet.delay != null)
+//			set.setStartDelay(tiSet.delay.longValue());
+//		if (tiSet.duration != null)
+//			set.setDuration(tiSet.duration.longValue());
 
 		set.addListener(new TiAnimatorListener(tiSet,
 				options));
@@ -137,6 +137,10 @@ public class AnimatableProxy extends KrollProxy {
 			
 		for (int i = 0; i < list.size(); i++) {
 			ValueAnimator anim = (ValueAnimator) list.get(i);
+			if (tiSet.delay != null)
+				anim.setStartDelay(tiSet.delay.longValue());
+			if (tiSet.duration != null)
+				anim.setDuration(tiSet.duration.longValue());
 			anim.setRepeatCount(repeatCount);
 			anim.setRepeatMode(style);
 		}
@@ -146,12 +150,12 @@ public class AnimatableProxy extends KrollProxy {
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
 			HashMap options) {
 		Log.d(TAG, "prepareAnimatorSet", Log.DEBUG_MODE);
-		AnimatorSet set = tiSet.set();
-		if (tiSet.delay != null)
-			set.setStartDelay(tiSet.delay.longValue());
-		if (tiSet.duration != null)
-			set.setDuration(tiSet.duration.longValue());
-		set.addListener(new TiAnimatorListener(tiSet, options));
+//		AnimatorSet set = tiSet.set();
+//		if (tiSet.delay != null)
+//			set.setStartDelay(tiSet.delay.longValue());
+//		if (tiSet.duration != null)
+//			set.setDuration(tiSet.duration.longValue());
+//		set.addListener(new TiAnimatorListener(tiSet, options));
 
 	}
 	

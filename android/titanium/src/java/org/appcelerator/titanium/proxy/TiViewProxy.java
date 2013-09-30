@@ -10,6 +10,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
@@ -881,9 +882,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	@Override
-	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+			HashMap options) {
 		if (view != null) {
-			view.prepareAnimatorSet(tiSet);
+			view.prepareAnimatorSet(tiSet, list, options);
 		}
 	}
 	
@@ -914,7 +916,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
-		TiAnimator pendingAnimation;
+		TiAnimator pendingAnimation = null;
 		synchronized (pendingAnimationLock) {
 			if (pendingAnimations.size() == 0) {
 				return;
@@ -938,7 +940,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		pendingAnimation.applyOptions();
 		((TiAnimatorSet) pendingAnimation).setProxy(this);
 		
-		peekView().prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
+		prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
 		((TiAnimatorSet) pendingAnimation).set().start();
 	}
 
@@ -1319,6 +1321,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	protected void handleFinishBatchPropertyApply()
 	{
+		if (view == null) return;
 		if (view.iszIndexChanged()) {
 			view.forceLayoutNativeView(true);
 			view.setzIndexChanged(false);

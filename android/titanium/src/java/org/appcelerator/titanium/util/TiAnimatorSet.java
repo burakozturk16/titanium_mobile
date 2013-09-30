@@ -7,10 +7,7 @@ public class TiAnimatorSet extends TiAnimator {
 	private AnimatorSet set;
 
 	public TiAnimatorSet() {
-		
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-			set = new AnimatorSet();
-		}
+		set = new AnimatorSet();
 	}
 
 	public AnimatorSet set() {

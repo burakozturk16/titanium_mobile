@@ -39,6 +39,7 @@ import com.nineoldandroids.animation.ArgbEvaluator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.animation.ValueAnimator;
+import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
@@ -73,6 +74,7 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 
@@ -1926,26 +1928,14 @@ public abstract class TiUIView
 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	public void prepareAnimatorSet(TiAnimatorSet tiSet) {
-		List<Animator> list = new ArrayList<Animator>();
-		HashMap options = tiSet.getOptions();
+	public void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+			HashMap options) {
 		AnimatorSet set = tiSet.set();
 		
 		
 		View view = proxy.getOuterView();
 		((TiViewAnimator)tiSet).setViewProxy(proxy);
 		((TiViewAnimator)tiSet).setView(view);
-
-		
-		
-		if (tiSet.delay != null)
-			set.setStartDelay(tiSet.delay.longValue());
-		if (tiSet.duration != null)
-			set.setDuration(tiSet.duration.longValue());
-
-		set.addListener(new TiAnimatorListener(this.proxy, tiSet,
-				options));
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
 			show();
@@ -2012,23 +2002,14 @@ public abstract class TiUIView
 				propertiesList.add(PropertyValuesHolder.ofFloat("rotation", (float)(decompose.angle*180/Math.PI)));
 				propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", (float)decompose.scaleX));
 				propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
-				list.add(ObjectAnimator.ofPropertyValuesHolder(view,propertiesList.toArray(new PropertyValuesHolder[0])));
+				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
 			}
 		}
 
-		int style = tiSet.autoreverse?ValueAnimator.REVERSE:ValueAnimator.RESTART;
-		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
-		if (tiSet.autoreverse) {
-			repeatCount = repeatCount * 2 + 1;
-		}
-			
-		for (int i = 0; i < list.size(); i++) {
-			ValueAnimator anim = (ValueAnimator) list.get(i);
-			anim.setRepeatCount(repeatCount);
-			anim.setRepeatMode(style);
-		}
-		set.playTogether(list);
-		getOuterView().postInvalidate();
+//		anim.setTarget(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view);
+//		anim.setInterpolator(new AccelerateDecelerateInterpolator());
+//		list.add(anim);
+		view.postInvalidate();
 
 	}
 }
