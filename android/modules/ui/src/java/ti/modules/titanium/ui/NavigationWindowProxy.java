@@ -52,6 +52,7 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Message;
 import android.util.Pair;
 import android.view.View;
@@ -172,17 +173,19 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void updateHomeButton(TiWindowProxy proxy){
 		boolean canGoBack = (windows.size() > 1);
-    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
-    	ActionBar actionBar = getActivity().getActionBar();
-    	if (proxy == null) {
-    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
-    		actionBar.setHomeButtonEnabled(canGoBack);
-    	}
-    	else {
-    		KrollDict props = actionBarProxy.getProperties();
-    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
-    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
-    	}
+		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
+	    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
+	    	ActionBar actionBar = getActivity().getActionBar();
+	    	if (proxy == null) {
+	    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
+	    		actionBar.setHomeButtonEnabled(canGoBack);
+	    	}
+	    	else {
+	    		KrollDict props = actionBarProxy.getProperties();
+	    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
+	    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
+	    	}
+		}
 	}
 	
 	private void removeWindow(TiWindowProxy proxy) {
