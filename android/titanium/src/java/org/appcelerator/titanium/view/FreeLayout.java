@@ -1,14 +1,12 @@
 package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
