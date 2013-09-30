@@ -596,9 +596,6 @@
 		B4F97B73111A41C800E2F72C /* TiUIScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = B4F97B72111A41C800E2F72C /* TiUIScrollView.m */; };
 		D4AB36F5123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
 		D4AB36F6123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
-		D50ABB2817EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D50ABAD917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a */; };
-		D50ABB2917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D50ABAD917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a */; };
-		D50ABB2A17EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D50ABAD917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a */; };
 		D51E059917DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = D51E059817DB1AC000DCF3E2 /* UIBezierPath+Additions.m */; };
 		D51E059A17DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = D51E059817DB1AC000DCF3E2 /* UIBezierPath+Additions.m */; };
 		D51E059B17DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */ = {isa = PBXBuildFile; fileRef = D51E059817DB1AC000DCF3E2 /* UIBezierPath+Additions.m */; };
@@ -886,6 +883,9 @@
 		D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D5780CFA17F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */; };
+		D5780CFB17F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */; };
+		D5780CFC17F9788100E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */; };
 		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -1995,7 +1995,6 @@
 		D50ABAD617EB6680002CE73D /* DOMHelperUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DOMHelperUtilities.h; path = ../Classes/SVGKit/DOMHelperUtilities.h; sourceTree = "<group>"; };
 		D50ABAD717EB6680002CE73D /* Element.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Element.h; path = ../Classes/SVGKit/Element.h; sourceTree = "<group>"; };
 		D50ABAD817EB6680002CE73D /* EntityReference.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = EntityReference.h; path = ../Classes/SVGKit/EntityReference.h; sourceTree = "<group>"; };
-		D50ABAD917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.1.1.0pre.a"; path = "../Classes/SVGKit/libSVGKit-iOS.1.1.0pre.a"; sourceTree = "<group>"; };
 		D50ABADA17EB6680002CE73D /* MediaList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MediaList.h; path = ../Classes/SVGKit/MediaList.h; sourceTree = "<group>"; };
 		D50ABADB17EB6680002CE73D /* NamedNodeMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NamedNodeMap.h; path = ../Classes/SVGKit/NamedNodeMap.h; sourceTree = "<group>"; };
 		D50ABADC17EB6680002CE73D /* Node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Node.h; path = ../Classes/SVGKit/Node.h; sourceTree = "<group>"; };
@@ -2264,6 +2263,7 @@
 		D56915D3168F538F00C3F89F /* TTTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TTTAttributedLabel.h; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.h; sourceTree = "<group>"; };
 		D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TTTAttributedLabel.m; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.m; sourceTree = "<group>"; };
 		D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
+		D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.1.1.0pre.a"; path = "../lib/libSVGKit-iOS.1.1.0pre.a"; sourceTree = "<group>"; };
 		D585BBE117E62F3E0062275E /* GLProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLProgram.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GLProgram.h"; sourceTree = "<group>"; };
 		D585BBE217E62F3E0062275E /* GPUImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImage.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImage.h"; sourceTree = "<group>"; };
 		D585BBE317E62F3E0062275E /* GPUImage3x3ConvolutionFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GPUImage3x3ConvolutionFilter.h; path = "../../../../ios/GPUImage/build/Release-iphone/include/GPUImage3x3ConvolutionFilter.h"; sourceTree = "<group>"; };
@@ -2596,6 +2596,7 @@
 				24CA8C78111167B60084E2DE /* AddressBookUI.framework in Frameworks */,
 				24CA8C7C111167B60084E2DE /* CFNetwork.framework in Frameworks */,
 				24CA8C7E111167B60084E2DE /* CoreLocation.framework in Frameworks */,
+				D5780CFA17F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				24CA8C80111167B60084E2DE /* MapKit.framework in Frameworks */,
 				24CA8C82111167B60084E2DE /* MessageUI.framework in Frameworks */,
 				24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */,
@@ -2611,7 +2612,6 @@
 				24597035118FF66300519F79 /* StoreKit.framework in Frameworks */,
 				242E8E3111BA39FD0046A0D0 /* libTiCore.a in Frameworks */,
 				242EA11611BD956F0046A0D0 /* ExternalAccessory.framework in Frameworks */,
-				D50ABB2817EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				24D5C75911E6364F00F097E2 /* libtiverify.a in Frameworks */,
 				DAA4B2AE134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				508DB8FD16D431F100F9910E /* libti_ios_profiler.a in Frameworks */,
@@ -2638,7 +2638,6 @@
 				24D8E49D119B9D8A00F8CAA6 /* AddressBookUI.framework in Frameworks */,
 				24D8E49E119B9D8A00F8CAA6 /* CFNetwork.framework in Frameworks */,
 				24D8E49F119B9D8A00F8CAA6 /* CoreLocation.framework in Frameworks */,
-				D50ABB2917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				24D8E4A0119B9D8A00F8CAA6 /* MapKit.framework in Frameworks */,
 				24D8E4A1119B9D8A00F8CAA6 /* MessageUI.framework in Frameworks */,
 				24D8E4A2119B9D8A00F8CAA6 /* MobileCoreServices.framework in Frameworks */,
@@ -2656,6 +2655,7 @@
 				24D5C75A11E6364F00F097E2 /* libtiverify.a in Frameworks */,
 				DAA4B2AF134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				DADE76D613D65C6F0079FC75 /* libicucore.dylib in Frameworks */,
+				D5780CFB17F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				508DB8FC16D431F000F9910E /* libti_ios_profiler.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -2681,7 +2681,6 @@
 				DABB37A612E8CB280026A6EA /* AddressBookUI.framework in Frameworks */,
 				DABB37A712E8CB280026A6EA /* CFNetwork.framework in Frameworks */,
 				DABB37A812E8CB280026A6EA /* CoreLocation.framework in Frameworks */,
-				D50ABB2A17EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				DABB37A912E8CB280026A6EA /* MapKit.framework in Frameworks */,
 				DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */,
 				DABB37AB12E8CB280026A6EA /* MobileCoreServices.framework in Frameworks */,
@@ -2698,6 +2697,7 @@
 				DABB37B612E8CB280026A6EA /* libTiCore.a in Frameworks */,
 				DABB37B712E8CB280026A6EA /* libtiverify.a in Frameworks */,
 				DAA4B2B0134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
+				D5780CFC17F9788100E5695A /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				DADE76D713D65C7D0079FC75 /* libicucore.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3876,6 +3876,7 @@
 				DAA4B2AD134E3DBD00AB6011 /* libti_ios_debugger.a */,
 				24D5C75811E6364F00F097E2 /* libtiverify.a */,
 				242E8E3011BA39FD0046A0D0 /* libTiCore.a */,
+				D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 				288765FC0DF74451002DB57D /* CoreGraphics.framework */,
@@ -4064,7 +4065,6 @@
 				D50ABAD617EB6680002CE73D /* DOMHelperUtilities.h */,
 				D50ABAD717EB6680002CE73D /* Element.h */,
 				D50ABAD817EB6680002CE73D /* EntityReference.h */,
-				D50ABAD917EB6680002CE73D /* libSVGKit-iOS.1.1.0pre.a */,
 				D50ABADA17EB6680002CE73D /* MediaList.h */,
 				D50ABADB17EB6680002CE73D /* NamedNodeMap.h */,
 				D50ABADC17EB6680002CE73D /* Node.h */,
@@ -6190,6 +6190,10 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6225,6 +6229,10 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-weak_framework",
@@ -6252,6 +6260,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6281,6 +6293,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6453,6 +6469,10 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6489,6 +6509,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6520,6 +6544,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6557,6 +6585,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6592,6 +6624,10 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
+				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
