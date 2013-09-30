@@ -27,6 +27,10 @@ public class TransitionSwipeFade extends Transition {
 	protected void prepareAnimators() {
 		float outdest = destTrans;
 		float indest = 1;
+		if (!TransitionHelper.isPushSubType(subType)) {
+			indest = -indest;
+			outdest = -outdest;
+		}
 		String translateProp = "x";
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
