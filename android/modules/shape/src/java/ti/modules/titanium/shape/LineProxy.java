@@ -10,12 +10,9 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 
+import com.nineoldandroids.animation.PropertyValuesHolder;
+import com.nineoldandroids.animation.TypeEvaluator;
 
-import android.animation.PropertyValuesHolder;
-import android.animation.TypeEvaluator;
-import android.annotation.TargetApi;
-import android.graphics.Point;
-import android.os.Build;
 
 @Kroll.proxy(creatableInModule = ShapeModule.class, propertyAccessors={
 	ShapeModule.PROPERTY_POINTS
@@ -116,7 +113,6 @@ public class LineProxy extends ArcProxy{
 	}
 
 	
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public class BezierPointsEvaluator implements TypeEvaluator<ArrayList<BezierPoint>> {
 		
 		public BezierPointsEvaluator() {
@@ -144,7 +140,6 @@ public class LineProxy extends ArcProxy{
 
 	}
 	
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	@Override
 	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
 		super.preparePropertiesSet(tiSet, propertiesList, animOptions);
