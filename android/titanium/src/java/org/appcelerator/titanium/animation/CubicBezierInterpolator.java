@@ -3,7 +3,7 @@ package org.appcelerator.titanium.animation;
 import android.view.animation.Interpolator;
 
 public class CubicBezierInterpolator implements Interpolator {
-	double cx, bx, ax, cy, by, ay, duration;
+	double cx, bx, ax, cy, by, ay, epsilon;
 
 	private double sampleCurveX(double t) {
 		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
@@ -39,7 +39,7 @@ public class CubicBezierInterpolator implements Interpolator {
 		// First try a few iterations of Newton's method -- normally very fast.
 		for (t2 = x, i = 0; i < 8; i++) {
 			x2 = sampleCurveX(t2) - x;
-			if (Math.abs(x2) < duration) {
+			if (Math.abs(x2) < epsilon) {
 				return t2;
 			}
 			d2 = sampleCurveDerivativeX(t2);
@@ -63,7 +63,7 @@ public class CubicBezierInterpolator implements Interpolator {
 
 		while (t0 < t1) {
 			x2 = sampleCurveX(t2);
-			if (Math.abs(x2 - x) < duration) {
+			if (Math.abs(x2 - x) < epsilon) {
 				return t2;
 			}
 			if (x > x2) {
@@ -84,7 +84,7 @@ public class CubicBezierInterpolator implements Interpolator {
 
 	public CubicBezierInterpolator(final double p1, final double p2,
 			final double p3, final double p4, final double duration) {
-		this.duration = solveEpsilon(duration);
+		this.epsilon = solveEpsilon(duration);
 		/**
 		 * X component of Bezier coefficient C
 		 * 
