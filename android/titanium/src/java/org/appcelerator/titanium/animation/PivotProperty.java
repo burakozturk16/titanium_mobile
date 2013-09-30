@@ -1,4 +1,4 @@
-package org.appcelerator.titanium.transition;
+package org.appcelerator.titanium.animation;
 
 import org.appcelerator.titanium.util.TiViewHelper;
 
@@ -6,9 +6,9 @@ import android.view.View;
 
 import com.nineoldandroids.util.FloatProperty;
 
-public class PivotFloat extends FloatProperty<View> {
+public class PivotProperty extends FloatProperty<View> {
 
-	public PivotFloat(String name) {
+	public PivotProperty(String name) {
 		super(name);
 	}
 

@@ -1,4 +1,4 @@
-package org.appcelerator.titanium.transition;
+package org.appcelerator.titanium.animation;
 
 import org.appcelerator.titanium.util.TiViewHelper;
 
