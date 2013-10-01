@@ -1073,6 +1073,7 @@ build.prototype = {
 					'injectModulesIntoXcodeProject',
 					'injectApplicationDefaults', // if ApplicationDefaults.m was modified, forceRebuild will be set to true
 					'copyTitaniumLibraries',
+					'copyExternalLibraries',
 					'copyModuleResources',
 					'copyCommonJSModules',
 					'copyItunesArtwork',
@@ -2238,6 +2239,23 @@ build.prototype = {
 		dest = path.join(dir, 'libti_ios_profiler.a');
 		afs.exists(dest) || afs.copyFileSync(path.join(this.titaniumIosSdkPath, 'libti_ios_profiler.a'), dest, { logger: this.logger.debug });
 
+		callback();
+	},
+
+	copyExternalLibraries: function (callback) {
+		// check to see if the symlink exists and that it points to the right version of the library
+		var destDir = path.join(this.buildDir, 'lib');
+		var srcDir = path.join(this.titaniumIosSdkPath, 'libexternals');
+
+		fs.readdirSync(srcDir).forEach(function (file) {
+			var src = path.join(srcDir, file),
+				dest = path.join(destDir, file);
+			if (fs.statSync(src).isFile()) {
+				afs.copyFileSync(src, dest, {
+					logger: this.logger.debug
+				});
+			}
+		}, this);
 		callback();
 	},
 

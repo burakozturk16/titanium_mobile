@@ -615,6 +615,9 @@
 		D53D20FA16A0901800D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D558F18317FAE0F900D23B07 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D558F18217FAE0F900D23B07 /* libGPUImage.a */; };
+		D558F18417FAE0F900D23B07 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D558F18217FAE0F900D23B07 /* libGPUImage.a */; };
+		D558F18517FAE0F900D23B07 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D558F18217FAE0F900D23B07 /* libGPUImage.a */; };
 		D56064161705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56064171705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56064181705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -2081,6 +2084,7 @@
 		D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+BackgroundColors.m"; sourceTree = "<group>"; };
 		D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSelectableBackgroundLayer.h; sourceTree = "<group>"; };
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
+		D558F18217FAE0F900D23B07 /* libGPUImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGPUImage.a; path = ../lib/libGPUImage.a; sourceTree = "<group>"; };
 		D56064141705A78100781E6B /* DTHTMLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParser.h; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.h; sourceTree = "<group>"; };
 		D56064151705A78100781E6B /* DTHTMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLParser.m; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.m; sourceTree = "<group>"; };
 		D560641A1705A79100781E6B /* NSString+DTUTI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTUTI.h"; path = "../Classes/DTFoundation/DTUTI/NSString+DTUTI.h"; sourceTree = "<group>"; };
@@ -2590,6 +2594,7 @@
 				84BBA58816570F90006B8C22 /* Security.framework in Frameworks */,
 				DADE76D413D65C590079FC75 /* libicucore.dylib in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
+				D558F18317FAE0F900D23B07 /* libGPUImage.a in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */,
 				24CA8C76111167B60084E2DE /* AddressBook.framework in Frameworks */,
@@ -2632,6 +2637,7 @@
 				D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */,
 				84BBA58A16570FA0006B8C22 /* Security.framework in Frameworks */,
 				24D8E498119B9D8A00F8CAA6 /* Foundation.framework in Frameworks */,
+				D558F18417FAE0F900D23B07 /* libGPUImage.a in Frameworks */,
 				24D8E499119B9D8A00F8CAA6 /* UIKit.framework in Frameworks */,
 				24D8E49A119B9D8A00F8CAA6 /* CoreGraphics.framework in Frameworks */,
 				24D8E49C119B9D8A00F8CAA6 /* AddressBook.framework in Frameworks */,
@@ -2674,6 +2680,7 @@
 				D53D20FA16A0901800D36D2C /* ImageIO.framework in Frameworks */,
 				D53D20F916A0901300D36D2C /* CoreData.framework in Frameworks */,
 				84BBA58B16570FAF006B8C22 /* Security.framework in Frameworks */,
+				D558F18517FAE0F900D23B07 /* libGPUImage.a in Frameworks */,
 				DABB37A212E8CB280026A6EA /* Foundation.framework in Frameworks */,
 				DABB37A312E8CB280026A6EA /* UIKit.framework in Frameworks */,
 				DABB37A412E8CB280026A6EA /* CoreGraphics.framework in Frameworks */,
@@ -3875,6 +3882,7 @@
 				D5691303168F0F4200C3F89F /* CoreText.framework */,
 				DAA4B2AD134E3DBD00AB6011 /* libti_ios_debugger.a */,
 				24D5C75811E6364F00F097E2 /* libtiverify.a */,
+				D558F18217FAE0F900D23B07 /* libGPUImage.a */,
 				242E8E3011BA39FD0046A0D0 /* libTiCore.a */,
 				D5780CF917F9788000E5695A /* libSVGKit-iOS.1.1.0pre.a */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
@@ -6347,8 +6355,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
@@ -6394,8 +6400,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
 				);
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
@@ -6438,8 +6442,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/Classes/SVGKit,
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
