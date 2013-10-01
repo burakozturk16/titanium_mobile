@@ -379,11 +379,19 @@ public abstract class TiUIView
 	@SuppressLint("NewApi")
 	public void applyTransform(Ti2DMatrix timatrix)
 	{
-		View outerView = getOuterView();
+		View view = getOuterView();
+		if (view != null) {
+			layoutParams.matrix = timatrix;
+			view.setLayoutParams(layoutParams);
+			ViewParent viewParent = view.getParent();
+			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
+		}
 //		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
 //		if (parent instanceof FreeLayout) {
-			layoutParams.matrix = timatrix;
-			outerView.setLayoutParams(layoutParams);
+			// layoutParams.matrix = timatrix;
+			// outerView.setLayoutParams(layoutParams);
 //		}
 //		else if (HONEYCOMB_OR_GREATER) {
 //			if (timatrix != null) {
