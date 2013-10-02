@@ -600,8 +600,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				}
 			}
 			realizeViews(view, enableModelListener, processProperties);
-			view.registerForTouch();
-			view.registerForKeyPress();
+			if (processProperties == false && enableModelListener == false) {
+				view.registerForTouch();
+				view.registerForKeyPress();
+			}
 		}
 		return view;
 	}
