@@ -1030,9 +1030,9 @@ public abstract class TiUIView
 		View rootView = getRootView();
 		// Create new layout params for the child view since we just want the
 		// wrapper to control the layout
-//		LayoutParams params = new LayoutParams();
-//		params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-//		params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
+		LayoutParams params = new LayoutParams();
+		params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+		params.width = ViewGroup.LayoutParams.MATCH_PARENT;
 		// If the view already has a parent, we need to detach it from the parent
 		// and add the borderView to the parent as the child
 		ViewGroup savedParent = null;
@@ -1045,9 +1045,10 @@ public abstract class TiUIView
 				savedParent.removeView(rootView);
 			}
 		}
-		borderView.addView(rootView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		borderView.addView(rootView, params);
+		borderView.setClipChildren(false);
 		if (savedParent != null) {
-			savedParent.addView(borderView, savedIndex, getLayoutParams());
+			savedParent.addView(borderView, savedIndex,getLayoutParams());
 		}
 		
 		if ((borderView.getRadius() > 0f || hardwareAccSupported == false) && HONEYCOMB_OR_GREATER) {
