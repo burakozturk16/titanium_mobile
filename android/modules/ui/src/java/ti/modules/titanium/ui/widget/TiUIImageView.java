@@ -37,7 +37,9 @@ import org.appcelerator.titanium.util.TiUrl;
 import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.view.FreeLayout.LayoutParams;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 
@@ -53,10 +55,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.View.MeasureSpec;
 import android.widget.ImageView.ScaleType;
 
-public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler.Callback
+public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEvent, Handler.Callback
 {
 	private static final String TAG = "TiUIImageView";
 	private static final int FRAME_QUEUE_SIZE = 5;
@@ -89,9 +93,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	private static final int START = 10002;
 	private static final int STOP = 10003;
 	private static final int SET_DRAWABLE = 10004;
-
-	private FreeLayout layout;
-	private TiCompositeLayout childrenHolder;
 
 	// This handles the memory cache of images.
 	private TiImageLruCache mMemoryCache = TiImageLruCache.getInstance();
@@ -181,38 +182,7 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 				Log.w(TAG, "Unable to load image", Log.DEBUG_MODE);
 			}
 		};
-		layout = new FreeLayout(proxy.getActivity());
-		layout.addView(view);
 		setNativeView(view);
-	}
-	
-	@Override
-	public void add(TiUIView child, int index)
-	{
-		if (childrenHolder == null) {
-			childrenHolder = new TiCompositeLayout(proxy.getActivity());
-			layout.addView(childrenHolder);
-			updateLayoutForChildren(proxy.getProperties());
-		}
-		super.add(child, index);
-	}
-
-	@Override
-	public View getParentViewForChild()
-	{
-		return childrenHolder;
-	}
-
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
 	}
 
 	@Override
@@ -226,28 +196,6 @@ public class TiUIImageView extends TiUIView implements OnLifecycleEvent, Handler
 	{
 		return (TiImageView) nativeView;
 	}
-
-//	protected View getParentView()
-//	{
-//		if (nativeView == null) {
-//			return null;
-//		}
-//
-//		ViewParent parent = nativeView.getParent();
-//		if (parent instanceof View) {
-//			return (View) parent;
-//		}
-//		if (parent == null) {
-//			TiViewProxy parentProxy = proxy.getParent();
-//			if (parentProxy != null) {
-//				TiUIView parentTiUi = parentProxy.peekView();
-//				if (parentTiUi != null) {
-//					return parentTiUi.getNativeView();
-//				}
-//			}
-//		}
-//		return null;
-//	}
 
 	public boolean handleMessage(Message msg)
 	{

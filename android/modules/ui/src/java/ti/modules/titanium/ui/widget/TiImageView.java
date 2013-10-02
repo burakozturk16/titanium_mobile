@@ -13,12 +13,14 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.MaskableView;
 import org.appcelerator.titanium.view.TiBorderWrapperView;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;
@@ -33,6 +35,7 @@ import android.support.v4.view.ViewCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
@@ -105,8 +108,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			        return;
 			    } 
 			    imageView.setImageDrawable(null); 
-			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
-			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			    int vWidth = w - getPaddingLeft() - getPaddingRight();
+			    int vHeight = h - getPaddingTop() - getPaddingBottom();
 			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
 			    imageView.setImageDrawable(drawable);
 			}
@@ -145,7 +148,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				super.setImageDrawable(svg);
 			}
 		};
-		addView(imageView);
+		imageView.setBackgroundColor(Color.GREEN);
+		addView(imageView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		setEnableScale(true);
 
 		gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()

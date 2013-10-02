@@ -19,6 +19,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Rect;
@@ -28,7 +29,7 @@ import android.view.View;
 import android.widget.Button;
 import android.content.res.ColorStateList;
 
-public class TiUIButton extends TiUIView
+public class TiUIButton extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUIButton";
 	
@@ -41,8 +42,6 @@ public class TiUIButton extends TiUIView
 	private Rect titlePadding;
 	private Drawable imageDrawable;
 	private int imageGravity;
-	private TiCompositeLayout childrenHolder;
-	private FreeLayout layout;
 
 	public TiUIButton(final TiViewProxy proxy)
 	{
@@ -65,43 +64,12 @@ public class TiUIButton extends TiUIView
 				TiUIHelper.firePostLayoutEvent(proxy);
 			}
 		};
-		layout = new FreeLayout(proxy.getActivity());
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
 		defaultColor = btn.getCurrentTextColor();
-		layout.addView(btn);
 		setNativeView(btn);
 	}
 	
-	@Override
-	public void add(TiUIView child, int index)
-	{
-		if (childrenHolder == null) {
-			childrenHolder = new TiCompositeLayout(proxy.getActivity());
-			layout.addView(childrenHolder);
-			updateLayoutForChildren(proxy.getProperties());
-		}
-		super.add(child, index);
-	}
-	
-	@Override
-	public View getParentViewForChild()
-	{
-		return childrenHolder;
-	}
-
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
-	}
-
 	private void setTextColors(int color, int selectedColor) {
 		ColorStateList colorStateList = new ColorStateList(
 			new int[][] {	new int [] {android.R.attr.state_pressed},

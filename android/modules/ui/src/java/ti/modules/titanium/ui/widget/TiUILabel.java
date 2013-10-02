@@ -17,6 +17,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.FreeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
@@ -59,7 +60,7 @@ import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class TiUILabel extends TiUIView
+public class TiUILabel extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUILabel";
 
@@ -73,8 +74,6 @@ public class TiUILabel extends TiUIView
 	private Rect textPadding;
 	private String ELLIPSIZE_CHAR = "…";
 	
-	private TiCompositeLayout childrenHolder;
-	private FreeLayout layout;
 	private TextView tv;
 	
 	public class CustomTypefaceSpan extends TypefaceSpan {
@@ -616,42 +615,10 @@ public class TiUILabel extends TiUIView
 		tv.setSingleLine(false);
 		TiUIHelper.styleText(tv, null);
 		defaultColor = tv.getCurrentTextColor();
-		
-		layout = new FreeLayout(proxy.getActivity());
-		layout.addView(tv);
 		setNativeView(tv);
 
 	}
 
-	@Override
-	public void add(TiUIView child, int index)
-	{
-		if (childrenHolder == null) {
-			childrenHolder = new TiCompositeLayout(proxy.getActivity());
-			layout.addView(childrenHolder);
-			updateLayoutForChildren(proxy.getProperties());
-		}
-		super.add(child, index);
-	}
-	
-	@Override
-	public View getParentViewForChild()
-	{
-		return childrenHolder;
-	}
-
-	@Override
-	public View getOuterView()
-	{
-		return borderView == null ? layout : borderView;
-	}
-
-	@Override
-	public View getRootView()
-	{
-		return layout;
-	}
-		
 	private Spanned fromHtml(String str)
 	{
 		SpannableStringBuilder htmlText = new SpannableStringBuilder(Html.fromHtml(str));
