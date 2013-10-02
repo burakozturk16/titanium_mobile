@@ -28,11 +28,13 @@ import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
 import android.media.ThumbnailUtils;
+import android.os.Build;
 
 /** 
  * A Titanium Blob object. A Blob can represent any opaque data or input stream.
@@ -131,21 +133,7 @@ public class TiBlob extends KrollProxy
 	 */
 	public static TiBlob blobFromImage(Bitmap image)
 	{
-	
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		byte data[] = new byte[0];
-		if (image.hasAlpha()) {
-			if (image.compress(CompressFormat.PNG, 100, bos)) {
-				data = bos.toByteArray();
-			}
-		}
-		else {
-			if (image.compress(CompressFormat.JPEG, 100, bos)) {
-				data = bos.toByteArray();
-			}
-		}
-
-		TiBlob blob = new TiBlob(TYPE_IMAGE, data, "image/bitmap");
+		TiBlob blob = new TiBlob(TYPE_IMAGE, null, "image/bitmap");
 		blob.image = image;
 		blob.width = image.getWidth();
 		blob.height = image.getHeight();
@@ -255,7 +243,7 @@ public class TiBlob extends KrollProxy
 			case TYPE_DATA:
 			case TYPE_IMAGE:
 				//TODO deal with mimetypes.
-				bytes = (byte[]) data;
+				bytes = (byte[]) getData();
 				break;
 			case TYPE_FILE:	
 				InputStream stream = getInputStream();
@@ -277,6 +265,15 @@ public class TiBlob extends KrollProxy
 
 		return bytes;
 	}
+	
+    @SuppressLint("NewApi")
+	protected int sizeOf(Bitmap data) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1) {
+            return data.getRowBytes() * data.getHeight();
+        } else {
+            return data.getByteCount();
+        }
+    } 
 
 	@Kroll.getProperty @Kroll.method
 	public int getLength()
@@ -292,7 +289,10 @@ public class TiBlob extends KrollProxy
 				return (int) fileSize;
 			case TYPE_DATA:
 			case TYPE_IMAGE:
-				return ((byte[])data).length;
+				if (image != null) {
+					return sizeOf(image);
+				}
+				return ((byte[])getData()).length;
 			default:
 				// this is probably overly expensive.. is there a better way?
 				return getBytes().length;
@@ -332,7 +332,7 @@ public class TiBlob extends KrollProxy
 				break;
 			case TYPE_IMAGE:
 			case TYPE_DATA :
-				byte[] dataBytes = (byte[]) data;
+				byte[] dataBytes = (byte[]) getData();
 				byte[] appendBytes = blob.getBytes();
 				byte[] newData = new byte[dataBytes.length + appendBytes.length];
 				System.arraycopy(dataBytes, 0, newData, 0, dataBytes.length);
@@ -389,6 +389,20 @@ public class TiBlob extends KrollProxy
 	 */
 	public Object getData()
 	{
+		if (data == null && image != null) {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			data = new byte[0];
+			if (image.hasAlpha()) {
+				if (image.compress(CompressFormat.PNG, 100, bos)) {
+					data = bos.toByteArray();
+				}
+			}
+			else {
+				if (image.compress(CompressFormat.JPEG, 100, bos)) {
+					data = bos.toByteArray();
+				}
+			}
+		}
 		return data;
 	}
 
