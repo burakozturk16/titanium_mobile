@@ -6,7 +6,6 @@
  */
 package org.appcelerator.titanium.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
@@ -40,6 +39,10 @@ import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+import com.trevorpage.tpsvg.SVGFlyweightFactory;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -81,6 +84,7 @@ import android.widget.TextView;
 /**
  * A set of utility methods focused on UI and View operations.
  */
+@SuppressLint("DefaultLocale")
 public class TiUIHelper
 {
 	private static final String TAG = "TiUIHelper";
@@ -476,6 +480,7 @@ public class TiUIHelper
 		return toTypeface(null, fontFamily);
 	}
 
+	@SuppressLint("DefaultLocale")
 	private static Typeface loadTypeface(Context context, String fontFamily)
 	{
 		if (context == null) {
@@ -1016,8 +1021,12 @@ public class TiUIHelper
 		if (id == 0) {
 			return null;
 		}
-		Drawable d = getResourceDrawable(id);
-		return d;
+		if (url.endsWith(".svg")) {
+			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(id, TiApplication.getInstance().getCurrentActivity()));
+		}
+		else {
+			return getResourceDrawable(id);
+		}
 	}
 	
 	public static Drawable getResourceDrawable(int res_id)
