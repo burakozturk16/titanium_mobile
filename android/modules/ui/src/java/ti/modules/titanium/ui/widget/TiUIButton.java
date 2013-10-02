@@ -6,7 +6,6 @@
  */
 package ti.modules.titanium.ui.widget;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
@@ -144,11 +143,7 @@ public class TiUIButton extends TiUIView
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), value);
 
 			if (drawableRef != null) {
-				try {
-					imageDrawable = drawableRef.getDrawable();
-				} catch (FileNotFoundException e) {
-					imageDrawable = null;
-				}
+				imageDrawable = drawableRef.getDrawable();
 			}
 			else {
 				imageDrawable = null;
@@ -279,11 +274,7 @@ public class TiUIButton extends TiUIView
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), newValue);
 
 			if (drawableRef != null) {
-				try {
-					imageDrawable = drawableRef.getDrawable();
-				} catch (FileNotFoundException e) {
-					imageDrawable = null;
-				}
+				imageDrawable = drawableRef.getDrawable();
 			}
 			else {
 				imageDrawable = null;

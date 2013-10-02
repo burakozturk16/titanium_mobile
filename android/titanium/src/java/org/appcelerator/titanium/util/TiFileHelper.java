@@ -33,9 +33,6 @@ import java.util.zip.ZipInputStream;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 
-import com.trevorpage.tpsvg.SVGDrawable;
-import com.trevorpage.tpsvg.SVGFlyweightFactory;
-
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
@@ -240,13 +237,8 @@ public class TiFileHelper
 				if (found) {
 					is = context.getAssets().open(path);
 				}
-				else throw new FileNotFoundException();
 			} else if (path.startsWith(SD_CARD_PREFIX)) {
-				File file = new File(path);
-				if (file.exists()) {
-					is = context.getAssets().open(path);
-				}
-				else throw new FileNotFoundException();
+				is = new FileInputStream(new File(path));
 			} else if (URLUtil.isFileUrl(path)) {
 				URL u = new URL(path);
 				is = u.openStream();
@@ -268,17 +260,6 @@ public class TiFileHelper
 	 */
 	public Drawable loadDrawable(String path, boolean report) {
 		return loadDrawable(path, report, false);
-	}
-	
-	private Drawable getDrawableFromStream(String path, InputStream is) 
-	{
-		if (path.endsWith(".svg")) {
-			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, path, TiApplication.getInstance().getCurrentActivity()));
-		}
-		else {
-			Bitmap b = TiUIHelper.createBitmap(is);
-			return nph.process(b);
-		}
 	}
 
 	/**
@@ -322,12 +303,16 @@ public class TiFileHelper
 					is = openInputStream(path, report);
 				}
 				if (is != null) {
-					d = getDrawableFromStream(path, is);
+					Bitmap b = TiUIHelper.createBitmap(is);
+					d = nph.process(b);
 				}
 			} else {
 				is = openInputStream(path, report);
 				if (is != null) {
-					d = getDrawableFromStream(path, is);
+					Bitmap b = TiUIHelper.createBitmap(is);
+					if (b != null) {
+						d = new BitmapDrawable(b);
+					}
 				}
 			}
 		} catch (IOException e) {

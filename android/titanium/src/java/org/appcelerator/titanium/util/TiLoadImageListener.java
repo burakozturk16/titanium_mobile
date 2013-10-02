@@ -6,11 +6,11 @@
  */
 package org.appcelerator.titanium.util;
 
-import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
 
 public interface TiLoadImageListener
 {
-	public void loadImageFinished(int hash, Drawable drawable);
+	public void loadImageFinished(int hash, Bitmap bitmap);
 
 	public void loadImageFailed();
 }

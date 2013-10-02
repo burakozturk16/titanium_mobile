@@ -16,11 +16,7 @@ import java.util.concurrent.Executors;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.view.TiDrawableReference;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.util.SparseArray;
@@ -56,7 +52,7 @@ public class TiLoadImageManager implements Handler.Callback
 		threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 	}
 
-	public void load(Resources resources, TiDrawableReference imageref, TiLoadImageListener listener)
+	public void load(TiDrawableReference imageref, TiLoadImageListener listener)
 	{
 		int hash = imageref.hashCode();
 		if (listener != null) {
@@ -81,7 +77,7 @@ public class TiLoadImageManager implements Handler.Callback
 		synchronized (loadingImageRefs) {
 			if (!loadingImageRefs.contains(hash)) {
 				loadingImageRefs.add(hash);
-				threadPool.execute(new LoadImageJob(resources, imageref));
+				threadPool.execute(new LoadImageJob(imageref));
 			}
 		}
 	}
@@ -89,15 +85,15 @@ public class TiLoadImageManager implements Handler.Callback
 	public void loadSync(TiDrawableReference imageref, TiLoadImageListener listener)
 	{
 		try {
-			Drawable drawable = imageref.getDrawable();
+			Bitmap bitmap = imageref.getBitmap(false);
 			int hash = imageref.hashCode();
-			listener.loadImageFinished(hash, drawable);
+			listener.loadImageFinished(hash, bitmap);
 		} catch (Exception e) {
 			listener.loadImageFailed();
 		}
 	}
 
-	protected void handleLoadImageMessage(int what, int hash, Drawable drawable)
+	protected void handleLoadImageMessage(int what, int hash, Bitmap bitmap)
 	{
 		ArrayList<SoftReference<TiLoadImageListener>> toRemove = new ArrayList<SoftReference<TiLoadImageListener>>();
 		synchronized (listeners) {
@@ -106,7 +102,7 @@ public class TiLoadImageManager implements Handler.Callback
 				TiLoadImageListener l = listener.get();
 				if (l != null) {
 					if (what == MSG_FIRE_LOAD_FINISHED) {
-						l.loadImageFinished(hash, drawable);
+						l.loadImageFinished(hash, bitmap);
 						toRemove.add(listener);
 					} else {
 						l.loadImageFailed();
@@ -124,17 +120,16 @@ public class TiLoadImageManager implements Handler.Callback
 	{
 		switch (msg.what) {
 			case MSG_FIRE_LOAD_FINISHED:
-				handleLoadImageMessage(MSG_FIRE_LOAD_FINISHED, (Integer)msg.arg1, (Drawable)msg.obj);
+				handleLoadImageMessage(MSG_FIRE_LOAD_FINISHED, (Integer)msg.arg1, (Bitmap)msg.obj);
 				return true;
 			case MSG_FIRE_LOAD_FAILED:
 				if ((Integer)msg.arg2 == 1) { //retry download
-					LoadImageJob job = (LoadImageJob) msg.obj;
-					TiDrawableReference imageref = job.imageref;
+					TiDrawableReference imageref = (TiDrawableReference) msg.obj;
 					try {
 						String imageUrl = TiUrl.getCleanUri(imageref.getUrl()).toString();
 						URI uri = new URI(imageUrl);
 						TiResponseCache.remove(uri);
-						load(job.resources, imageref, null);
+						load(imageref, null);
 					} catch (URISyntaxException e) {
 						handleLoadImageMessage(MSG_FIRE_LOAD_FAILED, (Integer)msg.arg1, null);
 					}
@@ -150,38 +145,20 @@ public class TiLoadImageManager implements Handler.Callback
 	protected class LoadImageJob implements Runnable
 	{
 		protected TiDrawableReference imageref;
-		protected Resources resources;
 
-		public LoadImageJob (Resources resources, TiDrawableReference imageref)
+		public LoadImageJob (TiDrawableReference imageref)
 		{
 			this.imageref = imageref;
-			this.resources = resources;
 		}
 
 		public void run()
 		{
 			try {
-				Drawable d = imageref.getDrawable(true);
+				Bitmap b = imageref.getBitmap(true);
 				synchronized (loadingImageRefs) {
 					loadingImageRefs.remove((Integer)imageref.hashCode());
 				}
-				if (d == null) {
-					Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FAILED);
-					msg.obj = this;
-					msg.arg1 = imageref.hashCode();
-					msg.arg2 = 1;
-					msg.sendToTarget();
-				}
-				if (d instanceof BitmapDrawable) {
-					Bitmap b = ((BitmapDrawable) d).getBitmap();
-					if (b == null) {
-						Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FAILED);
-						msg.obj = this;
-						msg.arg1 = imageref.hashCode();
-						msg.arg2 = 1;
-						msg.sendToTarget();
-						return;
-					}
+				if (b != null) {
 					if (b.getWidth() > 4096 || b.getHeight() > 4096) { //too big!
 						int width = b.getWidth();
 						int height = b.getHeight();
@@ -203,13 +180,18 @@ public class TiLoadImageManager implements Handler.Callback
 						}
 						
 					}
-					
+					Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FINISHED);
+					msg.obj = b;
+					msg.arg1 = imageref.hashCode();
+					msg.sendToTarget();
 				}
-				Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FINISHED);
-				msg.obj = d;
-				msg.arg1 = imageref.hashCode();
-				msg.sendToTarget();
-				
+				else {
+					Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FAILED);
+					msg.obj = imageref;
+					msg.arg1 = imageref.hashCode();
+					msg.arg2 = 1;
+					msg.sendToTarget();
+				}
 			} catch (Exception e) {
 				// fire a download fail event if we are unable to download
 				Log.e(TAG, "Exception loading image: " + e.getLocalizedMessage());
