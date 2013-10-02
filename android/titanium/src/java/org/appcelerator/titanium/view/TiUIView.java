@@ -1046,7 +1046,6 @@ public abstract class TiUIView
 			}
 		}
 		borderView.addView(rootView, params);
-		borderView.setClipChildren(false);
 		if (savedParent != null) {
 			savedParent.addView(borderView, savedIndex,getLayoutParams());
 		}
