@@ -724,9 +724,12 @@ public abstract class TiUIView
 		}
 		
 		if (TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
-			getOuterView().requestLayout();
+			getOuterView().setLayoutParams(layoutParams);
+//			getOuterView().requestLayout();
 		}
 		
+		registerForTouch();
+		registerForKeyPress();
 		
 		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		
@@ -1034,24 +1037,17 @@ public abstract class TiUIView
 		// and add the borderView to the parent as the child
 		ViewGroup savedParent = null;
 		int savedIndex = 0;
-		ViewGroup.LayoutParams savedLayoutParams = null;
 		if (rootView.getParent() != null) {
 			ViewParent nativeParent = rootView.getParent();
 			if (nativeParent instanceof ViewGroup) {
 				savedParent = (ViewGroup) nativeParent;
-				savedLayoutParams = savedParent.getLayoutParams();
 				savedIndex = savedParent.indexOfChild(rootView);
 				savedParent.removeView(rootView);
 			}
 		}
-		borderView.addView(rootView);
+		borderView.addView(rootView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		if (savedParent != null) {
-			if (savedLayoutParams != null) {
-				savedParent.addView(borderView, savedIndex, savedLayoutParams);
-			}
-			else {
-				savedParent.addView(borderView, savedIndex);
-			}
+			savedParent.addView(borderView, savedIndex, getLayoutParams());
 		}
 		
 		if ((borderView.getRadius() > 0f || hardwareAccSupported == false) && HONEYCOMB_OR_GREATER) {
@@ -1067,7 +1063,6 @@ public abstract class TiUIView
 				currentActivity = TiApplication.getAppCurrentActivity();
 			}
 			borderView = new TiBorderWrapperView(currentActivity);
-			
 			borderView.setVisibility(this.visibility);
 			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
 				borderView.setBorderAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
@@ -1378,7 +1373,7 @@ public abstract class TiUIView
 		boolean clickable = proxy.getProperties().optBoolean(TiC.PROPERTY_TOUCH_ENABLED, true);
 
 		if (clickable) {
-			registerTouchEvents(touchable);
+			if (touchView == null || touchView.get() != touchable) registerTouchEvents(touchable);
 
 			// Previously, we used the single tap handling above to fire our click event. It doesn't
 			// work: a single tap is not the same as a click. A click can be held for a while before
