@@ -11,7 +11,7 @@
 #import "UIImage+Alpha.h"
 #import "UIImage+Resize.h"
 #import "UIImage+RoundedCorner.h"
-
+#import "ImageLoader.h"
 //NOTE:FilesystemFile is conditionally compiled based on the filesystem module.
 #import "TiFilesystemFileProxy.h"
 
@@ -196,11 +196,18 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	{
 		case TiBlobTypeFile:
 		{
-			return [UIImage imageWithContentsOfFile:path];
+            if (image == nil) {
+                NSURL * result = [TiUtils toURL:path proxy:self];
+                image = [[UIImage alloc] initWithContentsOfFile:[result path]];
+            }
+            break;
 		}
 		case TiBlobTypeData:
 		{
-			return [UIImage imageWithData:data];
+            if (image == nil) {
+                image = [UIImage imageWithData:data];
+            }
+            break;
 		}
 		default: {
 			break;
