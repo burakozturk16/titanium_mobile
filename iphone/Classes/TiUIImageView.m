@@ -554,25 +554,25 @@ DEFINE_EXCEPTIONS
         UIImage *image = nil;
         if (localLoadSync)
         {
-            // Skip the imageloader completely if this is obviously a file we can load off the fileystem.
-            // why were we ever doing that in the first place...?
-            if ([url_ isFileURL]) {
-                UIImage* image = [UIImage imageWithContentsOfFile:[url_ path]];
+            image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
+            if (image == nil && [url_ isFileURL]) {
+                image = [UIImage imageWithContentsOfFile:[url_ path]];
                 if (image != nil) {
-                    UIImage *imageToUse = [self rotatedImage:image];
-                    autoWidth = imageToUse.size.width;
-                    autoHeight = imageToUse.size.height;
-                    [self imageView].image = imageToUse;
-                    [self fireLoadEventWithState:@"image"];
+                    [[ImageLoader sharedLoader] cache:image forURL:url_];
                 }
-                else {
-                    [self loadDefaultImage:imageSize];
-                }
-                return;
             }
         
-        
-            image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
+            if (image != nil) {
+                UIImage *imageToUse = [self rotatedImage:image];
+                autoWidth = imageToUse.size.width;
+                autoHeight = imageToUse.size.height;
+                [self imageView].image = imageToUse;
+                [self fireLoadEventWithState:@"image"];
+            }
+            else {
+                [self loadDefaultImage:imageSize];
+            }
+            return;
         }
         
 		if (image==nil)
