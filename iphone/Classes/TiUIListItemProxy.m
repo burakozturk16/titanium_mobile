@@ -226,6 +226,7 @@ static NSArray* keysToGetFromListView;
 		[super setValue:(value != [NSNull null] ? value : nil) forKeyPath:keyPath];
 		[_currentValues removeObjectForKey:keyPath];
 	}];
+    [_resetKeys removeAllObjects];
     enumeratingResetKeys = NO;
 }
 
