@@ -785,7 +785,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     self.attributedText = (NSAttributedString*)text;
 
     self.links = [NSArray array];
-    if (self.attributedText && self.dataDetectorTypes) {
+    if (self.dataDetectorTypes && self.attributedText) {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             NSArray *results = [self.dataDetector matchesInString:[text string] options:0 range:NSMakeRange(0, [text length])];
             if ([results count] > 0) {
