@@ -5,23 +5,6 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
-typedef enum NWTransition {
-    NWTransitionSwipe,
-    NWTransitionSwipeFade,
-    NWTransitionCube,
-    NWTransitionCarousel,
-    NWTransitionCross,
-    NWTransitionFlip,
-    NWTransitionSwap,
-    NWTransitionBackFade,
-    NWTransitionGhost,
-    NWTransitionZoom,
-    NWTransitionScale,
-    NWTransitionGlue,
-    NWTransitionPushRotate,
-    NWTransitionFold,
-    NWTransitionSlide
-} NWTransition;
 
 #ifdef USE_TI_UINAVIGATIONWINDOW
 #import "TiWindowProxy.h"

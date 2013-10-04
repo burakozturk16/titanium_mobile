@@ -14,10 +14,12 @@
 #import "TiStylesheet.h"
 #import "TiLocale.h"
 #import "TiUIView.h"
+#import "TiTransitionHelper.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
 #import <pthread.h>
+
 
 
 #define IGNORE_IF_NOT_OPENED if (!windowOpened||[self viewAttached]==NO) return;
@@ -3388,6 +3390,49 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
     
 	return result;
+}
+
+-(void)transitionViews:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	if ([self viewAttached])
+	{
+        if ([args count] > 1) {
+            TiViewProxy *view1Proxy = nil;
+            TiViewProxy *view2Proxy = nil;
+            ENSURE_ARG_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
+            ENSURE_ARG_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
+            pthread_rwlock_wrlock(&childrenLock);
+            if (![children containsObject:view1Proxy])
+            {
+                pthread_rwlock_unlock(&childrenLock);
+                DebugLog(@"[WARN] Called transitionViews for %@ on %@, but %@ isn't a child.",view1Proxy,self,view1Proxy);
+                return;
+            }
+            NSDictionary* props = [args count] > 2 ? [args objectAtIndex:2] : nil;
+            if (props == nil) {
+                DebugLog(@"[WARN] Called transitionViews without transitionStyle");
+            }
+            NWTransition transitionType = [TiUtils intValue:@"transitionStyle" properties:props def:NWTransitionSwipe];
+            ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionRightToLeft];
+            float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:0]/1000;
+            pthread_rwlock_unlock(&childrenLock);
+            
+            TiUIView* view2 = [view2Proxy getOrCreateView];
+            LayoutConstraint *contraints = [view2Proxy layoutProperties];
+            ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+            [view2Proxy layoutChildren:NO];
+            
+            ADTransition* transition = [TiTransitionHelper transitionForType:transitionType subType:subtype withDuration:duration containerView:self.view];
+            transition.type = ADTransitionTypePush;
+            [[self view] transitionfromView:[view1Proxy getOrCreateView] toView:view2 withTransition:transition completionBlock:^{
+                [self remove:view1Proxy];
+                [self add:view2Proxy];
+            }];
+        }
+        
+        
+	}
 }
 
 @end

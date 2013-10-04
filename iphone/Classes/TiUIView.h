@@ -38,6 +38,7 @@ void OffsetScrollViewForRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFlo
 void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect);
 
 @class TiViewProxy;
+@class ADTransition;
 
 /**
  Base class for all Titanium views.
@@ -280,6 +281,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)setHighlighted:(BOOL)isHiglighted;
 -(void)setSelected:(BOOL)isSelected;
+- (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition completionBlock:(void (^)(void))block;
+
 @end
 
 #pragma mark TO REMOVE, used only during transition.

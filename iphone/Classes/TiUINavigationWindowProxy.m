@@ -9,6 +9,7 @@
 #import "TiUINavigationWindowProxy.h"
 #import "TiUINavigationWindow.h"
 #import "TiApp.h"
+#import "TiTransitionHelper.h"
 #import "ADIOS7Transition.h"
 
 @implementation TiUINavigationWindowProxy
@@ -256,7 +257,7 @@
         if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
             float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
             NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
-            [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition subType:subtype withDuration:duration]];
+            [navController pushViewController:[window hostingController] withTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
         }
         else {
             [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:defaultDuration/1000 subType:subtype]];
@@ -277,60 +278,6 @@
     }
 }
 
--(ADTransition*) transitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration
-{
-    switch (type) {
-        case NWTransitionSwipe:
-            return [[ADSwipeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionSwipeFade:
-            return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionCube:
-            return [[ADCubeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionCarousel:
-            return [[ADCarrouselTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionCross:
-            return [[ADCrossTransition alloc] initWithDuration:duration sourceRect:self.view.frame];
-            break;
-        case NWTransitionFlip:
-            return [[ADFlipTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionSwap:
-            return [[ADSwapTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionBackFade:
-            return [[ADBackFadeTransition alloc] initWithDuration:duration];
-            break;
-        case NWTransitionGhost:
-            return [[ADGhostTransition alloc] initWithDuration:duration];
-            break;
-        case NWTransitionZoom:
-            return [[ADZoomTransition alloc] initWithDuration:duration];
-            break;
-        case NWTransitionScale:
-            return [[ADScaleTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionGlue:
-            return [[ADGlueTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionPushRotate:
-            return [[ADPushRotateTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
-            break;
-        case NWTransitionFold:
-            return [[ADFoldTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        case NWTransitionSlide:
-            return [[ADSlideTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-            break;
-        default:
-            return [self defaultTransitionWithDuration:duration subType:subtype];
-            break;
-    }
-}
-
 -(void)popOnUIThread:(NSArray*)args
 {
 	if (transitionIsAnimating)
@@ -348,8 +295,8 @@
             if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
                 float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:300]/1000;
                 
-                NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
-                [navController popViewControllerWithTransition:[self transitionForType:transition subType:subtype withDuration:duration]];
+                NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
+                [navController popViewControllerWithTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
             }
             else {
                 [navController popViewController];

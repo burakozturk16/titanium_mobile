@@ -32,5 +32,6 @@
 @property(nonatomic,readonly) NSNumber *BOTTOM_TO_TOP;
 @property(nonatomic,readonly) NSNumber *RIGHT_TO_LEFT;
 @property(nonatomic,readonly) NSNumber *LEFT_TO_RIGHT;
+
 @end
 #endif

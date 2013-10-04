@@ -8,7 +8,7 @@
 
 #ifdef USE_TI_UITRANSITIONSTYLE
 #import "TiUITransitionStyleProxy.h"
-#import "TiUINavigationWindowProxy.h"
+#import "TiTransitionHelper.h"
 
 @implementation TiUITransitionStyleProxy
 
