@@ -1,6 +1,6 @@
 #import "TiSelectableBackgroundLayer.h"
 #import "TiGradient.h"
-#import "SVGKit.h"
+#import "TiSVGImage.h"
 
 @interface TiDrawable()
 {
@@ -112,17 +112,9 @@
         }
     }
     if (svg) {
-//        UIGraphicsPushContext(ctx);
         CGSize scale = CGSizeMake( rect.size.width /  svg.size.width, rect.size.height / svg.size.height);
-        
-//        CGContextSaveGState(ctx);
-        
-//        CGContextTranslateCTM(ctx, svg.size.width, svg.size.height );
         CGContextScaleCTM( ctx, scale.width, scale.height );
         [svg.CALayerTree renderInContext:ctx];
-		
-//        CGContextRestoreGState(ctx);
-//        UIGraphicsPopContext();
     }
     CGContextRestoreGState(ctx);
 }
@@ -300,7 +292,7 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     if ([image isKindOfClass:[UIImage class]])
         drawable.image = image;
-    else if ([image isKindOfClass:[SVGKImage class]])
+    else if ([image isKindOfClass:[TiSVGImage class]])
         drawable.svg = image;
     else return;
     if (readyToCreateDrawables) {

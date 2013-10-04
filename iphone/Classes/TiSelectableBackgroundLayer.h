@@ -1,20 +1,20 @@
 #import <QuartzCore/QuartzCore.h>
 
 @class TiGradient;
-@class SVGKImage;
+@class TiSVGImage;
 @interface TiDrawable : NSObject
 {
     NSArray* states;
     UIColor* color;
     UIImage* image;
-    SVGKImage* svg;
+    TiSVGImage* svg;
     TiGradient* gradient;
     BOOL imageRepeat;
 }
 @property(nonatomic,retain) UIColor *color;
 @property(nonatomic,retain) UIImage *image;
 @property(nonatomic,retain) TiGradient *gradient;
-@property(nonatomic,retain) SVGKImage *svg;
+@property(nonatomic,retain) TiSVGImage *svg;
 @property(nonatomic,assign) BOOL imageRepeat;
 @end
 
