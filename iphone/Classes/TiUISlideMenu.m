@@ -76,6 +76,7 @@
         controller = [[ECSlidingViewController alloc] init];
         
         
+        controller.shouldAddPanGestureRecognizerToTopViewSnapshot = YES;
         UIView * controllerView = [controller view];
         [self setBackgroundColor:[UIColor clearColor]];
         [controllerView setBackgroundColor:[UIColor clearColor]];
