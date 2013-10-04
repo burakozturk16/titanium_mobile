@@ -17,7 +17,7 @@
 #import "TiFile.h"
 #import "UIImage+Resize.h"
 #import "TiUIImageViewProxy.h"
-#import "SVGKImage.h"
+#import "TiSVGImage.h"
 
 #define IMAGEVIEW_DEBUG 0
 
@@ -26,7 +26,7 @@
 @interface TiUIImageView()
 {
     CGFloat animationDuration;
-    SVGKImage* _svg;
+    TiSVGImage* _svg;
 }
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
@@ -141,7 +141,7 @@ DEFINE_EXCEPTIONS
     }
     
     if (_svg != nil) {
-        imageView.image = [self getImageFromSVG:_svg forSize:bounds.size];
+        imageView.image = [_svg imageForSize:bounds.size];
     }
 
 	for (UIView *child in [self subviews])
@@ -614,38 +614,8 @@ DEFINE_EXCEPTIONS
 	return container;
 }
 
--(UIImage*)getImageFromSVG:(SVGKImage*)svg forSize:(CGSize)size
-{
-    if (svg == nil || CGSizeEqualToSize(size, CGSizeZero)) return nil;
-    if (_lastSVGImage != nil, CGSizeEqualToSize(size, _lastSVGImage.size)) return _lastSVGImage;
-    CGSize svgSize = [svg hasSize]?[svg size]:size;
-    CGFloat SVGRatio = svgSize.width/svgSize.height;
-    CGSize realSize;
-    if (size.width > size.height) {
-        realSize = CGSizeMake(size.width, size.width / SVGRatio);
-    }
-    else {
-        realSize = CGSizeMake(size.height * SVGRatio, size.height);
-    }
-    float screenScale = [UIScreen mainScreen].scale;
-    realSize.width *= screenScale;
-    realSize.height *= screenScale;
-    UIGraphicsBeginImageContextWithOptions( realSize, FALSE, screenScale );
-	CGContextRef context = UIGraphicsGetCurrentContext();
-    
-    CGSize scale = CGSizeMake( realSize.width /  svgSize.width, realSize.height / svgSize.height);
-    CGContextScaleCTM( context, scale.width, scale.height );
-    [svg.CALayerTree renderInContext:context];
-	UIImage* result = UIGraphicsGetImageFromCurrentImageContext();
-	UIGraphicsEndImageContext();
-    _lastSVGImage = [result retain];
-	return result;
-}
-
 -(id)convertToUIImage:(id)arg
 {
-    RELEASE_TO_NIL(_svg);
-    RELEASE_TO_NIL(_lastSVGImage);
     id image = nil;
     UIImage* imageToUse = nil;
 	
@@ -662,23 +632,33 @@ DEFINE_EXCEPTIONS
 		// called within this class
         image = (UIImage*)arg; 
     }
-    else if ([arg isKindOfClass:[SVGKImage class]]) {
+    else if ([arg isKindOfClass:[TiSVGImage class]]) {
         _svg = [arg retain];
 		// called within this class
-        image = (SVGKImage*)arg;
+        image = (TiSVGImage*)arg;
     }
+    
 	if ([image isKindOfClass:[UIImage class]]) {
         imageToUse = [self rotatedImage:image];
         autoHeight = imageToUse.size.height;
         autoWidth = imageToUse.size.width;
     }
-    else if([image isKindOfClass:[SVGKImage class]]) {
+    else if([image isKindOfClass:[TiSVGImage class]]) {
         autoHeight = _svg.size.height;
         autoWidth = _svg.size.width;
-        imageToUse = [self getImageFromSVG:_svg forSize:self.bounds.size] ;
+        // NOTE: Loading from URL means we can't pre-determine any % value.
+		CGSize imageSize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+									  TiDimensionCalculateValue(height,0.0));
+        imageToUse = [_svg imageForSize:imageSize] ;
     }
     else {
         autoHeight = autoWidth = 0;
+    }
+    
+    //Setting hires to true causes image to de displayed at 50%
+    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]]) {
+        autoWidth = autoWidth/2;
+        autoHeight = autoHeight/2;
     }
 
     return imageToUse;
@@ -793,6 +773,7 @@ DEFINE_EXCEPTIONS
 	BOOL replaceProperty = YES;
 	id image = nil;
     NSURL* imageURL = nil;
+    RELEASE_TO_NIL(_svg);
     
     if (localLoadSync || ![arg isKindOfClass:[NSString class]])
         image = [self convertToUIImage:arg];
@@ -811,7 +792,8 @@ DEFINE_EXCEPTIONS
 	}
 	
 	[imageview setImage:image];
-	[(TiViewProxy*)[self proxy] contentsWillChange]; // Have to resize the proxy view to fit new subview size, if necessary
+    if (TiDimensionIsAuto(width) || TiDimensionIsAutoSize(height))
+        [(TiViewProxy*)[self proxy] contentsWillChange]; // Have to resize the proxy view to fit new subview size, if necessary
 	
 	if (currentImage!=image)
 	{
@@ -911,21 +893,8 @@ DEFINE_EXCEPTIONS
 
 -(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
-    id imageToUse = image;
-    if ([imageToUse isKindOfClass:[UIImage class]])
-        imageToUse = [self rotatedImage:image];
-
-    autoWidth = [imageToUse size].width;
-    autoHeight = [imageToUse size].height;
-    
-    //Setting hires to true causes image to de displayed at 50%
-    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]]) {
-        autoWidth = autoWidth/2;
-        autoHeight = autoHeight/2;
-    }
-        
     TiThreadPerformOnMainThread(^{
-        [self setURLImageOnUIThread:imageToUse];
+        [self setURLImageOnUIThread:image];
     }, NO);
 }
 

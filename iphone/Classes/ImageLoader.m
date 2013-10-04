@@ -12,7 +12,7 @@
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 #import <CommonCrypto/CommonDigest.h>
-#import "SVGKit.h"
+#import "TiSVGImage.h"
 
 //#define DEBUG_IMAGE_CACHE
 
@@ -71,9 +71,7 @@
 
 @interface SVGImageCacheEntry : NSObject
 {
-	SVGKImage * svgImage;
-	UIImage * fullImage;
- 	UIImage * recentlyResizedImage;
+	TiSVGImage * svgImage;
    
     NSString* localPath;
     NSURL* remoteURL;
@@ -85,9 +83,7 @@
 @property(nonatomic,readwrite) BOOL hires;
 @property(nonatomic,readonly) NSDate* lastModified;
 @property(nonatomic,readonly) BOOL local;
-@property(nonatomic,readwrite,retain) SVGKImage * svgImage;
-@property(nonatomic,readwrite,retain) UIImage * fullImage;
-@property(nonatomic,readwrite,retain) UIImage* recentlyResizedImage;
+@property(nonatomic,readwrite,retain) TiSVGImage * svgImage;
 @end
 
 @implementation ImageCacheEntry
@@ -364,9 +360,9 @@
 @implementation SVGImageCacheEntry
 
 
-@synthesize fullImage, svgImage, recentlyResizedImage, localPath, lastModified, local;
+@synthesize svgImage, localPath, lastModified, local;
 
-- (SVGKImage *)svgImage {
+- (TiSVGImage *)svgImage {
 	if(svgImage == nil) {
 		if(localPath == nil) {
 			return nil;
@@ -375,7 +371,7 @@
 		NSLog(@"[CACHE DEBUG] Retrieving local image [lazy]: %@", localPath);
 #endif
         RELEASE_TO_NIL(lastModified);
-		svgImage = [[SVGKImage alloc] initWithContentsOfFile:localPath];
+		svgImage = [[TiSVGImage alloc] initWithContentsOfFile:localPath];
         if (local) {
             lastModified = [[[[NSFileManager defaultManager] attributesOfItemAtPath:localPath error:nil]  objectForKey:NSFileModificationDate] retain];
         }
@@ -384,19 +380,14 @@
 }
 
 - (UIImage *)fullImage {
-	if(fullImage == nil) {
-		fullImage = [[[self svgImage] UIImage] retain];
-	}
-	return fullImage;
+    return [svgImage fullImage];
 }
 
 - (void)setData:(NSData *)data
 {
     RELEASE_TO_NIL(svgImage);
-    RELEASE_TO_NIL(recentlyResizedImage);
-    RELEASE_TO_NIL(fullImage);
     RELEASE_TO_NIL(lastModified);
-    svgImage = [[SVGKImage alloc] initWithData:data];
+    svgImage = [[TiSVGImage alloc] initWithData:data];
     [self serialize:data];
 }
 
@@ -434,26 +425,7 @@
 			imageSize = fullImageSize;
         }
     }
-	
-	if (CGSizeEqualToSize(imageSize, fullImageSize))
-    {
-		return [self fullImage];
-    }
-	
-	if (CGSizeEqualToSize(imageSize, [recentlyResizedImage size]))
-    {
-		return recentlyResizedImage;
-    }
-	
-	//TODO: Tweak quality depending on how large the result will be.
-	CGInterpolationQuality quality = kCGInterpolationDefault;
-	
-	[self setRecentlyResizedImage:[UIImageResize
-								   resizedImage:imageSize
-								   interpolationQuality:quality
-								   image:fullImage
-								   hires:NO]];
-	return recentlyResizedImage;
+    return [svgImage imageForSize:imageSize];
 }
 
 
@@ -484,8 +456,6 @@
 {
 	RELEASE_TO_NIL(localPath);
 	RELEASE_TO_NIL(svgImage);
-	RELEASE_TO_NIL(recentlyResizedImage);
-	RELEASE_TO_NIL(fullImage);
     RELEASE_TO_NIL(remoteURL);
     RELEASE_TO_NIL(lastModified);
 	[super dealloc];
@@ -711,7 +681,7 @@ DEFINE_EXCEPTIONS
 	}
 	SVGImageCacheEntry * newEntry = [[[SVGImageCacheEntry alloc] initWithURL:url] autorelease];
     
-    if ([image isKindOfClass:[SVGKImage class]]) {
+    if ([image isKindOfClass:[TiSVGImage class]]) {
         [newEntry setSvgImage:image];
     }
     else if ([image isKindOfClass:[NSData class]]) {
@@ -781,18 +751,20 @@ DEFINE_EXCEPTIONS
 #ifdef DEBUG_IMAGE_CACHE
             NSLog(@"[CACHE DEBUG] Loading locally from path %@", path);
 #endif
-			SVGKImage * resultImage = [SVGKImage imageWithContentsOfFile:path];
+			TiSVGImage * resultImage = [[TiSVGImage alloc] initWithContentsOfFile:path];
 					    result = [self setSVGImage:resultImage forKey:url];
+            [resultImage release];
 		}
         else // Check and see if we cached a file to disk
         {
-            NSString* diskCache = [ImageCacheEntry cachePathForURL:url];
+            NSString* diskCache = [SVGImageCacheEntry cachePathForURL:url];
             if ([[NSFileManager defaultManager] fileExistsAtPath:diskCache]) {
 #ifdef DEBUG_IMAGE_CACHE
                 NSLog(@"[CACHE DEBUG] Retrieving local image [prefetch]: %@", diskCache);
 #endif
-                SVGKImage * resultImage = [SVGKImage imageWithContentsOfFile:diskCache];
+                TiSVGImage * resultImage = [[TiSVGImage alloc] initWithContentsOfFile:diskCache];
                 result = [self setSVGImage:resultImage forKey:url];
+                [resultImage release];
             }
         }
 	}
