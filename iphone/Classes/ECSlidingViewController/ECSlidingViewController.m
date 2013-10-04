@@ -23,12 +23,14 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 @property (nonatomic, assign) CGFloat initialTouchPositionX;
 @property (nonatomic, assign) CGFloat initialHorizontalCenter;
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+@property (nonatomic, strong) UIPanGestureRecognizer *snapshotPanGesture;
 @property (nonatomic, strong) UITapGestureRecognizer *resetTapGesture;
 @property (nonatomic, strong) UIPanGestureRecognizer *topViewSnapshotPanGesture;
 @property (nonatomic, assign) BOOL underLeftShowing;
 @property (nonatomic, assign) BOOL underRightShowing;
 @property (nonatomic, assign) BOOL topViewIsOffScreen;
 
+- (void)setup;
 - (NSUInteger)autoResizeToFillScreen;
 - (UIView *)topView;
 - (UIView *)underLeftView;
@@ -43,6 +45,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (CGFloat)anchorRightTopViewCenter;
 - (CGFloat)anchorLeftTopViewCenter;
 - (CGFloat)resettedCenter;
+- (CGRect)fullViewBounds;
 - (void)underLeftWillAppear;
 - (void)underRightWillAppear;
 - (void)topDidReset;
@@ -98,9 +101,56 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 @synthesize topViewIsOffScreen = _topViewIsOffScreen;
 @synthesize topViewSnapshotPanGesture = _topViewSnapshotPanGesture;
 
+- (id)init {
+  self = [super init];
+  if (self) {
+    [self setup];
+  }
+  
+  return self;
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+  self = [super initWithCoder:aDecoder];
+  if (self) {
+    [self setup];
+  }
+  
+  return self;
+}
+
+- (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil {
+  self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil];
+  if (self) {
+    [self setup];
+  }
+  
+  return self;
+}
+
+- (void)setup {
+  self.shouldAllowPanningPastAnchor = YES;
+  self.shouldAllowUserInteractionsWhenAnchored = NO;
+  self.shouldAddPanGestureRecognizerToTopViewSnapshot = NO;
+  self.shouldAdjustChildViewHeightForStatusBar = NO;
+  self.resetTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resetTopView)];
+  _panGesture          = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(updateTopViewHorizontalCenterWithRecognizer:)];
+  self.resetTapGesture.enabled = NO;
+  self.resetStrategy = ECTapping | ECPanning;
+  self.panningVelocityXThreshold = 100;
+  
+  self.grabbableBorderAmount = -1;
+  self.animationDuration = 0.25f;
+  panning = NO;
+  
+  self.topViewSnapshot = [[UIView alloc] initWithFrame:CGRectZero];
+  [self.topViewSnapshot setAutoresizingMask:self.autoResizeToFillScreen];
+  [self.topViewSnapshot addGestureRecognizer:self.resetTapGesture];
+}
+
 - (void)setTopViewController:(UIViewController *)theTopViewController
 {
-  CGRect topViewFrame = _topViewController ? _topViewController.view.frame : self.view.bounds;
+  CGRect topViewFrame = [self fullViewBounds];
   
   [self removeTopViewSnapshot];
   [_topViewController.view removeFromSuperview];
@@ -115,9 +165,9 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   [_topViewController.view setAutoresizingMask:self.autoResizeToFillScreen];
   [_topViewController.view setFrame:topViewFrame];
   _topViewController.view.layer.shadowOffset = CGSizeZero;
-  _topViewController.view.layer.shadowPath = [UIBezierPath bezierPathWithRect:self.view.layer.bounds].CGPath;
+  _topViewController.view.layer.shadowPath = [UIBezierPath bezierPathWithRect:[_topViewController.view bounds]].CGPath;
   
-  [self.view addSubview:_topViewController.view];
+  [self.view insertSubview:_topViewController.view belowSubview:self.statusBarBackgroundView];
   self.topViewSnapshot.frame = self.topView.bounds;
 }
 
@@ -175,32 +225,11 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   _underRightWidthLayout = underRightWidthLayout;
 }
 
-- (void)viewDidLoad
-{
-  [super viewDidLoad];
-  self.shouldAllowPanningPastAnchor = YES;
-  self.shouldAllowUserInteractionsWhenAnchored = NO;
-  self.shouldAddPanGestureRecognizerToTopViewSnapshot = NO;
-  self.resetTapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resetTopView)];
-  _panGesture          = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(updateTopViewHorizontalCenterWithRecognizer:)];
-  self.resetTapGesture.enabled = NO;
-  self.resetStrategy = ECTapping | ECPanning;
-  self.panningVelocityXThreshold = 100;
-  self.disableOnScrollView = NO;
-  
-  self.topViewSnapshot = [[UIView alloc] initWithFrame:self.topView.bounds];
-  [self.topViewSnapshot setAutoresizingMask:self.autoResizeToFillScreen];
-  [self.topViewSnapshot addGestureRecognizer:self.resetTapGesture];
-  self.grabbableBorderAmount = -1;
-  self.animationDuration = 0.25f;
-  panning = NO;
-}
-
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
   self.topView.layer.shadowOffset = CGSizeZero;
-  self.topView.layer.shadowPath = [UIBezierPath bezierPathWithRect:self.view.layer.bounds].CGPath;
+  self.topView.layer.shadowPath = [UIBezierPath bezierPathWithRect:[self fullViewBounds]].CGPath;
   [self adjustLayout];
 }
 
@@ -217,7 +246,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 }
 
 - (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation{
-  self.topView.layer.shadowPath = [UIBezierPath bezierPathWithRect:self.view.layer.bounds].CGPath;
+  self.topView.layer.shadowPath = [UIBezierPath bezierPathWithRect:[self fullViewBounds]].CGPath;
   self.topView.layer.shouldRasterize = NO;
   
   if(![self topViewHasFocus]){
@@ -241,16 +270,22 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   
   if ([self underRightShowing] && ![self topViewIsOffScreen]) {
     [self updateUnderRightLayout];
+    self.topViewController.view.frame = [self fullViewBounds];
     [self updateTopViewHorizontalCenter:self.anchorLeftTopViewCenter];
   } else if ([self underRightShowing] && [self topViewIsOffScreen]) {
     [self updateUnderRightLayout];
+    self.topViewController.view.frame = [self fullViewBounds];
     [self updateTopViewHorizontalCenter:-self.resettedCenter];
   } else if ([self underLeftShowing] && ![self topViewIsOffScreen]) {
     [self updateUnderLeftLayout];
+    self.topViewController.view.frame = [self fullViewBounds];
     [self updateTopViewHorizontalCenter:self.anchorRightTopViewCenter];
   } else if ([self underLeftShowing] && [self topViewIsOffScreen]) {
     [self updateUnderLeftLayout];
+    self.topViewController.view.frame = [self fullViewBounds];
     [self updateTopViewHorizontalCenter:self.view.bounds.size.width + self.resettedCenter];
+  } else {
+    self.topViewController.view.frame = [self fullViewBounds];
   }
 }
 
@@ -334,6 +369,17 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
       }
     }
   }
+}
+
+- (UIView *)statusBarBackgroundView
+{
+  if (_statusBarBackgroundView) return _statusBarBackgroundView;
+  
+  _statusBarBackgroundView = [[UIView alloc] initWithFrame:[UIApplication sharedApplication].statusBarFrame];
+  _statusBarBackgroundView.autoresizingMask = UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleWidth;
+  [self.view addSubview:_statusBarBackgroundView];
+  
+  return _statusBarBackgroundView;
 }
 
 - (UIPanGestureRecognizer *)panGesture
@@ -570,14 +616,14 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (void)addTopViewSnapshot
 {
   if (!self.topViewSnapshot.superview && !self.shouldAllowUserInteractionsWhenAnchored) {
-    //topViewSnapshot.layer.contents = (id)[UIImage imageWithUIView:self.topView].CGImage;
     [self.topView addSubview:self.topViewSnapshot];
     
-    if (self.shouldAddPanGestureRecognizerToTopViewSnapshot && (_resetStrategy & ECPanning)) {
-      if (!_topViewSnapshotPanGesture) {
-        _topViewSnapshotPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(updateTopViewHorizontalCenterWithRecognizer:)];
+    if (!(self.shouldAddPanGestureRecognizerToTopViewSnapshot && (_resetStrategy & ECPanning))) {
+      if (!self.snapshotPanGesture) {
+        self.snapshotPanGesture = [[UIPanGestureRecognizer alloc] initWithTarget:nil action:nil];
       }
-      [topViewSnapshot addGestureRecognizer:_topViewSnapshotPanGesture];
+      
+      [topViewSnapshot addGestureRecognizer:self.snapshotPanGesture];
     }
     [self.topView addSubview:self.topViewSnapshot];
   }
@@ -586,6 +632,8 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (void)removeTopViewSnapshot
 {
   if (self.topViewSnapshot.superview) {
+    self.topViewSnapshotPanGesture = nil;
+    self.snapshotPanGesture = nil;
     [self.topViewSnapshot removeFromSuperview];
   }
 }
@@ -615,6 +663,32 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (CGFloat)resettedCenter
 {
   return (self.view.bounds.size.width / 2);
+}
+
+- (CGRect)fullViewBounds
+{
+  CGFloat statusBarHeight = 0;
+  
+  if (self.shouldAdjustChildViewHeightForStatusBar) {
+    statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+    if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
+      statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.width;
+    }
+  }
+  
+  CGRect bounds = [UIScreen mainScreen].bounds;
+  
+  if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
+    CGFloat height = bounds.size.width;
+    CGFloat width  = bounds.size.height;
+    bounds.size.height = height;
+    bounds.size.width  = width;
+  }
+  
+  bounds.origin.y += statusBarHeight;
+  bounds.size.height -= statusBarHeight;
+  
+  return bounds;
 }
 
 - (void)underLeftWillAppear
@@ -665,14 +739,14 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 {
   if (self.underLeftWidthLayout == ECFullWidth) {
     [self.underLeftView setAutoresizingMask:self.autoResizeToFillScreen];
-    [self.underLeftView setFrame:self.view.bounds];
+    [self.underLeftView setFrame:[self fullViewBounds]];
   } else if (self.underLeftWidthLayout == ECVariableRevealWidth && !self.topViewIsOffScreen) {
-    CGRect frame = self.view.bounds;
+    CGRect frame = [self fullViewBounds];
     
     frame.size.width = frame.size.width - self.anchorRightPeekAmount;
     self.underLeftView.frame = frame;
   } else if (self.underLeftWidthLayout == ECFixedRevealWidth) {
-    CGRect frame = self.view.bounds;
+    CGRect frame = [self fullViewBounds];
     
     frame.size.width = self.anchorRightRevealAmount;
     self.underLeftView.frame = frame;
@@ -685,9 +759,9 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 {
   if (self.underRightWidthLayout == ECFullWidth) {
     [self.underRightViewController.view setAutoresizingMask:self.autoResizeToFillScreen];
-    self.underRightView.frame = self.view.bounds;
+    self.underRightView.frame = [self fullViewBounds];
   } else if (self.underRightWidthLayout == ECVariableRevealWidth) {
-    CGRect frame = self.view.bounds;
+    CGRect frame = [self fullViewBounds];
     
     CGFloat newLeftEdge;
     CGFloat newWidth = frame.size.width;
@@ -704,7 +778,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
     
     self.underRightView.frame = frame;
   } else if (self.underRightWidthLayout == ECFixedRevealWidth) {
-    CGRect frame = self.view.bounds;
+    CGRect frame = [self fullViewBounds];
     
     CGFloat newLeftEdge = frame.size.width - self.anchorLeftRevealAmount;
     CGFloat newWidth = self.anchorLeftRevealAmount;

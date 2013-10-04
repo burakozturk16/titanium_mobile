@@ -157,6 +157,12 @@ typedef enum {
  */
 @property (nonatomic, assign) BOOL shouldAddPanGestureRecognizerToTopViewSnapshot;
 
+/** Specifies if the the child views should be shortened to accomodate the status bar.
+ 
+ By default, this is set to NO
+ */
+@property (nonatomic, assign) BOOL shouldAdjustChildViewHeightForStatusBar;
+
 /** Specifies the behavior for the under left width
  
  By default, this is set to ECFullWidth
@@ -200,6 +206,13 @@ typedef enum {
  
  */
 @property (nonatomic,copy) void (^topViewCenterMoved)(float xPos);
+
+/** A view that is the same size and position as the status bar
+ 
+ It is guaranteed to always be on top of the top and under views.
+ 
+ */
+@property (nonatomic, strong) UIView *statusBarBackgroundView;
 
 /** Returns a horizontal panning gesture for moving the top view.
  
