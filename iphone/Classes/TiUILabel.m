@@ -114,8 +114,8 @@
     if (needsUpdateBackgroundImageFrame)
         [self updateBackgroundImageFrameWithPadding];
     
-    if (needsSetText)
-        [self setAttributedTextViewContent];
+//    if (needsSetText)
+    [self setAttributedTextViewContent];
 }
 
 -(TTTAttributedLabel*)label
@@ -210,15 +210,15 @@
 	[[self label] setTextColor:newColor];
 }
 
--(void)setText_:(id)value
-{
-	[self setAttributedTextViewContent];
-}
-
--(void)setHtml_:(id)value
-{
-	[self setAttributedTextViewContent];
-}
+//-(void)setText_:(id)value
+//{
+//	[self setAttributedTextViewContent];
+//}
+//
+//-(void)setHtml_:(id)value
+//{
+//	[self setAttributedTextViewContent];
+//}
 
 
 -(void)setHighlightedColor_:(id)color
