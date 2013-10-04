@@ -61,6 +61,7 @@
 
 - (void)setRoundedRadius:(CGFloat)radius inCorners:(UIRectCorner)corners
 {
+    if (cornersRadius == radius && roundedCorners == corners) return;
     if (corners == -10) {
         if (self.layer.mask != nil) self.layer.mask = nil;
     }
