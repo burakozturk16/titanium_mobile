@@ -252,13 +252,14 @@
     int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
     [window windowWillOpen];
     if (animated) {
-        if ([props objectForKey:@"transitionStyle"]) {
+        ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionRightToLeft];
+        if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
             float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
             NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
-            [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition withDuration:duration]];
+            [navController pushViewController:[window hostingController] withTransition:[self transitionForType:transition subType:subtype withDuration:duration]];
         }
         else {
-            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:defaultDuration/1000]];
+            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:defaultDuration/1000 subType:subtype]];
         }
     }
     else {
@@ -266,39 +267,39 @@
     }
 }
 
--(ADTransition*) defaultTransitionWithDuration:(float)duration
+-(ADTransition*) defaultTransitionWithDuration:(float)duration subType:(ADTransitionOrientation)subtype
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return [[ADIOS7Transition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+        return [[ADIOS7Transition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
     }
     else {
-        return [[ADSwipeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+        return [[ADSwipeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
     }
 }
 
--(ADTransition*) transitionForType:(NWTransition)type withDuration:(float)duration
+-(ADTransition*) transitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration
 {
     switch (type) {
         case NWTransitionSwipe:
-            return [[ADSwipeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADSwipeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionSwipeFade:
-            return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionCube:
-            return [[ADCubeTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADCubeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionCarousel:
-            return [[ADCarrouselTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADCarrouselTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionCross:
             return [[ADCrossTransition alloc] initWithDuration:duration sourceRect:self.view.frame];
             break;
         case NWTransitionFlip:
-            return [[ADFlipTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADFlipTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionSwap:
-            return [[ADSwapTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADSwapTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionBackFade:
             return [[ADBackFadeTransition alloc] initWithDuration:duration];
@@ -310,22 +311,22 @@
             return [[ADZoomTransition alloc] initWithDuration:duration];
             break;
         case NWTransitionScale:
-            return [[ADScaleTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADScaleTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionGlue:
-            return [[ADGlueTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADGlueTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionPushRotate:
             return [[ADPushRotateTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
             break;
         case NWTransitionFold:
-            return [[ADFoldTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADFoldTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         case NWTransitionSlide:
-            return [[ADSlideTransition alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:self.view.frame];
+            return [[ADSlideTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
             break;
         default:
-            return [self defaultTransitionWithDuration:duration];
+            return [self defaultTransitionWithDuration:duration subType:subtype];
             break;
     }
 }
@@ -343,11 +344,12 @@
         NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
         BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
         if (animated) {
-            if ([props objectForKey:@"animationStyle"]) {
-                float duration = [TiUtils floatValue:@"animationDuration" properties:props def:300]/1000;
+            ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionLeftToRight];
+            if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
+                float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:300]/1000;
                 
                 NWTransition transition = [TiUtils intValue:@"animationStyle" properties:props def:-1];
-                [navController popViewControllerWithTransition:[self transitionForType:transition withDuration:duration]];
+                [navController popViewControllerWithTransition:[self transitionForType:transition subType:subtype withDuration:duration]];
             }
             else {
                 [navController popViewController];
