@@ -742,6 +742,7 @@ DEFINE_EXCEPTIONS
     }
 }
 
+
 -(void)setBorderRadius_:(id)radius
 {
 	self.layer.cornerRadius = [TiUtils floatValue:radius];
@@ -1541,7 +1542,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     }
-	if (handlesTouches)
+	if ([self interactionEnabled])
 	{
 		UITouch *touch = [touches anyObject];
         BOOL hasTouchEnd = [proxy _hasListeners:@"touchend"];
