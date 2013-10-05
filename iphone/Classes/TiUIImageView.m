@@ -343,6 +343,7 @@ DEFINE_EXCEPTIONS
         imageView.backgroundColor = [UIColor clearColor];
 		[imageView setContentMode:[self contentModeForImageView]];
 		[self addSubview:imageView];
+        [self sendSubviewToBack:imageView];
 	}
 	return imageView;
 }
@@ -379,7 +380,7 @@ DEFINE_EXCEPTIONS
             
             for (UIView *view in [self subviews])
             {
-                if (view!=iv)
+                if (view!=iv && ![view isKindOfClass:[TiUIView class]])
                 {	
                     [view setAlpha:0];
                 }
@@ -393,7 +394,7 @@ DEFINE_EXCEPTIONS
             iv.alpha = 1;
             for (UIView *view in [self subviews])
             {
-                if (view!=iv)
+                if (view!=iv && ![view isKindOfClass:[TiUIView class]])
                 {
                     [view removeFromSuperview];
                 }
@@ -445,6 +446,7 @@ DEFINE_EXCEPTIONS
 			[spinner removeFromSuperview];
 		}
 		[view addSubview:newImageView];
+        [self sendSubviewToBack:newImageView];
 		view.clipsToBounds = YES;
 		[newImageView release];
 		view.hidden = YES;
