@@ -150,7 +150,10 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 - (UITableView *)tableView
 {
     if (_tableView == nil) {
-        UITableViewStyle style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:UITableViewStylePlain];
+        UITableViewStyle style = UITableViewStylePlain;
+        if (![TiUtils isIOS7OrGreater]) {
+            style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:style];
+        }
 
         _tableView = [[UITableView alloc] initWithFrame:self.bounds style:style];
         _tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
