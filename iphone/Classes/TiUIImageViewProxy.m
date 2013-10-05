@@ -52,7 +52,7 @@ static NSArray* imageKeySequence;
     
     if ([self _hasListeners:@"load"]) {
         TiUIImageView *iv = (TiUIImageView*)[self view];
-        TiBlob* blob = [[TiBlob alloc] initWithImage:[iv getUIImage]];
+        TiBlob* blob = [[TiBlob alloc] initWithImage:[iv getImage]];
         NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
         
         [self fireEvent:@"load" withObject:event];
