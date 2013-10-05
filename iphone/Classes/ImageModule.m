@@ -122,22 +122,37 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
     ENSURE_TYPE(args, NSArray)
     TiViewProxy *viewProxy;
     NSNumber *filterType;
-    NSNumber *scale = [NSNumber numberWithFloat:1.0f];
+    float scale = 1.0f;
     NSDictionary *options;
 	ENSURE_ARG_AT_INDEX(viewProxy, args, 0, TiViewProxy);
 	ENSURE_ARG_AT_INDEX(filterType, args, 1, NSNumber);
     ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 2, NSDictionary);
     if (options != nil) {
         if ([options objectForKey:@"scale"]) {
-            scale = [options objectForKey:@"scale"];
+            scale = [[options objectForKey:@"scale"] floatValue];
+        }
+        if ([options objectForKey:@"callback"]) {
+            KrollCallback *callback = [options objectForKey:@"callback"];
+            if (callback != nil) {
+                TiThreadPerformOnMainThread(^{
+                    UIImage *inputImage = [viewProxy toImageWithScale:scale];
+                    TiBlob* blob = [[TiBlob alloc] initWithImage:[self getFilteredImage:inputImage withFilter:filterType options:options]];
+                    NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+                    KrollEvent * invocationEvent = [[KrollEvent alloc] initWithCallback:callback
+                                                                            eventObject:event
+                                                                             thisObject:self];
+                    [[callback context] enqueue:invocationEvent];
+                    [blob release];
+                }, NO);
+                return nil;
+            }
         }
     }
     
     __block TiBlob* result =[[TiBlob alloc] init];
     TiThreadPerformOnMainThread(^{
-		UIImage *inputImage = [viewProxy toImageWithScale:[scale floatValue]];
-        result.image = [self getFilteredImage:inputImage withFilter:filterType options:options];
-        [result setMimeType:@"image/png" type:TiBlobTypeImage];
+        UIImage *inputImage = [viewProxy toImageWithScale:scale];
+        result = [[TiBlob alloc] initWithImage:[self getFilteredImage:inputImage withFilter:filterType options:options]];
 	}, YES);
     return [result autorelease];
     
