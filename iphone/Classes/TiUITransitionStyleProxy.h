@@ -27,6 +27,7 @@
 @property(nonatomic,readonly) NSNumber *PUSH_ROTATE;
 @property(nonatomic,readonly) NSNumber *FOLD;
 @property(nonatomic,readonly) NSNumber *SLIDE;
+@property(nonatomic,readonly) NSNumber *FADE;
 
 @property(nonatomic,readonly) NSNumber *TOP_TO_BOTTOM;
 @property(nonatomic,readonly) NSNumber *BOTTOM_TO_TOP;

@@ -22,7 +22,8 @@ typedef enum NWTransition {
     NWTransitionGlue,
     NWTransitionPushRotate,
     NWTransitionFold,
-    NWTransitionSlide
+    NWTransitionSlide,
+    NWTransitionFade
 } NWTransition;
 
 @interface TiTransitionHelper : NSObject

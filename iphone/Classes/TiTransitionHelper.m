@@ -78,6 +78,10 @@
         case NWTransitionSlide:
             return [[ADSlideTransition alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
+        case NWTransitionFade:
+            return [[ADFadeTransition alloc] initWithDuration:duration];
+            break;
+
         default:
             return nil;
             break;
