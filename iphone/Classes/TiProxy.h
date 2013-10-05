@@ -161,6 +161,13 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 -(BOOL)_hasListeners:(NSString*)type;
 
 /**
+ Whether or not the proxy has listeners for the specified event types.
+ @param type The event types.
+ @return _YES_ if the proxy has any listeners for anyof the specified event types, _NO_ otherwise.
+ */
+-(BOOL)_hasAnyListeners:(NSArray*)types;
+
+/**
  Tells the proxy to fire an event of the specified type to a listener.
  @param type The event type.
  @param obj The event properties.

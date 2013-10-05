@@ -294,20 +294,18 @@ DEFINE_EXCEPTIONS
 
 -(BOOL)proxyHasTapListener
 {
-	return [proxy _hasListeners:@"singletap"] ||
-			[proxy _hasListeners:@"doubletap"] ||
-			[proxy _hasListeners:@"twofingertap"];
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"singletap", @"doubletap", @"twofingertap", nil]];
 }
 
 -(BOOL)proxyHasTouchListener
 {
-	return [proxy _hasListeners:@"touchstart"] ||
-			[proxy _hasListeners:@"touchcancel"] ||
-			[proxy _hasListeners:@"touchend"] ||
-			[proxy _hasListeners:@"touchmove"] ||
-			[proxy _hasListeners:@"click"] ||
-			[proxy _hasListeners:@"dblclick"];
-} 
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"touchstart", @"touchcancel", @"touchend", @"touchmove", @"click", @"dblclick", nil]];
+}
+
+-(BOOL)proxyHasGestureListener
+{
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"swipe", @"pinch", @"longpress", nil]];
+}
 
 -(void)updateTouchHandling
 {
@@ -315,9 +313,7 @@ DEFINE_EXCEPTIONS
 	handlesTouches = touchEventsSupported && (
                 [self proxyHasTouchListener]
                 || [self proxyHasTapListener]
-                || [proxy _hasListeners:@"swipe"]
-                || [proxy _hasListeners:@"pinch"]
-                || [proxy _hasListeners:@"longpress"]);
+                || [self proxyHasGestureListener]);
 
     // If a user has not explicitly set whether or not the view interacts, base it on whether or
     // not it handles events, and if not, set it to the interaction default.
@@ -1656,7 +1652,6 @@ DEFINE_EXCEPTIONS
 -(void)handleListenerAddedWithEvent:(NSString *)event
 {
 	ENSURE_UI_THREAD_1_ARG(event);
-    [self updateTouchHandling];
     if ([event isEqualToString:@"swipe"]) {
         [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"dswipe"] setEnabled:YES];
@@ -1691,6 +1686,7 @@ DEFINE_EXCEPTIONS
 	if (count == 1 && [self viewSupportsBaseTouchEvents])
 	{
 		[self handleListenerAddedWithEvent:event];
+        [self updateTouchHandling];
 	}
 }
 
@@ -1699,6 +1695,7 @@ DEFINE_EXCEPTIONS
 	if (count == 0)
 	{
 		[self handleListenerRemovedWithEvent:event];
+        [self updateTouchHandling];
 	}
 }
 

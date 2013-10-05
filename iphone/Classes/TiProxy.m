@@ -533,6 +533,17 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	return result;
 }
 
+-(BOOL)_hasAnyListeners:(NSArray*)types
+{
+	pthread_rwlock_rdlock(&listenerLock);
+	//If listeners is nil at this point, result is still false.
+    for (NSString* key in types) {
+        if ([[listeners objectForKey:key] intValue]>0) return true;
+    }
+	pthread_rwlock_unlock(&listenerLock);
+	return false;
+}
+
 -(void)_fireEventToListener:(NSString*)type withObject:(id)obj listener:(KrollCallback*)listener thisObject:(TiProxy*)thisObject_
 {
 	TiHost *host = [self _host];
