@@ -123,6 +123,12 @@ else \
 ENSURE_TYPE_OR_NIL(x,NSString); \
 } \
 
+#define EXTRACT_SINGLE_ARG(x) \
+if ([x isKindOfClass:[NSArray class]] && [x count]>0) \
+{ \
+x = [x objectAtIndex:0]; \
+} \
+
 #define ENSURE_SINGLE_ARG(x,t) \
 if ([x isKindOfClass:[NSArray class]] && [x count]>0) \
 { \
