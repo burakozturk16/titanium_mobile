@@ -51,7 +51,7 @@
 
 -(TiUIView*)newView
 {
-	CGRect frame = [self appFrame];
+	CGRect frame = [TiUtils appFrame];
 	TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
 	return win;
 }
