@@ -248,6 +248,7 @@
 		return;
 	}
 	TiWindowProxy *window = [args objectAtIndex:0];
+	[TiUtils configureController:[self controller] withObject:window];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
