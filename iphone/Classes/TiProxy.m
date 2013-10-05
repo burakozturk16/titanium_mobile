@@ -538,7 +538,10 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	pthread_rwlock_rdlock(&listenerLock);
 	//If listeners is nil at this point, result is still false.
     for (NSString* key in types) {
-        if ([[listeners objectForKey:key] intValue]>0) return true;
+        if ([[listeners objectForKey:key] intValue]>0) {
+            pthread_rwlock_unlock(&listenerLock);
+            return true;
+        }
     }
 	pthread_rwlock_unlock(&listenerLock);
 	return false;
