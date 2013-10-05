@@ -461,7 +461,7 @@
 #pragma mark - TiViewProxy overrides
 -(TiUIView*)newView
 {
-	CGRect frame = [self appFrame];
+	CGRect frame = [TiUtils appFrame];
 	TiUINavigationWindow * win = [[TiUINavigationWindow alloc] initWithFrame:frame];
 	return win;
 }

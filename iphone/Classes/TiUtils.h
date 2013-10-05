@@ -490,6 +490,7 @@ typedef enum
 +(UIEdgeInsets)contentInsets:(id)value;
 
 +(CGRect)contentFrame:(BOOL)window;
++(CGRect)appFrame;
 
 +(CGFloat)sizeValue:(id)value;
 

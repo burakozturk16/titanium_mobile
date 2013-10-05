@@ -52,7 +52,7 @@ static NSArray* tabGroupKeySequence;
 
 -(TiUIView*)newView
 {
-	TiUITabGroup *group = [[TiUITabGroup alloc] initWithFrame:[self appFrame]];
+	TiUITabGroup *group = [[TiUITabGroup alloc] initWithFrame:[TiUtils appFrame]];
 	return group;
 }
 

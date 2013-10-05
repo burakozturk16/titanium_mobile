@@ -1148,6 +1148,37 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return CGRectMake(f.origin.x, height, f.size.width, f.size.height);
 }
 
+
++(CGRect)appFrame
+{
+	CGRect result;
+    if ([TiUtils isIOS7OrGreater]) {
+        result = [[UIScreen mainScreen] bounds];
+    }
+    else {
+        // handling statusBar (iOS6) by leaving top 20px for statusbar.
+        result = [[UIScreen mainScreen] applicationFrame];
+    }
+	switch ([[UIApplication sharedApplication] statusBarOrientation])
+	{
+		case UIInterfaceOrientationLandscapeLeft:
+		case UIInterfaceOrientationLandscapeRight:
+		{
+			CGFloat leftMargin = result.origin.y;
+			CGFloat topMargin = result.origin.x;
+			CGFloat newHeight = result.size.width;
+			CGFloat newWidth = result.size.height;
+			result = CGRectMake(leftMargin, topMargin, newWidth, newHeight);
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+	return result;
+}
+
+
 +(CGFloat)sizeValue:(id)value
 {
 	if ([value isKindOfClass:[NSString class]])

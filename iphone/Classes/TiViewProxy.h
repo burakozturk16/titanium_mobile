@@ -446,8 +446,6 @@ enum
  */
 -(BOOL)isUsingBarButtonItem;
 
--(CGRect)appFrame;	//TODO: Why is this here? It doesn't have anything to do with a specific instance.
-
 #pragma mark Building up and tearing down
 -(void)firePropertyChanges;
 

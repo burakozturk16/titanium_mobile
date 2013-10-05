@@ -1559,29 +1559,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return isUsingBarButtonItem;
 }
 
--(CGRect)appFrame	//TODO: Why is this here? It doesn't have anything to do with a specific instance.
-{
-	CGRect result=[[UIScreen mainScreen] applicationFrame];
-	switch ([[UIApplication sharedApplication] statusBarOrientation])
-	{
-		case UIInterfaceOrientationLandscapeLeft:
-		case UIInterfaceOrientationLandscapeRight:
-		{
-			CGFloat leftMargin = result.origin.y;
-			CGFloat topMargin = result.origin.x;
-			CGFloat newHeight = result.size.width;
-			CGFloat newWidth = result.size.height;
-			result = CGRectMake(leftMargin, topMargin, newWidth, newHeight);
-			break;
-		}
-		default: {
-			break;
-		}
-	}
-	return result;
-}
-
-
 #pragma mark Building up and Tearing down
 
 -(void)resetDefaultValues
@@ -1750,7 +1727,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	{
 		DeveloperLog(@"[WARN] No TiView for Proxy: %@, couldn't find class: %@",self,proxyName);
 	}
-	return [[[TiUIView alloc] initWithFrame:[self appFrame]] autorelease];
+	return [[[TiUIView alloc] initWithFrame:[TiUtils appFrame]] autorelease];
 }
 
 
