@@ -812,7 +812,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     }
     UIGraphicsBeginImageContextWithOptions(size, [myview.layer isOpaque], scale);
     CGContextRef context = UIGraphicsGetCurrentContext();
+    float oldOpacity = myview.alpha;
+    myview.alpha = 1;
     [myview.layer renderInContext:context];
+    myview.alpha = oldOpacity;
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     return image;
