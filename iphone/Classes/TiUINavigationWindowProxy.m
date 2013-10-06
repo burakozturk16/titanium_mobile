@@ -78,12 +78,27 @@
     return nil;
 }
 
+-(UIViewController *)rootController
+{
+    if (rootWindow == nil) {
+        id window = [self valueForKey:@"window"];
+        ENSURE_TYPE(window, TiWindowProxy);
+        rootWindow = [window retain];
+        [rootWindow setIsManaged:YES];
+        [rootWindow setTab:(TiViewProxy<TiTab> *)self];
+        [rootWindow setParentOrientationController:self];
+        [rootWindow open:nil];
+    }
+    return [rootWindow hostingController];
+}
+
 -(ADTransitionController*)controller
 {
     if (navController == nil) {
-        navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];;
+        navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
         navController.delegate = self;
         [TiUtils configureController:navController withObject:self];
+        navController.navigationBar.translucent = YES;
     }
     return navController;
 }
@@ -206,19 +221,6 @@
     }
 }
 
--(UIViewController *)rootController
-{
-    if (rootWindow == nil) {
-        id window = [self valueForKey:@"window"];
-        ENSURE_TYPE(window, TiWindowProxy);
-        rootWindow = [window retain];
-        [rootWindow setIsManaged:YES];
-        [rootWindow setTab:(TiViewProxy<TiTab> *)self];
-        [rootWindow setParentOrientationController:self];
-        [rootWindow open:nil];
-    }
-    return [rootWindow hostingController];
-}
 
 -(UIViewAnimationTransition)popTransition:(UIViewAnimationTransition)pushTransition {
     switch (pushTransition) {
@@ -248,7 +250,6 @@
 		return;
 	}
 	TiWindowProxy *window = [args objectAtIndex:0];
-	[TiUtils configureController:[self controller] withObject:window];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
