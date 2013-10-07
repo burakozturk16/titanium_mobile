@@ -107,7 +107,7 @@ public class TransitionHelper {
 			}
 			
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), -destAngle, 0));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), -2*destAngle, 0));
 			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(),0,  1.0f));
 			inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
