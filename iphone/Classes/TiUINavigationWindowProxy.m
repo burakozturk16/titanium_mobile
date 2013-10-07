@@ -291,11 +291,12 @@
     
     if (window == current) {
         NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+        int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
         BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
         if (animated) {
             ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionLeftToRight];
             if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
-                float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:300]/1000;
+                float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
                 
                 NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
                 [navController popViewControllerWithTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
