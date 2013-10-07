@@ -1156,7 +1156,6 @@ If the new path starts with / and the base url is app://..., we have to massage 
         result = [[UIScreen mainScreen] bounds];
     }
     else {
-        // handling statusBar (iOS6) by leaving top 20px for statusbar.
         result = [[UIScreen mainScreen] applicationFrame];
     }
 	switch ([[UIApplication sharedApplication] statusBarOrientation])
