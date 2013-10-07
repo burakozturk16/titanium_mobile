@@ -18,7 +18,9 @@ NSString *const ECSlidingViewTopWillReset            = @"ECSlidingViewTopWillRes
 NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidReset";
 
 @interface ECSlidingViewController()
-
+{
+    BOOL _ios7OrGreater;
+}
 @property (nonatomic, strong) UIView *topViewSnapshot;
 @property (nonatomic, assign) CGFloat initialTouchPositionX;
 @property (nonatomic, assign) CGFloat initialHorizontalCenter;
@@ -129,6 +131,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 }
 
 - (void)setup {
+  _ios7OrGreater = [[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0;
   self.shouldAllowPanningPastAnchor = YES;
   self.shouldAllowUserInteractionsWhenAnchored = NO;
   self.shouldAddPanGestureRecognizerToTopViewSnapshot = NO;
@@ -150,8 +153,8 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 
 - (void)setTopViewController:(UIViewController *)theTopViewController
 {
-  CGRect topViewFrame = [self fullViewBounds];
-  
+  CGRect topViewFrame = _topViewController ? _topViewController.view.frame : [self fullViewBounds];
+
   [self removeTopViewSnapshot];
   [_topViewController.view removeFromSuperview];
   [_topViewController willMoveToParentViewController:nil];
@@ -165,7 +168,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   [_topViewController.view setAutoresizingMask:self.autoResizeToFillScreen];
   [_topViewController.view setFrame:topViewFrame];
   _topViewController.view.layer.shadowOffset = CGSizeZero;
-  _topViewController.view.layer.shadowPath = [UIBezierPath bezierPathWithRect:[_topViewController.view bounds]].CGPath;
+  _topViewController.view.layer.shadowPath = [UIBezierPath bezierPathWithRect:[self fullViewBounds]].CGPath;
   
   [self.view insertSubview:_topViewController.view belowSubview:self.statusBarBackgroundView];
   self.topViewSnapshot.frame = self.topView.bounds;
@@ -184,6 +187,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
     [self.underLeftViewController didMoveToParentViewController:self];
     
     [self updateUnderLeftLayout];
+    [self.view insertSubview:self.underLeftView belowSubview:self.topView];
   }
 }
 
@@ -200,6 +204,7 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
     [self.underRightViewController didMoveToParentViewController:self];
     
     [self updateUnderRightLayout];
+    [self.view insertSubview:self.underRightView belowSubview:self.topView];
   }
 }
 
@@ -668,15 +673,20 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
 - (CGRect)fullViewBounds
 {
   CGFloat statusBarHeight = 0;
-  
-  if (self.shouldAdjustChildViewHeightForStatusBar) {
-    statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
-    if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
-      statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.width;
+    CGRect bounds;
+    if (_ios7OrGreater) {
+        bounds = [[UIScreen mainScreen] bounds];
+        if (self.shouldAdjustChildViewHeightForStatusBar) {
+            statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.height;
+            if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
+                statusBarHeight = [UIApplication sharedApplication].statusBarFrame.size.width;
+            }
+        }
     }
-  }
-  
-  CGRect bounds = [UIScreen mainScreen].bounds;
+    else {
+        bounds = [[UIScreen mainScreen] applicationFrame];
+        bounds.origin = CGPointZero;
+    }
   
   if (UIInterfaceOrientationIsLandscape([UIApplication sharedApplication].statusBarOrientation)) {
     CGFloat height = bounds.size.width;
@@ -696,9 +706,9 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   dispatch_async(dispatch_get_main_queue(), ^{
     [[NSNotificationCenter defaultCenter] postNotificationName:ECSlidingViewUnderLeftWillAppear object:self userInfo:nil];
   });
-  [self.underRightView removeFromSuperview];
+  [self.underRightView setHidden:YES];
   [self updateUnderLeftLayout];
-  [self.view insertSubview:self.underLeftView belowSubview:self.topView];
+  [self.underLeftView setHidden:NO];
   _underLeftShowing  = YES;
   _underRightShowing = NO;
 }
@@ -708,9 +718,9 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   dispatch_async(dispatch_get_main_queue(), ^{
     [[NSNotificationCenter defaultCenter] postNotificationName:ECSlidingViewUnderRightWillAppear object:self userInfo:nil];
   });
-  [self.underLeftView removeFromSuperview];
+  [self.self.underLeftView setHidden:YES];
   [self updateUnderRightLayout];
-  [self.view insertSubview:self.underRightView belowSubview:self.topView];
+  [self.underRightView setHidden:NO];
   _underLeftShowing  = NO;
   _underRightShowing = YES;
 }
@@ -723,8 +733,8 @@ NSString *const ECSlidingViewTopDidReset             = @"ECSlidingViewTopDidRese
   [self.topView removeGestureRecognizer:self.resetTapGesture];
   [self removeTopViewSnapshot];
   self.panGesture.enabled = YES;
-  [self.underRightView removeFromSuperview];
-  [self.underLeftView removeFromSuperview];
+  [self.self.underLeftView setHidden:NO];
+  [self.underRightView setHidden:NO];
   _underLeftShowing   = NO;
   _underRightShowing  = NO;
   _topViewIsOffScreen = NO;
