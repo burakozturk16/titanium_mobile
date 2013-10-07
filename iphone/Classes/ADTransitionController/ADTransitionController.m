@@ -190,16 +190,17 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 }
 
 
--(void)adjustScrollViewInsetsForView:(UIView*)inView topCrop:(BOOL)topCrop bottomCrop:(BOOL)bottomCrop
+-(void)adjustScrollViewInsetsForView:(UIView*)inView topCrop:(BOOL)topCrop bottomCrop:(BOOL)bottomCrop topView:(UIView*)topView
 {
     CGFloat navigationBarHeight = _navigationBar.hidden?0:_navigationBar.frame.size.height;
     CGFloat toolbarHeight = _toolbar.hidden?0:_toolbar.frame.size.height;
+    CGRect containerFrame = _containerView.bounds;
     for (UIView* view in inView.subviews) {
         if ([view isKindOfClass:[UIScrollView class]])
         {
             UIScrollView* scrollview = (UIScrollView*)view;
             CGRect originalFrame = scrollview.frame;
-            CGRect scrollviewRect = [scrollview convertRect:originalFrame toView:_containerView];
+            CGRect scrollviewRect = [scrollview convertRect:originalFrame toView:topView];
             UIEdgeInsets oldInset = scrollview.contentInset;
             CGPoint oldOffset = scrollview.contentOffset;
             scrollviewRect.origin.y += oldOffset.y;
@@ -221,7 +222,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
                 scrollview.contentOffset = CGPointMake(0,-inset.top);
             }
         }
-        [self adjustScrollViewInsetsForView:view topCrop:topCrop bottomCrop:bottomCrop];
+        [self adjustScrollViewInsetsForView:view topCrop:topCrop bottomCrop:bottomCrop topView:topView];
     }
 }
 
@@ -260,7 +261,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     _containerView.frame = frame;
     ((UIViewController*)controller).view.frame = _containerView.bounds;
    if (adjustScrollViewInsets) {
-        [self adjustScrollViewInsetsForView:((UIViewController*)controller).view topCrop:topCrop bottomCrop:bottomCrop];
+       UIView* inView = ((UIViewController*)controller).view;
+       [self adjustScrollViewInsetsForView:inView topCrop:topCrop bottomCrop:bottomCrop topView:inView];
     }
     _toolbar.items = ((UIViewController*)controller).toolbarItems;
 }
