@@ -68,7 +68,7 @@ function openWin(_win, _withoutActionBar) {
 	} else {
 		if (!navGroup) {
 			navGroup = Titanium.UI.iPhone.createNavigationGroup({window:_win});
-			var winHolder = createWin();
+			var winHolder = Ti.UI.createWindow();
 			winHolder.add(navGroup);
 			winHolder.open();
 		} else navGroup.open(_win);
@@ -353,6 +353,8 @@ function layout1Ex() {
 		horizontalWrap:false});
 	var view1 = Ti.UI.createView({backgroundColor:'red', width:60, height:80, left:0});
 	var view2 = Ti.UI.createView({backgroundColor:'blue', width:20,
+		borderColor:'red',
+	    borderWidth:2,
 	// top:10,
 	height:80, left:10, right:4});
 	var view3 = Ti.UI.createView({backgroundColor:'orange', width:Ti.UI.FILL, height:60, right:4});
@@ -699,11 +701,15 @@ function ImageViewEx() {
 	var view = Ti.UI.createImageView({
 		bubbleParent:false,
 		width:300,
-		height:500,
+		height:Ti.UI.SIZE,
+		borderColor:'red',
+		borderWidth:2,
 		backgroundColor:'green',
 		image:'/images/slightlylargerimage.png',});
+	view.add(Ti.UI.createView({backgroundColor:'yellow', top:10, width:15, height:15}));
 	view.addEventListener('click', function(){
-		view.image = varSwitch(view.image, '/images/slightlylargerimage.png', '/images/poster.jpg');
+//		view.image = varSwitch(view.image, '/images/slightlylargerimage.png', '/images/poster.jpg');
+		view.animate({height:400, duration:1000, autoreverse:true});
 	});
 	win.add(view);
 	openWin(win);
@@ -712,40 +718,160 @@ function ImageViewEx() {
 
 function scrollableEx() {
 	var win = createWin();
-	var table = Ti.UI.createTableView();
-	var rowData = [];
+	// Create a custom template that displays an image on the left,
+	// then a title next to it with a subtitle below it.
+	var myTemplate = {
+			properties : {
+				height:50
+			},
+			childTemplates : [{
+				type : 'Ti.UI.View',
+				bindId : 'leftImageView',
+				properties : {
+					left:0,
+				    width:40,
+				    height:40,
+				    backgroundColor:'blue',
+				    backgroundSelectedColor:'green',
+//				    image:'/images/contactIcon.png',
+				    borderColor:'red',
+				    borderWidth:2
+//				    viewMask:'/images/contactMask.png',
+				}
+			}, {
+				type : 'Ti.UI.Label',
+				bindId : 'label',
+				properties : {
+					multiLineEllipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
+				    top:2,
+				    bottom:2,
+				    left:45,
+				    textPadding:{bottom:4},
+				    right:55,
+				    touchEnabled:false,
+				    height:Ti.UI.FILL,
+				    color :'black',
+				    font: {
+				        fontSize: 16
+				    },
+				    width:Ti.UI.FILL
+				}
+			}, {
+				type : 'Ti.UI.ImageView',
+				bindId : 'rightImageView',
+				properties : {
+					right:5,
+				    top:8,
+				    bottom:8,
+				    width:Ti.UI.SIZE,
+				    touchEnabled:false
+				}
+			}, {
+				type : 'Ti.UI.ImageView',
+				bindId : 'networkIndicator',
+				properties : {
+					right:40,
+				    top:4,
+				    height:15,
+				    width:Ti.UI.SIZE,
+				    touchEnabled:false
+				}
+			}, {
+				type : 'Ti.UI.View',
+				properties : {
+					backgroundColor: '#999',
+				    left:4, right:4,
+				    bottom:0,
+				    height:1
+				}
+			}]
+	};
+	var contactAction;
+	var blurImage;
+	var listView = Ti.UI.createListView({
+	// Maps myTemplate dictionary to 'template' string
+	templates:{'template':myTemplate},
+		defaultItemTemplate:'template',
+		selectedBackgroundGradient:{type:'linear',
+			colors:['blue', 'green'],
+			startPoint:{x:0, y:0},
+			endPoint:{x:0, y:"100%"}}});
+	listView.addEventListener('itemclick', function(_event) {
+		if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
+			var item  = _event.section.getItemAt(_event.itemIndex);
+			if (!contactAction) {
+				contactAction = Ti.UI.createView({backgroundColor:'black'});
+				blurImage = Ti.UI.createImageView({
+					width:Ti.UI.FILL,
+				    height:Ti.UI.FILL
+				});
+				contactAction.add(blurImage);
+				blurImage.addEventListener('click', function(){
+					animation.fadeOut(contactAction, 200, function(){
+						win.remove(contactAction);
+					});
+				});
+			}
+			contactAction.opacity = 0;
+			win.add(contactAction);
+			var image = Ti.Image.getFilteredViewToImage(win, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3});
+			blurImage.image = image;
+			animation.fadeIn(contactAction, 300);
+		}
+	});
 
-	for (var i = 0; i < 20; i++) {
-		var scrollable = Ti.UI.createScrollableView({
-			top : 0,
-			left : 0,
-			bottom : 0,
-			right : 0,
-			backgroundColor : 'orange',
-			views : [Ti.UI.createView({
-				backgroundColor : 'blue'
-			}), Ti.UI.createView({
-				backgroundColor : 'green'
-			}), Ti.UI.createView({
-				backgroundColor : 'yellow'
-			})]
-		});
+	var names = ['Carolyn Humbert',
+ 	'David Michaels',
+ 	'Rebecca Thorning',
+ 	'Joe B',
+ 	'Phillip Craig',
+ 	'Michelle Werner',
+ 	'Philippe Christophe',
+ 	'Marcus Crane',
+ 	'Esteban Valdez',
+ 	'Sarah Mullock'];
 
-		var row = Ti.UI.createTableViewRow({
-			height : 100
-		});
-		row.add(scrollable);
-		rowData.push(row);
-	}
+ 	function formatTitle (_history) {
+ 		return _history.fullName + '<br><small><small><b><font color="#5B5B5B">' + (new Date()).toString() + '</font> <font color="#3FAC53"></font></b></small></small>';
+ 	}
+ 	function random(min, max) {
+ 	    if (max == null) {
+ 	       max = min;
+ 	       min = 0;
+ 	     }
+ 	     return min + Math.floor(Math.random() * (max - min + 1));
+ 	   };
+ 	function update() {
 
-//	for (var i = 0; i < 40; i++) {
-//		rowData.push(Ti.UI.createTableViewRow({
-//			title : ("test2 " + i)
-//		}));
-//	}
-	table.data = rowData;
+ 		var dataSet = [];
+ 		for (var i = 0; i < 30; i++) {
+ 			var callhistory = {
+ 				fullName:names[Math.floor(Math.random()*names.length)],
+ 				date:random(1293886884000, 1376053320000),
+ 				kb: random(0, 100000),
+ 				outgoing:!!random(0, 1),
+ 				wifi:!!random(0, 1)
+ 			};
+ 			dataSet.push({
+ 				contactName : callhistory.fullName,
+ 				label : {
+ 					html : formatTitle(callhistory)
+ 				},
+ 				rightImageView:{
+ 					image:(callhistory.outgoing?'/images/outgoing.png':'/images/incoming.png')
+ 				},
+ 				networkIndicator:{
+ 					image:(callhistory.wifi?'/images/wifi.png':'/images/mobile.png')
+ 				}
+ 			});
+ 		}
+ 		var historySection = Ti.UI.createListSection();
+ 		historySection.setItems(dataSet);
+ 		listView.sections = [historySection];
 
-	win.add(table);
+ 	}
+	win.add(listView);
+	win.addEventListener('open', update);
 	openWin(win);
 }
 
@@ -1718,7 +1844,7 @@ listview.sections = [{items:[{properties:{title:'Transform'}, callback:transform
                      		{properties:{title:'SlideMenu'}, callback:slideMenuEx},
                     		{properties:{title:'NavigationWindow'}, callback:navWindowEx},
 		{properties:{title:'Layout'}, callback:layoutExs},
-		{properties:{title:'scrollableEx'}, callback:scrollableEx},
+		{properties:{title:'listviewEx'}, callback:scrollableEx},
 		{properties:{title:'Shapes'}, callback:shapeExs},
 		{properties:{title:'ButtonsAndLabels'}, callback:buttonAndLabelEx},
 		{properties:{title:'Mask'}, callback:maskEx},
