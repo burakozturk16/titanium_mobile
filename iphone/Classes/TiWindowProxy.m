@@ -60,6 +60,7 @@
 -(void)windowWillOpen
 {
     [super windowWillOpen];
+    [self viewWillAppear:false];
     if (tab == nil && (self.isManaged == NO)) {
         [[[[TiApp app] controller] topContainerController] willOpenWindow:self];
     }
@@ -69,6 +70,7 @@
 {
     opening = NO;
     opened = YES;
+    [self viewDidAppear:false];
     if ([self _hasListeners:@"open"]) {
         [self fireEvent:@"open" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
     }
@@ -82,6 +84,7 @@
 
 -(void) windowWillClose
 {
+    [self viewWillDisappear:false];
     if (tab == nil && (self.isManaged == NO)) {
         [[[[TiApp app] controller] topContainerController] willCloseWindow:self];
     }
@@ -92,6 +95,7 @@
 {
     opened = NO;
     closing = NO;
+    [self viewDidDisappear:false];
     if ([self _hasListeners:@"close"]) {
         [self fireEvent:@"close" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
     }
