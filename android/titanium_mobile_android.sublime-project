@@ -50,6 +50,10 @@
 		{
 			"follow_symlinks": true,
 			"path": "modules/shape"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "TitaniumTest"
 		}
 	]
 }
