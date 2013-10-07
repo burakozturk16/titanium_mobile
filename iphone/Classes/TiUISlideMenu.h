@@ -24,6 +24,7 @@ typedef enum {
     CALayer* shadowLayer;
     CGFloat shadowWidth;
     PanningMode panningMode;
+    PanningMode _lastUpdatePanningMode;
     
     TiViewProxy* leftView;
     TiViewProxy* rightView;

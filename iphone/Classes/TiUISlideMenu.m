@@ -12,6 +12,7 @@
 #import "TiUtils.h"
 #import "TiViewController.h"
 //#import "TiUISlideFakeWindowProxy.h"
+#import "UIViewController+ADTransitionController.h"
 
 
 
@@ -22,31 +23,15 @@
 
 -(UIViewController *) controllerForViewProxy:(TiViewProxy * )proxy
 {
-//    if([proxy respondsToSelector:@selector(childViewController)]) {
         [[proxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
         [proxy windowWillOpen];
-        [proxy reposition];
         [proxy windowDidOpen];
+        [proxy reposition];
         if([proxy respondsToSelector:@selector(hostingController)])
         {
             return [(TiWindowProxy *)proxy hostingController];
         }
         return [[[TiViewController alloc] initWithViewProxy:proxy] autorelease];
-//    }
-//    return nil;
-}
-
--(TiViewProxy *) proxyWithControllerFromProxy:(TiViewProxy * )proxy
-{
-//    if([proxy respondsToSelector:@selector(childViewController)]) {
-        return proxy;
-//    }
-//    else{
-//        TiWindowProxy* windowProxy = [[TiWindowProxy alloc] init];
-//        [windowProxy add:proxy];
-//        return [windowProxy autorelease];
-//    }
-//    return nil;
 }
 
 -(id)init
@@ -55,6 +40,7 @@
     {
         shadowWidth = 5;
         panningMode = PanningModeFullscreen;
+        _lastUpdatePanningMode = -1;
     }
     return self;
 }
@@ -118,35 +104,18 @@
         ctlr = args;
     }
     else {
-        ENSURE_TYPE_OR_NIL(args,TiViewProxy);
         ENSURE_UI_THREAD(setCenterView_,args);
+        ENSURE_TYPE_OR_NIL(args,TiViewProxy);
         
         RELEASE_TO_NIL(centerView);
-        centerView = [[self proxyWithControllerFromProxy:args] retain];
+        centerView = [args retain];
         ctlr = [self controllerForViewProxy:centerView];
     }
     
-    [[ctlr view] setFrame:[self bounds]];
-    
-    if ([self controller].topViewController) {
-        UIViewController * localcontroller = [self controller].topViewController;
-        [localcontroller.view removeGestureRecognizer:[self controller].panGesture];
-        if ([localcontroller isKindOfClass:[UINavigationController class]])
-            [((UINavigationController*)localcontroller).navigationBar addGestureRecognizer:[self controller].panGesture];
-        else
-            [localcontroller.navigationController.navigationBar addGestureRecognizer:[self controller].panGesture];
-    }
-    else {
-        UIViewController * localcontroller = [self controller];
-        [localcontroller.view removeGestureRecognizer:[self controller].panGesture];
-        if ([localcontroller isKindOfClass:[UINavigationController class]])
-            [((UINavigationController*)localcontroller).navigationBar removeGestureRecognizer:[self controller].panGesture];
-        else
-            [localcontroller.navigationController.navigationBar removeGestureRecognizer:[self controller].panGesture];
-
-    }
+    [self clearGestures];
     [self controller].topViewController = ctlr;
     
+    _lastUpdatePanningMode = -1;
     [self updatePanningMode];
     
     ctlr.view.layer.shadowOpacity = 0.9f;
@@ -156,28 +125,28 @@
 
 -(void)setLeftView_:(id)args
 {
-    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     ENSURE_UI_THREAD(setLeftView_,args);
+    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     
 	RELEASE_TO_NIL(leftView);
-    leftView = [[self proxyWithControllerFromProxy:args] retain];
+    leftView = [args retain];
     [self controller].underLeftViewController = [self controllerForViewProxy:leftView];
 }
 
 -(void)setRightView_:(id)args
 {
-    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     ENSURE_UI_THREAD(setRightView_,args);
+    ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     
 	RELEASE_TO_NIL(rightView);
-    rightView = [[self proxyWithControllerFromProxy:args] retain];
+    rightView = [args retain];
     [self controller].underRightViewController = [self controllerForViewProxy:rightView];
 }
 
 -(void)setLeftViewWidth_:(id)args
 {
+    ENSURE_UI_THREAD(setLeftViewWidth_,args);
     ENSURE_TYPE_OR_NIL(args,NSNumber);
-    ENSURE_UI_THREAD(setRightView_,args);
     
     CGFloat value = [args floatValue];
     
@@ -196,7 +165,7 @@
 -(void)setRightViewWidth_:(id)args
 {
     ENSURE_TYPE_OR_NIL(args,NSNumber);
-    ENSURE_UI_THREAD(setRightView_,args);
+    ENSURE_UI_THREAD(setRightViewWidth_,args);
     
     CGFloat value = [args floatValue];
     
@@ -212,10 +181,31 @@
     }
 }
 
--(void) updatePanningMode
+-(id) navControllerForController:(UIViewController*)theController
+{
+    if ([theController transitionController] != nil)
+        return [theController transitionController];
+    return [theController navigationController];
+}
+
+-(void)clearGestures
 {
     UIViewController* localcontroller = nil;
-    ;
+    if ([self controller].topViewController) localcontroller = [self controller].topViewController;
+    else localcontroller = [self controller];
+    if ([localcontroller isKindOfClass:[UINavigationController class]] ||
+        [localcontroller isKindOfClass:[ADTransitionController class]])
+        [[localcontroller navigationBar] removeGestureRecognizer:[self controller].panGesture];
+    else
+        [[[self navControllerForController:localcontroller] navigationBar] removeGestureRecognizer:[self controller].panGesture];
+    [[localcontroller view] removeGestureRecognizer:[self controller].panGesture];
+}
+
+-(void) updatePanningMode
+{
+    if (_lastUpdatePanningMode == panningMode) return;
+    _lastUpdatePanningMode = panningMode;
+    UIViewController* localcontroller = nil;
     if ([self controller].topViewController) localcontroller = [self controller].topViewController;
     else localcontroller = [self controller];
 
@@ -229,10 +219,11 @@
         }
         else if (panningMode == PanningModeNavBar)
         {
-            if ([localcontroller isKindOfClass:[UINavigationController class]])
-                [((UINavigationController*)localcontroller).navigationBar addGestureRecognizer:[self controller].panGesture];
+            if ([localcontroller isKindOfClass:[UINavigationController class]] ||
+                [localcontroller isKindOfClass:[ADTransitionController class]])
+                [[localcontroller navigationBar] addGestureRecognizer:[self controller].panGesture];
             else
-                [localcontroller.navigationController.navigationBar addGestureRecognizer:[self controller].panGesture];
+                [[[self navControllerForController:localcontroller] navigationBar] addGestureRecognizer:[self controller].panGesture];
         }
         else if (panningMode == PanningModeFullscreen)
         {
@@ -273,7 +264,10 @@
                 break;
         }
     }
-    [self updatePanningMode];
+    if (panningMode != _lastUpdatePanningMode) {
+        [self clearGestures];
+        [self updatePanningMode];
+    }
 }
 
 - (void)setShadowWidth:(id)args
