@@ -212,10 +212,9 @@
 @property(nonatomic,readonly) NSNumber *MENU_PANNING_BORDERS;
 @property(nonatomic,readonly) NSNumber *MENU_PANNING_NAV_BAR;
 @property(nonatomic,readonly) NSNumber *MENU_PANNING_CENTER_VIEW;
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_NON_SCROLLVIEW;
 
-
-
+@property(nonatomic,readonly) NSNumber *LEFT_VIEW;
+@property(nonatomic,readonly) NSNumber *RIGHT_VIEW;
 
 @property(nonatomic,readonly) NSNumber *INFINITE;
 

@@ -596,6 +596,9 @@
 		B4F97B73111A41C800E2F72C /* TiUIScrollView.m in Sources */ = {isa = PBXBuildFile; fileRef = B4F97B72111A41C800E2F72C /* TiUIScrollView.m */; };
 		D4AB36F5123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
 		D4AB36F6123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
+		D5114EC318029C7D004AC5BA /* SWRevealViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5114EC218029C7D004AC5BA /* SWRevealViewController.m */; };
+		D5114EC418029C7D004AC5BA /* SWRevealViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5114EC218029C7D004AC5BA /* SWRevealViewController.m */; };
+		D5114EC518029C7D004AC5BA /* SWRevealViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5114EC218029C7D004AC5BA /* SWRevealViewController.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D51697F217FFF63300B4FDB8 /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D51697F117FFF63300B4FDB8 /* ImageModule.m */; };
 		D51697F317FFF63300B4FDB8 /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D51697F117FFF63300B4FDB8 /* ImageModule.m */; };
 		D51697F417FFF63300B4FDB8 /* ImageModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D51697F117FFF63300B4FDB8 /* ImageModule.m */; };
@@ -932,69 +935,69 @@
 		D5C2866817FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
 		D5C2866917FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
 		D5C2866A17FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
-		D5C8C96717EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96A17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96D17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97017EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97417EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97517EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97617EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97717EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97817EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97917EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97A17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97B17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97C17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98217EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98317EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98417EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98817EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98B17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98C17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98D17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98E17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99117EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99317EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99417EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99717EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99817EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99917EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99A17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C96717EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
+		D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
+		D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
+		D5C8C96A17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; };
+		D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; };
+		D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94017EF45C900F54C19 /* ADCarrouselTransition.m */; };
+		D5C8C96D17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; };
+		D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; };
+		D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94217EF45C900F54C19 /* ADCrossTransition.m */; };
+		D5C8C97017EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; };
+		D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; };
+		D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94417EF45C900F54C19 /* ADCubeTransition.m */; };
+		D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; };
+		D5C8C97417EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; };
+		D5C8C97517EF45C900F54C19 /* ADDualTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94617EF45C900F54C19 /* ADDualTransition.m */; };
+		D5C8C97617EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; };
+		D5C8C97717EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; };
+		D5C8C97817EF45C900F54C19 /* ADFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94817EF45C900F54C19 /* ADFadeTransition.m */; };
+		D5C8C97917EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; };
+		D5C8C97A17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; };
+		D5C8C97B17EF45C900F54C19 /* ADFlipTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94A17EF45C900F54C19 /* ADFlipTransition.m */; };
+		D5C8C97C17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; };
+		D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; };
+		D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94C17EF45C900F54C19 /* ADFoldTransition.m */; };
+		D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; };
+		D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; };
+		D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C94E17EF45C900F54C19 /* ADGhostTransition.m */; };
+		D5C8C98217EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; };
+		D5C8C98317EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; };
+		D5C8C98417EF45C900F54C19 /* ADGlueTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95017EF45C900F54C19 /* ADGlueTransition.m */; };
+		D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; };
+		D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; };
+		D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95217EF45C900F54C19 /* ADPushRotateTransition.m */; };
+		D5C8C98817EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; };
+		D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; };
+		D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95417EF45C900F54C19 /* ADScaleTransition.m */; };
+		D5C8C98B17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; };
+		D5C8C98C17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; };
+		D5C8C98D17EF45C900F54C19 /* ADSlideTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95617EF45C900F54C19 /* ADSlideTransition.m */; };
+		D5C8C98E17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; };
+		D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; };
+		D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95817EF45C900F54C19 /* ADSwapTransition.m */; };
+		D5C8C99117EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; };
+		D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; };
+		D5C8C99317EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95A17EF45C900F54C19 /* ADSwipeFadeTransition.m */; };
+		D5C8C99417EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; };
+		D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; };
+		D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95C17EF45C900F54C19 /* ADSwipeTransition.m */; };
+		D5C8C99717EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; };
+		D5C8C99817EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; };
+		D5C8C99917EF45C900F54C19 /* ADTransformTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C95E17EF45C900F54C19 /* ADTransformTransition.m */; };
+		D5C8C99A17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; };
 		D5C8C99B17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; };
-		D5C8C99C17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A017EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A317EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A417EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5C8C9A517EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5C8C99C17EF45C900F54C19 /* ADTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96017EF45C900F54C19 /* ADTransition.m */; };
+		D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; };
+		D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; };
+		D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96217EF45C900F54C19 /* ADTransitionController.m */; };
+		D5C8C9A017EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; };
+		D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; };
+		D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96417EF45C900F54C19 /* ADZoomTransition.m */; };
+		D5C8C9A317EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; };
+		D5C8C9A417EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; };
+		D5C8C9A517EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */; };
 		D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
@@ -1004,9 +1007,9 @@
 		D5CD8CB017CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
-		D5DFBB1717F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5DFBB1817F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
-		D5DFBB1917F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D5DFBB1717F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; };
+		D5DFBB1817F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; };
+		D5DFBB1917F09F1F003B58E0 /* ADIOS7Transition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DFBB1617F09F1F003B58E0 /* ADIOS7Transition.m */; };
 		D5E7977617B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
 		D5E7977717B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
 		D5E7977817B61EFC00F1D088 /* ShapeModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E7977517B61EFC00F1D088 /* ShapeModule.m */; };
@@ -2085,6 +2088,8 @@
 		D50ABB2517EB6680002CE73D /* SVGUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGUtils.h; path = ../Classes/SVGKit/SVGUtils.h; sourceTree = "<group>"; };
 		D50ABB2617EB6680002CE73D /* SVGViewSpec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SVGViewSpec.h; path = ../Classes/SVGKit/SVGViewSpec.h; sourceTree = "<group>"; };
 		D50ABB2717EB6680002CE73D /* Text.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Text.h; path = ../Classes/SVGKit/Text.h; sourceTree = "<group>"; };
+		D5114EC118029C7D004AC5BA /* SWRevealViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SWRevealViewController.h; path = ../Classes/SWRevealViewController/SWRevealViewController.h; sourceTree = "<group>"; };
+		D5114EC218029C7D004AC5BA /* SWRevealViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SWRevealViewController.m; path = ../Classes/SWRevealViewController/SWRevealViewController.m; sourceTree = "<group>"; };
 		D51697F017FFF63300B4FDB8 /* ImageModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageModule.h; sourceTree = "<group>"; };
 		D51697F117FFF63300B4FDB8 /* ImageModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ImageModule.m; sourceTree = "<group>"; };
 		D51697F517FFF77B00B4FDB8 /* GLProgram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GLProgram.h; path = ../Classes/GPUImage/GLProgram.h; sourceTree = "<group>"; };
@@ -2816,6 +2821,7 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D5114EC018029C71004AC5BA /* SWRevealViewController */,
 				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
 				D5014CD117EB4A740013F37A /* SVGKit */,
 				D585BBE017E62F350062275E /* GPUImage */,
@@ -4174,6 +4180,15 @@
 			name = SVGKit;
 			sourceTree = "<group>";
 		};
+		D5114EC018029C71004AC5BA /* SWRevealViewController */ = {
+			isa = PBXGroup;
+			children = (
+				D5114EC118029C7D004AC5BA /* SWRevealViewController.h */,
+				D5114EC218029C7D004AC5BA /* SWRevealViewController.m */,
+			);
+			name = SWRevealViewController;
+			sourceTree = "<group>";
+		};
 		D51697EF17FFF61D00B4FDB8 /* Image */ = {
 			isa = PBXGroup;
 			children = (
@@ -5259,6 +5274,7 @@
 				D56915D5168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
 				D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
+				D5114EC318029C7D004AC5BA /* SWRevealViewController.m in Sources */,
 				D599484716DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5FE438416E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
@@ -5684,6 +5700,7 @@
 				D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
 				D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
+				D5114EC418029C7D004AC5BA /* SWRevealViewController.m in Sources */,
 				D599484816DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5FE438516E488DD00FC1A44 /* ECSlidingViewController.m in Sources */,
@@ -6109,6 +6126,7 @@
 				D56915D1168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
+				D5114EC518029C7D004AC5BA /* SWRevealViewController.m in Sources */,
 				D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,

@@ -11,13 +11,28 @@
 #import "TiUISlideMenuProxy.h"
 #import "TiUtils.h"
 #import "TiViewController.h"
-//#import "TiUISlideFakeWindowProxy.h"
 #import "UIViewController+ADTransitionController.h"
 
+#define kLockViewId 102345
 
-
-
-
+@interface TiUISlideMenu()
+{
+@private
+	SWRevealViewController *_controller;
+    PanningMode panningMode;
+    PanningMode _lastUpdatePanningMode;
+    
+    TiViewProxy* leftView;
+    TiViewProxy* rightView;
+    TiViewProxy* centerView;
+    UIView* _lockingView;
+    UIView* _leftViewFadingView;
+    UIView* _rightViewFadingView;
+    CGFloat _fadeDegree; //between 0.0f and 1.0f
+    TiDimension _leftScrollScale; //between 0.0f and 1.0f
+    TiDimension _rightScrollScale; //between 0.0f and 1.0f
+}
+@end
 
 @implementation TiUISlideMenu
 
@@ -25,8 +40,8 @@
 {
         [[proxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
         [proxy windowWillOpen];
+        [proxy layoutChildren:NO];
         [proxy windowDidOpen];
-        [proxy reposition];
         if([proxy respondsToSelector:@selector(hostingController)])
         {
             return [(TiWindowProxy *)proxy hostingController];
@@ -38,60 +53,73 @@
 {
     if (self = [super init])
     {
-        shadowWidth = 5;
-        panningMode = PanningModeFullscreen;
+        panningMode = PanningModeCenterView;
         _lastUpdatePanningMode = -1;
+        _fadeDegree = 0.0f;
+        _leftScrollScale = TiDimensionDip(0.0f);
+        _rightScrollScale = TiDimensionDip(0.0f);
     }
     return self;
 }
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(controller);
-	RELEASE_TO_NIL(shadowLayer);
+	RELEASE_TO_NIL(_controller);
 	RELEASE_TO_NIL(leftView);
 	RELEASE_TO_NIL(rightView);
 	RELEASE_TO_NIL(centerView);
+	RELEASE_TO_NIL(_lockingView);
+	RELEASE_TO_NIL(_leftViewFadingView);
+	RELEASE_TO_NIL(_rightViewFadingView);
     [super dealloc];
 }
 
--(ECSlidingViewController*)controller
+-(SWRevealViewController*)controller
 {
-	if (controller==nil)
+	if (_controller==nil)
 	{
-        controller = [[ECSlidingViewController alloc] init];
+        _controller = [[SWRevealViewController alloc] init];
         
-        
-        controller.shouldAddPanGestureRecognizerToTopViewSnapshot = YES;
-        UIView * controllerView = [controller view];
-        [self setBackgroundColor:[UIColor clearColor]];
+//        controller.shouldAddPanGestureRecognizerToTopViewSnapshot = YES;
+        UIView * controllerView = [_controller view];
+//        [self setBackgroundColor:[UIColor clearColor]];
         [controllerView setBackgroundColor:[UIColor clearColor]];
         [controllerView setFrame:[self bounds]];
         [self addSubview:controllerView];
+        _lockingView = [[UIView alloc] initWithFrame:[self bounds]];
+        UITapGestureRecognizer *tap = [[UITapGestureRecognizer alloc] initWithTarget:_controller action:@selector(revealToggle:)];
+        [_lockingView addGestureRecognizer:tap];
+        [_lockingView setTag:kLockViewId];
         
-        controller.delegate = [self proxy];
+        _controller.delegate = self;
         
-        [self setCenterView_:[[[UIViewController alloc] init] autorelease]];
+//        [self setCenterView_:[[[UIViewController alloc] init] autorelease]];
         
-        [controller setAnchorLeftPeekAmount:40.0f];
-        [controller setAnchorRightPeekAmount:40.0f];
+//        [controller setAnchorLeftPeekAmount:40.0f];
+//        [controller setAnchorRightPeekAmount:40.0f];
         
-        [controller setUnderLeftWidthLayout:ECVariableRevealWidth];
-        [controller setUnderRightWidthLayout:ECVariableRevealWidth];
+//        controller.rearViewRevealWidth = 60;
+//        controller.rearViewRevealOverdraw = 120;
+        _controller.bounceBackOnOverdraw = YES;
+        _controller.stableDragOnOverdraw = YES;
         
-        [controller viewWillAppear:NO];
-        [controller viewDidAppear:NO];
+//        [controller setUnderLeftWidthLayout:ECVariableRevealWidth];
+//        [controller setUnderRightWidthLayout:ECVariableRevealWidth];
 	}
-	return controller;
+	return _controller;
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    if ([self controller].topViewController)
+    [[[self controller] view] setFrame:bounds];
+    if ([self controller].frontViewController)
     {
-        [[[self controller].topViewController view] setFrame:bounds];
-        [[self controller].topViewController view].layer.shadowPath = [UIBezierPath bezierPathWithRect:bounds].CGPath;
+        [[[self controller].frontViewController view] setFrame:bounds];
+        [[self controller].frontViewController view].layer.shadowPath = [UIBezierPath bezierPathWithRect:bounds].CGPath;
     }
+    [self updateLeftDisplacement];
+    [self updateRightDisplacement];
+
     [super frameSizeChanged:frame bounds:bounds];
 }
 
@@ -99,6 +127,7 @@
 
 -(void)setCenterView_:(id)args
 {
+    BOOL odlCenter = centerView != nil;
     UIViewController* ctlr;
     if ([args isKindOfClass:[UIViewController class]]) {
         ctlr = args;
@@ -111,16 +140,19 @@
         centerView = [args retain];
         ctlr = [self controllerForViewProxy:centerView];
     }
+    if ([centerView isKindOfClass:[TiUIWindowProxy class]]) {
+        TiUIWindowProxy* window = (TiUIWindowProxy*)centerView;
+        [window setIsManaged:YES];
+    }
     
     [self clearGestures];
-    [self controller].topViewController = ctlr;
+    [_lockingView removeFromSuperview];
+    [[ctlr view] setFrame:[self bounds]];
+    [[self controller] setFrontViewController:ctlr animated:odlCenter];
     
     _lastUpdatePanningMode = -1;
-    [self updatePanningMode];
+    [self updatePanningModeOnController:ctlr];
     
-    ctlr.view.layer.shadowOpacity = 0.9f;
-    ctlr.view.layer.shadowRadius = shadowWidth;
-    ctlr.view.layer.shadowColor = [UIColor blackColor].CGColor;
 }
 
 -(void)setLeftView_:(id)args
@@ -130,17 +162,22 @@
     
 	RELEASE_TO_NIL(leftView);
     leftView = [args retain];
-    [self controller].underLeftViewController = [self controllerForViewProxy:leftView];
+    UIViewController* ctlr = [self controllerForViewProxy:leftView];
+//    [[ctlr view] setFrame:[self bounds]];
+    [self controller].rearViewController = ctlr;
+    [_leftViewFadingView removeFromSuperview];
 }
 
 -(void)setRightView_:(id)args
 {
     ENSURE_UI_THREAD(setRightView_,args);
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
-    
+  
 	RELEASE_TO_NIL(rightView);
     rightView = [args retain];
-    [self controller].underRightViewController = [self controllerForViewProxy:rightView];
+    UIViewController* ctlr = [self controllerForViewProxy:leftView];
+    [self controller].rightViewController = ctlr;
+    [_rightViewFadingView removeFromSuperview];
 }
 
 -(void)setLeftViewWidth_:(id)args
@@ -149,17 +186,8 @@
     ENSURE_TYPE_OR_NIL(args,NSNumber);
     
     CGFloat value = [args floatValue];
-    
-    if (value >0)
-    {
-        [[self controller] setAnchorRightRevealAmount:value];
-        [[self controller] setUnderLeftWidthLayout:ECFixedRevealWidth];
-    }
-    else
-    {
-        [[self controller] setAnchorRightPeekAmount:-value];
-        [[self controller] setUnderLeftWidthLayout:ECVariableRevealWidth];
-    }
+    [self controller].rearViewRevealWidth = value;
+    [self updateLeftDisplacement];
 }
 
 -(void)setRightViewWidth_:(id)args
@@ -168,16 +196,63 @@
     ENSURE_UI_THREAD(setRightViewWidth_,args);
     
     CGFloat value = [args floatValue];
-    
-    if (value >0)
-    {
-        [[self controller] setAnchorLeftRevealAmount:value];
-        [[self controller] setUnderRightWidthLayout:ECFixedRevealWidth];
+    [self controller].rightViewRevealWidth = value;
+    [self updateRightDisplacement];
+}
+
+-(void)updateLeftDisplacement
+{
+    CGFloat leftMenuWidth = [self controller].rearViewRevealWidth;
+    if (leftMenuWidth < 0) {
+        leftMenuWidth = [self controller].view.bounds.size.width + leftMenuWidth;
     }
-    else
-    {
-        [[self controller] setAnchorLeftPeekAmount:-value];
-        [[self controller] setUnderRightWidthLayout:ECVariableRevealWidth];
+    [self controller].rearViewRevealDisplacement = TiDimensionCalculateValue(_leftScrollScale, leftMenuWidth);
+}
+
+-(void)updateRightDisplacement
+{
+    CGFloat rightMenuWidth = [self controller].rightViewRevealWidth;
+    if (rightMenuWidth < 0) {
+        rightMenuWidth = [self controller].view.bounds.size.width + rightMenuWidth;
+    }
+    [self controller].rightViewRevealDisplacement = TiDimensionCalculateValue(_rightScrollScale, rightMenuWidth);
+}
+
+-(void)setLeftViewDisplacement_:(id)args
+{
+    _leftScrollScale = [TiUtils dimensionValue:args];
+    [self updateLeftDisplacement];
+}
+
+-(void)setRightViewDisplacement_:(id)args
+{
+    _rightScrollScale = [TiUtils dimensionValue:args];
+    [self updateRightDisplacement];
+}
+
+-(void)setFading_:(id)args
+{
+    ENSURE_TYPE_OR_NIL(args,NSNumber);
+    _fadeDegree = [args floatValue];
+    if (_fadeDegree == 0.0f) {
+        [_leftViewFadingView removeFromSuperview];
+        [_rightViewFadingView removeFromSuperview];
+    }
+    else {
+        if (_leftViewFadingView == nil) {
+            _leftViewFadingView = [[UIView alloc] initWithFrame:[self bounds]];
+            _leftViewFadingView.backgroundColor = [UIColor blackColor];
+            _leftViewFadingView.alpha = 0.0f;
+            _leftViewFadingView.userInteractionEnabled = NO;
+            _leftViewFadingView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        }
+        if (_rightViewFadingView == nil) {
+            _rightViewFadingView = [[UIView alloc] initWithFrame:[self bounds]];
+            _rightViewFadingView.backgroundColor = [UIColor blackColor];
+            _rightViewFadingView.alpha = 0.0f;
+            _rightViewFadingView.userInteractionEnabled = NO;
+            _rightViewFadingView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+        }
     }
 }
 
@@ -190,50 +265,46 @@
 
 -(void)clearGestures
 {
+    UIGestureRecognizer* gesture = [self controller].panGestureRecognizer;
     UIViewController* localcontroller = nil;
-    if ([self controller].topViewController) localcontroller = [self controller].topViewController;
+    if ([self controller].frontViewController) localcontroller = [self controller].frontViewController;
     else localcontroller = [self controller];
     if ([localcontroller isKindOfClass:[UINavigationController class]] ||
         [localcontroller isKindOfClass:[ADTransitionController class]])
-        [[localcontroller navigationBar] removeGestureRecognizer:[self controller].panGesture];
+        [[localcontroller navigationBar] removeGestureRecognizer:gesture];
     else
-        [[[self navControllerForController:localcontroller] navigationBar] removeGestureRecognizer:[self controller].panGesture];
-    [[localcontroller view] removeGestureRecognizer:[self controller].panGesture];
+        [[[self navControllerForController:localcontroller] navigationBar] removeGestureRecognizer:gesture];
+    [[localcontroller view] removeGestureRecognizer:gesture];
 }
 
--(void) updatePanningMode
+-(void) updatePanningModeOnController:(UIViewController*) localcontroller
 {
     if (_lastUpdatePanningMode == panningMode) return;
     _lastUpdatePanningMode = panningMode;
-    UIViewController* localcontroller = nil;
-    if ([self controller].topViewController) localcontroller = [self controller].topViewController;
-    else localcontroller = [self controller];
+    
 
-    [self controller].grabbableBorderAmount = -1.0f;
+//    [self controller].grabbableBorderAmount = -1.0f;
     if (panningMode != PanningModeNone)
     {
+        UIGestureRecognizer* gesture = [self controller].panGestureRecognizer;
         if (panningMode == PanningModeBorders)
         {
-            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
-            [self controller].grabbableBorderAmount = 50.0f;
+            [[localcontroller view] addGestureRecognizer:gesture];
+            [self controller].draggableBorderWidth = 50.0f;
         }
         else if (panningMode == PanningModeNavBar)
         {
             if ([localcontroller isKindOfClass:[UINavigationController class]] ||
                 [localcontroller isKindOfClass:[ADTransitionController class]])
-                [[localcontroller navigationBar] addGestureRecognizer:[self controller].panGesture];
+                [[localcontroller navigationBar] addGestureRecognizer:gesture];
             else
-                [[[self navControllerForController:localcontroller] navigationBar] addGestureRecognizer:[self controller].panGesture];
+                [[[self navControllerForController:localcontroller] navigationBar] addGestureRecognizer:gesture];
         }
-        else if (panningMode == PanningModeFullscreen)
+        else// PanningModeCenterView
         {
-            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
+            [[localcontroller view] addGestureRecognizer:gesture];
         }
-        else if (panningMode == PanningModeNonScrollView)
-        {
-            [[localcontroller view] addGestureRecognizer:[self controller].panGesture];
-            [self controller].disableOnScrollView = YES;
-        }
+
     }
 }
 
@@ -255,41 +326,125 @@
             case 4: // MENU_PANNING_NAV_BAR
                 panningMode = PanningModeNavBar;
                 break;
-            case 5: // MENU_PANNING_NON_SCROLLVIEW
-                panningMode = PanningModeNonScrollView;
-                break;
             case 2: // MENU_PANNING_CENTER_VIEW
             default:
-                panningMode = PanningModeFullscreen;
+                panningMode = PanningModeCenterView;
                 break;
         }
     }
     if (panningMode != _lastUpdatePanningMode) {
         [self clearGestures];
-        [self updatePanningMode];
+        [self updatePanningModeOnController:[[self controller] frontViewController]];
     }
 }
 
 - (void)setShadowWidth:(id)args
 {
     ENSURE_TYPE_OR_NIL(args, NSNumber);
-    shadowWidth = [args floatValue];
-    if ([self controller].topViewController != nil)
-        [self controller].topViewController.view.layer.shadowRadius = shadowWidth;
+    [self controller].frontViewShadowRadius = [args floatValue];
 }
- 
- // applies a small shadow
-//-(void)viewDeckController:(IIViewDeckController *)viewDeckController applyShadow:(CALayer *)layer withBounds:(CGRect)rect {
-//	RELEASE_TO_NIL(shadowLayer);
-//    shadowLayer = [layer retain];
-//     layer.masksToBounds = NO;
-//     layer.shadowRadius = shadowWidth;
-//     layer.shadowOpacity = 0.9;
-//     layer.shadowColor = [[UIColor blackColor] CGColor];
-//     layer.shadowOffset = CGSizeZero;
-//     layer.shadowPath = [[UIBezierPath bezierPathWithRect:rect] CGPath];
-//}
 
 
+-(BOOL)rightViewOpened:(SWRevealViewController *)revealController
+{
+    return (revealController.frontViewPosition == FrontViewPositionLeftSide ||
+            revealController.frontViewPosition == FrontViewPositionLeftSideMost ||
+            revealController.frontViewPosition == FrontViewPositionLeftSideMostRemoved);
+}
+
+- (void)revealController:(SWRevealViewController *)revealController willMoveToPosition:(FrontViewPosition)position withDuration:(NSTimeInterval)duration
+{
+    if (position == FrontViewPositionLeft) {
+        
+        if ([self.proxy _hasListeners:@"closemenu"])
+        {
+            NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT([self rightViewOpened:revealController]?1:0), @"side",
+                                 NUMFLOAT(duration), @"duration",
+                                 NUMBOOL(duration > 0), @"animated", nil];
+            [self.proxy fireEvent:@"closemenu" withObject:evt];
+        }
+    }
+    else {
+        if ([self.proxy _hasListeners:@"openmenu"])
+        {
+            NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT([self rightViewOpened:revealController]?1:0), @"side",
+                                 NUMFLOAT(duration), @"duration",
+                                 NUMBOOL(duration > 0), @"animated", nil];
+            [self.proxy fireEvent:@"openmenu" withObject:evt];
+        }
+    }
+}
+
+-(void)revealController:(SWRevealViewController *)revealController didMoveToPosition:(FrontViewPosition)position
+{
+    if (revealController.frontViewPosition == FrontViewPositionLeftSide ||
+        revealController.frontViewPosition == FrontViewPositionLeftSideMost ||
+        revealController.frontViewPosition == FrontViewPositionRight ||
+        revealController.frontViewPosition == FrontViewPositionRightMost) {
+        _lockingView.frame = revealController.frontViewController.view.bounds;
+        [revealController.frontViewController.view addSubview:_lockingView];
+    }
+    else
+        [_lockingView removeFromSuperview];
+}
+
+- (void)revealController:(SWRevealViewController *)revealController animateToPosition:(FrontViewPosition)position
+{
+    if (_leftViewFadingView != nil) {
+        _leftViewFadingView.alpha = (position == FrontViewPositionRight ||
+                                      position == FrontViewPositionRightMost ||
+                                      position == FrontViewPositionRightMostRemoved)?0.0f:_fadeDegree;
+    }
+    if (_rightViewFadingView != nil) {
+        _rightViewFadingView.alpha = (position == FrontViewPositionLeftSide ||
+                                     position == FrontViewPositionLeftSideMost ||
+                                     position == FrontViewPositionLeftSideMostRemoved)?0.0f:_fadeDegree;
+    }
+    
+}
+
+- (void)revealController:(SWRevealViewController *)revealController frontViewPosition:(CGFloat)position
+{
+    
+}
+
+- (void)revealControllerPanGestureBegan:(SWRevealViewController *)revealController
+{
+    if ([self.proxy _hasListeners:@"scrollstart"])
+    {
+        NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(0), @"offset", nil];
+        [self.proxy fireEvent:@"scrollstart" withObject:evt];
+    }
+}
+- (void)revealControllerPanGestureChanged:(SWRevealViewController *)revealController withOffset:(CGFloat) xPosition
+{
+    if (_fadeDegree > 0.0f) {
+        if (xPosition > 0) {
+            CGFloat leftMenuWidth = revealController.rearViewRevealWidth;
+            if (leftMenuWidth < 0) {
+                leftMenuWidth = revealController.view.bounds.size.width + leftMenuWidth;
+            }
+            CGFloat percentage = MIN(xPosition / leftMenuWidth, 1.0f);
+            if (_leftViewFadingView.superview == nil) {
+                _leftViewFadingView.frame = revealController.rearViewController.view.bounds;
+                [revealController.rearViewController.view addSubview:_leftViewFadingView];
+            }
+            _leftViewFadingView.alpha = (1 - percentage)*_fadeDegree;
+        }
+    }
+    if ([self.proxy _hasListeners:@"scroll"])
+    {
+        NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(xPosition), @"offset", nil];
+        [self.proxy fireEvent:@"scroll" withObject:evt];
+    }
+}
+- (void)revealControllerPanGestureEnded:(SWRevealViewController *)revealController withOffset:(CGFloat) xPosition
+{
+    if ([self.proxy _hasListeners:@"scrollend"])
+    {
+        NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(xPosition), @"offset", nil];
+        [self.proxy fireEvent:@"scrollend" withObject:evt];
+    }
+}
 
 @end

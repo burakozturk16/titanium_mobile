@@ -28,7 +28,7 @@
 	[self reposition];
 }
 
--(ECSlidingViewController *)_controller {
+-(SWRevealViewController *)_controller {
 	return [(TiUISlideMenu*)[self view] controller];
 }
 
@@ -72,61 +72,106 @@
 	[super _configure];
 }
 
-// Prevents dumb visual glitches - see 4619
-//-(void)ignoringRotationToOrientation:(UIInterfaceOrientation)orientation
-//{
-//    if (![[[TiApp app] controller] isTopWindow:self]) {
-//        [[self _controller] arrangeViewsAfterRotation];
-//    }
-//}
+#pragma mark - TiWindowProtocol
+-(void)viewWillAppear:(BOOL)animated
+{
+    if ([self viewAttached]) {
+        [[self _controller] viewWillAppear:animated];
+    }
+    [super viewWillAppear:animated];
+}
+-(void)viewWillDisappear:(BOOL)animated
+{
+    if ([self viewAttached]) {
+        [[self _controller] viewWillDisappear:animated];
+    }
+    [super viewWillDisappear:animated];
+}
 
+-(void)viewDidAppear:(BOOL)animated
+{
+    if ([self viewAttached]) {
+        [[self _controller] viewDidAppear:animated];
+    }
+    [super viewDidAppear:animated];
+}
+-(void)viewDidDisappear:(BOOL)animated
+{
+    if ([self viewAttached]) {
+        [[self _controller] viewDidDisappear:animated];
+    }
+    [super viewDidDisappear:animated];
+    
+}
+
+-(BOOL) hidesStatusBar
+{
+    UIViewController* topVC = [[self _controller] frontViewController];
+    if ([topVC isKindOfClass:[TiViewController class]]) {
+        TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            return [(id<TiWindowProtocol>)theProxy hidesStatusBar];
+        }
+    }
+    return [super hidesStatusBar];
+}
+
+-(void)gainFocus
+{
+    UIViewController* topVC = [[self _controller] frontViewController];
+    if ([topVC isKindOfClass:[TiViewController class]]) {
+        TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            [(id<TiWindowProtocol>)theProxy gainFocus];
+        }
+    }
+    [super gainFocus];
+}
+
+-(void)resignFocus
+{
+    UIViewController* topVC = [[self _controller] frontViewController];
+    if ([topVC isKindOfClass:[TiViewController class]]) {
+        TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            [(id<TiWindowProtocol>)theProxy resignFocus];
+        }
+    }
+    [super resignFocus];
+}
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-    [[self _controller] willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    if ([self viewAttached]) {
+        [[self _controller] willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    }
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
-
-- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-    [[self _controller] willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    if ([self viewAttached]) {
+        [[self _controller] willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    }
+    [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
-
-- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
-    [[self _controller] didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    if ([self viewAttached]) {
+        [[self _controller] didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    }
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }
-
-- (void)viewWillAppear:(BOOL)animated
-{
-    [[self _controller] viewWillAppear:animated];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [[self _controller] viewDidAppear:animated];
-}
-
-- (void)viewWillDisappear:(BOOL)animated
-{
-    [[self _controller] viewWillDisappear:animated];
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-    [[self _controller] viewDidDisappear:animated];
-}
-
 
 //API
 
 -(id)getRealLeftViewWidth:(id)args
 {
-    return NUMFLOAT([[self _controller] getViewWidth:ECLeft]);
+    return NUMFLOAT([self _controller].rearViewRevealWidth);
 }
 
 -(id)getRealRightViewWidth:(id)args
 {
-    return NUMFLOAT([[self _controller] getViewWidth:ECRight]);
+    return NUMFLOAT([self _controller].rightViewRevealWidth);
 }
 
 -(void)toggleLeftView:(id)args
@@ -137,15 +182,7 @@
 	if (args != nil)
 		animated = [args boolValue];
         
-    if ([self _controller].underLeftShowing)
-    {
-        [[self _controller] resetTopView:animated];
-    }
-    else
-    {
-        [[self _controller] anchorTopViewTo:ECRight animated:animated];
-    }
-}
+    [[self _controller] revealToggleAnimated:animated];}
 -(void)toggleRightView:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
@@ -154,16 +191,8 @@
 	if (args != nil)
 		animated = [args boolValue];
     
-    if ([self _controller].underRightShowing)
-    {
-//        [self willHideSide:1 animated:animated];
-        [[self _controller] resetTopView:animated];
-    }
-    else
-    {
-//        [self willShowSide:1 animated:animated];
-        [[self _controller] anchorTopViewTo:ECLeft animated:animated];
-    }
+    [[self _controller] rightRevealToggleAnimated:animated];
+
 }
 
 -(void)openLeftView:(id)args
@@ -174,7 +203,7 @@
 	if (args != nil)
 		animated = [args boolValue];
 //    [self willShowSide:0 animated:animated];
-  [[self _controller] anchorTopViewTo:ECRight animated:animated];
+  [[self _controller] setFrontViewPosition:FrontViewPositionRight animated:animated];
 }
 
 -(void)openRightView:(id)args
@@ -185,7 +214,7 @@
 	if (args != nil)
 		animated = [args boolValue];
 //    [self willShowSide:1 animated:animated];
-    [[self _controller] anchorTopViewTo:ECLeft animated:animated];
+    [[self _controller] setFrontViewPosition:FrontViewPositionLeftSide animated:animated];
 }
 
 -(void)closeLeftView:(id)args
@@ -196,7 +225,7 @@
 	if (args != nil)
 		animated = [args boolValue];
 //    [self willHideSide:0 animated:animated];
-    [[self _controller] resetTopView:animated];
+    [[self _controller] setFrontViewPosition:FrontViewPositionLeft animated:animated];
 }
 
 -(void)closeRightView:(id)args
@@ -207,80 +236,7 @@
 	if (args != nil)
 		animated = [args boolValue];
 //    [self willHideSide:1 animated:animated];
-    [[self _controller] resetTopView:animated];
-}
-
-
-//- (void)willShowSide:(int)side animated:(BOOL)animated
-//{
-//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(side), @"side",
-//                         NUMFLOAT([self _controller].animationDuration), @"duration",
-//                         NUMBOOL(animated), @"animated", nil];
-//    if ([self _hasListeners:@"openmenu"])
-//    {
-//        [self fireEvent:@"openmenu" withObject:evt propagate:YES];
-//    }
-//}
-//
-//- (void)willHideSide:(int)side animated:(BOOL)animated
-//{
-//    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(side), @"side",
-//                         NUMFLOAT([self _controller].animationDuration), @"duration",
-//                         NUMBOOL(animated), @"animated", nil];
-//    if ([self _hasListeners:@"closemenu"])
-//    {
-//        [self fireEvent:@"closemenu" withObject:evt propagate:YES];
-//    }
-//}
-
-//delegate
-- (void)panStarted:(CGFloat)offset;
-{
-  NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
-  if ([self _hasListeners:@"scrollstart"])
-  {
-    [self fireEvent:@"scrollstart" withObject:evt];
-  }
-}
-
-- (void)panEnded:(CGFloat)offset;
-{
-  NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
-  if ([self _hasListeners:@"scrollend"])
-  {
-    [self fireEvent:@"scrollend" withObject:evt];
-  }
-}
-
-- (void)panChanged:(CGFloat)offset;
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(offset), @"offset", nil];
-    if ([self _hasListeners:@"scroll"])
-    {
-        [self fireEvent:@"scroll" withObject:evt];
-    }
-}
-
-- (void)willAnchorTopTo:(ECSide)side animated:(BOOL)animated
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1-side), @"side",
-                         NUMFLOAT([self _controller].animationDuration), @"duration",
-                         NUMBOOL(animated), @"animated", nil];
-    if ([self _hasListeners:@"openmenu"])
-    {
-        [self fireEvent:@"openmenu" withObject:evt];
-    }
-}
-
-- (void)willResetTopView:(BOOL)animated fromSide:(ECSide)side
-{
-    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(1-side), @"side",
-                         NUMFLOAT([self _controller].animationDuration), @"duration",
-                         NUMBOOL(animated), @"animated", nil];
-    if ([self _hasListeners:@"closemenu"])
-    {
-        [self fireEvent:@"closemenu" withObject:evt];
-    }
+    [[self _controller] setFrontViewPosition:FrontViewPositionLeft animated:animated];
 }
 
 @end

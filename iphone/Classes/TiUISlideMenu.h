@@ -6,30 +6,19 @@
  */
 #import "TiBase.h"
 #import "TiUIView.h"
-#import "ECSlidingViewController.h"
+//#import "ECSlidingViewController.h"
+#import "SWRevealViewController.h"
 
 /** @constant PanningMode */
 typedef enum {
     PanningModeNone,
-    PanningModeFullscreen,
+    PanningModeCenterView,
     PanningModeNavBar,
-    PanningModeNonScrollView,
     PanningModeBorders
 } PanningMode;
 
-@interface TiUISlideMenu : TiUIView{
-
-@private
-	ECSlidingViewController *controller;
-    CALayer* shadowLayer;
-    CGFloat shadowWidth;
-    PanningMode panningMode;
-    PanningMode _lastUpdatePanningMode;
-    
-    TiViewProxy* leftView;
-    TiViewProxy* rightView;
-    TiViewProxy* centerView;
+@interface TiUISlideMenu : TiUIView<SWRevealViewControllerDelegate>{
 }
--(ECSlidingViewController*)controller;
+-(SWRevealViewController*)controller;
 
 @end
