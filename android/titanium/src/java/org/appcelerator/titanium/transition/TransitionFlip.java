@@ -29,7 +29,7 @@ public class TransitionFlip extends Transition {
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			rotateProp = "x";
 		}
-		if (!TransitionHelper.isPushSubType(subType)) {
+		if (subType == SubTypes.kLeftToRight || subType == SubTypes.kBottomToTop) {
 			destAngle = -destAngle;
 		}
 		
