@@ -25,7 +25,7 @@
 @synthesize zIndex;
 @synthesize duration, color, backgroundColor, opacity, opaque, view;
 @synthesize visible, curve, repeat, autoreverse, delay, transition;
-@synthesize animatedView, callback, isReverse, reverseAnimation;
+@synthesize animatedView, callback, isReverse, reverseAnimation, resetState;
 
 static NSArray *layoutProps;
 
@@ -537,7 +537,10 @@ if (value != nil)\
 	self.animatedView = theview;
     
     if (!transitionAnimation) {
-        UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction | UIViewAnimationOptionBeginFromCurrentState); // Backwards compatible
+        UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction); // Backwards compatible
+        if (!resetState) {
+            options |= UIViewAnimationOptionBeginFromCurrentState;
+        }
 		[view_ animationStarted];
         NSTimeInterval animationDuration = [self animationDuration];
         

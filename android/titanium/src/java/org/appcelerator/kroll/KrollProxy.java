@@ -766,7 +766,25 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		bubbleParent = TiConvert.toBoolean(value);
 	}
-
+	
+	/**
+	 * Fires an event asynchronously via KrollRuntime thread, which can be intercepted on JS side.
+	 * @param event the event to be fired.
+	 * @param data  the data to be sent.
+	 * @return whether this proxy has an eventListener for this event.
+	 * @module.api
+	 */
+	public boolean fireEvent(String event)
+	{
+		if (hierarchyHasListener(event)) {
+			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT);
+			message.getData().putString(PROPERTY_NAME, event);
+			message.sendToTarget();
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Fires an event asynchronously via KrollRuntime thread, which can be intercepted on JS side.
 	 * @param event the event to be fired.
@@ -777,6 +795,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	public boolean fireEvent(String event, Object data)
 	{
 		if (hierarchyHasListener(event)) {
+			if (data == null) data = new KrollDict();
 			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT, data);
 			message.getData().putString(PROPERTY_NAME, event);
 			message.sendToTarget();
@@ -814,22 +833,45 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireSyncEvent(String event, Object data)
 	{
-		if (hierarchyHasListener(event)) {
-			if (KrollRuntime.getInstance().isRuntimeThread()) {
-				return doFireEvent(event, data);
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			return doFireEvent(event, data);
 
-			} else {
-				Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_SYNC_EVENT);
-				message.getData().putString(PROPERTY_NAME, event);
+		} else {
+			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_SYNC_EVENT);
+			message.getData().putString(PROPERTY_NAME, event);
 
-				return (Boolean) TiMessenger.sendBlockingRuntimeMessage(message, data);
-			}
+			return (Boolean) TiMessenger.sendBlockingRuntimeMessage(message, data);
 		}
-		return false;
+	}
+
+	/**
+	 * Fires an event synchronously via KrollRuntime thread, which can be intercepted on JS side.
+	 * @param event the event to be fired.
+	 * @param data  the data to be sent.
+	 * @param maxTimeout the maximum time to wait for the result to return, in the unit of milliseconds.
+	 * @return whether this proxy has an eventListener for this event.
+	 * @module.api
+	 */
+	public boolean fireSyncEvent(String event, Object data, long maxTimeout)
+	{
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			return doFireEvent(event, data);
+
+		} else {
+			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_SYNC_EVENT);
+			message.getData().putString(PROPERTY_NAME, event);
+
+			Object result = TiMessenger.sendBlockingRuntimeMessage(message, data, maxTimeout);
+			return TiConvert.toBoolean(result, false);
+		}
 	}
 
 	public boolean doFireEvent(String event, Object data)
 	{
+		if (!hierarchyHasListener(event)) {
+			return false;
+		}
+
 		boolean bubbles = false;
 		boolean reportSuccess = false;
 		int code = 0;

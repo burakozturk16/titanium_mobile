@@ -121,6 +121,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_DISPOSE_HANDLE = "disposehandle";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_DOUBLE_TAP = "doubletap";
 
 	/**
@@ -466,6 +471,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_SWIPE = "swipe";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_TASK_REMOVED = "taskremoved";
 
 	/**
 	 * @module.api
@@ -878,6 +888,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CACHE_SIZE = "cacheSize";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_CALENDAR_VIEW_SHOWN = "calendarViewShown";
 
 	/**
 	 * @module.api

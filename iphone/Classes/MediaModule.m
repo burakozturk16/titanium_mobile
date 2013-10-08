@@ -225,7 +225,7 @@ typedef void (^PermissionBlock)(BOOL granted)
 	else
 	{
 		RELEASE_TO_NIL(popover);
-		UIView *poView = [[tiApp controller] topTitaniumView];
+		UIView *poView = [[tiApp controller] topWindowProxyView];
 		CGRect poFrame;
 		TiViewProxy* popoverViewProxy = [args objectForKey:@"popoverView"];
 		UIPopoverArrowDirection arrow = [TiUtils intValue:@"arrowDirection" properties:args def:UIPopoverArrowDirectionAny];
@@ -300,7 +300,7 @@ typedef void (^PermissionBlock)(BOOL granted)
 		//GO AHEAD AND RE-PRESENT THE POPOVER NOW 
 		CGRect popOverRect = [popoverView bounds];
 		if (!isPopoverSpecified) {
-			self.popoverView = [[[TiApp app] controller] topTitaniumView];
+			self.popoverView = [[[TiApp app] controller] topWindowProxyView];
 			popOverRect.size.height = 50;
 		}
         if ([popoverView window] == nil) {
@@ -633,6 +633,9 @@ MAKE_SYSTEM_UINT(AUDIO_SESSION_MODE_SOLO_AMBIENT, kAudioSessionCategory_SoloAmbi
 MAKE_SYSTEM_UINT(AUDIO_SESSION_MODE_PLAYBACK, kAudioSessionCategory_MediaPlayback);
 MAKE_SYSTEM_UINT(AUDIO_SESSION_MODE_RECORD, kAudioSessionCategory_RecordAudio);
 MAKE_SYSTEM_UINT(AUDIO_SESSION_MODE_PLAY_AND_RECORD, kAudioSessionCategory_PlayAndRecord);
+
+MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_NONE, kAudioSessionOverrideAudioRoute_None);
+MAKE_SYSTEM_UINT(AUDIO_SESSION_OVERRIDE_ROUTE_SPEAKER, kAudioSessionOverrideAudioRoute_Speaker);
 
 MAKE_SYSTEM_PROP(MUSIC_MEDIA_TYPE_MUSIC, MPMediaTypeMusic);
 MAKE_SYSTEM_PROP(MUSIC_MEDIA_TYPE_PODCAST, MPMediaTypePodcast);
@@ -1337,6 +1340,11 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
 -(void)setAudioSessionMode:(NSNumber*)mode
 {
     [[TiMediaAudioSession sharedSession] setSessionMode:[mode unsignedIntValue]];
+} 
+
+-(void)setOverrideAudioRoute:(NSNumber*)mode
+{
+    [[TiMediaAudioSession sharedSession] setRouteOverride:[mode unsignedIntValue]];
 } 
 
 -(NSNumber*)audioSessionMode

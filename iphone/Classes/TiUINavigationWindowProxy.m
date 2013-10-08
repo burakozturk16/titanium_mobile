@@ -103,7 +103,7 @@
     return navController;
 }
 
--(void)push:(NSArray*)args
+-(void)openWindow:(NSArray*)args
 {
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
@@ -132,7 +132,7 @@
 	}, YES);
 }
 
--(void)pop:(NSArray*)args
+-(void)closeWindow:(NSArray*)args
 {
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
@@ -478,10 +478,10 @@
 }
 
 
--(void) windowWillClose
+-(void) windowDidClose
 {
     [self cleanNavStack];
-    [super windowWillClose];
+    [super windowDidClose];
 }
 
 -(void)willChangeSize

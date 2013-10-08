@@ -24,6 +24,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -81,9 +82,11 @@ public class TiListView extends TiUIView {
 	public static List<String> MUST_SET_PROPERTIES = Arrays.asList(TiC.PROPERTY_VALUE);
 	
 	public static final String MIN_ROW_HEIGHT = "40dp";
-	public static final int HEADER_FOOTER_ITEM_TYPE = 0;
-	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 1;
-	
+	public static final int HEADER_FOOTER_WRAP_ID = 12345;
+	public static final int HEADER_FOOTER_VIEW_TYPE = 0;
+	public static final int HEADER_FOOTER_TITLE_TYPE = 1;
+	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 2;
+
 	class ListViewWrapper extends TiCompositeLayout {
 
 		public ListViewWrapper(Context context) {
@@ -170,10 +173,10 @@ public class TiListView extends TiUIView {
 			return position;
 		}
 		
-		//One type for header/footer, One type for built-in template, and one type per custom template.
+		//One type for header/footer title, one for header/footer view, one for built-in template, and one type per custom template.
 		@Override
 		public int getViewTypeCount() {
-			return 2 + templatesByBinding.size();
+			return 3 + templatesByBinding.size();
 			
 		}
 		@Override
@@ -181,8 +184,11 @@ public class TiListView extends TiUIView {
 			Pair<ListSectionProxy, Pair<Integer, Integer>> info = getSectionInfoByEntryIndex(position);
 			ListSectionProxy section = info.first;
 			int sectionItemIndex = info.second.second;
-			if (section.isHeaderView(sectionItemIndex) || section.isFooterView(sectionItemIndex))
-				return HEADER_FOOTER_ITEM_TYPE;
+			if (section.isHeaderTitle(sectionItemIndex) || section.isFooterTitle(sectionItemIndex))
+				return HEADER_FOOTER_TITLE_TYPE;
+			if (section.isHeaderView(sectionItemIndex) || section.isFooterView(sectionItemIndex)) {
+				return HEADER_FOOTER_VIEW_TYPE;
+			}
 			return section.getTemplateByIndex(sectionItemIndex).getType();			
 		}
 
@@ -201,8 +207,11 @@ public class TiListView extends TiUIView {
 
 			View content = convertView;
 
-			//Handling section header/footer titles
+			//Handles header/footer views and titles.
 			if (section.isHeaderView(sectionItemIndex) || section.isFooterView(sectionItemIndex)) {
+				return section.getHeaderOrFooterView(sectionItemIndex);
+			} else if (section.isHeaderTitle(sectionItemIndex) || section.isFooterTitle(sectionItemIndex)) {
+				//No content to reuse, so we create a new view
 				if (content == null) {
 					content = inflater.inflate(headerFooterId, null);
 				}
@@ -455,6 +464,11 @@ public class TiListView extends TiUIView {
 			}
 		} 
 		
+		if (d.containsKey(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			String color = TiConvert.toString(d, TiC.PROPERTY_SEPARATOR_COLOR);
+			setSeparatorColor(color);
+		}
+
 		if (d.containsKey(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR)) {
 			listView.setVerticalScrollBarEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR, true));
 		}
@@ -494,24 +508,23 @@ public class TiListView extends TiUIView {
 				listView.setOverScrollMode(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
 			}
 		}
-
-		if (proxy.hasProperty(TiC.PROPERTY_HEADER_VIEW)) {
-			TiViewProxy view = (TiViewProxy) proxy.getProperty(TiC.PROPERTY_HEADER_VIEW);
-			headerView = layoutHeaderOrFooter(view).getOuterView();
+		if (d.containsKey(TiC.PROPERTY_HEADER_VIEW)) {
+			Object viewObj = d.get(TiC.PROPERTY_HEADER_VIEW);
+			setHeaderOrFooterView(viewObj, true);
 		} else if (d.containsKey(TiC.PROPERTY_HEADER_TITLE)) {
 			headerView = inflater.inflate(headerFooterId, null);
 			setHeaderTitle(TiConvert.toString(d, TiC.PROPERTY_HEADER_TITLE));
 		}
-
-		if (proxy.hasProperty(TiC.PROPERTY_FOOTER_VIEW)) {
-			TiViewProxy view = (TiViewProxy) proxy.getProperty(TiC.PROPERTY_FOOTER_VIEW);
-			footerView = layoutHeaderOrFooter(view).getOuterView();
+		
+		if (d.containsKey(TiC.PROPERTY_FOOTER_VIEW)) {
+			Object viewObj = d.get(TiC.PROPERTY_FOOTER_VIEW);
+			setHeaderOrFooterView(viewObj, false);	
 		} else if (d.containsKey(TiC.PROPERTY_FOOTER_TITLE)) {
 			footerView = inflater.inflate(headerFooterId, null);
 			setFooterTitle(TiConvert.toString(d, TiC.PROPERTY_FOOTER_TITLE));
 		}
 
-		//Check to see if headerTitle and footerTitle are specified. If not, we hide the views
+		//Check to see if headerView and footerView are specified. If not, we hide the views
 		if (headerView == null) {
 			headerView = inflater.inflate(headerFooterId, null);
 			headerView.findViewById(titleId).setVisibility(View.GONE);
@@ -532,6 +545,20 @@ public class TiListView extends TiUIView {
 		
 	}
 	
+	private void setHeaderOrFooterView (Object viewObj, boolean isHeader) {
+		if (viewObj instanceof TiViewProxy) {
+			TiViewProxy viewProxy = (TiViewProxy)viewObj;
+			View view = layoutHeaderOrFooterView(viewProxy);
+			if (view != null) {
+				if (isHeader) {
+					headerView = view;
+				} else {
+					footerView = view;
+				}
+			}
+		}
+	}
+
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
 		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			setSeparatorColor(TiConvert.toString(newValue));
@@ -559,7 +586,7 @@ public class TiListView extends TiUIView {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
-
+	
 	private void refreshItems() {
 		for (int i = 0; i < sections.size(); i++) {
 			ListSectionProxy section = sections.get(i);
@@ -577,6 +604,36 @@ public class TiListView extends TiUIView {
 			templatesByBinding.put(key, template);
 			//set parent of root item
 			template.setRootParent(proxy);
+		}
+	}
+	
+	public View layoutHeaderOrFooterView (TiViewProxy viewProxy) {
+		TiUIView tiView = viewProxy.peekView();
+		if (tiView != null) {
+			TiViewProxy parentProxy = viewProxy.getParent();
+			//Remove parent view if possible
+			if (parentProxy != null) {
+				TiUIView parentView = parentProxy.peekView();
+				if (parentView != null) {
+					parentView.remove(tiView);
+				}
+			}
+		} else {
+			tiView = viewProxy.forceCreateView();
+		}
+		View outerView = tiView.getOuterView();
+		ViewGroup parentView = (ViewGroup) outerView.getParent();
+		if (parentView != null && parentView.getId() == HEADER_FOOTER_WRAP_ID) {
+			return parentView;
+		} else {
+			//add a wrapper so layout params such as height, width takes in effect.
+			TiCompositeLayout wrapper = new TiCompositeLayout(viewProxy.getActivity(), LayoutArrangement.DEFAULT, null);
+			AbsListView.LayoutParams params = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT,  AbsListView.LayoutParams.WRAP_CONTENT);
+			wrapper.setLayoutParams(params);
+			outerView = tiView.getOuterView();
+			wrapper.addView(outerView, tiView.getLayoutParams());
+			wrapper.setId(HEADER_FOOTER_WRAP_ID);
+			return wrapper;
 		}
 	}
 

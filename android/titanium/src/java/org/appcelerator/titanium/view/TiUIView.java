@@ -458,6 +458,13 @@ public abstract class TiUIView
 		}
 	}
 
+	public void resort()
+	{
+		View v = getNativeView();
+		if (v instanceof TiCompositeLayout) {
+			((TiCompositeLayout) v).resort();
+		}
+	}
 	public boolean iszIndexChanged()
 	{
 		return zIndexChanged;
