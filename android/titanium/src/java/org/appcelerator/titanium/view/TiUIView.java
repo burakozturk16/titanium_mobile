@@ -1055,7 +1055,7 @@ public abstract class TiUIView
 		}
 	}
 	
-	private TiBorderWrapperView getOrCreateBorderView()
+	protected TiBorderWrapperView getOrCreateBorderView()
 	{
 		if (borderView == null) {
 			Activity currentActivity = proxy.getActivity();
