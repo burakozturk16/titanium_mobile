@@ -51,11 +51,6 @@ public class SlidingMenu extends RelativeLayout {
 	 */
 	public static final int TOUCHMODE_NONE = 2;
 
-	/** Constant value for use with setTouchModeAbove(). Denies the SlidingMenu to be opened with a swipe
-	 * gesture
-	 */
-	public static final int TOUCHMODE_NON_VIEWPAGER = 3;
-
 	/** Constant value for use with setMode(). Puts the menu to the left of the content.
 	 */
 	public static final int LEFT = 0;
@@ -754,7 +749,16 @@ public class SlidingMenu extends RelativeLayout {
 	public float getBehindScrollScale() {
 		return mViewBehind.getScrollScale();
 	}
-	
+
+	/**
+	 * Gets the behind scroll scale.
+	 *
+	 * @return The scale of the parallax scroll
+	 */
+	public float getBehindSecondaryScrollScale() {
+		return mViewBehind.getSecondaryScrollScale();
+	}
+
 	/**
 	 * Gets the touch mode margin threshold
 	 * @return the touch mode margin threshold
@@ -781,6 +785,18 @@ public class SlidingMenu extends RelativeLayout {
 		if (f < 0 && f > 1)
 			throw new IllegalStateException("ScrollScale must be between 0 and 1");
 		mViewBehind.setScrollScale(f);
+	}
+
+	/**
+	 * Sets the behind scroll scale.
+	 *
+	 * @param f The scale of the parallax scroll (i.e. 1.0f scrolls 1 pixel for every
+	 * 1 pixel that the above view scrolls and 0.0f scrolls 0 pixels)
+	 */
+	public void setBehindSecondaryScrollScale(float f) {
+		if (f < 0 && f > 1)
+			throw new IllegalStateException("ScrollScale must be between 0 and 1");
+		mViewBehind.setSecondaryScrollScale(f);
 	}
 
 	/**
@@ -821,7 +837,7 @@ public class SlidingMenu extends RelativeLayout {
 	 */
 	public void setTouchModeAbove(int i) {
 		if (i != TOUCHMODE_FULLSCREEN && i != TOUCHMODE_MARGIN
-				&& i != TOUCHMODE_NONE && i != TOUCHMODE_NON_VIEWPAGER) {
+				&& i != TOUCHMODE_NONE) {
 			throw new IllegalStateException("TouchMode must be set to either" +
 					"TOUCHMODE_FULLSCREEN or TOUCHMODE_MARGIN or TOUCHMODE_NONE.");
 		}
@@ -837,7 +853,7 @@ public class SlidingMenu extends RelativeLayout {
 	 */
 	public void setTouchModeBehind(int i) {
 		if (i != TOUCHMODE_FULLSCREEN && i != TOUCHMODE_MARGIN
-				&& i != TOUCHMODE_NONE && i != TOUCHMODE_NON_VIEWPAGER) {
+				&& i != TOUCHMODE_NONE) {
 			throw new IllegalStateException("TouchMode must be set to either" +
 					"TOUCHMODE_FULLSCREEN or TOUCHMODE_MARGIN or TOUCHMODE_NONE.");
 		}
