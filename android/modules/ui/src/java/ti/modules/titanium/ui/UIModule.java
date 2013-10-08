@@ -163,7 +163,6 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int MENU_PANNING_ALL_VIEWS = 1;
 	@Kroll.constant public static final int MENU_PANNING_CENTER_VIEW = 2;
 	@Kroll.constant public static final int MENU_PANNING_BORDERS = 3;
-	@Kroll.constant public static final int MENU_PANNING_NON_SCROLLVIEW = 4;
 	
 	@Kroll.constant public static final int LEFT_VIEW = 0;
 	@Kroll.constant public static final int RIGHT_VIEW = 1;

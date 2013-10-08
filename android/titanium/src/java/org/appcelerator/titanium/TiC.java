@@ -1502,12 +1502,17 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_LEFT_IMAGE = "leftImage";
-	
+
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_LEFT_VIEW = "leftView";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_LEFT_VIEW_DISPLACEMENT = "leftViewDisplacement";
+	
 	/**
 	 * @module.api
 	 */
@@ -1593,11 +1598,6 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MENU_PANNING_MODE = "menuPanningMode";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_MENU_SCROLL_SCALE = "menuScrollScale";
 
 	/**
 	 * @module.api
@@ -1953,6 +1953,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_RIGHT_VIEW = "rightView";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_RIGHT_VIEW_DISPLACEMENT = "rightViewDisplacement";
 
 	/**
 	 * @module.api
