@@ -148,7 +148,7 @@ public class KrollDict
 	public boolean optBoolean(String key, boolean defaultValue) {
 		boolean result = defaultValue;
 
-		if (containsKey(key)) {
+		if (containsKey(key) && get(key) != null) {
 			result = getBoolean(key);
 		}
 		return result;
