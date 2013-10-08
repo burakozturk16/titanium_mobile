@@ -1617,7 +1617,10 @@ function navWindowEx() {
 	//slidingMenu
 	var slidingMenu = Ti.UI.createSlideMenu({
 		backgroundColor:'black',
-		panningMode:Ti.UI.MENU_PANNING_NON_SCROLLVIEW,
+		leftViewWidth:-60,
+		fading:1,
+		leftViewDisplacement:40,
+		// panningMode:Ti.UI.MENU_PANNING_BORDERS,
 		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
 				Ti.UI.PORTRAIT,
 				Ti.UI.LANDSCAPE_RIGHT,

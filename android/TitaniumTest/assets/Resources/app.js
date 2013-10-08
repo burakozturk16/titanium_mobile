@@ -64,21 +64,21 @@ var androidActivitysSettings = {actionBar:{displayHomeAsUp:true,
 function openWin(_win, _withoutActionBar) {
 	if (isAndroid) {
 		if (_withoutActionBar != true) _win.activity = androidActivitysSettings;
-		_win.open();
 	} else {
-		if (!navGroup) {
-			navGroup = Titanium.UI.iPhone.createNavigationGroup({window:_win});
-			var winHolder = Ti.UI.createWindow();
-			winHolder.add(navGroup);
-			winHolder.open();
-		} else navGroup.open(_win);
+		// if (!navGroup) {
+		// 	navGroup = Titanium.UI.iPhone.createNavigationGroup({window:_win});
+		// 	var winHolder = createWin();
+		// 	winHolder.add(navGroup);
+		// 	winHolder.open();
+		// } else navGroup.open(_win);
 	}
+	mainWin.push(_win);
 }
 
 function transformExs() {
 	var win = createWin();
 	var listview = createListView();
-	listview.sections = [{items:[{properties:{title:'Transform'}, callback:transform1Ex},
+	listview.sections = [{items:[{properties:{title:'Transform', backgroundColor:cellColor(1)}, callback:transform1Ex},
 			{properties:{title:'TransformAnimated'}, callback:transform2Ex},
 			{properties:{title:'PopIn'}, callback:transform3Ex},
 			{properties:{title:'SlideIn'}, callback:transform4Ex},
@@ -354,7 +354,7 @@ function layout1Ex() {
 	var view1 = Ti.UI.createView({backgroundColor:'red', width:60, height:80, left:0});
 	var view2 = Ti.UI.createView({backgroundColor:'blue', width:20,
 		borderColor:'red',
-	    borderWidth:2,
+		borderWidth:2,
 	// top:10,
 	height:80, left:10, right:4});
 	var view3 = Ti.UI.createView({backgroundColor:'orange', width:Ti.UI.FILL, height:60, right:4});
@@ -538,7 +538,7 @@ function shape5Ex() {
 		transform:Ti.UI.create2DMatrix().scale(0.0003)});
 	view.add(shape);
 	view.addEventListener('click', function(e) {
-		shape.animate({duration:3000, transform:Ti.UI.create2DMatrix().scale(4)});
+		shape.animate({duration:3000, transform:Ti.UI.create2DMatrix().scale(2)});
 	});
 	win.add(view);
 	openWin(win);
@@ -613,9 +613,10 @@ function shape7Ex() {
 
 function buttonAndLabelEx() {
 	var win = createWin();
-	var button = Ti.UI.createButton({top:20,
+	var button = Ti.UI.createButton({top:0,
 		titlePadding:{left:30, top:30, bottom:30, right:30},
 		bubbleParent:false,
+		backgroundColor:'gray',
 		backgroundSelectedGradient:{type:'linear',
 			colors:['#333', 'transparent'],
 			startPoint:{x:0, y:0},
@@ -641,7 +642,7 @@ function buttonAndLabelEx() {
 			startPoint:{x:0, y:0},
 			endPoint:{x:0, y:"100%"}},
 		text:'This is a sample\n text for a label'});
-	label.add(Ti.UI.createView({backgroundColor:'red', backgroundSelectedColor:'white', left:10, width:15, height:15}));
+	label.add(Ti.UI.createView({touchEnabled:false,backgroundColor:'red', backgroundSelectedColor:'white', left:10, width:15, height:15}));
 	label.add(Ti.UI.createView({backgroundColor:'green', bottom:10, width:15, height:15}));
 	label.add(Ti.UI.createView({backgroundColor:'yellow', top:10, width:15, height:15}));
 	label.add(Ti.UI.createView({backgroundColor:'orange', right:10, width:15, height:15}));
@@ -650,7 +651,7 @@ function buttonAndLabelEx() {
 		label.animate({duration:500, transform:varSwitch(label.transform, t3, t1),});
 	});
 	win.add(label);
-	openWin(win);
+	win.open();
 }
 
 function maskEx() {
@@ -725,64 +726,68 @@ function scrollableEx() {
 				height:50
 			},
 			childTemplates : [{
-				type : 'Ti.UI.View',
+				type : 'Ti.UI.ImageView',
 				bindId : 'leftImageView',
 				properties : {
 					left:0,
-				    width:40,
-				    height:40,
-				    backgroundColor:'blue',
-				    backgroundSelectedColor:'green',
-//				    image:'/images/contactIcon.png',
-				    borderColor:'red',
-				    borderWidth:2
-//				    viewMask:'/images/contactMask.png',
+					width:40,
+					localLoadSync:true,
+					height:40,
+					transform:Ti.UI.create2DMatrix().rotate(90),
+					backgroundColor:'blue',
+					// backgroundSelectedColor:'green',
+					image:'/images/contactIcon.png',
+					// borderColor:'red',
+					// borderWidth:2
+					viewMask:'/images/contactMask.png',
 				}
 			}, {
 				type : 'Ti.UI.Label',
 				bindId : 'label',
 				properties : {
 					multiLineEllipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
-				    top:2,
-				    bottom:2,
-				    left:45,
-				    textPadding:{bottom:4},
-				    right:55,
-				    touchEnabled:false,
-				    height:Ti.UI.FILL,
-				    color :'black',
-				    font: {
-				        fontSize: 16
-				    },
-				    width:Ti.UI.FILL
+					top:2,
+					bottom:2,
+					left:45,
+					textPadding:{bottom:4},
+					right:55,
+					touchEnabled:false,
+					height:Ti.UI.FILL,
+					color :'black',
+					font: {
+						fontSize: 16
+					},
+					width:Ti.UI.FILL
 				}
 			}, {
 				type : 'Ti.UI.ImageView',
 				bindId : 'rightImageView',
 				properties : {
 					right:5,
-				    top:8,
-				    bottom:8,
-				    width:Ti.UI.SIZE,
-				    touchEnabled:false
+					top:8,
+					localLoadSync:true,
+					bottom:8,
+					width:Ti.UI.SIZE,
+					touchEnabled:false
 				}
 			}, {
 				type : 'Ti.UI.ImageView',
 				bindId : 'networkIndicator',
 				properties : {
 					right:40,
-				    top:4,
-				    height:15,
-				    width:Ti.UI.SIZE,
-				    touchEnabled:false
+					top:4,
+					localLoadSync:true,
+					height:15,
+					width:Ti.UI.SIZE,
+					touchEnabled:false
 				}
 			}, {
 				type : 'Ti.UI.View',
 				properties : {
 					backgroundColor: '#999',
-				    left:4, right:4,
-				    bottom:0,
-				    height:1
+					left:4, right:4,
+					bottom:0,
+					height:1
 				}
 			}]
 	};
@@ -800,10 +805,11 @@ function scrollableEx() {
 		if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
 			var item  = _event.section.getItemAt(_event.itemIndex);
 			if (!contactAction) {
-				contactAction = Ti.UI.createView({backgroundColor:'black'});
+				contactAction = Ti.UI.createView({backgroundColor:'green'});
 				blurImage = Ti.UI.createImageView({
+					scaleType:Ti.UI.SCALE_TYPE_ASPECT_FILL,
 					width:Ti.UI.FILL,
-				    height:Ti.UI.FILL
+					height:Ti.UI.FILL
 				});
 				contactAction.add(blurImage);
 				blurImage.addEventListener('click', function(){
@@ -814,62 +820,64 @@ function scrollableEx() {
 			}
 			contactAction.opacity = 0;
 			win.add(contactAction);
-			var image = Ti.Image.getFilteredViewToImage(win, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3});
+			var image = Ti.Media.takeScreenshot();
+			// var image = Ti.Image.getFilteredViewToImage(win, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3});
 			blurImage.image = image;
 			animation.fadeIn(contactAction, 300);
 		}
 	});
 
 	var names = ['Carolyn Humbert',
- 	'David Michaels',
- 	'Rebecca Thorning',
- 	'Joe B',
- 	'Phillip Craig',
- 	'Michelle Werner',
- 	'Philippe Christophe',
- 	'Marcus Crane',
- 	'Esteban Valdez',
- 	'Sarah Mullock'];
+	'David Michaels',
+	'Rebecca Thorning',
+	'Joe B',
+	'Phillip Craig',
+	'Michelle Werner',
+	'Philippe Christophe',
+	'Marcus Crane',
+	'Esteban Valdez',
+	'Sarah Mullock'];
 
- 	function formatTitle (_history) {
- 		return _history.fullName + '<br><small><small><b><font color="#5B5B5B">' + (new Date()).toString() + '</font> <font color="#3FAC53"></font></b></small></small>';
- 	}
- 	function random(min, max) {
- 	    if (max == null) {
- 	       max = min;
- 	       min = 0;
- 	     }
- 	     return min + Math.floor(Math.random() * (max - min + 1));
- 	   };
- 	function update() {
+	function formatTitle (_history) {
+		return _history.fullName + '<br><small><small><b><font color="#5B5B5B">' + (new Date()).toString() + '</font> <font color="#3FAC53"></font></b></small></small>';
+	}
+	function random(min, max) {
+		if (max == null) {
+		   max = min;
+		   min = 0;
+		 }
+		 return min + Math.floor(Math.random() * (max - min + 1));
+	   };
+	function update() {
+		// var outgoingImage = Ti.Utils.imageBlob('/images/outgoing.png');
+		// var incomingImage = Ti.Utils.imageBlob('/images/incoming.png');
+		var dataSet = [];
+		for (var i = 0; i < 300; i++) {
+			var callhistory = {
+				fullName:names[Math.floor(Math.random()*names.length)],
+				date:random(1293886884000, 1376053320000),
+				kb: random(0, 100000),
+				outgoing:!!random(0, 1),
+				wifi:!!random(0, 1)
+			};
+			dataSet.push({
+				contactName : callhistory.fullName,
+				label : {
+					html : formatTitle(callhistory)
+				},
+				rightImageView:{
+					image:(callhistory.outgoing?'/images/outgoing.png':'/images/incoming.png')
+				},
+				networkIndicator:{
+					image:(callhistory.wifi?'/images/wifi.png':'/images/mobile.png')
+				}
+			});
+		}
+		var historySection = Ti.UI.createListSection();
+		historySection.setItems(dataSet);
+		listView.sections = [historySection];
 
- 		var dataSet = [];
- 		for (var i = 0; i < 30; i++) {
- 			var callhistory = {
- 				fullName:names[Math.floor(Math.random()*names.length)],
- 				date:random(1293886884000, 1376053320000),
- 				kb: random(0, 100000),
- 				outgoing:!!random(0, 1),
- 				wifi:!!random(0, 1)
- 			};
- 			dataSet.push({
- 				contactName : callhistory.fullName,
- 				label : {
- 					html : formatTitle(callhistory)
- 				},
- 				rightImageView:{
- 					image:(callhistory.outgoing?'/images/outgoing.png':'/images/incoming.png')
- 				},
- 				networkIndicator:{
- 					image:(callhistory.wifi?'/images/wifi.png':'/images/mobile.png')
- 				}
- 			});
- 		}
- 		var historySection = Ti.UI.createListSection();
- 		historySection.setItems(dataSet);
- 		listView.sections = [historySection];
-
- 	}
+	}
 	win.add(listView);
 	win.addEventListener('open', update);
 	openWin(win);
@@ -1433,54 +1441,64 @@ function svg4Ex() {
 	win.add(listView);
 	openWin(win);
 }
+
+function float2color( pr,pg,pb ) {
+	var color_part_dec = 255 * pr;
+	var r = Number(parseInt( color_part_dec , 10)).toString(16);
+	color_part_dec = 255 * pg;
+	var g = Number(parseInt( color_part_dec , 10)).toString(16);
+	color_part_dec = 255 * pb;
+	var b = Number(parseInt( color_part_dec , 10)).toString(16);
+	return "#" + r + g + b;
+}
+function cellColor(_index) {
+	switch (_index % 4) {
+		case 0: // Green
+		return float2color(0.196, 0.651, 0.573);
+		case 1: // Orange
+		return float2color(1, 0.569, 0.349);
+		case 2: // Red
+		return float2color(0.949, 0.427, 0.427);
+		break;
+		case 3: // Blue
+		return float2color(0.322, 0.639, 0.800);
+		break;
+		default:
+		break;
+	}
+}
+
+
 function navWindowEx() {
-	function float2color( pr,pg,pb ) {
-	    var color_part_dec = 255 * pr;
-	    var r = Number(parseInt( color_part_dec , 10)).toString(16);
-	    color_part_dec = 255 * pg;
-	    var g = Number(parseInt( color_part_dec , 10)).toString(16);
-	    color_part_dec = 255 * pb;
-	    var b = Number(parseInt( color_part_dec , 10)).toString(16);
-	    return "#" + r + g + b;
-	}
-	function cellColor(_index) {
-		switch (_index % 4) {
-        case 0: // Green
-        	return float2color(0.196, 0.651, 0.573);
-        case 1: // Orange
-        	return float2color(1, 0.569, 0.349);
-        case 2: // Red
-        	return float2color(0.949, 0.427, 0.427);
-            break;
-        case 3: // Blue
-        	return float2color(0.322, 0.639, 0.800);
-            break;
-        default:
-            break;
-		}
-	}
+	
 	
 	function createSimulateWindow(_navWin) {
 		var index = _navWin.stackSize;
 		var color = cellColor(index);
-		var newWin = Ti.UI.createWindow({
+		var args = {
+			autoAdjustScrollViewInsets:true,
+			extendEdges:[Ti.UI.EXTEND_EDGE_ALL],
+			translucent:true,
 			title:(_navWin.title + ' / win' + (_navWin.stackSize)),
 			backgroundColor:'black',
-			navBarHidden:(Math.random() < 0.5),
-			activity:{
+			navBarHidden:false
+		};
+		if (isAndroid) {
+			args.activity = {
 				onCreateOptionsMenu:function(e) {
 					var menu = e.menu;
 					 
-				    var closeMenuItem = menu.add({
-				        title : "Close",
-				        showAsAction : Ti.Android.SHOW_AS_ACTION_IF_ROOM
-				    });
-				    closeMenuItem.addEventListener("click", function(e) {
-				    	newWin.close({transitionDuration:300});
-				    });
-			    }
+					var closeMenuItem = menu.add({
+						title : "Close",
+						showAsAction : Ti.Android.SHOW_AS_ACTION_IF_ROOM
+					});
+					closeMenuItem.addEventListener("click", function(e) {
+						newWin.close({transitionDuration:300});
+					});
+				}
 			}
-		});
+		}
+		var newWin = Ti.UI.createWindow(args);
 
 		function openMe(_params) {
 			Ti.API.info('openMe');
@@ -1540,15 +1558,19 @@ function navWindowEx() {
 	});
 	navWin2.window = createSimulateWindow(navWin2);
 
-	var transitionWindow = Ti.UI.createWindow({
+	var args = {
 		backgroundColor:backColor,
-		title:'TransitionWindow',
-		activity:{actionBar:{icon:Ti.Android.R.drawable.ic_menu_preferences,
+		title:'TransitionWindow'
+	};
+	if (isAndroid) {
+		args.activity = {actionBar:{icon:Ti.Android.R.drawable.ic_menu_preferences,
 			backgroundColor:'red',
-		onHomeIconItemSelected:function(e) {
-			slidingMenu.toggleLeftView();
-		}}}
-	});
+			onHomeIconItemSelected:function(e) {
+				slidingMenu.toggleLeftView();
+		}}};
+	}
+
+	var transitionWindow = Ti.UI.createWindow(args);
 	
 	var transitionViewHolder = Ti.UI.createButton({
 		height:40,
@@ -1560,11 +1582,13 @@ function navWindowEx() {
 	var tr1 =Ti.UI.createLabel({
 		text:'Ouch!',
 		color:'#fff',
-		width:'auto',
-		height:'auto'
+		textAlign:'center',
+		backgroundColor:'green',
+		width:Ti.UI.FILL,
+		height:Ti.UI.FILL
 	});
 	tr1.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr1, tr2, {transitionDuration:3000});
+		transitionViewHolder.transitionViews(tr1, tr2, {transitionStyle:Ti.UI.TransitionStyle.FOLD, transitionDuration:3000});
 	});
 	var tr2 =Ti.UI.createButton({
 		title:'Ouch!',
@@ -1592,7 +1616,10 @@ function navWindowEx() {
 	//slidingMenu
 	var slidingMenu = Ti.UI.createSlideMenu({
 		backgroundColor:'black',
-		panningMode:Ti.UI.MENU_PANNING_NON_SCROLLVIEW,
+		leftViewWidth:-60,
+		fading:1,
+		leftViewDisplacement:40,
+		// panningMode:Ti.UI.MENU_PANNING_BORDERS,
 		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
 				Ti.UI.PORTRAIT,
 				Ti.UI.LANDSCAPE_RIGHT,
@@ -1773,8 +1800,8 @@ function slideMenuEx() {
 					Ti.API.info('imageheight ' + result.image.height);
 					Ti.API.info('rect.width ' + rect.width);
 					if (rect.width != 0)
-						glassView.backgroundImage = result.image.imageAsCropped(glassView.rect, {scale:0.3});
-					imageView.animate({opacity:1, duration:500});	
+						glassView.backgroundImage = result.image.imageAsCropped(rect, {scale:0.3});
+					imageView.animate({opacity:1, duration:500});
 					}
 			});
 			
@@ -1811,7 +1838,7 @@ function slideMenuEx() {
 
 	var slidingMenu = Ti.UI.createSlideMenu({backgroundColor:backColor,
 		navBarHidden:true,
-		panningMode:Ti.UI.MENU_PANNING_NON_SCROLLVIEW,
+		// panningMode:Ti.UI.MENU_PANNING_NON_SCROLLVIEW,
 		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
 				Ti.UI.PORTRAIT,
 				Ti.UI.LANDSCAPE_RIGHT,
@@ -1833,16 +1860,13 @@ function slideMenuEx() {
 	slidingMenu.open();
 }
 
-var mainWin = Ti.UI.createWindow({backgroundColor:backColor,
-	exitOnClose:true,
-	orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
-			Ti.UI.PORTRAIT,
-			Ti.UI.LANDSCAPE_RIGHT,
-			Ti.UI.LANDSCAPE_LEFT]});
+
+var firstWindow = createWin();
 var listview = createListView();
-listview.sections = [{items:[{properties:{title:'Transform'}, callback:transformExs},
-                     		{properties:{title:'SlideMenu'}, callback:slideMenuEx},
-                    		{properties:{title:'NavigationWindow'}, callback:navWindowEx},
+var color = cellColor(0);
+listview.sections = [{items:[{properties:{title:'Transform', backgroundColor:color}, callback:transformExs},
+							{properties:{title:'SlideMenu'}, callback:slideMenuEx},
+							{properties:{title:'NavigationWindow'}, callback:navWindowEx},
 		{properties:{title:'Layout'}, callback:layoutExs},
 		{properties:{title:'listviewEx'}, callback:scrollableEx},
 		{properties:{title:'Shapes'}, callback:shapeExs},
@@ -1855,5 +1879,13 @@ listview.sections = [{items:[{properties:{title:'Transform'}, callback:transform
 		{properties:{title:'SVG'}, callback:svgExs},
 		{properties:{title:'ListView'}, callback:listViewEx},
 		{properties:{title:'ListView2'}, callback:listView2Ex}]}];
-mainWin.add(listview);
-openWin(mainWin, true);
+firstWindow.add(listview);
+var mainWin = Ti.UI.createNavigationWindow({backgroundColor:backColor,
+	exitOnClose:true,
+	orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
+			Ti.UI.PORTRAIT,
+			Ti.UI.LANDSCAPE_RIGHT,
+			Ti.UI.LANDSCAPE_LEFT],
+	window:firstWindow});
+
+mainWin.open();
