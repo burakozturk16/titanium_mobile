@@ -166,12 +166,12 @@ public class TiAnimator
 			// onAnimationEnd listener can be called even before the
 			// animation is really complete.
 			if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-				this.animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
+				this.animationProxy.fireEvent(TiC.EVENT_COMPLETE);
 			} else {
 				Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
 					public boolean queueIdle()
 					{
-						animationProxy.fireEvent(TiC.EVENT_COMPLETE, null);
+						animationProxy.fireEvent(TiC.EVENT_COMPLETE);
 						return false;
 					}
 				});

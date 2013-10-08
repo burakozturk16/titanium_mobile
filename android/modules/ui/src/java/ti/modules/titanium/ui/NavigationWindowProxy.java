@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -272,8 +273,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
 				transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
 			}
-			
-			
+						
 			final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 			
 			if (viewToRemoveFrom != null) {
@@ -296,16 +296,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 						public void onAnimationEnd(Animator arg0) {	
 							poping = false;
 							viewToRemoveFrom.removeView(viewToRemove);
-							toRemove.closeFromActivity(false);
 							toRemove.setActivity(null);
+							toRemove.closeFromActivity(true);
 						}
 
 						@Override
 						public void onAnimationCancel(Animator arg0) {		
 							poping = false;
 							viewToRemoveFrom.removeView(viewToRemove);
-							toRemove.closeFromActivity(false);
+					    	removeWindow(toRemove);
 							toRemove.setActivity(null);
+							toRemove.closeFromActivity(true);
 						}
 					});
 					set.start();
@@ -313,13 +314,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				else {
 					poping = false;
 					viewToRemoveFrom.removeView(viewToRemove);
-					toRemove.closeFromActivity(false);
+			    	removeWindow(toRemove);
 					toRemove.setActivity(null);
+					toRemove.closeFromActivity(true);
 				}
 				viewToFocus.setVisibility(View.VISIBLE);
 			}
 			
-	    	removeWindow(toRemove);
 	    	
 			activity.setWindowProxy(winToFocus);
 	    	updateHomeButton(winToFocus);
@@ -710,7 +711,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	
 	@Kroll.method
-	public void push(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
+	public void openWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
 		pushing = true;
@@ -729,7 +730,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	
 	@Kroll.method
-	public void pop(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
+	public void closeWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
 		poping = true;
