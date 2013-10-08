@@ -743,7 +743,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 	@Override
 	public boolean interceptOnBackPressed() {
-		if (windows.size() > 0) {
+		if (windows.size() > 1) {
 			TiWindowProxy topWindow = windows.get(windows.size() - 1);
 
 			// Prevent default Android behavior for "back" press
@@ -752,10 +752,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
 				return true;
 			}
+			if (!pushing && !poping)
+				return popCurrentWindow(null);
 		}
-		if (!pushing && !poping)
-			return popCurrentWindow(null);
-		else return true;
+		return false;
 	}
 
 	@Override
