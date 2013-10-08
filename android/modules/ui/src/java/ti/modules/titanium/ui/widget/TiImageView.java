@@ -12,14 +12,11 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.MaskableView;
-import org.appcelerator.titanium.view.TiBorderWrapperView;
-import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Matrix;
@@ -31,7 +28,6 @@ import android.graphics.drawable.TransitionDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.support.v4.view.ViewCompat;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -148,7 +144,6 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				super.setImageDrawable(svg);
 			}
 		};
-		imageView.setBackgroundColor(Color.GREEN);
 		addView(imageView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		setEnableScale(true);
 
