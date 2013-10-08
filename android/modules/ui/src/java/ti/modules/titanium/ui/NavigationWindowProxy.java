@@ -782,15 +782,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		return false;
 	}
 
-	@Override
 	public void onStart(Activity activity) {
 	}
 
-	@Override
 	public void onResume(Activity activity) {
 	}
 
-	@Override
 	public void onPause(Activity activity) {		
 	}
 	
@@ -808,12 +805,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		windows.clear();
 	}
 
-	@Override
 	public void onStop(Activity activity) {
-		clearWindowsStack();
 	}
 
-	@Override
 	public void onDestroy(Activity activity) {		
+		clearWindowsStack();
 	}
 }
