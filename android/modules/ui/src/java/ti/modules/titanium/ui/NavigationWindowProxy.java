@@ -459,27 +459,22 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public void onWindowActivityCreated()
 	{
-		// Fire the open event after setContentView() because getActionBar() need to be called
-		// after setContentView(). (TIMOB-14914)
-		if (opened ||opening) {
-			if (windows.size() > 0) {
-				((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
-			}
+		if (opened == true) { //this is not the first time we come here!
+			((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
 			updateHomeButton(getCurrentWindow());
 			return;
 		}
-		updateHomeButton(getCurrentWindow());
-		
-		opened = true;
-		opening = false;
-
-		handlePostOpen();
-		
-		getParentViewForChild().setId(viewId++);
-		handlePush((WindowProxy)getProperty(TiC.PROPERTY_WINDOW), true, null);
-		
-		
-
+		else {
+			opened = true; //because handlePush needs this
+			opening = false;
+			updateHomeButton(getCurrentWindow());
+			getParentViewForChild().setId(viewId++);
+			WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
+			if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
+				proxy.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
+			}
+			handlePush(proxy, true, null);
+		}
 		super.onWindowActivityCreated();
 	}
 	
