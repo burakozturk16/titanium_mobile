@@ -76,7 +76,7 @@ public class TiDefaultListViewTemplate extends TiListViewTemplate {
 		while (bindings.hasNext()) {
 			String binding = bindings.next();
 			if (!binding.equals(TiC.PROPERTY_PROPERTIES) && !binding.equals(TiC.PROPERTY_TEMPLATE)) {
-				Log.e(TAG, "Please only use 'properties' key for built-in template ", Log.DEBUG_MODE);
+				Log.e(TAG, "Please only use 'properties' key for built-in template: " + binding, Log.DEBUG_MODE);
 				bindings.remove();
 			}
 		}
