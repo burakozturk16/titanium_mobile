@@ -58,6 +58,7 @@ import android.os.Message;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewParent;
 import android.view.Window;
 
 import android.view.ViewGroup;
@@ -245,6 +246,20 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			return true;
 		}
 	}
+	private void handleWindowClosed(TiWindowProxy toRemove) 
+	{
+		poping = false;
+		View view = toRemove.getOuterView();
+		if (view != null) {
+			ViewParent parent = view.getParent();
+			if (parent != null) {
+				((ViewGroup)parent).removeView(view);
+			}
+		}
+		toRemove.setActivity(null);
+		toRemove.closeFromActivity(true);
+	}
+	
 	public boolean popCurrentWindow(Object arg)
 	{
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());
@@ -294,29 +309,18 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 						
 						@Override
 						public void onAnimationEnd(Animator arg0) {	
-							poping = false;
-							viewToRemoveFrom.removeView(viewToRemove);
-							toRemove.setActivity(null);
-							toRemove.closeFromActivity(true);
+							handleWindowClosed(toRemove);
 						}
 
 						@Override
 						public void onAnimationCancel(Animator arg0) {		
-							poping = false;
-							viewToRemoveFrom.removeView(viewToRemove);
-					    	removeWindow(toRemove);
-							toRemove.setActivity(null);
-							toRemove.closeFromActivity(true);
+							handleWindowClosed(toRemove);
 						}
 					});
 					set.start();
 				}
 				else {
-					poping = false;
-					viewToRemoveFrom.removeView(viewToRemove);
-			    	removeWindow(toRemove);
-					toRemove.setActivity(null);
-					toRemove.closeFromActivity(true);
+					handleWindowClosed(toRemove);
 				}
 				viewToFocus.setVisibility(View.VISIBLE);
 			}
