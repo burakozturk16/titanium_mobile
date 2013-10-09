@@ -4,9 +4,21 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
+var url = require("url"),
+	path = require('path'),
+	Script = kroll.binding('evals').Script,
+	assets = kroll.binding("assets"),
+	NativeModule = require('native_module'),
+	bootstrapModule = require('bootstrap'),
+	PersistentHandle = require('ui').PersistentHandle;
+
+var TAG = "Window";
 
 exports.bootstrap = function(Titanium) {
 	var NavigationWindow = Titanium.UI.NavigationWindow;
+
+	// Set constants for representing states for the tab group
+	NavigationWindow.prototype.state = {closed: 0, opening: 1, opened: 2};
 
 	function createNavigationWindow(scopeVars, options) {
 		var nav = new NavigationWindow(options);
@@ -19,11 +31,10 @@ exports.bootstrap = function(Titanium) {
 		nav.currentState = nav.state.closed;
 
 		// Set the activity property here since we bind it to _internalActivity for window proxies by default
-		Object.defineProperty(TabGroup.prototype, "activity", { get: nav.getActivity});
+		Object.defineProperty(NavigationWindow.prototype, "activity", { get: nav.getActivity});
 
 		return nav;
 	}
-
 	Titanium.UI.createNavigationWindow = createNavigationWindow;
 
 	var _open = NavigationWindow.prototype.open;
@@ -34,31 +45,10 @@ exports.bootstrap = function(Titanium) {
 		}
 		
 		this.currentState = this.state.opening;
-
-		// Retain the tab group until is has closed.
-		var handle = new PersistentHandle(this);
-
-		var self = this;
-		this.on("close", function(e) {
-			if (e._closeFromActivityForcedToDestroy) {
-				if (kroll.DBG) {
-					kroll.log(TAG, "NavigationWindow is closed because the activity is forced to destroy by Android OS.");
-				}
-				return;
-			}
-
-			self.currentState = self.state.closed;
-			handle.dispose();
-
-			if (kroll.DBG) {
-				kroll.log(TAG, "NavigationWindow is closed normally.");
-			}
-		});
-
 		_open.call(this, options);
-
 		this.currentState = this.state.opened;
 	}
+
 
 	var _openWindow = NavigationWindow.prototype.openWindow;
 	NavigationWindow.prototype.openWindow = function(window, options) {
@@ -69,7 +59,30 @@ exports.bootstrap = function(Titanium) {
 		if (!options) {
 			options = {};
 		}
-		_windows.push(window);
+
+		// Retain the window until it has closed.
+		var handle = new PersistentHandle(window);
+
+		window.on("close", function(e) {
+			if (e._closeFromActivityForcedToDestroy) {
+				if (kroll.DBG) {
+					kroll.log(TAG, "Window is closed because the activity is forced to destroy by Android OS.");
+				}
+				return;
+			}
+			// Dispose the URL context if the window's activity is destroyed.
+			if (window._urlContext) {
+				Script.disposeContext(window._urlContext);
+				window._urlContext = null;
+			}
+			handle.dispose();
+
+			if (kroll.DBG) {
+				kroll.log(TAG, "Window is closed normally.");
+			}
+		});
+
+		this._windows.push(window);
 		_openWindow.call(this, window, options);
 	}
 
@@ -82,7 +95,7 @@ exports.bootstrap = function(Titanium) {
 		if (!options) {
 			options = {};
 		}
-		_windows.remove(window);
+		this._windows.remove(window);
 		_closeWindow.call(this, window, options);
 	}
 
