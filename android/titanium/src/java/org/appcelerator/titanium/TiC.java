@@ -1511,6 +1511,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_LEFT_VIEW = "leftView";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_LENGTH = "length";
 
 	/**
@@ -1775,6 +1780,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_PANNING_MODE = "panningMode";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_PARENT = "parent";
 	
 	/**
@@ -1933,6 +1943,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_RIGHT_IMAGE = "rightImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_RIGHT_VIEW = "rightView";
 
 	/**
 	 * @module.api
