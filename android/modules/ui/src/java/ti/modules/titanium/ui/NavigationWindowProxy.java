@@ -150,6 +150,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	@Override
 	public boolean interceptOnHomePressed() {
+		if (pushing || poping) return true;
 		ActivityProxy activityProxy = getActivityProxy();
 		if (activityProxy != null) {
 			ActionBarProxy actionBarProxy = activityProxy.getActionBar();
@@ -165,8 +166,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				}
 			}
 		}
-		if (!pushing && !poping)
-			popCurrentWindow(null);
+		popCurrentWindow(null);
 		return true;
 	}
 	
@@ -749,6 +749,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public boolean interceptOnBackPressed() {
 		if (windows.size() > 1) {
+			if (pushing || poping) return true;
 			TiWindowProxy topWindow = windows.get(windows.size() - 1);
 
 			// Prevent default Android behavior for "back" press
@@ -757,8 +758,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
 				return true;
 			}
-			if (!pushing && !poping)
-				return popCurrentWindow(null);
+			return popCurrentWindow(null);
 		}
 		return false;
 	}
