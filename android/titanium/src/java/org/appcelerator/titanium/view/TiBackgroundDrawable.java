@@ -239,6 +239,7 @@ public class TiBackgroundDrawable extends Drawable {
 	@Override
 	public void setAlpha(int alpha)
 	{
+		if (alpha == this.alpha) return;
 		this.alpha = alpha;
 		int key = 0;
 		int length = drawables.size();
