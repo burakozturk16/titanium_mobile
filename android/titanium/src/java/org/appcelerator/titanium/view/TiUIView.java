@@ -1535,7 +1535,12 @@ public abstract class TiUIView
 
 	public TiBlob toImage(Number scale)
 	{
-		return TiUIHelper.viewToImage(proxy.getProperties(), getNativeView(), scale.floatValue());
+		float scaleValue = scale.floatValue();
+		Bitmap bitmap = TiUIHelper.viewToBitmap(proxy.getProperties(), getNativeView());
+		if (scaleValue != 1.0f) {
+			bitmap = TiImageHelper.imageScaled(bitmap, scaleValue);
+		}
+		return TiBlob.blobFromImage(bitmap);
 	}
 
 	private View getTouchView()

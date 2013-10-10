@@ -57,8 +57,7 @@ public class ImageModule extends KrollModule
 		switch(msg.what) {
 			case MSG_GETVIEWIMAGE : {
 				AsyncResult result = (AsyncResult) msg.obj;
-				Object[] array = (Object[]) result.getArg();
-				result.setResult(TiUIHelper.viewToBitmap(null, (View)array[0], ((Number)array[1]).floatValue()));
+				result.setResult(TiUIHelper.viewToBitmap(null, (View)result.getArg()));
 				return true;
 			}
 		}
@@ -145,30 +144,7 @@ public class ImageModule extends KrollModule
 			return null;
 		}
 		
-		int width = bitmap.getWidth();
-		int height = bitmap.getHeight();
-		
 		if (options != null) {
-			float scale = TiConvert.toFloat(options, "scale", 1.0f);
-			if (options.containsKey("crop")) {
-				TiRect rect = new TiRect(options.get("crop"));
-				RectF realRect = rect.getAsPixels(TiApplication.getInstance().getBaseContext(), width, height);
-				bitmap = Bitmap.createBitmap(bitmap, (int)realRect.left, (int)realRect.top, (int)realRect.width(), (int)realRect.height());
-				width = bitmap.getWidth();
-				height = bitmap.getHeight();
-			}
-			
-			if (scale != 1.0f) {
-				int dstWidth = (int) (width * scale);
-				int dstHeight = (int) (height * scale);
-				try {
-					bitmap = Bitmap.createScaledBitmap(bitmap, dstWidth, dstHeight, true);
-					
-				} catch (OutOfMemoryError e) {
-					Log.e(TAG, "Unable to resize the image. Not enough memory: " + e.getMessage(), e);
-				}
-			}
-			
 			if (options.containsKey("callback")) {
 				KrollFunction callback = (KrollFunction) options.get("callback");
 				if (callback != null) {
@@ -197,14 +173,8 @@ public class ImageModule extends KrollModule
 			TiViewProxy viewProxy = (TiViewProxy)params[1];
 			int filterType = ((Integer)params[2]).intValue();
 			HashMap options = (HashMap)params[3];
-			float scale = 1.0f;
-			if (options != null) {
-				if (options.containsKey("scale")) {
-					scale = TiConvert.toFloat(options, "scale", 1.0f);
-				}
-			}
 			TiUIView view = viewProxy.getOrCreateView();
-			Bitmap bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView(), scale);
+			Bitmap bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView());
 			callback = (KrollFunction)params[4];
 			return TiImageHelper.imageFiltered(bitmap, FilterType.values()[filterType], options);
 		}
@@ -225,11 +195,7 @@ public class ImageModule extends KrollModule
 	@Kroll.method
 	public TiBlob getFilteredViewToImage(TiViewProxy viewProxy, int filterType, @Kroll.argument(optional=true) HashMap options) {
 		
-		float scale = 1.0f;
 		if (options != null) {
-			if (options.containsKey("scale")) {
-				scale = TiConvert.toFloat(options, "scale", 1.0f);
-			}
 			if (options.containsKey("callback")) {
 				KrollFunction callback = (KrollFunction) options.get("callback");
 				if (callback != null) {
@@ -246,9 +212,9 @@ public class ImageModule extends KrollModule
 		
 		Bitmap bitmap = null;
 		if (TiApplication.isUIThread()) {
-			bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView(), scale);
+			bitmap = TiUIHelper.viewToBitmap(viewProxy.getProperties(), view.getOuterView());
 		} else {
-			bitmap = (Bitmap) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEWIMAGE), new Object[]{view.getOuterView(), scale});
+			bitmap = (Bitmap) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEWIMAGE), new Object[]{view.getOuterView()});
 		}
 		return getFilteredImage(bitmap, filterType, options);
 	}
@@ -267,15 +233,11 @@ public class ImageModule extends KrollModule
 			w = w.getContainer();
 		}
 		
-		float scale = 1.0f;
-		if (options != null) {
-			scale = TiConvert.toFloat(options, "scale", scale);
-		}
 		Bitmap bitmap = null;
 		if (TiApplication.isUIThread()) {
-			bitmap = TiUIHelper.viewToBitmap(null, w.getDecorView(), scale);
+			bitmap = TiUIHelper.viewToBitmap(null, w.getDecorView());
 		} else {
-			bitmap = (Bitmap) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEWIMAGE), new Object[]{w.getDecorView(), scale});
+			bitmap = (Bitmap) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GETVIEWIMAGE), w.getDecorView());
 		}
 		return getFilteredImage(bitmap, filterType, options);
 	}

@@ -38,6 +38,7 @@ import org.appcelerator.titanium.util.TiActivityResultHandler;
 import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
+import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiIntentWrapper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
@@ -50,6 +51,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -888,11 +890,15 @@ public class MediaModule extends KrollModule
 		}
 
 		final Window winParam = w;
-		final float winScale = scale.floatValue();
+		final float winScale = (scale != null)?scale.floatValue():1.0f;
 
 		getActivity().runOnUiThread(new Runnable() {
 			public void run() {
-				TiBlob blob = TiUIHelper.viewToImage(null, winParam.getDecorView(), winScale);
+				Bitmap bitmap = TiUIHelper.viewToBitmap(null, winParam.getDecorView());
+				if (winScale != 1.0f) {
+					bitmap = TiImageHelper.imageScaled(bitmap, winScale);
+				}
+				TiBlob blob = TiBlob.blobFromImage(bitmap);
 				KrollDict result = new KrollDict();
 				result.put("image", blob);
 				callback.callAsync(getKrollObject(), new Object[] { result });

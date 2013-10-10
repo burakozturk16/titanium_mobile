@@ -17,14 +17,18 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
+import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Message;
 import android.view.View;
@@ -468,5 +472,17 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void setWindowManager(TiWindowManager manager)
 	{
 		this.winManager = manager;
+	}
+	
+
+	@Override
+	public TiBlob handleToImage(Number scale)
+	{
+		float scaleValue = scale.floatValue();
+		Bitmap bitmap = TiUIHelper.viewToBitmap(null, getActivity().getWindow().getDecorView());
+		if (scaleValue != 1.0f) {
+			bitmap = TiImageHelper.imageScaled(bitmap, scaleValue);
+		}
+		return TiBlob.blobFromImage(bitmap);
 	}
 }

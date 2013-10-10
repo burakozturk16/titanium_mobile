@@ -763,7 +763,7 @@ public class TiUIHelper
         return bitmap;
     }
 	
-	public static Bitmap viewToBitmap(KrollDict proxyDict, View view, float scale)
+	public static Bitmap viewToBitmap(KrollDict proxyDict, View view)
 	{
 		Bitmap bitmap = null;
 
@@ -835,32 +835,18 @@ public class TiUIHelper
 				view.draw(canvas);
 				canvas = null;
 			}
-			if (scale != 1.0f) {
-				bitmap = Bitmap.createScaledBitmap(bitmap, (int)(bitmap.getWidth()*scale), (int)(bitmap.getHeight()*scale), true);
-			}
-
 		}
 
 		return bitmap;
 	}
 
-	public static TiBlob viewToImage(KrollDict proxyDict, View view, float scale)
+	public static TiBlob viewToImage(KrollDict proxyDict, View view)
 	{
-		Bitmap bitmap = viewToBitmap(proxyDict, view, scale);
+		Bitmap bitmap = viewToBitmap(proxyDict, view);
 		if (bitmap != null) {
 			return TiBlob.blobFromImage(bitmap);
 		}
 		return null;
-	}
-
-	public static TiBlob viewToImage(KrollDict proxyDict, View view)
-	{
-		return viewToImage(proxyDict, view, 1.0f);
-	}
-	
-	public static Bitmap viewToBitmap(KrollDict proxyDict, View view)
-	{
-		return viewToBitmap(proxyDict, view, 1.0f);
 	}
 
 	/**
