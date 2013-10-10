@@ -156,6 +156,13 @@ public class TiConvert
 		return toColor(TiConvert.toString(hashMap.get(key)));
 	}
 
+	public static int toColor(HashMap<String, Object> hashMap, String key, int def)
+	{
+		if (hashMap.containsKey(key))
+			return toColor(TiConvert.toString(hashMap.get(key)));
+		return def;
+	}
+
 	public static ColorDrawable toColorDrawable(String value)
 	{
 		return new ColorDrawable(toColor(value));
@@ -438,6 +445,19 @@ public class TiConvert
 	public static int toInt(HashMap<String, Object> hashMap, String key)
 	{
 		return toInt(hashMap.get(key));
+	}
+
+	/**
+	 * Takes a value out of a hash table then attempts to convert it using {@link #toInt(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key.
+	 * @param def the default value to return.
+	 * @return an int value.
+	 * @module.api
+	 */
+	public static int toInt(HashMap<String, Object> hashMap, String key, int def)
+	{
+		return toInt(hashMap.get(key), def);
 	}
 
 	/**
