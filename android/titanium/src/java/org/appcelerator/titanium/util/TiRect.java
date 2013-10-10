@@ -1,18 +1,18 @@
-package ti.modules.titanium.shape;
+package org.appcelerator.titanium.util;
 
 import java.util.HashMap;
 
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
-import org.appcelerator.titanium.util.TiConvert;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.RectF;
 
 @SuppressWarnings("rawtypes")
 public class TiRect {
 	private TiDimension x, y, width, height;
-
+	private RectF internalRect;
 	/*
 	 * Create a new rect with the 'x' and 'y' and 'width' and 'height'
 	 * coordinates in pixel units.
@@ -29,16 +29,18 @@ public class TiRect {
 	 * with 'x' and 'y' and 'width' and 'height' properties. If any of these
 	 * properties is missing, a default value of zero will be used.
 	 */
-	public TiRect(HashMap object) {
-		this(object, 0, 0, 0, 0);
+	public TiRect(Object object) {
+		if (object instanceof HashMap)
+			set((HashMap)object, 0, 0, 0, 0);
+		else if (object instanceof RectF) {
+			internalRect = (RectF) object;
+		}
+		else if (object instanceof Rect) {
+			internalRect = new RectF((Rect)object);
+		}
 	}
-
-	/*
-	 * Create a new rect from an object
-	 * with 'x' and 'y' and 'width' and 'height' properties. If any of these
-	 * properties is missing, the default values will be used.
-	 */
-	public TiRect(HashMap object, double defaultValueX, double defaultValueY, double defaultValueWidth, double defaultValueHeight) {
+	
+	private void set(HashMap object, double defaultValueX, double defaultValueY, double defaultValueWidth, double defaultValueHeight) {
 		x = TiConvert.toTiDimension(object.get(TiC.PROPERTY_X), TiDimension.TYPE_LEFT);
 		y = TiConvert.toTiDimension(object.get(TiC.PROPERTY_Y), TiDimension.TYPE_TOP);
 		if (x == null) {
@@ -70,6 +72,15 @@ public class TiRect {
 			else
 				height = new TiDimension(defaultValueHeight, TiDimension.TYPE_HEIGHT);
 		}
+	}
+
+	/*
+	 * Create a new rect from an object
+	 * with 'x' and 'y' and 'width' and 'height' properties. If any of these
+	 * properties is missing, the default values will be used.
+	 */
+	public TiRect(HashMap object, double defaultValueX, double defaultValueY, double defaultValueWidth, double defaultValueHeight) {
+		set(object, defaultValueX, defaultValueY, defaultValueWidth, defaultValueHeight);
 	}
 	
 	/*
@@ -110,6 +121,7 @@ public class TiRect {
 	}
 	
 	public RectF getAsPixels(Context context, int w, int h) {
+		if (internalRect != null) return internalRect;
 		int rectX = x.getAsPixels(context, w, h);
 		int rectY = y.getAsPixels(context, w, h);
 		int rectW = width.getAsPixels(context, w, h);
