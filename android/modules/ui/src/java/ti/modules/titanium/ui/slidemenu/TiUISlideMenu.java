@@ -53,6 +53,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				updateDisplacements();
 			}
 		};
+		slidingMenu.setClassForNonViewPager(TiViewPagerLayout.class);
 		slidingMenu.setOnCloseListener(new SlidingMenu.OnCloseListener() {
 			@Override
 			public void onClose(int leftOrRight, boolean animated, int duration) {
@@ -182,7 +183,6 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private void updatePanningMode(int panningMode)
 	{
 		slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		slidingMenu.setClassForNonViewPager(TiViewPagerLayout.class);
 		if (panningMode == UIModule.MENU_PANNING_BORDERS) {
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
 		} else if (panningMode == UIModule.MENU_PANNING_CENTER_VIEW)
