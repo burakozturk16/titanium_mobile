@@ -82,11 +82,6 @@ public class OneStateDrawable extends Drawable {
 	}
 	
 	public void releaseDelegate() {
-		// if (imageDrawable != null && imageDrawable instanceof BitmapDrawable) {
-		// 	Bitmap bitmap = ((BitmapDrawable)imageDrawable).getBitmap();
-		// 	if (!bitmap.isRecycled())
-		// 		bitmap.recycle();
-		// }
 		imageDrawable = null;
 		colorDrawable = null;
 		gradientDrawable = null;
@@ -125,11 +120,6 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setBitmapDrawable(Drawable drawable)
 	{
-		// if (imageDrawable != null && imageDrawable != drawable && imageDrawable instanceof BitmapDrawable) {
-		// 	Bitmap bitmap = ((BitmapDrawable)imageDrawable).getBitmap();
-		// 	if (!bitmap.isRecycled())
-		// 		bitmap.recycle();
-		// }
 		imageDrawable = drawable;
 	}
 	
@@ -151,7 +141,6 @@ public class OneStateDrawable extends Drawable {
 	{
 		if (gradientDrawable != null && imageDrawable instanceof TiGradientDrawable) {
 			TiGradientDrawable drawable  = (TiGradientDrawable)gradientDrawable;
-//			drawable.setView(view);
 			drawable.invalidateSelf();
 		}
 	}

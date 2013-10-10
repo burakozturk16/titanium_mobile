@@ -127,6 +127,7 @@ public class TiBackgroundDrawable extends Drawable {
 		return false;
 	}
 	
+	@Override
 	public boolean isStateful()
 	{
 		return true;
