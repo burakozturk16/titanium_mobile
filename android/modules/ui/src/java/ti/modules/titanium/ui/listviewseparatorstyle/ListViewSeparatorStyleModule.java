@@ -6,13 +6,10 @@
  */
 package ti.modules.titanium.ui.listviewseparatorstyle;
 
-import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.titanium.TiContext;
 
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.tableviewseparatorstyle.TableViewSeparatorStyleModule;
-import ti.modules.titanium.ui.widget.TiUITableView;
 
 @Kroll.module(parentModule=UIModule.class)
 public class ListViewSeparatorStyleModule extends TableViewSeparatorStyleModule {
