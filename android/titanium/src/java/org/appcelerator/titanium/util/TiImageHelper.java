@@ -8,14 +8,22 @@
 package org.appcelerator.titanium.util;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
+import jp.co.cyberagent.android.gpuimage.GPUImage;
+import jp.co.cyberagent.android.gpuimage.GPUImageBoxBlurFilter;
+import jp.co.cyberagent.android.gpuimage.GPUImageGaussianBlurFilter;
+
+import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Path.Direction;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.RectF;
 
 /**
@@ -24,7 +32,19 @@ import android.graphics.RectF;
 public class TiImageHelper
 {
 	private static final String TAG = "TiImageHelper";
+	private static GPUImage mGPUImage;
+	
+	public enum FilterType {
+		kFilterBoxBlur, kFilterGaussianBlur
+	}
 
+	private static GPUImage getGPUImage()
+	{
+		if (mGPUImage == null) {
+			mGPUImage = new GPUImage(TiApplication.getInstance().getBaseContext());
+		}
+		return mGPUImage;
+	}
 	/**
 	 * Add an alpha channel to the given image if it does not already have one.
 	 * 
@@ -125,5 +145,75 @@ public class TiImageHelper
 		Canvas canvas = new Canvas(imageBorder);
 		canvas.drawBitmap(imageWithAlpha(image), borderSize, borderSize, paint);
 		return imageBorder;
+	}
+	
+	private static Bitmap getFilteredBitmap(Bitmap bitmap, FilterType filterType, HashMap options) {
+		switch (filterType) {
+		case kFilterBoxBlur:
+		{
+			float radius = 1.0f;
+			if (options != null) {
+				radius = TiConvert.toFloat(options.get("radius"), radius);
+			}
+			radius*=2.0f;
+			getGPUImage().setFilter(new GPUImageBoxBlurFilter(radius));
+			break;
+		}
+		case kFilterGaussianBlur:
+		{
+			float radius = 1.0f;
+			if (options != null) {
+				radius = TiConvert.toFloat(options.get("radius"), radius);
+			}
+			radius*=4.0f;
+			getGPUImage().setFilter(new GPUImageGaussianBlurFilter(radius));
+			break;
+		}
+		default:
+			return null;
+		}
+		return mGPUImage.getBitmapWithFilterApplied(bitmap);
+	}
+	
+	public static Bitmap imageTinted(Bitmap bitmap, int tint, Mode mode) {
+		if (tint != 0) {
+			Canvas canvas = new Canvas(bitmap);
+			canvas.drawColor(tint, mode);
+		}
+		return bitmap;
+	}
+	
+	public static Bitmap imageCropped(Bitmap bitmap, TiRect rect) {
+		int width = bitmap.getWidth();
+		int height = bitmap.getHeight();
+		RectF realRect = rect.getAsPixels(TiApplication.getInstance().getBaseContext(), width, height);
+		try {
+			bitmap = Bitmap.createBitmap(bitmap, (int)realRect.left, (int)realRect.top, (int)realRect.width(), (int)realRect.height());
+		} catch (Exception e) {
+			Log.e(TAG, "Unable to crop the image. Not enough memory: " + e.getMessage(), e);
+			return bitmap;
+		}
+		return bitmap;
+	}
+	
+	public static Bitmap imageScaled(Bitmap bitmap, float scale) {
+		if (scale != 1.0f) {
+			int width = bitmap.getWidth();
+			int height = bitmap.getHeight();
+			int dstWidth = (int) (width * scale);
+			int dstHeight = (int) (height * scale);
+			try {
+				bitmap = Bitmap.createScaledBitmap(bitmap, dstWidth, dstHeight, true);
+				
+			} catch (OutOfMemoryError e) {
+				Log.e(TAG, "Unable to resize the image. Not enough memory: " + e.getMessage(), e);
+			}
+		}
+		return bitmap;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static Bitmap imageFiltered(Bitmap bitmap, FilterType filterType, @Kroll.argument(optional=true) HashMap options) {		
+		return getFilteredBitmap(bitmap, filterType, options);
 	}
 }
