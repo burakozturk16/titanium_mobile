@@ -67,8 +67,8 @@ public abstract class Transition {
 		if (inAnimator == null) {
 			prepare(inTarget, inTarget);
 		}
-		TiViewHelper.setPivotFloat(inTarget, 0.5f, 0.5f);
-		TiViewHelper.setPivotFloat(outTarget, 0.5f, 0.5f);
+		TiViewHelper.resetValues(inTarget);
+		TiViewHelper.resetValues(outTarget);
 		
 		inAnimator.setTarget(inTarget);
 		outAnimator.setTarget(outTarget);
@@ -102,5 +102,15 @@ public abstract class Transition {
 	}
 	public int getType(){
 		return -1;
+	}
+	
+	public void setDuration(int duration){
+		this.duration = duration;
+		inAnimator = null;
+		outAnimator = null;
+	}
+	
+	public int getDuration(){
+		return duration;
 	}
 }

@@ -76,4 +76,16 @@ public class TiViewHelper {
 		ViewHelper.setScaleX(view, val);
 		ViewHelper.setScaleY(view, val);
 	}
+	
+	public static void resetValues(View view) {
+		
+		setPivotFloat(view, 0.5f, 0.5f);
+		ViewHelper.setTranslationX(view, 0.0f);
+		ViewHelper.setTranslationY(view, 0.0f);
+		ViewHelper.setScaleX(view, 1.0f);
+		ViewHelper.setScaleY(view, 1.0f);
+		ViewHelper.setRotation(view, 0.0f);
+		ViewHelper.setRotationX(view, 0.0f);
+		ViewHelper.setRotationY(view, 0.0f);
+	}
 }
