@@ -32,7 +32,6 @@ import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
@@ -71,7 +70,6 @@ import android.widget.ViewSwitcher;
 	TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT,
 	TiC.PROPERTY_BACKGROUND_PADDING,
 	TiC.PROPERTY_BACKGROUND_GRADIENT,
-
 	// border properties
 	TiC.PROPERTY_BORDER_COLOR,
 	TiC.PROPERTY_BORDER_RADIUS,
@@ -125,6 +123,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 113;
 	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 114;
 	private static final int MSG_TRANSFERVIEWS = MSG_FIRST_ID + 115;
+	private static final int MSG_BLUR_BACKGROUND = MSG_FIRST_ID + 116;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -390,6 +389,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			case MSG_TRANSFERVIEWS : {
 				ArrayList<Object> args = (ArrayList<Object>)msg.obj;
 				handleTransitionViews((TiViewProxy)args.get(0), (TiViewProxy)args.get(1), args.get(2));
+				return true;
+			}
+			case MSG_BLUR_BACKGROUND : {
+				handleBlurBackground((HashMap) msg.obj);
 				return true;
 			}
 		}
@@ -1481,4 +1484,36 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 	
+	
+	
+	private TiBlob handleBlurBackground(HashMap options)
+	{
+		peekView().blurBackground(options);
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Kroll.method
+	public TiBlob blurBackground(Object arg, @Kroll.argument(optional=true) HashMap options)
+	{
+		if (peekView() != null) {
+			String[] properties = null;
+			if (arg instanceof String) {
+				properties = new String[]{(String) arg};
+			}
+			else if (arg instanceof Object[]) {
+				properties = TiConvert.toStringArray((Object[]) arg);
+			}
+			if (options == null) {
+				options = new KrollDict();
+			}
+			options.put("properties", properties);
+			if (TiApplication.isUIThread()) {
+				handleBlurBackground(options);
+			} else {
+				getMainHandler().obtainMessage(MSG_BLUR_BACKGROUND, options).sendToTarget();
+			}
+		} 
+		return null;
+	}
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
@@ -23,10 +24,12 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.AffineTransform.DecomposedType;
+import org.appcelerator.titanium.util.TiImageHelper.FilterType;
 import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
-import org.appcelerator.titanium.util.TiAnimatorListener;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiImageHelper;
+import org.appcelerator.titanium.util.TiRect;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
@@ -38,7 +41,7 @@ import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ArgbEvaluator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
-import com.nineoldandroids.animation.ValueAnimator;
+import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import android.annotation.TargetApi;
@@ -46,12 +49,16 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.graphics.Bitmap.Config;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -59,7 +66,6 @@ import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
 import android.util.SparseArray;
-import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
@@ -74,7 +80,6 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 
@@ -484,7 +489,6 @@ public abstract class TiUIView
 				((TiCompositeLayout)parentViewForChild).setLayoutArrangement(layout);
 			}
 		} else if (key.equals(TiC.PROPERTY_LEFT)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionLeft = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
 			} else {
@@ -492,7 +496,6 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_TOP)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionTop = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_TOP);
 			} else {
@@ -500,11 +503,9 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_CENTER)) {
-			resetPostAnimationValues();
 			TiConvert.updateLayoutCenter(newValue, layoutParams);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_RIGHT)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionRight = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
 			} else {
@@ -512,7 +513,6 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_BOTTOM)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionBottom = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
 			} else {
@@ -529,7 +529,6 @@ public abstract class TiUIView
 				Log.w(TAG, "Unsupported property type ("+(newValue.getClass().getSimpleName())+") for key: " + key+". Must be an object/dictionary");
 			}
 		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionHeight = null;
 				layoutParams.sizeOrFillHeightEnabled = true;
@@ -552,7 +551,6 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_WIDTH)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionWidth = null;
 				layoutParams.sizeOrFillWidthEnabled = true;
@@ -1645,31 +1643,6 @@ public abstract class TiUIView
 		return !hardwareAccSupported;
 	}
 
-	/**
-	 * Set the animated alpha values, since Android provides no property for looking it up.
-	 */
-	public void setAnimatedAlpha(float alpha)
-	{
-		animatedAlpha = alpha;
-	}
-
-	/**
-	 * Retrieve the animated alpha value, which we store here since Android provides no property
-	 * for looking it up.
-	 */
-	public float getAnimatedAlpha()
-	{
-		return animatedAlpha;
-	}
-
-	/**
-	 * "Forget" the values we save after scale and rotation and alpha animations.
-	 */
-	private void resetPostAnimationValues()
-	{
-		animatedAlpha = Float.MIN_VALUE; // we use min val to signal no val.
-	}
-
 	private void applyContentDescription()
 	{
 		if (proxy == null || nativeView == null) {
@@ -1767,124 +1740,6 @@ public abstract class TiUIView
 
 		ViewCompat.setImportantForAccessibility(nativeView, importanceMode);
 	}
-	
-	public void setTiWidth(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		params.height = val;
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionWidth = new TiDimension(val, TiDimension.TYPE_WIDTH, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiWidth() {
-		View view =  getOuterView();
-		return view.getMeasuredWidth();
-	}
-	public void setTiHeight(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		params.height = val;
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionHeight = new TiDimension(val, TiDimension.TYPE_HEIGHT, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiHeight() {
-		View view =  getOuterView();
-		return view.getMeasuredHeight();
-	}
-	public void setTiTop(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionTop = new TiDimension(val, TiDimension.TYPE_TOP, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiTop() {
-		View view =  getOuterView();
-		return view.getTop();
-	}
-	public void setTiBottom(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionBottom = new TiDimension(val, TiDimension.TYPE_BOTTOM, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiBottom() {
-		View view =  getOuterView();
-		View parent =  (View)getOuterView().getParent();
-		if (parent != null) {
-			return parent.getMeasuredHeight() - view.getBottom();
-		}
-		return 0;
-	}
-	public void setTiLeft(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionLeft = new TiDimension(val, TiDimension.TYPE_LEFT, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiLeft() {
-		View view =  getOuterView();
-		return view.getLeft();
-	}
-	public void setTiRight(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionRight = new TiDimension(val, TiDimension.TYPE_RIGHT, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiRight() {
-		View view =  getOuterView();
-		View parent =  (View)getOuterView().getParent();
-		if (parent != null) {
-			return parent.getMeasuredWidth() - view.getRight();
-		}
-		return 0;
-	}
-	public void setTiCenterX(int val) {
-		View view =  getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionCenterX = new TiDimension(val, TiDimension.TYPE_CENTER_X, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiCenterX() {
-		View view =  getOuterView();
-		return (view.getLeft() + view.getMeasuredWidth()) / 2;
-	}
-	
-	public void setTiCenterY(int val) {
-		View view = getOuterView();
-		ViewGroup.LayoutParams params = getOuterView().getLayoutParams();
-		if (params instanceof TiCompositeLayout.LayoutParams) {
-			TiCompositeLayout.LayoutParams tiParams = (TiCompositeLayout.LayoutParams) params;
-			tiParams.optionCenterY = new TiDimension(val, TiDimension.TYPE_CENTER_Y, TypedValue.COMPLEX_UNIT_PX);
-		}
-		view.setLayoutParams(params);
-	}
-	public int getTiCenterY() {
-		View view =  getOuterView();
-		return (view.getTop() + view.getMeasuredHeight()) / 2;
-	}
-
-	
 	
 	public void setTiBackgroundColor(int color) {
 		int currentColor = getTiBackgroundColor();
@@ -2021,5 +1876,85 @@ public abstract class TiUIView
 //		list.add(anim);
 		view.postInvalidate();
 
+	}
+	
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private class BlurTask extends AsyncTask< Object, Void, Bitmap >
+	{
+		KrollProxy proxy;
+		HashMap options;
+		KrollFunction callback;
+		String[] properties;
+		@Override
+		protected Bitmap doInBackground(Object... params)
+		{
+			Bitmap bitmap = (Bitmap)params[0];
+			proxy = (TiViewProxy)params[1];
+			Rect rect = (Rect)params[2];
+			options = (HashMap)params[3];
+			bitmap = TiImageHelper.imageCropped(bitmap, new TiRect(rect));
+			if (options != null) {
+				if (options.containsKey("callback")) {
+					callback = (KrollFunction) options.get("callback");
+				}
+				properties = TiConvert.toStringArray((Object[]) options.get("properties"));
+				float scale = TiConvert.toFloat(options, "scale", 1.0f);
+				int tint = TiConvert.toColor(options, "tint", 0);
+				Mode mode = Mode.values()[TiConvert.toInt(options, "blend", Mode.LIGHTEN.ordinal())];
+				bitmap = TiImageHelper.imageScaled(bitmap, scale);
+				bitmap = TiImageHelper.imageFiltered(bitmap, TiImageHelper.FilterType.kFilterBoxBlur, options);
+				bitmap = TiImageHelper.imageTinted(bitmap, tint, mode);
+			}
+			return bitmap;
+		}
+		/**
+		 * Always invoked on UI thread.
+		 */
+		@Override
+		protected void onPostExecute(Bitmap image)
+		{
+			TiBlob blob = TiBlob.blobFromImage(image);
+			if (properties != null) {
+				for (String prop : properties) {
+					proxy.setPropertyAndFire(prop, blob);
+				}
+			}
+			if (this.callback != null)  {
+				KrollDict result = new KrollDict();
+				if (image != null) {
+					result.put("image", blob);
+				}
+				this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
+			}
+		}
+	}
+	
+	public void blurBackground(HashMap args)
+	{
+		long startTime = System.currentTimeMillis();
+		View outerView = getOuterView();
+		TiViewProxy parentProxy = getParent();
+		if (outerView != null && parentProxy != null) {	
+			View parentView = parentProxy.getOuterView();
+			if (parentView != null) {
+
+				int width = parentView.getWidth();
+				int height = parentView.getHeight();
+		
+				Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+				Canvas canvas = new Canvas(bitmap);
+				float alpha = ViewHelper.getAlpha(outerView);
+				ViewHelper.setAlpha(outerView, 0.0f);
+				parentView.draw(canvas);
+				ViewHelper.setAlpha(outerView, alpha);
+
+				Rect rect = new Rect(outerView.getLeft(), outerView.getTop(), outerView.getRight(), outerView.getBottom());
+				
+				(new BlurTask()).execute(bitmap, this.proxy, rect, args);
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				System.out.println(totalTime);
+			} 
+		}
 	}
 }
