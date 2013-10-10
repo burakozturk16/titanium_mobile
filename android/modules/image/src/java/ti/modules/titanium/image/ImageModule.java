@@ -3,10 +3,6 @@ package ti.modules.titanium.image;
 import java.io.IOException;
 import java.util.HashMap;
 
-import jp.co.cyberagent.android.gpuimage.GPUImage;
-import jp.co.cyberagent.android.gpuimage.GPUImageBoxBlurFilter;
-import jp.co.cyberagent.android.gpuimage.GPUImageGaussianBlurFilter;
-
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
@@ -19,10 +15,8 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
 import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiImageHelper.FilterType;
-import org.appcelerator.titanium.util.TiRect;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.kroll.common.Log;
@@ -31,7 +25,6 @@ import org.appcelerator.kroll.common.TiMessenger;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
-import android.graphics.RectF;
 import android.view.View;
 import android.view.Window;
 import android.os.AsyncTask;
@@ -42,7 +35,6 @@ import android.os.Message;
 public class ImageModule extends KrollModule
 {
 	private static final String TAG = "ImageModule";
-	private static GPUImage mGPUImage;
 
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
 
@@ -67,7 +59,6 @@ public class ImageModule extends KrollModule
 	public ImageModule()
 	{
 		super();
-		mGPUImage = new GPUImage(TiApplication.getInstance().getBaseContext());
 	}
 
 	@Kroll.onAppCreate
@@ -119,7 +110,6 @@ public class ImageModule extends KrollModule
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Kroll.method
 	public TiBlob getFilteredImage(Object image, int filterType, @Kroll.argument(optional=true) HashMap options) {
 		Bitmap bitmap = null;

@@ -29,6 +29,7 @@ import android.graphics.RectF;
 /**
  * Utility class for image manipulations.
  */
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class TiImageHelper
 {
 	private static final String TAG = "TiImageHelper";
@@ -155,7 +156,6 @@ public class TiImageHelper
 			if (options != null) {
 				radius = TiConvert.toFloat(options.get("radius"), radius);
 			}
-			radius*=2.0f;
 			getGPUImage().setFilter(new GPUImageBoxBlurFilter(radius));
 			break;
 		}
@@ -165,7 +165,6 @@ public class TiImageHelper
 			if (options != null) {
 				radius = TiConvert.toFloat(options.get("radius"), radius);
 			}
-			radius*=4.0f;
 			getGPUImage().setFilter(new GPUImageGaussianBlurFilter(radius));
 			break;
 		}
@@ -212,8 +211,37 @@ public class TiImageHelper
 		return bitmap;
 	}
 	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Bitmap imageFiltered(Bitmap bitmap, FilterType filterType, @Kroll.argument(optional=true) HashMap options) {		
+	public static Bitmap imageFiltered(Bitmap bitmap, FilterType filterType, @Kroll.argument(optional=true) HashMap options) {	
+		if (options.containsKey("scale")) {
+			float scale = TiConvert.toFloat(options, "scale", 1.0f);
+			bitmap = TiImageHelper.imageScaled(bitmap, scale);
+		}
+		
 		return getFilteredBitmap(bitmap, filterType, options);
+	}
+	
+	public static Bitmap imageFiltered(Bitmap bitmap, HashMap options) {
+		if (options.containsKey("crop")) {
+			TiRect rect = new TiRect(options.get("crop"));
+			bitmap = TiImageHelper.imageCropped(bitmap, rect);
+		}
+		if (options.containsKey("scale")) {
+			float scale = TiConvert.toFloat(options, "scale", 1.0f);
+			bitmap = TiImageHelper.imageScaled(bitmap, scale);
+		}
+		
+		if (options.containsKey("filters")) {
+			int[] filters = TiConvert.toIntArray((Object[]) options.get("filters"));
+			for (int i = 0; i < filters.length; i++) {
+				bitmap = getFilteredBitmap(bitmap, FilterType.values()[filters[i]], options);
+			}
+		}
+		
+		if (options.containsKey("tint")) {
+			int tint = TiConvert.toColor(options, "tint", 0);
+			Mode mode = Mode.values()[TiConvert.toInt(options, "blend", Mode.LIGHTEN.ordinal())];
+			bitmap = TiImageHelper.imageTinted(bitmap, tint, mode);
+		}
+		return bitmap;
 	}
 }

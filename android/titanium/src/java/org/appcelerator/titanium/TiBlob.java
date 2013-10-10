@@ -668,5 +668,16 @@ public class TiBlob extends KrollProxy
 			return null;
 		}
 	}
+	
+	@Kroll.method
+	public TiBlob imageAsFiltered(HashMap options)
+	{
+		Bitmap bitmap = getImage();
+		if (bitmap != null) {
+			return null;
+		}
+		bitmap = TiImageHelper.imageFiltered(bitmap, options);
+		return TiBlob.blobFromImage(bitmap);
+	}
 
 }

@@ -1898,18 +1898,18 @@ public abstract class TiUIView
 			Rect rect = (Rect)params[2];
 			options = (HashMap)params[3];
 			bitmap = TiImageHelper.imageCropped(bitmap, new TiRect(rect));
-			if (options != null) {
-				if (options.containsKey("callback")) {
-					callback = (KrollFunction) options.get("callback");
-				}
-				properties = TiConvert.toStringArray((Object[]) options.get("properties"));
-				float scale = TiConvert.toFloat(options, "scale", 1.0f);
-				int tint = TiConvert.toColor(options, "tint", 0);
-				Mode mode = Mode.values()[TiConvert.toInt(options, "blend", Mode.LIGHTEN.ordinal())];
-				bitmap = TiImageHelper.imageScaled(bitmap, scale);
-				bitmap = TiImageHelper.imageFiltered(bitmap, TiImageHelper.FilterType.kFilterBoxBlur, options);
-				bitmap = TiImageHelper.imageTinted(bitmap, tint, mode);
+			if (options == null) {
+				options = new KrollDict();
 			}
+			options.put("filters", new Object[]{TiImageHelper.FilterType.kFilterBoxBlur.ordinal()});
+
+			if (options.containsKey("callback")) {
+				callback = (KrollFunction) options.get("callback");
+			}
+			if (options.containsKey("properties")) {
+				properties = TiConvert.toStringArray((Object[]) options.get("properties"));
+			}
+			bitmap = TiImageHelper.imageFiltered(bitmap, options);
 			return bitmap;
 		}
 		/**
