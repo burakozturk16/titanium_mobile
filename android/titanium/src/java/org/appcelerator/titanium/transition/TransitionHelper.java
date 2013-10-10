@@ -20,14 +20,10 @@ import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
-import com.nineoldandroids.util.Property;
 import com.nineoldandroids.view.ViewHelper;
 
 import android.annotation.SuppressLint;
-import android.graphics.Point;
-import android.graphics.PointF;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Interpolator;
 
 @SuppressLint("NewApi")
