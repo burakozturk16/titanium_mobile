@@ -35,17 +35,14 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
-import org.appcelerator.titanium.transition.TransitionInAndOut;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiUIView;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
 
 import ti.modules.titanium.ui.transitionstyle.TransitionStyleModule;
-import ti.modules.titanium.ui.widget.TiView;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
@@ -270,9 +267,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			
 			int transitionStyle = -1;
 			Transition transition = null;
+			int duration = -1;
 			if (animations.containsKey(toRemove)) {
 				transition = animations.get(toRemove);
 				transitionStyle = transition.getType();
+				duration = transition.getDuration();
 			}
 			KrollDict options = null;
 			if (arg != null && arg instanceof HashMap<?, ?>) {
@@ -283,11 +282,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
 			int  optTransitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
 			int  optTransitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
-			int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
-			if ((optTransitionStyle != -1 || duration != -1) && animated) {
+			duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, duration);
+			if ((optTransitionStyle != -1) && animated) {
 				if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
 				transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
 			}
+			transition.setDuration(duration);
 						
 			final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 			
