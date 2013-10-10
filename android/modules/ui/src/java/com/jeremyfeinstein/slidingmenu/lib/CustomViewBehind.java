@@ -29,7 +29,7 @@ public class CustomViewBehind extends ViewGroup {
 	private int mMarginThreshold;
 	private int mWidthOffset;
 	private int mSecondaryWidthOffset;
-	private CanvasTransformer mTransformer;
+	private CanvasTransformer mTransformer, mSecondaryTransformer;
 	private boolean mChildrenEnabled;
 
 	public CustomViewBehind(Context context) {
@@ -48,6 +48,10 @@ public class CustomViewBehind extends ViewGroup {
 
 	public void setCanvasTransformer(CanvasTransformer t) {
 		mTransformer = t;
+	}
+	
+	public void setSecondaryCanvasTransformer(CanvasTransformer t) {
+		mSecondaryTransformer = t;
 	}
 
 	public void setWidthOffset(int i) {
@@ -130,9 +134,16 @@ public class CustomViewBehind extends ViewGroup {
 
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
-		if (mTransformer != null) {
+		float percent = mViewAbove.getNonAbsPercentOpen();
+		if (percent > 0 && mSecondaryTransformer != null) {
 			canvas.save();
-			mTransformer.transformCanvas(canvas, mViewAbove.getPercentOpen());
+			mSecondaryTransformer.transformCanvas(canvas, Math.abs(percent));
+			super.dispatchDraw(canvas);
+			canvas.restore();
+		}
+		else if (percent < 0 && mTransformer != null) {
+			canvas.save();
+			mTransformer.transformCanvas(canvas, Math.abs(percent));
 			super.dispatchDraw(canvas);
 			canvas.restore();
 		} else

@@ -913,6 +913,10 @@ public class CustomViewAbove extends ViewGroup {
 	protected float getPercentOpen() {
 		return Math.abs(mScrollX-mContent.getLeft()) / getBehindWidth();
 	}
+	
+	protected float getNonAbsPercentOpen() {
+		return (mScrollX-mContent.getLeft()) / getBehindWidth();
+	}
 
 	@Override
 	protected void dispatchDraw(Canvas canvas) {

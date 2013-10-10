@@ -809,6 +809,15 @@ public class SlidingMenu extends RelativeLayout {
 	}
 	
 	/**
+	 * Sets the behind canvas transformer for the secondary menu.
+	 *
+	 * @param t the new behind canvas transformer
+	 */
+	public void setBehindSecondaryCanvasTransformer(CanvasTransformer t) {
+		mViewBehind.setSecondaryCanvasTransformer(t);
+	}
+	
+	/**
 	 * Sets the class to use for the TOUCHMODE_NON_VIEWPAGER
 	 *
 	 * @param theClass the class to use
