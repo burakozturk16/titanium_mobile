@@ -159,11 +159,6 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int URL_ERROR_UNKNOWN = WebViewClient.ERROR_UNKNOWN;
 	@Kroll.constant public static final int URL_ERROR_UNSUPPORTED_SCHEME = WebViewClient.ERROR_UNSUPPORTED_SCHEME;
 	
-	@Kroll.constant public static final int MENU_PANNING_NONE = 0;
-	@Kroll.constant public static final int MENU_PANNING_ALL_VIEWS = 1;
-	@Kroll.constant public static final int MENU_PANNING_CENTER_VIEW = 2;
-	@Kroll.constant public static final int MENU_PANNING_BORDERS = 3;
-	
 	@Kroll.constant public static final int LEFT_VIEW = 0;
 	@Kroll.constant public static final int RIGHT_VIEW = 1;
 	
