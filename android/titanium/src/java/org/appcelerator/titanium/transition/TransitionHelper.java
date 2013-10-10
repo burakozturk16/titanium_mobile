@@ -79,6 +79,7 @@ public class TransitionHelper {
 		public void setTargets(boolean reversed, View inTarget, View outTarget) {
 			super.setTargets(reversed, inTarget, outTarget);
 			ViewHelper.setAlpha(inTarget, 0.0f);
+			outTarget.bringToFront();
 		}
 	}
 	
