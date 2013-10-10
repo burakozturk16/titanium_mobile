@@ -19,26 +19,24 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.TiBlob;
-
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
+import ti.modules.titanium.ui.slidemenu.SlideMenuOptionsModule;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Message;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
-	TiC.PROPERTY_LEFT_VIEW,
-	TiC.PROPERTY_CENTER_VIEW,
-	TiC.PROPERTY_RIGHT_VIEW,
-	TiC.PROPERTY_PANNING_MODE,
-	TiC.PROPERTY_LEFT_VIEW_WIDTH,
-	TiC.PROPERTY_RIGHT_VIEW_WIDTH,
-	TiC.PROPERTY_FADING,
-	TiC.PROPERTY_LEFT_VIEW_DISPLACEMENT,
-	TiC.PROPERTY_RIGHT_VIEW_DISPLACEMENT,
+	SlideMenuOptionsModule.PROPERTY_LEFT_VIEW,
+	SlideMenuOptionsModule.PROPERTY_CENTER_VIEW,
+	SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW,
+	SlideMenuOptionsModule.PROPERTY_PANNING_MODE,
+	SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH,
+	SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH,
+	SlideMenuOptionsModule.PROPERTY_FADING,
+	SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_DISPLACEMENT,
+	SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT,
 	TiC.PROPERTY_SHADOW_WIDTH
 })
 public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow

@@ -917,11 +917,6 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_CENTER_VIEW = "centerView";
-
-	/**
-	 * @module.api
-	 */
 	public static final String PROPERTY_CHARSET = "charset";
 
 	/**
@@ -1180,11 +1175,6 @@ public class TiC
 	 */
 	public static final String PROPERTY_EXIT_ON_CLOSE = "exitOnClose";
 
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_FADING = "fading";
-	
 	/**
 	 * @module.api
 	 */
@@ -1521,21 +1511,6 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_LEFT_VIEW = "leftView";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_LEFT_VIEW_DISPLACEMENT = "leftViewDisplacement";
-	
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_LEFT_VIEW_WIDTH = "leftViewWidth";
-
-	/**
-	 * @module.api
-	 */
 	public static final String PROPERTY_LENGTH = "length";
 
 	/**
@@ -1800,11 +1775,6 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_PANNING_MODE = "panningMode";
-
-	/**
-	 * @module.api
-	 */
 	public static final String PROPERTY_PARENT = "parent";
 	
 	/**
@@ -1963,21 +1933,6 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_RIGHT_IMAGE = "rightImage";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_RIGHT_VIEW = "rightView";
-	
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_RIGHT_VIEW_DISPLACEMENT = "rightViewDisplacement";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_RIGHT_VIEW_WIDTH = "rightViewWidth";
 
 	/**
 	 * @module.api

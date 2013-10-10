@@ -17,15 +17,17 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.content.res.Configuration;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.view.animation.Interpolator;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.CanvasTransformer;
 
 import ti.modules.titanium.ui.SlideMenuProxy;
 import ti.modules.titanium.ui.UIModule;
-import ti.modules.titanium.ui.WindowProxy;
 import ti.modules.titanium.ui.widget.TiUIScrollableView.TiViewPagerLayout;
 
 public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListener{
@@ -37,8 +39,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private TiBaseActivity activity;
 	private int menuWidth;
 	private int rightMenuWidth;
-	private TiDimension leftViewDisplacement =  new TiDimension(0, TiDimension.TYPE_WIDTH);
-	private TiDimension rightViewDisplacement =  new TiDimension(0, TiDimension.TYPE_WIDTH);
+	private static TiDimension defaultDisplacement = new TiDimension(0, TiDimension.TYPE_WIDTH);
+	private TiDimension leftViewDisplacement =  defaultDisplacement;
+	private TiDimension rightViewDisplacement =  defaultDisplacement;
 	
 	public TiUISlideMenu(final SlideMenuProxy proxy, TiBaseActivity activity)
 	{
@@ -180,14 +183,66 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		return rightMenuWidth;
 	}
 	
+	// for animations
+	private static Interpolator interp = new Interpolator() {
+		@Override
+		public float getInterpolation(float t) {
+			t -= 1.0f;
+			return t * t * t + 1.0f;
+		}		
+	};
+		
+	private void updateAnimationMode(int mode, boolean right)
+	{
+		CanvasTransformer transformer = null;
+		if (mode == SlideMenuOptionsModule.ANIMATION_SCALE) {
+			// scale
+			transformer = new CanvasTransformer() {
+				@Override
+				public void transformCanvas(Canvas canvas, float percentOpen) {
+					canvas.scale(percentOpen, 1, 0, 0);
+				}			
+			};	
+		} else if (mode == SlideMenuOptionsModule.ANIMATION_SLIDEUP) {
+			// slide
+			transformer = new CanvasTransformer() {
+				@Override
+				public void transformCanvas(Canvas canvas, float percentOpen) {
+					canvas.translate(0, canvas.getHeight()*(1-interp.getInterpolation(percentOpen)));
+				}			
+			};
+		} else if (mode == SlideMenuOptionsModule.ANIMATION_ZOOM) {
+			// zoom animation
+			transformer = new CanvasTransformer() {
+				@Override
+				public void transformCanvas(Canvas canvas, float percentOpen) {
+					float scale = (float) (percentOpen*0.25 + 0.75);
+					canvas.scale(scale, scale, canvas.getWidth()/2, canvas.getHeight()/2);
+				}
+			};
+		}
+		
+		if (right)
+			slidingMenu.setBehindSecondaryCanvasTransformer(transformer);
+		else 
+			slidingMenu.setBehindCanvasTransformer(transformer);
+		// we need to reset the scrollScale when applying custom animations
+		if( transformer != null){
+			leftViewDisplacement = defaultDisplacement;
+			rightViewDisplacement = defaultDisplacement;
+			updateDisplacements();
+		}
+
+	}
+	
 	private void updatePanningMode(int panningMode)
 	{
 		slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		if (panningMode == UIModule.MENU_PANNING_BORDERS) {
+		if (panningMode == SlideMenuOptionsModule.MENU_PANNING_BORDERS) {
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_MARGIN);
-		} else if (panningMode == UIModule.MENU_PANNING_CENTER_VIEW)
+		} else if (panningMode == SlideMenuOptionsModule.MENU_PANNING_CENTER_VIEW)
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		else if (panningMode == UIModule.MENU_PANNING_ALL_VIEWS) {
+		else if (panningMode == SlideMenuOptionsModule.MENU_PANNING_ALL_VIEWS) {
 			slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
 			slidingMenu.setTouchModeBehind(SlidingMenu.TOUCHMODE_FULLSCREEN);
 		} else{
@@ -234,38 +289,44 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				activityProxy.handleCreationDict(options);
 			}
 		}
-		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW)) {
-			setProxy((TiViewProxy) d.get(TiC.PROPERTY_LEFT_VIEW), 1);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW)) {
+			setProxy((TiViewProxy) d.get(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW), 1);
 		}
-		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW)) {
-			setProxy((TiViewProxy) d.get(TiC.PROPERTY_RIGHT_VIEW), 2);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW)) {
+			setProxy((TiViewProxy) d.get(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW), 2);
 		}
 		
-		if (d.containsKey(TiC.PROPERTY_CENTER_VIEW)) {
-			setProxy((TiViewProxy) d.get(TiC.PROPERTY_CENTER_VIEW), 0);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW)) {
+			setProxy((TiViewProxy) d.get(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW), 0);
 		}
 		
 		updateMenus();	
 		
-		if (d.containsKey(TiC.PROPERTY_PANNING_MODE)) {
-			updatePanningMode(TiConvert.toInt(d.get(TiC.PROPERTY_PANNING_MODE), UIModule.MENU_PANNING_CENTER_VIEW));
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_PANNING_MODE)) {
+			updatePanningMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_PANNING_MODE), SlideMenuOptionsModule.MENU_PANNING_CENTER_VIEW));
 		}
 
-		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
-			menuWidth = d.getInt(TiC.PROPERTY_LEFT_VIEW_WIDTH);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH)) {
+			menuWidth = d.getInt(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH);
 		}
-		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW_WIDTH)) {
-			rightMenuWidth = d.getInt(TiC.PROPERTY_RIGHT_VIEW_WIDTH);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH)) {
+			rightMenuWidth = d.getInt(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH);
 		}
 		
-		if (d.containsKey(TiC.PROPERTY_FADING)) {
-			slidingMenu.setFadeDegree(d.getDouble(TiC.PROPERTY_FADING).floatValue());
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_FADING)) {
+			slidingMenu.setFadeDegree(d.getDouble(SlideMenuOptionsModule.PROPERTY_FADING).floatValue());
 		}
-		if (d.containsKey(TiC.PROPERTY_LEFT_VIEW_DISPLACEMENT)) {
-			leftViewDisplacement = TiConvert.toTiDimension(d, TiC.PROPERTY_LEFT_VIEW_DISPLACEMENT, TiDimension.TYPE_WIDTH);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_DISPLACEMENT)) {
+			leftViewDisplacement = TiConvert.toTiDimension(d, SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_DISPLACEMENT, TiDimension.TYPE_WIDTH);
 		}
-		if (d.containsKey(TiC.PROPERTY_RIGHT_VIEW_DISPLACEMENT)) {
-			rightViewDisplacement = TiConvert.toTiDimension(d, TiC.PROPERTY_RIGHT_VIEW_DISPLACEMENT, TiDimension.TYPE_WIDTH);
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT)) {
+			rightViewDisplacement = TiConvert.toTiDimension(d, SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT, TiDimension.TYPE_WIDTH);
+		}
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
+			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)), false);
+		}
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
+			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)), true);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_WIDTH)) {
 			slidingMenu.setShadowWidth(d.getInt(TiC.PROPERTY_SHADOW_WIDTH));
@@ -281,28 +342,32 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	{
 		Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 
-		if (key.equals(TiC.PROPERTY_LEFT_VIEW)) {
+		if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW)) {
 			setProxy((TiViewProxy) newValue, 1);
 			updateMenus();	
-		} else if (key.equals(TiC.PROPERTY_RIGHT_VIEW)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW)) {
 			setProxy((TiViewProxy) newValue, 2);
 			updateMenus();	
-		} else if (key.equals(TiC.PROPERTY_CENTER_VIEW)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW)) {
 			setProxy((TiViewProxy) newValue, 0);
-		} else if (key.equals(TiC.PROPERTY_PANNING_MODE)) {
-			updatePanningMode(TiConvert.toInt(newValue, UIModule.MENU_PANNING_CENTER_VIEW));
-		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_WIDTH)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_PANNING_MODE)) {
+			updatePanningMode(TiConvert.toInt(newValue, SlideMenuOptionsModule.MENU_PANNING_CENTER_VIEW));
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH)) {
 			menuWidth = TiConvert.toInt(newValue);
 			updateMenuWidth();
-		} else if (key.equals(TiC.PROPERTY_RIGHT_VIEW_WIDTH)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH)) {
 			menuWidth = TiConvert.toInt(newValue);
 			updateMenuWidth();
-		} else if (key.equals(TiC.PROPERTY_FADING)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_FADING)) {
 			slidingMenu.setFadeDegree(TiConvert.toFloat(newValue));
-		} else if (key.equals(TiC.PROPERTY_LEFT_VIEW_DISPLACEMENT)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
+			updateAnimationMode(TiConvert.toInt(newValue), false);
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
+			updateAnimationMode(TiConvert.toInt(newValue), true);
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_DISPLACEMENT)) {
 			leftViewDisplacement = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateDisplacements();
-		} else if (key.equals(TiC.PROPERTY_RIGHT_VIEW_DISPLACEMENT)) {
+		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT)) {
 			rightViewDisplacement = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateDisplacements();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_WIDTH)) {
