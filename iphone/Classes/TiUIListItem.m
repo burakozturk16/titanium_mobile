@@ -176,7 +176,7 @@ DEFINE_EXCEPTIONS
 	{
 		uicolor = [[TiUtils colorValue:color] _color];
 	}
-    super.backgroundColor = uicolor;
+    super.contentView.backgroundColor = uicolor;
 
 }
 
