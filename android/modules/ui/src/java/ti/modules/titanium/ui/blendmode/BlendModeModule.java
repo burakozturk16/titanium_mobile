@@ -21,6 +21,7 @@ public class BlendModeModule extends KrollModule {
 	@Kroll.constant public static final int DST_ATOP = Mode.DST_ATOP.ordinal();
 	@Kroll.constant public static final int DST_IN = Mode.DST_IN.ordinal();
 	@Kroll.constant public static final int DST_OUT = Mode.DST_OUT.ordinal();
+	@Kroll.constant public static final int DST_OVER = Mode.DST_OVER.ordinal();
 	@Kroll.constant public static final int SRC_ATOP = Mode.SRC_ATOP.ordinal();
 	@Kroll.constant public static final int SRC_IN = Mode.SRC_IN.ordinal();
 	@Kroll.constant public static final int SRC_OUT = Mode.SRC_OUT.ordinal();

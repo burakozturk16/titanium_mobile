@@ -1494,7 +1494,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 	@SuppressWarnings("unchecked")
 	@Kroll.method
-	public TiBlob blurBackground(Object arg, @Kroll.argument(optional=true) HashMap options)
+	public void blurBackground(Object arg, @Kroll.argument(optional=true) HashMap options)
 	{
 		if (peekView() != null) {
 			String[] properties = null;
@@ -1514,6 +1514,5 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				getMainHandler().obtainMessage(MSG_BLUR_BACKGROUND, options).sendToTarget();
 			}
 		} 
-		return null;
 	}
 }
