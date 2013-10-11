@@ -84,15 +84,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     CGSize toolbarSize = self.toolbar.frame.size;
     self.toolbar.frame = (CGRect){CGPointMake(0.f, CGRectGetHeight(self.view.bounds) - toolbarSize.height), toolbarSize};
     [self.navigationBar sizeToFit];
-    CGRect navigationBarFrame = self.navigationBar.frame;
-    CGPoint framOrigin = [self.view convertPoint:self.view.frame.origin toView:nil];
-    if (framOrigin.y >= _statusBarDecale) {
-        _realStatusBarDecale = navigationBarFrame.origin.y = 0;
-        [self.navigationBar setFrame:navigationBarFrame];
-    }
-    else {
-        _realStatusBarDecale = _statusBarDecale;
-    }
+    CGRect frame  =self.navigationBar.frame;
+    frame.size = frame.size;
 }
 
 - (void)loadView {
@@ -537,7 +530,22 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 {
     if ([bar isKindOfClass:[UIToolbar class]])
         return UIBarPositionBottom;
-    return UIBarPositionTopAttached;
+    else  {
+        UIBarPosition position;
+        CGPoint framOrigin = [self.view convertPoint:self.view.frame.origin toView:nil];
+        if (framOrigin.y >= _statusBarDecale) {
+            _realStatusBarDecale = 0;
+            position = UIBarPositionTop;
+        }
+        else {
+            _realStatusBarDecale = _statusBarDecale;
+            position = UIBarPositionTopAttached;
+        }
+        CGRect frame  =self.navigationBar.frame;
+        frame.origin = CGPointMake(0, _realStatusBarDecale);
+        self.navigationBar.frame = frame;
+        return position;
+    }
 }
 
 @end
@@ -633,6 +641,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    
     [self updateLayout];
     [self updateLayoutForController:self.viewControllers.lastObject];
 }
