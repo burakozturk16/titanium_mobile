@@ -37,6 +37,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     BOOL _shoudPopItem;
     BOOL _ios7OrGreater;
     CGFloat _statusBarDecale;
+    CGFloat _realStatusBarDecale;
 }
 @end
 
@@ -83,6 +84,15 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     CGSize toolbarSize = self.toolbar.frame.size;
     self.toolbar.frame = (CGRect){CGPointMake(0.f, CGRectGetHeight(self.view.bounds) - toolbarSize.height), toolbarSize};
     [self.navigationBar sizeToFit];
+    CGRect navigationBarFrame = self.navigationBar.frame;
+    CGPoint framOrigin = [self.view convertPoint:self.view.frame.origin toView:nil];
+    if (framOrigin.y >= _statusBarDecale) {
+        _realStatusBarDecale = navigationBarFrame.origin.y = 0;
+        [self.navigationBar setFrame:navigationBarFrame];
+    }
+    else {
+        _realStatusBarDecale = _statusBarDecale;
+    }
 }
 
 - (void)loadView {
@@ -108,7 +118,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     // Create and add navigation bar to the view
     id vcbasedStatHidden = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIViewControllerBasedStatusBarAppearance"];
 
-    _statusBarDecale = (_ios7OrGreater && (!vcbasedStatHidden || [vcbasedStatHidden boolValue]))?20:0;
+    _realStatusBarDecale = _statusBarDecale = (_ios7OrGreater && (!vcbasedStatHidden || [vcbasedStatHidden boolValue]))?20:0;
     _navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, _statusBarDecale, 0, 0)];
     _navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
     _navigationBar.delegate = self;
@@ -208,7 +218,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
             UIEdgeInsets inset = UIEdgeInsetsMake(0, 0, 0, 0);
             if (!topCrop && navigationBarHeight > 0 && scrollviewRect.origin.y <= navigationBarHeight)
             {
-                inset.top = navigationBarHeight + _statusBarDecale - scrollviewRect.origin.y;
+                inset.top = navigationBarHeight + _realStatusBarDecale - scrollviewRect.origin.y;
             }
             if (!bottomCrop && toolbarHeight > 0)
             {
@@ -251,8 +261,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     CGFloat navigationBarHeight = _navigationBar.frame.size.height;
     CGFloat toolbarHeight = _toolbar.frame.size.height;
     if (topCrop) {
-        frame.origin.y = navigationBarHeight;
-        frame.size.height -= navigationBarHeight;
+        frame.origin.y = navigationBarHeight + _realStatusBarDecale;
+        frame.size.height -= navigationBarHeight + _realStatusBarDecale;
     }
     if (bottomCrop) {
         frame.size.height -= toolbarHeight;
@@ -625,6 +635,25 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
     [self updateLayout];
     [self updateLayoutForController:self.viewControllers.lastObject];
+}
+
+#pragma mark - iOS 7 Status Bar Helpers
+-(UIViewController*)childViewControllerForStatusBarStyle{
+    return self.viewControllers.lastObject;
+}
+
+-(UIViewController*)childViewControllerForStatusBarHidden{
+    return self.viewControllers.lastObject;
+}
+
+-(void)setNeedsStatusBarAppearanceUpdateIfSupported{
+    if([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]){
+        [self performSelector:@selector(setNeedsStatusBarAppearanceUpdate)];
+    }
+}
+
+-(UIStatusBarStyle)preferredStatusBarStyle{
+    return [self.viewControllers.lastObject preferredStatusBarStyle];
 }
 
 @end
