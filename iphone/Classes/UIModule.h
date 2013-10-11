@@ -44,6 +44,9 @@
 #ifdef USE_TI_UISLIDEMENUOPTIONS
 	TiProxy *slideMenuOptions;
 #endif
+#ifdef USE_TI_UIBLENDMODE
+	TiProxy *blendMode;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -127,35 +130,6 @@
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_DATE;
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_TIME;
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_COUNT_DOWN_TIMER;
-
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_NORMAL;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_MULTIPLY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SCREEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_OVERLAY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DARKEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_LIGHTEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR_DODGE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR_BURN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOFT_LIGHT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_HARD_LIGHT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DIFFERENCE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_EXCLUSION;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_HUE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SATURATION;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_LUMINOSITY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_CLEAR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COPY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_IN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_OUT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_ATOP;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_OVER;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_IN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_OUT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_ATOP;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_XOR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_PLUS_DARKER;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_PLUS_LIGHTER;
 
 @property(nonatomic,readonly) NSNumber *AUTODETECT_NONE;
 @property(nonatomic,readonly) NSNumber *AUTODETECT_ALL;
@@ -264,6 +238,9 @@
 #endif
 #ifdef USE_TI_UISLIDEMENUOPTIONS
 @property(nonatomic,readonly) TiProxy* SlideMenuOptions;
+#endif
+#ifdef USE_TI_UIBLENDMODE
+@property(nonatomic,readonly) TiProxy* BlendMode;
 #endif
 @end
 

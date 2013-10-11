@@ -66,6 +66,9 @@
 #ifdef USE_TI_UISLIDEMENUOPTIONS
 #import "TiUISlideMenuOptionsProxy.h"
 #endif
+#ifdef USE_TI_UIBLENDMODE
+#import "TiUIBlendModeProxy.h"
+#endif
 
 #define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
 -(TiProxy*)methodName	\
@@ -120,6 +123,9 @@ return ivarName;	\
 #endif
 #ifdef USE_TI_UISLIDEMENUOPTIONS
     FORGET_AND_RELEASE(slideMenuOptions);
+#endif
+#ifdef USE_TI_UIBLENDMODE
+    FORGET_AND_RELEASE(blendMode);
 #endif
 	[super dealloc];
 }
@@ -501,6 +507,17 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 	return slideMenuOptions;
 }
 #endif
+#ifdef USE_TI_UIBLENDMODE
+-(id)BlendMode
+{
+	if (blendMode==nil)
+	{
+		blendMode = [[TiUIBlendModeProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:blendMode];
+	}
+	return blendMode;
+}
+#endif
 #endif
 #pragma mark Internal Memory Management
 
@@ -527,8 +544,14 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 #ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
 	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+	FORGET_AND_RELEASE(transitionStyle);
+#endif
 #ifdef USE_TI_UISLIDEMENUOPTIONS
 	FORGET_AND_RELEASE(slideMenuOptions);
+#endif
+#ifdef USE_TI_UIBLENDMODE
+	FORGET_AND_RELEASE(blendMode);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }

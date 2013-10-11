@@ -24,6 +24,8 @@
 #import "ADTransition.h"
 #import "ADTransformTransition.h"
 #import "ADDualTransition.h"
+#import "TiImageHelper.h"
+
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
@@ -1805,4 +1807,67 @@ DEFINE_EXCEPTIONS
         NSAssert(FALSE, @"Unhandled ADTransition subclass!");
     }
 }
+
+- (void)blurBackground:(id)args
+{
+    //get the visible rect
+    CGRect visibleRect = [self.superview convertRect:self.frame toView:self];
+    visibleRect.origin.y += self.frame.origin.y;
+    visibleRect.origin.x += self.frame.origin.x;
+    
+    //hide all the blurred views from the superview before taking a screenshot
+    CGFloat alpha = self.alpha;
+    CGFloat superviewAlpha = self.superview.alpha;
+    self.alpha = 0.0f;
+    if (superviewAlpha == 0) {
+        self.superview.alpha = 1.0f;
+    }
+    //Render the layer in the image context
+    //Render the layer in the image context
+    UIGraphicsBeginImageContextWithOptions(visibleRect.size, NO, 1.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(context, -visibleRect.origin.x, -visibleRect.origin.y);
+    CALayer *layer = self.superview.layer;
+    [layer renderInContext:context];
+    
+    //show all the blurred views from the superview before taking a screenshot
+    self.alpha = alpha;
+    self.superview.alpha = superviewAlpha;
+   
+    __block UIImage *image = [UIGraphicsGetImageFromCurrentImageContext() retain];
+    UIGraphicsEndImageContext();
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        NSArray* properties;
+        id firstArg = [args objectAtIndex:0];
+        if ([firstArg isKindOfClass:[NSArray class]]) {
+            properties = firstArg;
+        }
+        else {
+            properties = [NSArray arrayWithObject:[TiUtils stringValue:firstArg]];
+        }
+        NSDictionary* options;
+        ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary)
+        [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterBoxBlur]] forKey:@"filters"];
+        UIImage* result = [[TiImageHelper imageFiltered:[image autorelease] withOptions:options] retain];
+        if ([options objectForKey:@"callback"]) {
+            id callback = [options objectForKey:@"callback"];
+            ENSURE_TYPE(callback, KrollCallback)
+            if (callback != nil) {
+                TiThreadPerformOnMainThread(^{
+                    TiBlob* blob = [[TiBlob alloc] initWithImage:result];
+                    NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+                    [self.proxy _fireEventToListener:@"blurBackground" withObject:event listener:callback thisObject:nil];
+
+                    [blob release];
+                }, NO);
+            }
+        }
+            for (NSString* property in properties) {
+                [self.proxy setValue:result forKey:property];
+            }
+        [result release];
+    });
+}
+
 @end

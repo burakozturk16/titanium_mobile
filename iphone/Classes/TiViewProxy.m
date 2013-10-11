@@ -3415,4 +3415,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
 }
 
+-(void)blurBackground:(id)args
+{
+    ENSURE_UI_THREAD_1_ARG(args)
+    if ([self viewAttached]) {
+        [[self view] blurBackground:args];
+    }
+}
+
+
 @end
