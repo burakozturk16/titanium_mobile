@@ -797,7 +797,7 @@
 		if (shouldUpdateNavBar && controller!=nil && navController != nil)
 		{
 			NSArray *existing = [controller toolbarItems];
-			UINavigationController * ourNC = navController;
+//			UINavigationController * ourNC = navController;
 			if (existing!=nil)
 			{
 				for (id current in existing)
@@ -824,14 +824,14 @@
 			TiColor* toolbarColor = [TiUtils colorValue:@"barColor" properties:properties];
 			UIColor* barColor = [TiUtils barColorForColor:toolbarColor];
 			[controller setToolbarItems:array animated:animated];
-			[ourNC setToolbarHidden:(hasToolbar == NO ? YES : NO) animated:animated];
-			[[ourNC toolbar] setTranslucent:translucent];
+			[navController setToolbarHidden:(hasToolbar == NO ? YES : NO) animated:animated];
+			[[navController toolbar] setTranslucent:translucent];
 			if ([TiUtils isIOS7OrGreater]) {
 				UIColor* tintColor = [[TiUtils colorValue:@"tintColor" properties:properties] color];
-				[[ourNC toolbar] performSelector:@selector(setBarTintColor:) withObject:barColor];
-				[[ourNC toolbar] setTintColor:tintColor];
+				[[navController toolbar] performSelector:@selector(setBarTintColor:) withObject:barColor];
+				[[navController toolbar] setTintColor:tintColor];
 			} else {
-				[[ourNC toolbar] setTintColor:barColor];
+				[[navController toolbar] setTintColor:barColor];
 			}
 			[array release];
 			
