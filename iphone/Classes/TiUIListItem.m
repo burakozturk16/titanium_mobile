@@ -176,8 +176,7 @@ DEFINE_EXCEPTIONS
 	{
 		uicolor = [[TiUtils colorValue:color] _color];
 	}
-    super.contentView.backgroundColor = uicolor;
-
+    [[self getOrCreateBackgroundView].selectableLayer setColor:uicolor forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
