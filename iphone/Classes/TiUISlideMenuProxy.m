@@ -23,53 +23,14 @@
 	return self;
 }
 
--(void)windowDidOpen {
-	[super windowDidOpen];
-	[self reposition];
-}
-
--(SWRevealViewController *)_controller {
+-(SlideMenuDrawerController *)_controller {
 	return [(TiUISlideMenu*)[self view] controller];
 }
 
 -(TiUIView*)newView {
-    TiUISlideMenu* menu = [[TiUISlideMenu alloc] init];
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(underLeftWillAppear:)
-//                                                 name:ECSlidingViewUnderLeftWillAppear
-//                                               object:[menu controller]];
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(underLeftWillDisappear:)
-//                                                 name:ECSlidingViewUnderLeftWillDisappear
-//                                               object:[menu controller]];
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(topDidAnchorRight:)
-//                                                 name:ECSlidingViewTopDidAnchorRight
-//                                               object:[menu controller]];
-    
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(underRightWillAppear:)
-//                                                 name:ECSlidingViewUnderRightWillAppear
-//                                               object:[menu controller]];
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(underRightWillDisappear:)
-//                                                 name:ECSlidingViewUnderRightWillDisappear
-//                                               object:[menu controller]];
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(topDidAnchorLeft:)
-//                                                 name:ECSlidingViewTopDidAnchorLeft
-//                                               object:[menu controller]];
-//    
-//    [[NSNotificationCenter defaultCenter] addObserver:self
-//                                             selector:@selector(topDidReset:)
-//                                                 name:ECSlidingViewTopDidReset
-//                                               object:[menu controller]];
+    CGRect frame = [TiUtils appFrame];
+    TiUISlideMenu* menu = [[TiUISlideMenu alloc] initWithFrame:frame];
 	return menu;
-}
-
--(void)_configure
-{
-	[super _configure];
 }
 
 #pragma mark - TiWindowProtocol
@@ -106,7 +67,7 @@
 
 -(BOOL) hidesStatusBar
 {
-    UIViewController* topVC = [[self _controller] frontViewController];
+    UIViewController* topVC = [[self _controller] centerViewController];
     if ([topVC isKindOfClass:[TiViewController class]]) {
         TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
         if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
@@ -118,7 +79,7 @@
 
 -(void)gainFocus
 {
-    UIViewController* topVC = [[self _controller] frontViewController];
+    UIViewController* topVC = [[self _controller] centerViewController];
     if ([topVC isKindOfClass:[TiViewController class]]) {
         TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
         if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
@@ -130,7 +91,7 @@
 
 -(void)resignFocus
 {
-    UIViewController* topVC = [[self _controller] frontViewController];
+    UIViewController* topVC = [[self _controller] centerViewController];
     if ([topVC isKindOfClass:[TiViewController class]]) {
         TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
         if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
@@ -166,12 +127,12 @@
 
 -(id)getRealLeftViewWidth:(id)args
 {
-    return NUMFLOAT([self _controller].rearViewRevealWidth);
+    return NUMFLOAT([self _controller].maximumLeftDrawerWidth);
 }
 
 -(id)getRealRightViewWidth:(id)args
 {
-    return NUMFLOAT([self _controller].rightViewRevealWidth);
+    return NUMFLOAT([self _controller].maximumRightDrawerWidth);
 }
 
 -(void)toggleLeftView:(id)args
@@ -182,7 +143,8 @@
 	if (args != nil)
 		animated = [args boolValue];
         
-    [[self _controller] revealToggleAnimated:animated];}
+    [[self _controller] toggleDrawerSide:MMDrawerSideLeft animated:animated completion:nil];
+}
 -(void)toggleRightView:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
@@ -191,7 +153,7 @@
 	if (args != nil)
 		animated = [args boolValue];
     
-    [[self _controller] rightRevealToggleAnimated:animated];
+    [[self _controller] toggleDrawerSide:MMDrawerSideRight animated:animated completion:nil];
 
 }
 
@@ -202,8 +164,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
-//    [self willShowSide:0 animated:animated];
-  [[self _controller] setFrontViewPosition:FrontViewPositionRight animated:animated];
+  [[self _controller] openDrawerSide:MMDrawerSideLeft animated:animated completion:nil];
 }
 
 -(void)openRightView:(id)args
@@ -213,8 +174,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
-//    [self willShowSide:1 animated:animated];
-    [[self _controller] setFrontViewPosition:FrontViewPositionLeftSide animated:animated];
+    [[self _controller] openDrawerSide:MMDrawerSideRight animated:animated completion:nil];
 }
 
 -(void)closeLeftView:(id)args
@@ -224,8 +184,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
-//    [self willHideSide:0 animated:animated];
-    [[self _controller] setFrontViewPosition:FrontViewPositionLeft animated:animated];
+    [[self _controller] closeDrawerAnimated:animated completion:nil];
 }
 
 -(void)closeRightView:(id)args
@@ -235,8 +194,7 @@
     BOOL animated = YES;
 	if (args != nil)
 		animated = [args boolValue];
-//    [self willHideSide:1 animated:animated];
-    [[self _controller] setFrontViewPosition:FrontViewPositionLeft animated:animated];
+    [[self _controller] closeDrawerAnimated:animated completion:nil];
 }
 
 @end

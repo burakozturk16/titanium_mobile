@@ -9,12 +9,9 @@
 #import "TiBase.h"
 #import "TiWindowProxy.h"
 #import "TiUISlideMenuProxy.h"
-//#import "IIViewDeckController.h"
 
-//@interface TiUISlideMenuProxy : TiWindowProxy<IIViewDeckControllerDelegate> {
 @interface TiUISlideMenuProxy : TiWindowProxy {
     
 }
--(UIViewController *) controllerForViewProxy:(TiViewProxy * )proxy;
 
 @end

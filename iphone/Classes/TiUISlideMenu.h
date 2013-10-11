@@ -6,19 +6,10 @@
  */
 #import "TiBase.h"
 #import "TiUIView.h"
-//#import "ECSlidingViewController.h"
-#import "SWRevealViewController.h"
+#import "SlideMenuDrawerController.h"
 
-/** @constant PanningMode */
-typedef enum {
-    PanningModeNone,
-    PanningModeCenterView,
-    PanningModeNavBar,
-    PanningModeBorders
-} PanningMode;
-
-@interface TiUISlideMenu : TiUIView<SWRevealViewControllerDelegate>{
+@interface TiUISlideMenu : TiUIView{
 }
--(SWRevealViewController*)controller;
+-(SlideMenuDrawerController*)controller;
 
 @end

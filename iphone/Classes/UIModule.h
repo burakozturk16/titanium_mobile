@@ -41,6 +41,9 @@
 #ifdef USE_TI_UITRANSITIONSTYLE
 	TiProxy *transitionStyle;
 #endif
+#ifdef USE_TI_UISLIDEMENUOPTIONS
+	TiProxy *slideMenuOptions;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -214,15 +217,6 @@
 @property(nonatomic,readonly) NSString *TEXT_STYLE_CAPTION1;
 @property(nonatomic,readonly) NSString *TEXT_STYLE_CAPTION2;
 
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_NONE;
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_ALL_VIEWS;
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_BORDERS;
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_NAV_BAR;
-@property(nonatomic,readonly) NSNumber *MENU_PANNING_CENTER_VIEW;
-
-@property(nonatomic,readonly) NSNumber *LEFT_VIEW;
-@property(nonatomic,readonly) NSNumber *RIGHT_VIEW;
-
 @property(nonatomic,readonly) NSNumber *INFINITE;
 
 #ifdef USE_TI_UI2DMATRIX
@@ -267,6 +261,9 @@
 
 #ifdef USE_TI_UITRANSITIONSTYLE
 @property(nonatomic,readonly) TiProxy* TransitionStyle;
+#endif
+#ifdef USE_TI_UISLIDEMENUOPTIONS
+@property(nonatomic,readonly) TiProxy* SlideMenuOptions;
 #endif
 @end
 
