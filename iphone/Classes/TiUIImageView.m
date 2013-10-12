@@ -343,7 +343,7 @@ DEFINE_EXCEPTIONS
         imageView.backgroundColor = [UIColor clearColor];
 		[imageView setContentMode:[self contentModeForImageView]];
 		[self addSubview:imageView];
-        [self sendSubviewToBack:imageView];
+//        [self sendSubviewToBack:imageView];
 	}
 	return imageView;
 }
