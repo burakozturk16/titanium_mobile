@@ -30,7 +30,7 @@ static NSArray* scrollViewKeySequence;
     if (scrollViewKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        scrollViewKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"minZoomScale",@"maxZoomScale",@"zoomScale",nil]] retain];
+        scrollViewKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"minZoomScale",@"maxZoomScale",@"zoomScale"]] retain];
     }
     return scrollViewKeySequence;
 }

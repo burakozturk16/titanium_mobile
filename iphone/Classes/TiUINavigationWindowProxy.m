@@ -255,13 +255,13 @@
     [window windowWillOpen];
     if (animated) {
         ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionRightToLeft];
+        float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
         if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
-            float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
             NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
             [navController pushViewController:[window hostingController] withTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
         }
         else {
-            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:defaultDuration/1000 subType:subtype]];
+            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:duration subType:subtype]];
         }
     }
     else {

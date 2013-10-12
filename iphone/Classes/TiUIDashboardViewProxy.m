@@ -22,7 +22,7 @@ NSArray* dashboardKeySequence;
 {
 	if (dashboardKeySequence == nil)
 	{
-		dashboardKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"rowCount",@"columnCount",nil]] retain];
+		dashboardKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"rowCount",@"columnCount"]] retain];
 	}
 	return dashboardKeySequence;
 }

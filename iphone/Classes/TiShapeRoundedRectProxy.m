@@ -45,7 +45,7 @@ static NSArray *animationKeys;
 + (NSArray *)animationKeys
 {
     if (!animationKeys)
-        animationKeys = [[[super animationKeys] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:kAnimCornerRadii,nil]] retain];
+        animationKeys = [[[super animationKeys] arrayByAddingObject:kAnimCornerRadii] retain];
     
     return animationKeys;
 }

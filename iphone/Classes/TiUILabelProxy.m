@@ -232,7 +232,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 	static NSArray *labelKeySequence = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		labelKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"font",@"color",@"textAlign",@"multiLineEllipsize",nil]] retain];
+		labelKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"font",@"color",@"textAlign",@"multiLineEllipsize"]] retain];
 	});
 	return labelKeySequence;
 }

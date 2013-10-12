@@ -47,7 +47,7 @@ static NSArray *animationKeys;
 + (NSArray *)animationKeys
 {
     if (!animationKeys)
-        animationKeys = [[[super animationKeys] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:kAnimInnerRadius,nil]] retain];
+        animationKeys = [[[super animationKeys] arrayByAddingObject:kAnimInnerRadius] retain];
     
     return animationKeys;
 }

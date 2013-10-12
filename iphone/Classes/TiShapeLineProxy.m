@@ -42,7 +42,7 @@ static NSArray *animationKeys;
 + (NSArray *)animationKeys
 {
     if (!animationKeys)
-        animationKeys = [[[super animationKeys] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:kAnimPoints,nil]] retain];
+        animationKeys = [[[super animationKeys] arrayByAddingObject:kAnimPoints] retain];
     
     return animationKeys;
 }

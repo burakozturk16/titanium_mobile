@@ -36,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"width",@"height",@"scaleType",@"localLoadSync", nil]] retain];
+		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync"]] retain];
 	}
 	return imageKeySequence;
 }

@@ -121,6 +121,7 @@ DEFINE_EXCEPTIONS
     self.selectedBackgroundView = [[[TiCellBackgroundView alloc] initWithFrame:CGRectZero] autorelease];
     _bgSelectedView = (TiCellBackgroundView*)self.selectedBackgroundView;
     [_bgSelectedView selectableLayer].animateTransition = YES;
+    _bgSelectedView.alpha = self.contentView.alpha;
 
     [self updateBackgroundLayerCorners:_bgSelectedView];
     return _bgSelectedView;
@@ -152,6 +153,7 @@ DEFINE_EXCEPTIONS
             [self.backgroundView addSubview:_bgView];
         }
         [self updateBackgroundLayerCorners:_bgView];
+        _bgView.alpha = self.contentView.alpha;
     }
 
     return _bgView;
@@ -235,6 +237,26 @@ DEFINE_EXCEPTIONS
     [[self getOrCreateSelectedBackgroundView].selectableLayer setImage:bgImage forState:UIControlStateNormal];
 }
 
+-(void)setBackgroundOpacity_:(id)opacity
+{
+    [self getOrCreateBackgroundView].selectableLayer.opacity = [TiUtils floatValue:opacity def:1.0f];
+}
+
+-(void)setOpacity_:(id)opacity
+{
+ 	ENSURE_UI_THREAD_1_ARG(opacity);
+    
+	self.contentView.alpha = [TiUtils floatValue:opacity];
+    if (_bgView)
+    {
+        _bgView.alpha = self.contentView.alpha;
+    }
+    if (_bgSelectedView)
+    {
+        _bgSelectedView.alpha = self.contentView.alpha;
+    }
+}
+
 
 - (void)dealloc
 {
@@ -255,29 +277,26 @@ DEFINE_EXCEPTIONS
 	[super prepareForReuse];
 }
 
+static NSArray* handledKeys;
+-(NSArray *)handledKeys
+{
+    if (handledKeys == nil)
+    {
+        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font", @"opacity", @"backgroundGradient", @"backgroundImage", @"backgroundOpacity", @"backgroundColor"] retain];
+    }
+    return handledKeys;
+}
+
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-	if (_templateStyle != TiUIListItemTemplateStyleCustom && ([key isEqualToString:@"accessoryType"] ||
-                                                              [key isEqualToString:@"selectionStyle"] ||
-                                                              [key isEqualToString:@"title"] ||
-                                                              [key isEqualToString:@"subtitle"] ||
-                                                              [key isEqualToString:@"color"] ||
-                                                              [key isEqualToString:@"image"] ||
-                                                              [key isEqualToString:@"font"])) {
+	if (_templateStyle != TiUIListItemTemplateStyleCustom &&  [[self handledKeys] indexOfObject:key] != NSNotFound) {
         DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
     }
-    else if ([key isEqualToString:@"backgroundGradient"]) {
-        [self setBackgroundGradient_:newValue];
-    } else if ([key isEqualToString:@"selectedBackgroundGradient"] || [key isEqualToString:@"backgroundSelectedGradient"]) {
+    else if ([key isEqualToString:@"selectedBackgroundGradient"] || [key isEqualToString:@"backgroundSelectedGradient"]) {
         [self setBackgroundSelectedGradient_:newValue];
-	} else if ([key isEqualToString:@"backgroundImage"]) {
-        [self setBackgroundImage_:newValue];
 	} else if ([key isEqualToString:@"selectedBackgroundImage"] || [key isEqualToString:@"backgroundSelectedImage"]) {
         [self setBackgroundSelectedImage_:newValue];
 	} else if ([key isEqualToString:@"selectedBackgroundColor"] || [key isEqualToString:@"backgroundSelectedColor"]) {
-        [self setBackgroundSelectedColor_:newValue];
-	} else if ([key isEqualToString:@"backgroundColor"]) {
-        [self setBackgroundColor_:newValue];
 	} else {
         DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
     }

@@ -114,7 +114,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 {
 	if (tableKeySequence == nil)
 	{
-		tableKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:@"style",@"data",@"search",@"backgroundColor",nil]] retain];
+		tableKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"style",@"data",@"search",@"backgroundColor"]] retain];
 	}
 	return tableKeySequence;
 }

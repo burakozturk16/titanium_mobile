@@ -15,11 +15,9 @@
 
 -(NSArray *)keySequence
 {
-    return [[super keySequence] arrayByAddingObjectsFromArray:[NSArray arrayWithObjects:
-            @"animate",
+    return [[super keySequence] arrayByAddingObjectsFromArray:@[@"animate",
             @"location",
-            @"regionFit",
-            nil]];
+            @"regionFit"]];
 }
 
 -(void)_destroy
