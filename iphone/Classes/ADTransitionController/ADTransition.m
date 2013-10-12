@@ -7,6 +7,8 @@
 //
 
 #import "ADTransition.h"
+#import "ADTransformTransition.h"
+#import "ADDualTransition.h"
 
 NSString * ADTransitionAnimationKey = @"ADTransitionAnimationKey";
 NSString * ADTransitionAnimationInValue = @"ADTransitionAnimationInValue";
@@ -15,6 +17,13 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 @implementation ADTransition
 @synthesize delegate = _delegate;
 @synthesize type = _type;
+
+- (id)init {
+    if (self = [super init]) {
+        self.isReversed = NO;
+    }
+    return self;
+}
 
 + (ADTransition *)nullTransition {
     return [[[ADTransition alloc] init] autorelease];
@@ -56,4 +65,39 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     }
 }
 
+- (void)_setupLayers:(NSArray *)layers {
+    for (CALayer * layer in layers) {
+        layer.shouldRasterize = YES;
+        layer.rasterizationScale = [UIScreen mainScreen].scale;
+    }
+}
+
+- (void)_teardownLayers:(NSArray *)layers {
+    for (CALayer * layer in layers) {
+        layer.shouldRasterize = NO;
+    }
+}
+
+-(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
+    viewIn.layer.doubleSided = NO;
+    viewOut.layer.doubleSided = NO;
+    [self _setupLayers:@[viewIn.layer, viewOut.layer]];
+}
+
+-(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
+    [self _teardownLayers:@[viewIn.layer, viewOut.layer]];
+}
+
+-(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
+    NSAssert(FALSE, @"Unhandled ADTransition subclass!");
+}
+
+- (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
+    [self prepareTransitionFromView:viewOut toView:viewIn inside:viewContainer];
+    [CATransaction setCompletionBlock:^{
+        [self finishedTransitionFromView:viewOut toView:viewIn inside:viewContainer];
+    }];
+    
+    [self startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
+}
 @end

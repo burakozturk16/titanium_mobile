@@ -43,8 +43,13 @@ typedef enum {
 
 @property (nonatomic, assign) id <ADTransitionDelegate> delegate;
 @property (nonatomic, assign) ADTransitionType type;
+@property (nonatomic, assign) BOOL isReversed;
 
 + (ADTransition *)nullTransition;
 - (ADTransition *)reverseTransition;
 - (NSArray *)getCircleApproximationTimingFunctions;
+- (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewOlder;
+-(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
+-(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
+-(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 @end

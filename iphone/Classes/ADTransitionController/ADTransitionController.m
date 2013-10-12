@@ -28,8 +28,6 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 @interface ADTransitionController (Private)
 - (void)_initialize;
-- (void)_setupLayers:(NSArray *)layers;
-- (void)_teardownLayers:(NSArray *)layers;
 - (void)_transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition;
 @end
 
@@ -198,7 +196,6 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 {
     CGFloat navigationBarHeight = _navigationBar.hidden?0:_navigationBar.frame.size.height;
     CGFloat toolbarHeight = _toolbar.hidden?0:_toolbar.frame.size.height;
-    CGRect containerFrame = _containerView.bounds;
     for (UIView* view in inView.subviews) {
         if ([view isKindOfClass:[UIScrollView class]])
         {
@@ -564,54 +561,18 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     }
 }
 
-- (void)_setupLayers:(NSArray *)layers {
-    for (CALayer * layer in layers) {
-        layer.shouldRasterize = YES;
-        layer.rasterizationScale = [UIScreen mainScreen].scale;
-    }
-}
 
-- (void)_teardownLayers:(NSArray *)layers {
-    for (CALayer * layer in layers) {
-        layer.shouldRasterize = NO;
-    }
-}
 
 - (void)_transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition {
-    viewIn.layer.doubleSided = NO;
-    viewOut.layer.doubleSided = NO;
-
-    [self _setupLayers:@[viewIn.layer, viewOut.layer]];
-    [CATransaction setCompletionBlock:^{
-        [self _teardownLayers:@[viewIn.layer, viewOut.layer]];
-    }];
-
-    if ([transition isKindOfClass:[ADTransformTransition class]]) { // ADTransformTransition
-        ADTransformTransition * transformTransition = (ADTransformTransition *)transition;
-        viewIn.layer.transform = transformTransition.inLayerTransform;
-        viewOut.layer.transform = transformTransition.outLayerTransform;
-        
-        // We now balance viewIn.layer.transform by taking its invert and putting it in the superlayer of viewIn.layer
-        // so that viewIn.layer appears ok in the final state.
-        // (When pushing, viewIn.layer.transform == CATransform3DIdentity)
-        _containerView.layer.transform = CATransform3DInvert(viewIn.layer.transform);
-        
-        [_containerView.layer addAnimation:transformTransition.animation forKey:nil];
-    } else if ([transition isKindOfClass:[ADDualTransition class]]) { // ADDualTransition
-        ADDualTransition * dualTransition = (ADDualTransition *)transition;
-        [viewIn.layer addAnimation:dualTransition.inAnimation forKey:nil];
-        [viewOut.layer addAnimation:dualTransition.outAnimation forKey:nil];
-    } else if (transition != nil) {
-        NSAssert(FALSE, @"Unhandled ADTransition subclass!");
-    }
+    [transition transitionFromView:viewOut toView:viewIn inside:_containerView];
 }
 
 
 #pragma mark -
 #pragma mark UIToolBar
 
-- (void)setToolbarHidden:(BOOL)hidden animated:(BOOL)animated {
-    
+- (void)setToolbarHidden:(BOOL)hidden animated:(BOOL)animated
+{
     if (_toolbar.hidden == hidden) return;
     _toolbar.hidden = hidden;
     if (animated) {
