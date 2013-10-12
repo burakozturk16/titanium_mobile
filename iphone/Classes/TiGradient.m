@@ -180,12 +180,14 @@
 	{
 		[startPoint setValues:newStart];
 	}
+	[self clearCache];
 }
 
 
 -(void)setStartAngle:(id)value
 {
 	sweepStartAngle = [TiUtils floatValue:value def:0] *M_PI / 180;
+	[self clearCache];
 }
 
 -(void)setEndPoint:(id)newEnd
@@ -198,6 +200,7 @@
 	{
 		[endPoint setValues:newEnd];
 	}
+	[self clearCache];
 }
 
 -(void)setStartRadius:(id)newRadius
@@ -268,16 +271,18 @@
 
 #define PYTHAG(bounds)	sqrt(bounds.width * bounds.width + bounds.height * bounds.height)/2
 
--(void)paintContext:(CGContextRef)context bounds:(CGRect)bounds
+
+-(void)createCache:(CGRect)bounds
 {
-    if (CGSizeEqualToSize(cacheSize, bounds.size) && cachedImage != nil){
-        CGContextTranslateCTM(context, 0, cachedImage.size.height);
-        CGContextScaleCTM(context, 1.0, -1.0);
-        CGContextDrawImage(context, bounds, cachedImage.CGImage);
+    cacheSize = bounds.size;
+    
+    if (type == TiGradientTypeSweep) {
+        cachedImage = [[UIImage imageWithCGImage:[self newSweepImageGradientInRect:bounds]] retain];
         return;
     }
-    [self clearCache];
-    cacheSize = bounds.size;
+    CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+	CGContextRef cacheContext = CGBitmapContextCreate(nil, cacheSize.width, cacheSize.height, 8, cacheSize.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
+	CGColorSpaceRelease(space);
 	CGGradientDrawingOptions options = 0;
 	if(backfillStart)
 	{
@@ -287,14 +292,14 @@
 	{
 		options |= kCGGradientDrawsAfterEndLocation;
 	}
-
+    
 	switch (type)
 	{
 		case TiGradientTypeLinear:
-			CGContextDrawLinearGradient(context, [self cachedGradient], 
-					[TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointZero],
-					[TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0, 1)],
-					options);
+			CGContextDrawLinearGradient(cacheContext, [self cachedGradient],
+                                        [TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointZero],
+                                        [TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0, 1)],
+                                        options);
 			break;
 		case TiGradientTypeRadial:
         {
@@ -324,25 +329,27 @@
 					endRadiusPixels = PYTHAG(bounds.size);
 			}
 			
-			CGContextDrawRadialGradient(context, [self cachedGradient],
-					[TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],startRadiusPixels,
-					[TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],endRadiusPixels,
-					options);
+			CGContextDrawRadialGradient(cacheContext, [self cachedGradient],
+                                        [TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],startRadiusPixels,
+                                        [TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],endRadiusPixels,
+                                        options);
 			break;
         }
-		case TiGradientTypeSweep:
-        {
-            
-            cachedImage = [[UIImage imageWithCGImage:[self newSweepImageGradientInRect:bounds]] retain];
-            CGContextTranslateCTM(context, 0, cachedImage.size.height);
-            CGContextScaleCTM(context, 1.0, -1.0);
-            CGContextDrawImage(context, bounds, cachedImage.CGImage);
-            return;
-			break;
-        }
+        default:
+            break;
 	}
-    CGImageRef imgRef = CGBitmapContextCreateImage(context);
+    CGImageRef imgRef = CGBitmapContextCreateImage(cacheContext);
     cachedImage = [[UIImage imageWithCGImage:imgRef] retain];
+	CGContextRelease(cacheContext);
+}
+
+-(void)paintContext:(CGContextRef)context bounds:(CGRect)bounds
+{
+    if (!CGSizeEqualToSize(cacheSize, bounds.size) || cachedImage == nil){
+        [self clearCache];
+        [self createCache:bounds];
+    }
+    CGContextDrawImage(context, bounds, cachedImage.CGImage);
 }
 
 - (CGImageRef)newSweepImageGradientInRect:(CGRect)rect
@@ -401,8 +408,6 @@
 	CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
 	CGBitmapInfo bitmapInfo = kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Little;
 	CGContextRef ctx = CGBitmapContextCreate(data, w, h, bitsPerComponent, w * bpp, colorSpace, bitmapInfo);
-//    CGContextTranslateCTM(ctx, 0, rect.size.height);
-//    CGContextScaleCTM(ctx, 1.0, -1.0);
 	CGColorSpaceRelease(colorSpace);
 	CGImageRef img = CGBitmapContextCreateImage(ctx);
 	CGContextRelease(ctx);
@@ -433,7 +438,7 @@ void angleGradient(byte* data, int w, int h, int* colors, int colorCount, float*
         for (int x = 0; x < w; x++) {
             float dirX = x - center.x;
             float dirY = y - center.y;
-            float angle = atan2f(dirY, dirX);
+            float angle = -atan2f(dirY, dirX);
             angle += startAngle;
             if (angle < 0) angle += 2 * M_PI;
             angle /= 2 * M_PI;
