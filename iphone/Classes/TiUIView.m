@@ -1756,56 +1756,22 @@ DEFINE_EXCEPTIONS
 	}
 }
 
-- (void)_setupLayers:(NSArray *)layers {
-    for (CALayer * layer in layers) {
-        layer.shouldRasterize = YES;
-        layer.rasterizationScale = [UIScreen mainScreen].scale;
-    }
-}
-
-- (void)_teardownLayers:(NSArray *)layers {
-    for (CALayer * layer in layers) {
-        layer.shouldRasterize = NO;
-    }
-}
-
 - (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(ADTransition *)transition completionBlock:(void (^)(void))block{
-    viewIn.layer.doubleSided = NO;
-    viewOut.layer.doubleSided = NO;
     [viewOut animationStarted];
     [viewIn animationStarted];
-
-    [self _setupLayers:@[viewIn.layer, viewOut.layer]];
     
-    [self addSubview:viewIn];
-
+    [transition prepareTransitionFromView:viewOut toView:viewIn inside:self];
     [CATransaction setCompletionBlock:^{
+        [transition finishedTransitionFromView:viewOut toView:viewIn inside:self];
         [viewOut removeFromSuperview];
         [viewOut animationCompleted];
         [viewIn animationCompleted];
-        [self _teardownLayers:@[viewIn.layer, viewOut.layer]];
         if (block != nil) {
             block();
         }
     }];
     
-    if ([transition isKindOfClass:[ADTransformTransition class]]) { // ADTransformTransition
-        ADTransformTransition * transformTransition = (ADTransformTransition *)transition;
-        viewIn.layer.transform = transformTransition.inLayerTransform;
-        viewOut.layer.transform = transformTransition.outLayerTransform;
-        
-        // We now balance viewIn.layer.transform by taking its invert and putting it in the superlayer of viewIn.layer
-        // so that viewIn.layer appears ok in the final state.
-        // (When pushing, viewIn.layer.transform == CATransform3DIdentity)
-        self.layer.transform = CATransform3DInvert(viewIn.layer.transform);
-        [self.layer addAnimation:transformTransition.animation forKey:nil];
-    } else if ([transition isKindOfClass:[ADDualTransition class]]) { // ADDualTransition
-        ADDualTransition * dualTransition = (ADDualTransition *)transition;
-        [viewIn.layer addAnimation:dualTransition.inAnimation forKey:nil];
-        [viewOut.layer addAnimation:dualTransition.outAnimation forKey:nil];
-    } else if (transition != nil) {
-        NSAssert(FALSE, @"Unhandled ADTransition subclass!");
-    }
+    [transition startTransitionFromView:viewOut toView:viewIn inside:self];
 }
 
 - (void)blurBackground:(id)args
