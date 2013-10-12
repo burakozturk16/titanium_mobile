@@ -876,7 +876,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	[[self view] performSelector:@selector(setContentInsets_:withObject:) withObject:arg1 withObject:arg2];
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 #pragma mark Section management
 

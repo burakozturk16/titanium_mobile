@@ -282,7 +282,7 @@ USE_VIEW_FOR_CONTENT_WIDTH
 
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 #pragma mark - Internal Use Only
 -(void)delayedLoad

@@ -313,7 +313,7 @@
 -(void)showNavBar:(NSArray*)args
 {
 	ENSURE_UI_THREAD(showNavBar,args);
-	[self replaceValue:[NSNumber numberWithBool:NO] forKey:@"navBarHidden" notification:NO];
+	[self replaceValue:@NO forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
 	{
         id navController = [self navControllerForController:controller];
@@ -326,7 +326,7 @@
 -(void)hideNavBar:(NSArray*)args
 {
 	ENSURE_UI_THREAD(hideNavBar,args);
-	[self replaceValue:[NSNumber numberWithBool:YES] forKey:@"navBarHidden" notification:NO];
+	[self replaceValue:@YES forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
 	{
         id navController = [self navControllerForController:controller];
@@ -568,12 +568,12 @@
 
 -(void)hideTabBar:(id)value
 {
-	[self setTabBarHidden:[NSNumber numberWithBool:YES]];	
+	[self setTabBarHidden:@YES];	
 }
 
 -(void)showTabBar:(id)value
 {
-	[self setTabBarHidden:[NSNumber numberWithBool:NO]];
+	[self setTabBarHidden:@NO];
 }
 
 -(void)refreshBackButton
@@ -897,7 +897,7 @@ else{\
 
     id navBarHidden = [self valueForKey:@"navBarHidden"];
     if (navBarHidden!=nil) {
-        id properties = [NSArray arrayWithObject:[NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO] forKey:@"animated"]];
+        id properties = [NSArray arrayWithObject:[NSDictionary dictionaryWithObject:@NO forKey:@"animated"]];
         if ([TiUtils boolValue:navBarHidden]) {
             [self hideNavBar:properties];
         }

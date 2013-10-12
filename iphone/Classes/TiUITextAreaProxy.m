@@ -22,7 +22,7 @@
 #pragma mark Defaults
 
 DEFINE_DEF_PROP(value,@"");
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 DEFINE_DEF_INT_PROP(maxLength,-1);
 
 -(void)setSelection:(id)arg withObject:(id)property

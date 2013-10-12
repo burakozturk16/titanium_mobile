@@ -257,7 +257,7 @@
     id activeTab = [tabGroup valueForKey:@"activeTab"];
     if (activeTab == nil || activeTab == [NSNull null]) {
         //Make sure that the activeTab property is set
-        [self setActive:[NSNumber numberWithBool:YES]];
+        [self setActive:@YES];
     }
 	transitionIsAnimating = NO;
 	[self handleDidShowViewController:viewController animated:animated];

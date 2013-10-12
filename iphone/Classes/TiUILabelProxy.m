@@ -81,7 +81,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         
         if ([TiUtils isIOS6OrGreater])
         {
-            [options setObject:[NSNumber numberWithBool:YES] forKey:DTUseiOS6Attributes];
+            [options setObject:@YES forKey:DTUseiOS6Attributes];
         }
     }
     return self;

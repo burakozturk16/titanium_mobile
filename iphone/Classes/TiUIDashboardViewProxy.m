@@ -30,7 +30,7 @@ NSArray* dashboardKeySequence;
 -(id)init
 {
     if (self = [super init]) {
-        [self setValue:[NSNumber numberWithBool:YES] forUndefinedKey:@"editable"];
+        [self setValue:@YES forUndefinedKey:@"editable"];
     }
     return self;
 }

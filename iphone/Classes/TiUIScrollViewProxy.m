@@ -437,7 +437,7 @@ static NSArray* scrollViewKeySequence;
 	}
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 @end
 

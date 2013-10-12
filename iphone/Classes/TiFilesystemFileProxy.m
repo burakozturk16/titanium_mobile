@@ -472,7 +472,7 @@ FILENOOP(setHidden:(id)x);
     int result = getxattr(fullPath, backupAttr, &value, sizeof(value), 0, 0);
     if (result == -1) {
         // Doesn't matter what errno is set to; this means that we're backing up.
-        return [NSNumber numberWithBool:YES];
+        return @YES;
     }
 
     // A value of 0 means backup, so:

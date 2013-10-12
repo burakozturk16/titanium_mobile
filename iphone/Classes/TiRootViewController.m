@@ -425,7 +425,7 @@
 - (void)keyboardDidHide:(NSNotification*)notification
 {
 	startFrame = endFrame;
-    [self performSelector:@selector(adjustKeyboardHeight:) withObject:[NSNumber numberWithBool:NO] afterDelay:leaveDuration];
+    [self performSelector:@selector(adjustKeyboardHeight:) withObject:@NO afterDelay:leaveDuration];
 }
 
 - (void)keyboardDidShow:(NSNotification*)notification
@@ -434,7 +434,7 @@
     //The endingFrame is not always correctly calculated when rotating.
     //This method call ensures correct calculation at the end
     //See TIMOB-8720 for a test case
-    [self performSelector:@selector(adjustKeyboardHeight:) withObject:[NSNumber numberWithBool:YES] afterDelay:enterDuration];
+    [self performSelector:@selector(adjustKeyboardHeight:) withObject:@YES afterDelay:enterDuration];
 }
 
 -(UIView *)viewForKeyboardAccessory;

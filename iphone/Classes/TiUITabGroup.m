@@ -115,12 +115,12 @@ DEFINE_EXCEPTIONS
 
 	[self.proxy fireEvent:@"blur" withObject:event];
 	[focusedTabProxy handleDidBlur:event];
-    [focusedTabProxy replaceValue:[NSNumber numberWithBool:NO] forKey:@"active" notification:NO];
+    [focusedTabProxy replaceValue:@NO forKey:@"active" notification:NO];
 	
 	RELEASE_TO_NIL(focusedTabProxy);
 	focusedTabProxy = [newFocus retain];
 	[self.proxy replaceValue:focusedTabProxy forKey:@"activeTab" notification:NO];
-    [focusedTabProxy replaceValue:[NSNumber numberWithBool:YES] forKey:@"active" notification:NO];
+    [focusedTabProxy replaceValue:@YES forKey:@"active" notification:NO];
 
     // If we're in the middle of opening, the focus happens once the tabgroup is opened
     if (![(TiWindowProxy*)[self proxy] opening]) {
