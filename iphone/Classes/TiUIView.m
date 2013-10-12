@@ -1760,7 +1760,9 @@ DEFINE_EXCEPTIONS
     [viewOut animationStarted];
     [viewIn animationStarted];
     
+    [self addSubview:viewIn];
     [transition prepareTransitionFromView:viewOut toView:viewIn inside:self];
+    
     [CATransaction setCompletionBlock:^{
         [transition finishedTransitionFromView:viewOut toView:viewIn inside:self];
         [viewOut removeFromSuperview];
