@@ -908,6 +908,9 @@
 		D56915D5168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D56E9014180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */; };
+		D56E9015180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */; };
+		D56E9016180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */; };
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
@@ -2472,6 +2475,8 @@
 		D56915CB168F2E7300C3F89F /* TiUILabelProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUILabelProxy.m; sourceTree = "<group>"; };
 		D56915D3168F538F00C3F89F /* TTTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TTTAttributedLabel.h; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.h; sourceTree = "<group>"; };
 		D56915D4168F538F00C3F89F /* TTTAttributedLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TTTAttributedLabel.m; path = ../Classes/TTTAttributedLabel/TTTAttributedLabel.m; sourceTree = "<group>"; };
+		D56E9012180981290081010A /* CAMediaTimingFunction+AdditionalEquations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "CAMediaTimingFunction+AdditionalEquations.h"; path = "../../../../ios/ADTransitionController/ADTransitionController/CAMediaTimingFunction+AdditionalEquations.h"; sourceTree = "<group>"; };
+		D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "CAMediaTimingFunction+AdditionalEquations.m"; path = "../../../../ios/ADTransitionController/ADTransitionController/CAMediaTimingFunction+AdditionalEquations.m"; sourceTree = "<group>"; };
 		D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreTelephony.framework; path = System/Library/Frameworks/CoreTelephony.framework; sourceTree = SDKROOT; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -4702,6 +4707,8 @@
 				D59DD42618096186002FDCDF /* ADModernPushTransition.m */,
 				D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */,
 				D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */,
+				D56E9012180981290081010A /* CAMediaTimingFunction+AdditionalEquations.h */,
+				D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */,
 			);
 			name = ADTransitionController;
 			sourceTree = "<group>";
@@ -5284,6 +5291,7 @@
 				2B0B6E0C15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
 				4688700715E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				D5FF95BA1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */,
+				D56E9014180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */,
 				1D1029A815F9769200372EC0 /* TiBindingEvent.m in Sources */,
 				1D0061C1160283820016BBEE /* TiBindingRunLoop.m in Sources */,
 				1DD9388C1609230900091777 /* TiBindingTiValue.m in Sources */,
@@ -5716,6 +5724,7 @@
 				DAA72344156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8215901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0D15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
+				D56E9015180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */,
 				4688700815E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				D5FF95BB1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */,
 				1D1029A915F9769200372EC0 /* TiBindingEvent.m in Sources */,
@@ -6148,6 +6157,7 @@
 				DAA72345156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8315901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				2B0B6E0E15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
+				D56E9016180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */,
 				4688700915E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				D5FF95BC1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */,
 				1D1029AA15F9769200372EC0 /* TiBindingEvent.m in Sources */,
