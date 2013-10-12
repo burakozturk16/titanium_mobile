@@ -10,7 +10,6 @@
 #import "TiUINavigationWindow.h"
 #import "TiApp.h"
 #import "TiTransitionHelper.h"
-#import "ADIOS7Transition.h"
 
 @implementation TiUINavigationWindowProxy
 
@@ -273,7 +272,7 @@
 -(ADTransition*) defaultTransitionWithDuration:(float)duration subType:(ADTransitionOrientation)subtype
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return [[ADIOS7Transition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
+        return [[ADModernPushTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
     }
     else {
         return [[ADSwipeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];

@@ -89,11 +89,9 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 }
 
 - (void)loadView {
-    UIView * view = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 100.0f, 100.0f)];
-    view.autoresizesSubviews = YES;
-    view.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    self.view = view;
-    [view release];
+    [super loadView];
+    self.view.autoresizesSubviews = YES;
+    self.view.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     
     // Setting the perspective
     float zDistance = AD_Z_DISTANCE;
@@ -161,14 +159,17 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     }
 }
 
+- (void)viewWillLayoutSubviews {
+    [self updateLayout];
+    [self updateLayoutForController:self.viewControllers.lastObject];
+}
+
 #pragma mark -
 #pragma mark Appearance
 
 // Forwarding appearance messages when the container appears or disappears
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
-    [self updateLayout];
-    [self updateLayoutForController:self.viewControllers.lastObject];
     [[_viewControllers lastObject] beginAppearanceTransition:YES animated:animated];
 }
 
@@ -348,7 +349,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     BOOL animated = transition ? YES : NO;
     [_transitions removeLastObject];
     
-    UIViewController * inViewController = [_viewControllers objectAtIndex:([_viewControllers count] - 2)];
+    UIViewController * inViewController = _viewControllers[([_viewControllers count] - 2)];
     [inViewController beginAppearanceTransition:YES animated:animated];
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:inViewController animated:animated];
@@ -449,7 +450,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 - (void)pushTransitionDidFinish:(ADTransition *)transition {
     BOOL animated = transition ? YES : NO;
     if ([_viewControllers count] >= 2) {
-        UIViewController * outViewController = [_viewControllers objectAtIndex:([_viewControllers count] - 2)];
+        UIViewController * outViewController = _viewControllers[([_viewControllers count] - 2)];
         [outViewController.view removeFromSuperview];
         [outViewController endAppearanceTransition];
     }
@@ -486,7 +487,6 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 - (void)setNavigationBarHidden:(BOOL)hidden animated:(BOOL)animated {
     if (_navigationBar.hidden == hidden) return;
-    CGFloat navigationBarHeight = _navigationBar.frame.size.height;
     _navigationBar.hidden = hidden;
     if (animated) {
         [UIView beginAnimations:nil context:NULL];
@@ -632,16 +632,9 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     return _toolbar.alpha < 0.5f;
 }
 
--(void)updateLayoutForInterfaceRotation
-{
-    [self updateLayout];
-    [self updateLayoutForController:self.viewControllers.lastObject];
-}
-
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
-    
     [self updateLayout];
     [self updateLayoutForController:self.viewControllers.lastObject];
 }

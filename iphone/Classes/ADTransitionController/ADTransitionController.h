@@ -27,6 +27,7 @@
 #import "ADPushRotateTransition.h"
 #import "ADFoldTransition.h"
 #import "ADSlideTransition.h"
+#import "ADModernPushTransition.h"
 
 /**
  The class represent root controller in a view hierarchy.

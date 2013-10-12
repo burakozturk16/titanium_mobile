@@ -1,20 +1,20 @@
 //
-//  ADIOS7Transition.m
-//  Titanium
+//  ADModernPushTransition.m
+//  AppLibrary
 //
 //  Created by Martin Guillon on 23/09/13.
 //
 //
 
-#import "ADIOS7Transition.h"
+#import "ADModernPushTransition.h"
 
-@implementation ADIOS7Transition
+@implementation ADModernPushTransition
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    
+
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
-    
+
     CABasicAnimation * inSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     inSwipeAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
     inSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
@@ -44,20 +44,20 @@
             break;
     }
     inSwipeAnimation.duration = duration;
-    
+
     CABasicAnimation * outOpacityAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    outOpacityAnimation.fromValue = [NSNumber numberWithFloat:1.0f];
-    outOpacityAnimation.toValue = [NSNumber numberWithFloat:0.5f];
-    
+    outOpacityAnimation.fromValue = @1.0f;
+    outOpacityAnimation.toValue = @0.5f;
+
     CABasicAnimation * outPositionAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
-    outPositionAnimation.fromValue = [NSNumber numberWithDouble:-0.001f];
-    outPositionAnimation.toValue = [NSNumber numberWithDouble:-0.001f];
+    outPositionAnimation.fromValue = @-0.001;
+    outPositionAnimation.toValue = @-0.001;
     outPositionAnimation.duration = duration;
-    
+
     CAAnimationGroup * outAnimation = [CAAnimationGroup animation];
     [outAnimation setAnimations:@[outOpacityAnimation, outPositionAnimation]];
     outAnimation.duration = duration;
-    
+
     self = [super initWithInAnimation:inSwipeAnimation andOutAnimation:outAnimation];
     return self;
 }

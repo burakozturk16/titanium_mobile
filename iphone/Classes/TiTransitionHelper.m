@@ -7,7 +7,7 @@
 //
 
 #import "TiTransitionHelper.h"
-#import "ADIOS7Transition.h"
+#import "ADModernPushTransition.h"
 #import "ADTransition.h"
 #import "ADDualTransition.h"
 #import "ADTransformTransition.h"
@@ -81,7 +81,9 @@
         case NWTransitionFade:
             return [[ADFadeTransition alloc] initWithDuration:duration];
             break;
-
+        case NWTransitionModernPush:
+            return [[ADModernPushTransition alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            break;
         default:
             return nil;
             break;
