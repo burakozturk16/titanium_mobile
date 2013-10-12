@@ -71,6 +71,9 @@ DEFINE_EXCEPTIONS
 -(void) initialize
 {
     self.contentView.backgroundColor = [UIColor clearColor];
+    if ([TiUtils isIOS7OrGreater]) {
+        self.backgroundColor = [UIColor clearColor];
+    }
     self.contentView.opaque = NO;
     _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
     _viewHolder.proxy = _proxy;
@@ -125,6 +128,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setBackgroundView:(UIView*)view
 {
+    
     [super setBackgroundView:view];
     if (view == nil) {
         RELEASE_TO_NIL(_bgView);
@@ -177,6 +181,7 @@ DEFINE_EXCEPTIONS
 		uicolor = [[TiUtils colorValue:color] _color];
 	}
     [[self getOrCreateBackgroundView].selectableLayer setColor:uicolor forState:UIControlStateNormal];
+    
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
