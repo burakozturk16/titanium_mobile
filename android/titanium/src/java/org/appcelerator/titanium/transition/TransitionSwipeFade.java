@@ -65,4 +65,28 @@ public class TransitionSwipeFade extends Transition {
 			TiViewHelper.setTranslationFloatX(inTarget, dest);
 		}
 	}
+	
+	@Override
+	public void transformView(View view, float position) {
+		boolean out = (position < 0);
+		float multiplier = 1;
+		float dest = 0;
+		if (!TransitionHelper.isPushSubType(subType)) {
+			multiplier = -1;
+			out = !out;
+		}
+		float alpha = 1;
+		if (out) { //out
+			dest = multiplier* Math.abs(position)*(1-destTrans);
+			alpha = 1 - Math.abs(position);
+		}
+
+		ViewHelper.setAlpha(view, alpha);
+		if (TransitionHelper.isVerticalSubType(subType)) {
+			TiViewHelper.setTranslationFloatY(view, dest);
+		}
+		else {
+			TiViewHelper.setTranslationFloatX(view, dest);
+		}
+	}
 }

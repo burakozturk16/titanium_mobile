@@ -116,4 +116,8 @@ public abstract class Transition {
 	public int getDuration(){
 		return duration;
 	}
+	
+	public void transformView(View view, float position) {
+		
+	}
 }
