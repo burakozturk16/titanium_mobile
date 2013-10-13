@@ -20,6 +20,7 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -254,12 +255,18 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void onWindowActivityCreated()
 	{
 		windowActivityCreated = true;
-
+		
+		if (hasProperty(TiC.PROPERTY_ORIENTATION_MODES)) {
+			Object obj = getProperty(TiC.PROPERTY_ORIENTATION_MODES);
+			if (obj instanceof Object[]) {
+				orientationModes = TiConvert.toIntArray((Object[]) obj);
+			}
+		}
 		// Make sure the activity opens according to any orientation modes 
 		// set on the window before the activity was actually created.
-		if (orientationModes != null) {
+//		if (orientationModes != null) {
 			setOrientationModes(orientationModes);
-		}
+//		}
 	}
 
 	/**
