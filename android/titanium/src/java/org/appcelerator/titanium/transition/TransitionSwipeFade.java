@@ -15,7 +15,7 @@ import com.nineoldandroids.view.ViewHelper;
 
 public class TransitionSwipeFade extends Transition {
 	private static final float destTrans = 0.3f;
-	private static final float alpha = 0.5f;
+	private static final float alpha = 0.0f;
 
 	public TransitionSwipeFade(int subtype, boolean isOut, int duration) {
 		super(subtype, isOut, duration, 200);	
