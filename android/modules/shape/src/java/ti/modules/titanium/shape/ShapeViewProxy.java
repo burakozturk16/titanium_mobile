@@ -105,7 +105,7 @@ public class ShapeViewProxy extends TiViewProxy {
 				}
 			};
 			setNativeView(nativeView);
-			disableHWAcceleration(nativeView);
+			disableHWAcceleration();
 		}
 
 		public TiShapeView(final TiViewProxy proxy, Activity activity) {
