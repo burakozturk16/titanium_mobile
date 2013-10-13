@@ -218,28 +218,36 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	private boolean pushing = false;
 	private boolean poping = false;
 	
+	
+	private boolean popUpToWindow(final TiWindowProxy winToFocus, Object arg) {
+		TiWindowProxy toRemove = popWindow();
+		int index = windows.indexOf(winToFocus);
+		int size = windows.size();
+		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
+		for (int i = index + 1; i < size; i++) {
+			TiWindowProxy window = windows.get(i);
+			View viewToRemove = window.getOuterView();
+			if (viewToRemove != null) {
+				viewToRemoveFrom.removeView(window.getOuterView());
+			}
+			window.closeFromActivity(false);
+			window.setActivity(null);
+			animations.remove(window);
+		}
+		windows.subList(index + 1, size).clear();
+		return transitionFromWindowToWindow(toRemove, winToFocus, arg);
+	}
+	
 	public boolean popWindow(TiWindowProxy proxy, Object arg)
 	{
 		int index = windows.indexOf(proxy);
-		if (index <= 0) {
-			poping = false;		
-			return true;
-		}
-		if (proxy == getCurrentWindow()) 
-		{
-			return popCurrentWindow(arg);
+		if (index >=0 && windows.size() > 1){
+			int realIndex = Math.max(0, index - 1);
+			TiWindowProxy winToFocus = windows.get(realIndex);
+			return popUpToWindow(winToFocus, arg);
 		}
 		else {
-			removeWindow(proxy);
-			ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
-			View viewToRemove = proxy.getOuterView();
-			
-			if (viewToRemove != null) {
-				viewToRemoveFrom.removeView(proxy.getOuterView());
-			}
-			proxy.closeFromActivity(false);
-			proxy.setActivity(null);
-			poping = false;
+			poping = false;		
 			return true;
 		}
 	}
@@ -259,80 +267,87 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	public boolean popCurrentWindow(Object arg)
 	{
-		TiBaseActivity activity = ((TiBaseActivity) getActivity());
-		 if (windows.size() > 1) //we dont pop the window 0!
+		if (windows.size() > 1) //we dont pop the window 0!
 		 {
 			final TiWindowProxy toRemove = popWindow();
 			TiWindowProxy winToFocus = getCurrentWindow();
-			
-			int transitionStyle = -1;
-			Transition transition = null;
-			int duration = -1;
-			if (animations.containsKey(toRemove)) {
-				transition = animations.get(toRemove);
-				transitionStyle = transition.getType();
-				duration = transition.getDuration();
-			}
-			KrollDict options = null;
-			if (arg != null && arg instanceof HashMap<?, ?>) {
-					options = new KrollDict((HashMap<String, Object>) arg);
-			} else {
-				options = new KrollDict();
-			}
-			boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
-			int  optTransitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
-			int  optTransitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
-			duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, duration);
-			if ((optTransitionStyle != -1) && animated) {
-				if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
-				transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
-			}
-			transition.setDuration(duration);
-						
-			final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
-			
-			if (viewToRemoveFrom != null) {
-				final View viewToRemove = toRemove.getOuterView();
-				final View viewToFocus = winToFocus.getOuterView();
-				viewToFocus.setVisibility(View.GONE);
-				TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
-				if (transition != null && animated) {
-					transition.setTargetsForReversed(viewToFocus, viewToRemove);
-					AnimatorSet set = transition.getReversedSet(new AnimatorListener() {
-						@Override
-						public void onAnimationStart(Animator arg0) {	
-						}
-						
-						@Override
-						public void onAnimationRepeat(Animator arg0) {							
-						}
-						
-						@Override
-						public void onAnimationEnd(Animator arg0) {	
-							handleWindowClosed(toRemove);
-						}
-
-						@Override
-						public void onAnimationCancel(Animator arg0) {		
-							handleWindowClosed(toRemove);
-						}
-					});
-					set.start();
-				}
-				else {
-					handleWindowClosed(toRemove);
-				}
-				viewToFocus.setVisibility(View.VISIBLE);
-			}
-			
-	    	
-			activity.setWindowProxy(winToFocus);
-	    	updateHomeButton(winToFocus);
-			winToFocus.focus();
-
-			return true;
-	    }
+			return transitionFromWindowToWindow(toRemove, winToFocus, arg);
+		 }
+		poping = false;
 		return false;
+	}
+	
+	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, TiWindowProxy winToFocus, Object arg)
+	{
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
+		int transitionStyle = -1;
+		Transition transition = null;
+		int duration = -1;
+		if (animations.containsKey(toRemove)) {
+			transition = animations.get(toRemove);
+			transitionStyle = transition.getType();
+			duration = transition.getDuration();
+		}
+		KrollDict options = null;
+		if (arg != null && arg instanceof HashMap<?, ?>) {
+				options = new KrollDict((HashMap<String, Object>) arg);
+		} else {
+			options = new KrollDict();
+		}
+		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
+		int  optTransitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
+		int  optTransitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
+		duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, duration);
+		if ((optTransitionStyle != -1) && animated) {
+			if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
+			transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
+		}
+		if (transition != null) {
+			transition.setDuration(duration);
+		}
+					
+		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
+		
+		if (viewToRemoveFrom != null) {
+			final View viewToRemove = toRemove.getOuterView();
+			final View viewToFocus = winToFocus.getOuterView();
+			viewToFocus.setVisibility(View.GONE);
+			TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
+			if (transition != null && animated) {
+				transition.setTargetsForReversed(viewToFocus, viewToRemove);
+				AnimatorSet set = transition.getReversedSet(new AnimatorListener() {
+					@Override
+					public void onAnimationStart(Animator arg0) {	
+					}
+					
+					@Override
+					public void onAnimationRepeat(Animator arg0) {							
+					}
+					
+					@Override
+					public void onAnimationEnd(Animator arg0) {	
+						handleWindowClosed(toRemove);
+					}
+
+					@Override
+					public void onAnimationCancel(Animator arg0) {		
+						handleWindowClosed(toRemove);
+					}
+				});
+				set.start();
+			}
+			else {
+				handleWindowClosed(toRemove);
+			}
+			viewToFocus.setVisibility(View.VISIBLE);
+		}
+		
+    	
+		activity.setWindowProxy(winToFocus);
+    	updateHomeButton(winToFocus);
+		winToFocus.focus();
+
+		return true;
 	}
 	
 	@Override
@@ -678,10 +693,9 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();
    			viewToAdd.setVisibility(View.GONE);			
 			TiUIHelper.addView(viewToAddTo, viewToAdd, proxy.peekView().getLayoutParams());
+			TiWindowProxy winToBlur = getCurrentWindow();
+			final View viewToHide = winToBlur.getOuterView();
 			if (transition != null) {	
-				TiWindowProxy winToBlur = getCurrentWindow();
-				final View viewToHide = winToBlur.getOuterView();
-				
 				transition.setTargets(viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
@@ -702,6 +716,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					}
 				});
 				set.start();
+			}
+			else {
+				viewToAddTo.removeView(viewToHide);
+				pushing = false; 
 			}
    			viewToAdd.setVisibility(View.VISIBLE);			
 		}
@@ -734,6 +752,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	
 	@Kroll.method
+	public Object getWindow(int index)
+	{
+		if (index >= 0  && index < windows.size())
+			return windows.get(index);
+		return null;
+	}
+	
+	@Kroll.method
 	public void closeWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
@@ -745,19 +771,53 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(proxy, arg));
 	}
+	
+	@Kroll.method
+	public void closeCurrentWindow(@Kroll.argument(optional = true) Object arg)
+	{
+		if (pushing || poping) return;
+		TiWindowProxy currentWindow = getCurrentWindow();
+		if (currentWindow != this) {
+			poping = true;
+			if (TiApplication.isUIThread()) {
+				handlePop(currentWindow, arg);
+				return;
+			}
+
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(currentWindow, arg));
+		}
+	}
+	
+	@Kroll.method
+	public void closeAllWindows(@Kroll.argument(optional = true) Object arg)
+	{
+		if (pushing || poping) return;
+		TiWindowProxy window = windows.get(0);
+		poping = true;
+		if (TiApplication.isUIThread()) {
+			handlePop(window, arg);
+			return;
+		}
+
+		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(window, arg));
+	}
 
 	@Override
 	public boolean interceptOnBackPressed() {
-		if (windows.size() > 1) {
-			if (pushing || poping) return true;
-			TiWindowProxy topWindow = windows.get(windows.size() - 1);
-
-			// Prevent default Android behavior for "back" press
-			// if the top window has a listener to handle the event.
-			if (topWindow != null && topWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-				topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
+		if (pushing || poping) return true;
+		TiWindowProxy currentWindow = getCurrentWindow();
+		if (currentWindow != this) {
+			if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
+				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
 				return true;
 			}
+		}
+		if (hasListeners(TiC.EVENT_ANDROID_BACK)) {
+			fireEvent(TiC.EVENT_ANDROID_BACK, null);
+			return true;
+		}
+		if (windows.size() > 1) {
+			poping = true;
 			return popCurrentWindow(null);
 		}
 		return false;
