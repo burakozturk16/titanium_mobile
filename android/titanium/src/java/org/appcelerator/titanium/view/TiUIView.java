@@ -1635,12 +1635,25 @@ public abstract class TiUIView
 		view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 	}
 	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void enableHWAcceleration(View view)
+	{
+		view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+	}
 
 	protected void disableHWAcceleration()
 	{
 		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == true) {
 			disableHWAcceleration(getOuterView());
 			hardwareAccSupported = false;
+		}
+	}
+	
+	protected void enableHWAcceleration()
+	{
+		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == false) {
+			enableHWAcceleration(getOuterView());
+			hardwareAccSupported = true;
 		}
 	}
 	
