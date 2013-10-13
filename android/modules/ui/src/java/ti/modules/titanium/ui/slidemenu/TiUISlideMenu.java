@@ -350,6 +350,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			updateMenus();	
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW)) {
 			setProxy((TiViewProxy) newValue, 0);
+			slidingMenu.showContent(true);
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_PANNING_MODE)) {
 			updatePanningMode(TiConvert.toInt(newValue, SlideMenuOptionsModule.MENU_PANNING_CENTER_VIEW));
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH)) {
@@ -419,7 +420,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (oldProxy != null)
 		{
 			if (isCenterView) {
-				content.removeView(oldProxy.getNativeView());
+				content.removeView(oldProxy.getOuterView());
 			}
 			oldProxy.setActivity(null);
 			oldProxy.blur();
