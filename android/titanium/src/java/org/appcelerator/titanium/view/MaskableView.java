@@ -32,9 +32,6 @@ public class MaskableView extends FreeLayout {
 		if (bitmap != null) {
 			Rect bounds = new Rect();
 			getDrawingRect(bounds);
-			
-//			Bitmap mBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
-//			Canvas mCanvas = new Canvas(mBitmap);
 			super.onDraw(canvas);
 			canvas.drawBitmap(bitmap, bitmapRect, bounds, maskPaint);
 		}
@@ -48,9 +45,6 @@ public class MaskableView extends FreeLayout {
 		if (bitmap != null) {
 			Rect bounds = new Rect();
 			getDrawingRect(bounds);
-			
-//			Bitmap mBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
-//			Canvas mCanvas = new Canvas(mBitmap);
 			super.dispatchDraw(canvas); 
 			canvas.drawBitmap(bitmap, bitmapRect, bounds, maskPaint);
 		}
