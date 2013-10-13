@@ -28,7 +28,6 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import ti.modules.titanium.ui.widget.TiView;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -37,7 +36,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.view.ViewGroup.LayoutParams;
-import android.view.View;
 import android.view.Window;
 
 @SuppressLint("ValidFragment")
@@ -326,6 +324,13 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	protected Activity getWindowActivity()
 	{
 		return (windowActivity != null) ? windowActivity.get() : null;
+	}
+	
+	@Override
+	public void setActivity(Activity activity)
+	{
+		windowActivity = new WeakReference<TiBaseActivity>((TiBaseActivity) activity);
+		super.setActivity(activity);
 	}
 
 	private void fillIntent(Activity activity, Intent intent)
