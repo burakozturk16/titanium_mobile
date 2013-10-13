@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.appcelerator.titanium.animation.AlphaProperty;
-import org.appcelerator.titanium.animation.CubicBezierInterpolator;
 import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.animation.ScaleProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
@@ -16,8 +15,6 @@ import org.appcelerator.titanium.transition.TransitionSwipeFade;
 import org.appcelerator.titanium.util.TiViewHelper;
 
 
-import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.view.ViewHelper;
@@ -29,7 +26,24 @@ import android.view.animation.Interpolator;
 @SuppressLint("NewApi")
 public class TransitionHelper {
 	public enum Types {
-		kTransitionScale, kTransitionFade, kTransitionBackFade, kTransitionPushRotate, kTransitionFold, kTransitionSwipe, kTransitionCube, kTransitionSwipeFade, kTransitionFlip, kTransitionNb
+		kTransitionScale, 
+		kTransitionFade, 
+		kTransitionBackFade, 
+		kTransitionPushRotate, 
+		kTransitionFold, 
+		kTransitionSwipe, 
+		kTransitionCube, 
+		kTransitionSwipeFade, 
+		kTransitionFlip, 
+		kTransitionSlide, 
+		kTransitionModernPush, 
+		kTransitionGhost, 
+		kTransitionZoom, 
+		kTransitionSwap, 
+		kTransitionCarousel, 
+		kTransitionCross, 
+		kTransitionGlue, 
+		kTransitionNb
 	}
 	public enum SubTypes {
 		kRightToLeft, kLeftToRight, kTopToBottom, kBottomToTop
@@ -52,37 +66,6 @@ public class TransitionHelper {
 		};
     }
 	
-	public static class TransitionBackFade extends Transition {
-		private static final float scale = 0.2f;
-		public TransitionBackFade(int subtype, boolean isOut, int duration) {
-			super(subtype, isOut, duration, 1000);
-		}
-		public int getType(){
-			return TransitionHelper.Types.kTransitionBackFade.ordinal();
-		}
-		protected void prepareAnimators() {
-			
-			inAnimator = new AnimatorSet();
-			Animator anim1 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 0, 1.0f);
-			anim1.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.0f, 0.2f, duration));
-			Animator anim2 = ObjectAnimator.ofFloat(null, new ScaleProperty(), 1.0f, scale, 1.0f);
-			((AnimatorSet) inAnimator).playTogether(anim1, anim2);
-			inAnimator.setDuration(duration);
-
-			outAnimator = new AnimatorSet();
-			Animator anim3 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 1, 0.0f);
-			anim3.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.0f, 0.2f, duration));
-			Animator anim4 = ObjectAnimator.ofFloat(null, new ScaleProperty(), 1.0f, scale, 1.0f);
-			((AnimatorSet) outAnimator).playTogether(anim3, anim4);
-			outAnimator.setDuration(duration);
-		}
-		public void setTargets(boolean reversed, View inTarget, View outTarget) {
-			super.setTargets(reversed, inTarget, outTarget);
-			ViewHelper.setAlpha(inTarget, 0.0f);
-			outTarget.bringToFront();
-		}
-	}
-	
 	public static class TransitionFold extends Transition {
 		private static final float angle = 90;
 		public TransitionFold(int subtype, boolean isOut, int duration) {
@@ -104,7 +87,7 @@ public class TransitionHelper {
 			}
 			
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), -2*destAngle, 0));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), -1.2f*destAngle, 0));
 			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(),0,  1.0f));
 			inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
@@ -132,68 +115,62 @@ public class TransitionHelper {
 		}
 	}
 	
-	public static class TransitionPushRotate extends Transition {
-		private static final float angle = 90;
-		public TransitionPushRotate(int subtype, boolean isOut, int duration) {
-			super(subtype, isOut, duration, 300);
+	public static class TransitionSlide extends Transition {
+		private static final float scale = 0.7f;
+		public TransitionSlide(int subtype, boolean isOut, int duration) {
+			super(subtype, isOut, duration, 1000);
 		}
 		public int getType(){
-			return TransitionHelper.Types.kTransitionPushRotate.ordinal();
+			return TransitionHelper.Types.kTransitionSlide.ordinal();
 		}
 		protected void prepareAnimators() {
 			
-			float destAngle = -angle;		
-			float destTrans = 1;
+			float destTrans = -1;
 			
 			String translateProp = "x";
-			String rotateProp = "y";
 			if (!TransitionHelper.isPushSubType(subType)) {
 				destTrans = -destTrans;
-				destAngle = -destAngle;
 			}
 			if (TransitionHelper.isVerticalSubType(subType)) {
 				translateProp = "y";
-				rotateProp = "x";
 			}
 			
-			inAnimator = new AnimatorSet();
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTrans, 0));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), -destTrans, -destTrans, 0, 0));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale, scale, 1));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(),0, 0,0.5f, 1.0f));
 			inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
 			inAnimator.setDuration(duration);
-
-			outAnimator = new AnimatorSet();
+			
 			propertiesList = new ArrayList<PropertyValuesHolder>();
-			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, 0));
-			propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), 0, angle));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0,0,destTrans, destTrans));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale, scale, 1));
+			propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1.0f, 0.5f, 0, 0));
 			outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 					propertiesList.toArray(new PropertyValuesHolder[0]));
 			outAnimator.setDuration(duration);
-
 		}
 		public void setTargets(boolean reversed, View inTarget, View outTarget) {
 			super.setTargets(reversed, inTarget, outTarget);
-//			ViewHelper.setAlpha(inTarget, 0);
-			if (!reversed) {
-				float dest = 1.0f;
-				if (!TransitionHelper.isPushSubType(subType)) {
-					dest = -dest;
-				}
-				
-				if (TransitionHelper.isVerticalSubType(subType)) {
-					TiViewHelper.setTranslationFloatY(inTarget, dest);
-				}
-				else {
-					TiViewHelper.setTranslationFloatX(inTarget, dest);
-				}
+			ViewHelper.setAlpha(inTarget, 0);
+			float dest = 1.0f;
+			if (reversed) {
+				dest = -dest;
 			}
-			View target = reversed?inTarget:outTarget;
-			TiViewHelper.setPivotFloatX(target, (subType == SubTypes.kLeftToRight)?1:0);
-			TiViewHelper.setPivotFloatY(target, (subType == SubTypes.kTopToBottom)?1:0);
+			if (!TransitionHelper.isPushSubType(subType)) {
+				dest = -dest;
+			}
+			
+			if (TransitionHelper.isVerticalSubType(subType)) {
+				TiViewHelper.setTranslationFloatY(inTarget, dest);
+			}
+			else {
+				TiViewHelper.setTranslationFloatX(inTarget, dest);
+			}
 		}
 	}
-
+	
 	public static Transition transitionForType(int type, int subtype, boolean isOut,
 			int duration) {
 		if (type < 0 || type >= Types.values().length) {
@@ -219,6 +196,8 @@ public class TransitionHelper {
 			return new TransitionFold(subtype, isOut, duration);
 		case kTransitionPushRotate:
 			return new TransitionPushRotate(subtype, isOut, duration);
+		case kTransitionSlide:
+			return new TransitionSlide(subtype, isOut, duration);
 		default:
 		}
 		return null;

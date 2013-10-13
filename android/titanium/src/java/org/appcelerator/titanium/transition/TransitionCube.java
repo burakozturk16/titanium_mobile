@@ -73,8 +73,7 @@ public class TransitionCube extends Transition {
 			destTranslation = -destTranslation;
 			destAngle = -destAngle;
 		}
-		ViewHelper.setScaleX(inTarget, scale);
-		ViewHelper.setScaleY(inTarget, scale);
+		TiViewHelper.setScale(inTarget, scale, scale);
 		TiViewHelper.setTranslationFloatX(inTarget, destTranslation);
 		ViewHelper.setRotationY(inTarget, destAngle);
 		

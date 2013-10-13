@@ -11,8 +11,7 @@ public class CubicBezierInterpolator implements Interpolator {
 	};
 
 	/**
-	 * @param t
-	 *            {number} parametric timing value
+	 * @param t {number} parametric timing value
 	 * @return {number}
 	 */
 	private double sampleCurveY(double t) {
@@ -20,8 +19,7 @@ public class CubicBezierInterpolator implements Interpolator {
 	};
 
 	/**
-	 * @param t
-	 *            {number} parametric timing value
+	 * @param t {number} parametric timing value
 	 * @return {number}
 	 */
 	private double sampleCurveDerivativeX(double t) {

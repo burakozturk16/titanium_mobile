@@ -10,6 +10,7 @@ import android.view.animation.Interpolator;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
+import com.nineoldandroids.view.ViewHelper;
 
 public abstract class Transition {
 	public Animator inAnimator;
@@ -69,6 +70,8 @@ public abstract class Transition {
 		}
 		TiViewHelper.resetValues(inTarget);
 		TiViewHelper.resetValues(outTarget);
+		ViewHelper.setAlpha(inTarget, 1.0f);
+		ViewHelper.setAlpha(outTarget, 1.0f);
 		
 		inAnimator.setTarget(inTarget);
 		outAnimator.setTarget(outTarget);
