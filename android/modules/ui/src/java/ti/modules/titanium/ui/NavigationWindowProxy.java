@@ -482,6 +482,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (opened == true) { //this is not the first time we come here!
 			((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
 			updateHomeButton(getCurrentWindow());
+			super.onWindowActivityCreated();
 			return;
 		}
 		else {
@@ -493,9 +494,9 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
 				proxy.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
 			}
+			super.onWindowActivityCreated();
 			handlePush(proxy, true, null);
 		}
-		super.onWindowActivityCreated();
 	}
 	
 	protected int getContainerId(){
