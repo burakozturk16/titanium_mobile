@@ -54,6 +54,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private static final int PAGE_RIGHT = 201;
 	private boolean verticalLayout = false;
 	boolean mNeedsRedraw = true;
+	boolean hardwaredDisabled = false;
 	int cacheSize = 3;
 	private Transition transition;
 	private interface IPageAdapter {
@@ -222,7 +223,10 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 
 	@Override
 	public void onPageScrollStateChanged(int scrollState) {
-		mNeedsRedraw = (scrollState != ViewPager.SCROLL_STATE_IDLE);
+		if (hardwaredDisabled) {
+			hardwaredDisabled = false;
+			enableHWAcceleration(nativeView);
+		}
 		mPager.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 		
 		if (scrollState == ViewPager.SCROLL_STATE_DRAGGING) {
@@ -335,27 +339,13 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private void buildViewPager(Context context)
 	{
 		if (proxy.hasProperty(TiC.PROPERTY_LAYOUT) && TiConvert.toString(proxy.getProperty(TiC.PROPERTY_LAYOUT)).equals("vertical")) {
-			mPager = new VViewPager(context){
-//				@Override
-//				protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-//				{
-//					nativeView.invalidate(); //this fixes a weird problem with pageWidth and view disappearing
-//					super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//				}
-			};
+			mPager = new VViewPager(context);
 			((VViewPager)mPager).setOnPageChangeListener(this);
 			mAdapter = new VViewPagerAdapter(mViews);
 			verticalLayout = true;
 		}
 		else {
-			mPager = new HViewPager(context){
-//				@Override
-//				protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
-//				{
-//					nativeView.invalidate(); //this fixes a weird problem with pageWidth and view disappearing
-//					super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//				}
-			};
+			mPager = new HViewPager(context);
 			((HViewPager)mPager).setOnPageChangeListener(this);
 			mAdapter = new HViewPagerAdapter(mViews);
 		}
@@ -455,7 +445,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
     		mPager.setLayoutParams(params);
 		}
 		((ViewGroup)nativeView).setClipChildren(false);
-//		disableHWAcceleration();
+		
+		hardwaredDisabled = true;
+		disableHWAcceleration(nativeView); //we ll reenable it later because of a glitch
 	}
 	
 	private void setPageOffset(Object value)
@@ -781,9 +773,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		}
 
 		@Override
-		public void finishUpdate(View container) {
-			nativeView.invalidate();
-		}
+		public void finishUpdate(View container) {}
 
 		@Override
 		public int getCount()
