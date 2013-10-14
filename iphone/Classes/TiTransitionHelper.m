@@ -27,6 +27,8 @@
 #import "ADPushRotateTransition.h"
 #import "ADFoldTransition.h"
 #import "ADSlideTransition.h"
+
+#import "TiTransitionSwipeFade.h"
 @implementation TiTransitionHelper
 
 
@@ -88,6 +90,21 @@
             return nil;
             break;
     }
+}
+
++(ADTransition<TiTransition>*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view
+{
+    return [[TiTransitionSwipeFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+}
+
++(BOOL)isTransitionPush:(ADTransition*)transition
+{
+    return transition.orientation == ADTransitionRightToLeft || transition.orientation == ADTransitionBottomToTop;
+}
+
++(BOOL)isTransitionVertical:(ADTransition*)transition
+{
+    return transition.orientation == ADTransitionTopToBottom || transition.orientation == ADTransitionBottomToTop;
 }
 
 @end
