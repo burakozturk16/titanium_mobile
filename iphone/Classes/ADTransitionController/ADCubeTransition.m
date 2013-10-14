@@ -11,6 +11,7 @@
 @implementation ADCubeTransition
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
+    self.orientation = orientation;
     if (self = [super initWithDuration:duration]) {
         CAAnimation * animation = nil;
         CGFloat viewWidth = sourceRect.size.width;

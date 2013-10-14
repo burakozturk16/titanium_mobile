@@ -17,6 +17,7 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 @implementation ADTransition
 @synthesize delegate = _delegate;
 @synthesize type = _type;
+@synthesize orientation = _orientation;
 
 - (id)init {
     if (self = [super init]) {

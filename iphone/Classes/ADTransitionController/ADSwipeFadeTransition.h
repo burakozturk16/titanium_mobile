@@ -8,6 +8,7 @@
 
 #import "ADDualTransition.h"
 
+#define kSwipeFadeTranslate 0.3f
 @interface ADSwipeFadeTransition : ADDualTransition
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 @end

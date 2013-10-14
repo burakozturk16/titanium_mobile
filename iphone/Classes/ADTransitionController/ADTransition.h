@@ -39,10 +39,12 @@ typedef enum {
 @interface ADTransition : NSObject {
     id <ADTransitionDelegate> _delegate;
     ADTransitionType _type;
+    ADTransitionOrientation _orientation;
 }
 
 @property (nonatomic, assign) id <ADTransitionDelegate> delegate;
 @property (nonatomic, assign) ADTransitionType type;
+@property (nonatomic, assign) ADTransitionOrientation orientation;
 @property (nonatomic, assign) BOOL isReversed;
 
 + (ADTransition *)nullTransition;

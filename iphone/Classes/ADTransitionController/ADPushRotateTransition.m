@@ -11,6 +11,7 @@
 @implementation ADPushRotateTransition
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
+    self.orientation = orientation;
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     const CGFloat angle = M_PI / 2.0f;

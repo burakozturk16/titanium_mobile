@@ -12,6 +12,7 @@
 @implementation ADSwapTransition
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
+    self.orientation = orientation;
     CGFloat viewWidth = sourceRect.size.width;
     CGFloat viewHeight = sourceRect.size.height;
     

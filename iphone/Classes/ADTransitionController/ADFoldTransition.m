@@ -11,6 +11,7 @@
 @implementation ADFoldTransition
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
+    self.orientation = orientation;
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     const CGFloat inAngle = M_PI - 0.001f; // epsilon for modulo
