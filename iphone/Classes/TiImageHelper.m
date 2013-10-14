@@ -80,9 +80,10 @@
     }
     
     if ([options objectForKey:@"tint"]) {
-        UIColor* color = [TiUtils colorValue:@"tint" properties:options].color;
+        UIColor* color = [[TiUtils colorValue:@"tint" properties:options].color retain];
         CGBlendMode mode = [TiUtils intValue:@"blend" properties:options def:kCGBlendModeLighten];
         image = [self tintedImage:image withColor:color blendMode:mode];
+        [color release];
     }
     
     return image;
