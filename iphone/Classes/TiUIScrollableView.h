@@ -42,6 +42,7 @@
 -(void)setScrollingEnabled_:(id)enabled;
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd;
 -(void)setVerticalLayout:(BOOL)value;
+-(NSArray*)wrappers;
 @end
 
 

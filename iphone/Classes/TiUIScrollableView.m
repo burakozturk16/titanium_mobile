@@ -10,11 +10,16 @@
 #import "TiUIScrollableViewProxy.h"
 #import "TiUtils.h"
 #import "TiViewProxy.h"
+#import "TiTransition.h"
+#import "TiTransitionHelper.h"
 
 @interface TiUIScrollableView()
 {
     TiDimension pageDimension;
     TiDimension pageOffset;
+    ADTransition<TiTransition>* _transition;
+    BOOL _reverseDrawOrder;
+    NSMutableArray* _wrappers;
 }
 @property(nonatomic,readonly)	TiUIScrollableViewProxy * proxy;
 @end
@@ -28,12 +33,15 @@
 	RELEASE_TO_NIL(scrollview);
 	RELEASE_TO_NIL(pageControl);
     RELEASE_TO_NIL(pageControlBackgroundColor);
+    RELEASE_TO_NIL(_transition);
+    RELEASE_TO_NIL(_wrappers);
 	[super dealloc];
 }
 
 -(id)init
 {
 	if (self = [super init]) {
+        _reverseDrawOrder = NO;
         pageDimension = TiDimensionFromObject(@"100%");
         pageOffset = TiDimensionFromObject(@"50%");
         verticalLayout = NO;
@@ -45,6 +53,7 @@
         overlayEnabled = NO;
         pagingControlAlpha = 1.0;
         showPageControl = YES;
+        _wrappers = [[NSMutableArray alloc] init];
 	}
 	return self;
 }
@@ -111,6 +120,11 @@
     return child;
 }
 
+-(NSArray*)wrappers
+{
+    return [NSArray arrayWithArray:_wrappers];
+}
+
 -(UIScrollView*)scrollview 
 {
 	if (scrollview==nil)
@@ -146,33 +160,30 @@
 	}	
 }
 
--(void)renderViewForIndex:(int)index withRefresh:(BOOL)refresh
+-(void)renderView:(TiViewProxy*)viewProxy forIndex:(int)index withRefresh:(BOOL)refresh
 {
-	UIScrollView *sv = [self scrollview];
-	NSArray * svSubviews = [sv subviews];
-	int svSubviewsCount = [svSubviews count];
+	int svSubviewsCount = [_wrappers count];
     
 	if ((index < 0) || (index >= svSubviewsCount))
 	{
 		return;
 	}
     
-	UIView *wrapper = [svSubviews objectAtIndex:index];
-	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
+	UIView *wrapper = [_wrappers objectAtIndex:index];
 	if ([[wrapper subviews] count]==0)
 	{
 		// we need to realize this view
-		TiUIView *uiview = [viewproxy getOrCreateView];
-		[viewproxy windowWillOpen];
+		TiUIView *uiview = [viewProxy getOrCreateView];
+		[viewProxy windowWillOpen];
 		[wrapper addSubview:uiview];
-        [viewproxy windowWillOpen];
-        [viewproxy reposition];
-        [viewproxy windowDidOpen];
+        [viewProxy windowWillOpen];
+        [viewProxy reposition];
+        [viewProxy windowDidOpen];
 	}
     else if(refresh) {
-        [viewproxy windowWillOpen];
-        [viewproxy reposition];
-        [viewproxy windowDidOpen];
+        [viewProxy windowWillOpen];
+        [viewProxy reposition];
+        [viewProxy windowDidOpen];
     }
 }
 
@@ -226,7 +237,7 @@
     for (int i=0; i < viewsCount; i++) {
         TiViewProxy* viewProxy = [[self proxy] viewAtIndex:i];
         if (i >= renderRange.location && i < NSMaxRange(renderRange)) {
-            [self renderViewForIndex:i withRefresh:refresh];
+            [self renderView:viewProxy forIndex:i withRefresh:refresh];
         }
         else {
             [viewProxy windowWillClose];
@@ -267,6 +278,18 @@
     return result;
 }
 
+- (void)depthSortViews
+{
+	UIScrollView *sv = [self scrollview];
+    for (UIView *view in _wrappers)
+    {
+        if (_reverseDrawOrder)
+            [sv sendSubviewToBack:view];
+        else
+            [sv bringSubviewToFront:view];
+    }
+}
+
 -(void)refreshScrollView:(BOOL)readd
 {
     [self refreshScrollView:[self scrollview].bounds readd:readd];
@@ -298,10 +321,11 @@
 	
 	if (readd)
 	{
-		for (UIView *view in [sv subviews])
+		for (UIView *view in _wrappers)
 		{
 			[view removeFromSuperview];
 		}
+        [_wrappers removeAllObjects];
 	}
 	
 	int viewsCount = [[self proxy] viewCount];
@@ -310,29 +334,33 @@
 	frameSizeChanged with readd false and the views might 
 	not yet have been added on first launch
 	*/
-	readd = ([[sv subviews] count] == 0);
+	readd = ([_wrappers count] == 0);
 	
-	for (int c=0;c<viewsCount;c++)
+	for (int i=0;i<viewsCount;i++)
 	{
         if (verticalLayout) {
-            viewBounds.origin.y = c*viewBounds.size.height;
+            viewBounds.origin.y = i*viewBounds.size.height;
         }
         else {
-            viewBounds.origin.x = c*viewBounds.size.width;
+            viewBounds.origin.x = i*viewBounds.size.width;
         }
 		
 		if (readd)
 		{
 			UIView *view = [[UIView alloc] initWithFrame:viewBounds];
 			[sv addSubview:view];
+            [_wrappers addObject:view];
 			[view release];
 		}
 		else 
 		{
-			UIView *view = [[sv subviews] objectAtIndex:c];
+			UIView *view = [_wrappers objectAtIndex:i];
 			view.frame = viewBounds;
 		}
 	}
+    if (readd && _transition) {
+        [self depthSortViews];
+    }
     
 	if (page==0 || readd)
 	{
@@ -355,7 +383,7 @@
 	
 	
 	[sv setContentSize:contentBounds.size];
-//	[sv setFrame:CGRectMake(0, 0, visibleBounds.size.width, visibleBounds.size.height)];
+    [self didScroll];
 }
 
 -(void) updateScrollViewFrame:(CGRect)visibleBounds
@@ -409,7 +437,7 @@
 	
     //To make sure all subviews are properly resized.
     UIScrollView *sv = [self scrollview];
-    for(UIView *view in [sv subviews]){
+    for(UIView *view in _wrappers){
         for (TiUIView *sView in [view subviews]) {
                 [sView checkBounds];
         }
@@ -516,7 +544,7 @@
     if (val != nil) {
         RELEASE_TO_NIL(pageControlBackgroundColor);
         pageControlBackgroundColor = [[val _color] retain];
-        if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count]>0)) {
+        if (showPageControl && (scrollview!=nil) && ([_wrappers count]>0)) {
             [[self pagecontrol] setBackgroundColor:pageControlBackgroundColor];
         }
     }
@@ -530,7 +558,7 @@
     if(pagingControlAlpha < 0.0 ){
         pagingControlAlpha = 0;
     }
-    if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count] > 0)) {
+    if (showPageControl && (scrollview!=nil) && ([_wrappers count] > 0)) {
         [[self pagecontrol] setAlpha:pagingControlAlpha];
     }
     
@@ -538,7 +566,7 @@
 -(void)setPagingControlOnTop_:(id)args
 {
     pagingControlOnTop = [TiUtils boolValue:args def:NO];
-    if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count] > 0)) {
+    if (showPageControl && (scrollview!=nil) && ([_wrappers count] > 0)) {
         //No need to readd. Just set up the correct frame bounds
         [self refreshScrollView:NO];
     }
@@ -547,7 +575,7 @@
 -(void)setOverlayEnabled_:(id)args
 {
     overlayEnabled = [TiUtils boolValue:args def:NO];
-    if (showPageControl && (scrollview!=nil) && ([[scrollview subviews] count] > 0)) {
+    if (showPageControl && (scrollview!=nil) && ([_wrappers count] > 0)) {
         //No need to readd. Just set up the correct frame bounds
         [self refreshScrollView:NO];
     }
@@ -668,6 +696,7 @@
 		pageControl.currentPage = newPage;
 		
         [self manageCache:newPage];
+        [self didScroll];
         
 		[self.proxy replaceValue:NUMINT(newPage) forKey:@"currentPage" notification:NO];
 	}
@@ -690,6 +719,34 @@
 -(void)setDisableBounce_:(id)value
 {
 	[[self scrollview] setBounces:![TiUtils boolValue:value]];
+}
+
+-(void)setTransitionStyle_:(id)value
+{
+    NWTransition transition = [TiUtils intValue:value def:-1];
+    ADTransitionOrientation subtype = [TiUtils intValue:[[self proxy] valueForKey:@"transitionSubStyle"] def:ADTransitionRightToLeft];
+    RELEASE_TO_NIL(_transition);
+    _transition = [TiTransitionHelper tiTransitionForType:transition subType:subtype withDuration:0 containerView:self];
+    if (_transition) {
+        _reverseDrawOrder = [_transition needsReverseDrawOrder];
+        
+    }
+	[self depthSortViews];
+    [self didScroll];
+}
+
+-(void)setTransitionSubStyle_:(id)value
+{
+    NWTransition transition = [TiUtils intValue:[[self proxy] valueForKey:@"transitionStyle"] def:-1];
+    ADTransitionOrientation subtype = [TiUtils intValue:value def:ADTransitionRightToLeft];
+    RELEASE_TO_NIL(_transition);
+    _transition = [TiTransitionHelper tiTransitionForType:transition subType:subtype withDuration:0 containerView:self];
+    if (_transition) {
+        _reverseDrawOrder = [_transition needsReverseDrawOrder];
+        
+    }
+	[self depthSortViews];
+    [self didScroll];
 }
 
 #pragma mark Rotation
@@ -738,6 +795,35 @@
     return nextPageAsFloat;
 }
 
+- (void)transformItemView:(UIView *)view atIndex:(NSInteger)index
+{
+    float currentPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
+    //calculate offset
+    CGFloat offset = index - currentPageAsFloat;
+    [_transition transformView:view withPosition:offset];
+}
+
+- (void)transformViews
+{
+    int index = 0;
+    for (TiViewProxy* viewProxy in [[self proxy] viewProxies]) {
+		if ([viewProxy viewAttached]) {
+            [self transformItemView:[_wrappers objectAtIndex:index] atIndex:index];
+		}
+        index ++ ;
+    }
+}
+
+#pragma mark -
+#pragma mark Scrolling
+
+- (void)didScroll
+{
+    if (_transition != nil){
+        [self transformViews];
+    }
+}
+
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
 	//switch page control at 50% across the center - this visually looks better
@@ -768,12 +854,14 @@
         [self manageCache:currentPage];
         cacheSize = curCacheSize;
     }
+    [self didScroll];
 }
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
 	// called when setContentOffset/scrollRectVisible:animated: finishes. not called if not animating
 	[self scrollViewDidEndDecelerating:scrollView];
+    [self didScroll];
 }
 
 
@@ -805,6 +893,7 @@
 	currentPage = lastPage = pageNum;
 	[pageControl setCurrentPage:currentPage];
 	[self manageCache:currentPage];
+    [self didScroll];
 }
 
 @end
