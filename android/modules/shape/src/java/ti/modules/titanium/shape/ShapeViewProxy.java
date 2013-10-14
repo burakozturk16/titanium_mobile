@@ -110,7 +110,7 @@ public class ShapeViewProxy extends TiViewProxy {
 
 		public TiShapeView(final TiViewProxy proxy, Activity activity) {
 			super(proxy);
-			hardwareAccSupported = false;
+			hardwareAccEnabled = false;
 			nativeViewBounds = new Rect();
 			createNativeView(activity);
 		}

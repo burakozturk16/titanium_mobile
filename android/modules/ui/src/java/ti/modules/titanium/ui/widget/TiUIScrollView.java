@@ -602,7 +602,7 @@ public class TiUIScrollView extends TiUIView
 	public void add(TiUIView child, int index)
 	{
 		if (child.hWAccelerationDisabled()) {
-			hardwareAccSupported = false;
+			hardwareAccEnabled = false;
 			disableHWAcceleration(getOuterView());	
 		}
 		super.add(child, index);

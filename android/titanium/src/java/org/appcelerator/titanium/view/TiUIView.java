@@ -142,7 +142,7 @@ public abstract class TiUIView
 	protected Handler handler;
 	
 	protected boolean exclusiveTouch = false;
-	public boolean hardwareAccSupported = true;
+	public boolean hardwareAccEnabled = true;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -340,7 +340,7 @@ public abstract class TiUIView
 			addBorderView();
 		}
 		
-		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == false) {
+		if (HONEYCOMB_OR_GREATER && hardwareAccEnabled == false) {
 			disableHWAcceleration();
 		}
 		applyAccessibilityProperties();
@@ -1055,7 +1055,7 @@ public abstract class TiUIView
 			savedParent.addView(borderView, savedIndex,getLayoutParams());
 		}
 		
-		if ((borderView.getRadius() > 0f || hardwareAccSupported == false) && HONEYCOMB_OR_GREATER) {
+		if ((borderView.getRadius() > 0f || hardwareAccEnabled == false) && HONEYCOMB_OR_GREATER) {
 			disableHWAcceleration(borderView);
 		}
 	}
@@ -1632,33 +1632,37 @@ public abstract class TiUIView
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	protected void disableHWAcceleration(View view)
 	{
-		view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		if (HONEYCOMB_OR_GREATER) {
+			view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		}
 	}
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	protected void enableHWAcceleration(View view)
 	{
-		view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		if (HONEYCOMB_OR_GREATER) {
+			view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+		}
 	}
 
 	protected void disableHWAcceleration()
 	{
-		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == true) {
+		if (hardwareAccEnabled == true) {
 			disableHWAcceleration(getOuterView());
-			hardwareAccSupported = false;
+			hardwareAccEnabled = false;
 		}
 	}
 	
 	protected void enableHWAcceleration()
 	{
-		if (HONEYCOMB_OR_GREATER && hardwareAccSupported == false) {
+		if (hardwareAccEnabled == false) {
 			enableHWAcceleration(getOuterView());
-			hardwareAccSupported = true;
+			hardwareAccEnabled = true;
 		}
 	}
 	
 	public boolean hWAccelerationDisabled(){
-		return !hardwareAccSupported;
+		return !hardwareAccEnabled;
 	}
 
 	private void applyContentDescription()
