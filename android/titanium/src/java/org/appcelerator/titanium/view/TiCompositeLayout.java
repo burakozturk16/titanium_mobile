@@ -725,7 +725,6 @@ public class TiCompositeLayout extends FreeLayout implements
 				}
 			}
 
-			child.layout(horizontal[0], vertical[0], horizontal[1], vertical[1]);
 
 			int newWidth = horizontal[1] - horizontal[0];
 			int newHeight = vertical[1] - vertical[0];
@@ -741,6 +740,7 @@ public class TiCompositeLayout extends FreeLayout implements
 				child.measure(newWidthSpec, newHeightSpec);
 			}
 
+			child.layout(horizontal[0], vertical[0], horizontal[1], vertical[1]);
 			currentHeight += newHeight;
 	
 			currentHeight += getLayoutOptionAsPixels(params.optionTop, TiDimension.TYPE_TOP, params, this);
