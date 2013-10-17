@@ -1,47 +1,37 @@
 //
-//  TiTransitionSwipeFade.m
+//  TiTransitionFade.m
 //  Titanium
 //
 //  Created by Martin Guillon on 14/10/13.
 //
 //
 
-#import "TiTransitionSwipeFade.h"
+#import "TiTransitionFade.h"
 #import "TiTransitionHelper.h"
 
-@implementation TiTransitionSwipeFade
+@implementation TiTransitionFade
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
-//    if (position >1 || position < -1) {
-//        view.alpha = 0;
-//        return;
-//    }
-    BOOL before = (position < 0);
-    float multiplier = 1;
-    float dest = 0;
-    if (![TiTransitionHelper isTransitionPush:self]) {
-        multiplier = -1;
-        before = !before;
+    if (position >1 || position < -1) {
+        view.alpha = 0;
+        return;
     }
     
+    float percent = ABS(position);
     int viewWidth = view.frame.size.width;
     int viewHeight = view.frame.size.height;
     
-    float alpha = 1;
-    if (before) { //out
-        dest = multiplier* ABS(position)*(1.0f-kSwipeFadeTranslate);
-        alpha = 1.0f - ABS(position);
-    }
-    
-    view.alpha = alpha;
-    if (adjust) {
+    if (adjust)  {
+        CATransform3D transform = CATransform3DIdentity;
         if ([TiTransitionHelper isTransitionVertical:self]) {
-           view.layer.transform = CATransform3DMakeTranslation(0.0f, viewWidth * dest, 0.0f);
+            transform = CATransform3DTranslate(transform, 0.0f, -position * viewHeight, 0.0f); // cancel scroll
         }
         else {
-            view.layer.transform = CATransform3DMakeTranslation(viewHeight * dest, 0.0f, 0.0f);
+            transform = CATransform3DTranslate(transform, -position * viewWidth, 0.0f, 0.0f); // cancel scroll
         }
+        view.layer.transform = transform;
     }
+    view.alpha = 1 - percent;
     
 }
 
@@ -57,10 +47,10 @@
 {
     [self transformView:view withPosition:position adjustTranslation:NO size:view.bounds.size];
 }
+
 -(BOOL)needsReverseDrawOrder
 {
-    return ![TiTransitionHelper isTransitionPush:self];
+    return NO;
 }
-
 -(void)prepareViewHolder:(UIView*)holder{}
 @end
