@@ -410,20 +410,24 @@
 // within the scrollable view.  Doing so, if we're resizing to a SMALLER frame, causes a content offset
 // reset internally, which screws with the currentPage number (since -[self scrollViewDidScroll:] is called).
 // Looks a little ugly, though...
--(void)setFrame:(CGRect)frame_
-{
-    lastPage = [self currentPage];
-    enforceCacheRecalculation = YES;
-    [super setFrame:frame_];
-    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
-    enforceCacheRecalculation = NO;
-}
+//-(void)setFrame:(CGRect)frame_
+//{
+//    lastPage = [self currentPage];
+//    enforceCacheRecalculation = YES;
+//    [super setFrame:frame_];
+////    [self updateScrollViewFrame:frame_];
+//    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
+//    enforceCacheRecalculation = NO;
+//}
 
 
 -(void)setBounds:(CGRect)bounds_
 {
     lastPage = [self currentPage];
+    enforceCacheRecalculation = YES;
     [super setBounds:bounds_];
+    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
+    enforceCacheRecalculation = NO;
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)visibleBounds
