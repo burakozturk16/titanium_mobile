@@ -183,6 +183,20 @@ public class SlidingMenu extends RelativeLayout {
 		 */
 		public void transformCanvas(Canvas canvas, float percentOpen);
 	}
+	
+	/**
+	 * The Interface CanvasTransformer.
+	 */
+	public interface ViewTransformer {
+
+		/**
+		 * Transform canvas.
+		 *
+		 * @param canvas the canvas
+		 * @param percentOpen the percent open
+		 */
+		public void transformView(View view, float percentOpen);
+	}
 
 	/**
 	 * Instantiates a new SlidingMenu.
@@ -804,8 +818,8 @@ public class SlidingMenu extends RelativeLayout {
 	 *
 	 * @param t the new behind canvas transformer
 	 */
-	public void setBehindCanvasTransformer(CanvasTransformer t) {
-		mViewBehind.setCanvasTransformer(t);
+	public void setBehindViewTransformer(ViewTransformer t) {
+		mViewBehind.setViewTransformer(t);
 	}
 	
 	/**
@@ -813,8 +827,8 @@ public class SlidingMenu extends RelativeLayout {
 	 *
 	 * @param t the new behind canvas transformer
 	 */
-	public void setBehindSecondaryCanvasTransformer(CanvasTransformer t) {
-		mViewBehind.setSecondaryCanvasTransformer(t);
+	public void setBehindSecondaryViewTransformer(ViewTransformer t) {
+		mViewBehind.setSecondaryViewTransformer(t);
 	}
 	
 	/**
