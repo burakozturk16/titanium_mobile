@@ -5,14 +5,10 @@
  * Please see the LICENSE included with this distribution for details.
  */
 var url = require("url"),
-	path = require('path'),
 	Script = kroll.binding('evals').Script,
-	assets = kroll.binding("assets"),
-	NativeModule = require('native_module'),
-	bootstrapModule = require('bootstrap'),
 	PersistentHandle = require('ui').PersistentHandle;
 
-var TAG = "Window";
+var TAG = "NavigationWindow";
 
 exports.bootstrap = function(Titanium) {
 	var NavigationWindow = Titanium.UI.NavigationWindow;
@@ -60,15 +56,20 @@ exports.bootstrap = function(Titanium) {
 			options = {};
 		}
 
+		kroll.log(TAG, "openWindow");
 		// Retain the window until it has closed.
 		var handle = new PersistentHandle(window);
-
+		var that = this;
 		window.on("close", function(e) {
 			if (e._closeFromActivityForcedToDestroy) {
 				if (kroll.DBG) {
 					kroll.log(TAG, "Window is closed because the activity is forced to destroy by Android OS.");
 				}
 				return;
+			}
+			var index = that._windows.indexOf(window);
+			if (index > -1) {
+				that._windows.splice(index, 1);
 			}
 			// Dispose the URL context if the window's activity is destroyed.
 			if (window._urlContext) {
@@ -84,19 +85,6 @@ exports.bootstrap = function(Titanium) {
 
 		this._windows.push(window);
 		_openWindow.call(this, window, options);
-	}
-
-	var _closeWindow = NavigationWindow.prototype.closeWindow;
-	NavigationWindow.prototype.closeWindow = function(window, options) {
-		if (!window) {
-			return;
-		}
-
-		if (!options) {
-			options = {};
-		}
-		this._windows.remove(window);
-		_closeWindow.call(this, window, options);
 	}
 
 	var _setWindow = NavigationWindow.prototype.setWindow;
