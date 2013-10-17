@@ -339,6 +339,11 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     return nil;
 }
 
+-(ADTransition*)lastTransition
+{
+    return [_transitions lastObject];
+}
+
 - (UIViewController *)popViewControllerWithTransition:(ADTransition *)transition {
     if (self.viewControllers.count < 2 || _isContainerViewTransitioning || _isNavigationBarTransitioning) {
         return nil;
