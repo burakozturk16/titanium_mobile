@@ -341,7 +341,7 @@ public abstract class TiUIView
 		}
 		
 		if (HONEYCOMB_OR_GREATER && hardwareAccEnabled == false) {
-			disableHWAcceleration();
+			disableHWAcceleration(getOuterView());
 		}
 		applyAccessibilityProperties();
 	}
