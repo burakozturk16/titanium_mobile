@@ -19,6 +19,6 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-shape"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-shape/bin/titanium-shape.jar"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-image"/>
-	<classpathentry kind="lib" path="/titanium-image/bin/titanium-image.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-image/bin/titanium-image.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
