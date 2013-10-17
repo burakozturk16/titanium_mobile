@@ -118,29 +118,34 @@
     [super updateDrawerVisualStateForDrawerSide:drawerSide percentVisible:percentVisible];
     if (percentVisible > 0.0f) {
         if (drawerSide == MMDrawerSideLeft) {
-            if (_leftViewFadingView.superview == nil) {
-                _leftViewFadingView.frame = self.leftDrawerViewController.view.bounds;
-                [self.leftDrawerViewController.view addSubview:_leftViewFadingView];
+            if (_fadeDegree > 0) {
+                if (_leftViewFadingView.superview == nil) {
+                    _leftViewFadingView.frame = self.leftDrawerViewController.view.bounds;
+                    [self.leftDrawerViewController.view addSubview:_leftViewFadingView];
+                }
+                _leftViewFadingView.alpha = (1 - percentVisible)*_fadeDegree;
             }
-            _leftViewFadingView.alpha = (1 - percentVisible)*_fadeDegree;
             if (self.leftDisplacement != 0) {
                 self.leftDrawerViewController.view.layer.transform = CATransform3DMakeTranslation(-self.leftDisplacement*(1 - percentVisible), 0.0, 0.0);
             }
         }
         else if (drawerSide == MMDrawerSideRight) {
-            if (_rightViewFadingView.superview == nil) {
-                _rightViewFadingView.frame = self.rightDrawerViewController.view.bounds;
-                [self.rightDrawerViewController.view addSubview:_rightViewFadingView];
+            if (_fadeDegree > 0) {
+                if (_rightViewFadingView.superview == nil) {
+                    _rightViewFadingView.frame = self.rightDrawerViewController.view.bounds;
+                    [self.rightDrawerViewController.view addSubview:_rightViewFadingView];
+                }
+                _rightViewFadingView.alpha = (1 - percentVisible)*_fadeDegree;
             }
-            _rightViewFadingView.alpha = (1 - percentVisible)*_fadeDegree;
-            
             if (self.rightDisplacement != 0) {
                 self.rightDrawerViewController.view.layer.transform = CATransform3DMakeTranslation(-self.rightDisplacement*(1 - percentVisible), 0.0, 0.0);
             }
         }
     }
     else {
-        _rightViewFadingView.alpha = _fadeDegree;
+        if (_fadeDegree > 0) {
+            _leftViewFadingView.alpha = _rightViewFadingView.alpha = _fadeDegree;
+        }
         if (self.leftDisplacement != 0) {
             self.leftDrawerViewController.view.layer.transform = CATransform3DMakeTranslation(-self.leftDisplacement, 0.0, 0.0);
         }

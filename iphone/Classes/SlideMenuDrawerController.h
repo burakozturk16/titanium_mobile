@@ -6,8 +6,8 @@
 @property(nonatomic,assign) CGFloat leftDisplacement;
 @property(nonatomic,assign) CGFloat rightDisplacement;
 @property(nonatomic,retain) TiProxy * proxy;
-@property (nonatomic, assign) MMDrawerControllerDrawerVisualStateBlock leftVisualBlock;
-@property (nonatomic, assign) MMDrawerControllerDrawerVisualStateBlock rightVisualBlock;
+@property (nonatomic, copy) MMDrawerControllerDrawerVisualStateBlock leftVisualBlock;
+@property (nonatomic, copy) MMDrawerControllerDrawerVisualStateBlock rightVisualBlock;
 -(CGRect)childControllerContainerViewFrame;
 
 @end
