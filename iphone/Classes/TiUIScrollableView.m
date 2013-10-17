@@ -597,6 +597,7 @@
         offset = CGPointMake(pageWidth * pageNumber, 0);
     }
     [scrollview setContentOffset:offset animated:animated];
+    [self didScroll];
 }
 
 -(int)pageNumFromArg:(id)args
@@ -725,29 +726,16 @@
 	[[self scrollview] setBounces:![TiUtils boolValue:value]];
 }
 
--(void)setTransitionStyle_:(id)value
+-(void)setTransition_:(id)value
 {
-    NWTransition transition = [TiUtils intValue:value def:-1];
-    ADTransitionOrientation subtype = [TiUtils intValue:[[self proxy] valueForKey:@"transitionSubStyle"] def:ADTransitionRightToLeft];
+    
+    UIScrollView* sv = [self scrollview];
+    ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
     RELEASE_TO_NIL(_transition);
-    _transition = [TiTransitionHelper tiTransitionForType:transition subType:subtype withDuration:0 containerView:self];
+    _transition = [TiTransitionHelper transitionFromArg:value containerView:sv];
     if (_transition) {
         _reverseDrawOrder = [_transition needsReverseDrawOrder];
-        
-    }
-	[self depthSortViews];
-    [self didScroll];
-}
-
--(void)setTransitionSubStyle_:(id)value
-{
-    NWTransition transition = [TiUtils intValue:[[self proxy] valueForKey:@"transitionStyle"] def:-1];
-    ADTransitionOrientation subtype = [TiUtils intValue:value def:ADTransitionRightToLeft];
-    RELEASE_TO_NIL(_transition);
-    _transition = [TiTransitionHelper tiTransitionForType:transition subType:subtype withDuration:0 containerView:self];
-    if (_transition) {
-        _reverseDrawOrder = [_transition needsReverseDrawOrder];
-        
+        [_transition prepareViewHolder:sv];
     }
 	[self depthSortViews];
     [self didScroll];
@@ -799,20 +787,21 @@
     return nextPageAsFloat;
 }
 
-- (void)transformItemView:(UIView *)view atIndex:(NSInteger)index
+- (void)transformItemView:(UIView *)view atIndex:(NSInteger)index withCurrentPage:(CGFloat)currentPageAsFloat
 {
-    float currentPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
     //calculate offset
     CGFloat offset = index - currentPageAsFloat;
-    [_transition transformView:view withPosition:offset];
+    [_transition transformView:view withPosition:offset adjustTranslation:YES];
 }
 
 - (void)transformViews
 {
+    
     int index = 0;
+    float currentPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
     for (TiViewProxy* viewProxy in [[self proxy] viewProxies]) {
-		if ([viewProxy viewAttached]) {
-            [self transformItemView:[_wrappers objectAtIndex:index] atIndex:index];
+        if ([viewProxy viewAttached]) {
+            [self transformItemView:[_wrappers objectAtIndex:index] atIndex:index withCurrentPage:currentPageAsFloat];
 		}
         index ++ ;
     }

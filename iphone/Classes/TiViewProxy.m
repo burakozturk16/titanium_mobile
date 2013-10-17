@@ -3393,9 +3393,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             if (props == nil) {
                 DebugLog(@"[WARN] Called transitionViews without transitionStyle");
             }
-            NWTransition transitionType = [TiUtils intValue:@"transitionStyle" properties:props def:NWTransitionSwipe];
-            ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionRightToLeft];
-            float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:0]/1000;
             pthread_rwlock_unlock(&childrenLock);
             
             TiUIView* view2 = [view2Proxy getOrCreateView];
@@ -3403,7 +3400,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
             [view2Proxy layoutChildren:NO];
             
-            ADTransition* transition = [TiTransitionHelper transitionForType:transitionType subType:subtype withDuration:duration containerView:self.view];
+            ADTransition<TiTransition>* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
             transition.type = ADTransitionTypePush;
             [[self view] transitionfromView:[view1Proxy getOrCreateView] toView:view2 withTransition:transition completionBlock:^{
                 [self remove:view1Proxy];

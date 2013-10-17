@@ -13,6 +13,8 @@
 #import "TiViewController.h"
 #import "UIViewController+ADTransitionController.h"
 #import "TiUISlideMenuVisualState.h"
+#import "TiTransition.h"
+#import "TiTransitionHelper.h"
 
 @interface TiUISlideMenu()
 {
@@ -23,6 +25,7 @@
     TiViewProxy* centerView;
     TiDimension _leftScrollScale; //between 0.0f and 1.0f
     TiDimension _rightScrollScale; //between 0.0f and 1.0f
+    ADTransition<TiTransition>* _transition;
 }
 @end
 
@@ -73,6 +76,7 @@
 	RELEASE_TO_NIL(leftView);
 	RELEASE_TO_NIL(rightView);
 	RELEASE_TO_NIL(centerView);
+    RELEASE_TO_NIL(_transition);
     [super dealloc];
 }
 
@@ -139,8 +143,9 @@
     
 	RELEASE_TO_NIL(leftView);
     leftView = [args retain];
-    CGRect frame = [[self controller] childControllerContainerViewFrame];
-    UIViewController* ctlr = [self controllerForViewProxy:leftView withFrame:frame];
+    CGRect rect = [self controller].view.bounds;
+    rect.size.width = [self controller].maximumLeftDrawerWidth;
+    UIViewController* ctlr = [self controllerForViewProxy:leftView withFrame:rect];
     [self controller].leftDrawerViewController = ctlr;
 }
 
@@ -251,4 +256,33 @@
     }
     [self controller].leftVisualBlock = block;
 }
+
+
+-(void)setLeftTransition_:(id)value
+{
+    ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
+    RELEASE_TO_NIL(_transition);
+    _transition = [TiTransitionHelper transitionFromArg:value containerView:self];
+    if (_transition) {
+        MMDrawerControllerDrawerVisualStateBlock visualStateBlock =
+        ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
+            if(percentVisible <= 1.f){
+                NSLog(@"test %f", percentVisible);
+                CGFloat maxDrawerWidth = MAX(drawerController.maximumRightDrawerWidth,drawerController.visibleRightDrawerWidth);
+                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:[TiTransitionHelper isTransitionPush:_transition]?percentVisible-1:1-percentVisible];
+            }
+//            else{
+//                CATransform3D transform = CATransform3DIdentity;                
+//                CGFloat maxDrawerWidth = MAX(drawerController.maximumRightDrawerWidth,drawerController.visibleRightDrawerWidth);
+//                transform = CATransform3DMakeScale(percentVisible, 1.f, 1.f);
+//                transform = CATransform3DTranslate(transform, maxDrawerWidth/2, 0.f, 0.f);
+//                [drawerController.leftDrawerViewController.view.layer setTransform:transform];
+//            }
+        };
+
+        [self controller].leftVisualBlock = visualStateBlock;
+    }
+	else [self controller].leftVisualBlock = nil;
+}
+
 @end

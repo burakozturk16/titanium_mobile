@@ -21,10 +21,8 @@
 #import "UIImage+Resize.h"
 #import "TiUIHelper.h"
 #import "TiSVGImage.h"
-#import "ADTransition.h"
-#import "ADTransformTransition.h"
-#import "ADDualTransition.h"
 #import "TiImageHelper.h"
+#import "TiTransitionHelper.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -1756,11 +1754,12 @@ DEFINE_EXCEPTIONS
 	}
 }
 
-- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(ADTransition *)transition completionBlock:(void (^)(void))block{
+- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(ADTransition<TiTransition> *)transition completionBlock:(void (^)(void))block{
     [viewOut animationStarted];
     [viewIn animationStarted];
     
     [self addSubview:viewIn];
+    [transition prepareViewHolder:self];
     [transition prepareTransitionFromView:viewOut toView:viewIn inside:self];
     
     [CATransaction setCompletionBlock:^{

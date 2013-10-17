@@ -241,6 +241,16 @@
     }
 }
 
+-(NSDictionary*)defaultTransition
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        return @{ @"type" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+    }
+    else {
+        return @{ @"type" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
+    }
+}
+
 -(void)pushOnUIThread:(NSArray*)args
 {
 	if (transitionIsAnimating)
@@ -251,31 +261,13 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-    int defaultDuration = [TiUtils isIOS7OrGreater]?200:300;
     [window windowWillOpen];
     if (animated) {
-        ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionRightToLeft];
-        float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
-        if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
-            NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
-            [navController pushViewController:[window hostingController] withTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
-        }
-        else {
-            [navController pushViewController:[window hostingController] withTransition:[self defaultTransitionWithDuration:duration subType:subtype]];
-        }
+        ADTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
+        [navController pushViewController:[window hostingController] withTransition:transition];
     }
     else {
         [navController pushViewController:[window hostingController] withTransition:nil];
-    }
-}
-
--(ADTransition*) defaultTransitionWithDuration:(float)duration subType:(ADTransitionOrientation)subtype
-{
-    if ([TiUtils isIOS7OrGreater]) {
-        return [[ADModernPushTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
-    }
-    else {
-        return [[ADSwipeTransition alloc] initWithDuration:duration orientation:subtype sourceRect:self.view.frame];
     }
 }
 
@@ -293,16 +285,8 @@
         int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
         BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
         if (animated) {
-            ADTransitionOrientation subtype = [TiUtils intValue:@"transitionSubStyle" properties:props def:ADTransitionLeftToRight];
-            if ([props objectForKey:@"transitionStyle"] || [props objectForKey:@"transitionSubStyle"]) {
-                float duration = [TiUtils floatValue:@"transitionDuration" properties:props def:defaultDuration]/1000;
-                
-                NWTransition transition = [TiUtils intValue:@"transitionStyle" properties:props def:-1];
-                [navController popViewControllerWithTransition:[TiTransitionHelper transitionForType:transition subType:subtype withDuration:duration containerView:self.view]];
-            }
-            else {
-                [navController popViewController];
-            }
+            ADTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[navController lastTransition] containerView:self.view];
+            [navController popViewControllerWithTransition:transition];
         }
         else {
             [navController popViewControllerWithTransition:nil];
