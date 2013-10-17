@@ -1,8 +1,11 @@
 package org.appcelerator.titanium.transition;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.animation.ScaleProperty;
@@ -12,6 +15,7 @@ import org.appcelerator.titanium.transition.TransitionCube;
 import org.appcelerator.titanium.transition.TransitionFlip;
 import org.appcelerator.titanium.transition.TransitionSwipe;
 import org.appcelerator.titanium.transition.TransitionSwipeFade;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiViewHelper;
 
 
@@ -182,6 +186,8 @@ public class TransitionHelper {
 			return new TransitionSwipe(subtype, isOut, duration);
 		case kTransitionCube:
 			return new TransitionCube(subtype, isOut, duration);
+		case kTransitionCarousel:
+			return new TransitionCarousel(subtype, isOut, duration);
 		case kTransitionSwipeFade:
 			return new TransitionSwipeFade(subtype, isOut, duration);
 		case kTransitionFlip:
@@ -214,5 +220,27 @@ public class TransitionHelper {
 		}
 
 		return new TransitionInAndOut(type, subtype, duration);
+	}
+	
+	public static Transition transitionFromObject(HashMap options, HashMap defaultOptions, Transition defaultTransition)  
+	{
+		Transition result = defaultTransition;
+		int style = TiConvert.toInt(defaultOptions, TiC.PROPERTY_STYLE,-1);
+		int substyle = TiConvert.toInt(defaultOptions, TiC.PROPERTY_SUBSTYLE,SubTypes.kRightToLeft.ordinal());
+		int duration = TiConvert.toInt(defaultOptions, TiC.PROPERTY_DURATION, (defaultTransition != null)?defaultTransition.getDuration():300);
+		
+		if (options != null) {
+			style = TiConvert.toInt(options, TiC.PROPERTY_STYLE, style);
+			substyle = TiConvert.toInt(options, TiC.PROPERTY_SUBSTYLE, substyle);
+			duration = TiConvert.toInt(options, TiC.PROPERTY_DURATION, duration);
+		}
+
+		if (style != -1  && (defaultTransition == null || substyle != defaultTransition.subType.ordinal())) {
+			result = TransitionHelper.transitionForType(style, substyle, duration);
+		}
+		else if (result != null) {
+			result.setDuration(duration);
+		}
+		return result;
 	}
 }

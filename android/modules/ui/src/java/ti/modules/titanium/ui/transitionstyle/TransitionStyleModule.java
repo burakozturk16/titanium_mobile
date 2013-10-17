@@ -10,6 +10,7 @@ import ti.modules.titanium.ui.UIModule;
 public class TransitionStyleModule extends KrollModule {
 
 	@Kroll.constant public static final int CUBE = TransitionHelper.Types.kTransitionCube.ordinal();
+	@Kroll.constant public static final int CAROUSEL = TransitionHelper.Types.kTransitionCarousel.ordinal();
 	@Kroll.constant public static final int SWIPE = TransitionHelper.Types.kTransitionSwipe.ordinal();
 	@Kroll.constant public static final int SWIPE_FADE = TransitionHelper.Types.kTransitionSwipeFade.ordinal();
 	@Kroll.constant public static final int FLIP = TransitionHelper.Types.kTransitionFlip.ordinal();

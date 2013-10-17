@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.lang.Math;
 
 import org.appcelerator.kroll.KrollDict;
@@ -128,7 +129,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 				@Override
 				public void transformPage(View page, float position) {
 					if (transition != null) {
-						transition.transformView(page, position);
+						transition.transformView(page, position, true);
 					}
 				}
 			});
@@ -175,7 +176,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 				@Override
 				public void transformPage(View page, float position) {
 					if (transition != null) {
-						transition.transformView(page, position);
+						transition.transformView(page, position, true);
 					}
 				}
 			});
@@ -511,10 +512,8 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			updateCacheSize();
 		}
 		
-		if (d.containsKey(TiC.PROPERTY_TRANSITION_STYLE)) {
-			int transitionStyle = d.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
-			int transitionSubStyle = d.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, SubTypes.kRightToLeft.ordinal());
-			transition = TransitionHelper.transitionForType(transitionStyle, transitionSubStyle, 0);
+		if (d.containsKey(TiC.PROPERTY_TRANSITION)) {
+			transition = TransitionHelper.transitionFromObject((HashMap) d.get(TiC.PROPERTY_TRANSITION), null, null);
 			mPager.updatePageTransformer();
 		}
 		super.processProperties(d);
@@ -551,10 +550,8 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			setPageWidth(newValue);
 		} else if (TiC.PROPERTY_PAGE_OFFSET.equals(key)){
 			setPageOffset(newValue);
-		} else if (TiC.PROPERTY_TRANSITION_STYLE.equals(key)){
-			int transitionStyle = TiConvert.toInt(newValue, -1);
-			int transitionSubStyle = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_TRANSITION_SUBSTYLE), SubTypes.kRightToLeft.ordinal());
-			transition = TransitionHelper.transitionForType(transitionStyle, transitionSubStyle, 0);
+		} else if (TiC.PROPERTY_TRANSITION.equals(key)){
+			transition = TransitionHelper.transitionFromObject((HashMap) newValue, null, null);
 			mPager.updatePageTransformer();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);

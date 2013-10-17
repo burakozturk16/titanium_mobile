@@ -21,8 +21,8 @@ public class SlideMenuOptionsModule extends KrollModule {
 	@Kroll.constant public static final int ANIMATION_SLIDEUP = 3;
 
 
-	@Kroll.constant public static final String PROPERTY_ANIMATION_LEFT = "leftAnimation";
-	@Kroll.constant public static final String PROPERTY_ANIMATION_RIGHT = "rightAnimation";
+	@Kroll.constant public static final String PROPERTY_TRANSITION_LEFT = "leftTransition";
+	@Kroll.constant public static final String PROPERTY_TRANSITION_RIGHT = "rightTransition";
 	@Kroll.constant public static final String PROPERTY_LEFT_VIEW = "leftView";
 	@Kroll.constant public static final String PROPERTY_LEFT_VIEW_DISPLACEMENT = "leftViewDisplacement";
 	@Kroll.constant public static final String PROPERTY_LEFT_VIEW_WIDTH = "leftViewWidth";

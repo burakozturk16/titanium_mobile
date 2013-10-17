@@ -10,6 +10,7 @@ package ti.modules.titanium.ui;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
@@ -81,8 +82,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	private static final int MSG_POP = MSG_FIRST_ID + 104;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
-	private static int defaultTransitionStyle = TransitionStyleModule.SWIPE;
-	private static int defaultTransitionSubStyle = TransitionStyleModule.RIGHT_TO_LEFT;
 
 	private WeakReference<TiBaseActivity> windowActivity;
 	ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
@@ -280,30 +279,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, TiWindowProxy winToFocus, Object arg)
 	{
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
-		int transitionStyle = -1;
 		Transition transition = null;
-		int duration = -1;
 		if (animations.containsKey(toRemove)) {
 			transition = animations.get(toRemove);
-			transitionStyle = transition.getType();
-			duration = transition.getDuration();
 		}
-		KrollDict options = null;
+		boolean animated = true;
 		if (arg != null && arg instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) arg);
-		} else {
-			options = new KrollDict();
+			animated = TiConvert.toBoolean((HashMap) arg, TiC.PROPERTY_ANIMATED, animated);
 		}
-		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
-		int  optTransitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, -1);
-		int  optTransitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
-		duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, duration);
-		if ((optTransitionStyle != -1) && animated) {
-			if (optTransitionStyle == -1) optTransitionStyle = transitionStyle;
-			transition = TransitionHelper.transitionForType(optTransitionStyle, optTransitionSubStyle, duration);
-		}
-		if (transition != null) {
-			transition.setDuration(duration);
+		if (animated) {
+			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), null, transition);
 		}
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
@@ -342,7 +327,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			viewToFocus.setVisibility(View.VISIBLE);
 		}
 		
-    	
 		activity.setWindowProxy(winToFocus);
     	updateHomeButton(winToFocus);
 		winToFocus.focus();
@@ -664,8 +648,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		}
 		return popWindow(proxy, arg);
 	}
-
 	
+	static HashMap kDefaultTransition = new HashMap<String, Object>(){{
+	       put(TiC.PROPERTY_STYLE, Integer.valueOf(TransitionStyleModule.SWIPE)); 
+	       put(TiC.PROPERTY_SUBSTYLE,  Integer.valueOf(TransitionStyleModule.RIGHT_TO_LEFT));}};
+
 	
 	private void handlePush(final TiWindowProxy proxy, boolean isFirst, Object arg) 
 	{
@@ -674,21 +661,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			return;
 		}
 		Transition transition = null;
-		KrollDict options = null;
+		boolean animated = true;
 		if (arg != null && arg instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) arg);
-		} else {
-			options = new KrollDict();
+			animated = TiConvert.toBoolean((HashMap) arg, TiC.PROPERTY_ANIMATED, animated);
 		}
-		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, !isFirst);
-		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransitionStyle);
-		int transitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
-		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
-		
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
 		if (!isFirst && animated) {
-			transition = TransitionHelper.transitionForType(transitionStyle , transitionSubStyle, duration);
+			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), kDefaultTransition, transition);
 		}		
 		if (viewToAddTo != null) {
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();

@@ -12,6 +12,9 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
+import org.appcelerator.titanium.transition.Transition;
+import org.appcelerator.titanium.transition.TransitionHelper;
+import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
@@ -21,10 +24,12 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
+import android.view.View;
 import android.view.animation.Interpolator;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.CanvasTransformer;
+import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.ViewTransformer;
 
 import ti.modules.titanium.ui.SlideMenuProxy;
 import ti.modules.titanium.ui.UIModule;
@@ -192,40 +197,57 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}		
 	};
 		
-	private void updateAnimationMode(int mode, boolean right)
+	private void updateAnimationMode(final Transition transition, final boolean right)
 	{
-		CanvasTransformer transformer = null;
-		if (mode == SlideMenuOptionsModule.ANIMATION_SCALE) {
-			// scale
-			transformer = new CanvasTransformer() {
+		ViewTransformer transformer = null;
+		if (transition != null) {
+			final SubTypes subtype = transition.subType;
+			transformer = new ViewTransformer() {
 				@Override
-				public void transformCanvas(Canvas canvas, float percentOpen) {
-					canvas.scale(percentOpen, 1, 0, 0);
+				public void transformView(View view, float percentOpen) {
+					float realPercent;
+					if (right) {
+						realPercent = TransitionHelper.isPushSubType(subtype)?(1 - percentOpen):(percentOpen - 1);
+					}
+					else {
+						realPercent = TransitionHelper.isPushSubType(subtype)?(percentOpen - 1):(1 - percentOpen);
+					}
+					transition.transformView(view, realPercent);
+//					canvas.translate(0, canvas.getHeight()*(1-interp.getInterpolation(percentOpen)));
 				}			
-			};	
-		} else if (mode == SlideMenuOptionsModule.ANIMATION_SLIDEUP) {
-			// slide
-			transformer = new CanvasTransformer() {
-				@Override
-				public void transformCanvas(Canvas canvas, float percentOpen) {
-					canvas.translate(0, canvas.getHeight()*(1-interp.getInterpolation(percentOpen)));
-				}			
-			};
-		} else if (mode == SlideMenuOptionsModule.ANIMATION_ZOOM) {
-			// zoom animation
-			transformer = new CanvasTransformer() {
-				@Override
-				public void transformCanvas(Canvas canvas, float percentOpen) {
-					float scale = (float) (percentOpen*0.25 + 0.75);
-					canvas.scale(scale, scale, canvas.getWidth()/2, canvas.getHeight()/2);
-				}
 			};
 		}
+//		if (mode == SlideMenuOptionsModule.ANIMATION_SCALE) {
+//			// scale
+//			transformer = new CanvasTransformer() {
+//				@Override
+//				public void transformCanvas(Canvas canvas, float percentOpen) {
+//					canvas.scale(percentOpen, 1, 0, 0);
+//				}			
+//			};	
+//		} else if (mode == SlideMenuOptionsModule.ANIMATION_SLIDEUP) {
+//			// slide
+//			transformer = new ViewTransformer() {
+//				@Override
+//				public void transformCanvas(Canvas canvas, float percentOpen) {
+//					canvas.translate(0, canvas.getHeight()*(1-interp.getInterpolation(percentOpen)));
+//				}			
+//			};
+//		} else if (mode == SlideMenuOptionsModule.ANIMATION_ZOOM) {
+//			// zoom animation
+//			transformer = new CanvasTransformer() {
+//				@Override
+//				public void transformCanvas(Canvas canvas, float percentOpen) {
+//					float scale = (float) (percentOpen*0.25 + 0.75);
+//					canvas.scale(scale, scale, canvas.getWidth()/2, canvas.getHeight()/2);
+//				}
+//			};
+//		}
 		
 		if (right)
-			slidingMenu.setBehindSecondaryCanvasTransformer(transformer);
+			slidingMenu.setBehindSecondaryViewTransformer(transformer);
 		else 
-			slidingMenu.setBehindCanvasTransformer(transformer);
+			slidingMenu.setBehindViewTransformer(transformer);
 		// we need to reset the scrollScale when applying custom animations
 		if( transformer != null){
 			leftViewDisplacement = defaultDisplacement;
@@ -322,11 +344,16 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT)) {
 			rightViewDisplacement = TiConvert.toTiDimension(d, SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT, TiDimension.TYPE_WIDTH);
 		}
-		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
-			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)), false);
-		}
-		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
-			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)), true);
+//		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
+//			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)), false);
+//		}
+//		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
+//			updateAnimationMode(TiConvert.toInt(d.get(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)), true);
+//		}
+		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_TRANSITION_LEFT)) {
+			Transition transition = TransitionHelper.transitionFromObject((HashMap) d.get(SlideMenuOptionsModule.PROPERTY_TRANSITION_LEFT), null, null);
+			updateAnimationMode(transition, false);
+			//			mPager.updatePageTransformer();
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_WIDTH)) {
 			slidingMenu.setShadowWidth(d.getInt(TiC.PROPERTY_SHADOW_WIDTH));
@@ -361,10 +388,10 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			updateMenuWidth();
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_FADING)) {
 			slidingMenu.setFadeDegree(TiConvert.toFloat(newValue));
-		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
-			updateAnimationMode(TiConvert.toInt(newValue), false);
-		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
-			updateAnimationMode(TiConvert.toInt(newValue), true);
+//		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_LEFT)) {
+//			updateAnimationMode(TiConvert.toInt(newValue), false);
+//		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_ANIMATION_RIGHT)) {
+//			updateAnimationMode(TiConvert.toInt(newValue), true);
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_DISPLACEMENT)) {
 			leftViewDisplacement = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateDisplacements();

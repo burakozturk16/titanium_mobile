@@ -1419,30 +1419,18 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
 		if (!children.contains(viewOut)) return;
-		Transition transition = null;
-		KrollDict options = null;
-		if (arg != null && arg instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) arg);
-		} else {
-			options = new KrollDict();
-		}
-		boolean animated = options.optBoolean(TiC.PROPERTY_ANIMATED, true);
-		int transitionStyle = options.optInt(TiC.PROPERTY_TRANSITION_STYLE, defaultTransitionStyle);
-		int transitionSubStyle = options.optInt(TiC.PROPERTY_TRANSITION_SUBSTYLE, defaultTransitionSubStyle);
-		int duration = options.optInt(TiC.PROPERTY_TRANSITION_DURATION, -1);
-		
+
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
-		if (animated) { 
-			transition = TransitionHelper.transitionForType(transitionStyle, transitionSubStyle, false, duration);
-		}		
+		Transition transition = TransitionHelper.transitionFromObject((arg != null)?(HashMap)arg:null, null, null);
+	
 		if (viewToAddTo != null) {
 			viewIn.setActivity(getActivity());
 			final View viewToAdd = viewIn.getOrCreateView().getOuterView();
 			viewToAdd.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToAddTo, viewToAdd, viewIn.peekView().getLayoutParams()); //make sure it s removed from its parent
+			final View viewToHide = viewOut.getOuterView();
 			if (transition != null) {
-				final View viewToHide = viewOut.getOuterView();
 				transition.setTargets(viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
@@ -1465,6 +1453,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					}
 				});
 				set.start();
+			}
+			else {
+				add(viewIn);
+				viewToAddTo.removeView(viewToHide);
+				remove(viewOut);
 			}
    			viewToAdd.setVisibility(View.VISIBLE);						
 		}

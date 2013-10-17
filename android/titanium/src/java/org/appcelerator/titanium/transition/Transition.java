@@ -117,7 +117,11 @@ public abstract class Transition {
 		return duration;
 	}
 	
-	public void transformView(View view, float position) {
+	public void transformView(View view, float position, boolean adjustScroll) {
 		
+	}
+
+	public void transformView(View view, float position) {
+		transformView(view, position, false);
 	}
 }

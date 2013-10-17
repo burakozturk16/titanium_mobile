@@ -67,7 +67,7 @@ public class TransitionSwipeFade extends Transition {
 	}
 	
 	@Override
-	public void transformView(View view, float position) {
+	public void transformView(View view, float position, boolean adjustScroll) {
 		boolean out = (position < 0);
 		float multiplier = 1;
 		float dest = 0;
@@ -77,7 +77,7 @@ public class TransitionSwipeFade extends Transition {
 		}
 		float alpha = 1;
 		if (out) { //out
-			dest = multiplier* Math.abs(position)*(1-destTrans);
+			dest = multiplier* Math.abs(position)*(adjustScroll?(1-destTrans):destTrans);
 			alpha = 1 - Math.abs(position);
 		}
 
