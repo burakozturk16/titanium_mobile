@@ -1480,8 +1480,8 @@ public class VerticalViewPager extends ViewGroup {
         super.onSizeChanged(w, h, oldw, oldh);
 
         // Make sure scroll position is set correctly.
-        if (w != oldw) {
-            recomputeScrollPosition(w, oldw, mPageMargin, mPageMargin);
+        if (h != oldh) {
+            recomputeScrollPosition(h, oldh, mPageMargin, mPageMargin);
         }
     }
 
