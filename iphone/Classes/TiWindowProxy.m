@@ -386,7 +386,7 @@
 -(UIViewController*)hostingController;
 {
     if (controller == nil) {
-        controller = [[[TiViewController alloc] initWithViewProxy:self] retain];
+        controller = [[TiViewController alloc] initWithViewProxy:self];
     }
     return controller;
 }
