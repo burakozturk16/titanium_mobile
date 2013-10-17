@@ -377,7 +377,9 @@ public class TiConvert
 	 */
 	public static boolean toBoolean(HashMap<String, Object> hashMap, String key, boolean def)
 	{
-		return toBoolean(hashMap.get(key), def);
+		if (hashMap != null)
+			return toBoolean(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -457,7 +459,9 @@ public class TiConvert
 	 */
 	public static int toInt(HashMap<String, Object> hashMap, String key, int def)
 	{
-		return toInt(hashMap.get(key), def);
+		if (hashMap != null)
+			return toInt(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -525,7 +529,9 @@ public class TiConvert
 	 */
 	public static float toFloat(HashMap<String, Object> hashMap, String key, float def)
 	{
-		return toFloat(hashMap.get(key), def);
+		if (hashMap != null)
+			return toFloat(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -578,6 +584,22 @@ public class TiConvert
 	public static double toDouble(HashMap<String, Object> hashMap, String key)
 	{
 		return toDouble(hashMap.get(key));
+	}
+	
+
+	/**
+	 * Takes a value out of a hash table then attempts to convert it using {@link #toDouble(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key.
+	 * @param def the default value to return.
+	 * @return a double value.
+	 * @module.api
+	 */
+	public static double toDouble(HashMap<String, Object> hashMap, String key, double def)
+	{
+		if (hashMap != null)
+			return toDouble(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
