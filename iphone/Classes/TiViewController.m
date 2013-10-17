@@ -115,8 +115,13 @@
     [self setHidesBottomBarWhenPushed:[TiUtils boolValue:[_proxy valueForUndefinedKey:@"tabBarHidden"] def:NO]];
     //Always wrap proxy view with a wrapperView.
     //This way proxy always has correct sandbox when laying out
-
-    self.view = [_proxy view];
+    [_proxy parentWillShow];
+    UIView *wrapperView = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+    wrapperView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
+    [wrapperView addSubview:[_proxy view]];
+    [wrapperView bringSubviewToFront:[_proxy view]];
+    self.view = wrapperView;
+    [wrapperView release];
 }
 
 #pragma mark - Appearance & rotation methods
