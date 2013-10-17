@@ -253,6 +253,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	private void handleWindowClosed(TiWindowProxy toRemove) 
 	{
 		poping = false;
+		removeWindow(toRemove);
 		View view = toRemove.getOuterView();
 		if (view != null) {
 			ViewParent parent = view.getParent();
