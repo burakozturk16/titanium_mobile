@@ -2720,7 +2720,9 @@ build.prototype = {
 
 		this.tiModules.indexOf(s) == -1 && this.tiModules.push(s);
 
-		this.symbols[id] = [];
+		if (!Array.isArray(this.symbols[id])) {
+			this.symbols[id] = [];
+		}
 
 		tokens.forEach(function (t) {
 			current += t + '.';

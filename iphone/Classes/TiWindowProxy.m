@@ -35,6 +35,14 @@
         TiThreadReleaseOnMainThread(controller, NO);
         controller = nil;
     }
+    
+#ifdef USE_TI_UIIOSTRANSITIONANIMATION
+    if(transitionProxy != nil)
+    {
+        [self forgetProxy:transitionProxy];
+        RELEASE_TO_NIL(transitionProxy)
+    }
+#endif
     [super dealloc];
 }
 
@@ -46,6 +54,11 @@
 {
     [self replaceValue:nil forKey:@"orientationModes" notification:NO];
     [super _configure];
+}
+
+-(NSString*)apiName
+{
+    return @"Ti.Window";
 }
 
 
@@ -196,7 +209,7 @@
     
     opening = YES;
     
-    isModal = (tab == nil) ? [self argOrWindowProperty:@"modal" args:args] : NO;
+    isModal = (tab == nil && !self.isManaged) ? [self argOrWindowProperty:@"modal" args:args] : NO;
     
     if ([self argOrWindowProperty:@"fullscreen" args:args]) {
         hidesStatusBar = YES;
@@ -239,6 +252,31 @@
         [self openOnUIThread:args];
     }, YES);
     
+}
+
+-(void)setStatusBarStyle:(id)style
+{
+    int theStyle = [TiUtils intValue:style def:[[[TiApp app] controller] defaultStatusBarStyle]];
+    switch (theStyle){
+        case UIStatusBarStyleDefault:
+            barStyle = UIStatusBarStyleDefault;
+            break;
+        case UIStatusBarStyleBlackOpaque:
+        case UIStatusBarStyleBlackTranslucent: //This will also catch UIStatusBarStyleLightContent
+            if ([TiUtils isIOS7OrGreater]) {
+                barStyle = 1;//UIStatusBarStyleLightContent;
+            } else {
+                barStyle = theStyle;
+            }
+            break;
+        default:
+            barStyle = UIStatusBarStyleDefault;
+    }
+    if(focussed) {
+        TiThreadPerformOnMainThread(^{
+            [[[TiApp app] controller] updateStatusBar];
+        }, YES); 
+    }
 }
 
 -(void)close:(id)args
@@ -642,5 +680,22 @@
         [self windowDidClose];
     }
 }
+#ifdef USE_TI_UIIOSTRANSITIONANIMATION
+-(TiUIiOSTransitionAnimationProxy*)transitionAnimation
+{
+    return transitionProxy;
+}
+
+-(void)setTransitionAnimation:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, TiUIiOSTransitionAnimationProxy)
+    if(transitionProxy != nil) {
+        [self forgetProxy:transitionProxy];
+        RELEASE_TO_NIL(transitionProxy)
+    }
+    transitionProxy = [args retain];
+    [self rememberProxy:transitionProxy];
+}
+#endif
 
 @end

@@ -63,6 +63,11 @@ static NSSet* transferableProps = nil;
 	return ((copy != nil) ? [copy autorelease] : [NSMutableArray array]);
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.View";
+}
+
 -(void)runBlockOnMainThread:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive
 {
     if ([NSThread isMainThread])
@@ -1891,9 +1896,17 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 #pragma mark Listener Management
 
+-(BOOL)_hasListeners:(NSString *)type checkParent:(BOOL)check
+{
+    BOOL returnVal = [super _hasListeners:type];
+    if (!returnVal && check) {
+        returnVal = [[self parentForBubbling] _hasListeners:type];
+    }
+	return returnVal;
+}
 -(BOOL)_hasListeners:(NSString *)type
 {
-	return [super _hasListeners:type] || [[self parentForBubbling] _hasListeners:type];
+	return [self _hasListeners:type checkParent:YES];
 }
 
 //TODO: Remove once we've properly deprecated.

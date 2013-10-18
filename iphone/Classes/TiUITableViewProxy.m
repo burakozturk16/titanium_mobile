@@ -74,6 +74,10 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	[super dealloc];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.TableView";
+}
 
 -(TiUITableView*)tableView
 {

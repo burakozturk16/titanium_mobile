@@ -61,6 +61,11 @@ static NSArray* keysToGetFromListView;
     return self;
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.ListItem";
+}
+
 - (id)init
 {
     self = [super init];

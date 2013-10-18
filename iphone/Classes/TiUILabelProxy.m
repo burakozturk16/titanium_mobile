@@ -48,7 +48,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 
 @implementation TiUILabelProxy
 
-//USE_VIEW_FOR_CONTENT_WIDTH
 
 +(NSSet*)transferableProperties
 {
@@ -63,6 +62,11 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                                               @"textPaddingTop", @"textPaddingBottom",
                                               @"wordWrap", @"borderWidth", @"maxLines",
                                               @"ellipsize", @"multiLineEllipsize", nil]];
+}
+
+-(NSString*)apiName
+{
+    return @"Ti.UI.Label";
 }
 
 -(id)init

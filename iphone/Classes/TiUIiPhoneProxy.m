@@ -195,6 +195,11 @@ DEFINE_SUBPROXY_AS(ListViewScrollPosition, TableViewScrollPosition, listViewScro
 DEFINE_SUBPROXY_AS(ListViewCellSelectionStyle, TableViewCellSelectionStyle, listViewCellSelectionStyle);
 #endif
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.iPhone";
+}
+
 -(void)hideStatusBar:(id)args
 {
     if ([TiUtils isIOS7OrGreater]) {

@@ -12,6 +12,11 @@
 #import "TiApp.h"
 #import "TiUtils.h"
 
+#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
+#import "TiUIiOSAttributedStringProxy.h"
+#endif
+
+
 @implementation TiUITextWidget
 
 - (id) init
@@ -26,6 +31,15 @@
 	return self;
 }
 
+
+-(void)setAttributedString_:(id)arg
+{
+#ifdef USE_TI_UIIOSATTRIBUTEDSTRING
+    ENSURE_SINGLE_ARG(arg, TiUIiOSAttributedStringProxy);
+    [[self proxy] replaceValue:arg forKey:@"attributedString" notification:NO];
+    [(id)[self textWidgetView] setAttributedText:[arg attributedString]];
+#endif
+}
 
 -(void)setValue_:(id)value
 {
@@ -210,6 +224,22 @@
 	[self makeRootViewFirstResponder];
 }
 
+-(void)setSelectionFrom:(id)start to:(id)end
+{
+    id<UITextInput> textView = (id<UITextInput>)[self textWidgetView];
+    if ([textView conformsToProtocol:@protocol(UITextInput)]) {
+        if([self becomeFirstResponder] || [self isFirstResponder]) {
+            UITextPosition *beginning = textView.beginningOfDocument;
+            UITextPosition *startPos = [textView positionFromPosition:beginning offset:[TiUtils intValue: start]];
+            UITextPosition *endPos = [textView positionFromPosition:beginning offset:[TiUtils intValue: end]];
+            UITextRange *textRange;
+            textRange = [textView textRangeFromPosition:startPos toPosition:endPos];
+            [textView setSelectedTextRange:textRange];
+        }
+    } else {
+        DebugLog(@"TextWidget does not conform with UITextInput protocol. Ignore");
+    }
+}
 @end
 
 #endif

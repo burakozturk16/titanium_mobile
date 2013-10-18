@@ -138,7 +138,10 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)configureGestureRecognizer:(UIGestureRecognizer*)gestureRecognizer;
 - (UIGestureRecognizer *)gestureRecognizerForEvent:(NSString *)event;
-
+-(void)handleListenerRemovedWithEvent:(NSString *)event;
+-(void)handleListenerAddedWithEvent:(NSString *)event;
+-(BOOL)proxyHasGestureListeners;
+-(void)ensureGestureListeners;
 /**
  Tells the view to start specified animation.
  @param newAnimation The animation to start.

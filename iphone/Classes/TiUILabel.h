@@ -11,7 +11,6 @@
 
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
-//@interface TiUILabel : TiUIView<LayoutAutosizing> {
 @private
 	TTTAttributedLabel *label;
     CGRect padding;

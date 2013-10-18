@@ -60,6 +60,11 @@ static BOOL alertShowing = NO;
 			nil];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.AlertDialog";
+}
+
 -(void) cleanup
 {
 	if(alert != nil)

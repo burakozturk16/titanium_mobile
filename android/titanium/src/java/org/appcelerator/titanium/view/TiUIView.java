@@ -161,41 +161,47 @@ public abstract class TiUIView
 	/**
 	 * Adds a child view into the ViewGroup.
 	 * @param child the view to be added.
-	 * @param index z-index of the view to be added.
 	 */
-	public void add(TiUIView child, int index)
+	public void add(TiUIView child)
+	{
+		add(child, -1);
+	}
+
+	protected void add(TiUIView child, int childIndex)
 	{
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
 				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
-					if (index >= 0) {
-						if (cv.getParent() == null) {
-							((ViewGroup) nv).addView(cv, index, child.getLayoutParams());
+					if (cv.getParent() == null) {
+						if (childIndex != -1) {
+							((ViewGroup) nv).addView(cv, childIndex, child.getLayoutParams());
+						} else {
+							((ViewGroup) nv).addView(cv, child.getLayoutParams());
 						}
-						children.add(index, child);
 					}
-					else {
-						if (cv.getParent() == null) {
-						((ViewGroup) nv).addView(cv, child.getLayoutParams());
-						}
-						children.add(child);
-					}
-					
+					children.add(child);
 					child.parent = proxy;
 				}
 			}
 		}
 	}
 
-	/**
-	 * Adds a child view into the ViewGroup.
-	 * @param child the view to be added.
-	 */
-	public void add(TiUIView child)
+	private int findChildIndex(TiUIView child)
 	{
-		add(child, -1);
+		int idxChild = -1;
+		if (child != null) {
+			View cv = child.getOuterView();
+			if (cv != null) {
+				View nv = getNativeView();
+				if (nv instanceof ViewGroup) {
+					idxChild = ((ViewGroup) nv).indexOfChild(cv);
+
+				}
+			}
+		}
+		return idxChild;
 	}
 
 	/**
@@ -898,8 +904,12 @@ public abstract class TiUIView
 		if (nativeView != null && nativeView.hasFocus()) {
 			nativeView.clearFocus();
 			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					TiUIHelper.showSoftKeyboard(nativeView, false);
+				public void run()
+				{
+					if (nativeView != null) {
+						TiUIHelper.showSoftKeyboard(nativeView, false);
+					}
+
 				}
 			});
 		}

@@ -23,6 +23,11 @@
     return [NSMutableDictionary dictionaryWithObject:@"message" forKey:@"messageid"];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.ActivityIndicator";
+}
+
 -(TiDimension)defaultAutoWidthBehavior:(id)unused
 {
     return TiDimensionAutoSize;

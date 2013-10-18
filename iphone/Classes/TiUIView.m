@@ -291,6 +291,21 @@ DEFINE_EXCEPTIONS
 	return YES;
 }
 
+-(void)ensureGestureListeners
+{
+    if ([(TiViewProxy*)proxy _hasListeners:@"swipe"]) {
+        [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:YES];
+        [[self gestureRecognizerForEvent:@"dswipe"] setEnabled:YES];
+        [[self gestureRecognizerForEvent:@"rswipe"] setEnabled:YES];
+        [[self gestureRecognizerForEvent:@"lswipe"] setEnabled:YES];
+    }
+    if ([(TiViewProxy*)proxy _hasListeners:@"pinch"]) {
+         [[self gestureRecognizerForEvent:@"pinch"] setEnabled:YES];
+    }
+    if ([(TiViewProxy*)proxy _hasListeners:@"longpress"]) {
+        [[self gestureRecognizerForEvent:@"longpress"] setEnabled:YES];
+    }
+}
 
 -(BOOL)proxyHasTapListener
 {
@@ -302,19 +317,19 @@ DEFINE_EXCEPTIONS
 	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"touchstart", @"touchcancel", @"touchend", @"touchmove", @"click", @"dblclick", nil]];
 }
 
--(BOOL)proxyHasGestureListener
+-(BOOL) proxyHasGestureListeners
 {
 	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"swipe", @"pinch", @"longpress", nil]];
 }
 
 -(void)updateTouchHandling
 {
-	BOOL touchEventsSupported = [self viewSupportsBaseTouchEvents];
-	handlesTouches = touchEventsSupported && (
+    BOOL touchEventsSupported = [self viewSupportsBaseTouchEvents];
+    handlesTouches = touchEventsSupported && (
                 [self proxyHasTouchListener]
                 || [self proxyHasTapListener]
-                || [self proxyHasGestureListener]);
-
+                || [self proxyHasGestureListeners]);
+    [self ensureGestureListeners];
     // If a user has not explicitly set whether or not the view interacts, base it on whether or
     // not it handles events, and if not, set it to the interaction default.
     if (!changedInteraction) {
@@ -833,7 +848,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setTouchEnabled_:(id)arg
 {
-	_customUserInteractionEnabled = [TiUtils boolValue:arg];
+	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
     [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     changedInteraction = YES;
 }

@@ -168,22 +168,16 @@
 	{
 		return;
 	}
-    
+
 	UIView *wrapper = [_wrappers objectAtIndex:index];
-	if ([[wrapper subviews] count]==0)
-	{
-		// we need to realize this view
-		TiUIView *uiview = [viewProxy getOrCreateView];
-		[viewProxy windowWillOpen];
-		[wrapper addSubview:uiview];
-        [viewProxy windowWillOpen];
-        [viewProxy reposition];
-        [viewProxy windowDidOpen];
-	}
-    else if(refresh) {
-        [viewProxy windowWillOpen];
-        [viewProxy reposition];
-        [viewProxy windowDidOpen];
+	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
+    if (![viewproxy viewAttached]) {
+        if ([[viewproxy view] superview] != wrapper) {
+            [wrapper addSubview:[viewproxy getOrCreateView]];
+        }
+        [viewproxy windowWillOpen];
+        [viewproxy windowDidOpen];
+        [viewproxy layoutChildrenIfNeeded];
     }
 }
 
@@ -240,9 +234,10 @@
             [self renderView:viewProxy forIndex:i withRefresh:refresh];
         }
         else {
-            [viewProxy windowWillClose];
-            [viewProxy parentWillHide];
-            [viewProxy windowDidClose];
+            if ([viewProxy viewAttached]) {
+                [viewProxy windowWillClose];
+                [viewProxy windowDidClose];
+            }
         }
     }
 }
@@ -326,6 +321,11 @@
 			[view removeFromSuperview];
 		}
         [_wrappers removeAllObjects];
+        
+		for (TiViewProxy* theView in [[self proxy] views]) {
+			[theView windowWillClose];
+			[theView windowDidClose];
+		}
 	}
 	
 	int viewsCount = [[self proxy] viewCount];

@@ -857,6 +857,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	@Override
 	public void processProperties(KrollDict d)
 	{
+		boolean heightDefined = false;
+		boolean widthDefined = false;
 		TiImageView view = getView();
 
 		if (view == null) {
@@ -864,17 +866,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		}
 		super.processProperties(d);
 
-		// Disable scaling for scrollview since the an image can extend beyond the screensize
-		if (proxy.getParent() instanceof ScrollViewProxy) {
-			view.setEnableScale(false);
-		}
-
-//		if (d.containsKey(TiC.PROPERTY_WIDTH)) {
-			view.setWidthDefined(!(layoutParams.autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
-//		}
-//		if (d.containsKey(TiC.PROPERTY_HEIGHT)) {
-			view.setHeightDefined(!(layoutParams.autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
-//		}
+		view.setWidthDefined(!(layoutParams.autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
+		view.setHeightDefined(!(layoutParams.autoSizeHeight() && (layoutParams.optionTop == null || layoutParams.optionBottom == null)));
 
 		if (d.containsKey(TiC.PROPERTY_IMAGES)) {
 			setImageSource(d.get(TiC.PROPERTY_IMAGES));
@@ -930,10 +923,16 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 		}
+		
 
 		
 		if (d.containsKey(TiC.PROPERTY_IMAGE_MASK)) {
 			setImageMask(d.get(TiC.PROPERTY_IMAGE_MASK));
+		}
+		// If height and width is not defined, disable scaling for scrollview since an image
+		// can extend beyond the screensize in scrollview.
+		if (proxy.getParent() instanceof ScrollViewProxy && !heightDefined && !widthDefined) {
+			view.setEnableScale(false);
 		}
 		view.setConfigured(true);
 	}

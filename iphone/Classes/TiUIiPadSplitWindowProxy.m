@@ -20,7 +20,12 @@
 	return [[[TiUIiPadSplitWindow alloc] init] autorelease];
 }
 
--(void)windowDidOpen 
+-(NSString*)apiName
+{
+    return @"Ti.UI.iPad.SplitWindow";
+}
+
+-(void)windowDidOpen
 {
 	[super windowDidOpen];
 	[self reposition];

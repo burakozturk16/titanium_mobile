@@ -83,6 +83,11 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	hitTarget = nil;
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.TableViewRow";
+}
+
 -(TiProxy *)hitTarget
 {
 	TiProxy * result = hitTarget;

@@ -41,6 +41,11 @@ static NSArray* imageKeySequence;
 	return imageKeySequence;
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.ImageView";
+}
+
 -(void)propagateLoadEvent:(NSString *)stateString
 {
     //Send out a content change message if we are auto sizing

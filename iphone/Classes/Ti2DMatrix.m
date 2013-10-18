@@ -265,6 +265,11 @@ typedef enum
 	return self;
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.2DMatrix";
+}
+
 -(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize
 {
     CGAffineTransform result = CGAffineTransformIdentity;

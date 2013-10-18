@@ -26,6 +26,11 @@
 	[super _initWithProperties:properties];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.MaskedImage";
+}
+
 
 @end
 

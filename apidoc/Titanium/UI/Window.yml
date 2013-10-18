@@ -246,6 +246,16 @@ properties:
     platforms: [iphone, ipad]
     type: [String, Titanium.Blob]
 
+  - name: backgroundColor
+    summary: Background color of the window, as a color name or hex triplet.
+    description: |
+        On Android, to specify a semi-transparent background, set the alpha value using the
+        [opacity](Titanium.UI.Window.opacity) property before opening the window.
+
+        For information about color values, see the "Colors" section of <Titanium.UI>.
+    type: String
+    default: Transparent
+
   - name: barColor
     summary: |
         Background color for the nav bar, as a color name or hex triplet.
@@ -580,8 +590,8 @@ properties:
   - name: statusBarStyle
     summary: The status bar style associated with this window. 
     description: |
-        Sets the status bar style when this window gains focus. This is now the recommended way to control the
-        status bar style on the application. Must be specified **before** the the window is opened.
+        Sets the status bar style when this window has focus. This is now the recommended way to control the
+        status bar style on the application.
 
         If this value is undefined, the value is set to UIStatusBarStyle defined in tiapp.xml.
         If that is not defined it defaults to <Titanium.UI.iPhone.StatusBar.DEFAULT>.

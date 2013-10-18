@@ -53,6 +53,11 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 	[super dealloc];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.TextWidget";
+}
+
 
 -(NSNumber*)hasText:(id)unused
 {
@@ -258,6 +263,18 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     return(nextOne != nil && [[nextOne view] becomeFirstResponder]);
 }
 
+-(void)setSelection:(id)arg withObject:(id)property
+{
+    NSInteger start = [TiUtils intValue:arg def: -1];
+    NSInteger end = [TiUtils intValue:property def:-1];
+    NSString* curValue = [TiUtils stringValue:[self valueForKey:@"value"]];
+    NSInteger textLength = [curValue length];
+    if ((start < 0) || (start > textLength) || (end < 0) || (end > textLength)) {
+        DebugLog(@"Invalid range for text selection. Ignoring.");
+        return;
+    }
+    TiThreadPerformOnMainThread(^{[(TiUITextWidget*)[self view] setSelectionFrom:arg to:property];}, NO);
+}
 USE_VIEW_FOR_CONTENT_HEIGHT
 USE_VIEW_FOR_CONTENT_WIDTH
 

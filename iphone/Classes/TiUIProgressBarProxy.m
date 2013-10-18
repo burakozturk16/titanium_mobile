@@ -23,6 +23,11 @@ USE_VIEW_FOR_CONTENT_HEIGHT
                                               @"color", @"message", nil]];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.ProgressBar";
+}
+
 -(TiUIView*)newView
 {
 	id styleObj = [self valueForKey:@"style"];

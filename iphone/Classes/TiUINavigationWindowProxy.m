@@ -43,6 +43,11 @@
     [super _initWithProperties:properties];
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.UI.iOS.NavigationWindow";
+}
+
 #pragma mark - TiOrientationController
 
 -(TiOrientationFlags) orientationFlags
@@ -157,6 +162,22 @@
 
 #pragma mark - UINavigationControllerDelegate
 
+#ifdef USE_TI_UIIOSTRANSITIONANIMATION
+- (id <UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
+                                   animationControllerForOperation:(UINavigationControllerOperation)operation
+                                                fromViewController:(UIViewController *)fromVC
+                                                  toViewController:(UIViewController *)toVC
+{
+    if([toVC isKindOfClass:[TiViewController class]]) {
+        TiViewController* toViewController = (TiViewController*)toVC;
+        if([[toViewController proxy] isKindOfClass:[TiWindowProxy class]]) {
+            TiWindowProxy *windowProxy = (TiWindowProxy*)[toViewController proxy];
+            return [windowProxy transitionAnimation];
+        }
+    }
+    return nil;
+}
+#endif
 
 - (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {

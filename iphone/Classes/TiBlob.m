@@ -39,6 +39,11 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	return text;
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.Blob";
+}
+
 -(BOOL)isImageMimeType
 {
 	return [mimetype hasPrefix:@"image/"];

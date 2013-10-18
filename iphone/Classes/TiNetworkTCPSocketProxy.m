@@ -130,6 +130,11 @@ const CFOptionFlags writeStreamEventFlags =
     CFSocketSetSocketFlags(socket, CFSocketGetSocketFlags(socket) & ~kCFSocketCloseOnInvalidate);
 }
 
+-(NSString*)apiName
+{
+    return @"Ti.Network.TCPSocket";
+}
+
 -(void)handleError:(NSStream*)stream
 {
     NSError* error = [stream streamError];
