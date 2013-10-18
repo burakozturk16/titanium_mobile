@@ -1,13 +1,5 @@
-//
-//  TiTransitionCube.m
-//  Titanium
-//
-//  Created by Martin Guillon on 16/10/13.
-//
-//
-
 #import "TiTransitionCube.h"
-#import "TiTransitionHelper.h"
+#import "ADCubeTransition.h"
 
 #define kArc M_PI * 2.0f
 
@@ -16,13 +8,15 @@
 @end
 @implementation TiTransitionCube
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    if (self = [super initWithDuration:duration orientation:orientation sourceRect:sourceRect]) {
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
+{
+    if (self = [super init]) {
+        _adTransition = [[ADCubeTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
         _faceNb = 4;
     }
     return self;
 }
-
 
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
@@ -37,14 +31,14 @@
     view.layer.doubleSided = NO;
     
     float multiplier = 1;
-    if (![TiTransitionHelper isTransitionPush:self]) {
+    if (![self isTransitionPush]) {
         multiplier = -1;
     }
     CATransform3D transform = CATransform3DIdentity;
     if (!adjust) {
         transform.m34 = 1.0 / kPerspective;
     }
-    if ([TiTransitionHelper isTransitionVertical:self]) {
+    if ([self isTransitionVertical]) {
         CGFloat radius = fmaxf(0.0f, size.height / 2.0f / tanf(kArc/2.0f/_faceNb));
         CGFloat angle = position / _faceNb * kArc;
         if (adjust) {
@@ -71,18 +65,6 @@
     
 }
 
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust
-{
-    [self transformView:view withPosition:position adjustTranslation:adjust size:view.bounds.size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:view.bounds.size];
-}
 -(void)prepareViewHolder:(UIView*)holder
 {
     CATransform3D sublayerTransform = CATransform3DIdentity;
@@ -92,6 +74,6 @@
 
 -(BOOL)needsReverseDrawOrder
 {
-    return [TiTransitionHelper isTransitionPush:self];
+    return [self isTransitionPush];
 }
 @end

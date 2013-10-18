@@ -1,15 +1,16 @@
-//
-//  TiTransitionSwipeFade.m
-//  Titanium
-//
-//  Created by Martin Guillon on 14/10/13.
-//
-//
-
 #import "TiTransitionSwipeFade.h"
-#import "TiTransitionHelper.h"
+#import "ADSwipeFadeTransition.h"
 
 @implementation TiTransitionSwipeFade
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
+{
+    if (self = [super init]) {
+        _adTransition = [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
+    }
+    return self;
+}
+
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
 //    if (position >1 || position < -1) {
@@ -19,7 +20,7 @@
     BOOL before = (position < 0);
     float multiplier = 1;
     float dest = 0;
-    if (![TiTransitionHelper isTransitionPush:self]) {
+    if (![self isTransitionPush]) {
         multiplier = -1;
         before = !before;
     }
@@ -35,7 +36,7 @@
     
     view.alpha = alpha;
     if (adjust) {
-        if ([TiTransitionHelper isTransitionVertical:self]) {
+        if ([self isTransitionVertical]) {
            view.layer.transform = CATransform3DMakeTranslation(0.0f, viewWidth * dest, 0.0f);
         }
         else {
@@ -45,22 +46,9 @@
     
 }
 
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust
-{
-    [self transformView:view withPosition:position adjustTranslation:adjust size:view.bounds.size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:view.bounds.size];
-}
 -(BOOL)needsReverseDrawOrder
 {
-    return ![TiTransitionHelper isTransitionPush:self];
+    return ![self isTransitionPush];
 }
 
--(void)prepareViewHolder:(UIView*)holder{}
 @end

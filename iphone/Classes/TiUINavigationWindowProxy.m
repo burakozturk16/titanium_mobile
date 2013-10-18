@@ -9,7 +9,7 @@
 #import "TiUINavigationWindowProxy.h"
 #import "TiUINavigationWindow.h"
 #import "TiApp.h"
-#import "TiTransitionHelper.h"
+#import "TiTransition.h"
 
 @implementation TiUINavigationWindowProxy
 
@@ -284,8 +284,8 @@
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     [window windowWillOpen];
     if (animated) {
-        ADTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
-        [navController pushViewController:[window hostingController] withTransition:transition];
+        TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
+        [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
     }
     else {
         [navController pushViewController:[window hostingController] withTransition:nil];
@@ -306,8 +306,8 @@
         int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
         BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
         if (animated) {
-            ADTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[navController lastTransition] containerView:self.view];
-            [navController popViewControllerWithTransition:transition];
+            TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[navController lastTransition]] containerView:self.view];
+            [navController popViewControllerWithTransition:transition.adTransition];
         }
         else {
             [navController popViewControllerWithTransition:nil];

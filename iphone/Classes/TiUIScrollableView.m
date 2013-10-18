@@ -11,13 +11,12 @@
 #import "TiUtils.h"
 #import "TiViewProxy.h"
 #import "TiTransition.h"
-#import "TiTransitionHelper.h"
 
 @interface TiUIScrollableView()
 {
     TiDimension pageDimension;
     TiDimension pageOffset;
-    ADTransition<TiTransition>* _transition;
+    TiTransition* _transition;
     BOOL _reverseDrawOrder;
     NSMutableArray* _wrappers;
 }

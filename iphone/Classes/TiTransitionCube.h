@@ -1,15 +1,7 @@
-//
-//  TiTransitionCube.h
-//  Titanium
-//
-//  Created by Martin Guillon on 16/10/13.
-//
-//
-
-#import "ADCubeTransition.h"
 #import "TiTransition.h"
 
-@interface TiTransitionCube : ADCubeTransition <TiTransition>
+@interface TiTransitionCube : TiTransition
 @property(nonatomic,assign)	CGFloat faceNb;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 
 @end

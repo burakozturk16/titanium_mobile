@@ -1,14 +1,6 @@
-//
-//  TiTransitionSwipeFade.h
-//  Titanium
-//
-//  Created by Martin Guillon on 14/10/13.
-//
-//
-
-#import "ADSwipeFadeTransition.h"
 #import "TiTransition.h"
 
-@interface TiTransitionSwipeFade : ADSwipeFadeTransition <TiTransition>
+@interface TiTransitionSwipeFade : TiTransition
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 
 @end

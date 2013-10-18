@@ -6,7 +6,6 @@
 //
 //
 #import "ADTransition.h"
-#import "TiTransition.h"
 
 typedef enum NWTransition {
     NWTransitionModernPush,
@@ -28,17 +27,17 @@ typedef enum NWTransition {
     NWTransitionFade
 } NWTransition;
 
+@class TiTransition;
 @interface TiTransitionHelper : NSObject
 
-+(ADTransition*) transitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view;
-+(ADTransition<TiTransition>*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view;
-+(ADTransition<TiTransition>*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options;
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view;
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options;
 
 +(BOOL)isTransitionPush:(ADTransition*)transition;
 +(BOOL)isTransitionVertical:(ADTransition*)transition;
-+(ADTransition<TiTransition>*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg defaultTransition:(ADTransition<TiTransition>*)transition containerView:(UIView*)container;
-+(ADTransition<TiTransition>*)transitionFromArg:(NSDictionary*)arg defaultTransition:(ADTransition<TiTransition>*)transition containerView:(UIView*)container;
-+(ADTransition<TiTransition>*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg containerView:(UIView*)container;
-+(ADTransition<TiTransition>*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container;
++(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg defaultTransition:(TiTransition*)transition containerView:(UIView*)container;
++(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultTransition:(TiTransition*)transition containerView:(UIView*)container;
++(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg containerView:(UIView*)container;
++(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container;
 
 @end

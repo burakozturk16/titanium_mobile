@@ -1,13 +1,13 @@
-#import "TiTransitionFold.h"
-#import "ADFoldTransition.h"
+#import "TiTransitionSlide.h"
+#import "ADSlideTransition.h"
 
-@implementation TiTransitionFold
+@implementation TiTransitionSlide
 
 
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
 {
     if (self = [super init]) {
-        _adTransition = [[ADFoldTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
+        _adTransition = [[ADSlideTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
     }
     return self;
 }
@@ -28,4 +28,3 @@
     return [self isTransitionPush];
 }
 @end
-

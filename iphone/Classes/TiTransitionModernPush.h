@@ -1,6 +1,9 @@
+
 #import "TiTransition.h"
 
-@interface TiTransitionFold : TiTransition
+@interface TiTransitionModernPush : TiTransition
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
+
+
 
 @end

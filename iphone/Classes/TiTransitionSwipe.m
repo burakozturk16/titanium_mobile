@@ -1,15 +1,14 @@
-//
-//  TiTransitionSwipe.m
-//  Titanium
-//
-//  Created by Martin Guillon on 14/10/13.
-//
-//
-
 #import "TiTransitionSwipe.h"
-#import "TiTransitionHelper.h"
+#import "ADSwipeTransition.h"
 
 @implementation TiTransitionSwipe
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
+{
+    if (self = [super init]) {
+        _adTransition = [[ADSwipeTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
+    }
+    return self;
+}
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
 //    BOOL before = (position < 0);
@@ -32,21 +31,4 @@
 //    }
 }
 
--(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust
-{
-    [self transformView:view withPosition:position adjustTranslation:adjust size:view.bounds.size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position size:(CGSize)size
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:size];
-}
--(void)transformView:(UIView*)view withPosition:(CGFloat)position
-{
-    [self transformView:view withPosition:position adjustTranslation:NO size:view.bounds.size];
-}
--(BOOL)needsReverseDrawOrder
-{
-    return ![TiTransitionHelper isTransitionPush:self];
-}
--(void)prepareViewHolder:(UIView*)holder{}
 @end

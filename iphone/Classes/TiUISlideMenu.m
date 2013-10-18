@@ -14,7 +14,6 @@
 #import "UIViewController+ADTransitionController.h"
 #import "TiUISlideMenuVisualState.h"
 #import "TiTransition.h"
-#import "TiTransitionHelper.h"
 
 @interface TiUISlideMenu()
 {
@@ -25,7 +24,7 @@
     TiViewProxy* centerView;
     TiDimension _leftScrollScale; //between 0.0f and 1.0f
     TiDimension _rightScrollScale; //between 0.0f and 1.0f
-    ADTransition<TiTransition>* _transition;
+    TiTransition* _transition;
 }
 @end
 
@@ -245,7 +244,7 @@
         ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
             if(percentVisible <= 1.f){
                 CGFloat maxDrawerWidth = MAX(drawerController.maximumLeftDrawerWidth,drawerController.visibleLeftDrawerWidth);
-                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:[TiTransitionHelper isTransitionPush:_transition]?percentVisible-1:1-percentVisible];
+                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:[_transition isTransitionPush]?percentVisible-1:1-percentVisible];
             }
 //            else{
 //                CATransform3D transform = CATransform3DIdentity;                

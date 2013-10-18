@@ -22,7 +22,7 @@
 #import "TiUIHelper.h"
 #import "TiSVGImage.h"
 #import "TiImageHelper.h"
-#import "TiTransitionHelper.h"
+#import "TiTransition.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -1769,17 +1769,17 @@ DEFINE_EXCEPTIONS
 	}
 }
 
-- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(ADTransition<TiTransition> *)transition completionBlock:(void (^)(void))block{
+- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
     [viewOut animationStarted];
     [viewIn animationStarted];
     
     [self addSubview:viewIn];
+    ADTransition* adTransition = transition.adTransition;
     [transition prepareViewHolder:self];
-    [transition prepareTransitionFromView:viewOut toView:viewIn inside:self];
+    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:self];
     
     [CATransaction setCompletionBlock:^{
-        [transition finishedTransitionFromView:viewOut toView:viewIn inside:self];
-        [viewOut removeFromSuperview];
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];        [viewOut removeFromSuperview];
         [viewOut animationCompleted];
         [viewIn animationCompleted];
         if (block != nil) {
@@ -1787,7 +1787,7 @@ DEFINE_EXCEPTIONS
         }
     }];
     
-    [transition startTransitionFromView:viewOut toView:viewIn inside:self];
+    [adTransition startTransitionFromView:viewOut toView:viewIn inside:self];
 }
 
 - (void)blurBackground:(id)args

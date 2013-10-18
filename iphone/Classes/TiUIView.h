@@ -10,6 +10,7 @@
 #import "LayoutConstraint.h"
 #import "TiSelectableBackgroundLayer.h"
 
+@class TiTransition;
 //By declaring a scrollView protocol, TiUITextWidget can access 
 @class TiUIView;
 /**
@@ -284,7 +285,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)setHighlighted:(BOOL)isHiglighted;
 -(void)setSelected:(BOOL)isSelected;
-- (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition completionBlock:(void (^)(void))block;
+- (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block;
+- (void)blurBackground:(id)args;
 
 @end
 

@@ -14,7 +14,7 @@
 #import "TiStylesheet.h"
 #import "TiLocale.h"
 #import "TiUIView.h"
-#import "TiTransitionHelper.h"
+#import "TiTransition.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
@@ -3413,8 +3413,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
             [view2Proxy layoutChildren:NO];
             
-            ADTransition<TiTransition>* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
-            transition.type = ADTransitionTypePush;
+            TiTransition* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
+            transition.adTransition.type = ADTransitionTypePush;
             [[self view] transitionfromView:[view1Proxy getOrCreateView] toView:view2 withTransition:transition completionBlock:^{
                 [self remove:view1Proxy];
                 [self add:view2Proxy];
