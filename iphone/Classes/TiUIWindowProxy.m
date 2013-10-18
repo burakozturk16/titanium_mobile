@@ -433,7 +433,9 @@
     }
     
     if (shouldUpdateNavBar && ([controller navigationController] != nil)) {
-        [[[controller navigationController] navigationBar] setTitleTextAttributes:theAttributes];
+        id navController = [self navControllerForController:controller];
+        [[controller navigationItem] setTitle:@""];
+        [[navController navigationBar] setTitleTextAttributes:theAttributes];
     }
 }
 
@@ -934,7 +936,6 @@ else{\
     
     [navController setToolbarHidden:!hasToolbar animated:YES];
     //Need to clear title for titleAttributes to apply correctly on iOS6.
-    [[controller navigationItem] setTitle:@""];
     SETPROP(@"titleAttributes",setTitleAttributes);
     SETPROP(@"title",setTitle);
     SETPROP(@"titlePrompt",setTitlePrompt);
