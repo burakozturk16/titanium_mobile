@@ -274,7 +274,7 @@
     }
     if(focussed) {
         TiThreadPerformOnMainThread(^{
-            [[[TiApp app] controller] updateStatusBar];
+            [(TiRootViewController*)[[TiApp app] controller] updateStatusBar];
         }, YES); 
     }
 }
