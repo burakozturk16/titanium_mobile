@@ -235,29 +235,6 @@
     [self controller].showsShadow = ([args floatValue] != 0.0f);
 }
 
-- (void)setLeftAnimation_:(id)args
-{
-    ENSURE_TYPE_OR_NIL(args, NSNumber);
-    int mode = [TiUtils intValue:args];
-    MMDrawerControllerDrawerVisualStateBlock block = nil;
-    switch (mode) {
-        case 1:
-            block = [TiUISlideMenuVisualState slideAndScaleVisualStateBlock];
-            break;
-        case 2:
-            block = [TiUISlideMenuVisualState swingingDoorVisualStateBlock];
-            break;
-        case 3:
-            block = [TiUISlideMenuVisualState slideVisualStateBlock];
-            break;
-        case 0:
-        default:
-            break;
-    }
-    [self controller].leftVisualBlock = block;
-}
-
-
 -(void)setLeftTransition_:(id)value
 {
     ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
@@ -267,8 +244,7 @@
         MMDrawerControllerDrawerVisualStateBlock visualStateBlock =
         ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
             if(percentVisible <= 1.f){
-                NSLog(@"test %f", percentVisible);
-                CGFloat maxDrawerWidth = MAX(drawerController.maximumRightDrawerWidth,drawerController.visibleRightDrawerWidth);
+                CGFloat maxDrawerWidth = MAX(drawerController.maximumLeftDrawerWidth,drawerController.visibleLeftDrawerWidth);
                 [_transition transformView:drawerController.leftDrawerViewController.view withPosition:[TiTransitionHelper isTransitionPush:_transition]?percentVisible-1:1-percentVisible];
             }
 //            else{
