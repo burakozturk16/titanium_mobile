@@ -35,8 +35,13 @@
 /**
  A delegate implementing DTAttributedTextContentViewDelegate to provide custom subviews for images and links.
  */
-@property (nonatomic, unsafe_unretained) IBOutlet id <DTAttributedTextContentViewDelegate> textDelegate;
+@property (nonatomic, DT_WEAK_PROPERTY) IBOutlet id <DTAttributedTextContentViewDelegate> textDelegate;
 
+
+/**
+ Performs a new layout pass on the receiver. This destroys the frame setter, calls relayoutText on the content view and marks the receiver as needing layout so that custom subviews get appropriately sized.
+ */
+- (void)relayoutText;
 
 /**
  @name Accessing Subviews
@@ -92,5 +97,32 @@
  @param animated `YES` if the movement should be animated.
  */
 - (void)scrollToAnchorNamed:(NSString *)anchorName animated:(BOOL)animated;
+
+/**
+ Scrolls the receiver until the text in the specified range is visible.
+ @param range The range of text to scroll into view.
+ @param animated `YES` if the movement should be animated.
+ */
+- (void)scrollRangeToVisible:(NSRange)range animated:(BOOL)animated;
+
+/**
+ @name Working with a Cursor
+ */
+
+/**
+ Determines the closest string index to a point in the receiver's frame.
+ 
+ This can be used to find the cursor position to position an input caret at.
+ @param point The point
+ @returns The resulting string index
+ */
+- (NSInteger)closestCursorIndexToPoint:(CGPoint)point;
+
+/**
+ The rectangle to draw a caret for a given index
+ @param index The string index for which to determine a cursor frame
+ @returns The cursor rectangle
+ */
+- (CGRect)cursorRectAtIndex:(NSInteger)index;
 
 @end

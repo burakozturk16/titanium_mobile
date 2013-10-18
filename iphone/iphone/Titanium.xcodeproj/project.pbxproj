@@ -642,262 +642,8 @@
 		D53D20FA16A0901800D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
-		D56064161705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064171705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064181705A78100781E6B /* DTHTMLParser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064151705A78100781E6B /* DTHTMLParser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560641C1705A79100781E6B /* NSString+DTUTI.m in Sources */ = {isa = PBXBuildFile; fileRef = D560641B1705A79100781E6B /* NSString+DTUTI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560641D1705A79100781E6B /* NSString+DTUTI.m in Sources */ = {isa = PBXBuildFile; fileRef = D560641B1705A79100781E6B /* NSString+DTUTI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560641E1705A79100781E6B /* NSString+DTUTI.m in Sources */ = {isa = PBXBuildFile; fileRef = D560641B1705A79100781E6B /* NSString+DTUTI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064281705A7A000781E6B /* DTZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064211705A7A000781E6B /* DTZipArchive.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064291705A7A000781E6B /* DTZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064211705A7A000781E6B /* DTZipArchive.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642A1705A7A000781E6B /* DTZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064211705A7A000781E6B /* DTZipArchive.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642B1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064231705A7A000781E6B /* DTZipArchiveGZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642C1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064231705A7A000781E6B /* DTZipArchiveGZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642D1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064231705A7A000781E6B /* DTZipArchiveGZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642E1705A7A000781E6B /* DTZipArchiveNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064251705A7A000781E6B /* DTZipArchiveNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560642F1705A7A000781E6B /* DTZipArchiveNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064251705A7A000781E6B /* DTZipArchiveNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064301705A7A000781E6B /* DTZipArchiveNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064251705A7A000781E6B /* DTZipArchiveNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064311705A7A000781E6B /* DTZipArchivePKZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064271705A7A000781E6B /* DTZipArchivePKZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064321705A7A000781E6B /* DTZipArchivePKZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064271705A7A000781E6B /* DTZipArchivePKZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064331705A7A000781E6B /* DTZipArchivePKZip.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064271705A7A000781E6B /* DTZipArchivePKZip.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064641705A7E500781E6B /* DTASN1BitString.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064351705A7E500781E6B /* DTASN1BitString.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064651705A7E500781E6B /* DTASN1BitString.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064351705A7E500781E6B /* DTASN1BitString.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064661705A7E500781E6B /* DTASN1BitString.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064351705A7E500781E6B /* DTASN1BitString.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064671705A7E500781E6B /* DTASN1Parser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064371705A7E500781E6B /* DTASN1Parser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064681705A7E500781E6B /* DTASN1Parser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064371705A7E500781E6B /* DTASN1Parser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064691705A7E500781E6B /* DTASN1Parser.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064371705A7E500781E6B /* DTASN1Parser.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646A1705A7E500781E6B /* DTASN1Serialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064391705A7E500781E6B /* DTASN1Serialization.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646B1705A7E500781E6B /* DTASN1Serialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064391705A7E500781E6B /* DTASN1Serialization.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646C1705A7E500781E6B /* DTASN1Serialization.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064391705A7E500781E6B /* DTASN1Serialization.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646D1705A7E500781E6B /* DTBase64Coding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643B1705A7E500781E6B /* DTBase64Coding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646E1705A7E500781E6B /* DTBase64Coding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643B1705A7E500781E6B /* DTBase64Coding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560646F1705A7E500781E6B /* DTBase64Coding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643B1705A7E500781E6B /* DTBase64Coding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064701705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643D1705A7E500781E6B /* DTExtendedFileAttributes.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064711705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643D1705A7E500781E6B /* DTExtendedFileAttributes.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064721705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643D1705A7E500781E6B /* DTExtendedFileAttributes.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064731705A7E500781E6B /* DTFoundationConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643F1705A7E500781E6B /* DTFoundationConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064741705A7E500781E6B /* DTFoundationConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643F1705A7E500781E6B /* DTFoundationConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064751705A7E500781E6B /* DTFoundationConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D560643F1705A7E500781E6B /* DTFoundationConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064761705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064411705A7E500781E6B /* DTObjectBlockExecutor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064771705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064411705A7E500781E6B /* DTObjectBlockExecutor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064781705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064411705A7E500781E6B /* DTObjectBlockExecutor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064791705A7E500781E6B /* DTScriptExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064431705A7E500781E6B /* DTScriptExpression.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647A1705A7E500781E6B /* DTScriptExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064431705A7E500781E6B /* DTScriptExpression.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647B1705A7E500781E6B /* DTScriptExpression.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064431705A7E500781E6B /* DTScriptExpression.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647C1705A7E500781E6B /* DTScriptVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064451705A7E500781E6B /* DTScriptVariable.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647D1705A7E500781E6B /* DTScriptVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064451705A7E500781E6B /* DTScriptVariable.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647E1705A7E500781E6B /* DTScriptVariable.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064451705A7E500781E6B /* DTScriptVariable.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560647F1705A7E500781E6B /* DTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064471705A7E500781E6B /* DTUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064801705A7E500781E6B /* DTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064471705A7E500781E6B /* DTUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064811705A7E500781E6B /* DTUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064471705A7E500781E6B /* DTUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064821705A7E500781E6B /* DTVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064491705A7E500781E6B /* DTVersion.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064831705A7E500781E6B /* DTVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064491705A7E500781E6B /* DTVersion.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064841705A7E500781E6B /* DTVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064491705A7E500781E6B /* DTVersion.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064851705A7E500781E6B /* NSArray+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644B1705A7E500781E6B /* NSArray+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064861705A7E500781E6B /* NSArray+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644B1705A7E500781E6B /* NSArray+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064871705A7E500781E6B /* NSArray+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644B1705A7E500781E6B /* NSArray+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064881705A7E500781E6B /* NSData+DTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644D1705A7E500781E6B /* NSData+DTCrypto.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064891705A7E500781E6B /* NSData+DTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644D1705A7E500781E6B /* NSData+DTCrypto.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648A1705A7E500781E6B /* NSData+DTCrypto.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644D1705A7E500781E6B /* NSData+DTCrypto.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648B1705A7E500781E6B /* NSDictionary+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644F1705A7E500781E6B /* NSDictionary+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648C1705A7E500781E6B /* NSDictionary+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644F1705A7E500781E6B /* NSDictionary+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648D1705A7E500781E6B /* NSDictionary+DTError.m in Sources */ = {isa = PBXBuildFile; fileRef = D560644F1705A7E500781E6B /* NSDictionary+DTError.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648E1705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064511705A7E500781E6B /* NSFileWrapper+DTCopying.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560648F1705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064511705A7E500781E6B /* NSFileWrapper+DTCopying.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064901705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064511705A7E500781E6B /* NSFileWrapper+DTCopying.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064911705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064531705A7E500781E6B /* NSMutableArray+DTMoving.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064921705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064531705A7E500781E6B /* NSMutableArray+DTMoving.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064931705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064531705A7E500781E6B /* NSMutableArray+DTMoving.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064941705A7E500781E6B /* NSObject+DTRuntime.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064551705A7E500781E6B /* NSObject+DTRuntime.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064951705A7E500781E6B /* NSObject+DTRuntime.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064551705A7E500781E6B /* NSObject+DTRuntime.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064961705A7E500781E6B /* NSObject+DTRuntime.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064551705A7E500781E6B /* NSObject+DTRuntime.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064971705A7E500781E6B /* NSScanner+DTScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064571705A7E500781E6B /* NSScanner+DTScripting.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064981705A7E500781E6B /* NSScanner+DTScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064571705A7E500781E6B /* NSScanner+DTScripting.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064991705A7E500781E6B /* NSScanner+DTScripting.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064571705A7E500781E6B /* NSScanner+DTScripting.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649A1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064591705A7E500781E6B /* NSString+DTFormatNumbers.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649B1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064591705A7E500781E6B /* NSString+DTFormatNumbers.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649C1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064591705A7E500781E6B /* NSString+DTFormatNumbers.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649D1705A7E500781E6B /* NSString+DTPaths.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645B1705A7E500781E6B /* NSString+DTPaths.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649E1705A7E500781E6B /* NSString+DTPaths.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645B1705A7E500781E6B /* NSString+DTPaths.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560649F1705A7E500781E6B /* NSString+DTPaths.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645B1705A7E500781E6B /* NSString+DTPaths.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A01705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645D1705A7E500781E6B /* NSString+DTURLEncoding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A11705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645D1705A7E500781E6B /* NSString+DTURLEncoding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A21705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645D1705A7E500781E6B /* NSString+DTURLEncoding.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A31705A7E500781E6B /* NSString+DTUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645F1705A7E500781E6B /* NSString+DTUtilities.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A41705A7E500781E6B /* NSString+DTUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645F1705A7E500781E6B /* NSString+DTUtilities.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A51705A7E500781E6B /* NSString+DTUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = D560645F1705A7E500781E6B /* NSString+DTUtilities.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A61705A7E500781E6B /* NSURL+DTComparing.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064611705A7E500781E6B /* NSURL+DTComparing.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A71705A7E500781E6B /* NSURL+DTComparing.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064611705A7E500781E6B /* NSURL+DTComparing.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A81705A7E500781E6B /* NSURL+DTComparing.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064611705A7E500781E6B /* NSURL+DTComparing.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064A91705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064631705A7E500781E6B /* NSURL+DTUnshorten.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064AA1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064631705A7E500781E6B /* NSURL+DTUnshorten.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56064AB1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064631705A7E500781E6B /* NSURL+DTUnshorten.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065141705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065151705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065161705A89800781E6B /* CGUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064AD1705A89800781E6B /* CGUtils.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651A1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651B1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651C1705A89800781E6B /* DTAttributedLabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B01705A89800781E6B /* DTAttributedLabel.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651D1705A89800781E6B /* DTAttributedTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B21705A89800781E6B /* DTAttributedTextCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651E1705A89800781E6B /* DTAttributedTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B21705A89800781E6B /* DTAttributedTextCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560651F1705A89800781E6B /* DTAttributedTextCell.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B21705A89800781E6B /* DTAttributedTextCell.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065201705A89800781E6B /* DTAttributedTextContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B41705A89800781E6B /* DTAttributedTextContentView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065211705A89800781E6B /* DTAttributedTextContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B41705A89800781E6B /* DTAttributedTextContentView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065221705A89800781E6B /* DTAttributedTextContentView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B41705A89800781E6B /* DTAttributedTextContentView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065231705A89800781E6B /* DTAttributedTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B61705A89800781E6B /* DTAttributedTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065241705A89800781E6B /* DTAttributedTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B61705A89800781E6B /* DTAttributedTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065251705A89800781E6B /* DTAttributedTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B61705A89800781E6B /* DTAttributedTextView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065261705A89800781E6B /* DTColor+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B81705A89800781E6B /* DTColor+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065271705A89800781E6B /* DTColor+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B81705A89800781E6B /* DTColor+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065281705A89800781E6B /* DTColor+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064B81705A89800781E6B /* DTColor+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065291705A89800781E6B /* DTCoreTextConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BC1705A89800781E6B /* DTCoreTextConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652A1705A89800781E6B /* DTCoreTextConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BC1705A89800781E6B /* DTCoreTextConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652B1705A89800781E6B /* DTCoreTextConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BC1705A89800781E6B /* DTCoreTextConstants.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652C1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BE1705A89800781E6B /* DTCoreTextFontCollection.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652D1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BE1705A89800781E6B /* DTCoreTextFontCollection.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652E1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064BE1705A89800781E6B /* DTCoreTextFontCollection.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560652F1705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C01705A89800781E6B /* DTCoreTextFontDescriptor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065301705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C01705A89800781E6B /* DTCoreTextFontDescriptor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065311705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C01705A89800781E6B /* DTCoreTextFontDescriptor.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065321705A89800781E6B /* DTCoreTextFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C21705A89800781E6B /* DTCoreTextFunctions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065331705A89800781E6B /* DTCoreTextFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C21705A89800781E6B /* DTCoreTextFunctions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065341705A89800781E6B /* DTCoreTextFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C21705A89800781E6B /* DTCoreTextFunctions.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065351705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C41705A89800781E6B /* DTCoreTextGlyphRun.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065361705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C41705A89800781E6B /* DTCoreTextGlyphRun.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065371705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C41705A89800781E6B /* DTCoreTextGlyphRun.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065381705A89800781E6B /* DTCoreTextLayouter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C61705A89800781E6B /* DTCoreTextLayouter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065391705A89800781E6B /* DTCoreTextLayouter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C61705A89800781E6B /* DTCoreTextLayouter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653A1705A89800781E6B /* DTCoreTextLayouter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C61705A89800781E6B /* DTCoreTextLayouter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653B1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C81705A89800781E6B /* DTCoreTextLayoutFrame.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653C1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C81705A89800781E6B /* DTCoreTextLayoutFrame.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653D1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064C81705A89800781E6B /* DTCoreTextLayoutFrame.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653E1705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CA1705A89800781E6B /* DTCoreTextLayoutLine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560653F1705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CA1705A89800781E6B /* DTCoreTextLayoutLine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065401705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CA1705A89800781E6B /* DTCoreTextLayoutLine.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065411705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CC1705A89800781E6B /* DTCoreTextParagraphStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065421705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CC1705A89800781E6B /* DTCoreTextParagraphStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065431705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CC1705A89800781E6B /* DTCoreTextParagraphStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065441705A89800781E6B /* DTCSSListStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CE1705A89800781E6B /* DTCSSListStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065451705A89800781E6B /* DTCSSListStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CE1705A89800781E6B /* DTCSSListStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065461705A89800781E6B /* DTCSSListStyle.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064CE1705A89800781E6B /* DTCSSListStyle.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065471705A89800781E6B /* DTCSSStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D01705A89800781E6B /* DTCSSStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065481705A89800781E6B /* DTCSSStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D01705A89800781E6B /* DTCSSStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065491705A89800781E6B /* DTCSSStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D01705A89800781E6B /* DTCSSStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654A1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D21705A89800781E6B /* DTDictationPlaceholderTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654B1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D21705A89800781E6B /* DTDictationPlaceholderTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654C1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D21705A89800781E6B /* DTDictationPlaceholderTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654D1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654E1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560654F1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065501705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065511705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065521705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065561705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065571705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065581705A89800781E6B /* DTHTMLElement.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064D91705A89800781E6B /* DTHTMLElement.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065591705A89800781E6B /* DTHTMLElementA.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DB1705A89800781E6B /* DTHTMLElementA.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655A1705A89800781E6B /* DTHTMLElementA.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DB1705A89800781E6B /* DTHTMLElementA.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655B1705A89800781E6B /* DTHTMLElementA.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DB1705A89800781E6B /* DTHTMLElementA.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655C1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DD1705A89800781E6B /* DTHTMLElementAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655D1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DD1705A89800781E6B /* DTHTMLElementAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655E1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DD1705A89800781E6B /* DTHTMLElementAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560655F1705A89800781E6B /* DTHTMLElementBR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DF1705A89800781E6B /* DTHTMLElementBR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065601705A89800781E6B /* DTHTMLElementBR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DF1705A89800781E6B /* DTHTMLElementBR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065611705A89800781E6B /* DTHTMLElementBR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064DF1705A89800781E6B /* DTHTMLElementBR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065621705A89800781E6B /* DTHTMLElementHR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E11705A89800781E6B /* DTHTMLElementHR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065631705A89800781E6B /* DTHTMLElementHR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E11705A89800781E6B /* DTHTMLElementHR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065641705A89800781E6B /* DTHTMLElementHR.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E11705A89800781E6B /* DTHTMLElementHR.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065651705A89800781E6B /* DTHTMLElementLI.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E31705A89800781E6B /* DTHTMLElementLI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065661705A89800781E6B /* DTHTMLElementLI.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E31705A89800781E6B /* DTHTMLElementLI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065671705A89800781E6B /* DTHTMLElementLI.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E31705A89800781E6B /* DTHTMLElementLI.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065681705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E51705A89800781E6B /* DTHTMLElementStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065691705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E51705A89800781E6B /* DTHTMLElementStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656A1705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E51705A89800781E6B /* DTHTMLElementStylesheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656B1705A89800781E6B /* DTHTMLElementText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E71705A89800781E6B /* DTHTMLElementText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656C1705A89800781E6B /* DTHTMLElementText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E71705A89800781E6B /* DTHTMLElementText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656D1705A89800781E6B /* DTHTMLElementText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E71705A89800781E6B /* DTHTMLElementText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656E1705A89800781E6B /* DTHTMLParserNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E91705A89800781E6B /* DTHTMLParserNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560656F1705A89800781E6B /* DTHTMLParserNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E91705A89800781E6B /* DTHTMLParserNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065701705A89800781E6B /* DTHTMLParserNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064E91705A89800781E6B /* DTHTMLParserNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065711705A89800781E6B /* DTHTMLParserTextNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EB1705A89800781E6B /* DTHTMLParserTextNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065721705A89800781E6B /* DTHTMLParserTextNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EB1705A89800781E6B /* DTHTMLParserTextNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065731705A89800781E6B /* DTHTMLParserTextNode.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EB1705A89800781E6B /* DTHTMLParserTextNode.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065741705A89800781E6B /* DTHTMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064ED1705A89800781E6B /* DTHTMLWriter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065751705A89800781E6B /* DTHTMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064ED1705A89800781E6B /* DTHTMLWriter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065761705A89800781E6B /* DTHTMLWriter.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064ED1705A89800781E6B /* DTHTMLWriter.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065771705A89800781E6B /* DTImage+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EF1705A89800781E6B /* DTImage+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065781705A89800781E6B /* DTImage+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EF1705A89800781E6B /* DTImage+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065791705A89800781E6B /* DTImage+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064EF1705A89800781E6B /* DTImage+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657A1705A89800781E6B /* DTLazyImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F11705A89800781E6B /* DTLazyImageView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657B1705A89800781E6B /* DTLazyImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F11705A89800781E6B /* DTLazyImageView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657C1705A89800781E6B /* DTLazyImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F11705A89800781E6B /* DTLazyImageView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657D1705A89800781E6B /* DTLinkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F31705A89800781E6B /* DTLinkButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657E1705A89800781E6B /* DTLinkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F31705A89800781E6B /* DTLinkButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560657F1705A89800781E6B /* DTLinkButton.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F31705A89800781E6B /* DTLinkButton.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065801705A89800781E6B /* DTTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F51705A89800781E6B /* DTTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065811705A89800781E6B /* DTTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F51705A89800781E6B /* DTTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065821705A89800781E6B /* DTTextAttachment.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F51705A89800781E6B /* DTTextAttachment.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065831705A89800781E6B /* DTTextBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F71705A89800781E6B /* DTTextBlock.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065841705A89800781E6B /* DTTextBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F71705A89800781E6B /* DTTextBlock.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065851705A89800781E6B /* DTTextBlock.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F71705A89800781E6B /* DTTextBlock.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065861705A89800781E6B /* DTWebVideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F91705A89800781E6B /* DTWebVideoView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065871705A89800781E6B /* DTWebVideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F91705A89800781E6B /* DTWebVideoView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065881705A89800781E6B /* DTWebVideoView.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064F91705A89800781E6B /* DTWebVideoView.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065891705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FB1705A89800781E6B /* NSAttributedString+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658A1705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FB1705A89800781E6B /* NSAttributedString+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658B1705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FB1705A89800781E6B /* NSAttributedString+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658C1705A89800781E6B /* NSAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FD1705A89800781E6B /* NSAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658D1705A89800781E6B /* NSAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FD1705A89800781E6B /* NSAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658E1705A89800781E6B /* NSAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FD1705A89800781E6B /* NSAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560658F1705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FF1705A89800781E6B /* NSAttributedString+SmallCaps.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065901705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FF1705A89800781E6B /* NSAttributedString+SmallCaps.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065911705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */ = {isa = PBXBuildFile; fileRef = D56064FF1705A89800781E6B /* NSAttributedString+SmallCaps.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065921705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065011705A89800781E6B /* NSAttributedStringRunDelegates.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065931705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065011705A89800781E6B /* NSAttributedStringRunDelegates.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065941705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065011705A89800781E6B /* NSAttributedStringRunDelegates.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065951705A89800781E6B /* NSCharacterSet+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065031705A89800781E6B /* NSCharacterSet+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065961705A89800781E6B /* NSCharacterSet+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065031705A89800781E6B /* NSCharacterSet+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065971705A89800781E6B /* NSCharacterSet+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065031705A89800781E6B /* NSCharacterSet+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065981705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065051705A89800781E6B /* NSMutableAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065991705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065051705A89800781E6B /* NSMutableAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659A1705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065051705A89800781E6B /* NSMutableAttributedString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659B1705A89800781E6B /* NSMutableString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065071705A89800781E6B /* NSMutableString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659C1705A89800781E6B /* NSMutableString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065071705A89800781E6B /* NSMutableString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659D1705A89800781E6B /* NSMutableString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065071705A89800781E6B /* NSMutableString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659E1705A89800781E6B /* NSScanner+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065091705A89800781E6B /* NSScanner+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D560659F1705A89800781E6B /* NSScanner+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065091705A89800781E6B /* NSScanner+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A01705A89800781E6B /* NSScanner+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065091705A89800781E6B /* NSScanner+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A11705A89800781E6B /* NSString+CSS.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650B1705A89800781E6B /* NSString+CSS.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A21705A89800781E6B /* NSString+CSS.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650B1705A89800781E6B /* NSString+CSS.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A31705A89800781E6B /* NSString+CSS.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650B1705A89800781E6B /* NSString+CSS.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A41705A89800781E6B /* NSString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650D1705A89800781E6B /* NSString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A51705A89800781E6B /* NSString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650D1705A89800781E6B /* NSString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A61705A89800781E6B /* NSString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650D1705A89800781E6B /* NSString+HTML.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A71705A89800781E6B /* NSString+Paragraphs.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650F1705A89800781E6B /* NSString+Paragraphs.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A81705A89800781E6B /* NSString+Paragraphs.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650F1705A89800781E6B /* NSString+Paragraphs.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065A91705A89800781E6B /* NSString+Paragraphs.m in Sources */ = {isa = PBXBuildFile; fileRef = D560650F1705A89800781E6B /* NSString+Paragraphs.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AA1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065111705A89800781E6B /* NSString+UTF8Cleaner.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AB1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065111705A89800781E6B /* NSString+UTF8Cleaner.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AC1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065111705A89800781E6B /* NSString+UTF8Cleaner.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AD1705A89800781E6B /* UIFont+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065131705A89800781E6B /* UIFont+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AE1705A89800781E6B /* UIFont+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065131705A89800781E6B /* UIFont+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065AF1705A89800781E6B /* UIFont+DTCoreText.m in Sources */ = {isa = PBXBuildFile; fileRef = D56065131705A89800781E6B /* UIFont+DTCoreText.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D56065B01705A8D100781E6B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
-		D56065B11705A8D600781E6B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D5691304168F0F4200C3F89F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D56915AC168F16FB00C3F89F /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
-		D56915B6168F18C300C3F89F /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915AE168F18C200C3F89F /* ioapi.c */; };
-		D56915B7168F18C300C3F89F /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915AE168F18C200C3F89F /* ioapi.c */; };
-		D56915B8168F18C300C3F89F /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915AE168F18C200C3F89F /* ioapi.c */; };
-		D56915B9168F18C300C3F89F /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B0168F18C200C3F89F /* mztools.c */; };
-		D56915BA168F18C300C3F89F /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B0168F18C200C3F89F /* mztools.c */; };
-		D56915BB168F18C300C3F89F /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B0168F18C200C3F89F /* mztools.c */; };
-		D56915BC168F18C300C3F89F /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B2168F18C200C3F89F /* unzip.c */; };
-		D56915BD168F18C300C3F89F /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B2168F18C200C3F89F /* unzip.c */; };
-		D56915BE168F18C300C3F89F /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B2168F18C200C3F89F /* unzip.c */; };
-		D56915BF168F18C300C3F89F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B4168F18C200C3F89F /* zip.c */; };
-		D56915C0168F18C300C3F89F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B4168F18C200C3F89F /* zip.c */; };
-		D56915C1168F18C300C3F89F /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = D56915B4168F18C200C3F89F /* zip.c */; };
 		D56915C3168F192B00C3F89F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
 		D56915CC168F2E7400C3F89F /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
 		D56915CD168F2E7400C3F89F /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
@@ -928,7 +674,6 @@
 		D56E9016180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D56E9013180981290081010A /* CAMediaTimingFunction+AdditionalEquations.m */; };
 		D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
 		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
-		D579668F17823308000B6C0B /* default.css in Sources */ = {isa = PBXBuildFile; fileRef = D56064AE1705A89800781E6B /* default.css */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -965,6 +710,9 @@
 		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
+		D5B6C728181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
+		D5B6C729181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
+		D5B6C72A181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
 		D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
 		D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */; };
@@ -2315,180 +2063,8 @@
 		D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+BackgroundColors.m"; sourceTree = "<group>"; };
 		D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSelectableBackgroundLayer.h; sourceTree = "<group>"; };
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
-		D56064141705A78100781E6B /* DTHTMLParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParser.h; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.h; sourceTree = "<group>"; };
-		D56064151705A78100781E6B /* DTHTMLParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLParser.m; path = ../Classes/DTFoundation/DTHTMLParser/DTHTMLParser.m; sourceTree = "<group>"; };
-		D560641A1705A79100781E6B /* NSString+DTUTI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTUTI.h"; path = "../Classes/DTFoundation/DTUTI/NSString+DTUTI.h"; sourceTree = "<group>"; };
-		D560641B1705A79100781E6B /* NSString+DTUTI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+DTUTI.m"; path = "../Classes/DTFoundation/DTUTI/NSString+DTUTI.m"; sourceTree = "<group>"; };
-		D56064201705A7A000781E6B /* DTZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTZipArchive.h; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchive.h; sourceTree = "<group>"; };
-		D56064211705A7A000781E6B /* DTZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTZipArchive.m; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchive.m; sourceTree = "<group>"; };
-		D56064221705A7A000781E6B /* DTZipArchiveGZip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTZipArchiveGZip.h; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchiveGZip.h; sourceTree = "<group>"; };
-		D56064231705A7A000781E6B /* DTZipArchiveGZip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTZipArchiveGZip.m; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchiveGZip.m; sourceTree = "<group>"; };
-		D56064241705A7A000781E6B /* DTZipArchiveNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTZipArchiveNode.h; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchiveNode.h; sourceTree = "<group>"; };
-		D56064251705A7A000781E6B /* DTZipArchiveNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTZipArchiveNode.m; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchiveNode.m; sourceTree = "<group>"; };
-		D56064261705A7A000781E6B /* DTZipArchivePKZip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTZipArchivePKZip.h; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchivePKZip.h; sourceTree = "<group>"; };
-		D56064271705A7A000781E6B /* DTZipArchivePKZip.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTZipArchivePKZip.m; path = ../Classes/DTFoundation/DTZipArchive/DTZipArchivePKZip.m; sourceTree = "<group>"; };
-		D56064341705A7E500781E6B /* DTASN1BitString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTASN1BitString.h; path = ../Classes/DTFoundation/DTASN1BitString.h; sourceTree = "<group>"; };
-		D56064351705A7E500781E6B /* DTASN1BitString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTASN1BitString.m; path = ../Classes/DTFoundation/DTASN1BitString.m; sourceTree = "<group>"; };
-		D56064361705A7E500781E6B /* DTASN1Parser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTASN1Parser.h; path = ../Classes/DTFoundation/DTASN1Parser.h; sourceTree = "<group>"; };
-		D56064371705A7E500781E6B /* DTASN1Parser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTASN1Parser.m; path = ../Classes/DTFoundation/DTASN1Parser.m; sourceTree = "<group>"; };
-		D56064381705A7E500781E6B /* DTASN1Serialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTASN1Serialization.h; path = ../Classes/DTFoundation/DTASN1Serialization.h; sourceTree = "<group>"; };
-		D56064391705A7E500781E6B /* DTASN1Serialization.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTASN1Serialization.m; path = ../Classes/DTFoundation/DTASN1Serialization.m; sourceTree = "<group>"; };
-		D560643A1705A7E500781E6B /* DTBase64Coding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTBase64Coding.h; path = ../Classes/DTFoundation/DTBase64Coding.h; sourceTree = "<group>"; };
-		D560643B1705A7E500781E6B /* DTBase64Coding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTBase64Coding.m; path = ../Classes/DTFoundation/DTBase64Coding.m; sourceTree = "<group>"; };
-		D560643C1705A7E500781E6B /* DTExtendedFileAttributes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTExtendedFileAttributes.h; path = ../Classes/DTFoundation/DTExtendedFileAttributes.h; sourceTree = "<group>"; };
-		D560643D1705A7E500781E6B /* DTExtendedFileAttributes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTExtendedFileAttributes.m; path = ../Classes/DTFoundation/DTExtendedFileAttributes.m; sourceTree = "<group>"; };
-		D560643E1705A7E500781E6B /* DTFoundationConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTFoundationConstants.h; path = ../Classes/DTFoundation/DTFoundationConstants.h; sourceTree = "<group>"; };
-		D560643F1705A7E500781E6B /* DTFoundationConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTFoundationConstants.m; path = ../Classes/DTFoundation/DTFoundationConstants.m; sourceTree = "<group>"; };
-		D56064401705A7E500781E6B /* DTObjectBlockExecutor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTObjectBlockExecutor.h; path = ../Classes/DTFoundation/DTObjectBlockExecutor.h; sourceTree = "<group>"; };
-		D56064411705A7E500781E6B /* DTObjectBlockExecutor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTObjectBlockExecutor.m; path = ../Classes/DTFoundation/DTObjectBlockExecutor.m; sourceTree = "<group>"; };
-		D56064421705A7E500781E6B /* DTScriptExpression.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTScriptExpression.h; path = ../Classes/DTFoundation/DTScriptExpression.h; sourceTree = "<group>"; };
-		D56064431705A7E500781E6B /* DTScriptExpression.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTScriptExpression.m; path = ../Classes/DTFoundation/DTScriptExpression.m; sourceTree = "<group>"; };
-		D56064441705A7E500781E6B /* DTScriptVariable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTScriptVariable.h; path = ../Classes/DTFoundation/DTScriptVariable.h; sourceTree = "<group>"; };
-		D56064451705A7E500781E6B /* DTScriptVariable.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTScriptVariable.m; path = ../Classes/DTFoundation/DTScriptVariable.m; sourceTree = "<group>"; };
-		D56064461705A7E500781E6B /* DTUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTUtils.h; path = ../Classes/DTFoundation/DTUtils.h; sourceTree = "<group>"; };
-		D56064471705A7E500781E6B /* DTUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTUtils.m; path = ../Classes/DTFoundation/DTUtils.m; sourceTree = "<group>"; };
-		D56064481705A7E500781E6B /* DTVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTVersion.h; path = ../Classes/DTFoundation/DTVersion.h; sourceTree = "<group>"; };
-		D56064491705A7E500781E6B /* DTVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTVersion.m; path = ../Classes/DTFoundation/DTVersion.m; sourceTree = "<group>"; };
-		D560644A1705A7E500781E6B /* NSArray+DTError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSArray+DTError.h"; path = "../Classes/DTFoundation/NSArray+DTError.h"; sourceTree = "<group>"; };
-		D560644B1705A7E500781E6B /* NSArray+DTError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSArray+DTError.m"; path = "../Classes/DTFoundation/NSArray+DTError.m"; sourceTree = "<group>"; };
-		D560644C1705A7E500781E6B /* NSData+DTCrypto.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+DTCrypto.h"; path = "../Classes/DTFoundation/NSData+DTCrypto.h"; sourceTree = "<group>"; };
-		D560644D1705A7E500781E6B /* NSData+DTCrypto.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSData+DTCrypto.m"; path = "../Classes/DTFoundation/NSData+DTCrypto.m"; sourceTree = "<group>"; };
-		D560644E1705A7E500781E6B /* NSDictionary+DTError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+DTError.h"; path = "../Classes/DTFoundation/NSDictionary+DTError.h"; sourceTree = "<group>"; };
-		D560644F1705A7E500781E6B /* NSDictionary+DTError.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSDictionary+DTError.m"; path = "../Classes/DTFoundation/NSDictionary+DTError.m"; sourceTree = "<group>"; };
-		D56064501705A7E500781E6B /* NSFileWrapper+DTCopying.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileWrapper+DTCopying.h"; path = "../Classes/DTFoundation/NSFileWrapper+DTCopying.h"; sourceTree = "<group>"; };
-		D56064511705A7E500781E6B /* NSFileWrapper+DTCopying.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSFileWrapper+DTCopying.m"; path = "../Classes/DTFoundation/NSFileWrapper+DTCopying.m"; sourceTree = "<group>"; };
-		D56064521705A7E500781E6B /* NSMutableArray+DTMoving.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableArray+DTMoving.h"; path = "../Classes/DTFoundation/NSMutableArray+DTMoving.h"; sourceTree = "<group>"; };
-		D56064531705A7E500781E6B /* NSMutableArray+DTMoving.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableArray+DTMoving.m"; path = "../Classes/DTFoundation/NSMutableArray+DTMoving.m"; sourceTree = "<group>"; };
-		D56064541705A7E500781E6B /* NSObject+DTRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSObject+DTRuntime.h"; path = "../Classes/DTFoundation/NSObject+DTRuntime.h"; sourceTree = "<group>"; };
-		D56064551705A7E500781E6B /* NSObject+DTRuntime.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSObject+DTRuntime.m"; path = "../Classes/DTFoundation/NSObject+DTRuntime.m"; sourceTree = "<group>"; };
-		D56064561705A7E500781E6B /* NSScanner+DTScripting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSScanner+DTScripting.h"; path = "../Classes/DTFoundation/NSScanner+DTScripting.h"; sourceTree = "<group>"; };
-		D56064571705A7E500781E6B /* NSScanner+DTScripting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSScanner+DTScripting.m"; path = "../Classes/DTFoundation/NSScanner+DTScripting.m"; sourceTree = "<group>"; };
-		D56064581705A7E500781E6B /* NSString+DTFormatNumbers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTFormatNumbers.h"; path = "../Classes/DTFoundation/NSString+DTFormatNumbers.h"; sourceTree = "<group>"; };
-		D56064591705A7E500781E6B /* NSString+DTFormatNumbers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+DTFormatNumbers.m"; path = "../Classes/DTFoundation/NSString+DTFormatNumbers.m"; sourceTree = "<group>"; };
-		D560645A1705A7E500781E6B /* NSString+DTPaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTPaths.h"; path = "../Classes/DTFoundation/NSString+DTPaths.h"; sourceTree = "<group>"; };
-		D560645B1705A7E500781E6B /* NSString+DTPaths.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+DTPaths.m"; path = "../Classes/DTFoundation/NSString+DTPaths.m"; sourceTree = "<group>"; };
-		D560645C1705A7E500781E6B /* NSString+DTURLEncoding.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTURLEncoding.h"; path = "../Classes/DTFoundation/NSString+DTURLEncoding.h"; sourceTree = "<group>"; };
-		D560645D1705A7E500781E6B /* NSString+DTURLEncoding.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+DTURLEncoding.m"; path = "../Classes/DTFoundation/NSString+DTURLEncoding.m"; sourceTree = "<group>"; };
-		D560645E1705A7E500781E6B /* NSString+DTUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+DTUtilities.h"; path = "../Classes/DTFoundation/NSString+DTUtilities.h"; sourceTree = "<group>"; };
-		D560645F1705A7E500781E6B /* NSString+DTUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+DTUtilities.m"; path = "../Classes/DTFoundation/NSString+DTUtilities.m"; sourceTree = "<group>"; };
-		D56064601705A7E500781E6B /* NSURL+DTComparing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURL+DTComparing.h"; path = "../Classes/DTFoundation/NSURL+DTComparing.h"; sourceTree = "<group>"; };
-		D56064611705A7E500781E6B /* NSURL+DTComparing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURL+DTComparing.m"; path = "../Classes/DTFoundation/NSURL+DTComparing.m"; sourceTree = "<group>"; };
-		D56064621705A7E500781E6B /* NSURL+DTUnshorten.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSURL+DTUnshorten.h"; path = "../Classes/DTFoundation/NSURL+DTUnshorten.h"; sourceTree = "<group>"; };
-		D56064631705A7E500781E6B /* NSURL+DTUnshorten.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSURL+DTUnshorten.m"; path = "../Classes/DTFoundation/NSURL+DTUnshorten.m"; sourceTree = "<group>"; };
-		D56064AC1705A89800781E6B /* CGUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CGUtils.h; path = ../Classes/DTCoreText/CGUtils.h; sourceTree = "<group>"; };
-		D56064AD1705A89800781E6B /* CGUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = CGUtils.m; path = ../Classes/DTCoreText/CGUtils.m; sourceTree = "<group>"; };
-		D56064AE1705A89800781E6B /* default.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = default.css; path = ../Classes/DTCoreText/default.css; sourceTree = "<group>"; };
-		D56064AF1705A89800781E6B /* DTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedLabel.h; path = ../Classes/DTCoreText/DTAttributedLabel.h; sourceTree = "<group>"; };
-		D56064B01705A89800781E6B /* DTAttributedLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTAttributedLabel.m; path = ../Classes/DTCoreText/DTAttributedLabel.m; sourceTree = "<group>"; };
-		D56064B11705A89800781E6B /* DTAttributedTextCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextCell.h; path = ../Classes/DTCoreText/DTAttributedTextCell.h; sourceTree = "<group>"; };
-		D56064B21705A89800781E6B /* DTAttributedTextCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTAttributedTextCell.m; path = ../Classes/DTCoreText/DTAttributedTextCell.m; sourceTree = "<group>"; };
-		D56064B31705A89800781E6B /* DTAttributedTextContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextContentView.h; path = ../Classes/DTCoreText/DTAttributedTextContentView.h; sourceTree = "<group>"; };
-		D56064B41705A89800781E6B /* DTAttributedTextContentView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTAttributedTextContentView.m; path = ../Classes/DTCoreText/DTAttributedTextContentView.m; sourceTree = "<group>"; };
-		D56064B51705A89800781E6B /* DTAttributedTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextView.h; path = ../Classes/DTCoreText/DTAttributedTextView.h; sourceTree = "<group>"; };
-		D56064B61705A89800781E6B /* DTAttributedTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTAttributedTextView.m; path = ../Classes/DTCoreText/DTAttributedTextView.m; sourceTree = "<group>"; };
-		D56064B71705A89800781E6B /* DTColor+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "DTColor+HTML.h"; path = "../Classes/DTCoreText/DTColor+HTML.h"; sourceTree = "<group>"; };
-		D56064B81705A89800781E6B /* DTColor+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "DTColor+HTML.m"; path = "../Classes/DTCoreText/DTColor+HTML.m"; sourceTree = "<group>"; };
-		D56064B91705A89800781E6B /* DTCompatibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCompatibility.h; path = ../Classes/DTCoreText/DTCompatibility.h; sourceTree = "<group>"; };
-		D56064BA1705A89800781E6B /* DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreText.h; path = ../Classes/DTCoreText/DTCoreText.h; sourceTree = "<group>"; };
-		D56064BB1705A89800781E6B /* DTCoreTextConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextConstants.h; path = ../Classes/DTCoreText/DTCoreTextConstants.h; sourceTree = "<group>"; };
-		D56064BC1705A89800781E6B /* DTCoreTextConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextConstants.m; path = ../Classes/DTCoreText/DTCoreTextConstants.m; sourceTree = "<group>"; };
-		D56064BD1705A89800781E6B /* DTCoreTextFontCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFontCollection.h; path = ../Classes/DTCoreText/DTCoreTextFontCollection.h; sourceTree = "<group>"; };
-		D56064BE1705A89800781E6B /* DTCoreTextFontCollection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextFontCollection.m; path = ../Classes/DTCoreText/DTCoreTextFontCollection.m; sourceTree = "<group>"; };
-		D56064BF1705A89800781E6B /* DTCoreTextFontDescriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFontDescriptor.h; path = ../Classes/DTCoreText/DTCoreTextFontDescriptor.h; sourceTree = "<group>"; };
-		D56064C01705A89800781E6B /* DTCoreTextFontDescriptor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextFontDescriptor.m; path = ../Classes/DTCoreText/DTCoreTextFontDescriptor.m; sourceTree = "<group>"; };
-		D56064C11705A89800781E6B /* DTCoreTextFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFunctions.h; path = ../Classes/DTCoreText/DTCoreTextFunctions.h; sourceTree = "<group>"; };
-		D56064C21705A89800781E6B /* DTCoreTextFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextFunctions.m; path = ../Classes/DTCoreText/DTCoreTextFunctions.m; sourceTree = "<group>"; };
-		D56064C31705A89800781E6B /* DTCoreTextGlyphRun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextGlyphRun.h; path = ../Classes/DTCoreText/DTCoreTextGlyphRun.h; sourceTree = "<group>"; };
-		D56064C41705A89800781E6B /* DTCoreTextGlyphRun.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextGlyphRun.m; path = ../Classes/DTCoreText/DTCoreTextGlyphRun.m; sourceTree = "<group>"; };
-		D56064C51705A89800781E6B /* DTCoreTextLayouter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayouter.h; path = ../Classes/DTCoreText/DTCoreTextLayouter.h; sourceTree = "<group>"; };
-		D56064C61705A89800781E6B /* DTCoreTextLayouter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextLayouter.m; path = ../Classes/DTCoreText/DTCoreTextLayouter.m; sourceTree = "<group>"; };
-		D56064C71705A89800781E6B /* DTCoreTextLayoutFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayoutFrame.h; path = ../Classes/DTCoreText/DTCoreTextLayoutFrame.h; sourceTree = "<group>"; };
-		D56064C81705A89800781E6B /* DTCoreTextLayoutFrame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextLayoutFrame.m; path = ../Classes/DTCoreText/DTCoreTextLayoutFrame.m; sourceTree = "<group>"; };
-		D56064C91705A89800781E6B /* DTCoreTextLayoutLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayoutLine.h; path = ../Classes/DTCoreText/DTCoreTextLayoutLine.h; sourceTree = "<group>"; };
-		D56064CA1705A89800781E6B /* DTCoreTextLayoutLine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextLayoutLine.m; path = ../Classes/DTCoreText/DTCoreTextLayoutLine.m; sourceTree = "<group>"; };
-		D56064CB1705A89800781E6B /* DTCoreTextParagraphStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextParagraphStyle.h; path = ../Classes/DTCoreText/DTCoreTextParagraphStyle.h; sourceTree = "<group>"; };
-		D56064CC1705A89800781E6B /* DTCoreTextParagraphStyle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCoreTextParagraphStyle.m; path = ../Classes/DTCoreText/DTCoreTextParagraphStyle.m; sourceTree = "<group>"; };
-		D56064CD1705A89800781E6B /* DTCSSListStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCSSListStyle.h; path = ../Classes/DTCoreText/DTCSSListStyle.h; sourceTree = "<group>"; };
-		D56064CE1705A89800781E6B /* DTCSSListStyle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCSSListStyle.m; path = ../Classes/DTCoreText/DTCSSListStyle.m; sourceTree = "<group>"; };
-		D56064CF1705A89800781E6B /* DTCSSStylesheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCSSStylesheet.h; path = ../Classes/DTCoreText/DTCSSStylesheet.h; sourceTree = "<group>"; };
-		D56064D01705A89800781E6B /* DTCSSStylesheet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTCSSStylesheet.m; path = ../Classes/DTCoreText/DTCSSStylesheet.m; sourceTree = "<group>"; };
-		D56064D11705A89800781E6B /* DTDictationPlaceholderTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTDictationPlaceholderTextAttachment.h; path = ../Classes/DTCoreText/DTDictationPlaceholderTextAttachment.h; sourceTree = "<group>"; };
-		D56064D21705A89800781E6B /* DTDictationPlaceholderTextAttachment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTDictationPlaceholderTextAttachment.m; path = ../Classes/DTCoreText/DTDictationPlaceholderTextAttachment.m; sourceTree = "<group>"; };
-		D56064D31705A89800781E6B /* DTDictationPlaceholderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTDictationPlaceholderView.h; path = ../Classes/DTCoreText/DTDictationPlaceholderView.h; sourceTree = "<group>"; };
-		D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTDictationPlaceholderView.m; path = ../Classes/DTCoreText/DTDictationPlaceholderView.m; sourceTree = "<group>"; };
-		D56064D51705A89800781E6B /* DTHTMLAttributedStringBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLAttributedStringBuilder.h; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.h; sourceTree = "<group>"; };
-		D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLAttributedStringBuilder.m; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.m; sourceTree = "<group>"; };
-		D56064D81705A89800781E6B /* DTHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElement.h; path = ../Classes/DTCoreText/DTHTMLElement.h; sourceTree = "<group>"; };
-		D56064D91705A89800781E6B /* DTHTMLElement.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElement.m; path = ../Classes/DTCoreText/DTHTMLElement.m; sourceTree = "<group>"; };
-		D56064DA1705A89800781E6B /* DTHTMLElementA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementA.h; path = ../Classes/DTCoreText/DTHTMLElementA.h; sourceTree = "<group>"; };
-		D56064DB1705A89800781E6B /* DTHTMLElementA.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementA.m; path = ../Classes/DTCoreText/DTHTMLElementA.m; sourceTree = "<group>"; };
-		D56064DC1705A89800781E6B /* DTHTMLElementAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementAttachment.h; path = ../Classes/DTCoreText/DTHTMLElementAttachment.h; sourceTree = "<group>"; };
-		D56064DD1705A89800781E6B /* DTHTMLElementAttachment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementAttachment.m; path = ../Classes/DTCoreText/DTHTMLElementAttachment.m; sourceTree = "<group>"; };
-		D56064DE1705A89800781E6B /* DTHTMLElementBR.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementBR.h; path = ../Classes/DTCoreText/DTHTMLElementBR.h; sourceTree = "<group>"; };
-		D56064DF1705A89800781E6B /* DTHTMLElementBR.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementBR.m; path = ../Classes/DTCoreText/DTHTMLElementBR.m; sourceTree = "<group>"; };
-		D56064E01705A89800781E6B /* DTHTMLElementHR.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementHR.h; path = ../Classes/DTCoreText/DTHTMLElementHR.h; sourceTree = "<group>"; };
-		D56064E11705A89800781E6B /* DTHTMLElementHR.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementHR.m; path = ../Classes/DTCoreText/DTHTMLElementHR.m; sourceTree = "<group>"; };
-		D56064E21705A89800781E6B /* DTHTMLElementLI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementLI.h; path = ../Classes/DTCoreText/DTHTMLElementLI.h; sourceTree = "<group>"; };
-		D56064E31705A89800781E6B /* DTHTMLElementLI.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementLI.m; path = ../Classes/DTCoreText/DTHTMLElementLI.m; sourceTree = "<group>"; };
-		D56064E41705A89800781E6B /* DTHTMLElementStylesheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementStylesheet.h; path = ../Classes/DTCoreText/DTHTMLElementStylesheet.h; sourceTree = "<group>"; };
-		D56064E51705A89800781E6B /* DTHTMLElementStylesheet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementStylesheet.m; path = ../Classes/DTCoreText/DTHTMLElementStylesheet.m; sourceTree = "<group>"; };
-		D56064E61705A89800781E6B /* DTHTMLElementText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElementText.h; path = ../Classes/DTCoreText/DTHTMLElementText.h; sourceTree = "<group>"; };
-		D56064E71705A89800781E6B /* DTHTMLElementText.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLElementText.m; path = ../Classes/DTCoreText/DTHTMLElementText.m; sourceTree = "<group>"; };
-		D56064E81705A89800781E6B /* DTHTMLParserNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParserNode.h; path = ../Classes/DTCoreText/DTHTMLParserNode.h; sourceTree = "<group>"; };
-		D56064E91705A89800781E6B /* DTHTMLParserNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLParserNode.m; path = ../Classes/DTCoreText/DTHTMLParserNode.m; sourceTree = "<group>"; };
-		D56064EA1705A89800781E6B /* DTHTMLParserTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParserTextNode.h; path = ../Classes/DTCoreText/DTHTMLParserTextNode.h; sourceTree = "<group>"; };
-		D56064EB1705A89800781E6B /* DTHTMLParserTextNode.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLParserTextNode.m; path = ../Classes/DTCoreText/DTHTMLParserTextNode.m; sourceTree = "<group>"; };
-		D56064EC1705A89800781E6B /* DTHTMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLWriter.h; path = ../Classes/DTCoreText/DTHTMLWriter.h; sourceTree = "<group>"; };
-		D56064ED1705A89800781E6B /* DTHTMLWriter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTHTMLWriter.m; path = ../Classes/DTCoreText/DTHTMLWriter.m; sourceTree = "<group>"; };
-		D56064EE1705A89800781E6B /* DTImage+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "DTImage+HTML.h"; path = "../Classes/DTCoreText/DTImage+HTML.h"; sourceTree = "<group>"; };
-		D56064EF1705A89800781E6B /* DTImage+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "DTImage+HTML.m"; path = "../Classes/DTCoreText/DTImage+HTML.m"; sourceTree = "<group>"; };
-		D56064F01705A89800781E6B /* DTLazyImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTLazyImageView.h; path = ../Classes/DTCoreText/DTLazyImageView.h; sourceTree = "<group>"; };
-		D56064F11705A89800781E6B /* DTLazyImageView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTLazyImageView.m; path = ../Classes/DTCoreText/DTLazyImageView.m; sourceTree = "<group>"; };
-		D56064F21705A89800781E6B /* DTLinkButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTLinkButton.h; path = ../Classes/DTCoreText/DTLinkButton.h; sourceTree = "<group>"; };
-		D56064F31705A89800781E6B /* DTLinkButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTLinkButton.m; path = ../Classes/DTCoreText/DTLinkButton.m; sourceTree = "<group>"; };
-		D56064F41705A89800781E6B /* DTTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextAttachment.h; path = ../Classes/DTCoreText/DTTextAttachment.h; sourceTree = "<group>"; };
-		D56064F51705A89800781E6B /* DTTextAttachment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTTextAttachment.m; path = ../Classes/DTCoreText/DTTextAttachment.m; sourceTree = "<group>"; };
-		D56064F61705A89800781E6B /* DTTextBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextBlock.h; path = ../Classes/DTCoreText/DTTextBlock.h; sourceTree = "<group>"; };
-		D56064F71705A89800781E6B /* DTTextBlock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTTextBlock.m; path = ../Classes/DTCoreText/DTTextBlock.m; sourceTree = "<group>"; };
-		D56064F81705A89800781E6B /* DTWebVideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTWebVideoView.h; path = ../Classes/DTCoreText/DTWebVideoView.h; sourceTree = "<group>"; };
-		D56064F91705A89800781E6B /* DTWebVideoView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = DTWebVideoView.m; path = ../Classes/DTCoreText/DTWebVideoView.m; sourceTree = "<group>"; };
-		D56064FA1705A89800781E6B /* NSAttributedString+DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+DTCoreText.h"; path = "../Classes/DTCoreText/NSAttributedString+DTCoreText.h"; sourceTree = "<group>"; };
-		D56064FB1705A89800781E6B /* NSAttributedString+DTCoreText.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSAttributedString+DTCoreText.m"; path = "../Classes/DTCoreText/NSAttributedString+DTCoreText.m"; sourceTree = "<group>"; };
-		D56064FC1705A89800781E6B /* NSAttributedString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+HTML.h"; path = "../Classes/DTCoreText/NSAttributedString+HTML.h"; sourceTree = "<group>"; };
-		D56064FD1705A89800781E6B /* NSAttributedString+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSAttributedString+HTML.m"; path = "../Classes/DTCoreText/NSAttributedString+HTML.m"; sourceTree = "<group>"; };
-		D56064FE1705A89800781E6B /* NSAttributedString+SmallCaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+SmallCaps.h"; path = "../Classes/DTCoreText/NSAttributedString+SmallCaps.h"; sourceTree = "<group>"; };
-		D56064FF1705A89800781E6B /* NSAttributedString+SmallCaps.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSAttributedString+SmallCaps.m"; path = "../Classes/DTCoreText/NSAttributedString+SmallCaps.m"; sourceTree = "<group>"; };
-		D56065001705A89800781E6B /* NSAttributedStringRunDelegates.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSAttributedStringRunDelegates.h; path = ../Classes/DTCoreText/NSAttributedStringRunDelegates.h; sourceTree = "<group>"; };
-		D56065011705A89800781E6B /* NSAttributedStringRunDelegates.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = NSAttributedStringRunDelegates.m; path = ../Classes/DTCoreText/NSAttributedStringRunDelegates.m; sourceTree = "<group>"; };
-		D56065021705A89800781E6B /* NSCharacterSet+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSCharacterSet+HTML.h"; path = "../Classes/DTCoreText/NSCharacterSet+HTML.h"; sourceTree = "<group>"; };
-		D56065031705A89800781E6B /* NSCharacterSet+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSCharacterSet+HTML.m"; path = "../Classes/DTCoreText/NSCharacterSet+HTML.m"; sourceTree = "<group>"; };
-		D56065041705A89800781E6B /* NSMutableAttributedString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableAttributedString+HTML.h"; path = "../Classes/DTCoreText/NSMutableAttributedString+HTML.h"; sourceTree = "<group>"; };
-		D56065051705A89800781E6B /* NSMutableAttributedString+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableAttributedString+HTML.m"; path = "../Classes/DTCoreText/NSMutableAttributedString+HTML.m"; sourceTree = "<group>"; };
-		D56065061705A89800781E6B /* NSMutableString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableString+HTML.h"; path = "../Classes/DTCoreText/NSMutableString+HTML.h"; sourceTree = "<group>"; };
-		D56065071705A89800781E6B /* NSMutableString+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSMutableString+HTML.m"; path = "../Classes/DTCoreText/NSMutableString+HTML.m"; sourceTree = "<group>"; };
-		D56065081705A89800781E6B /* NSScanner+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSScanner+HTML.h"; path = "../Classes/DTCoreText/NSScanner+HTML.h"; sourceTree = "<group>"; };
-		D56065091705A89800781E6B /* NSScanner+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSScanner+HTML.m"; path = "../Classes/DTCoreText/NSScanner+HTML.m"; sourceTree = "<group>"; };
-		D560650A1705A89800781E6B /* NSString+CSS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+CSS.h"; path = "../Classes/DTCoreText/NSString+CSS.h"; sourceTree = "<group>"; };
-		D560650B1705A89800781E6B /* NSString+CSS.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+CSS.m"; path = "../Classes/DTCoreText/NSString+CSS.m"; sourceTree = "<group>"; };
-		D560650C1705A89800781E6B /* NSString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+HTML.h"; path = "../Classes/DTCoreText/NSString+HTML.h"; sourceTree = "<group>"; };
-		D560650D1705A89800781E6B /* NSString+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+HTML.m"; path = "../Classes/DTCoreText/NSString+HTML.m"; sourceTree = "<group>"; };
-		D560650E1705A89800781E6B /* NSString+Paragraphs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+Paragraphs.h"; path = "../Classes/DTCoreText/NSString+Paragraphs.h"; sourceTree = "<group>"; };
-		D560650F1705A89800781E6B /* NSString+Paragraphs.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+Paragraphs.m"; path = "../Classes/DTCoreText/NSString+Paragraphs.m"; sourceTree = "<group>"; };
-		D56065101705A89800781E6B /* NSString+UTF8Cleaner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+UTF8Cleaner.h"; path = "../Classes/DTCoreText/NSString+UTF8Cleaner.h"; sourceTree = "<group>"; };
-		D56065111705A89800781E6B /* NSString+UTF8Cleaner.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "NSString+UTF8Cleaner.m"; path = "../Classes/DTCoreText/NSString+UTF8Cleaner.m"; sourceTree = "<group>"; };
-		D56065121705A89800781E6B /* UIFont+DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIFont+DTCoreText.h"; path = "../Classes/DTCoreText/UIFont+DTCoreText.h"; sourceTree = "<group>"; };
-		D56065131705A89800781E6B /* UIFont+DTCoreText.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIFont+DTCoreText.m"; path = "../Classes/DTCoreText/UIFont+DTCoreText.m"; sourceTree = "<group>"; };
 		D5691303168F0F4200C3F89F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		D56915AB168F16FA00C3F89F /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
-		D56915AD168F18C200C3F89F /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypt.h; path = ../Classes/DTFoundation/Externals/minizip/crypt.h; sourceTree = "<group>"; };
-		D56915AE168F18C200C3F89F /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = ioapi.c; path = ../Classes/DTFoundation/Externals/minizip/ioapi.c; sourceTree = "<group>"; };
-		D56915AF168F18C200C3F89F /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ioapi.h; path = ../Classes/DTFoundation/Externals/minizip/ioapi.h; sourceTree = "<group>"; };
-		D56915B0168F18C200C3F89F /* mztools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mztools.c; path = ../Classes/DTFoundation/Externals/minizip/mztools.c; sourceTree = "<group>"; };
-		D56915B1168F18C200C3F89F /* mztools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mztools.h; path = ../Classes/DTFoundation/Externals/minizip/mztools.h; sourceTree = "<group>"; };
-		D56915B2168F18C200C3F89F /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = unzip.c; path = ../Classes/DTFoundation/Externals/minizip/unzip.c; sourceTree = "<group>"; };
-		D56915B3168F18C200C3F89F /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = unzip.h; path = ../Classes/DTFoundation/Externals/minizip/unzip.h; sourceTree = "<group>"; };
-		D56915B4168F18C200C3F89F /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = zip.c; path = ../Classes/DTFoundation/Externals/minizip/zip.c; sourceTree = "<group>"; };
-		D56915B5168F18C300C3F89F /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = zip.h; path = ../Classes/DTFoundation/Externals/minizip/zip.h; sourceTree = "<group>"; };
 		D56915C2168F192B00C3F89F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		D56915C8168F2E7300C3F89F /* TiUILabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUILabel.h; sourceTree = "<group>"; };
 		D56915C9168F2E7300C3F89F /* TiUILabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUILabel.m; sourceTree = "<group>"; };
@@ -2532,6 +2108,80 @@
 		D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionFold.m; sourceTree = "<group>"; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
+		D5B6C6DE181124AC00A2612A /* DTAccessibilityElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAccessibilityElement.h; path = ../Classes/DTCoreText/DTAccessibilityElement.h; sourceTree = "<group>"; };
+		D5B6C6DF181124AC00A2612A /* DTAccessibilityViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAccessibilityViewProxy.h; path = ../Classes/DTCoreText/DTAccessibilityViewProxy.h; sourceTree = "<group>"; };
+		D5B6C6E0181124AC00A2612A /* DTAnchorHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAnchorHTMLElement.h; path = ../Classes/DTCoreText/DTAnchorHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C6E1181124AC00A2612A /* DTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedLabel.h; path = ../Classes/DTCoreText/DTAttributedLabel.h; sourceTree = "<group>"; };
+		D5B6C6E2181124AC00A2612A /* DTAttributedTextCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextCell.h; path = ../Classes/DTCoreText/DTAttributedTextCell.h; sourceTree = "<group>"; };
+		D5B6C6E3181124AC00A2612A /* DTAttributedTextContentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextContentView.h; path = ../Classes/DTCoreText/DTAttributedTextContentView.h; sourceTree = "<group>"; };
+		D5B6C6E4181124AC00A2612A /* DTAttributedTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedTextView.h; path = ../Classes/DTCoreText/DTAttributedTextView.h; sourceTree = "<group>"; };
+		D5B6C6E5181124AC00A2612A /* DTBreakHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTBreakHTMLElement.h; path = ../Classes/DTCoreText/DTBreakHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C6E6181124AC00A2612A /* DTColor+Compatibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "DTColor+Compatibility.h"; path = "../Classes/DTCoreText/DTColor+Compatibility.h"; sourceTree = "<group>"; };
+		D5B6C6E7181124AC00A2612A /* DTColorFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTColorFunctions.h; path = ../Classes/DTCoreText/DTColorFunctions.h; sourceTree = "<group>"; };
+		D5B6C6E8181124AC00A2612A /* DTCompatibility.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCompatibility.h; path = ../Classes/DTCoreText/DTCompatibility.h; sourceTree = "<group>"; };
+		D5B6C6EA181124AC00A2612A /* DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreText.h; path = ../Classes/DTCoreText/DTCoreText.h; sourceTree = "<group>"; };
+		D5B6C6EB181124AC00A2612A /* DTCoreTextConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextConstants.h; path = ../Classes/DTCoreText/DTCoreTextConstants.h; sourceTree = "<group>"; };
+		D5B6C6EC181124AC00A2612A /* DTCoreTextFontCollection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFontCollection.h; path = ../Classes/DTCoreText/DTCoreTextFontCollection.h; sourceTree = "<group>"; };
+		D5B6C6ED181124AC00A2612A /* DTCoreTextFontDescriptor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFontDescriptor.h; path = ../Classes/DTCoreText/DTCoreTextFontDescriptor.h; sourceTree = "<group>"; };
+		D5B6C6EE181124AC00A2612A /* DTCoreTextFunctions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextFunctions.h; path = ../Classes/DTCoreText/DTCoreTextFunctions.h; sourceTree = "<group>"; };
+		D5B6C6EF181124AC00A2612A /* DTCoreTextGlyphRun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextGlyphRun.h; path = ../Classes/DTCoreText/DTCoreTextGlyphRun.h; sourceTree = "<group>"; };
+		D5B6C6F0181124AC00A2612A /* DTCoreTextLayouter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayouter.h; path = ../Classes/DTCoreText/DTCoreTextLayouter.h; sourceTree = "<group>"; };
+		D5B6C6F1181124AC00A2612A /* DTCoreTextLayoutFrame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayoutFrame.h; path = ../Classes/DTCoreText/DTCoreTextLayoutFrame.h; sourceTree = "<group>"; };
+		D5B6C6F2181124AC00A2612A /* DTCoreTextLayoutFrame+Cursor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "DTCoreTextLayoutFrame+Cursor.h"; path = "../Classes/DTCoreText/DTCoreTextLayoutFrame+Cursor.h"; sourceTree = "<group>"; };
+		D5B6C6F3181124AC00A2612A /* DTCoreTextLayoutFrameAccessibilityElementGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayoutFrameAccessibilityElementGenerator.h; path = ../Classes/DTCoreText/DTCoreTextLayoutFrameAccessibilityElementGenerator.h; sourceTree = "<group>"; };
+		D5B6C6F4181124AC00A2612A /* DTCoreTextLayoutLine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextLayoutLine.h; path = ../Classes/DTCoreText/DTCoreTextLayoutLine.h; sourceTree = "<group>"; };
+		D5B6C6F5181124AC00A2612A /* DTCoreTextParagraphStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCoreTextParagraphStyle.h; path = ../Classes/DTCoreText/DTCoreTextParagraphStyle.h; sourceTree = "<group>"; };
+		D5B6C6F6181124AC00A2612A /* DTCSSListStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCSSListStyle.h; path = ../Classes/DTCoreText/DTCSSListStyle.h; sourceTree = "<group>"; };
+		D5B6C6F7181124AC00A2612A /* DTCSSStylesheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTCSSStylesheet.h; path = ../Classes/DTCoreText/DTCSSStylesheet.h; sourceTree = "<group>"; };
+		D5B6C6F8181124AC00A2612A /* DTDictationPlaceholderTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTDictationPlaceholderTextAttachment.h; path = ../Classes/DTCoreText/DTDictationPlaceholderTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C6F9181124AC00A2612A /* DTDictationPlaceholderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTDictationPlaceholderView.h; path = ../Classes/DTCoreText/DTDictationPlaceholderView.h; sourceTree = "<group>"; };
+		D5B6C6FA181124AC00A2612A /* DTHorizontalRuleHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHorizontalRuleHTMLElement.h; path = ../Classes/DTCoreText/DTHorizontalRuleHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C6FB181124AC00A2612A /* DTHTMLAttributedStringBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLAttributedStringBuilder.h; path = ../Classes/DTCoreText/DTHTMLAttributedStringBuilder.h; sourceTree = "<group>"; };
+		D5B6C6FC181124AC00A2612A /* DTHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLElement.h; path = ../Classes/DTCoreText/DTHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C6FD181124AC00A2612A /* DTHTMLParserNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParserNode.h; path = ../Classes/DTCoreText/DTHTMLParserNode.h; sourceTree = "<group>"; };
+		D5B6C6FE181124AC00A2612A /* DTHTMLParserTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLParserTextNode.h; path = ../Classes/DTCoreText/DTHTMLParserTextNode.h; sourceTree = "<group>"; };
+		D5B6C6FF181124AC00A2612A /* DTHTMLWriter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTHTMLWriter.h; path = ../Classes/DTCoreText/DTHTMLWriter.h; sourceTree = "<group>"; };
+		D5B6C700181124AC00A2612A /* DTIframeTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTIframeTextAttachment.h; path = ../Classes/DTCoreText/DTIframeTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C701181124AC00A2612A /* DTImage+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "DTImage+HTML.h"; path = "../Classes/DTCoreText/DTImage+HTML.h"; sourceTree = "<group>"; };
+		D5B6C702181124AC00A2612A /* DTImageTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTImageTextAttachment.h; path = ../Classes/DTCoreText/DTImageTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C703181124AC00A2612A /* DTLazyImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTLazyImageView.h; path = ../Classes/DTCoreText/DTLazyImageView.h; sourceTree = "<group>"; };
+		D5B6C704181124AC00A2612A /* DTLinkButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTLinkButton.h; path = ../Classes/DTCoreText/DTLinkButton.h; sourceTree = "<group>"; };
+		D5B6C705181124AC00A2612A /* DTListItemHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTListItemHTMLElement.h; path = ../Classes/DTCoreText/DTListItemHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C706181124AC00A2612A /* DTObjectTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTObjectTextAttachment.h; path = ../Classes/DTCoreText/DTObjectTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C707181124AC00A2612A /* DTStylesheetHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTStylesheetHTMLElement.h; path = ../Classes/DTCoreText/DTStylesheetHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C708181124AC00A2612A /* DTTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextAttachment.h; path = ../Classes/DTCoreText/DTTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C709181124AC00A2612A /* DTTextAttachmentHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextAttachmentHTMLElement.h; path = ../Classes/DTCoreText/DTTextAttachmentHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C70A181124AC00A2612A /* DTTextBlock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextBlock.h; path = ../Classes/DTCoreText/DTTextBlock.h; sourceTree = "<group>"; };
+		D5B6C70B181124AC00A2612A /* DTTextHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTTextHTMLElement.h; path = ../Classes/DTCoreText/DTTextHTMLElement.h; sourceTree = "<group>"; };
+		D5B6C70C181124AC00A2612A /* DTVideoTextAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTVideoTextAttachment.h; path = ../Classes/DTCoreText/DTVideoTextAttachment.h; sourceTree = "<group>"; };
+		D5B6C70D181124AC00A2612A /* DTWebVideoView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTWebVideoView.h; path = ../Classes/DTCoreText/DTWebVideoView.h; sourceTree = "<group>"; };
+		D5B6C70E181124AC00A2612A /* NSAttributedString+DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+DTCoreText.h"; path = "../Classes/DTCoreText/NSAttributedString+DTCoreText.h"; sourceTree = "<group>"; };
+		D5B6C70F181124AC00A2612A /* NSAttributedString+DTDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+DTDebug.h"; path = "../Classes/DTCoreText/NSAttributedString+DTDebug.h"; sourceTree = "<group>"; };
+		D5B6C710181124AC00A2612A /* NSAttributedString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+HTML.h"; path = "../Classes/DTCoreText/NSAttributedString+HTML.h"; sourceTree = "<group>"; };
+		D5B6C711181124AC00A2612A /* NSAttributedString+SmallCaps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSAttributedString+SmallCaps.h"; path = "../Classes/DTCoreText/NSAttributedString+SmallCaps.h"; sourceTree = "<group>"; };
+		D5B6C712181124AC00A2612A /* NSAttributedStringRunDelegates.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NSAttributedStringRunDelegates.h; path = ../Classes/DTCoreText/NSAttributedStringRunDelegates.h; sourceTree = "<group>"; };
+		D5B6C713181124AC00A2612A /* NSCharacterSet+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSCharacterSet+HTML.h"; path = "../Classes/DTCoreText/NSCharacterSet+HTML.h"; sourceTree = "<group>"; };
+		D5B6C714181124AC00A2612A /* NSDictionary+DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+DTCoreText.h"; path = "../Classes/DTCoreText/NSDictionary+DTCoreText.h"; sourceTree = "<group>"; };
+		D5B6C715181124AC00A2612A /* NSMutableAttributedString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableAttributedString+HTML.h"; path = "../Classes/DTCoreText/NSMutableAttributedString+HTML.h"; sourceTree = "<group>"; };
+		D5B6C716181124AC00A2612A /* NSMutableString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableString+HTML.h"; path = "../Classes/DTCoreText/NSMutableString+HTML.h"; sourceTree = "<group>"; };
+		D5B6C717181124AC00A2612A /* NSScanner+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSScanner+HTML.h"; path = "../Classes/DTCoreText/NSScanner+HTML.h"; sourceTree = "<group>"; };
+		D5B6C718181124AC00A2612A /* NSString+CSS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+CSS.h"; path = "../Classes/DTCoreText/NSString+CSS.h"; sourceTree = "<group>"; };
+		D5B6C719181124AC00A2612A /* NSString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+HTML.h"; path = "../Classes/DTCoreText/NSString+HTML.h"; sourceTree = "<group>"; };
+		D5B6C71A181124AC00A2612A /* NSString+Paragraphs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSString+Paragraphs.h"; path = "../Classes/DTCoreText/NSString+Paragraphs.h"; sourceTree = "<group>"; };
+		D5B6C71B181124AC00A2612A /* UIFont+DTCoreText.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIFont+DTCoreText.h"; path = "../Classes/DTCoreText/UIFont+DTCoreText.h"; sourceTree = "<group>"; };
+		D5B6C71C181124B300A2612A /* DTExtendedFileAttributes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTExtendedFileAttributes.h; path = ../Classes/DTFoundation/DTExtendedFileAttributes.h; sourceTree = "<group>"; };
+		D5B6C71D181124B300A2612A /* DTFoundation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTFoundation.h; path = ../Classes/DTFoundation/DTFoundation.h; sourceTree = "<group>"; };
+		D5B6C71E181124B300A2612A /* DTHTMLParser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTHTMLParser.h; path = ../Classes/DTFoundation/DTHTMLParser.h; sourceTree = "<group>"; };
+		D5B6C71F181124B300A2612A /* DTUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTUtils.h; path = ../Classes/DTFoundation/DTUtils.h; sourceTree = "<group>"; };
+		D5B6C720181124B300A2612A /* DTVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTVersion.h; path = ../Classes/DTFoundation/DTVersion.h; sourceTree = "<group>"; };
+		D5B6C721181124B300A2612A /* NSArray+DTError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSArray+DTError.h"; path = "../Classes/DTFoundation/NSArray+DTError.h"; sourceTree = "<group>"; };
+		D5B6C722181124B300A2612A /* NSDictionary+DTError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSDictionary+DTError.h"; path = "../Classes/DTFoundation/NSDictionary+DTError.h"; sourceTree = "<group>"; };
+		D5B6C723181124B300A2612A /* NSString+DTFormatNumbers.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+DTFormatNumbers.h"; path = "../Classes/DTFoundation/NSString+DTFormatNumbers.h"; sourceTree = "<group>"; };
+		D5B6C724181124B300A2612A /* NSString+DTPaths.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+DTPaths.h"; path = "../Classes/DTFoundation/NSString+DTPaths.h"; sourceTree = "<group>"; };
+		D5B6C725181124B300A2612A /* NSString+DTURLEncoding.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+DTURLEncoding.h"; path = "../Classes/DTFoundation/NSString+DTURLEncoding.h"; sourceTree = "<group>"; };
+		D5B6C726181124B300A2612A /* NSString+DTUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+DTUtilities.h"; path = "../Classes/DTFoundation/NSString+DTUtilities.h"; sourceTree = "<group>"; };
+		D5B6C727181124C200A2612A /* libDTCoreText.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libDTCoreText.a; path = ../libexternals/libDTCoreText.a; sourceTree = "<group>"; };
+		D5B6C72B181125A100A2612A /* DTWeakSupport.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = DTWeakSupport.h; path = ../Classes/DTFoundation/DTWeakSupport.h; sourceTree = "<group>"; };
 		D5B891EC17CB4EF900B9C8CF /* TiShapeEllipseProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeEllipseProxy.h; sourceTree = "<group>"; };
 		D5B891ED17CB4EF900B9C8CF /* TiShapeEllipseProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeEllipseProxy.m; sourceTree = "<group>"; };
 		D5B891F117CB510700B9C8CF /* TiShapeLineProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeLineProxy.h; sourceTree = "<group>"; };
@@ -2689,6 +2339,7 @@
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */,
 				24CA8C76111167B60084E2DE /* AddressBook.framework in Frameworks */,
+				D5B6C728181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				24CA8C78111167B60084E2DE /* AddressBookUI.framework in Frameworks */,
 				24CA8C7C111167B60084E2DE /* CFNetwork.framework in Frameworks */,
 				24CA8C7E111167B60084E2DE /* CoreLocation.framework in Frameworks */,
@@ -2723,6 +2374,7 @@
 				D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */,
 				D5C2866617FC18C0005B2628 /* libGPUImage.a in Frameworks */,
 				D93DAA6B16CBFD6400AD64C9 /* EventKit.framework in Frameworks */,
+				D5B6C729181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				D93DAA6C16CBFD6400AD64C9 /* EventKitUI.framework in Frameworks */,
 				D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */,
 				D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */,
@@ -2766,6 +2418,7 @@
 				D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */,
 				D5C2866717FC18C1005B2628 /* libGPUImage.a in Frameworks */,
 				D93DAA6916CBFD5600AD64C9 /* EventKit.framework in Frameworks */,
+				D5B6C72A181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				D93DAA6A16CBFD5600AD64C9 /* EventKitUI.framework in Frameworks */,
 				502E9D2416CAFB9D00C1BD26 /* libti_ios_profiler.a in Frameworks */,
 				D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */,
@@ -2893,14 +2546,13 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D5B6C6DD1811249F00A2612A /* DT */,
 				D51F03AD1807E4E9005B4EE2 /* MMDrawerController */,
 				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
 				D5014CD117EB4A740013F37A /* SVGKit */,
 				D585BBE017E62F350062275E /* GPUImage */,
 				D522FE0A16D2AC7B008C6CC4 /* JRSwizzle */,
 				D56915D2168F536700C3F89F /* TTTAttributedLabel */,
-				D5691305168F127400C3F89F /* DTFoundation */,
-				D569123A168F0DA300C3F89F /* DTCoreText */,
 				B440EF771209DC400045FEAE /* MGSplitView */,
 				242E967211BAD2E30046A0D0 /* AsyncSocket */,
 				242E95C211BAC8070046A0D0 /* Debugger */,
@@ -3967,6 +3619,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D5B6C727181124C200A2612A /* libDTCoreText.a */,
 				D5C2866317FC18C0005B2628 /* libGPUImage.a */,
 				D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */,
 				D585BC8817E630CD0062275E /* CoreMedia.framework */,
@@ -4284,224 +3937,6 @@
 			name = JRSwizzle;
 			sourceTree = "<group>";
 		};
-		D56064121705A76300781E6B /* minizip */ = {
-			isa = PBXGroup;
-			children = (
-				D56915AD168F18C200C3F89F /* crypt.h */,
-				D56915AE168F18C200C3F89F /* ioapi.c */,
-				D56915AF168F18C200C3F89F /* ioapi.h */,
-				D56915B0168F18C200C3F89F /* mztools.c */,
-				D56915B1168F18C200C3F89F /* mztools.h */,
-				D56915B2168F18C200C3F89F /* unzip.c */,
-				D56915B3168F18C200C3F89F /* unzip.h */,
-				D56915B4168F18C200C3F89F /* zip.c */,
-				D56915B5168F18C300C3F89F /* zip.h */,
-			);
-			name = minizip;
-			sourceTree = "<group>";
-		};
-		D56064131705A77300781E6B /* DTHTMLParser */ = {
-			isa = PBXGroup;
-			children = (
-				D56064141705A78100781E6B /* DTHTMLParser.h */,
-				D56064151705A78100781E6B /* DTHTMLParser.m */,
-			);
-			name = DTHTMLParser;
-			sourceTree = "<group>";
-		};
-		D56064191705A78900781E6B /* DTUTI */ = {
-			isa = PBXGroup;
-			children = (
-				D560641A1705A79100781E6B /* NSString+DTUTI.h */,
-				D560641B1705A79100781E6B /* NSString+DTUTI.m */,
-			);
-			name = DTUTI;
-			sourceTree = "<group>";
-		};
-		D560641F1705A79500781E6B /* DTZipArchive */ = {
-			isa = PBXGroup;
-			children = (
-				D56064201705A7A000781E6B /* DTZipArchive.h */,
-				D56064211705A7A000781E6B /* DTZipArchive.m */,
-				D56064221705A7A000781E6B /* DTZipArchiveGZip.h */,
-				D56064231705A7A000781E6B /* DTZipArchiveGZip.m */,
-				D56064241705A7A000781E6B /* DTZipArchiveNode.h */,
-				D56064251705A7A000781E6B /* DTZipArchiveNode.m */,
-				D56064261705A7A000781E6B /* DTZipArchivePKZip.h */,
-				D56064271705A7A000781E6B /* DTZipArchivePKZip.m */,
-			);
-			name = DTZipArchive;
-			sourceTree = "<group>";
-		};
-		D569123A168F0DA300C3F89F /* DTCoreText */ = {
-			isa = PBXGroup;
-			children = (
-				D56064AC1705A89800781E6B /* CGUtils.h */,
-				D56064AD1705A89800781E6B /* CGUtils.m */,
-				D56064AE1705A89800781E6B /* default.css */,
-				D56064AF1705A89800781E6B /* DTAttributedLabel.h */,
-				D56064B01705A89800781E6B /* DTAttributedLabel.m */,
-				D56064B11705A89800781E6B /* DTAttributedTextCell.h */,
-				D56064B21705A89800781E6B /* DTAttributedTextCell.m */,
-				D56064B31705A89800781E6B /* DTAttributedTextContentView.h */,
-				D56064B41705A89800781E6B /* DTAttributedTextContentView.m */,
-				D56064B51705A89800781E6B /* DTAttributedTextView.h */,
-				D56064B61705A89800781E6B /* DTAttributedTextView.m */,
-				D56064B71705A89800781E6B /* DTColor+HTML.h */,
-				D56064B81705A89800781E6B /* DTColor+HTML.m */,
-				D56064B91705A89800781E6B /* DTCompatibility.h */,
-				D56064BA1705A89800781E6B /* DTCoreText.h */,
-				D56064BB1705A89800781E6B /* DTCoreTextConstants.h */,
-				D56064BC1705A89800781E6B /* DTCoreTextConstants.m */,
-				D56064BD1705A89800781E6B /* DTCoreTextFontCollection.h */,
-				D56064BE1705A89800781E6B /* DTCoreTextFontCollection.m */,
-				D56064BF1705A89800781E6B /* DTCoreTextFontDescriptor.h */,
-				D56064C01705A89800781E6B /* DTCoreTextFontDescriptor.m */,
-				D56064C11705A89800781E6B /* DTCoreTextFunctions.h */,
-				D56064C21705A89800781E6B /* DTCoreTextFunctions.m */,
-				D56064C31705A89800781E6B /* DTCoreTextGlyphRun.h */,
-				D56064C41705A89800781E6B /* DTCoreTextGlyphRun.m */,
-				D56064C51705A89800781E6B /* DTCoreTextLayouter.h */,
-				D56064C61705A89800781E6B /* DTCoreTextLayouter.m */,
-				D56064C71705A89800781E6B /* DTCoreTextLayoutFrame.h */,
-				D56064C81705A89800781E6B /* DTCoreTextLayoutFrame.m */,
-				D56064C91705A89800781E6B /* DTCoreTextLayoutLine.h */,
-				D56064CA1705A89800781E6B /* DTCoreTextLayoutLine.m */,
-				D56064CB1705A89800781E6B /* DTCoreTextParagraphStyle.h */,
-				D56064CC1705A89800781E6B /* DTCoreTextParagraphStyle.m */,
-				D56064CD1705A89800781E6B /* DTCSSListStyle.h */,
-				D56064CE1705A89800781E6B /* DTCSSListStyle.m */,
-				D56064CF1705A89800781E6B /* DTCSSStylesheet.h */,
-				D56064D01705A89800781E6B /* DTCSSStylesheet.m */,
-				D56064D11705A89800781E6B /* DTDictationPlaceholderTextAttachment.h */,
-				D56064D21705A89800781E6B /* DTDictationPlaceholderTextAttachment.m */,
-				D56064D31705A89800781E6B /* DTDictationPlaceholderView.h */,
-				D56064D41705A89800781E6B /* DTDictationPlaceholderView.m */,
-				D56064D51705A89800781E6B /* DTHTMLAttributedStringBuilder.h */,
-				D56064D61705A89800781E6B /* DTHTMLAttributedStringBuilder.m */,
-				D56064D81705A89800781E6B /* DTHTMLElement.h */,
-				D56064D91705A89800781E6B /* DTHTMLElement.m */,
-				D56064DA1705A89800781E6B /* DTHTMLElementA.h */,
-				D56064DB1705A89800781E6B /* DTHTMLElementA.m */,
-				D56064DC1705A89800781E6B /* DTHTMLElementAttachment.h */,
-				D56064DD1705A89800781E6B /* DTHTMLElementAttachment.m */,
-				D56064DE1705A89800781E6B /* DTHTMLElementBR.h */,
-				D56064DF1705A89800781E6B /* DTHTMLElementBR.m */,
-				D56064E01705A89800781E6B /* DTHTMLElementHR.h */,
-				D56064E11705A89800781E6B /* DTHTMLElementHR.m */,
-				D56064E21705A89800781E6B /* DTHTMLElementLI.h */,
-				D56064E31705A89800781E6B /* DTHTMLElementLI.m */,
-				D56064E41705A89800781E6B /* DTHTMLElementStylesheet.h */,
-				D56064E51705A89800781E6B /* DTHTMLElementStylesheet.m */,
-				D56064E61705A89800781E6B /* DTHTMLElementText.h */,
-				D56064E71705A89800781E6B /* DTHTMLElementText.m */,
-				D56064E81705A89800781E6B /* DTHTMLParserNode.h */,
-				D56064E91705A89800781E6B /* DTHTMLParserNode.m */,
-				D56064EA1705A89800781E6B /* DTHTMLParserTextNode.h */,
-				D56064EB1705A89800781E6B /* DTHTMLParserTextNode.m */,
-				D56064EC1705A89800781E6B /* DTHTMLWriter.h */,
-				D56064ED1705A89800781E6B /* DTHTMLWriter.m */,
-				D56064EE1705A89800781E6B /* DTImage+HTML.h */,
-				D56064EF1705A89800781E6B /* DTImage+HTML.m */,
-				D56064F01705A89800781E6B /* DTLazyImageView.h */,
-				D56064F11705A89800781E6B /* DTLazyImageView.m */,
-				D56064F21705A89800781E6B /* DTLinkButton.h */,
-				D56064F31705A89800781E6B /* DTLinkButton.m */,
-				D56064F41705A89800781E6B /* DTTextAttachment.h */,
-				D56064F51705A89800781E6B /* DTTextAttachment.m */,
-				D56064F61705A89800781E6B /* DTTextBlock.h */,
-				D56064F71705A89800781E6B /* DTTextBlock.m */,
-				D56064F81705A89800781E6B /* DTWebVideoView.h */,
-				D56064F91705A89800781E6B /* DTWebVideoView.m */,
-				D56064FA1705A89800781E6B /* NSAttributedString+DTCoreText.h */,
-				D56064FB1705A89800781E6B /* NSAttributedString+DTCoreText.m */,
-				D56064FC1705A89800781E6B /* NSAttributedString+HTML.h */,
-				D56064FD1705A89800781E6B /* NSAttributedString+HTML.m */,
-				D56064FE1705A89800781E6B /* NSAttributedString+SmallCaps.h */,
-				D56064FF1705A89800781E6B /* NSAttributedString+SmallCaps.m */,
-				D56065001705A89800781E6B /* NSAttributedStringRunDelegates.h */,
-				D56065011705A89800781E6B /* NSAttributedStringRunDelegates.m */,
-				D56065021705A89800781E6B /* NSCharacterSet+HTML.h */,
-				D56065031705A89800781E6B /* NSCharacterSet+HTML.m */,
-				D56065041705A89800781E6B /* NSMutableAttributedString+HTML.h */,
-				D56065051705A89800781E6B /* NSMutableAttributedString+HTML.m */,
-				D56065061705A89800781E6B /* NSMutableString+HTML.h */,
-				D56065071705A89800781E6B /* NSMutableString+HTML.m */,
-				D56065081705A89800781E6B /* NSScanner+HTML.h */,
-				D56065091705A89800781E6B /* NSScanner+HTML.m */,
-				D560650A1705A89800781E6B /* NSString+CSS.h */,
-				D560650B1705A89800781E6B /* NSString+CSS.m */,
-				D560650C1705A89800781E6B /* NSString+HTML.h */,
-				D560650D1705A89800781E6B /* NSString+HTML.m */,
-				D560650E1705A89800781E6B /* NSString+Paragraphs.h */,
-				D560650F1705A89800781E6B /* NSString+Paragraphs.m */,
-				D56065101705A89800781E6B /* NSString+UTF8Cleaner.h */,
-				D56065111705A89800781E6B /* NSString+UTF8Cleaner.m */,
-				D56065121705A89800781E6B /* UIFont+DTCoreText.h */,
-				D56065131705A89800781E6B /* UIFont+DTCoreText.m */,
-			);
-			name = DTCoreText;
-			sourceTree = "<group>";
-		};
-		D5691305168F127400C3F89F /* DTFoundation */ = {
-			isa = PBXGroup;
-			children = (
-				D560641F1705A79500781E6B /* DTZipArchive */,
-				D56064191705A78900781E6B /* DTUTI */,
-				D56064131705A77300781E6B /* DTHTMLParser */,
-				D56064121705A76300781E6B /* minizip */,
-				D56064341705A7E500781E6B /* DTASN1BitString.h */,
-				D56064351705A7E500781E6B /* DTASN1BitString.m */,
-				D56064361705A7E500781E6B /* DTASN1Parser.h */,
-				D56064371705A7E500781E6B /* DTASN1Parser.m */,
-				D56064381705A7E500781E6B /* DTASN1Serialization.h */,
-				D56064391705A7E500781E6B /* DTASN1Serialization.m */,
-				D560643A1705A7E500781E6B /* DTBase64Coding.h */,
-				D560643B1705A7E500781E6B /* DTBase64Coding.m */,
-				D560643C1705A7E500781E6B /* DTExtendedFileAttributes.h */,
-				D560643D1705A7E500781E6B /* DTExtendedFileAttributes.m */,
-				D560643E1705A7E500781E6B /* DTFoundationConstants.h */,
-				D560643F1705A7E500781E6B /* DTFoundationConstants.m */,
-				D56064401705A7E500781E6B /* DTObjectBlockExecutor.h */,
-				D56064411705A7E500781E6B /* DTObjectBlockExecutor.m */,
-				D56064421705A7E500781E6B /* DTScriptExpression.h */,
-				D56064431705A7E500781E6B /* DTScriptExpression.m */,
-				D56064441705A7E500781E6B /* DTScriptVariable.h */,
-				D56064451705A7E500781E6B /* DTScriptVariable.m */,
-				D56064461705A7E500781E6B /* DTUtils.h */,
-				D56064471705A7E500781E6B /* DTUtils.m */,
-				D56064481705A7E500781E6B /* DTVersion.h */,
-				D56064491705A7E500781E6B /* DTVersion.m */,
-				D560644A1705A7E500781E6B /* NSArray+DTError.h */,
-				D560644B1705A7E500781E6B /* NSArray+DTError.m */,
-				D560644C1705A7E500781E6B /* NSData+DTCrypto.h */,
-				D560644D1705A7E500781E6B /* NSData+DTCrypto.m */,
-				D560644E1705A7E500781E6B /* NSDictionary+DTError.h */,
-				D560644F1705A7E500781E6B /* NSDictionary+DTError.m */,
-				D56064501705A7E500781E6B /* NSFileWrapper+DTCopying.h */,
-				D56064511705A7E500781E6B /* NSFileWrapper+DTCopying.m */,
-				D56064521705A7E500781E6B /* NSMutableArray+DTMoving.h */,
-				D56064531705A7E500781E6B /* NSMutableArray+DTMoving.m */,
-				D56064541705A7E500781E6B /* NSObject+DTRuntime.h */,
-				D56064551705A7E500781E6B /* NSObject+DTRuntime.m */,
-				D56064561705A7E500781E6B /* NSScanner+DTScripting.h */,
-				D56064571705A7E500781E6B /* NSScanner+DTScripting.m */,
-				D56064581705A7E500781E6B /* NSString+DTFormatNumbers.h */,
-				D56064591705A7E500781E6B /* NSString+DTFormatNumbers.m */,
-				D560645A1705A7E500781E6B /* NSString+DTPaths.h */,
-				D560645B1705A7E500781E6B /* NSString+DTPaths.m */,
-				D560645C1705A7E500781E6B /* NSString+DTURLEncoding.h */,
-				D560645D1705A7E500781E6B /* NSString+DTURLEncoding.m */,
-				D560645E1705A7E500781E6B /* NSString+DTUtilities.h */,
-				D560645F1705A7E500781E6B /* NSString+DTUtilities.m */,
-				D56064601705A7E500781E6B /* NSURL+DTComparing.h */,
-				D56064611705A7E500781E6B /* NSURL+DTComparing.m */,
-				D56064621705A7E500781E6B /* NSURL+DTUnshorten.h */,
-				D56064631705A7E500781E6B /* NSURL+DTUnshorten.m */,
-			);
-			name = DTFoundation;
-			sourceTree = "<group>";
-		};
 		D56915D2168F536700C3F89F /* TTTAttributedLabel */ = {
 			isa = PBXGroup;
 			children = (
@@ -4717,6 +4152,86 @@
 				D51F03D31808297E005B4EE2 /* TiUISlideMenuVisualState.m */,
 			);
 			name = SlideMenu;
+			sourceTree = "<group>";
+		};
+		D5B6C6DD1811249F00A2612A /* DT */ = {
+			isa = PBXGroup;
+			children = (
+				D5B6C71C181124B300A2612A /* DTExtendedFileAttributes.h */,
+				D5B6C71D181124B300A2612A /* DTFoundation.h */,
+				D5B6C71E181124B300A2612A /* DTHTMLParser.h */,
+				D5B6C72B181125A100A2612A /* DTWeakSupport.h */,
+				D5B6C71F181124B300A2612A /* DTUtils.h */,
+				D5B6C720181124B300A2612A /* DTVersion.h */,
+				D5B6C721181124B300A2612A /* NSArray+DTError.h */,
+				D5B6C722181124B300A2612A /* NSDictionary+DTError.h */,
+				D5B6C723181124B300A2612A /* NSString+DTFormatNumbers.h */,
+				D5B6C724181124B300A2612A /* NSString+DTPaths.h */,
+				D5B6C725181124B300A2612A /* NSString+DTURLEncoding.h */,
+				D5B6C726181124B300A2612A /* NSString+DTUtilities.h */,
+				D5B6C6DE181124AC00A2612A /* DTAccessibilityElement.h */,
+				D5B6C6DF181124AC00A2612A /* DTAccessibilityViewProxy.h */,
+				D5B6C6E0181124AC00A2612A /* DTAnchorHTMLElement.h */,
+				D5B6C6E1181124AC00A2612A /* DTAttributedLabel.h */,
+				D5B6C6E2181124AC00A2612A /* DTAttributedTextCell.h */,
+				D5B6C6E3181124AC00A2612A /* DTAttributedTextContentView.h */,
+				D5B6C6E4181124AC00A2612A /* DTAttributedTextView.h */,
+				D5B6C6E5181124AC00A2612A /* DTBreakHTMLElement.h */,
+				D5B6C6E6181124AC00A2612A /* DTColor+Compatibility.h */,
+				D5B6C6E7181124AC00A2612A /* DTColorFunctions.h */,
+				D5B6C6E8181124AC00A2612A /* DTCompatibility.h */,
+				D5B6C6EA181124AC00A2612A /* DTCoreText.h */,
+				D5B6C6EB181124AC00A2612A /* DTCoreTextConstants.h */,
+				D5B6C6EC181124AC00A2612A /* DTCoreTextFontCollection.h */,
+				D5B6C6ED181124AC00A2612A /* DTCoreTextFontDescriptor.h */,
+				D5B6C6EE181124AC00A2612A /* DTCoreTextFunctions.h */,
+				D5B6C6EF181124AC00A2612A /* DTCoreTextGlyphRun.h */,
+				D5B6C6F0181124AC00A2612A /* DTCoreTextLayouter.h */,
+				D5B6C6F1181124AC00A2612A /* DTCoreTextLayoutFrame.h */,
+				D5B6C6F2181124AC00A2612A /* DTCoreTextLayoutFrame+Cursor.h */,
+				D5B6C6F3181124AC00A2612A /* DTCoreTextLayoutFrameAccessibilityElementGenerator.h */,
+				D5B6C6F4181124AC00A2612A /* DTCoreTextLayoutLine.h */,
+				D5B6C6F5181124AC00A2612A /* DTCoreTextParagraphStyle.h */,
+				D5B6C6F6181124AC00A2612A /* DTCSSListStyle.h */,
+				D5B6C6F7181124AC00A2612A /* DTCSSStylesheet.h */,
+				D5B6C6F8181124AC00A2612A /* DTDictationPlaceholderTextAttachment.h */,
+				D5B6C6F9181124AC00A2612A /* DTDictationPlaceholderView.h */,
+				D5B6C6FA181124AC00A2612A /* DTHorizontalRuleHTMLElement.h */,
+				D5B6C6FB181124AC00A2612A /* DTHTMLAttributedStringBuilder.h */,
+				D5B6C6FC181124AC00A2612A /* DTHTMLElement.h */,
+				D5B6C6FD181124AC00A2612A /* DTHTMLParserNode.h */,
+				D5B6C6FE181124AC00A2612A /* DTHTMLParserTextNode.h */,
+				D5B6C6FF181124AC00A2612A /* DTHTMLWriter.h */,
+				D5B6C700181124AC00A2612A /* DTIframeTextAttachment.h */,
+				D5B6C701181124AC00A2612A /* DTImage+HTML.h */,
+				D5B6C702181124AC00A2612A /* DTImageTextAttachment.h */,
+				D5B6C703181124AC00A2612A /* DTLazyImageView.h */,
+				D5B6C704181124AC00A2612A /* DTLinkButton.h */,
+				D5B6C705181124AC00A2612A /* DTListItemHTMLElement.h */,
+				D5B6C706181124AC00A2612A /* DTObjectTextAttachment.h */,
+				D5B6C707181124AC00A2612A /* DTStylesheetHTMLElement.h */,
+				D5B6C708181124AC00A2612A /* DTTextAttachment.h */,
+				D5B6C709181124AC00A2612A /* DTTextAttachmentHTMLElement.h */,
+				D5B6C70A181124AC00A2612A /* DTTextBlock.h */,
+				D5B6C70B181124AC00A2612A /* DTTextHTMLElement.h */,
+				D5B6C70C181124AC00A2612A /* DTVideoTextAttachment.h */,
+				D5B6C70D181124AC00A2612A /* DTWebVideoView.h */,
+				D5B6C70E181124AC00A2612A /* NSAttributedString+DTCoreText.h */,
+				D5B6C70F181124AC00A2612A /* NSAttributedString+DTDebug.h */,
+				D5B6C710181124AC00A2612A /* NSAttributedString+HTML.h */,
+				D5B6C711181124AC00A2612A /* NSAttributedString+SmallCaps.h */,
+				D5B6C712181124AC00A2612A /* NSAttributedStringRunDelegates.h */,
+				D5B6C713181124AC00A2612A /* NSCharacterSet+HTML.h */,
+				D5B6C714181124AC00A2612A /* NSDictionary+DTCoreText.h */,
+				D5B6C715181124AC00A2612A /* NSMutableAttributedString+HTML.h */,
+				D5B6C716181124AC00A2612A /* NSMutableString+HTML.h */,
+				D5B6C717181124AC00A2612A /* NSScanner+HTML.h */,
+				D5B6C718181124AC00A2612A /* NSString+CSS.h */,
+				D5B6C719181124AC00A2612A /* NSString+HTML.h */,
+				D5B6C71A181124AC00A2612A /* NSString+Paragraphs.h */,
+				D5B6C71B181124AC00A2612A /* UIFont+DTCoreText.h */,
+			);
+			name = DT;
 			sourceTree = "<group>";
 		};
 		D5C8C93C17EF45BA00F54C19 /* ADTransitionController */ = {
@@ -5377,10 +4892,6 @@
 				84C3870217417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815C168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D590815F168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
-				D56915B6168F18C300C3F89F /* ioapi.c in Sources */,
-				D56915B9168F18C300C3F89F /* mztools.c in Sources */,
-				D56915BC168F18C300C3F89F /* unzip.c in Sources */,
-				D56915BF168F18C300C3F89F /* zip.c in Sources */,
 				D56915CC168F2E7400C3F89F /* TiUILabel.m in Sources */,
 				D56915CF168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D5168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
@@ -5388,109 +4899,28 @@
 				D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484716DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
-				D56064161705A78100781E6B /* DTHTMLParser.m in Sources */,
 				D5C8C98E17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
-				D560641C1705A79100781E6B /* NSString+DTUTI.m in Sources */,
 				D5C8C9A017EF45C900F54C19 /* ADZoomTransition.m in Sources */,
-				D56064281705A7A000781E6B /* DTZipArchive.m in Sources */,
-				D560642B1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
-				D560642E1705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
-				D56064311705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
 				D5C8C98817EF45C900F54C19 /* ADScaleTransition.m in Sources */,
-				D56064641705A7E500781E6B /* DTASN1BitString.m in Sources */,
-				D56064671705A7E500781E6B /* DTASN1Parser.m in Sources */,
 				D5CD8CB017CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
-				D560646A1705A7E500781E6B /* DTASN1Serialization.m in Sources */,
-				D560646D1705A7E500781E6B /* DTBase64Coding.m in Sources */,
-				D56064701705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */,
 				D51E059917DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */,
-				D56064731705A7E500781E6B /* DTFoundationConstants.m in Sources */,
-				D56064761705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */,
-				D56064791705A7E500781E6B /* DTScriptExpression.m in Sources */,
-				D560647C1705A7E500781E6B /* DTScriptVariable.m in Sources */,
 				D51F03C5180803CD005B4EE2 /* UIViewController+MMDrawerController.m in Sources */,
 				D56E66A8180C664400F1B737 /* TiTransitionFade.m in Sources */,
-				D560647F1705A7E500781E6B /* DTUtils.m in Sources */,
-				D56064821705A7E500781E6B /* DTVersion.m in Sources */,
-				D56064851705A7E500781E6B /* NSArray+DTError.m in Sources */,
-				D56064881705A7E500781E6B /* NSData+DTCrypto.m in Sources */,
-				D560648B1705A7E500781E6B /* NSDictionary+DTError.m in Sources */,
-				D560648E1705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */,
-				D56064911705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */,
-				D56064941705A7E500781E6B /* NSObject+DTRuntime.m in Sources */,
-				D56064971705A7E500781E6B /* NSScanner+DTScripting.m in Sources */,
-				D560649A1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
-				D560649D1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
-				D56064A01705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
 				D5C8C97C17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
-				D56064A31705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
-				D56064A61705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
 				D5C8C99117EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
-				D56064A91705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
-				D56065141705A89800781E6B /* CGUtils.m in Sources */,
 				D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
-				D560651A1705A89800781E6B /* DTAttributedLabel.m in Sources */,
-				D560651D1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
-				D56065201705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
-				D56065231705A89800781E6B /* DTAttributedTextView.m in Sources */,
-				D56065261705A89800781E6B /* DTColor+HTML.m in Sources */,
-				D56065291705A89800781E6B /* DTCoreTextConstants.m in Sources */,
-				D560652C1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */,
 				D59EC23D180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */,
-				D560652F1705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */,
-				D56065321705A89800781E6B /* DTCoreTextFunctions.m in Sources */,
-				D56065351705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */,
-				D56065381705A89800781E6B /* DTCoreTextLayouter.m in Sources */,
-				D560653B1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */,
-				D560653E1705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */,
 				D5E7977617B61EFC00F1D088 /* ShapeModule.m in Sources */,
-				D56065411705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */,
-				D56065441705A89800781E6B /* DTCSSListStyle.m in Sources */,
-				D56065471705A89800781E6B /* DTCSSStylesheet.m in Sources */,
-				D560654A1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
-				D560654D1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
 				D5C8C99A17EF45C900F54C19 /* ADTransition.m in Sources */,
-				D56065501705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
-				D56065561705A89800781E6B /* DTHTMLElement.m in Sources */,
-				D56065591705A89800781E6B /* DTHTMLElementA.m in Sources */,
-				D560655C1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
-				D560655F1705A89800781E6B /* DTHTMLElementBR.m in Sources */,
-				D56065621705A89800781E6B /* DTHTMLElementHR.m in Sources */,
 				D5C8C9A317EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D51F03D91808411F005B4EE2 /* TiImageHelper.m in Sources */,
-				D56065651705A89800781E6B /* DTHTMLElementLI.m in Sources */,
-				D56065681705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
 				D56E66A3180C60E600F1B737 /* TiTransitionFlip.m in Sources */,
-				D560656B1705A89800781E6B /* DTHTMLElementText.m in Sources */,
-				D560656E1705A89800781E6B /* DTHTMLParserNode.m in Sources */,
-				D56065711705A89800781E6B /* DTHTMLParserTextNode.m in Sources */,
-				D56065741705A89800781E6B /* DTHTMLWriter.m in Sources */,
-				D56065771705A89800781E6B /* DTImage+HTML.m in Sources */,
-				D560657A1705A89800781E6B /* DTLazyImageView.m in Sources */,
-				D560657D1705A89800781E6B /* DTLinkButton.m in Sources */,
-				D56065801705A89800781E6B /* DTTextAttachment.m in Sources */,
-				D56065831705A89800781E6B /* DTTextBlock.m in Sources */,
-				D56065861705A89800781E6B /* DTWebVideoView.m in Sources */,
-				D56065891705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */,
-				D560658C1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
-				D560658F1705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
-				D56065921705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
 				D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */,
-				D56065951705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
 				D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */,
-				D56065981705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
-				D560659B1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
 				D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D560659E1705A89800781E6B /* NSScanner+HTML.m in Sources */,
-				D56065A11705A89800781E6B /* NSString+CSS.m in Sources */,
 				D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
-				D56065A41705A89800781E6B /* NSString+HTML.m in Sources */,
-				D56065A71705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
-				D56065AA1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
-				D579668F17823308000B6C0B /* default.css in Sources */,
-				D56065AD1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
 				D51F03CA18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
 				D5E7978A17B622D200F1D088 /* TiShapeView.m in Sources */,
 				D51697F217FFF63300B4FDB8 /* ImageModule.m in Sources */,
@@ -5503,7 +4933,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D56065B11705A8D600781E6B /* default.css in Sources */,
 				8406A97616CED43D00EB62FB /* TiMapCustomAnnotationView.m in Sources */,
 				DA3B2FA8143EDEE3000DC803 /* TiUIiOSToolbar.m in Sources */,
 				DA3B2FAA143EDEE3000DC803 /* TiUIiOSToolbarProxy.m in Sources */,
@@ -5817,10 +5246,6 @@
 				502A68EC16F0428500661EF6 /* TiViewTemplate.m in Sources */,
 				D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908160168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
-				D56915B7168F18C300C3F89F /* ioapi.c in Sources */,
-				D56915BA168F18C300C3F89F /* mztools.c in Sources */,
-				D56915BD168F18C300C3F89F /* unzip.c in Sources */,
-				D56915C0168F18C300C3F89F /* zip.c in Sources */,
 				D56915CD168F2E7400C3F89F /* TiUILabel.m in Sources */,
 				D56915D0168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
@@ -5828,108 +5253,28 @@
 				D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484816DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
-				D56064171705A78100781E6B /* DTHTMLParser.m in Sources */,
 				D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
-				D560641D1705A79100781E6B /* NSString+DTUTI.m in Sources */,
 				D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */,
-				D56064291705A7A000781E6B /* DTZipArchive.m in Sources */,
-				D560642C1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
-				D560642F1705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
-				D56064321705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
 				D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */,
-				D56064651705A7E500781E6B /* DTASN1BitString.m in Sources */,
-				D56064681705A7E500781E6B /* DTASN1Parser.m in Sources */,
 				D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
-				D560646B1705A7E500781E6B /* DTASN1Serialization.m in Sources */,
-				D560646E1705A7E500781E6B /* DTBase64Coding.m in Sources */,
-				D56064711705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */,
 				D51E059A17DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */,
-				D56064741705A7E500781E6B /* DTFoundationConstants.m in Sources */,
-				D56064771705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */,
-				D560647A1705A7E500781E6B /* DTScriptExpression.m in Sources */,
-				D560647D1705A7E500781E6B /* DTScriptVariable.m in Sources */,
 				D51F03C6180803CD005B4EE2 /* UIViewController+MMDrawerController.m in Sources */,
 				D56E66A9180C664400F1B737 /* TiTransitionFade.m in Sources */,
-				D56064801705A7E500781E6B /* DTUtils.m in Sources */,
-				D56064831705A7E500781E6B /* DTVersion.m in Sources */,
-				D56064861705A7E500781E6B /* NSArray+DTError.m in Sources */,
-				D56064891705A7E500781E6B /* NSData+DTCrypto.m in Sources */,
-				D560648C1705A7E500781E6B /* NSDictionary+DTError.m in Sources */,
-				D560648F1705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */,
-				D56064921705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */,
-				D56064951705A7E500781E6B /* NSObject+DTRuntime.m in Sources */,
-				D56064981705A7E500781E6B /* NSScanner+DTScripting.m in Sources */,
-				D560649B1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
-				D560649E1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
-				D56064A11705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
 				D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
-				D56064A41705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
-				D56064A71705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
 				D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
-				D56064AA1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
-				D56065151705A89800781E6B /* CGUtils.m in Sources */,
 				D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
-				D560651B1705A89800781E6B /* DTAttributedLabel.m in Sources */,
-				D560651E1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
-				D56065211705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
-				D56065241705A89800781E6B /* DTAttributedTextView.m in Sources */,
-				D56065271705A89800781E6B /* DTColor+HTML.m in Sources */,
-				D560652A1705A89800781E6B /* DTCoreTextConstants.m in Sources */,
-				D560652D1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */,
 				D59EC23E180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */,
-				D56065301705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */,
-				D56065331705A89800781E6B /* DTCoreTextFunctions.m in Sources */,
-				D56065361705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */,
-				D56065391705A89800781E6B /* DTCoreTextLayouter.m in Sources */,
-				D560653C1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */,
-				D560653F1705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */,
 				D5E7977717B61EFC00F1D088 /* ShapeModule.m in Sources */,
-				D56065421705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */,
-				D56065451705A89800781E6B /* DTCSSListStyle.m in Sources */,
-				D56065481705A89800781E6B /* DTCSSStylesheet.m in Sources */,
-				D560654B1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
-				D560654E1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
 				D5C8C99B17EF45C900F54C19 /* ADTransition.m in Sources */,
-				D56065511705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
-				D56065571705A89800781E6B /* DTHTMLElement.m in Sources */,
-				D560655A1705A89800781E6B /* DTHTMLElementA.m in Sources */,
-				D560655D1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
-				D56065601705A89800781E6B /* DTHTMLElementBR.m in Sources */,
-				D56065631705A89800781E6B /* DTHTMLElementHR.m in Sources */,
 				D5C8C9A417EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D51F03DA1808411F005B4EE2 /* TiImageHelper.m in Sources */,
-				D56065661705A89800781E6B /* DTHTMLElementLI.m in Sources */,
-				D56065691705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
 				D56E66A4180C60E600F1B737 /* TiTransitionFlip.m in Sources */,
-				D560656C1705A89800781E6B /* DTHTMLElementText.m in Sources */,
-				D560656F1705A89800781E6B /* DTHTMLParserNode.m in Sources */,
-				D56065721705A89800781E6B /* DTHTMLParserTextNode.m in Sources */,
-				D56065751705A89800781E6B /* DTHTMLWriter.m in Sources */,
-				D56065781705A89800781E6B /* DTImage+HTML.m in Sources */,
-				D560657B1705A89800781E6B /* DTLazyImageView.m in Sources */,
-				D560657E1705A89800781E6B /* DTLinkButton.m in Sources */,
-				D56065811705A89800781E6B /* DTTextAttachment.m in Sources */,
-				D56065841705A89800781E6B /* DTTextBlock.m in Sources */,
-				D56065871705A89800781E6B /* DTWebVideoView.m in Sources */,
-				D560658A1705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */,
-				D560658D1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
-				D56065901705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
-				D56065931705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
 				D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */,
-				D56065961705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
 				D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */,
-				D56065991705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
-				D560659C1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
 				D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D560659F1705A89800781E6B /* NSScanner+HTML.m in Sources */,
-				D56065A21705A89800781E6B /* NSString+CSS.m in Sources */,
 				D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
-				D56065A51705A89800781E6B /* NSString+HTML.m in Sources */,
-				D56065A81705A89800781E6B /* NSString+Paragraphs.m in Sources */,
 				D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
-				D56065AB1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
-				D56065AE1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
 				84C3870317417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D51F03CB18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
 				D5E7978B17B622D200F1D088 /* TiShapeView.m in Sources */,
@@ -5943,7 +5288,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D56065B01705A8D100781E6B /* default.css in Sources */,
 				8406A97716CED45400EB62FB /* TiMapCustomAnnotationView.m in Sources */,
 				DA3B2FAF143EDF3B000DC803 /* TiUIiOSToolbar.m in Sources */,
 				DA3B2FB1143EDF3B000DC803 /* TiUIiOSToolbarProxy.m in Sources */,
@@ -6258,10 +5602,6 @@
 				84C3870417417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908161168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
-				D56915B8168F18C300C3F89F /* ioapi.c in Sources */,
-				D56915BB168F18C300C3F89F /* mztools.c in Sources */,
-				D56915BE168F18C300C3F89F /* unzip.c in Sources */,
-				D56915C1168F18C300C3F89F /* zip.c in Sources */,
 				D56915CE168F2E7400C3F89F /* TiUILabel.m in Sources */,
 				D56915D1168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
@@ -6270,107 +5610,27 @@
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */,
-				D56064181705A78100781E6B /* DTHTMLParser.m in Sources */,
 				D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */,
-				D560641E1705A79100781E6B /* NSString+DTUTI.m in Sources */,
-				D560642A1705A7A000781E6B /* DTZipArchive.m in Sources */,
-				D560642D1705A7A000781E6B /* DTZipArchiveGZip.m in Sources */,
-				D56064301705A7A000781E6B /* DTZipArchiveNode.m in Sources */,
 				D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */,
-				D56064331705A7A000781E6B /* DTZipArchivePKZip.m in Sources */,
-				D56064661705A7E500781E6B /* DTASN1BitString.m in Sources */,
 				D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
-				D56064691705A7E500781E6B /* DTASN1Parser.m in Sources */,
-				D560646C1705A7E500781E6B /* DTASN1Serialization.m in Sources */,
-				D560646F1705A7E500781E6B /* DTBase64Coding.m in Sources */,
 				D51E059B17DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */,
-				D56064721705A7E500781E6B /* DTExtendedFileAttributes.m in Sources */,
-				D56064751705A7E500781E6B /* DTFoundationConstants.m in Sources */,
-				D56064781705A7E500781E6B /* DTObjectBlockExecutor.m in Sources */,
-				D560647B1705A7E500781E6B /* DTScriptExpression.m in Sources */,
 				D51F03C7180803CD005B4EE2 /* UIViewController+MMDrawerController.m in Sources */,
 				D56E66AA180C664400F1B737 /* TiTransitionFade.m in Sources */,
-				D560647E1705A7E500781E6B /* DTScriptVariable.m in Sources */,
-				D56064811705A7E500781E6B /* DTUtils.m in Sources */,
-				D56064841705A7E500781E6B /* DTVersion.m in Sources */,
-				D56064871705A7E500781E6B /* NSArray+DTError.m in Sources */,
-				D560648A1705A7E500781E6B /* NSData+DTCrypto.m in Sources */,
-				D560648D1705A7E500781E6B /* NSDictionary+DTError.m in Sources */,
-				D56064901705A7E500781E6B /* NSFileWrapper+DTCopying.m in Sources */,
-				D56064931705A7E500781E6B /* NSMutableArray+DTMoving.m in Sources */,
-				D56064961705A7E500781E6B /* NSObject+DTRuntime.m in Sources */,
-				D56064991705A7E500781E6B /* NSScanner+DTScripting.m in Sources */,
-				D560649C1705A7E500781E6B /* NSString+DTFormatNumbers.m in Sources */,
-				D560649F1705A7E500781E6B /* NSString+DTPaths.m in Sources */,
 				D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
-				D56064A21705A7E500781E6B /* NSString+DTURLEncoding.m in Sources */,
-				D56064A51705A7E500781E6B /* NSString+DTUtilities.m in Sources */,
 				D5C8C99317EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
-				D56064A81705A7E500781E6B /* NSURL+DTComparing.m in Sources */,
-				D56064AB1705A7E500781E6B /* NSURL+DTUnshorten.m in Sources */,
 				D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */,
-				D56065161705A89800781E6B /* CGUtils.m in Sources */,
-				D560651C1705A89800781E6B /* DTAttributedLabel.m in Sources */,
-				D560651F1705A89800781E6B /* DTAttributedTextCell.m in Sources */,
-				D56065221705A89800781E6B /* DTAttributedTextContentView.m in Sources */,
-				D56065251705A89800781E6B /* DTAttributedTextView.m in Sources */,
-				D56065281705A89800781E6B /* DTColor+HTML.m in Sources */,
-				D560652B1705A89800781E6B /* DTCoreTextConstants.m in Sources */,
 				D59EC23F180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */,
-				D560652E1705A89800781E6B /* DTCoreTextFontCollection.m in Sources */,
-				D56065311705A89800781E6B /* DTCoreTextFontDescriptor.m in Sources */,
-				D56065341705A89800781E6B /* DTCoreTextFunctions.m in Sources */,
-				D56065371705A89800781E6B /* DTCoreTextGlyphRun.m in Sources */,
-				D560653A1705A89800781E6B /* DTCoreTextLayouter.m in Sources */,
-				D560653D1705A89800781E6B /* DTCoreTextLayoutFrame.m in Sources */,
 				D5E7977817B61EFC00F1D088 /* ShapeModule.m in Sources */,
-				D56065401705A89800781E6B /* DTCoreTextLayoutLine.m in Sources */,
-				D56065431705A89800781E6B /* DTCoreTextParagraphStyle.m in Sources */,
-				D56065461705A89800781E6B /* DTCSSListStyle.m in Sources */,
-				D56065491705A89800781E6B /* DTCSSStylesheet.m in Sources */,
-				D560654C1705A89800781E6B /* DTDictationPlaceholderTextAttachment.m in Sources */,
 				D5C8C99C17EF45C900F54C19 /* ADTransition.m in Sources */,
-				D560654F1705A89800781E6B /* DTDictationPlaceholderView.m in Sources */,
-				D56065521705A89800781E6B /* DTHTMLAttributedStringBuilder.m in Sources */,
-				D56065581705A89800781E6B /* DTHTMLElement.m in Sources */,
-				D560655B1705A89800781E6B /* DTHTMLElementA.m in Sources */,
-				D560655E1705A89800781E6B /* DTHTMLElementAttachment.m in Sources */,
-				D56065611705A89800781E6B /* DTHTMLElementBR.m in Sources */,
 				D5C8C9A517EF45C900F54C19 /* UIViewController+ADTransitionController.m in Sources */,
 				D51F03DB1808411F005B4EE2 /* TiImageHelper.m in Sources */,
-				D56065641705A89800781E6B /* DTHTMLElementHR.m in Sources */,
-				D56065671705A89800781E6B /* DTHTMLElementLI.m in Sources */,
 				D56E66A5180C60E600F1B737 /* TiTransitionFlip.m in Sources */,
-				D560656A1705A89800781E6B /* DTHTMLElementStylesheet.m in Sources */,
-				D560656D1705A89800781E6B /* DTHTMLElementText.m in Sources */,
-				D56065701705A89800781E6B /* DTHTMLParserNode.m in Sources */,
-				D56065731705A89800781E6B /* DTHTMLParserTextNode.m in Sources */,
-				D56065761705A89800781E6B /* DTHTMLWriter.m in Sources */,
-				D56065791705A89800781E6B /* DTImage+HTML.m in Sources */,
-				D560657C1705A89800781E6B /* DTLazyImageView.m in Sources */,
-				D560657F1705A89800781E6B /* DTLinkButton.m in Sources */,
-				D56065821705A89800781E6B /* DTTextAttachment.m in Sources */,
-				D56065851705A89800781E6B /* DTTextBlock.m in Sources */,
-				D56065881705A89800781E6B /* DTWebVideoView.m in Sources */,
-				D560658B1705A89800781E6B /* NSAttributedString+DTCoreText.m in Sources */,
-				D560658E1705A89800781E6B /* NSAttributedString+HTML.m in Sources */,
-				D56065911705A89800781E6B /* NSAttributedString+SmallCaps.m in Sources */,
 				D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */,
-				D56065941705A89800781E6B /* NSAttributedStringRunDelegates.m in Sources */,
 				D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */,
-				D56065971705A89800781E6B /* NSCharacterSet+HTML.m in Sources */,
-				D560659A1705A89800781E6B /* NSMutableAttributedString+HTML.m in Sources */,
 				D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D560659D1705A89800781E6B /* NSMutableString+HTML.m in Sources */,
-				D56065A01705A89800781E6B /* NSScanner+HTML.m in Sources */,
 				D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
-				D56065A31705A89800781E6B /* NSString+CSS.m in Sources */,
-				D56065A61705A89800781E6B /* NSString+HTML.m in Sources */,
 				D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
-				D56065A91705A89800781E6B /* NSString+Paragraphs.m in Sources */,
-				D56065AC1705A89800781E6B /* NSString+UTF8Cleaner.m in Sources */,
-				D56065AF1705A89800781E6B /* UIFont+DTCoreText.m in Sources */,
 				D51F03CC18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
 				D5E7978C17B622D200F1D088 /* TiShapeView.m in Sources */,
 				D51697F417FFF63300B4FDB8 /* ImageModule.m in Sources */,
@@ -6747,6 +6007,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -6789,6 +6053,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -6831,6 +6099,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
