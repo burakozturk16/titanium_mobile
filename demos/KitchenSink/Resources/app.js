@@ -1,6 +1,11 @@
 var Shape = Ti.Shape;
 Ti.include('akylas.animation.js');
+var isiOS7 = false;
 var isAndroid = Ti.Platform.osname == "android";
+var isApple = Ti.Platform.osname === 'ipad' || Ti.Platform.osname === 'iphone';
+if (isApple) {
+	isiOS7 = parseInt(Titanium.Platform.version.split(".")[0]) >= 7;
+}
 var backColor = 'white';
 var textColor = 'black';
 var navGroup;
@@ -12,22 +17,33 @@ if (isAndroid) {
 	textColor = 'gray';
 }
 
-function merge_options(obj1, obj2) {
-	for ( var attrname in obj2) {
-		obj1[attrname] = obj2[attrname];
+function merge_options(obj1, obj2, _new) {
+	_new = _new === true;
+	var newObject = obj1;
+	if (_new === true) {
+		newObject = JSON.parse(JSON.stringify(obj1));
 	}
-	return obj1;
+	for ( var attrname in obj2) {
+		newObject[attrname] = obj2[attrname];
+	}
+	return newObject;
+}
+
+var initWindowArgs = {backgroundColor:backColor,
+	orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
+			Ti.UI.PORTRAIT,
+			Ti.UI.LANDSCAPE_RIGHT,
+			Ti.UI.LANDSCAPE_LEFT]};
+if (isiOS7) {
+	initWindowArgs = merge_options(initWindowArgs, {
+		autoAdjustScrollViewInsets:true,
+		extendEdges:[Ti.UI.EXTEND_EDGE_ALL],
+		translucent:true
+	});
 }
 
 function createWin(_args) {
-	return Ti.UI.createWindow(merge_options({backgroundColor:backColor,
-			autoAdjustScrollViewInsets:true,
-			extendEdges:[Ti.UI.EXTEND_EDGE_ALL],
-		translucent:true,
-		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
-				Ti.UI.PORTRAIT,
-				Ti.UI.LANDSCAPE_RIGHT,
-				Ti.UI.LANDSCAPE_LEFT]}, _args));
+	return Ti.UI.createWindow(merge_options(initWindowArgs, _args, true));
 }
 
 function createListView(_args) {
@@ -64,16 +80,8 @@ var androidActivitysSettings = {actionBar:{displayHomeAsUp:true,
 function openWin(_win, _withoutActionBar) {
 	if (isAndroid) {
 		if (_withoutActionBar != true) _win.activity = androidActivitysSettings;
-		_win.open();
-	} else {
-		// if (!navGroup) {
-		// 	navGroup = Titanium.UI.iPhone.createNavigationGroup({window:_win});
-		// 	var winHolder = createWin();
-		// 	winHolder.add(navGroup);
-		// 	winHolder.open();
-		// } else navGroup.open(_win);
 	}
-	mainWin.push(_win);
+	mainWin.openWindow(_win);
 }
 
 function transformExs() {
@@ -91,7 +99,7 @@ function transformExs() {
 
 function transform1Ex() {
 	var win = createWin();
-	var button = Ti.UI.createButton({top:20, bubbleParent:false, title:'test buutton'});
+	var button = Ti.UI.createButton({bottom:20, bubbleParent:false, title:'test buutton'});
 	var t1 = Ti.UI.create2DMatrix();
 	var t2 = t1.scale(2.0, 2.0).translate(0, 40).rotate(90);
 	button.addEventListener('longpress', function(e) {
@@ -188,7 +196,7 @@ function transform3Ex() {
 			win.remove(view);
 		});
 	};
-	var button = Ti.UI.createButton({top:10, width:100, bubbleParent:false, title:'test buutton'});
+	var button = Ti.UI.createButton({bottom:10, width:100, bubbleParent:false, title:'test buutton'});
 	button.addEventListener('click', function(e) {
 		if (view.opacity === 0) showMe();
 		else hideMe();
@@ -218,7 +226,7 @@ function transform4Ex() {
 			win.remove(view);
 		});
 	};
-	var button = Ti.UI.createButton({top:10, width:100, bubbleParent:false, title:'test buutton'});
+	var button = Ti.UI.createButton({bottom:10, width:100, bubbleParent:false, title:'test buutton'});
 	button.addEventListener('click', function(e) {
 		if (view.opacity === 1) hideMe();
 		else showMe();
@@ -578,7 +586,7 @@ function shape6Ex() {
 }
 
 function shape7Ex() {
-	var win = createWin();
+	var win = createWin({backgroundColor:'gray'});
 	var view = Shape.createView({width:200, height:200, bubbleParent:false});
 
 	var slice1 = Shape.createPieSlice({fillColor:'#aaffffff',
@@ -707,6 +715,10 @@ function ImageViewEx() {
 		borderColor:'red',
 		borderWidth:2,
 		backgroundColor:'green',
+		backgroundGradient:{type:'linear',
+			colors:['red', 'green', 'orange'],
+			startPoint:{x:0, y:0},
+			endPoint:{x:0, y:"100%"}},
 		image:'/images/slightlylargerimage.png',});
 	view.add(Ti.UI.createView({backgroundColor:'yellow', top:10, width:15, height:15}));
 	view.addEventListener('click', function(){
@@ -884,56 +896,6 @@ function scrollableEx() {
 	openWin(win);
 }
 
-
-
-function transitionEx() {
-	var win = createWin();
-	var funView = Titanium.UI.createView({
-		height:40,
-		width:200,
-		borderRadius:10,
-		top:260,
-		backgroundColor:'#fff'
-	});
-	win.add(funView);
-
-	// our first view - button
-	var b = Titanium.UI.createButton({
-		title:'Click Me',
-		height:40,
-		width:200
-	});
-
-	b.addEventListener('click', function()
-	{
-		funView.animate({view:b2, transition:Ti.UI.iPhone.AnimationStyle.CURL_UP});	
-	});
-
-	// view with label (our second view)
-	var b2 = Titanium.UI.createView({
-		height:40,
-		width:200,
-//		borderRadius:10,
-		backgroundColor:'red'
-	});
-
-	b2.addEventListener('click', function()
-	{
-		funView.animate({view:b, transition:Ti.UI.iPhone.AnimationStyle.CURL_DOWN});	
-	});
-	var bViewLabel = Titanium.UI.createLabel({
-		text:'Ouch!',
-		color:'#fff',
-		width:'auto',
-		height:'auto'
-	});
-	b2.add(bViewLabel);
-
-
-	funView.add(b);
-	openWin(win);
-}
-
 function listView2Ex() {
 	var win = createWin();
 	// Create a custom template that displays an image on the left,
@@ -961,12 +923,13 @@ function listView2Ex() {
 	templates:{'template':myTemplate},
 		// Use 'template', that is, the myTemplate dict created earlier
 		// for all items as long as the template property is not defined for an item.
-		style:Titanium.UI.iPhone.ListViewStyle.GROUPED,
 		defaultItemTemplate:'template',
 		selectedBackgroundGradient:{type:'linear',
 			colors:['blue', 'green'],
 			startPoint:{x:0, y:0},
-			endPoint:{x:0, y:"100%"}}});
+			endPoint:{x:0, y:"100%"}}
+	});
+	if (isApple) listView.style = Titanium.UI.iPhone.ListViewStyle.GROUPED;
 	var sections = [];
 	var fruitSection = Ti.UI.createListSection({headerTitle:'Fruits / Frutas'});
 	var fruitDataSet = [
@@ -1000,11 +963,15 @@ function listViewEx() {
 	var listview = Ti.UI
 			.createListView({allowsSelection:false,
 				rowHeight:50,
-				style:Titanium.UI.iPhone.ListViewStyle.GROUPED,
-				selectedBackgroundGradient:{type:'linear',
-					colors:['blue', 'green'],
-					startPoint:{x:0, y:0},
-					endPoint:{x:0, y:"100%"}},
+				selectedBackgroundGradient:{type:'sweep',
+			colors:[{color:'orange', offset:0},
+					{color:'red', offset:0.19},
+					{color:'red', offset:0.25},
+					{color:'blue', offset:0.25},
+					{color:'blue', offset:0.31},
+					{color:'green', offset:0.55},
+					{color:'yellow', offset:0.75},
+					{color:'orange', offset:1}]},
 				sections:[{items:[{properties:{backgroundColor:'blue', title:'Shape'}},
 						{properties:{backgroundColor:'red', title:'ButtonsAndLabels'}},
 						{properties:{title:'Shape'}},
@@ -1094,6 +1061,7 @@ function listViewEx() {
 						{properties:{title:'Shape'}},
 						{properties:{title:'Transform',
 							accessoryType:Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK}}]}]});
+	if (isApple) listview.style = Titanium.UI.iPhone.ListViewStyle.GROUPED;
 	win.add(listview);
 	openWin(win);
 }
@@ -1471,96 +1439,114 @@ function cellColor(_index) {
 
 
 function navWindowEx() {
-	
-	
+
+
 	function createSimulateWindow(_navWin) {
 		var index = _navWin.stackSize;
 		var color = cellColor(index);
-		var args = {
-			autoAdjustScrollViewInsets:true,
-			extendEdges:[Ti.UI.EXTEND_EDGE_ALL],
-			translucent:true,
+		var args = merge_options(initWindowArgs, {
 			title:(_navWin.title + ' / win' + (_navWin.stackSize)),
-			backgroundColor:'black',
+			backgroundColor:'transparent',
 			navBarHidden:false
-		};
+		}, true);
 		if (isAndroid) {
 			args.activity = {
 				onCreateOptionsMenu:function(e) {
 					var menu = e.menu;
-					 
+
 					var closeMenuItem = menu.add({
 						title : "Close",
 						showAsAction : Ti.Android.SHOW_AS_ACTION_IF_ROOM
 					});
 					closeMenuItem.addEventListener("click", function(e) {
-						newWin.close({transitionDuration:300});
+						newWin.close({transition:{duration:300}});
 					});
 				}
-			}
+			};
 		}
 		var newWin = Ti.UI.createWindow(args);
 
 		function openMe(_params) {
 			Ti.API.info('openMe');
-			_params.transitionDuration = 1000;
-			_navWin.push(createSimulateWindow(_navWin), _params);
+			_params.transition.duration = 3000;
+			_navWin.openWindow(createSimulateWindow(_navWin), _params);
 		}
 
-		
 
-		var listView = createListView({sections:[{items:[{properties:{color:'black',title:'Swipe',
+
+		var listView = createListView({backgroundColor:'transparent', sections:[{items:[{properties:{color:'black',title:'Swipe',
 			backgroundColor:color},
-			params:{transitionStyle:Ti.UI.TransitionStyle.SWIPE}},
-				{properties:{color:'black',title:'SwipFade', backgroundColor:color, opacity:0.8},
-					params:{transitionStyle:Ti.UI.TransitionStyle.SWIPE_FADE}},
+			transition:{style:Ti.UI.TransitionStyle.SWIPE}},
+				{properties:{color:'black',title:'SwipFade', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.SWIPE_FADE}},
 				{properties:{color:'black',title:'Flip', backgroundColor:color},
-					params:{transitionStyle:Ti.UI.TransitionStyle.FLIP}},
-				{properties:{color:'black',title:'Cube', backgroundColor:color, opacity:0.8},
-					params:{transitionStyle:Ti.UI.TransitionStyle.CUBE}},
+					transition:{style:Ti.UI.TransitionStyle.FLIP}},
+				{properties:{color:'black',title:'Cube', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.CUBE}},
 				{properties:{color:'black',title:'SwipFade FromTop', backgroundColor:color},
-					params:{transitionStyle:Ti.UI.TransitionStyle.SWIPE_FADE,
-						transitionSubStyle:Ti.UI.TransitionStyle.TOP_TO_BOTTOM}},
-				{properties:{color:'black',title:'Flip FromBottom', backgroundColor:color, opacity:0.8},
-					params:{transitionStyle:Ti.UI.TransitionStyle.FLIP,
-						transitionSubStyle:Ti.UI.TransitionStyle.BOTTOM_TO_TOP}},
+					transition:{style:Ti.UI.TransitionStyle.SWIPE_FADE,
+						substyle:Ti.UI.TransitionStyle.TOP_TO_BOTTOM}},
+				{properties:{color:'black',title:'Flip FromBottom', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.FLIP,
+						substyle:Ti.UI.TransitionStyle.BOTTOM_TO_TOP}},
 				{properties:{color:'black',title:'Fold', backgroundColor:color},
-					params:{transitionStyle:Ti.UI.TransitionStyle.FOLD}},
-				{properties:{color:'black',title:'Fade', backgroundColor:color, opacity:0.8},
-					params:{transitionStyle:Ti.UI.TransitionStyle.FADE}},
+					transition:{style:Ti.UI.TransitionStyle.FOLD}},
+				{properties:{color:'black',title:'Fade', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.FADE}},
 				{properties:{color:'black',title:'Back Fade', backgroundColor:color},
-					params:{transitionStyle:Ti.UI.TransitionStyle.BACK_FADE}},
-				{properties:{color:'black',title:'Scale', backgroundColor:color, opacity:0.8},
-					params:{transitionStyle:Ti.UI.TransitionStyle.SCALE}},
+					transition:{style:Ti.UI.TransitionStyle.BACK_FADE}},
+				{properties:{color:'black',title:'Scale', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.SCALE}},
 				{properties:{color:'black',title:'Push Rotate', backgroundColor:color},
-					params:{transitionStyle:Ti.UI.TransitionStyle.PUSH_ROTATE}},
+					transition:{style:Ti.UI.TransitionStyle.PUSH_ROTATE}},
+				{properties:{color:'black',title:'Slide', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.SLIDE}},
+				{properties:{color:'black',title:'Modern Push', backgroundColor:color},
+					transition:{style:Ti.UI.TransitionStyle.MODERN_PUSH}},
+				{properties:{color:'black',title:'Ghost', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.GHOST}},
+				{properties:{color:'black',title:'Zoom', backgroundColor:color},
+					transition:{style:Ti.UI.TransitionStyle.ZOOM}},
+				{properties:{color:'black',title:'SWAP', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.SWAP}},
+				{properties:{color:'black',title:'CAROUSEL', backgroundColor:color},
+					transition:{style:Ti.UI.TransitionStyle.CAROUSEL}},
+				{properties:{color:'black',title:'CROSS', backgroundColor:color, backgroundOpacity:1.0},
+					transition:{style:Ti.UI.TransitionStyle.CROSS}},
+				{properties:{color:'black',title:'GLUE', backgroundColor:color},
+					transition:{style:40}},
 		]}]});
-		
+
 		listView.addEventListener('itemclick', function(_event) {
 			if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
 				var item = _event.section.getItemAt(_event.itemIndex);
 				Ti.API.info('item ' + JSON.stringify(item));
-				openMe(item.params);
+				openMe({transition:item.transition});
 			}
 		});
 		newWin.add(listView);
 		return newWin;
 	}
-	
+
 	var navWin1 = Ti.UI.createNavigationWindow({
-		backgroundColor:'black',
+		backgroundColor:'transparent',
 		title:'NavWindow1'
 	});
+	navWin1.addEventListener('androidback', function(e){
+		e.source.closeAllWindows({transition:{duration:1000}});
+	});
 	navWin1.window = createSimulateWindow(navWin1);
-	
+
 	var navWin2 = Ti.UI.createNavigationWindow({
-		backgroundColor:'black',
+			backgroundColor:'transparent',
 		title:'NavWindow2'
 	});
 	navWin2.window = createSimulateWindow(navWin2);
 
 	var args = {
+
 		backgroundColor:backColor,
+		borderRadius:20,
 		title:'TransitionWindow'
 	};
 	if (isAndroid) {
@@ -1572,63 +1558,65 @@ function navWindowEx() {
 	}
 
 	var transitionWindow = Ti.UI.createWindow(args);
-	
+
 	var transitionViewHolder = Ti.UI.createButton({
 		height:40,
 		width:200,
 		borderRadius:10,
 		backgroundColor:'red'
 	});
-	
+
 	var tr1 =Ti.UI.createLabel({
-		text:'Ouch!',
+		text:'I am a text!',
 		color:'#fff',
 		textAlign:'center',
 		backgroundColor:'green',
 		width:Ti.UI.FILL,
-		height:Ti.UI.FILL
+		height:40,
 	});
 	tr1.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr1, tr2, {transitionStyle:Ti.UI.TransitionStyle.FOLD, transitionDuration:3000});
+		transitionViewHolder.transitionViews(tr1, tr2, {style:Ti.UI.TransitionStyle.FOLD, duration:3000});
 	});
 	var tr2 =Ti.UI.createButton({
-		title:'Ouch!',
+		title:'I am a button!',
 		color:'#000',
 		height:40,
 		width:200,
 		backgroundColor:'white'
 	});
 	tr2.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr2, tr1, null);
+		transitionViewHolder.transitionViews(tr2, tr1, {style:Ti.UI.TransitionStyle.SWIPE});
 	});
 	transitionViewHolder.add(tr1);
 	transitionWindow.add(transitionViewHolder);
-	
+
 	//LeftMenu
-	var leftMenu = createListView({backgroundColor:'gray',
-		sections:[{items:[{properties:{title:'nav1'}, callback:function() {slidingMenu.centerView = navWin1;slidingMenu.closeLeftView()}},
-				{properties:{title:'nav2'}, callback:function() {slidingMenu.centerView = navWin2;slidingMenu.closeLeftView()}},
-				{properties:{title:'Transition'}, callback:function() {slidingMenu.centerView = transitionWindow;slidingMenu.closeLeftView()}},
-				{properties:{title:'Close'}, callback:function() {
+	var leftMenu = createListView({backgroundColor:'transparent',
+		sections:[{items:[{properties:{title:'nav1', backgroundColor:'transparent'}, callback:function() {slidingMenu.centerView = navWin1;}},
+				{properties:{title:'nav2', backgroundColor:'transparent'}, callback:function() {slidingMenu.centerView = navWin2;}},
+				{properties:{title:'Transition', backgroundColor:'transparent'}, callback:function() {slidingMenu.centerView = transitionWindow;}},
+				{properties:{title:'Close', backgroundColor:'transparent'}, callback:function() {
 					slidingMenu.close();
 				}}]}]});
-	
-	
+
+
 	//slidingMenu
 	var slidingMenu = Ti.UI.createSlideMenu({
-		backgroundColor:'black',
-		leftViewWidth:-60,
-		fading:1,
-		leftViewDisplacement:40,
-		// panningMode:Ti.UI.MENU_PANNING_BORDERS,
 		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
-				Ti.UI.PORTRAIT,
-				Ti.UI.LANDSCAPE_RIGHT,
-				Ti.UI.LANDSCAPE_LEFT],
-				leftView:leftMenu,
-				centerView:transitionWindow
+			Ti.UI.PORTRAIT,
+			Ti.UI.LANDSCAPE_RIGHT,
+			Ti.UI.LANDSCAPE_LEFT],
+		leftViewWidth:-60,
+		leftViewDisplacement:40,
+		shadowWidth:0,
+		backgroundGradient:{type:'linear',
+		colors:['#444154', '#a86e6a'],
+		startPoint:{x:0, y:0},
+		endPoint:{x:"100%", y:0}},
+		leftView:leftMenu,
+		centerView:transitionWindow
 	});
-	
+
 	slidingMenu.open();
 }
 function slideMenuEx() {
@@ -1657,47 +1645,41 @@ function slideMenuEx() {
 		closeButton.addEventListener('click', function(e) {
 			closeWindow(win);
 		});
-		var verticalScrollView = Ti.UI.createScrollableView({disableBounce:true,layout:'vertical'});
+		var verticalScrollView = Ti.UI.createScrollableView({
+			disableBounce:true,
+			layout:'vertical',
+			transition:{
+				style:Ti.UI.TransitionStyle.SWIPE_FADE,
+				substyle:Ti.UI.TransitionStyle.TOP_TO_BOTTOM
+			},
+			});
 		var topView = Ti.UI.createView({backgroundColor:'black'});
 		var glassView = Ti.UI.createView({bottom:0, height:100});
 		var textView = Ti.UI.createView({backgroundColor:'#55ffffff'});
 		var blurImageView = Ti.UI.createImageView({opacity:0,
+			preventDefaultImage:true,
+			scaleType:Ti.UI.SCALE_TYPE_ASPECT_FILL,
 			width:Ti.UI.FILL,
 			height:Ti.UI.FILL});
-//		var blurImageView2 = Ti.UI.createImageView({width:Ti.UI.FILL,
-//			height:Ti.UI.FILL,
-//			viewMask:'/images/bottommask.png'});
-		var imageView = Ti.UI.createImageView({animationDuration:0, 
+		var imageView = Ti.UI.createImageView({animationDuration:0,
 			scaleType:Ti.UI.SCALE_TYPE_ASPECT_FILL,
-			opacity:0, width:Ti.UI.FILL, height:Ti.UI.FILL});
+			preventDefaultImage:true,
+			opacity:0, width:Ti.UI.FILL, height:Ti.UI.FILL, image:_imgUrl.replace('-138','')});
 		imageView.addEventListener('load', function(e) {
-			imageView.animate({opacity:1, duration:500}, function() {
-				Ti.Image.getFilteredViewToImage(imageView, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3,
-					callback:function(result) {
-						Ti.API.info('imageView.rect.width ' + imageView.rect.width);
-						Ti.API.info('imageView.rect.height ' + imageView.rect.height);
-						Ti.API.info('imagewidth ' + result.image.width);
-						Ti.API.info('imageheight ' + result.image.height);
-						blurImageView.image = result.image;
-						glassView.backgroundImage = result.image.imageAsCropped(glassView.rect, {scale:0.3});
-					}
-				});
+			Ti.Image.getFilteredViewToImage(imageView, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3, radius:1,
+				callback:function(result) {
+					blurImageView.image = result.image;
+					glassView.backgroundImage = result.image.imageAsCropped(glassView.rect, {scale:0.3});
+					imageView.animate({opacity:1, duration:500});
+				}
 			});
 
 			scrollView.addEventListener('scroll', function(e) {
 				blurImageView.opacity = Math.max(0, e.currentPageAsFloat);
 			});
-			
-		})
-		var scrollView = Ti.UI.createScrollableView({disableBounce:true});
 
-//		verticalScrollView.addEventListener('swipe', function(e) {
-//			if (e.direction === 'up') {
-//				verticalScrollView.movePrevious();
-//			} else if (e.direction === 'down') {
-//				verticalScrollView.moveNext();
-//			}
-//		});
+		});
+		var scrollView = Ti.UI.createScrollableView({disableBounce:true});
 		topView.add(imageView);
 		topView.add(blurImageView);
 		glassView.add(textView);
@@ -1725,7 +1707,7 @@ function slideMenuEx() {
 			exclusiveTouch:true,
 			bottom:50,
 			sections:[{items:[{properties:{title:'test1'}, callback:function() {
-				scrollView.movePrevious(false)
+				scrollView.movePrevious(false);
 			}},
 					{properties:{title:'test2'}},
 					{properties:{title:'test2'}},
@@ -1780,51 +1762,51 @@ function slideMenuEx() {
 	}
 
 	var rootWindow1 = Ti.UI.createWindow({navBarHidden:true, backgroundColor:backColor});
-	function getScrollViewPage(_imgUrl) {
-		var imageView = Ti.UI.createImageView({
+	function getScrollViewPage(_imgUrl, _title) {
+		var view = Ti.UI.createView({
 			opacity:0,
+			height:Ti.UI.FILL,
+			width:Ti.UI.FILL,
+			// left:'15%',
+			// right:'15%'
+		});
+		var imageView = Ti.UI.createImageView({
 			scaleType:Ti.UI.SCALE_TYPE_SCALE_TO_FILL,
 			height:Ti.UI.FILL,
 			width:Ti.UI.FILL,
-			left:'15%',
-			right:'15%',
 			image:_imgUrl});
-		var glassView = Ti.UI.createView({bottom:0, height:100,viewMask:'/images/masktest.png'});
-		var textView = Ti.UI.createView({backgroundColor:'#55000000'});
+		var glassView = Ti.UI.createLabel({color:'white', bottom:0, width:Ti.UI.FILL,height:80, text:_title});
+		// var textView = Ti.UI.createView({backgroundColor:'#55000000'});
 		imageView.addEventListener('load', function(e) {
-			Ti.Image.getFilteredViewToImage(imageView, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3,
-				callback:function(result) {
-					var rect = glassView.rect;
-					Ti.API.info('imageView.rect.width ' + imageView.rect.width);
-					Ti.API.info('imageView.rect.height ' + imageView.rect.height);
-					Ti.API.info('imagewidth ' + result.image.width);
-					Ti.API.info('imageheight ' + result.image.height);
-					Ti.API.info('rect.width ' + rect.width);
-					if (rect.width != 0)
-						glassView.backgroundImage = result.image.imageAsCropped(rect, {scale:0.3});
-					imageView.animate({opacity:1, duration:500});
-					}
-			});
-			
-		})
+			glassView.blurBackground('backgroundImage', {blend:Ti.UI.BlendMode.DARKEN,radius:1, scale:0.3, tint:'#aa000000', callback:function(){
+				view.animate({opacity:1, duration:400});
+			}});
+
+		});
 		imageView.addEventListener('click', function(e) {
 			openMovieWindow(_imgUrl);
 		});
-		glassView.add(textView);
-		imageView.add(glassView);
-		return imageView;
+		// glassView.add(textView);
+		view.add(imageView);
+		view.add(glassView);
+		return view;
 	}
 	var scrollView = Ti.UI.createScrollableView({backgroundColor:'blue',
 		height:200,
 		width:'90%',
+		transition:{
+			style:Ti.UI.TransitionStyle.SLIDE,
+			faces:7
+		},
+		showPagingControl:true,
 		disableBounce:false,
 		pageWidth:'60%',
 		cacheSize:5,
-		views:[getScrollViewPage('http://zapp.trakt.us/images/posters_movies/192263-138.jpg'),
-				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/208623-138.jpg'),
-				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210231-138.jpg'),
-				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/176347-138.jpg'),
-				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210596-138.jpg')]});
+		views:[getScrollViewPage('http://zapp.trakt.us/images/posters_movies/192263-138.jpg', 'The Croods'),
+				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/208623-138.jpg', 'This Is The End'),
+				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210231-138.jpg', 'Now You See Me'),
+				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/176347-138.jpg', 'Into Darkness'),
+				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210596-138.jpg', 'Pain And Gain')]});
 	rootWindow1.add(scrollView);
 	rootWindows.push(rootWindow1);
 	function openRootWindow(_win) {
@@ -1839,16 +1821,19 @@ function slideMenuEx() {
 
 	var slidingMenu = Ti.UI.createSlideMenu({backgroundColor:backColor,
 		navBarHidden:true,
-		panningMode:Ti.UI.MENU_PANNING_NON_SCROLLVIEW,
-		orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
-				Ti.UI.PORTRAIT,
-				Ti.UI.LANDSCAPE_RIGHT,
-				Ti.UI.LANDSCAPE_LEFT]});
-	var listview = createListView({backgroundColor:'gray',
+		backgroundColor:'gray',
+		// fading:1.0,
+		leftTransition:{
+			style:Ti.UI.TransitionStyle.SLIDE,
+			substyle:Ti.UI.TransitionStyle.LEFT_TO_RIGHT
+		}
+	});
+	var listview = createListView({
+		backgroundColor:'transparent',
 		sections:[{items:[{properties:{title:'test1'}, callback:function() {
-			openRootWindow(rootWindow1)
+			openRootWindow(rootWindow1);
 		}},
-				{properties:{title:'test2'}, callback:transform2Ex},
+				{properties:{title:'test2', accessoryType:Titanium.UI.LIST_ACCESSORY_TYPE_CHECKMARK}, callback:transform2Ex},
 				{properties:{title:'PopIn'}, callback:transform3Ex},
 				{properties:{title:'SlideIn'}, callback:transform4Ex},
 				{properties:{title:'ListView'}, callback:transform5Ex},
@@ -1869,12 +1854,11 @@ listview.sections = [{items:[{properties:{title:'Transform', backgroundColor:col
 							{properties:{title:'SlideMenu'}, callback:slideMenuEx},
 							{properties:{title:'NavigationWindow'}, callback:navWindowEx},
 		{properties:{title:'Layout'}, callback:layoutExs},
-		{properties:{title:'listviewEx'}, callback:scrollableEx},
+		// {properties:{title:'listviewEx'}, callback:scrollableEx},
 		{properties:{title:'Shapes'}, callback:shapeExs},
 		{properties:{title:'ButtonsAndLabels'}, callback:buttonAndLabelEx},
 		{properties:{title:'Mask'}, callback:maskEx},
 		{properties:{title:'ImageView'}, callback:ImageViewEx},
-		{properties:{title:'Transition'}, callback:transitionEx},
 		{properties:{title:'AnimationSet'}, callback:transform2Ex},
 		{properties:{title:'HTML Label'}, callback:htmlLabelEx},
 		{properties:{title:'SVG'}, callback:svgExs},
@@ -1883,10 +1867,6 @@ listview.sections = [{items:[{properties:{title:'Transform', backgroundColor:col
 firstWindow.add(listview);
 var mainWin = Ti.UI.createNavigationWindow({backgroundColor:backColor,
 	exitOnClose:true,
-	orientationModes:[Ti.UI.UPSIDE_PORTRAIT,
-			Ti.UI.PORTRAIT,
-			Ti.UI.LANDSCAPE_RIGHT,
-			Ti.UI.LANDSCAPE_LEFT],
 	window:firstWindow});
 
 mainWin.open();
