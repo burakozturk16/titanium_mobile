@@ -24,7 +24,8 @@
     TiViewProxy* centerView;
     TiDimension _leftScrollScale; //between 0.0f and 1.0f
     TiDimension _rightScrollScale; //between 0.0f and 1.0f
-    TiTransition* _transition;
+    TiTransition* _leftTransition;
+    TiTransition* _rightTransition;
 }
 @end
 
@@ -75,7 +76,8 @@
 	RELEASE_TO_NIL(leftView);
 	RELEASE_TO_NIL(rightView);
 	RELEASE_TO_NIL(centerView);
-    RELEASE_TO_NIL(_transition);
+    RELEASE_TO_NIL(_leftTransition);
+    RELEASE_TO_NIL(_rightTransition);
     [super dealloc];
 }
 
@@ -237,20 +239,40 @@
 -(void)setLeftTransition_:(id)value
 {
     ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
-    RELEASE_TO_NIL(_transition);
-    _transition = [TiTransitionHelper transitionFromArg:value containerView:self];
-    if (_transition) {
+    RELEASE_TO_NIL(_leftTransition);
+    _leftTransition = [TiTransitionHelper transitionFromArg:value containerView:self];
+    if (_leftTransition) {
         MMDrawerControllerDrawerVisualStateBlock visualStateBlock =
         ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
             if(percentVisible <= 1.f){
                 CGFloat maxDrawerWidth = MAX(drawerController.maximumLeftDrawerWidth,drawerController.visibleLeftDrawerWidth);
-                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:percentVisible-1];
+                [_leftTransition transformView:drawerController.leftDrawerViewController.view withPosition:percentVisible-1];
             }
         };
 
         [self controller].leftVisualBlock = visualStateBlock;
     }
 	else [self controller].leftVisualBlock = nil;
+}
+
+
+-(void)setRightTransition_:(id)value
+{
+    ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
+    RELEASE_TO_NIL(_rightTransition);
+    _rightTransition = [TiTransitionHelper transitionFromArg:value containerView:self];
+    if (_rightTransition) {
+        MMDrawerControllerDrawerVisualStateBlock visualStateBlock =
+        ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
+            if(percentVisible <= 1.f){
+                CGFloat maxDrawerWidth = MAX(drawerController.maximumRightDrawerWidth,drawerController.visibleRightDrawerWidth);
+                [_rightTransition transformView:drawerController.rightDrawerViewController.view withPosition:1-percentVisible];
+            }
+        };
+        
+        [self controller].rightVisualBlock = visualStateBlock;
+    }
+	else [self controller].rightVisualBlock = nil;
 }
 
 @end
