@@ -798,6 +798,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_SELECTED_IMAGE = "backgroundSelectedImage";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BAR_COLOR = "barColor";
 
 	/**
 	 * @module.api
@@ -1870,6 +1875,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_PROMPT = "prompt";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_PROPERTIES = "properties";
 
 	/**
@@ -2113,6 +2123,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SHOW_AS_ACTION = "showAsAction";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHOW_CANCEL = "showCancel";
 
 	/**
 	 * @module.api
