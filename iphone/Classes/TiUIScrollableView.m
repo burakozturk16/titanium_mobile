@@ -289,6 +289,14 @@
     [self refreshScrollView:[self scrollview].bounds readd:readd];
 }
 
+-(void)resetWrapperView:(UIView*)wrapper
+{
+    // we need to reset it after transitions
+    wrapper.layer.transform = CATransform3DIdentity;
+    wrapper.layer.hidden = NO;
+    wrapper.alpha = 1;
+}
+
 -(void)refreshScrollView:(CGRect)visibleBounds readd:(BOOL)readd
 {
     if (CGSizeEqualToSize(visibleBounds.size, CGSizeZero)) return;
@@ -354,6 +362,7 @@
 		else 
 		{
 			UIView *view = [_wrappers objectAtIndex:i];
+            [self resetWrapperView:view];
 			view.frame = viewBounds;
 		}
 	}
@@ -736,8 +745,8 @@
         _reverseDrawOrder = [_transition needsReverseDrawOrder];
         [_transition prepareViewHolder:sv];
     }
+	[self refreshScrollView:YES];
 	[self depthSortViews];
-    [self didScroll];
 }
 
 #pragma mark Rotation
