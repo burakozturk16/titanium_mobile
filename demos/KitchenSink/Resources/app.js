@@ -1436,10 +1436,24 @@ function cellColor(_index) {
 		break;
 	}
 }
-
+var transitionsMap = [{title:'SwipFade', id:Ti.UI.TransitionStyle.SWIPE_FADE},
+				{title:'Flip', id:Ti.UI.TransitionStyle.FLIP},
+				{title:'Cube', id:Ti.UI.TransitionStyle.CUBE},
+				{title:'Fold', id:Ti.UI.TransitionStyle.FOLD},
+				{title:'Fade', id:Ti.UI.TransitionStyle.FADE},
+				{title:'Back Fade', id:Ti.UI.TransitionStyle.BACK_FADE},
+				{title:'Scale', id:Ti.UI.TransitionStyle.SCALE},
+				{title:'Push Rotate', id:Ti.UI.TransitionStyle.PUSH_ROTATE},
+				{title:'Slide', id:Ti.UI.TransitionStyle.SLIDE},
+				{title:'Modern Push', id:Ti.UI.TransitionStyle.MODERN_PUSH},
+				{title:'Ghost', id:Ti.UI.TransitionStyle.GHOST},
+				{title:'Zoom', id:Ti.UI.TransitionStyle.ZOOM},
+				{title:'SWAP', id:Ti.UI.TransitionStyle.SWAP},
+				{title:'CAROUSEL', id:Ti.UI.TransitionStyle.CAROUSEL},
+				{title:'CROSS', id:Ti.UI.TransitionStyle.CROSS},
+				{title:'GLUE', id:Ti.UI.TransitionStyle.GLUE}];
 
 function navWindowEx() {
-
 
 	function createSimulateWindow(_navWin) {
 		var index = _navWin.stackSize;
@@ -1771,7 +1785,7 @@ function slideMenuEx() {
 			// right:'15%'
 		});
 		var imageView = Ti.UI.createImageView({
-			scaleType:Ti.UI.SCALE_TYPE_SCALE_TO_FILL,
+			scaleType:Ti.UI.SCALE_TYPE_ASPECT_FILL,
 			height:Ti.UI.FILL,
 			width:Ti.UI.FILL,
 			image:_imgUrl});
@@ -1795,8 +1809,7 @@ function slideMenuEx() {
 		height:200,
 		width:'90%',
 		transition:{
-			style:Ti.UI.TransitionStyle.SLIDE,
-			faces:7
+			style:Ti.UI.TransitionStyle.SLIDE
 		},
 		showPagingControl:true,
 		disableBounce:false,
@@ -1808,15 +1821,40 @@ function slideMenuEx() {
 				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/176347-138.jpg', 'Into Darkness'),
 				getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210596-138.jpg', 'Pain And Gain')]});
 	rootWindow1.add(scrollView);
+
+	var optionTitles = ['Cancel'];
+	for (var i = 0; i < transitionsMap.length; i++) {
+		optionTitles.push(transitionsMap[i].title);
+	};
+	var opts = {
+		cancel: 0,
+		options: optionTitles,
+		selectedIndex: 0,
+		destructive: 0,
+		title: 'Transition Style'
+	};
+
+	function choseTransition(_view, _property){
+		var dialog = Ti.UI.createOptionDialog(opts);
+		dialog.addEventListener('click', function(e) {
+			if (e.index > 0) {
+				_view[_property] = {style:transitionsMap[e.index].id};
+			}
+		});
+		dialog.show();
+	}
+
+	var button = Ti.UI.createButton({bottom:0, bubbleParent:false, title:'Transition'});
+	button.addEventListener('click', function(){choseTransition(scrollView, 'transition')});
+	rootWindow1.add(button);
 	rootWindows.push(rootWindow1);
 	function openRootWindow(_win) {
-		if (slidingMenu.centerView !== _win) {
+		// if (slidingMenu.centerView !== _win) {
 			slidingMenu.centerView = _win;
-		}
+		// }
 		for ( var i = 1; i < otherWindows.length; i++) {
 			otherWindows[i].close();
 		};
-		slidingMenu.closeLeftView();
 	}
 
 	var slidingMenu = Ti.UI.createSlideMenu({backgroundColor:backColor,
@@ -1836,7 +1874,7 @@ function slideMenuEx() {
 				{properties:{title:'test2', accessoryType:Titanium.UI.LIST_ACCESSORY_TYPE_CHECKMARK}, callback:transform2Ex},
 				{properties:{title:'PopIn'}, callback:transform3Ex},
 				{properties:{title:'SlideIn'}, callback:transform4Ex},
-				{properties:{title:'ListView'}, callback:transform5Ex},
+				{properties:{title:'Transition Style'}, callback:function(){choseTransition(slidingMenu, 'leftTransition')}},
 				{properties:{title:'Close'}, callback:function() {
 					slidingMenu.close();
 				}}]}]});
