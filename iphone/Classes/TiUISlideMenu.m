@@ -244,15 +244,8 @@
         ^(MMDrawerController * drawerController, MMDrawerSide drawerSide, CGFloat percentVisible){
             if(percentVisible <= 1.f){
                 CGFloat maxDrawerWidth = MAX(drawerController.maximumLeftDrawerWidth,drawerController.visibleLeftDrawerWidth);
-                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:[_transition isTransitionPush]?percentVisible-1:1-percentVisible];
+                [_transition transformView:drawerController.leftDrawerViewController.view withPosition:percentVisible-1];
             }
-//            else{
-//                CATransform3D transform = CATransform3DIdentity;                
-//                CGFloat maxDrawerWidth = MAX(drawerController.maximumRightDrawerWidth,drawerController.visibleRightDrawerWidth);
-//                transform = CATransform3DMakeScale(percentVisible, 1.f, 1.f);
-//                transform = CATransform3DTranslate(transform, maxDrawerWidth/2, 0.f, 0.f);
-//                [drawerController.leftDrawerViewController.view.layer setTransform:transform];
-//            }
         };
 
         [self controller].leftVisualBlock = visualStateBlock;
