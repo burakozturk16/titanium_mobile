@@ -660,9 +660,6 @@
 		D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
 		D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
 		D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
-		D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
-		D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
-		D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */; };
 		D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
 		D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
 		D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
@@ -2143,8 +2140,6 @@
 		D51F03D81808411F005B4EE2 /* TiImageHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiImageHelper.m; sourceTree = "<group>"; };
 		D522FE0B16D2AC8D008C6CC4 /* JRSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JRSwizzle.h; path = ../Classes/JRSwizzle/JRSwizzle.h; sourceTree = "<group>"; };
 		D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JRSwizzle.m; path = ../Classes/JRSwizzle/JRSwizzle.m; sourceTree = "<group>"; };
-		D522FE1016D2AD55008C6CC4 /* UIButton+BackgroundColors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIButton+BackgroundColors.h"; sourceTree = "<group>"; };
-		D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIButton+BackgroundColors.m"; sourceTree = "<group>"; };
 		D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSelectableBackgroundLayer.h; sourceTree = "<group>"; };
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
@@ -3478,8 +3473,6 @@
 		24CA8C701111672E0084E2DE /* Button */ = {
 			isa = PBXGroup;
 			children = (
-				D522FE1016D2AD55008C6CC4 /* UIButton+BackgroundColors.h */,
-				D522FE1116D2AD55008C6CC4 /* UIButton+BackgroundColors.m */,
 				24CA8A8E111161FD0084E2DE /* TiUIButtonProxy.m */,
 				24CA8A8F111161FD0084E2DE /* TiUIButtonProxy.h */,
 				24CA8A94111161FD0084E2DE /* TiUIButton.m */,
@@ -5078,7 +5071,6 @@
 				D56915CF168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D5168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
-				D522FE1216D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484716DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D54C7CF31811570B00F592A9 /* TiTransition.m in Sources */,
 				D599484C16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
@@ -5455,7 +5447,6 @@
 				D56915D0168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D6168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
-				D522FE1316D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484816DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
@@ -5832,7 +5823,6 @@
 				D56915D1168F2E7400C3F89F /* TiUILabelProxy.m in Sources */,
 				D56915D7168F538F00C3F89F /* TTTAttributedLabel.m in Sources */,
 				D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
-				D522FE1416D2AD55008C6CC4 /* UIButton+BackgroundColors.m in Sources */,
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */,
