@@ -13,11 +13,14 @@
 }
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
-    if (position >1 || position < -1) return;
+    if (position >1 || position < -1) {
+        view.layer.hidden = YES;
+        return;
+    }
     
-    float multiplier = 1;
+    float multiplier = -1;
     if (![self isTransitionPush]) {
-        multiplier = -1;
+        multiplier = 1;
     }
     
     float percent = ABS(position);
@@ -30,7 +33,7 @@
     else {
         CGFloat halfWidth = viewWidth / 2;
         CGFloat realAngle = -kAngle * position * multiplier;
-        CGFloat translateX = -position * viewWidth * multiplier;
+        CGFloat translateX = -position * viewWidth;
         if (adjust) transform = CATransform3DTranslate(transform, translateX, 0,0);
         transform = CATransform3DRotate(transform, realAngle, 0, 1, 0);
         view.layer.hidden = (fabs(realAngle) > M_PI_2);
