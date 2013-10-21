@@ -15,6 +15,7 @@
 typedef enum {
 	TiGradientTypeLinear,
 	TiGradientTypeRadial,
+	TiGradientTypeSweep,
 } TiGradientType;
 
 @interface TiGradient : TiProxy {
@@ -30,7 +31,7 @@ typedef enum {
 	BOOL backfillEnd;
 	
 	CGGradientRef cachedGradient;
-	
+    
 	CFMutableArrayRef colorValues;
 	CGFloat * colorOffsets;	//A -1 indicates a lack of entry.
 	int arraySize;

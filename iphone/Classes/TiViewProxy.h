@@ -102,7 +102,10 @@ enum
 	LayoutConstraint layoutProperties;
 	int vzIndex;
 	BOOL hidden;	//This is the boolean version of ![TiUtils boolValue:visible def:yes]
-		//And has nothing to do with whether or not it's onscreen or 
+		//And has nothing to do with whether or not it's onscreen or
+    
+    BOOL readyToCreateView;
+    BOOL defaultReadyToCreateView;
 
 #pragma mark Parent/Children relationships
 	TiViewProxy *parent;
@@ -149,6 +152,8 @@ enum
     
     id observer;
 	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
+    
+    TiAnimation * pendingAnimation;
 }
 
 #pragma mark public API
@@ -233,6 +238,21 @@ enum
 
 -(void)setBackgroundGradient:(id)arg;
 -(TiBlob*)toImage:(id)args;
+-(UIImage*)toImageWithScale:(CGFloat)scale;
+
+-(void)setDefaultReadyToCreateView:(BOOL)ready;
+//this is for the tableview magic. For any other view, will be set when
+//added to a parent which is already ready
+-(void)setReadyToCreateView:(BOOL)ready;
+-(void)setReadyToCreateView:(BOOL)ready recursive:(BOOL)recursive;
+-(void)clearView:(BOOL)recurse;
+-(TiUIView*)getOrCreateView;
+-(void)processPendingAdds;
+-(void)fakeOpening;
+
+-(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;
+-(void)runBlock:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
+-(void)runBlockOnMainThread:(void (^)(TiViewProxy* proxy))block onlyVisible:(BOOL)onlyVisible recursive:(BOOL)recursive;
 
 #pragma mark nonpublic accessors not related to Housecleaning
 
@@ -256,6 +276,7 @@ enum
 @property(nonatomic,readwrite,assign) CGRect sandboxBounds;
 	//This is unaffected by parentVisible. So if something is truely visible, it'd be [self visible] && parentVisible.
 -(void)setHidden:(BOOL)newHidden withArgs:(id)args;
+-(BOOL)isHidden;
 
 @property(nonatomic,retain) UIBarButtonItem * barButtonItem;
 -(TiUIView *)barButtonViewForSize:(CGSize)bounds;
@@ -425,8 +446,6 @@ enum
  */
 -(BOOL)isUsingBarButtonItem;
 
--(CGRect)appFrame;	//TODO: Why is this here? It doesn't have anything to do with a specific instance.
-
 #pragma mark Building up and tearing down
 -(void)firePropertyChanges;
 
@@ -440,6 +459,7 @@ enum
  Tells the view proxy to detach its view.
  */
 -(void)detachView;
+-(void)detachView:(BOOL)recursive;
 
 -(void)destroy;
 
@@ -571,6 +591,7 @@ enum
 -(void)relayout;
 
 -(void)reposition;	//Todo: Replace
+-(void)repositionWithinAnimation:(TiAnimation*)animation;
 /**
  Tells if the view is enqueued in the LayoutQueue
  */
@@ -587,8 +608,22 @@ enum
  @param child The child view
  */
 -(void)childWillResize:(TiViewProxy *)child;	//Todo: Replace
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation;
+
+/**
+ get the next children of a certain class starting from a child
+ @param class The child class looked for
+ @param child The child view
+ */
+-(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
+
++(NSArray*)layoutProperties;
++(NSSet*)transferableProperties;
+
+- (void)prepareForReuse;
 
 - (void)unarchiveFromTemplate:(id)viewTemplate;
+- (void)unarchiveFakeFromTemplate:(id)viewTemplate;
 + (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 @end

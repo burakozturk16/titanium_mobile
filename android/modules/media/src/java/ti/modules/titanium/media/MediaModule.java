@@ -22,6 +22,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollObject;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -37,6 +38,7 @@ import org.appcelerator.titanium.util.TiActivityResultHandler;
 import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
+import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiIntentWrapper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
@@ -49,6 +51,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
@@ -863,8 +866,11 @@ public class MediaModule extends KrollModule
 	}
 
 	@Kroll.method
-	public void takeScreenshot(KrollFunction callback)
+	public void takeScreenshot(final KrollFunction callback, @Kroll.argument(optional=true) Number scale)
 	{
+		if (scale == null) {
+			scale = new Float(1.0f);
+		}
 		Activity a = TiApplication.getAppCurrentActivity();
 
 		if (a == null) {
@@ -883,10 +889,21 @@ public class MediaModule extends KrollModule
 			w = w.getContainer();
 		}
 
-		KrollDict image = TiUIHelper.viewToImage(null, w.getDecorView());
-		if (callback != null) {
-			callback.callAsync(getKrollObject(), new Object[] { image });
-		}
+		final Window winParam = w;
+		final float winScale = (scale != null)?scale.floatValue():1.0f;
+
+		getActivity().runOnUiThread(new Runnable() {
+			public void run() {
+				Bitmap bitmap = TiUIHelper.viewToBitmap(null, winParam.getDecorView());
+				if (winScale != 1.0f) {
+					bitmap = TiImageHelper.imageScaled(bitmap, winScale);
+				}
+				TiBlob blob = TiBlob.blobFromImage(bitmap);
+				KrollDict result = new KrollDict();
+				result.put("image", blob);
+				callback.callAsync(getKrollObject(), new Object[] { result });
+			}
+		});
 	}
 
 	@Kroll.method

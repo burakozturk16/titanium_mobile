@@ -107,6 +107,10 @@ exports.validate = function (logger, config, cli) {
 	// TODO: set the type to 'app' for now, but we'll need to determine if the project is an app or a module
 	cli.argv.type = 'app';
 
+	// Regexp format
+	cli.ignoreFiles = ['\\.gitignore', '\\.cvsignore', '\\.gitmodules', '\\.git', '\\.DS_Store', '_svn'];
+	cli.ignoreDirs = ['\\.git', '\\.svn', 'CVS'];
+
 	ti.validatePlatform(logger, cli, 'platform');
 
 	return function (finished) {

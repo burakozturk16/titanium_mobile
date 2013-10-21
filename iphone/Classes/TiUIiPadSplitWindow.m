@@ -32,7 +32,7 @@ UIViewController * ControllerForProxy(TiViewProxy * proxy)
         return [(TiWindowProxy*)proxy hostingController];
     }
 
-	[[proxy view] setAutoresizingMask:UIViewAutoresizingNone];
+	[[proxy getOrCreateView] setAutoresizingMask:UIViewAutoresizingNone];
 
 	return [[[TiViewController alloc] initWithViewProxy:proxy] autorelease];
 }

@@ -13,6 +13,24 @@
 
 @implementation TiUIButtonProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"style", @"title",
+                                              @"color", @"highlightedColor", @"selectedColor",
+                                              @"enabled", @"selected", @"style",
+                                              @"image", @"backgroundHighlightedImage",
+                                              @"backgroundDisabledImage", @"backgroundSelectedImage",
+                                              @"backgroundFocusedImage", @"verticalAlign",
+                                              @"textAlign", @"font", @"backgroundPaddingLeft",
+                                              @"backgroundPaddingRight",
+                                              @"backgroundPaddingBottom", @"backgroundPaddingTop",
+                                              @"shadowOffset", @"shadowRadius", @"shadowColor",
+                                              @"titlePaddingLeft", @"titlePaddingRight",
+                                              @"titlePaddingTop", @"titlePaddingBottom",
+                                              @"wordWrap", @"borderWidth", nil]];
+}
+
 -(void)_destroy
 {
 	RELEASE_TO_NIL(button);
@@ -22,7 +40,8 @@
 
 -(void)_configure
 {	
-	[self replaceValue:NUMBOOL(YES) forKey:@"enabled" notification:NO];
+	[self setValue:NUMBOOL(YES) forKey:@"enabled"];
+	[self setValue:NUMBOOL(NO) forKey:@"selected"];
 	[super _configure];
 }
 
@@ -113,11 +132,6 @@
 -(BOOL)optimizeSubviewInsertion
 {
     return YES;
-}
-
--(UIView *) parentViewForChild:(TiViewProxy *)child
-{
-	return [(TiUIButton *)[self view] viewGroupWrapper];
 }
 
 -(void)removeBarButtonView

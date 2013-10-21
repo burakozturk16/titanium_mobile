@@ -148,7 +148,6 @@
 {
     UIImage *image = [self loadImage:arg];
     [[self searchBar] setBackgroundImage:image];
-    self.backgroundImage = arg;
 }
 
 #pragma mark Delegate 

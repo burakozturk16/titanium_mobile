@@ -14,6 +14,14 @@
 
 @implementation TiUIWebViewProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"autoDetect",
+                                              @"html",@"data",@"scalesPageToFit",
+                                              @"url",@"scrollsToTop",@"disableBounce", nil]];
+}
+
 static NSArray* webKeySequence;
 
 #ifdef DEBUG_MEMORY
@@ -38,7 +46,7 @@ static NSArray* webKeySequence;
     if (webKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        webKeySequence = [[NSArray arrayWithObjects:@"url",nil] retain];
+        webKeySequence = [[[super keySequence] arrayByAddingObject:@"url"] retain];
     }
     return webKeySequence;
 }
@@ -279,7 +287,7 @@ USE_VIEW_FOR_CONTENT_WIDTH
 
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 #pragma mark - Internal Use Only
 -(void)delayedLoad

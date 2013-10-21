@@ -13,13 +13,24 @@
 
 @implementation TiUIScrollViewProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"contentOffset",
+                                              @"minZoomScale",@"maxZoomScale",@"zoomScale",
+                                              @"canCancelEvents",@"contentWidth",@"contentHeight",
+                                              @"showHorizontalScrollIndicator",@"showVerticalScrollIndicator",
+                                              @"scrollIndicatorStyle", @"scrollsToTop", @"horizontalBounce",
+                                              @"verticalBounce", @"scrollingEnabled", @"disableBounce", nil]];
+}
+
 static NSArray* scrollViewKeySequence;
 -(NSArray *)keySequence
 {
     if (scrollViewKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        scrollViewKeySequence = [[NSArray arrayWithObjects:@"minZoomScale",@"maxZoomScale",@"zoomScale",nil] retain];
+        scrollViewKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"minZoomScale",@"maxZoomScale",@"zoomScale"]] retain];
     }
     return scrollViewKeySequence;
 }
@@ -100,7 +111,7 @@ static NSArray* scrollViewKeySequence;
 -(CGFloat)autoWidthForSize:(CGSize)size
 {
     BOOL flexibleContentWidth = YES;
-    BOOL flexibleContentHeight = YES;
+//    BOOL flexibleContentHeight = YES;
     CGSize contentSize = CGSizeMake(size.width,size.height);
     id cw = [self valueForUndefinedKey:@"contentWidth"];
     id ch = [self valueForUndefinedKey:@"contentHeight"];
@@ -122,7 +133,7 @@ static NSArray* scrollViewKeySequence;
     }
     
     if (TiDimensionIsAutoFill(contentHeight) || TiDimensionIsDip(contentHeight) || TiDimensionIsPercent(contentHeight)) {
-        flexibleContentHeight = NO;
+//        flexibleContentHeight = NO;
         contentSize.height = MAX(TiDimensionCalculateValue(contentHeight, size.height), size.height);
     }
     
@@ -215,7 +226,7 @@ static NSArray* scrollViewKeySequence;
         pthread_rwlock_unlock(&childrenLock);
     }
     else if (TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle)) {
-        BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+//        BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
         if(flexibleContentWidth) {
             CGFloat thisHeight = 0;
             pthread_rwlock_rdlock(&childrenLock);
@@ -319,9 +330,9 @@ static NSArray* scrollViewKeySequence;
     }
 }
 
--(void)childWillResize:(TiViewProxy *)child
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
 {
-	[super childWillResize:child];
+	[super childWillResize:child withinAnimation:animation];
 	[(TiUIScrollView *)[self view] setNeedsHandleContentSizeIfAutosizing];
 }
 
@@ -431,7 +442,7 @@ static NSArray* scrollViewKeySequence;
 	}
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 @end
 

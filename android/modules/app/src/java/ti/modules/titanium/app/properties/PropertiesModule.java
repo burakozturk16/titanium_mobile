@@ -7,24 +7,38 @@
 package ti.modules.titanium.app.properties;
 
 import org.appcelerator.kroll.KrollModule;
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiProperties;
 
+import org.appcelerator.titanium.util.TiConvert;
+
 import ti.modules.titanium.app.AppModule;
+
+import android.content.SharedPreferences;
 
 @Kroll.module(parentModule=AppModule.class)
 public class PropertiesModule extends KrollModule {
 
 	private TiProperties appProperties;
+	private SharedPreferences.OnSharedPreferenceChangeListener listener;
 
 	public PropertiesModule()
 	{
 		super();
 
 		appProperties = TiApplication.getInstance().getAppProperties();
+		listener = new SharedPreferences.OnSharedPreferenceChangeListener() {
+			public void onSharedPreferenceChanged(SharedPreferences prefs,String key) {
+				KrollDict result = new KrollDict();
+				result.put("property", key); 
+				fireEvent(TiC.EVENT_CHANGE, result);
+			}
+		};
+		appProperties.getPreference().registerOnSharedPreferenceChangeListener(listener);
 	}
 
 	public PropertiesModule(TiContext tiContext)
@@ -33,27 +47,39 @@ public class PropertiesModule extends KrollModule {
 	}
 
 	@Kroll.method
-	public boolean getBool(String key)
+	public boolean getBool(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getBool(key, false);
+		Boolean defaultValue = false;
+		if (obj != null) {
+			defaultValue = TiConvert.toBoolean(obj);
+		}
+		return appProperties.getBool(key, defaultValue);
 	}
 
 	@Kroll.method
-	public double getDouble(String key)
+	public double getDouble(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getDouble(key, 0D);
+		double defaultValue = 0D;
+		if (obj != null) {
+			defaultValue = TiConvert.toDouble(obj);
+		}
+		return appProperties.getDouble(key, defaultValue);
 	}
 
 	@Kroll.method
-	public int getInt(String key)
+	public int getInt(String key, @Kroll.argument(optional=true) Object obj)
 	{
-		return appProperties.getInt(key, 0);
+		int defaultValue = 0;
+		if (obj != null) {
+			defaultValue = TiConvert.toInt(obj);
+		}
+		return appProperties.getInt(key, defaultValue);
 	}
 
 	@Kroll.method
-	public String getString(String key)
+	public String getString(String key, @Kroll.argument(optional=true) String defaultValue)
 	{
-		return appProperties.getString(key, null);
+		return appProperties.getString(key, defaultValue);
 	}
 
 	@Kroll.method
@@ -73,7 +99,6 @@ public class PropertiesModule extends KrollModule {
 	{
 		if (hasProperty(key)) {
 			appProperties.removeProperty(key);
-			fireEvent(TiC.EVENT_CHANGE, null);
 		}
 	}
 
@@ -89,7 +114,6 @@ public class PropertiesModule extends KrollModule {
 		Object boolValue = getPreferenceValue(key);
 		if (boolValue == null || !boolValue.equals(value)) {
 			appProperties.setBool(key, value);
-			fireEvent(TiC.EVENT_CHANGE, null);
 		}
 		
 
@@ -103,7 +127,6 @@ public class PropertiesModule extends KrollModule {
 		//so we need to convert before comparing.
 		if (doubleValue == null || !doubleValue.equals(String.valueOf(value))) {
 			appProperties.setDouble(key, value);
-			fireEvent(TiC.EVENT_CHANGE, null);
 		}
 
 	}
@@ -114,7 +137,6 @@ public class PropertiesModule extends KrollModule {
 		Object intValue = getPreferenceValue(key);
 		if (intValue == null || !intValue.equals(value)) {
 			appProperties.setInt(key, value);
-			fireEvent(TiC.EVENT_CHANGE, null);
 		}
 
 	}
@@ -125,7 +147,6 @@ public class PropertiesModule extends KrollModule {
 		Object stringValue = getPreferenceValue(key);
 		if (stringValue == null || !stringValue.equals(value)) {
 			appProperties.setString(key, value);
-			fireEvent(TiC.EVENT_CHANGE, null);
 		}
 	}
 

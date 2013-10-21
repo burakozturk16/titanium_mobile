@@ -10,11 +10,22 @@
 #import "TiUIScrollableView.h"
 
 @implementation TiUIScrollableViewProxy
-@synthesize viewProxies;
+@synthesize viewProxies, verticalLayout;
+
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"currentPage",
+                                              @"pagingControlColor",@"pagingControlHeight",@"showPagingControl",
+                                              @"pagingControlAlpha",@"overlayEnabled",
+                                              @"pagingControlOnTop", @"cacheSize", @"views",
+                                              @"pageControlHeight", @"scrollingEnabled", @"disableBounce", nil]];
+}
 
 -(void)_initWithProperties:(NSDictionary *)properties
 {
     pthread_rwlock_init(&viewsLock, NULL);
+    verticalLayout = NO;
     [self initializeProperty:@"currentPage" defaultValue:NUMINT(0)];
     [self initializeProperty:@"pagingControlColor" defaultValue:@"black"];
     [self initializeProperty:@"pagingControlHeight" defaultValue:NUMINT(20)];
@@ -23,6 +34,21 @@
     [self initializeProperty:@"overlayEnabled" defaultValue:NUMBOOL(NO)];
     [self initializeProperty:@"pagingControlOnTop" defaultValue:NUMBOOL(NO)];
     [super _initWithProperties:properties];
+}
+
+// Special handling to try and avoid Apple's detection of private API 'layout'
+-(void)setValue:(id)value forUndefinedKey:(NSString *)key
+{
+    if ([key isEqualToString:[@"lay" stringByAppendingString:@"out"]]) {
+        verticalLayout = ([value isKindOfClass:[NSString class]] && [value caseInsensitiveCompare:@"vertical"]==NSOrderedSame);
+        if ([self view] != nil) {
+            TiUIScrollableView * ourView = (TiUIScrollableView *)[self view];
+            [ourView setVerticalLayout:verticalLayout];
+        }
+        [self replaceValue:value forKey:[@"lay" stringByAppendingString:@"out"] notification:YES];
+        return;
+    }
+    [super setValue:value forUndefinedKey:key];
 }
 
 - (void) dealloc
@@ -161,7 +187,6 @@
 
 -(void)scrollToView:(id)args
 {	//TODO: Refactor this properly.
-	ENSURE_SINGLE_ARG(args,NSObject);
 	[self makeViewPerformSelector:@selector(scrollToView:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
@@ -175,7 +200,7 @@
     [super willChangeSize];
 }
 
--(void)childWillResize:(TiViewProxy *)child
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
 {
 	BOOL hasChild = [[self children] containsObject:child];
 
@@ -184,7 +209,7 @@
 		return;
 		//In the case of views added with addView, as they are not part of children, they should be ignored.
 	}
-	[super childWillResize:child];
+	[super childWillResize:child withinAnimation:animation];
 }
 
 -(TiViewProxy *)viewAtIndex:(int)index
@@ -210,14 +235,14 @@
 	if (index != NSNotFound)
 	{
 		TiUIScrollableView * ourView = (TiUIScrollableView *)[self view];
-		NSArray * scrollWrappers = [[ourView scrollview] subviews];
+		NSArray * scrollWrappers = [ourView wrappers];
 		if (index < [scrollWrappers count])
 		{
 			return [scrollWrappers objectAtIndex:index];
 		}
 		//Hideous hack is hideous. This should stave off the bugs until layout is streamlined
 		[ourView refreshScrollView:[[self view] bounds] readd:YES];
-		scrollWrappers = [[ourView scrollview] subviews];
+		scrollWrappers = [ourView wrappers];
 		if (index < [scrollWrappers count])
 		{
 			return [scrollWrappers objectAtIndex:index];
@@ -258,6 +283,28 @@
     if ([self viewAttached]) {
         [(TiUIScrollableView*)[self view] manageRotation];
     }
+}
+
+-(void)moveNext:(id)args
+{
+	ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(moveNext:) withObject:args createIfNeeded:YES waitUntilDone:NO];
+}
+
+-(void)movePrevious:(id)args
+{
+	ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(movePrevious:) withObject:args createIfNeeded:YES waitUntilDone:NO];
+}
+
+-(void)setScrollAnimationDuration:(id)value
+{
+    [(TiUIScrollableView*)[self view] setSwitchPageAnimationDuration:[TiUtils intValue:value]];
+}
+
+-(NSNumber*)scrollAnimationDuration
+{
+	return NUMINT([(TiUIScrollableView*)[self view]switchPageAnimationDuration]);
 }
 
 @end

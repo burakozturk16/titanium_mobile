@@ -38,15 +38,20 @@ NSString * const TiExceptionUnimplementedFunction = @"Subclass did not implement
 NSString * const TiExceptionMemoryFailure = @"Memory allocation failed";
 
 
+NSString * SetterStringForKrollProperty(NSString * key)
+{
+    return [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+}
+
 SEL SetterForKrollProperty(NSString * key)
 {
-	NSString *method = [NSString stringWithFormat:@"set%@%@_:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	NSString *method = SetterStringForKrollProperty(key);
 	return NSSelectorFromString(method);
 }
 
 SEL SetterWithObjectForKrollProperty(NSString * key)
 {
-	NSString *method = [NSString stringWithFormat:@"set%@%@_:withObject:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	NSString *method = [SetterStringForKrollProperty(key) stringByAppendingString:@"withObject:"];
 	return NSSelectorFromString(method);
 }
 
@@ -130,14 +135,14 @@ void DoProxyDelegateReadKeyFromProxy(UIView<TiProxyDelegate> * target, NSString 
 	{
 		value = nil;
 	}
-
-	SEL sel = SetterWithObjectForKrollProperty(key);
+    NSString* method = SetterStringForKrollProperty(key);
+	SEL sel = NSSelectorFromString([method stringByAppendingString:@"withObject:"]);
 	if ([target respondsToSelector:sel])
 	{
 		DoProxyDispatchToSecondaryArg(target,sel,key,value,proxy);
 		return;
 	}
-	sel = SetterForKrollProperty(key);
+	sel = NSSelectorFromString(method);
 	if (![target respondsToSelector:sel])
 	{
 		return;
@@ -358,7 +363,8 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	// for subclasses
 }
 
--(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
+
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args withPropertiesInit:(BOOL)init
 {
 	if (self = [self _initWithPageContext:context_])
 	{
@@ -378,11 +384,16 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 		{
 			[self _initWithCallback:[args objectAtIndex:1]];
 		}
-		
-		[self _initWithProperties:a];
+		if (init)
+            [self _initWithProperties:a];
 		executionContext = nil;
 	}
 	return self;
+}
+
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
+{
+    return [self _initWithPageContext:context_ args:args withPropertiesInit:YES];
 }
 
 -(void)_destroy
@@ -520,6 +531,20 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	BOOL result = [[listeners objectForKey:type] intValue]>0;
 	pthread_rwlock_unlock(&listenerLock);
 	return result;
+}
+
+-(BOOL)_hasAnyListeners:(NSArray*)types
+{
+	pthread_rwlock_rdlock(&listenerLock);
+	//If listeners is nil at this point, result is still false.
+    for (NSString* key in types) {
+        if ([[listeners objectForKey:key] intValue]>0) {
+            pthread_rwlock_unlock(&listenerLock);
+            return true;
+        }
+    }
+	pthread_rwlock_unlock(&listenerLock);
+	return false;
 }
 
 -(void)_fireEventToListener:(NSString*)type withObject:(id)obj listener:(KrollCallback*)listener thisObject:(TiProxy*)thisObject_
@@ -953,24 +978,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 //What classes should actually use.
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
 {
-	if (![self _hasListeners:type])
-	{
-		return;
-	}
-	
-	TiBindingEvent ourEvent;
-	
-	ourEvent = TiBindingEventCreateWithNSObjects(self, self, type, obj);
-	if (report || (code != 0))
-	{
-		TiBindingEventSetErrorCode(ourEvent, code);
-	}
-	if (message != nil)
-	{
-		TiBindingEventSetErrorMessageWithNSString(ourEvent, message);
-	}
-	TiBindingEventSetBubbles(ourEvent, propagate);
-	TiBindingEventFire(ourEvent);
+	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:report errorCode:code message:message];
 }
 
 //Temporary method until source is removed, for our subclasses.

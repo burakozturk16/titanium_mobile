@@ -484,7 +484,7 @@
         MKMapPoint pt = MKMapPointForCoordinate(coord);
         pointArray[i] = pt;             
     }
-    MKPolyline* routeLine = [[MKPolyline polylineWithPoints:pointArray count:[points count]] autorelease];
+    MKPolyline* routeLine = [MKPolyline polylineWithPoints:pointArray count:[points count]];
     free(pointArray);
     
 	// construct the MKPolylineView
@@ -762,7 +762,7 @@
 
         BOOL draggable = [TiUtils boolValue: [ann valueForUndefinedKey:@"draggable"]];
         if (draggable && [[MKAnnotationView class] instancesRespondToSelector:NSSelectorFromString(@"isDraggable")])
-            [annView performSelector:NSSelectorFromString(@"setDraggable:") withObject:[NSNumber numberWithBool:YES]];
+            [annView performSelector:NSSelectorFromString(@"setDraggable:") withObject:@YES];
 
         annView.userInteractionEnabled = YES;
         annView.tag = [ann tag];

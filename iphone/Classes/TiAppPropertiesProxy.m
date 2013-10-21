@@ -52,6 +52,7 @@
 {
 	defaultsObject = [[NSUserDefaults standardUserDefaults] retain];
 	_defaultsNull = [[NSData alloc] initWithBytes:"NULL" length:4];
+	[self registerDefaultsFromSettingsBundle];
 	[super _configure];
 }
 
@@ -108,14 +109,14 @@ if (![self propertyExists:key]) return defaultValue; \
 
 -(id)getObject:(id)args
 {
-    GETPROP
-    id theObject = [defaultsObject objectForKey:key];
-    if ([theObject isKindOfClass:[NSData class]]) {
-        return [NSKeyedUnarchiver unarchiveObjectWithData:theObject];
-    }
-    else {
-        return theObject;
-    }
+	GETPROP
+	id theObject = [defaultsObject objectForKey:key];
+	if ([theObject isKindOfClass:[NSData class]]) {
+		return [NSKeyedUnarchiver unarchiveObjectWithData:theObject];
+	}
+	else {
+		return theObject;
+	}
 }
 
 #define SETPROP \
@@ -123,12 +124,12 @@ ENSURE_TYPE(args,NSArray);\
 NSString *key = [args objectAtIndex:0];\
 id value = [args count] > 1 ? [args objectAtIndex:1] : nil;\
 if (value==nil || value==[NSNull null]) {\
-    [defaultsObject removeObjectForKey:key];\
+	[defaultsObject removeObjectForKey:key];\
 	[defaultsObject synchronize]; \
 	return;\
 }\
 if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:value]) {\
-    return;\
+	return;\
 }\
 
 
@@ -180,10 +181,10 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 
 -(void)setObject:(id)args
 {
-    SETPROP
-    NSData* encoded = [NSKeyedArchiver archivedDataWithRootObject:value];
-    [defaultsObject setObject:encoded forKey:key];
-    [defaultsObject synchronize];
+	SETPROP
+	NSData* encoded = [NSKeyedArchiver archivedDataWithRootObject:value];
+	[defaultsObject setObject:encoded forKey:key];
+	[defaultsObject synchronize];
 }
 
 -(void)removeProperty:(id)args
@@ -214,6 +215,47 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 -(void) NSUserDefaultsDidChange
 {
 	[self fireEvent:@"change" withObject:nil];
+}
+
+- (void)registerDefaultsFromSettingsBundle
+{
+	NSUserDefaults * defs = [NSUserDefaults standardUserDefaults];
+	[defs synchronize];
+	
+	NSString *settingsBundle = [[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"];
+	
+	if(!settingsBundle)
+	{
+	   return;
+	}
+	
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
+	NSArray *preferences = [settings objectForKey:@"PreferenceSpecifiers"];
+	NSMutableDictionary *defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
+	 
+	for (NSDictionary *prefSpecification in preferences)
+	{
+		NSString *key = [prefSpecification objectForKey:@"Key"];
+		if (key)
+		{
+			// check if value readable in userDefaults
+			id currentObject = [defs objectForKey:key];
+			if (currentObject == nil)
+			{
+				// not readable: set value from Settings.bundle
+				id objectToSet = [prefSpecification objectForKey:@"DefaultValue"];
+				[defaultsToRegister setObject:objectToSet forKey:key];
+			}
+			else
+			{
+				// already readable: don't touch
+			}
+		}
+	}
+	
+	[defs registerDefaults:defaultsToRegister];
+	[defaultsToRegister release];
+	[defs synchronize];
 }
 
 @end

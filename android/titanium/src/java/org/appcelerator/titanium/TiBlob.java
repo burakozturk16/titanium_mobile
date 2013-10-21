@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.HashMap;
 
 import org.apache.commons.codec.binary.Base64;
@@ -24,17 +23,18 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.util.KrollStreamHelper;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TitaniumBlob;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiMimeTypeHelper;
+import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.CompressFormat;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Path;
-import android.graphics.Path.Direction;
-import android.graphics.RectF;
 import android.media.ThumbnailUtils;
+import android.os.Build;
 
 /** 
  * A Titanium Blob object. A Blob can represent any opaque data or input stream.
@@ -133,21 +133,7 @@ public class TiBlob extends KrollProxy
 	 */
 	public static TiBlob blobFromImage(Bitmap image)
 	{
-	
-		ByteArrayOutputStream bos = new ByteArrayOutputStream();
-		byte data[] = new byte[0];
-		if (image.hasAlpha()) {
-			if (image.compress(CompressFormat.PNG, 100, bos)) {
-				data = bos.toByteArray();
-			}
-		}
-		else {
-			if (image.compress(CompressFormat.JPEG, 100, bos)) {
-				data = bos.toByteArray();
-			}
-		}
-
-		TiBlob blob = new TiBlob(TYPE_IMAGE, data, "image/bitmap");
+		TiBlob blob = new TiBlob(TYPE_IMAGE, null, "image/bitmap");
 		blob.image = image;
 		blob.width = image.getWidth();
 		blob.height = image.getHeight();
@@ -257,7 +243,7 @@ public class TiBlob extends KrollProxy
 			case TYPE_DATA:
 			case TYPE_IMAGE:
 				//TODO deal with mimetypes.
-				bytes = (byte[]) data;
+				bytes = (byte[]) getData();
 				break;
 			case TYPE_FILE:	
 				InputStream stream = getInputStream();
@@ -279,6 +265,15 @@ public class TiBlob extends KrollProxy
 
 		return bytes;
 	}
+	
+    @SuppressLint("NewApi")
+	protected int sizeOf(Bitmap data) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB_MR1) {
+            return data.getRowBytes() * data.getHeight();
+        } else {
+            return data.getByteCount();
+        }
+    } 
 
 	@Kroll.getProperty @Kroll.method
 	public int getLength()
@@ -294,7 +289,10 @@ public class TiBlob extends KrollProxy
 				return (int) fileSize;
 			case TYPE_DATA:
 			case TYPE_IMAGE:
-				return ((byte[])data).length;
+				if (image != null) {
+					return sizeOf(image);
+				}
+				return ((byte[])getData()).length;
 			default:
 				// this is probably overly expensive.. is there a better way?
 				return getBytes().length;
@@ -334,7 +332,7 @@ public class TiBlob extends KrollProxy
 				break;
 			case TYPE_IMAGE:
 			case TYPE_DATA :
-				byte[] dataBytes = (byte[]) data;
+				byte[] dataBytes = (byte[]) getData();
 				byte[] appendBytes = blob.getBytes();
 				byte[] newData = new byte[dataBytes.length + appendBytes.length];
 				System.arraycopy(dataBytes, 0, newData, 0, dataBytes.length);
@@ -391,6 +389,20 @@ public class TiBlob extends KrollProxy
 	 */
 	public Object getData()
 	{
+		if (data == null && image != null) {
+			ByteArrayOutputStream bos = new ByteArrayOutputStream();
+			data = new byte[0];
+			if (image.hasAlpha()) {
+				if (image.compress(CompressFormat.PNG, 100, bos)) {
+					data = bos.toByteArray();
+				}
+			}
+			else {
+				if (image.compress(CompressFormat.JPEG, 100, bos)) {
+					data = bos.toByteArray();
+				}
+			}
+		}
 		return data;
 	}
 
@@ -504,7 +516,7 @@ public class TiBlob extends KrollProxy
 	}
 
 	@Kroll.method
-	public TiBlob imageAsCropped(Object params)
+	public TiBlob imageAsCropped(Object params, @Kroll.argument(optional=true) HashMap options)
 	{
 		Bitmap img = getImage();
 		if (img == null) {
@@ -514,17 +526,32 @@ public class TiBlob extends KrollProxy
 			Log.e(TAG, "Argument for imageAsCropped must be a dictionary");
 			return null;
 		}
+		float scale = 1.0f;
+		if (options != null) {
+			if (options.containsKey("scale")) {
+				scale = TiConvert.toFloat(options, "scale", 1.0f);
+			}
+		}
+		Context context = TiApplication.getInstance().getApplicationContext();
+		
 
-		KrollDict options = new KrollDict((HashMap) params);
-		int widthCropped = options.optInt(TiC.PROPERTY_WIDTH, width);
-		int heightCropped = options.optInt(TiC.PROPERTY_HEIGHT, height);
-		int x = options.optInt(TiC.PROPERTY_X, (width - widthCropped) / 2);
-		int y = options.optInt(TiC.PROPERTY_Y, (height - heightCropped) / 2);
+		KrollDict rect = new KrollDict((HashMap) params);
+		int widthCropped = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_WIDTH, width),
+				context) * scale);
+		int heightCropped = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_HEIGHT, height),
+				context)* scale);
+		int x = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_X, (width - widthCropped) / 2),
+				context)* scale);
+		int y = (int) (TiUIHelper.getRawDIPSize(rect.optInt(TiC.PROPERTY_Y, (height - heightCropped) / 2),
+				context)* scale);
 		try {
 			Bitmap imageCropped = Bitmap.createBitmap(img, x, y, widthCropped, heightCropped);
 			return blobFromImage(imageCropped);
 		} catch (OutOfMemoryError e) {
 			Log.e(TAG, "Unable to crop the image. Not enough memory: " + e.getMessage(), e);
+			return null;
+		} catch (IllegalArgumentException e) {
+			Log.e(TAG, "Unable to crop the image: " + e.getMessage(), e);
 			return null;
 		}
 	}
@@ -641,4 +668,16 @@ public class TiBlob extends KrollProxy
 			return null;
 		}
 	}
+	
+	@Kroll.method
+	public TiBlob imageAsFiltered(HashMap options)
+	{
+		Bitmap bitmap = getImage();
+		if (bitmap != null) {
+			return null;
+		}
+		bitmap = TiImageHelper.imageFiltered(bitmap, options);
+		return TiBlob.blobFromImage(bitmap);
+	}
+
 }

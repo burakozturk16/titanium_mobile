@@ -42,6 +42,7 @@ import org.json.JSONObject;
  * the view object is a proxy itself.
  */
 @Kroll.proxy(name = "KrollProxy", propertyAccessors = { KrollProxy.PROPERTY_HAS_JAVA_LISTENER })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class KrollProxy implements Handler.Callback, KrollProxySupport
 {
 	private static final String TAG = "KrollProxy";
@@ -62,7 +63,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_FIRE_SYNC_EVENT = KrollObject.MSG_LAST_ID + 108;
 	protected static final int MSG_CALL_PROPERTY_ASYNC = KrollObject.MSG_LAST_ID + 109;
 	protected static final int MSG_CALL_PROPERTY_SYNC = KrollObject.MSG_LAST_ID + 110;
-	protected static final int MSG_LAST_ID = MSG_CALL_PROPERTY_SYNC;
+	protected static final int MSG_MODEL_APPLY_PROPERTIES = KrollObject.MSG_LAST_ID + 111;
+	protected static final int MSG_LAST_ID = MSG_MODEL_APPLY_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
 
@@ -117,10 +119,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	private void setupProxy(KrollObject object, Object[] creationArguments, TiUrl creationUrl)
 	{
-		// Store reference to the native object that represents this proxy so we can drive changes to the JS 
-		// object
-		krollObject = object;
-		object.setProxySupport(this);
+		if (object != null) {
+			// Store reference to the native object that represents this proxy so we can drive changes to the JS 
+			// object
+			krollObject = object;
+			object.setProxySupport(this);
+		}
 		this.creationUrl = creationUrl;
 
 		// Associate the activity with the proxy.  if the proxy needs activity association delayed until a 
@@ -229,6 +233,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				setProperty(key, defaultValues.get(key));
 			}
 		}
+	}
+	
+	public Object getDefaultValue(String key)
+	{
+		return defaultValues.get(key);
 	}
 
 	/**
@@ -550,6 +559,20 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		return properties.get(name);
 	}
+	
+	/**
+	 * Returns the property value given its key.
+	 * Properties are cached on the Proxy and updated from JS for relevant annotated APIs
+	 * @param name  the lookup key.
+	 * @return the property object or null if a property for the given key does not exist.
+	 * @module.api
+	 */
+	public Object getProperty(String name, Object defaultValue)
+	{
+		if (properties.containsKey(name))
+			return properties.get(name);
+		else return defaultValue;
+	}
 
 	/**
 	 * @deprecated use setPropertyAndFire instead
@@ -583,6 +606,44 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
+	
+	/**
+	 * This sets the named property as well as updating the actual JS object.
+	 * @module.api
+	 */
+	public void setProperties(KrollDict newProps)
+	{
+		KrollDict realProperties = (newProps!= null)?new KrollDict(newProps):new KrollDict();
+		for (String key : properties.keySet()) {
+			if (!realProperties.containsKey(key)) {
+				realProperties.put(key, null);
+			}
+		}
+		
+		KrollDict changedProps = new KrollDict();
+		for (Object key : realProperties.keySet()) {
+			String name = TiConvert.toString(key);
+			Object value = realProperties.get(key);
+			Object current = getProperty(name);
+			if (shouldFireChange(current, value)) {
+				changedProps.put(name, value);
+			}
+		}
+		
+		properties.clear();
+		if (newProps!= null) properties.putAll(newProps);
+		
+		if (modelListener != null) {
+			if (TiApplication.isUIThread()) {
+				modelListener.processProperties(changedProps);
+			}
+			else {
+				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
+				message.sendToTarget();
+			}
+
+		}
+	}
 	public class KrollPropertyChangeSet extends KrollPropertyChange {
 		public int entryCount;
 		public String[] keys;
@@ -614,46 +675,46 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
-	@Kroll.method
-	public void applyProperties(Object arg)
+	public void applyPropertiesInternal(Object arg, boolean force)
 	{
 		if (!(arg instanceof HashMap)) {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
 			return;
 		}
 		HashMap props = (HashMap) arg;
-		if (modelListener == null) {
-			for (Object name : props.keySet()) {
-				setProperty(TiConvert.toString(name), props.get(name));
-			}
-			return;
-		}
-		if (TiApplication.isUIThread()) {
-			for (Object key : props.keySet()) {
-				String name = TiConvert.toString(key);
-				Object value = props.get(key);
-				Object current = getProperty(name);
-				setProperty(name, value);
-				if (shouldFireChange(current, value)) {
-					modelListener.propertyChanged(name, current, value, this);
-				}
-			}
-			return;		
-		}
-		
-		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
+		KrollDict changedProps = new KrollDict();
+//		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
 		for (Object key : props.keySet()) {
 			String name = TiConvert.toString(key);
 			Object value = props.get(key);
 			Object current = getProperty(name);
-			setProperty(name, value);
 			if (shouldFireChange(current, value)) {
-				changes.addChange(name, current, value);
+				setProperty(name, value);
+				changedProps.put(name, value);
 			}
+			else if (force)
+				changedProps.put(name, value);
 		}
-		if (changes.entryCount > 0) {
-			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
+//		if (modelListener != null && changedProps.size() > 0) {
+		if (modelListener != null) {
+			if (TiApplication.isUIThread()) {
+				modelListener.processProperties(changedProps);
+			}
+			else {
+				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
+				message.sendToTarget();
+			}
+
 		}
+//		if (changes.entryCount > 0) {
+//			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
+//		}
+	}
+
+	@Kroll.method
+	public void applyProperties(Object arg)
+	{
+		applyPropertiesInternal(arg, false);
 	}
 
 	/**
@@ -705,7 +766,25 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		bubbleParent = TiConvert.toBoolean(value);
 	}
-
+	
+	/**
+	 * Fires an event asynchronously via KrollRuntime thread, which can be intercepted on JS side.
+	 * @param event the event to be fired.
+	 * @param data  the data to be sent.
+	 * @return whether this proxy has an eventListener for this event.
+	 * @module.api
+	 */
+	public boolean fireEvent(String event)
+	{
+		if (hierarchyHasListener(event)) {
+			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT);
+			message.getData().putString(PROPERTY_NAME, event);
+			message.sendToTarget();
+			return true;
+		}
+		return false;
+	}
+	
 	/**
 	 * Fires an event asynchronously via KrollRuntime thread, which can be intercepted on JS side.
 	 * @param event the event to be fired.
@@ -786,7 +865,6 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public boolean doFireEvent(String event, Object data)
 	{
 		if (!hierarchyHasListener(event)) {
@@ -959,6 +1037,14 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			firePropertyChanged(name, current, value);
 		}
 	}
+	
+	public void setPropertyAndForceFire(String name, Object value)
+	{
+		Object current = getProperty(name);
+		setProperty(name, value);
+
+		firePropertyChanged(name, current, value);
+	}
 
 	public void onPropertyChanged(String name, Object value)
 	{
@@ -1083,6 +1169,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				}
 				return true;
 			}
+			case MSG_MODEL_APPLY_PROPERTIES: {
+				if (modelListener != null) {
+					modelListener.processProperties((KrollDict)msg.obj);
+				}
+				return true;
+			}
 			case MSG_MODEL_PROPERTIES_CHANGED: {
 				firePropertiesChanged((Object[][])msg.obj);
 
@@ -1174,13 +1266,18 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public void setModelListener(KrollProxyListener modelListener)
 	{
+		setModelListener(modelListener, true);
+	}
+	
+	public void setModelListener(KrollProxyListener modelListener , Boolean applyProps)
+	{
 		// Double-setting the same modelListener can potentially have weird side-effects.
 		if (this.modelListener != null && this.modelListener.equals(modelListener)) {
 			return;
 		}
 
 		this.modelListener = modelListener;
-		if (modelListener != null) {
+		if (modelListener != null && applyProps) {
 			if (TiApplication.isUIThread()) {
 				modelListener.processProperties(properties);
 			} else {

@@ -2,11 +2,15 @@ var win = Titanium.UI.currentWindow;
 
 var b1 = Titanium.UI.createButton({
 	title:'I am a Button',
+	backgroundImage:'../images/BUTT_grn_off.png',
+	backgroundSelectedImage:'../images/BUTT_grn_on.png',
 	height:40,
 	width:200,
 	top:10
 });
-
+b1.addEventListener('click', function(){
+	b1.selected = !b1.selected;
+})
 
 var b2 = Titanium.UI.createButton({
 	title:'I am a Button',

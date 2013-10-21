@@ -1,5 +1,5 @@
 /*global define*/
-define(['Ti/_/declare', 'Ti/_/UI/KineticScrollView', 'Ti/_/style', 'Ti/_/lang', 'Ti/UI/MobileWeb/TableViewSeparatorStyle', 'Ti/UI'],
+define(['Ti/_/declare', 'Ti/_/UI/KineticScrollView', 'Ti/_/style', 'Ti/_/lang', 'Ti/UI/TableViewSeparatorStyle', 'Ti/UI'],
 	function(declare, KineticScrollView, style, lang, TableViewSeparatorStyle, UI) {
 
 	var setStyle = style.set,

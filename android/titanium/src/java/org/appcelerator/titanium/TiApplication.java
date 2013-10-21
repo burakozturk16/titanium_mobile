@@ -94,6 +94,10 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	// Whether or not using legacy window. This is set in the application's tiapp.xml with the
 	// "ti.android.useLegacyWindow" property.
 	public static boolean USE_LEGACY_WINDOW = false;
+	
+	private int nbRunningActivities = 0;
+	private boolean startingActivity = false;
+	private boolean finishingActivity = false;
 
 	private boolean restartPending = false;
 	private String baseUrl;
@@ -633,7 +637,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	private boolean collectAnalytics()
 	{
-		return getAppInfo().isAnalyticsEnabled();
+		return false;
 	}
 
 	/**
@@ -642,55 +646,55 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	 */
 	public synchronized void postAnalyticsEvent(TiAnalyticsEvent event)
 	{
-		if (!collectAnalytics()) {
-			Log.i(TAG, "Analytics are disabled, ignoring postAnalyticsEvent", Log.DEBUG_MODE);
-			return;
-		}
-		lastAnalyticsEvent = event;
-		if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_ENROLL) {
-			if (needsEnrollEvent) {
-				lastEventID = analyticsModel.addEvent(event);
-				needsEnrollEvent = false;
-				sendAnalytics();
-				analyticsModel.markEnrolled();
-			}
-
-		} else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_START) {
-			HashMap<Integer,String> tsForEndEvent = analyticsModel.getLastTimestampForEventType(TiAnalyticsEventFactory.EVENT_APP_END);
-			if (tsForEndEvent.size() == 1) {
-				for (Integer key : tsForEndEvent.keySet()) {
-					try {
-						SimpleDateFormat dateFormat = TiAnalyticsEvent.getDateFormatForTimestamp();
-						long lastEnd = dateFormat.parse(tsForEndEvent.get(key)).getTime(); //in millisecond
-						long start = dateFormat.parse(event.getEventTimestamp()).getTime();
-						// If the new activity starts immediately after the previous activity pauses, we consider
-						// the app is still in foreground so will not send any analytics events
-						if (start - lastEnd < TIME_SEPARATION_ANALYTICS) {
-							analyticsModel.deleteEvents(new int[] {key});
-							return;
-						}
-					} catch (ParseException e) {
-						Log.e(TAG, "Incorrect timestamp. Unable to send the ti.start event.", e);
-					}
-				}
-			}
-			lastEventID = analyticsModel.addEvent(event);
-			sendAnalytics();
-			lastAnalyticsTriggered = System.currentTimeMillis();
-			return;
-
-		} else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_END) {
-			lastEventID = analyticsModel.addEvent(event);
-			sendAnalytics();
-
-		} else {
-			lastEventID = analyticsModel.addEvent(event);
-			long now = System.currentTimeMillis();
-			if (now - lastAnalyticsTriggered >= STATS_WAIT) {
-				sendAnalytics();
-				lastAnalyticsTriggered = now;
-			}
-		}
+//		if (!collectAnalytics()) {
+//			Log.i(TAG, "Analytics are disabled, ignoring postAnalyticsEvent", Log.DEBUG_MODE);
+//			return;
+//		}
+//		lastAnalyticsEvent = event;
+//		if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_ENROLL) {
+//			if (needsEnrollEvent) {
+//				lastEventID = analyticsModel.addEvent(event);
+//				needsEnrollEvent = false;
+//				sendAnalytics();
+//				analyticsModel.markEnrolled();
+//			}
+//
+//		} else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_START) {
+//			HashMap<Integer,String> tsForEndEvent = analyticsModel.getLastTimestampForEventType(TiAnalyticsEventFactory.EVENT_APP_END);
+//			if (tsForEndEvent.size() == 1) {
+//				for (Integer key : tsForEndEvent.keySet()) {
+//					try {
+//						SimpleDateFormat dateFormat = TiAnalyticsEvent.getDateFormatForTimestamp();
+//						long lastEnd = dateFormat.parse(tsForEndEvent.get(key)).getTime(); //in millisecond
+//						long start = dateFormat.parse(event.getEventTimestamp()).getTime();
+//						// If the new activity starts immediately after the previous activity pauses, we consider
+//						// the app is still in foreground so will not send any analytics events
+//						if (start - lastEnd < TIME_SEPARATION_ANALYTICS) {
+//							analyticsModel.deleteEvents(new int[] {key});
+//							return;
+//						}
+//					} catch (ParseException e) {
+//						Log.e(TAG, "Incorrect timestamp. Unable to send the ti.start event.", e);
+//					}
+//				}
+//			}
+//			lastEventID = analyticsModel.addEvent(event);
+//			sendAnalytics();
+//			lastAnalyticsTriggered = System.currentTimeMillis();
+//			return;
+//
+//		} else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_END) {
+//			lastEventID = analyticsModel.addEvent(event);
+//			sendAnalytics();
+//
+//		} else {
+//			lastEventID = analyticsModel.addEvent(event);
+//			long now = System.currentTimeMillis();
+//			if (now - lastAnalyticsTriggered >= STATS_WAIT) {
+//				sendAnalytics();
+//				lastAnalyticsTriggered = now;
+//			}
+//		}
 	}
 
 	public boolean handleMessage(Message msg)
@@ -941,5 +945,27 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	}
 
 	public abstract void verifyCustomModules(TiRootActivity rootActivity);
+	
+	public void setStartingActivity(boolean starting) {
+		startingActivity = starting;
+	}
+	
+	public void activityPaused(Activity activity) {
+		nbRunningActivities -= 1;
+		if (activity.isFinishing()) {
+			finishingActivity = true;
+		}
+		if (!startingActivity && !activity.isFinishing() && nbRunningActivities == 0) {
+			fireAppEvent(TiC.EVENT_PAUSE, null);
+		}
+	}
+	
+	public void activityResumed(Activity activity) {
+		if (!startingActivity && !finishingActivity && nbRunningActivities == 0) {
+			fireAppEvent(TiC.EVENT_RESUME, null);
+		}
+		finishingActivity = false;
+		nbRunningActivities += 1;
+	}
 }
 

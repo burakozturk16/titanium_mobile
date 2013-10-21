@@ -12,20 +12,20 @@
 @class TiUITableViewCell;
 @class TiUITableView;
 @class TiUITableViewSectionProxy;
+@class TiUITableViewRowContainer;
 
-@interface TiUITableViewRowProxy : TiViewProxy <TiProxyDelegate>
+@interface TiUITableViewRowProxy : TiViewProxy <TiAnimationDelegate, TiProxyDelegate>
 {
 @private
 	NSString *tableClass;
 	TiUITableView *table;
 	TiUITableViewSectionProxy *section;
-	TiDimension height;
+//	TiDimension height;
 	TiDimension leftCap;
 	TiDimension topCap;
 	BOOL configuredChildren;
 	int dirtyRowFlags;
-	BOOL subviewIsAnimating;
-	UIView * rowContainerView;
+//	TiUITableViewRowContainer * rowContainerView;
 	BOOL modifyingRow;
 	BOOL attaching;
 	NSInteger row;
@@ -35,7 +35,7 @@
 #pragma mark Public APIs
 
 @property(nonatomic,readonly)	NSString *tableClass;
-@property(nonatomic, readonly) BOOL reusable; // Readonly until reproxy/reuse implemented properly
+@property(nonatomic) BOOL reusable; // Readonly until reproxy/reuse implemented properly
 
 #pragma mark Framework
 
@@ -53,6 +53,7 @@
 -(void)triggerAttach;
 -(void)updateRow:(NSDictionary*)data withObject:(NSDictionary*)properties;
 -(UIView*) currentRowContainerView; //Private method :For internal use only.
+-(void)configureBackgroundColor;
 -(void)triggerLayout; //Private method :For internal use only. Called from layoutSubviews of the cell.
 
 @end

@@ -30,6 +30,22 @@ NSArray * tableKeySequence;
 @implementation TiUITableViewProxy
 @synthesize internalSections=sections;
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"scrollsToTop",
+                                              @"selectedBackgroundGradient",@"data",@"allowSelection",
+                                              @"allowSelectionDuringEditing",@"separatorStyle",
+                                              @"search", @"scrollIndicatorStyle", @"showVerticalScrollIndicator",
+                                              @"searchHidden", @"hideSearchOnSelection", @"filterAttribute",
+                                              @"index", @"filterCaseInsensitive", @"editable",
+                                              @"moveable", @"scrollable", @"editing",
+                                              @"moving", @"rowHeight", @"minRowHeight", @"maxRowHeight",
+                                              @"headerPullView", @"contentInsets",
+                                              @"separatorColor", @"headerTitle", @"headerView",
+                                              @"footerTitle", @"footerView", nil]];
+}
+
 USE_VIEW_FOR_CONTENT_HEIGHT
 
 #pragma mark Internal
@@ -84,16 +100,25 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 {
     TiUITableView * ourView = (TiUITableView *)[self view];
     ourView.viewWillDetach = NO;
+    int newCount = 0;
     for (TiUITableViewSectionProxy* section in sections) {
 		[section setTable:ourView];
-    }
+		[section setSection:newCount ++];
+		[self rememberSection:section];
+		//TODO: Shouldn't this be done by Section itself? Doesn't it already?
+		for (TiUITableViewRowProxy *row in section)
+		{
+			row.section = section;
+            [row setParent:section checkForOpen:NO];
+		}
+	}
 }
 
 -(NSArray *)keySequence
 {
 	if (tableKeySequence == nil)
 	{
-		tableKeySequence = [[NSArray arrayWithObjects:@"style",@"search",@"data",@"backgroundColor",nil] retain];
+		tableKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"style",@"data",@"search",@"backgroundColor"]] retain];
 	}
 	return tableKeySequence;
 }
@@ -349,6 +374,15 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	[(TiUITableView*)[self view] scrollToTop:top animated:animated];
 }
 
+-(void)scrollToBottom:(id)args
+{
+	ENSURE_UI_THREAD(scrollToTop,args);
+	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
+	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
+	
+	[(TiUITableView*)[self view] scrollToBottom:top animated:animated];
+}
 
 -(NSNumber*)getIndexByName:(id)args
 {
@@ -368,6 +402,33 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 		}
 	}
 	return NUMINT(-1);
+}
+
+-(TiUITableViewRowProxy*)getRowByName:(id)args
+{
+	ENSURE_SINGLE_ARG(args,NSString);
+	for (TiUITableViewSectionProxy *section in sections)
+	{
+		for (TiUITableViewRowProxy *row in [section rows])
+		{
+			if ([args isEqualToString:[row valueForUndefinedKey:@"name"]])
+			{
+				return row;
+			}
+		}
+	}
+	return nil;
+}
+
+-(TiUITableViewRowProxy*)getRowAtPoint:(id)args
+{
+	ENSURE_SINGLE_ARG(args,NSObject);
+	BOOL validPoint;
+	CGPoint point = [TiUtils pointValue:args valid:&validPoint];
+	if (!validPoint) {
+		[self throwException:TiExceptionInvalidType subreason:@"Parameter is not convertable to a TiPoint" location:CODELOCATION];
+	}
+	return [(TiUITableView*)[self view] rowAtPoint:point];
 }
 
 -(void)updateRow:(id)args
@@ -525,7 +586,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowBefore;
-    TiUITableViewSectionProxy *actionSection = section;
+//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
@@ -554,7 +615,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionBefore;
-        actionSection = newSection;
+//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -605,7 +666,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	
 	TiUITableViewRowProxy *newrow = [self tableRowFromArg:data];
     TiUITableViewActionType actionType = TiUITableViewActionInsertRowAfter;
-    TiUITableViewSectionProxy *actionSection = section;
+//    TiUITableViewSectionProxy *actionSection = section;
     id header = [newrow valueForKey:@"header"];
     if (header != nil) {
         TiUITableViewSectionProxy *newSection = [self sectionWithHeader:header table:table];
@@ -631,7 +692,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
         
         // Configure the action
         actionType = TiUITableViewActionInsertSectionAfter;
-        actionSection = newSection;
+//        actionSection = newSection;
     }
     else {
 		[section rememberProxy:newrow];	//If we wait until the main thread, it'll be too late!
@@ -767,9 +828,16 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 			[section add:row];
 		}
 	}
-	
-	TiUITableViewAction *action = [[[TiUITableViewAction alloc] initWithObject:data animation:properties type:TiUITableViewActionSetData] autorelease];
-	[self makeViewPerformSelector:@selector(dispatchAction:) withObject:action createIfNeeded:YES waitUntilDone:immediate];
+    
+    if (![self view])
+    {
+        self.internalSections = data;
+        needsReloadOnAttach = YES;
+    }
+	else{
+        TiUITableViewAction *action = [[[TiUITableViewAction alloc] initWithObject:data animation:properties type:TiUITableViewActionSetData] autorelease];
+        [self makeViewPerformSelector:@selector(dispatchAction:) withObject:action createIfNeeded:YES waitUntilDone:immediate];
+    }
 }
 
 -(void)setData:(id)args withObject:(id)properties
@@ -812,7 +880,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	[[self view] performSelector:@selector(setContentInsets_:withObject:) withObject:arg1 withObject:arg2];
 }
 
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 
 #pragma mark Section management
 
@@ -974,7 +1042,7 @@ DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 			} else { //UITableView doesn't know we had 0 sections.
 				[ourTable beginUpdates];
-				NSRange insertedSectionRange = NSMakeRange(1, sectionRange.length - 1);
+//				NSRange insertedSectionRange = NSMakeRange(1, sectionRange.length - 1);
 				[ourTable deleteSections:[NSIndexSet indexSetWithIndex:0] withRowAnimation:ourAnimation];
 				[ourTable insertSections:[NSIndexSet indexSetWithIndexesInRange:sectionRange] withRowAnimation:ourAnimation];
 				[ourTable endUpdates];
@@ -1140,6 +1208,21 @@ DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
 		} forceReload:NO];
 	}, NO);
 }
+
+-(id)createEventObject:(id)initialObject
+{
+    if (initialObject && [initialObject objectForKey:@"row"])
+        return initialObject; //row property already there
+    
+    TiUITableViewRowProxy* rowProxy = [self getRowAtPoint:initialObject];
+    if (rowProxy != nil)
+    {
+        return [rowProxy createEventObject:initialObject];
+    }
+    NSLog(@"%@", initialObject);
+	return initialObject;
+}
+
 @end 
 
 #endif

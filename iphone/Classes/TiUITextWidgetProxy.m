@@ -15,6 +15,16 @@
 @synthesize suppressFocusEvents;
 DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"color",
+                                              @"font",@"textAlign",@"value",@"returnKeyType",
+                                              @"enableReturnKey",@"keyboardType",
+                                              @"autocorrect", @"passwordMask",
+                                              @"appearance",@"autocapitalization", nil]];
+}
+
 - (void)windowWillClose
 {
 	if([self viewInitialized])
@@ -63,36 +73,6 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
         BOOL viewHasText = value!=nil && [value length] > 0;
         return [NSNumber numberWithBool:viewHasText];
     }
-}
-
-
--(void)blur:(id)args
-{
-	ENSURE_UI_THREAD_1_ARG(args)
-	if ([self viewAttached])
-	{
-		[[self view] resignFirstResponder];
-	}
-}
-
--(void)focus:(id)args
-{
-	ENSURE_UI_THREAD_1_ARG(args)
-	if ([self viewAttached])
-	{
-		[[self view] becomeFirstResponder];
-	}
-}
-
--(BOOL)focused:(id)unused
-{
-	BOOL result=NO;
-	if ([self viewAttached])
-	{
-		result = [(TiUITextWidget*)[self view] isFirstResponder];
-	}
-
-	return result;
 }
 
 -(void)noteValueChange:(NSString *)newValue
@@ -273,6 +253,14 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 -(TiDimension)defaultAutoHeightBehavior:(id)unused
 {
     return TiDimensionAutoSize;
+}
+
+
+-(BOOL)selectNextTextWidget
+{
+    TiUITextWidgetProxy* nextOne = (TiUITextWidgetProxy*)[[self parent] getNextChildrenOfClass:[TiUITextWidgetProxy class] afterChild:self];
+    
+    return(nextOne != nil && [[nextOne view] becomeFirstResponder]);
 }
 
 -(void)setSelection:(id)arg withObject:(id)property

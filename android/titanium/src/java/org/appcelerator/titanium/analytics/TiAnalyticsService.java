@@ -68,6 +68,7 @@ public class TiAnalyticsService extends Service
 	@Override
 	public void onStart(Intent intent, final int startId) {
 		super.onStart(intent, startId);
+		if(true)return;
 
 		if (!sending.compareAndSet(false, true)) {
 			Log.i(TAG, "Send already in progress, skipping intent");

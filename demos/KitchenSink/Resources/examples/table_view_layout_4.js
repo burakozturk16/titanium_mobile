@@ -4,6 +4,8 @@
 //http://cocoawithlove.com/2009/04/easy-custom-uitableview-drawing.html
 
 var win = Titanium.UI.currentWindow;
+win.backgroundColor = 'white';
+
 win.backgroundImage = '../images/tableview/easycustom/gradientBackground.png';
 
 var data = [];
@@ -122,7 +124,7 @@ var tableview = Titanium.UI.createTableView({
 	footerView:footerView,
 	maxRowHeight:100,
 	minRowHeight:100,
-	separatorStyle: Ti.UI.iPhone.TableViewSeparatorStyle.NONE
+	separatorStyle: Ti.UI.TableViewSeparatorStyle.NONE
 });
 
 tableview.addEventListener('click',function(e)

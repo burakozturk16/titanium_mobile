@@ -46,7 +46,7 @@
     NSString* string = [TiUtils stringValue:value];
     if (string == nil)
 	{
-		return;
+		string = @"";
 	}
     if (maxLength > -1 && [string length] > maxLength) {
         string = [string substringToIndex:maxLength];

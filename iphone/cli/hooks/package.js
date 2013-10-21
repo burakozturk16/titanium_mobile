@@ -21,13 +21,13 @@ exports.init = function (logger, config, cli) {
 	cli.addHook('build.post.compile', {
 		priority: 8000,
 		post: function (build, finished) {
-			if (!/dist-(appstore|adhoc)/.test(cli.argv.target)) return finished();
-
-			if (cli.argv['build-only']) {
-				logger.info('Performed build only, skipping packaging');
-				return finished();
-			}
-
+			if (!/dist-(appstore|adhoc)|device/.test(cli.argv.target)) return finished();
+			
+			// if (cli.argv['build-only']) {
+			// 	logger.info('Performed build only, skipping packaging');
+			// 	return finished();
+			// }
+			
 			switch (cli.argv.target) {
 				case 'dist-appstore':
 					logger.info('Packaging for App Store distribution');
@@ -102,9 +102,17 @@ exports.init = function (logger, config, cli) {
 						});
 					});
 					break;
-
+					
+				case 'device':
+					if (!cli.argv['build-only']) {
+						return finished();
+					}
 				case 'dist-adhoc':
-					logger.info('Packaging for Ad Hoc distribution');
+					if (cli.argv.target == 'dist-adhoc')
+						logger.info('Packaging for Ad Hoc distribution');
+					else
+						logger.info('Packaging for dev distribution');
+
 					var pkgapp = path.join(build.xcodeEnv.path, 'Platforms', 'iPhoneOS.platform', 'Developer', 'usr', 'bin', 'PackageApplication');
 					exec('"' + pkgapp + '" "' + build.xcodeAppDir + '"', function (err, stdout, stderr) {
 						if (err) {
@@ -113,21 +121,34 @@ exports.init = function (logger, config, cli) {
 							return finished();
 						}
 
+						var appName = build.tiapp.name;
+						if (cli.argv.target == 'device')
+							appName += '_dev';
+						
 						var ipa = path.join(path.dirname(build.xcodeAppDir), build.tiapp.name + '.ipa'),
 							dest = ipa,
-							outputDir = cli.argv['output-dir'] && afs.resolvePath(cli.argv['output-dir']);
-
-						if (outputDir) {
-							fs.existsSync(outputDir) || wrench.mkdirSyncRecursive(outputDir);
-							dest = path.join(outputDir, build.tiapp.name + '.ipa');
-							fs.existsSync(dest) && fs.unlink(dest);
+							dsymfilename=build.tiapp.name + '.app.dSYM'
+							dsym = path.join(path.dirname(build.xcodeAppDir), dsymfilename);
+						
+						if (cli.argv['output-dir']) {
+							dest = path.join(cli.argv['output-dir'], appName + '.ipa');
+							afs.exists(dest) && fs.unlink(dest);
 							afs.copyFileSync(ipa, dest, { logger: logger.debug });
+
+							dest = path.join(cli.argv['output-dir'], appName + '.app.dSYM.zip');
+							afs.exists(dest) && fs.unlink(dest);
+							exec('cd "' + path.dirname(dsym) + '"; /usr/bin/zip -r  "' + dest +  '" "' + dsymfilename +  '"', function (err, stdout, stderr) {
+								logger.info(__('Packaging complete'));
+								logger.info(__('Package location: %s', dest.cyan));
+								finished();
+							});
 						}
-
-						logger.info(__('Packaging complete'));
-						logger.info(__('Package location: %s', dest.cyan));
-
-						finished();
+						else {
+							logger.info(__('Packaging complete'));
+							logger.info(__('Package location: %s', dest.cyan));
+						
+							finished();
+						}
 					});
 					break;
 			}

@@ -22,7 +22,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 
 -(void)logMessage:(NSArray*)args severity:(NSString*)severity
 {
-    NSMutableString* message = [NSMutableString string];
+//    NSMutableString* message = [NSMutableString string];
     
     NSString* lcSeverity = [severity lowercaseString];
     DebuggerLogLevel level = OUT;

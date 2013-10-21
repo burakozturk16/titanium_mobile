@@ -13,17 +13,23 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.util.TiRHelper;
 
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.widget.TiUIProgressIndicator;
 import ti.modules.titanium.ui.widget.webview.TiUIWebView;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.text.util.Linkify;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
+import android.preference.PreferenceManager;
+import android.content.Context;
 
+@SuppressLint("InlinedApi")
+@SuppressWarnings("deprecation")
 @Kroll.module(parentModule=UIModule.class)
 @Kroll.dynamicApis(properties = {
 	"currentActivity"
@@ -47,6 +53,7 @@ public class AndroidModule extends KrollModule
 	@Kroll.constant public static final int PIXEL_FORMAT_TRANSPARENT = PixelFormat.TRANSPARENT;
 	@Kroll.constant public static final int PIXEL_FORMAT_UNKNOWN = PixelFormat.UNKNOWN;
 	
+	@Kroll.constant public static final int SOFT_INPUT_ADJUST_NOTHING = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_PAN = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_RESIZE = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
 	@Kroll.constant public static final int SOFT_INPUT_ADJUST_UNSPECIFIED = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED;
@@ -69,6 +76,7 @@ public class AndroidModule extends KrollModule
 	
 	@Kroll.constant public static final int SWITCH_STYLE_CHECKBOX     = 0;
 	@Kroll.constant public static final int SWITCH_STYLE_TOGGLEBUTTON = 1;
+	@Kroll.constant public static final int SWITCH_STYLE_SWITCH = 2;
 	
 	@Kroll.constant public static final int WEBVIEW_PLUGINS_OFF = TiUIWebView.PLUGIN_STATE_OFF;
 	@Kroll.constant public static final int WEBVIEW_PLUGINS_ON = TiUIWebView.PLUGIN_STATE_ON;
@@ -101,6 +109,36 @@ public class AndroidModule extends KrollModule
 	{
 		this();
 	}
+	
+	@Override
+	protected void initActivity(Activity activity)
+	{
+		super.initActivity(activity);
+		loadDefaultPreferences(TiPreferencesActivity.DEFAULT_PREFS_RNAME);
+	}
+	
+	private void loadDefaultPreferences(String prefsName)
+	{
+		try {
+			int resid = TiRHelper.getResource("xml." + prefsName);
+			PreferenceManager.setDefaultValues(TiApplication.getInstance().getBaseContext(), TiApplication.APPLICATION_PREFERENCES_NAME, Context.MODE_PRIVATE, resid, true);
+		} catch (TiRHelper.ResourceNotFoundException e) {
+			Log.d(TAG, "xml." + prefsName + " preferences not found.");
+			return ;
+		}
+	}
+
+	// TODO - grab the activity off the invocation?
+	@Kroll.method
+	public void loadPreferences(@Kroll.argument(optional=true) String prefsName)
+	{
+		String prefsFileName = TiPreferencesActivity.DEFAULT_PREFS_RNAME;
+		if (prefsName != null) {
+			prefsFileName = prefsName;
+		}
+		loadDefaultPreferences(prefsFileName);
+	}
+
 
 	// TODO - grab the activity off the invocation?
 	@Kroll.method

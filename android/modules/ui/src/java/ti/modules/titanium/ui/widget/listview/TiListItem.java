@@ -32,7 +32,7 @@ public class TiListItem extends TiUIView {
 		super(proxy);
 		layoutParams = p;
 		listItemLayout = item_layout;
-		setNativeView(v);	
+		setNativeView(v);
 		registerForTouch(v);
 		v.setFocusable(false);
 	}

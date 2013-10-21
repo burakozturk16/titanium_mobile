@@ -25,9 +25,10 @@ import org.appcelerator.titanium.proxy.DecorViewProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import ti.modules.titanium.ui.widget.TiView;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -37,8 +38,10 @@ import android.os.Message;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
+@SuppressLint("ValidFragment")
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
+	TiC.PROPERTY_ACTIVITY,
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
@@ -53,6 +56,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
+	public boolean firstLayout = true;
 
 	private WeakReference<TiBaseActivity> windowActivity;
 
@@ -74,13 +78,32 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		table.put(TiC.PROPERTY_TITLE, TiC.PROPERTY_TITLEID);
 		return table;
 	}
-
+	
+	private class TiWindowView extends TiUIView{
+		public TiWindowView(TiViewProxy proxy) {
+			super(proxy);
+			layoutParams.autoFillsHeight = true;
+			layoutParams.autoFillsWidth = true;
+			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), proxy) {
+				@Override
+				protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+				{
+					super.onLayout(changed, left, top, right, bottom);
+					if (firstLayout) {
+						firstLayout = false;
+						fireEvent(TiC.EVENT_OPEN, null);
+					}
+				}
+			};
+			setNativeView(layout);
+		}
+	}
+	 
+	
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		TiUIView v = new TiView(this);
-		v.getLayoutParams().autoFillsHeight = true;
-		v.getLayoutParams().autoFillsWidth = true;
+		TiUIView v = new TiWindowView(this);
 		setView(v);
 		return v;
 	}
@@ -102,7 +125,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 					callPropertySync(PROPERTY_LOAD_URL, null);
 
 					opened = true;
-					fireEvent(TiC.EVENT_OPEN, null);
+					// fireEvent(TiC.EVENT_OPEN, null);
 
 					baseActivity.addWindowToStack(this);
 					return;
@@ -121,11 +144,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			if (activityProxy != null) {
 				activityProxy.getDecorView().remove(this);
 			}
-			releaseViews();
-			opened = false;
-
+			closeFromActivity(false);
 			activity.removeWindowFromStack(this);
-			fireEvent(TiC.EVENT_CLOSE, null);
+			
 		}
 	}
 
@@ -168,14 +189,14 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			addLightweightWindowToStack();
 		} else {
 			// The "top", "bottom", "left" and "right" properties do not work for heavyweight windows.
-			properties.remove(TiC.PROPERTY_TOP);
-			properties.remove(TiC.PROPERTY_BOTTOM);
-			properties.remove(TiC.PROPERTY_LEFT);
-			properties.remove(TiC.PROPERTY_RIGHT);
+//			properties.remove(TiC.PROPERTY_TOP);
+//			properties.remove(TiC.PROPERTY_BOTTOM);
+//			properties.remove(TiC.PROPERTY_LEFT);
+//			properties.remove(TiC.PROPERTY_RIGHT);
 			super.open(arg);
 		}
 	}
-
+	
 	@Override
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
@@ -218,6 +239,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	protected void handleClose(KrollDict options)
 	{
+		if (windowActivity == null) {
+			//we must have been opened without creating the activity.
+			closeFromActivity(false);
+			return;
+		}
 		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
 		if (activity != null && !activity.isFinishing()) {
@@ -242,17 +268,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		windowActivity = new WeakReference<TiBaseActivity>(activity);
 		activity.setWindowProxy(this);
 		setActivity(activity);
-
-		// Handle the "activity" property.
-		ActivityProxy activityProxy = activity.getActivityProxy();
-		KrollDict options = null;
-		if (hasProperty(TiC.PROPERTY_ACTIVITY)) {
-			Object activityObject = getProperty(TiC.PROPERTY_ACTIVITY);
-			if (activityObject instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) activityObject);
-				activityProxy.handleCreationDict(options);
-			}
-		}
 
 		Window win = activity.getWindow();
 		// Handle the background of the window activity if it is a translucent activity.
@@ -289,18 +304,33 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		// Fire the open event after setContentView() because getActionBar() need to be called
 		// after setContentView(). (TIMOB-14914)
+
 		opened = true;
 		opening = false;
-		fireEvent(TiC.EVENT_OPEN, null);
+		// fireEvent(TiC.EVENT_OPEN, null);
 		handlePostOpen();
 
 		super.onWindowActivityCreated();
+	}
+	
+	@Override
+	public void closeFromActivity(boolean activityIsFinishing)
+	{
+		super.closeFromActivity(activityIsFinishing);
+		firstLayout = true;
 	}
 
 	@Override
 	protected Activity getWindowActivity()
 	{
 		return (windowActivity != null) ? windowActivity.get() : null;
+	}
+	
+	@Override
+	public void setActivity(Activity activity)
+	{
+		windowActivity = new WeakReference<TiBaseActivity>((TiBaseActivity) activity);
+		super.setActivity(activity);
 	}
 
 	private void fillIntent(Activity activity, Intent intent)
@@ -446,4 +476,5 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		// We know whether a window is lightweight or not only after it opens.
 		return (opened && lightweight);
 	}
+
 }

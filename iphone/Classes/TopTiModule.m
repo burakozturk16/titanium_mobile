@@ -50,20 +50,19 @@
 -(void)include:(NSArray*)jsfiles
 {
 	id<TiEvaluator> context = [self executionContext];
+	for (id file in jsfiles)
+	{        
+		[context includeFile:file withBaseUrl:[self _baseURL]];
+	}
+}
+
+-(id)resourcesRelativePath
+{
+	id<TiEvaluator> context = [self executionContext];
 	NSURL * oldUrl = [context currentURL];
 	NSURL * rootURL = (oldUrl != nil)?oldUrl:[self _baseURL];
-
-	for (id file in jsfiles)
-	{
-		// only allow includes that are local to our execution context url
-		// for security, refuse to load non-compiled in Javascript code
-		NSURL *url = [TiUtils toURL:file relativeToURL:rootURL];
-		DebugLog(@"[DEBUG] Include url: %@",[url absoluteString]);
-		[context setCurrentURL:url];
-		[context evalFile:[url absoluteString]];
-	}
-
-	[context setCurrentURL:oldUrl];
+    NSString * result = [[rootURL absoluteString] stringByReplacingOccurrencesOfString:[[self _baseURL] absoluteString] withString:@""];
+	return result;
 }
 
 #ifdef DEBUG

@@ -19,13 +19,13 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.widget.FrameLayout;
+import android.view.ViewParent;
 
 /**
  * This class is a wrapper for Titanium Views with borders. Any view that specifies a border
  * related property will have a border wrapper view to maintain its border.
  */
-public class TiBorderWrapperView extends FrameLayout
+public class TiBorderWrapperView extends MaskableView
 {
 	public static final int SOLID = 0;
 	private static final String TAG = "TiBorderWrapperView";
@@ -34,26 +34,23 @@ public class TiBorderWrapperView extends FrameLayout
 	private float radius = 0;
 	private float borderWidth = 0;
 	private int alpha = -1;
-	private RectF outerRect, innerRect;
+	private RectF innerRect;
 	private Path innerPath;
 	private Path borderPath;
 	private Paint paint;
+	
+	
 
 	public TiBorderWrapperView(Context context)
 	{
 		super(context);
-		outerRect = new RectF();
 		innerRect = new RectF();
 		paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		setWillNotDraw(false);
-	}
-
-	@Override
-	protected void onDraw(Canvas canvas)
-	{
 		updateBorderPath();
-		drawBorder(canvas);
-
+	}
+	
+	protected void clipCanvas(Canvas canvas) {
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -65,11 +62,34 @@ public class TiBorderWrapperView extends FrameLayout
 			canvas.clipRect(innerRect);
 		}
 	}
+	
+	@Override
+    public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
+		ViewParent result = super.invalidateChildInParent(location,dirty);
+        return result;
+    }
+	
+	
+
+	@Override
+	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
+		updateBorderPath();
+	}
+
+	@Override
+	protected void onDraw(Canvas canvas)
+	{
+		drawBorder(canvas);
+ 	 	super.onDraw(canvas);
+ 		clipCanvas(canvas);
+	}
 
 	private void updateBorderPath()
 	{
 		Rect bounds = new Rect();
 		getDrawingRect(bounds);
+		
+		RectF outerRect = new RectF();
 		outerRect.set(bounds);
 
 		int padding = 0;
@@ -102,34 +122,49 @@ public class TiBorderWrapperView extends FrameLayout
 			borderPath.addRect(innerRect, Direction.CCW);
 			borderPath.setFillType(FillType.EVEN_ODD);
 		}
+		invalidate();
 	}
 
 	private void drawBorder(Canvas canvas)
 	{
-		paint.setColor(color);
-		if (alpha > -1) {
-			paint.setAlpha(alpha);
+		if (borderWidth != 0) {
+			paint.setColor(color);
+			if (alpha > -1) {
+				paint.setAlpha(alpha);
+			}
+			canvas.drawPath(borderPath, paint);
 		}
-		canvas.drawPath(borderPath, paint);
 	}
 
 	public void setColor(int color)
 	{
 		this.color = color;
+		postInvalidate();
 	}
 
 	public void setRadius(float radius)
 	{
 		this.radius = radius;
+		updateBorderPath();
+		postInvalidate();
+	}
+
+	public float getRadius()
+	{
+		return this.radius;
 	}
 
 	public void setBorderWidth(float borderWidth)
 	{
 		this.borderWidth = borderWidth;
+		updateBorderPath();
+		postInvalidate();
 	}
 
 	public void setBorderAlpha(int alpha)
 	{
 		this.alpha = alpha;
+		postInvalidate();
 	}
+
 }

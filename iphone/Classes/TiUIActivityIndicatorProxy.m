@@ -11,6 +11,13 @@
 
 @implementation TiUIActivityIndicatorProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"style",
+                                              @"font", @"color", @"message", nil]];
+}
+
 -(NSMutableDictionary*)langConversionTable
 {
     return [NSMutableDictionary dictionaryWithObject:@"message" forKey:@"messageid"];

@@ -6,6 +6,7 @@
  */
 
 #import "TiViewTemplate.h"
+#import "TiViewProxy.h"
 
 @implementation TiViewTemplate {
 	NSString *_type;
@@ -112,6 +113,7 @@
 	}
 	return nil;
 }
+
 
 
 @end

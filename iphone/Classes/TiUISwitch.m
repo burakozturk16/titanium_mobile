@@ -46,6 +46,7 @@
 -(void)setEnabled_:(id)value
 {
 	[[self switchView] setEnabled:[TiUtils boolValue:value]];
+    [self setBgState:[self switchView].enabled];
 }
 
 -(void)setValue_:(id)value

@@ -249,6 +249,7 @@
 -(void)setEnabled_:(id)value
 {
 	[[self sliderView] setEnabled:[TiUtils boolValue:value]];
+    [self setBgState:[self sliderView].enabled];
 }
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight

@@ -7,14 +7,13 @@
 package org.appcelerator.titanium.view;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
@@ -24,28 +23,48 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
-import org.appcelerator.titanium.util.TiAnimationBuilder;
-import org.appcelerator.titanium.util.TiAnimationBuilder.TiMatrixAnimation;
+import org.appcelerator.titanium.util.AffineTransform.DecomposedType;
+import org.appcelerator.titanium.util.TiImageHelper.FilterType;
+import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
+import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiImageHelper;
+import org.appcelerator.titanium.util.TiRect;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiViewAnimator;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
-import org.appcelerator.titanium.view.TiGradientDrawable.GradientType;
+import org.appcelerator.titanium.TiBlob;
+
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.ArgbEvaluator;
+import com.nineoldandroids.animation.ObjectAnimator;
+import com.nineoldandroids.animation.PropertyValuesHolder;
+import com.nineoldandroids.view.ViewHelper;
+import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import android.annotation.TargetApi;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Point;
 import android.graphics.Rect;
-import android.graphics.RectF;
+import android.graphics.Bitmap.Config;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
-import android.util.Pair;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -61,7 +80,6 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.ViewParent;
-import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 
@@ -70,11 +88,11 @@ import android.widget.AdapterView;
  * A TiUIView is responsible for creating and maintaining a native Android View instance.
  */
 public abstract class TiUIView
-	implements KrollProxyListener, OnFocusChangeListener
+	implements KrollProxyListener, OnFocusChangeListener, Handler.Callback
 {
 
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
-	private static final int LAYER_TYPE_SOFTWARE = 1;
+	private static final boolean JELLY_BEAN_OR_GREATER = (Build.VERSION.SDK_INT >= 16);
 	private static final String TAG = "TiUIView";
 
 	private static AtomicInteger idGenerator;
@@ -86,6 +104,8 @@ public abstract class TiUIView
 	public static final int SOFT_KEYBOARD_DEFAULT_ON_FOCUS = 0;
 	public static final int SOFT_KEYBOARD_HIDE_ON_FOCUS = 1;
 	public static final int SOFT_KEYBOARD_SHOW_ON_FOCUS = 2;
+	
+	private static final int MSG_SET_BACKGROUND = 100;
 
 	protected View nativeView; // Native View object
 
@@ -94,33 +114,23 @@ public abstract class TiUIView
 	protected ArrayList<TiUIView> children = new ArrayList<TiUIView>();
 
 	protected LayoutParams layoutParams;
-	protected TiAnimationBuilder animBuilder;
 	protected TiBackgroundDrawable background;
 	
 	protected KrollDict additionalEventData;
 
-	// Since Android doesn't have a property to check to indicate
-	// the current animated x/y scale (from a scale animation), we track it here
-	// so if another scale animation is done we can gleen the fromX and fromY values
-	// rather than starting the next animation always from scale 1.0f (i.e., normal scale).
-	// This gives us parity with iPhone for scale animations that use the 2-argument variant
-	// of Ti2DMatrix.scale().
-	private Pair<Float, Float> animatedScaleValues = Pair.create(Float.valueOf(1f), Float.valueOf(1f)); // default = full size (1f)
-
-	// Same for rotation animation and for alpha animation.
-	private float animatedRotationDegrees = 0f; // i.e., no rotation.
 	private float animatedAlpha = Float.MIN_VALUE; // i.e., no animated alpha.
 
 	protected KrollDict lastUpEvent = new KrollDict(2);
+	protected KrollDict lastDownEvent = new KrollDict(2);
+
 	// In the case of heavy-weight windows, the "nativeView" is null,
 	// so this holds a reference to the view which is used for touching,
 	// i.e., the view passed to registerForTouch.
 	private WeakReference<View> touchView = null;
 
-	private Method mSetLayerTypeMethod = null; // Honeycomb, for turning off hw acceleration.
 
 	private boolean zIndexChanged = false;
-	private TiBorderWrapperView borderView;
+	protected TiBorderWrapperView borderView;
 	// For twofingertap detection
 	private boolean didScale = false;
 
@@ -129,7 +139,10 @@ public abstract class TiUIView
 	
 	protected GestureDetector detector = null;
 
-
+	protected Handler handler;
+	
+	protected boolean exclusiveTouch = false;
+	public boolean hardwareAccEnabled = true;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -140,9 +153,9 @@ public abstract class TiUIView
 		if (idGenerator == null) {
 			idGenerator = new AtomicInteger(0);
 		}
-
 		this.proxy = proxy;
 		this.layoutParams = new TiCompositeLayout.LayoutParams();
+		handler = new Handler(Looper.getMainLooper(), this);
 	}
 
 	/**
@@ -154,12 +167,12 @@ public abstract class TiUIView
 		add(child, -1);
 	}
 
-	private void add(TiUIView child, int childIndex)
+	protected void add(TiUIView child, int childIndex)
 	{
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
-				View nv = getNativeView();
+				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
 					if (cv.getParent() == null) {
 						if (childIndex != -1) {
@@ -200,7 +213,7 @@ public abstract class TiUIView
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
-				View nv = getNativeView();
+				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
 					((ViewGroup) nv).removeView(cv);
 					children.remove(child);
@@ -263,12 +276,31 @@ public abstract class TiUIView
 	{
 		return layoutParams;
 	}
+	
+	
+	
+	//This handler callback is tied to the UI thread.
+	public boolean handleMessage(Message msg)
+	{
+		switch(msg.what) {
+			case MSG_SET_BACKGROUND : {
+				applyCustomBackground();
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * @return the Android native view.
 	 * @module.api
 	 */
 	public View getNativeView()
+	{
+		return nativeView;
+	}
+
+	public View getParentViewForChild()
 	{
 		return nativeView;
 	}
@@ -283,15 +315,40 @@ public abstract class TiUIView
 		if (view.getId() == View.NO_ID) {
 			view.setId(idGenerator.incrementAndGet());
 		}
+		
+		if (borderView != null)
+		{
+			borderView.removeView(nativeView);
+		}
+				
 		this.nativeView = view;
 		boolean clickable = true;
-
+		
 		if (proxy.hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
 			clickable = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED), true);
 		}
 		doSetClickable(nativeView, clickable);
 		nativeView.setOnFocusChangeListener(this);
-
+		
+		
+		if (background != null)
+		{
+			background.setNativeView(nativeView);
+			if (TiApplication.isUIThread()) {
+				applyCustomBackground();
+			} else {
+				handler.sendEmptyMessage(MSG_SET_BACKGROUND);
+			}
+		}
+		
+		if (borderView != null)
+		{
+			addBorderView();
+		}
+		
+		if (HONEYCOMB_OR_GREATER && hardwareAccEnabled == false) {
+			disableHWAcceleration(getOuterView());
+		}
 		applyAccessibilityProperties();
 	}
 
@@ -299,71 +356,14 @@ public abstract class TiUIView
 	{
 		this.layoutParams = layoutParams;
 	}
-
-	/**
-	 * Animates the view if there are pending animations.
-	 */
-	public void animate()
+	
+	public void cleanAnimatedParams()
 	{
-		if (nativeView == null) {
-			return;
-		}
-
-		// Pre-honeycomb, if one animation clobbers another you get a problem whereby the background of the
-		// animated view's parent (or the grandparent) bleeds through.  It seems to improve if you cancel and clear
-		// the older animation.  So here we cancel and clear, then re-queue the desired animation.
-
-		if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
-			Animation currentAnimation = nativeView.getAnimation();
-			if (currentAnimation != null && currentAnimation.hasStarted() && !currentAnimation.hasEnded()) {
-				// Cancel existing animation and
-				// re-queue desired animation.
-				currentAnimation.cancel();
-				nativeView.clearAnimation();
-				proxy.handlePendingAnimation(true);
-				return;
-			}
-
-		}
-
-		TiAnimationBuilder builder = proxy.getPendingAnimation();
-		if (builder == null) {
-			return;
-		}
-
-		proxy.clearAnimation(builder);
-
-		// If a view is "visible" but not currently seen (such as because it's covered or
-		// its position is currently set to be fully outside its parent's region),
-		// then Android might not animate it immediately because by default it animates
-		// "on first frame" and apparently "first frame" won't happen right away if the
-		// view has no visible rectangle on screen.  In that case invalidate its parent, which will
-		// kick off the pending animation.
-		boolean invalidateParent = false;
-		ViewParent viewParent = nativeView.getParent();
-
-		if (this.visibility == View.VISIBLE && viewParent instanceof View) {
-			int width = nativeView.getWidth();
-			int height = nativeView.getHeight();
-
-			if (width == 0 || height == 0) {
-				// Could be animating from nothing to something
-				invalidateParent = true;
-			} else {
-				Rect r = new Rect(0, 0, width, height);
-				Point p = new Point(0, 0);
-				invalidateParent = !(viewParent.getChildVisibleRect(nativeView, r, p));
-			}
-		}
-
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "starting animation", Log.DEBUG_MODE);
-		}
-
-		builder.start(proxy, nativeView);
-
-		if (invalidateParent) {
-			((View) viewParent).postInvalidate();
+		if (layoutParams instanceof AnimationLayoutParams) {
+			//we remove any animated params...
+			layoutParams = new TiCompositeLayout.LayoutParams(layoutParams);
+			if (getOuterView() != null)
+				getOuterView().setLayoutParams(layoutParams);
 		}
 	}
 
@@ -373,45 +373,11 @@ public abstract class TiUIView
 	public void listenerRemoved(String type, int count, KrollProxy proxy){
 	}
 
-	private boolean hasImage(KrollDict d)
-	{
-		return d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_IMAGE)
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE) 
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE);
-	}
-
-	private boolean hasRepeat(KrollDict d)
-	{
-		return d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_REPEAT);
-	}
-
-	private boolean hasGradient(KrollDict d)
-	{
-		return d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_GRADIENT);
-	}
-
-	private boolean hasBorder(KrollDict d)
-	{
-		return d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_COLOR) 
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_RADIUS)
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BORDER_WIDTH);
-	}
-
-	private boolean hasColorState(KrollDict d)
-	{
-		return d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)
-			|| d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR);
-	}
-
 	public float[] getPreTranslationValue(float[] points)
 	{
-		if (layoutParams.optionTransform != null) {
-			TiMatrixAnimation matrixAnimation = animBuilder.createMatrixAnimation(layoutParams.optionTransform);
-			int width = getNativeView().getWidth();
-			int height = getNativeView().getHeight();
-			Matrix m = matrixAnimation.getFinalMatrix(width, height);
+		View view = getOuterView();
+		if (view != null && layoutParams.matrix != null) {
+			Matrix m = layoutParams.matrix.getMatrix(view);
 			// Get the translation values
 			float[] values = new float[9];
 			m.getValues(values);
@@ -420,38 +386,41 @@ public abstract class TiUIView
 		}
 		return points;
 	}
-	
-	protected void applyTransform(Ti2DMatrix matrix)
+
+	@SuppressLint("NewApi")
+	public void applyTransform(Ti2DMatrix timatrix)
 	{
-		layoutParams.optionTransform = matrix;
-		if (animBuilder == null) {
-			animBuilder = new TiAnimationBuilder();
+		View view = getOuterView();
+		if (view != null) {
+			layoutParams.matrix = timatrix;
+			view.setLayoutParams(layoutParams);
+			ViewParent viewParent = view.getParent();
+			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
 		}
-
-		View outerView = getOuterView();
-		if (outerView == null) {
-			return;
-		}
-
-		boolean clearTransform = (matrix == null);
-		Ti2DMatrix matrixApply = matrix; // To not change original.
-
-		if (clearTransform) {
-			outerView.clearAnimation();
-			// Since we may have used property animators, which
-			// do not set the animation property of a view,
-			// we should also quickly apply a matrix with
-			// no rotation, no rotation and scale of 1.
-			matrixApply = (new Ti2DMatrix()).rotate(new Object[] { 0d })
-					.translate(0d, 0d).scale(new Object[] { 1d, 1d });
-		}
-
-		HashMap<String, Object> options = new HashMap<String, Object>(2);
-		options.put(TiC.PROPERTY_TRANSFORM, matrixApply);
-		options.put(TiC.PROPERTY_DURATION, 1);
-
-		animBuilder.applyOptions(options);
-		animBuilder.start(this.proxy, outerView);
+//		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
+//		if (parent instanceof FreeLayout) {
+			// layoutParams.matrix = timatrix;
+			// outerView.setLayoutParams(layoutParams);
+//		}
+//		else if (HONEYCOMB_OR_GREATER) {
+//			if (timatrix != null) {
+//				DecomposedType decompose = timatrix.getAffineTransform(outerView, true).decompose();
+//				outerView.setTranslationX((float)decompose.translateX);
+//				outerView.setTranslationY((float)decompose.translateY);
+//				outerView.setRotation((float)(decompose.angle*180/Math.PI));
+//				outerView.setScaleX((float)decompose.scaleX);
+//				outerView.setScaleY((float)decompose.scaleY);
+//			}
+//			else {
+//				outerView.setTranslationX(0);
+//				outerView.setTranslationY(0);
+//				outerView.setRotation(0);
+//				outerView.setScaleX(1);
+//				outerView.setScaleY(1);
+//			}
+//		}
 	}
 
 	public void forceLayoutNativeView(boolean informParent)
@@ -461,28 +430,42 @@ public abstract class TiUIView
 
 	protected void layoutNativeView()
 	{
-		if (!this.proxy.isLayoutStarted()) {
-			layoutNativeView(false);
-		}
+		layoutNativeView(false);
+	}
+	
+	protected void redrawNativeView() {
+		if (nativeView != null)
+			nativeView.postInvalidate();
 	}
 
 	protected void layoutNativeView(boolean informParent)
 	{
-		if (nativeView != null) {
-			Animation a = nativeView.getAnimation();
-			if (a != null && a instanceof TiMatrixAnimation) {
-				TiMatrixAnimation matrixAnimation = (TiMatrixAnimation) a;
-				matrixAnimation.invalidateWithMatrix(nativeView);
+		if (parent != null) {
+			TiUIView uiv = parent.peekView();
+			if (uiv != null) {
+				View v = uiv.getNativeView();
+				if (v.getVisibility() == View.INVISIBLE || v.getVisibility() == View.GONE) {
+					//if we have a parent which is hidden, we are hidden, so no need to layout
+					return;
+				}
 			}
-			if (informParent) {
+		}
+		if (nativeView != null) {
+			if (informParent) {				
 				if (parent != null) {
 					TiUIView uiv = parent.peekView();
 					if (uiv != null) {
-						uiv.resort();
+						View v = uiv.getParentViewForChild();
+						if (v instanceof TiCompositeLayout) {
+							((TiCompositeLayout) v).resort();
+						}
 					}
 				}
 			}
-			nativeView.requestLayout();
+			View childHolder = getParentViewForChild();
+			if (childHolder != null) {
+				childHolder.requestLayout();
+			}
 		}
 	}
 
@@ -505,8 +488,13 @@ public abstract class TiUIView
 
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
-		if (key.equals(TiC.PROPERTY_LEFT)) {
-			resetPostAnimationValues();
+		if (key.equals(TiC.PROPERTY_LAYOUT)) {
+			String layout = TiConvert.toString(newValue);
+			View parentViewForChild = getParentViewForChild();
+			if (parentViewForChild instanceof TiCompositeLayout) {
+				((TiCompositeLayout)parentViewForChild).setLayoutArrangement(layout);
+			}
+		} else if (key.equals(TiC.PROPERTY_LEFT)) {
 			if (newValue != null) {
 				layoutParams.optionLeft = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
 			} else {
@@ -514,7 +502,6 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_TOP)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionTop = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_TOP);
 			} else {
@@ -522,11 +509,9 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_CENTER)) {
-			resetPostAnimationValues();
 			TiConvert.updateLayoutCenter(newValue, layoutParams);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_RIGHT)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionRight = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
 			} else {
@@ -534,7 +519,6 @@ public abstract class TiUIView
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_BOTTOM)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionBottom = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
 			} else {
@@ -551,7 +535,6 @@ public abstract class TiUIView
 				Log.w(TAG, "Unsupported property type ("+(newValue.getClass().getSimpleName())+") for key: " + key+". Must be an object/dictionary");
 			}
 		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionHeight = null;
 				layoutParams.sizeOrFillHeightEnabled = true;
@@ -570,11 +553,10 @@ public abstract class TiUIView
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(newValue,true));
+				((TiCompositeLayout) getParentViewForChild()).setEnableHorizontalWrap(TiConvert.toBoolean(newValue,true));
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_WIDTH)) {
-			resetPostAnimationValues();
 			if (newValue != null) {
 				layoutParams.optionWidth = null;
 				layoutParams.sizeOrFillWidthEnabled = true;
@@ -596,11 +578,7 @@ public abstract class TiUIView
 			} else {
 				layoutParams.optionZIndex = 0;
 			}
-			if (!this.proxy.isLayoutStarted()) {
-				layoutNativeView(true);
-			} else {
-				setzIndexChanged(true);
-			}
+			layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
 			registerForKeyPress(nativeView, TiConvert.toBoolean(newValue, false));
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
@@ -610,113 +588,71 @@ public abstract class TiUIView
 			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE : View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
 			nativeView.setEnabled(TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
+			exclusiveTouch = TiConvert.toBoolean(newValue);
 		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PADDING)) {
 			Log.i(TAG, key + " not yet implemented.");
-		} else if (key.equals(TiC.PROPERTY_OPACITY)
-			|| key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX)
-			|| key.startsWith(TiC.PROPERTY_BORDER_PREFIX)) {
-			// Update first before querying.
-			proxy.setProperty(key, newValue);
-
-			KrollDict d = proxy.getProperties();
-
-			boolean hasImage = hasImage(d);
-			boolean hasRepeat = hasRepeat(d);
-			boolean hasColorState = hasColorState(d);
-			boolean hasBorder = hasBorder(d);
-			boolean hasGradient = hasGradient(d);
-			boolean nativeViewNull = (nativeView == null);
-
-			boolean requiresCustomBackground = hasImage || hasRepeat || hasColorState || hasBorder || hasGradient;
-
-			if (!requiresCustomBackground) {
-				if (background != null) {
-					background.releaseDelegate();
-					background.setCallback(null);
-					background = null;
-				}
-
-				if (d.containsKeyAndNotNull(TiC.PROPERTY_BACKGROUND_COLOR)) {
-					Integer bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
-					if (!nativeViewNull) {
-						nativeView.setBackgroundColor(bgColor);
-						// A bug only on Android 2.3 (TIMOB-14311).
-						if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB && proxy.hasProperty(TiC.PROPERTY_OPACITY)) {
-							setOpacity(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY), 1f));
-						}
-						nativeView.postInvalidate();
-					}
-				} else {
-					if (key.equals(TiC.PROPERTY_OPACITY)) {
-						setOpacity(TiConvert.toFloat(newValue, 1f));
-					}
-					if (!nativeViewNull) {
-						nativeView.setBackgroundDrawable(null);
-						nativeView.postInvalidate();
-					}
-				}
-			} else {
-				boolean newBackground = background == null;
-				if (newBackground) {
-					background = new TiBackgroundDrawable();
-				}
-
-				Integer bgColor = null;
-
-				if (!hasColorState && !hasGradient) {
-					if (d.get(TiC.PROPERTY_BACKGROUND_COLOR) != null) {
-						bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
-						if (newBackground || (key.equals(TiC.PROPERTY_OPACITY) || key.equals(TiC.PROPERTY_BACKGROUND_COLOR))) {
-							background.setBackgroundColor(bgColor);
-						}
-					}
-				}
-
-				if (hasImage || hasRepeat || hasColorState || hasGradient) {
-					if (newBackground || key.equals(TiC.PROPERTY_OPACITY) || key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX)) {
-						handleBackgroundImage(d);
-					}
-				}
-
-				if (hasBorder) {
-					if (borderView == null && parent != null) {
-						// Since we have to create a new border wrapper view, we need to remove this view, and re-add
-						// it.
-						// This will ensure the border wrapper view is added correctly.
-						TiUIView parentView = parent.getOrCreateView();
-						int removedChildIndex = parentView.findChildIndex(this);
-						parentView.remove(this);
-						initializeBorder(d, bgColor);
-						if (removedChildIndex == -1) {
-							parentView.add(this);
-						} else {
-							parentView.add(this, removedChildIndex);
-						}
-					} else if (key.startsWith(TiC.PROPERTY_BORDER_PREFIX)) {
-						handleBorderProperty(key, newValue);
-					}
-				}
-
-				applyCustomBackground();
-
-				if (key.equals(TiC.PROPERTY_OPACITY)) {
-					setOpacity(TiConvert.toFloat(newValue, 1f));
-				} else if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB && proxy.hasProperty(TiC.PROPERTY_OPACITY)) {
-					// A bug only on Android 2.3 (TIMOB-14311).
-					setOpacity(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY), 1f));
-				}
-
-			}
-			if (!nativeViewNull) {
-				nativeView.postInvalidate();
-			}
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
+				TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+				ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+				bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, colorDrawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, colorDrawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(newValue));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, colorDrawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1, TiUIHelper.BACKGROUND_DEFAULT_STATE_2});
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_SELECTED_STATE});
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_FOCUSED_STATE});
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE)) {
+			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
+			if (background != null)
+				background.setImageRepeat(TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
+			if (background != null)
+				TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(newValue, 1f));
+		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
+			setBorderColor(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
+			setBorderRadius(TiConvert.toFloat(newValue, 0f));
+		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
+			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
+		} else if (key.equals(TiC.PROPERTY_VIEW_MASK)) {
+			setViewMask(newValue);
+		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
+			setOpacity(TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
 			Log.w(TAG, "Focus state changed to " + TiConvert.toString(newValue) + " not honored until next focus event.",
 				Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
-			if (nativeView != null) {
-				applyTransform((Ti2DMatrix)newValue);
-			}
+			applyTransform((Ti2DMatrix)newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
 			if (nativeView != null) {
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
@@ -728,82 +664,173 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_ACCESSIBILITY_HIDDEN)) {
 			applyAccessibilityHidden(newValue);
 
+		} else if (key.equals(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+			if (nativeView instanceof TiCompositeLayout) {
+				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(newValue));
+			}
+		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
+//			if (nativeView instanceof TiCompositeLayout) {
+//				((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(newValue));
+//			}
 		} else if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
+		}
+	}
+	
+	private void setBackgroundImageDrawable(Object object, boolean backgroundRepeat, int[][] states) {
+		TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+		Drawable drawable = null;
+		if (object instanceof TiBlob) {
+			drawable = TiUIHelper.buildImageDrawable(nativeView.getContext(), ((TiBlob)object).getImage(), backgroundRepeat, proxy);
+		}
+		else {
+			drawable = TiUIHelper.buildImageDrawable(TiConvert.toString(object), backgroundRepeat, proxy);
+		}
+		for (int i = 0; i < states.length; i++) {
+			bgdDrawable.setImageDrawableForState(states[i], drawable);
+		}
+	}
+	
+	protected void updateLayoutForChildren(KrollDict d) {
+		View viewForLayout = getParentViewForChild();
+		
+		if (viewForLayout instanceof TiCompositeLayout) {
+			TiCompositeLayout tiLayout = (TiCompositeLayout)viewForLayout;
+			if (d.containsKey(TiC.PROPERTY_LAYOUT)) {
+				String layout = TiConvert.toString(d, TiC.PROPERTY_LAYOUT);
+				tiLayout.setLayoutArrangement(layout);
+			}
+
+			if (d.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
+				tiLayout.setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
+			}			
 		}
 	}
 
 	public void processProperties(KrollDict d)
 	{
 		boolean nativeViewNull = false;
+		
+		
 		if (nativeView == null) {
 			nativeViewNull = true;
 			Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
 		}
-		if (d.containsKey(TiC.PROPERTY_LAYOUT)) {
-			String layout = TiConvert.toString(d, TiC.PROPERTY_LAYOUT);
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout)nativeView).setLayoutArrangement(layout);
-			}
-		}
-		if (TiConvert.fillLayout(d, layoutParams) && !nativeViewNull) {
-			nativeView.requestLayout();
-		}
+			
+		updateLayoutForChildren(d);
 
-		if (d.containsKey(TiC.PROPERTY_HORIZONTAL_WRAP)) {
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setEnableHorizontalWrap(TiConvert.toBoolean(d,TiC.PROPERTY_HORIZONTAL_WRAP,true));
+		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
+			View rootView = getRootView();
+			if (rootView instanceof ViewGroup) {
+				((ViewGroup) rootView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				
 			}
 		}
 
-		Integer bgColor = null;
+		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH) && (nativeView instanceof TiCompositeLayout)) {
+			((TiCompositeLayout)nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+		}
 
-		// Default background processing.
-		// Prefer image to color.
-		if (hasImage(d) || hasColorState(d) || hasGradient(d)) {
-			handleBackgroundImage(d);
-
-		} else if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR) && !nativeViewNull) {
-			bgColor = TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_COLOR);
-
-			// Set the background color on the view directly only
-			// if there is no border. If a border is present we must
-			// use the TiBackgroundDrawable.
-			if (hasBorder(d)) {
-				if (background == null) {
-					applyCustomBackground(false);
-				}
-				background.setBackgroundColor(bgColor);
-
-			} else {
-				nativeView.setBackgroundColor(bgColor);
-			}
+		if (d.containsKey(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
+			exclusiveTouch = TiConvert.toBoolean(d, TiC.PROPERTY_EXCLUSIVE_TOUCH);
 		}
 		
+		if (TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
+			getOuterView().setLayoutParams(layoutParams);
+//			getOuterView().requestLayout();
+		}
+		
+		registerForTouch();
+		registerForKeyPress();
+		
+		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+		
+		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
+			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
+			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_SELECTED_COLOR));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, colorDrawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, colorDrawable);
+		} 
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR)) {
+			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_DISABLED_COLOR));		
+			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, colorDrawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1, TiUIHelper.BACKGROUND_DEFAULT_STATE_2});
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
+			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_SELECTED_STATE});
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)) {
+			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_FOCUSED_STATE});
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE)) {
+			setBackgroundImageDrawable(d.get(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE), backgroundRepeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT));
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT));
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
+		}
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT));
+			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
+		} 
+		if (d.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			Drawable drawable =  TiUIHelper.buildGradientDrawable(d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
+//			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE, drawable);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+		}
+
+		//no need to have it here, will be set when necessary
+		// if (d.containsKey(TiC.PROPERTY_BACKGROUND_OPACITY)) {
+		// 	if(background != null)
+		// 		TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(d, TiC.PROPERTY_BACKGROUND_OPACITY, 1f));
+		// } 
+		
+		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
+			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
+		}
+
+		if (d.containsKey(TiC.PROPERTY_BORDER_COLOR)) {
+			setBorderColor(TiConvert.toString(d, TiC.PROPERTY_BORDER_COLOR));
+		}
+		if (d.containsKey(TiC.PROPERTY_BORDER_RADIUS)) {
+			setBorderRadius(TiConvert.toFloat(d, TiC.PROPERTY_BORDER_RADIUS, 0f));
+		}
+		if (d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
+			setBorderWidth(TiUIHelper.getRawSizeOrZero(d, TiC.PROPERTY_BORDER_WIDTH));
+		} 
+		if (d.containsKey(TiC.PROPERTY_VIEW_MASK)) {
+			setViewMask(d.get(TiC.PROPERTY_VIEW_MASK));
+		}
 		if (d.containsKey(TiC.PROPERTY_VISIBLE) && !nativeViewNull) {
-			Object visible = d.get(TiC.PROPERTY_VISIBLE);
-			if (visible != null) {
-				setVisibility(TiConvert.toBoolean(visible, true) ? View.VISIBLE : View.INVISIBLE);
-			} else {
-				setVisibility(View.INVISIBLE);
-			}
+			this.setVisibility(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE, true) ? View.VISIBLE : View.INVISIBLE);
 		}
 		if (d.containsKey(TiC.PROPERTY_ENABLED) && !nativeViewNull) {
 			nativeView.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED, true));
 		}
 
-		initializeBorder(d, bgColor);
-
-		if (d.containsKey(TiC.PROPERTY_OPACITY) && !nativeViewNull) {
-			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
-
-		}
-
 		if (d.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			Ti2DMatrix matrix = (Ti2DMatrix) d.get(TiC.PROPERTY_TRANSFORM);
-			if (matrix != null) {
-				applyTransform(matrix);
-			}
+			applyTransform(matrix);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
@@ -825,35 +852,6 @@ public abstract class TiUIView
 		}
 	}
 	
-	private void applyCustomBackground()
-	{
-		applyCustomBackground(true);
-	}
-
-	private void applyCustomBackground(boolean reuseCurrentDrawable)
-	{
-		if (nativeView != null) {
-			if (background == null) {
-				background = new TiBackgroundDrawable();
-	
-				Drawable currentDrawable = nativeView.getBackground();
-				if (currentDrawable != null) {
-					if (reuseCurrentDrawable) {
-						background.setBackgroundDrawable(currentDrawable);
-						
-					} else {
-						nativeView.setBackgroundDrawable(null);
-						currentDrawable.setCallback(null);
-						if (currentDrawable instanceof TiBackgroundDrawable) {
-							((TiBackgroundDrawable) currentDrawable).releaseDelegate();
-						}
-					}
-				}
-			}
-			nativeView.setBackgroundDrawable(background);
-		}
-	}
-
 	public void onFocusChange(final View v, boolean hasFocus)
 	{
 		if (hasFocus) {
@@ -890,12 +888,20 @@ public abstract class TiUIView
 		}
 	}
 
+	public boolean hasFocus()
+	{
+		if (nativeView != null) {
+			return nativeView.hasFocus();
+		}
+		return false;
+	}
+
 	/**
 	 * Blurs the view.
 	 */
 	public void blur()
 	{
-		if (nativeView != null) {
+		if (nativeView != null && nativeView.hasFocus()) {
 			nativeView.clearFocus();
 			TiMessenger.postOnMain(new Runnable() {
 				public void run()
@@ -914,7 +920,8 @@ public abstract class TiUIView
 		if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Releasing: " + this, Log.DEBUG_MODE);
 		}
-		View nv = getNativeView();
+		proxy.cancelAllAnimations();
+		View nv = getRootView();
 		if (nv != null) {
 			if (nv instanceof ViewGroup) {
 				ViewGroup vg = (ViewGroup) nv;
@@ -927,7 +934,7 @@ public abstract class TiUIView
 			}
 			Drawable d = nv.getBackground();
 			if (d != null) {
-				nv.setBackgroundDrawable(null);
+				setBackgroundDrawable(nv, null);
 				d.setCallback(null);
 				if (d instanceof TiBackgroundDrawable) {
 					((TiBackgroundDrawable)d).releaseDelegate();
@@ -942,14 +949,23 @@ public abstract class TiUIView
 		}
 	}
 
-	private void setVisibility(int visibility)
+	public void setVisibility(int visibility)
 	{
+		if (this.visibility != visibility)
+			forceLayoutNativeView(true);
 		this.visibility = visibility;
-		if (borderView != null) {
-			borderView.setVisibility(this.visibility);
+		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
+
+		View view = getOuterView();
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
 		}
-		if (nativeView != null) {
-			nativeView.setVisibility(this.visibility);
+		
+		view = getRootView();
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
 		}
 	}
 
@@ -959,7 +975,7 @@ public abstract class TiUIView
 	public void show()
 	{
 		this.setVisibility(View.VISIBLE);
-		if (borderView == null && nativeView == null) {
+		if (getOuterView() == null) {
 			Log.w(TAG, "Attempt to show null native control", Log.DEBUG_MODE);
 		}
 	}
@@ -970,159 +986,145 @@ public abstract class TiUIView
 	public void hide()
 	{
 		this.setVisibility(View.INVISIBLE);
-		if (borderView == null && nativeView == null) {
+		if (getOuterView() == null) {
 			Log.w(TAG, "Attempt to hide null native control", Log.DEBUG_MODE);
 		}
 	}
 
-	private String resolveImageUrl(String path) {
-		return path.length() > 0 ? proxy.resolveUrl(null, path) : null;
-	}
-
-	private void handleBackgroundImage(KrollDict d)
+	protected TiBackgroundDrawable getOrCreateBackground()
 	{
-		String bg = d.getString(TiC.PROPERTY_BACKGROUND_IMAGE);
-		String bgSelected = d.optString(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE, bg);
-		String bgFocused = d.optString(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE, bg);
-		String bgDisabled = d.optString(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE, bg);
-		
-		String bgColor = d.getString(TiC.PROPERTY_BACKGROUND_COLOR);
-		String bgSelectedColor = d.optString(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR, bgColor);
-		String bgFocusedColor = d.optString(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR, bgColor);
-		String bgDisabledColor = d.optString(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR, bgColor);
-
-		if (bg != null) {
-			bg = resolveImageUrl(bg);
-		}
-		if (bgSelected != null) {
-			bgSelected = resolveImageUrl(bgSelected);
-		}
-		if (bgFocused != null) {
-			bgFocused = resolveImageUrl(bgFocused);
-		}
-		if (bgDisabled != null) {
-			bgDisabled = resolveImageUrl(bgDisabled);
-		}
-
-		TiGradientDrawable gradientDrawable = null;
-		KrollDict gradientProperties = d.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT);
-		if (gradientProperties != null) {
-			try {
-				gradientDrawable = new TiGradientDrawable(nativeView, gradientProperties);
-				if (gradientDrawable.getGradientType() == GradientType.RADIAL_GRADIENT) {
-					// TODO: Remove this once we support radial gradients.
-					Log.w(TAG, "Android does not support radial gradients.");
-					gradientDrawable = null;
-				}
-			}
-			catch (IllegalArgumentException e) {
-				gradientDrawable = null;
-			}
-		}
-
-		if (bg != null || bgSelected != null || bgFocused != null || bgDisabled != null ||
-				bgColor != null || bgSelectedColor != null || bgFocusedColor != null || bgDisabledColor != null || gradientDrawable != null) 
+		if (background == null)
 		{
-			if (background == null) {
-				applyCustomBackground(false);
-			}
-
-			if (background != null) {
-				Drawable bgDrawable = TiUIHelper.buildBackgroundDrawable(
-					bg,
-					TiConvert.toBoolean(d, TiC.PROPERTY_BACKGROUND_REPEAT, false),
-					bgColor,
-					bgSelected,
-					bgSelectedColor,
-					bgDisabled,
-					bgDisabledColor,
-					bgFocused,
-					bgFocusedColor,
-					gradientDrawable);
-
-				background.setBackgroundDrawable(bgDrawable);
-			}
+			applyCustomBackground();
+		}
+		return background;
+	}
+	
+	@SuppressLint("NewApi")
+	@SuppressWarnings("deprecation")
+	private void setBackgroundDrawable(View view, Drawable drawable) {
+		if(JELLY_BEAN_OR_GREATER) {
+			view.setBackground(drawable);
+		} else {
+			view.setBackgroundDrawable(drawable);
 		}
 	}
 
-	private void initializeBorder(KrollDict d, Integer bgColor)
+	protected void applyCustomBackground()
 	{
-		if (hasBorder(d)) {
-
-			if(nativeView != null) {
-
-				if (borderView == null) {
-					Activity currentActivity = proxy.getActivity();
-					if (currentActivity == null) {
-						currentActivity = TiApplication.getAppCurrentActivity();
-					}
-					borderView = new TiBorderWrapperView(currentActivity);
-					// Create new layout params for the child view since we just want the
-					// wrapper to control the layout
-					LayoutParams params = new LayoutParams();
-					params.height = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-					params.width = android.widget.FrameLayout.LayoutParams.MATCH_PARENT;
-					// If the view already has a parent, we need to detach it from the parent
-					// and add the borderView to the parent as the child
-					ViewGroup savedParent = null;
-					if (nativeView.getParent() != null) {
-						ViewParent nativeParent = nativeView.getParent();
-						if (nativeParent instanceof ViewGroup) {
-							savedParent = (ViewGroup) nativeParent;
-							savedParent.removeView(nativeView);
-						}
-					}
-					borderView.addView(nativeView, params);
-					if (savedParent != null) {
-						savedParent.addView(borderView, getLayoutParams());
-					}
-					borderView.setVisibility(this.visibility);
-				}
-
-				if (d.containsKey(TiC.PROPERTY_BORDER_RADIUS)) {
-					float radius = TiConvert.toFloat(d, TiC.PROPERTY_BORDER_RADIUS, 0f);
-					if (radius > 0f && HONEYCOMB_OR_GREATER) {
-						disableHWAcceleration();
-					}
-					borderView.setRadius(radius);
-				}
-				if (d.containsKey(TiC.PROPERTY_BORDER_COLOR) || d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
-					if (d.containsKey(TiC.PROPERTY_BORDER_COLOR)) {
-						borderView.setColor(TiConvert.toColor(d, TiC.PROPERTY_BORDER_COLOR));
-					} else {
-						if (bgColor != null) {
-							borderView.setColor(bgColor);
-						}
-					}
-					if (d.containsKey(TiC.PROPERTY_BORDER_WIDTH)) {
-						TiDimension width = TiConvert
-							.toTiDimension(d.get(TiC.PROPERTY_BORDER_WIDTH), TiDimension.TYPE_WIDTH);
-						if (width != null) {
-							borderView.setBorderWidth(width.getAsPixels(getNativeView()));
-						}
-					}
-				}
+		if (background == null) {
+			background = new TiBackgroundDrawable();
+				float alpha = 1.0f;
+			if (!HONEYCOMB_OR_GREATER) {
+				if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+					alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
 			}
+			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_OPACITY))
+				alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_BACKGROUND_OPACITY));
+			
+			if (alpha < 255)
+				background.setAlpha(Math.round(alpha * 255));
+			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
+				background.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));
+		}
+		View view = getNativeView();
+		if (view != null) {
+			Drawable currentDrawable = view.getBackground();
+			if (currentDrawable != null) {
+				currentDrawable.setCallback(null);
+				if (currentDrawable instanceof TiBackgroundDrawable) {
+					((TiBackgroundDrawable) currentDrawable).releaseDelegate();
+				}
+				setBackgroundDrawable(view, null);
+			}
+			setBackgroundDrawable(view, background);
 		}
 	}
-
-	private void handleBorderProperty(String property, Object value)
+	
+	private void addBorderView(){
+		View rootView = getRootView();
+		// Create new layout params for the child view since we just want the
+		// wrapper to control the layout
+		LayoutParams params = new LayoutParams();
+		params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+		params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+		// If the view already has a parent, we need to detach it from the parent
+		// and add the borderView to the parent as the child
+		ViewGroup savedParent = null;
+		int savedIndex = 0;
+		if (rootView.getParent() != null) {
+			ViewParent nativeParent = rootView.getParent();
+			if (nativeParent instanceof ViewGroup) {
+				savedParent = (ViewGroup) nativeParent;
+				savedIndex = savedParent.indexOfChild(rootView);
+				savedParent.removeView(rootView);
+			}
+		}
+		borderView.addView(rootView, params);
+		if (savedParent != null) {
+			savedParent.addView(borderView, savedIndex,getLayoutParams());
+		}
+		
+		if ((borderView.getRadius() > 0f || hardwareAccEnabled == false) && HONEYCOMB_OR_GREATER) {
+			disableHWAcceleration(borderView);
+		}
+	}
+	
+	protected TiBorderWrapperView getOrCreateBorderView()
 	{
-		if (TiC.PROPERTY_BORDER_COLOR.equals(property)) {
-			borderView.setColor(value != null ? TiConvert.toColor(value.toString()) : Color.TRANSPARENT);
-		} else if (TiC.PROPERTY_BORDER_RADIUS.equals(property)) {
-			float radius = TiConvert.toFloat(value, 0f);
-			if (radius > 0f && HONEYCOMB_OR_GREATER) {
-				disableHWAcceleration();
+		if (borderView == null) {
+			Activity currentActivity = proxy.getActivity();
+			if (currentActivity == null) {
+				currentActivity = TiApplication.getAppCurrentActivity();
 			}
-			borderView.setRadius(radius);
-		} else if (TiC.PROPERTY_BORDER_WIDTH.equals(property)) {
-			borderView.setBorderWidth(TiConvert.toFloat(value, 0f));
+			borderView = new TiBorderWrapperView(currentActivity);
+			borderView.setVisibility(this.visibility);
+			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+				borderView.setBorderAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
+			
+			
+			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR))
+				borderView.setColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR))));
+			
+			
+			addBorderView();
 		}
-		borderView.postInvalidate();
+		return borderView;
+	}
+	
+	private void setBorderColor(String color){
+		if (color == null) return;
+		getOrCreateBorderView().setColor(TiConvert.toColor(color));
+	}
+	
+	private void setBorderRadius(float radius){
+		float realRadius = (new TiDimension(Float.toString(radius), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
+		getOrCreateBorderView().setRadius(realRadius);
+		disableHWAcceleration();
+	}
+	
+	private void setBorderWidth(float width){
+//		float realWidth = (new TiDimension(Float.toString(width), TiDimension.TYPE_WIDTH)).getAsPixels(nativeView);
+		getOrCreateBorderView().setBorderWidth(width);
+	}
+	
+	private void setViewMask(Object mask){
+		Bitmap bitmap = null;
+		if (mask instanceof TiBlob) {
+			bitmap = ((TiBlob)mask).getImage();
+		}
+		else {
+			BitmapDrawable drawable = ((BitmapDrawable) TiUIHelper.buildImageDrawable(TiConvert.toString(mask), false, proxy));
+			if (drawable != null) {
+				bitmap = drawable.getBitmap();
+			}
+		}
+		
+		disableHWAcceleration();
+		getOrCreateBorderView().setMask(bitmap);
 	}
 
-	private static SparseArray<String> motionEvents = new SparseArray<String>();
+	protected static SparseArray<String> motionEvents = new SparseArray<String>();
 	static
 	{
 		motionEvents.put(MotionEvent.ACTION_DOWN, TiC.EVENT_TOUCH_START);
@@ -1136,6 +1138,10 @@ public abstract class TiUIView
 		KrollDict data = new KrollDict();
 		data.put(TiC.EVENT_PROPERTY_X, (double)e.getX());
 		data.put(TiC.EVENT_PROPERTY_Y, (double)e.getY());
+		KrollDict globalPoint = new KrollDict();
+		globalPoint.put(TiC.EVENT_PROPERTY_X, (double)e.getRawX());
+		globalPoint.put(TiC.EVENT_PROPERTY_Y, (double)e.getRawY());
+		data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
 		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 		return data;
 	}
@@ -1171,7 +1177,12 @@ public abstract class TiUIView
 
 	public View getOuterView()
 	{
-		return borderView == null ? getNativeView() : borderView;
+		return borderView == null ? nativeView : borderView;
+	}
+
+	public View getRootView()
+	{
+		return nativeView;
 	}
 
 	public void registerForTouch()
@@ -1294,9 +1305,29 @@ public abstract class TiUIView
 
 			public boolean onTouch(View view, MotionEvent event)
 			{
+				if (exclusiveTouch) {
+					ViewGroup parent =  (ViewGroup)view.getParent();
+					if(parent != null) {
+						switch (event.getAction()) {
+					    case MotionEvent.ACTION_MOVE: 
+					        parent.requestDisallowInterceptTouchEvent(true);
+					        break;
+					    case MotionEvent.ACTION_UP:
+					    case MotionEvent.ACTION_CANCEL:
+					    	parent.requestDisallowInterceptTouchEvent(false);
+					        break;
+					    }
+					}
+					
+				}
 				if (event.getAction() == MotionEvent.ACTION_UP) {
 					lastUpEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
 					lastUpEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
+				}
+
+				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
+					lastDownEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
+					lastDownEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
 				}
 
 				scaleDetector.onTouchEvent(event);
@@ -1328,12 +1359,7 @@ public abstract class TiUIView
 				}
 
 
-				String motionEvent = motionEvents.get(event.getAction());
-				if (motionEvent != null) {
-					if (proxy.hierarchyHasListener(motionEvent)) {
-						fireEvent(motionEvent, dictFromEvent(event));
-					}
-				}
+				handleTouchEvent(event);
 
 				// Inside View.java, dispatchTouchEvent() does not call onTouchEvent() if this listener returns true. As
 				// a result, click and other motion events do not occur on the native Android side. To prevent this, we
@@ -1343,6 +1369,15 @@ public abstract class TiUIView
 		});
 		
 	}
+	
+	protected void handleTouchEvent(MotionEvent event) {
+		String motionEvent = motionEvents.get(event.getAction());
+		if (motionEvent != null) {
+			if (proxy.hierarchyHasListener(motionEvent)) {
+				fireEvent(motionEvent, dictFromEvent(event));
+			}
+		}
+	}
 
 	protected void registerForTouch(final View touchable)
 	{
@@ -1350,13 +1385,10 @@ public abstract class TiUIView
 			return;
 		}
 		
-		boolean clickable = true;
-		if (proxy.hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
-			clickable = (Boolean) proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED);
-		}
+		boolean clickable = proxy.getProperties().optBoolean(TiC.PROPERTY_TOUCH_ENABLED, true);
 
 		if (clickable) {
-			registerTouchEvents(touchable);
+			if (touchView == null || touchView.get() != touchable) registerTouchEvents(touchable);
 
 			// Previously, we used the single tap handling above to fire our click event. It doesn't
 			// work: a single tap is not the same as a click. A click can be held for a while before
@@ -1458,14 +1490,21 @@ public abstract class TiUIView
 			borderView.setBorderAlpha(Math.round(opacity * 255));
 			borderView.postInvalidate();
 		}
-		if (nativeView != null) {
+		View view = getRootView();
+		if (view != null) {
 			if (HONEYCOMB_OR_GREATER) {
-				setAlpha(nativeView, opacity);
+				setAlpha(view, opacity);
 			} else {
-				setOpacity(nativeView, opacity);
+				setOpacity(view, opacity);
 			}
-			nativeView.postInvalidate();
+			view.postInvalidate();
 		}
+	}
+	
+	public float getOpacity() {
+		if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
+			return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
+		return 1;
 	}
 
 	/**
@@ -1492,19 +1531,26 @@ public abstract class TiUIView
 				clearOpacity(view);
 			}
 		}
+		if (nativeView instanceof TiCompositeLayout) {
+			TiCompositeLayout layout = (TiCompositeLayout) nativeView;
+			layout.setAlphaCompat(opacity);
+		}
 	}
 
 	public void clearOpacity(View view)
 	{
-		Drawable d = view.getBackground();
-		if (d != null) {
-			d.clearColorFilter();
-		}
+		if (background != null)
+			background.clearColorFilter();
 	}
 
-	public KrollDict toImage()
+	public TiBlob toImage(Number scale)
 	{
-		return TiUIHelper.viewToImage(proxy.getProperties(), getNativeView());
+		float scaleValue = scale.floatValue();
+		Bitmap bitmap = TiUIHelper.viewToBitmap(proxy.getProperties(), getNativeView());
+		if (scaleValue != 1.0f) {
+			bitmap = TiImageHelper.imageScaled(bitmap, scaleValue);
+		}
+		return TiBlob.blobFromImage(bitmap);
 	}
 
 	private View getTouchView()
@@ -1519,7 +1565,7 @@ public abstract class TiUIView
 		return null;
 	}
 
-	private void doSetClickable(View view, boolean clickable)
+	protected void doSetClickable(View view, boolean clickable)
 	{
 		if (view == null) {
 			return;
@@ -1588,105 +1634,45 @@ public abstract class TiUIView
 		{
 			public boolean onLongClick(View view)
 			{
-				return fireEvent(TiC.EVENT_LONGCLICK, null);
+				return fireEvent(TiC.EVENT_LONGCLICK, dictFromEvent(lastDownEvent));
 			}
 		});
 	}
 
-	private void disableHWAcceleration()
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void disableHWAcceleration(View view)
 	{
-		if (borderView == null) {
-			return;
+		if (HONEYCOMB_OR_GREATER) {
+			view.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
-		Log.d(TAG, "Disabling hardware acceleration for instance of " + borderView.getClass().getSimpleName(),
-			Log.DEBUG_MODE);
-		if (mSetLayerTypeMethod == null) {
-			try {
-				Class<? extends View> c = borderView.getClass();
-				mSetLayerTypeMethod = c.getMethod("setLayerType", int.class, Paint.class);
-			} catch (SecurityException e) {
-				Log.e(TAG, "SecurityException trying to get View.setLayerType to disable hardware acceleration.", e,
-					Log.DEBUG_MODE);
-			} catch (NoSuchMethodException e) {
-				Log.e(TAG, "NoSuchMethodException trying to get View.setLayerType to disable hardware acceleration.", e,
-					Log.DEBUG_MODE);
-			}
-		}
-
-		if (mSetLayerTypeMethod == null) {
-			return;
-		}
-		try {
-			mSetLayerTypeMethod.invoke(borderView, LAYER_TYPE_SOFTWARE, null);
-		} catch (IllegalArgumentException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			Log.e(TAG, e.getMessage(), e);
-		} catch (InvocationTargetException e) {
-			Log.e(TAG, e.getMessage(), e);
+	}
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	protected void enableHWAcceleration(View view)
+	{
+		if (HONEYCOMB_OR_GREATER) {
+			view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 		}
 	}
 
-	/**
-	 * Retrieve the saved animated scale values, which we store here since Android provides no property
-	 * for looking them up.
-	 */
-	public Pair<Float, Float> getAnimatedScaleValues()
+	protected void disableHWAcceleration()
 	{
-		return animatedScaleValues;
+		if (hardwareAccEnabled == true) {
+			disableHWAcceleration(getOuterView());
+			hardwareAccEnabled = false;
+		}
 	}
-
-	/**
-	 * Store the animated x and y scale values (i.e., the scale after an animation)
-	 * since Android provides no property for looking them up.
-	 */
-	public void setAnimatedScaleValues(Pair<Float, Float> newValues)
+	
+	protected void enableHWAcceleration()
 	{
-		animatedScaleValues = newValues;
+		if (hardwareAccEnabled == false) {
+			enableHWAcceleration(getOuterView());
+			hardwareAccEnabled = true;
+		}
 	}
-
-	/**
-	 * Set the animated rotation degrees, since Android provides no property for looking it up.
-	 */
-	public void setAnimatedRotationDegrees(float degrees)
-	{
-		animatedRotationDegrees = degrees;
-	}
-
-	/**
-	 * Retrieve the animated rotation degrees, which we store here since Android provides no property
-	 * for looking it up.
-	 */
-	public float getAnimatedRotationDegrees()
-	{
-		return animatedRotationDegrees;
-	}
-
-	/**
-	 * Set the animated alpha values, since Android provides no property for looking it up.
-	 */
-	public void setAnimatedAlpha(float alpha)
-	{
-		animatedAlpha = alpha;
-	}
-
-	/**
-	 * Retrieve the animated alpha value, which we store here since Android provides no property
-	 * for looking it up.
-	 */
-	public float getAnimatedAlpha()
-	{
-		return animatedAlpha;
-	}
-
-	/**
-	 * "Forget" the values we save after scale and rotation and alpha animations.
-	 */
-	private void resetPostAnimationValues()
-	{
-		animatedRotationDegrees = 0f; // i.e., no rotation.
-		animatedScaleValues = Pair.create(Float.valueOf(1f), Float.valueOf(1f)); // 1 means no scaling
-		animatedAlpha = Float.MIN_VALUE; // we use min val to signal no val.
+	
+	public boolean hWAccelerationDisabled(){
+		return !hardwareAccEnabled;
 	}
 
 	private void applyContentDescription()
@@ -1786,5 +1772,221 @@ public abstract class TiUIView
 
 		ViewCompat.setImportantForAccessibility(nativeView, importanceMode);
 	}
+	
+	public void setTiBackgroundColor(int color) {
+		int currentColor = getTiBackgroundColor();
+		if (currentColor != color) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
+			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
+			bgdDrawable.invalidateSelf();
+		}
+	}
+	
+	public int getTiBackgroundColor() {
+//		return TiColorHelper.parseColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR)));
+		if (background == null)
+		{
+			return Color.TRANSPARENT;
+		}
+		return background.getColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1);
+	}
 
+	public void setTi2DMatrix(Ti2DMatrix matrix) {
+		applyTransform(matrix);
+		View outerView =  getOuterView();
+		ViewParent viewParent = outerView.getParent();
+		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+			((View) viewParent).postInvalidate();
+		}
+	}
+	
+	public Ti2DMatrix getTi2DMatrix() {
+		return layoutParams.matrix;
+	}
+	
+	public float getAnimatedRectFraction() {
+		if (layoutParams instanceof AnimationLayoutParams)
+			return ((AnimationLayoutParams)layoutParams).animationFraction;
+		return 0.0f;
+	}
+	
+	public void setAnimatedRectFraction(float fraction) {
+		if (layoutParams instanceof AnimationLayoutParams) {
+			((AnimationLayoutParams)layoutParams).animationFraction = fraction;
+			View outerView =  getOuterView();
+			outerView.setLayoutParams(layoutParams);
+			ViewParent viewParent = outerView.getParent();
+			if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
+		}
+	}
+
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+			HashMap options) {
+		AnimatorSet set = tiSet.set();
+		
+		
+		View view = proxy.getOuterView();
+		((TiViewAnimator)tiSet).setViewProxy(proxy);
+		((TiViewAnimator)tiSet).setView(view);
+
+		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
+			show();
+			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "opacity",
+					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
+			list.add(anim);
+		}
+
+		if (options.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+//			if (!proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR)) {
+//				Log.w(TAG, "Cannot animate view without a backgroundColor. View doesn't have that property. Using #00000000");
+//				getNativeView().setBackgroundColor(Color.argb(0, 0, 0, 0));
+//			}
+			ObjectAnimator anim = ObjectAnimator.ofInt(this, "tiBackgroundColor", TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR));
+			 anim.setEvaluator(new ArgbEvaluator());
+			list.add(anim);
+		}
+		
+		ViewParent parent = view.getParent();
+		View parentView = null;
+
+		if (parent instanceof View) {
+			parentView = (View) parent;
+		}
+		
+		if (options.containsKey(TiC.PROPERTY_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_HEIGHT) ||
+				options.containsKey(TiC.PROPERTY_TOP) ||
+				options.containsKey(TiC.PROPERTY_BOTTOM) ||
+				options.containsKey(TiC.PROPERTY_LEFT) ||
+				options.containsKey(TiC.PROPERTY_RIGHT) ||
+				options.containsKey(TiC.PROPERTY_CENTER)) {
+			
+			AnimationLayoutParams animParams = new AnimationLayoutParams(layoutParams);
+			animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+			animParams.animationFraction = 0.0f;
+			TiConvert.fillLayout(options, animParams, false);
+			
+			setLayoutParams(animParams); //we need this because otherwise applying the matrix will override it :s
+			view.setLayoutParams(animParams);
+			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "animatedRectFraction", 1.0f);
+			list.add(anim);
+		}
+		
+		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			Ti2DMatrix matrix = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
+			if (matrix != null && matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
+			{
+				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+			}
+			else if(matrix == null) {
+				matrix = new Ti2DMatrix();
+			}
+			
+			if (parentView instanceof FreeLayout) {
+				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), matrix);
+				list.add(anim);
+			}
+			else {
+				DecomposedType decompose = matrix.getAffineTransform(view, true).decompose();
+				List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+				propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
+				propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
+				propertiesList.add(PropertyValuesHolder.ofFloat("rotation", (float)(decompose.angle*180/Math.PI)));
+				propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", (float)decompose.scaleX));
+				propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
+				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
+			}
+		}
+
+//		anim.setTarget(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view);
+//		anim.setInterpolator(new AccelerateDecelerateInterpolator());
+//		list.add(anim);
+		view.postInvalidate();
+
+	}
+	
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	private class BlurTask extends AsyncTask< Object, Void, Bitmap >
+	{
+		KrollProxy proxy;
+		HashMap options;
+		KrollFunction callback;
+		String[] properties;
+		@Override
+		protected Bitmap doInBackground(Object... params)
+		{
+			Bitmap bitmap = (Bitmap)params[0];
+			proxy = (TiViewProxy)params[1];
+			Rect rect = (Rect)params[2];
+			options = (HashMap)params[3];
+			bitmap = TiImageHelper.imageCropped(bitmap, new TiRect(rect));
+			if (options == null) {
+				options = new KrollDict();
+			}
+			options.put("filters", new Object[]{TiImageHelper.FilterType.kFilterBoxBlur.ordinal()});
+
+			if (options.containsKey("callback")) {
+				callback = (KrollFunction) options.get("callback");
+			}
+			if (options.containsKey("properties")) {
+				properties = TiConvert.toStringArray((Object[]) options.get("properties"));
+			}
+			bitmap = TiImageHelper.imageFiltered(bitmap, options);
+			return bitmap;
+		}
+		/**
+		 * Always invoked on UI thread.
+		 */
+		@Override
+		protected void onPostExecute(Bitmap image)
+		{
+			TiBlob blob = TiBlob.blobFromImage(image);
+			if (properties != null) {
+				for (String prop : properties) {
+					proxy.setPropertyAndFire(prop, blob);
+				}
+			}
+			if (this.callback != null)  {
+				KrollDict result = new KrollDict();
+				if (image != null) {
+					result.put("image", blob);
+				}
+				this.callback.callAsync(this.proxy.getKrollObject(), new Object[] { result });
+			}
+		}
+	}
+	
+	public void blurBackground(HashMap args)
+	{
+		long startTime = System.currentTimeMillis();
+		View outerView = getOuterView();
+		TiViewProxy parentProxy = getParent();
+		if (outerView != null && parentProxy != null) {	
+			View parentView = parentProxy.getOuterView();
+			if (parentView != null) {
+
+				int width = parentView.getWidth();
+				int height = parentView.getHeight();
+		
+				Bitmap bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+				Canvas canvas = new Canvas(bitmap);
+				float alpha = ViewHelper.getAlpha(outerView);
+				ViewHelper.setAlpha(outerView, 0.0f);
+				parentView.draw(canvas);
+				ViewHelper.setAlpha(outerView, alpha);
+
+				Rect rect = new Rect(outerView.getLeft(), outerView.getTop(), outerView.getRight(), outerView.getBottom());
+				
+				(new BlurTask()).execute(bitmap, this.proxy, rect, args);
+				long endTime   = System.currentTimeMillis();
+				long totalTime = endTime - startTime;
+				System.out.println(totalTime);
+			} 
+		}
+	}
 }

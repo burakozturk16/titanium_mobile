@@ -21,6 +21,8 @@ import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -90,6 +92,13 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int MAP_VIEW_STANDARD = 1;
 	@Kroll.constant public static final int MAP_VIEW_SATELLITE = 2;
 	@Kroll.constant public static final int MAP_VIEW_HYBRID = 3;
+	
+	@Kroll.constant public static final int SCALE_TYPE_SCALE_TO_FILL = 0; //ImageView.ScaleType.FIT_XY
+	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FIT = 1; //ImageView.ScaleType.FIT_CENTER
+	@Kroll.constant public static final int SCALE_TYPE_ASPECT_FILL = 2; //ImageView.ScaleType.CENTER_CROP
+	@Kroll.constant public static final int SCALE_TYPE_CENTER = 3; //ImageView.ScaleType.CENTER
+	@Kroll.constant public static final int SCALE_TYPE_LEFT = 4; //ImageView.ScaleType.FIT_START
+	@Kroll.constant public static final int SCALE_TYPE_RIGHT = 5; //ImageView.ScaleType.FIT_END
 
 	@Kroll.constant public static final int TABLEVIEW_POSITION_ANY = 0;
 	@Kroll.constant public static final int TABLEVIEW_POSITION_TOP = 1;
@@ -102,6 +111,10 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final String TEXT_VERTICAL_ALIGNMENT_BOTTOM = "bottom";
 	@Kroll.constant public static final String TEXT_VERTICAL_ALIGNMENT_CENTER = "middle";
 	@Kroll.constant public static final String TEXT_VERTICAL_ALIGNMENT_TOP = "top";
+	@Kroll.constant public static final String TEXT_ELLIPSIS_NONE = "none";
+	@Kroll.constant public static final String TEXT_ELLIPSIZE_HEAD = "START";
+	@Kroll.constant public static final String TEXT_ELLIPSIZE_MIDDLE = "MIDDLE";
+	@Kroll.constant public static final String TEXT_ELLIPSIZE_TAIL = "END";
 	
 	@Kroll.constant public static final int PORTRAIT = TiOrientationHelper.ORIENTATION_PORTRAIT;
 	@Kroll.constant public static final int UPSIDE_PORTRAIT = TiOrientationHelper.ORIENTATION_PORTRAIT_REVERSE;
@@ -145,6 +158,12 @@ public class UIModule extends KrollModule implements Handler.Callback
 	@Kroll.constant public static final int URL_ERROR_TIMEOUT = WebViewClient.ERROR_TIMEOUT;
 	@Kroll.constant public static final int URL_ERROR_UNKNOWN = WebViewClient.ERROR_UNKNOWN;
 	@Kroll.constant public static final int URL_ERROR_UNSUPPORTED_SCHEME = WebViewClient.ERROR_UNSUPPORTED_SCHEME;
+	
+	@Kroll.constant public static final int LEFT_VIEW = 0;
+	@Kroll.constant public static final int RIGHT_VIEW = 1;
+	
+	@SuppressLint("InlinedApi")
+	@Kroll.constant public static final int INFINITE = ValueAnimator.INFINITE;
 
 	protected static final int MSG_SET_BACKGROUND_COLOR = KrollProxy.MSG_LAST_ID + 100;
 	protected static final int MSG_SET_BACKGROUND_IMAGE = KrollProxy.MSG_LAST_ID + 101;

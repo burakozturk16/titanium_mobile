@@ -11,10 +11,18 @@
 
 @implementation TiUITextAreaProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiUITextWidgetProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"enabled",
+                                              @"scrollable",@"editable",@"autoLink",
+                                              @"borderStyle", nil]];
+}
+
 #pragma mark Defaults
 
 DEFINE_DEF_PROP(value,@"");
-DEFINE_DEF_PROP(scrollsToTop,[NSNumber numberWithBool:YES]);
+DEFINE_DEF_PROP(scrollsToTop,@YES);
 DEFINE_DEF_INT_PROP(maxLength,-1);
 
 -(NSString*)apiName

@@ -250,7 +250,7 @@ typedef void(^EKEventStoreRequestAccessCompletionHandler)(BOOL granted, NSError 
                                                                               message:[TiUtils messageFromError:error]];
                                      }
                                      KrollEvent * invocationEvent = [[KrollEvent alloc] initWithCallback:callback eventObject:propertiesDict thisObject:self];
-                                     [[callback context] enqueue:invocationEvent];
+                                     [[callback context] enqueue:[invocationEvent autorelease]];
                                  }];
 	}, NO);
 }

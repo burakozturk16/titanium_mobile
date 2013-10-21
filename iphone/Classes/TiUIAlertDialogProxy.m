@@ -11,7 +11,31 @@
 static NSCondition* alertCondition;
 static BOOL alertShowing = NO;
 
+@interface TiAlertView : UIAlertView {
+}
+@property(nonatomic, readwrite) BOOL hideOnClick;
+@end
+
+
+@implementation TiAlertView
+@synthesize hideOnClick;
+
+-(void)dismissWithClickedButtonIndex:(NSInteger)buttonIndex animated:(BOOL)animated {
+    if (!hideOnClick)
+        return;
+    [super dismissWithClickedButtonIndex:buttonIndex animated:animated];
+}
+
+@end
+
+
 @implementation TiUIAlertDialogProxy
+
+-(void)_configure
+{
+	[self setValue:NUMBOOL(YES) forKey:@"hideOnClick"];
+	[super _configure];
+}
 
 -(void)_destroy
 {
@@ -48,6 +72,7 @@ static BOOL alertShowing = NO;
 		[alertCondition lock];
 		alertShowing = NO;
         persistentFlag = NO;
+        hideOnClick = YES;
 		[alertCondition broadcast];
 		[alertCondition unlock];
 		[self forgetSelf];
@@ -64,12 +89,14 @@ static BOOL alertShowing = NO;
 	
 	if (alert!=nil)
 	{
+		[self fireEvent:@"close" withObject:nil];
 		//On IOS5 sometimes the delegate does not get called when hide is called soon after show
 		//So we do the cleanup here itself
 		
 		//Remove ourselves as the delegate. This ensures didDismissWithButtonIndex is not called on dismissWithClickedButtonIndex
 		[alert setDelegate:nil];
 		BOOL animated = [TiUtils boolValue:@"animated" properties:args def:YES];
+        ((TiAlertView*)alert).hideOnClick = true; //to make sure we can close now!
 		[alert dismissWithClickedButtonIndex:[alert cancelButtonIndex] animated:animated];
 		[self cleanup];
 	}
@@ -115,9 +142,12 @@ static BOOL alertShowing = NO;
 			[buttonNames addObject:ok];
 		}
 		persistentFlag = [TiUtils boolValue:[self valueForKey:@"persistent"] def:NO];
-		alert = [[UIAlertView alloc] initWithTitle:[TiUtils stringValue:[self valueForKey:@"title"]]
+		hideOnClick = [TiUtils boolValue:[self valueForKey:@"hideOnClick"] def:YES];
+		alert = [[TiAlertView alloc] initWithTitle:[TiUtils stringValue:[self valueForKey:@"title"]]
 												message:[TiUtils stringValue:[self valueForKey:@"message"]] 
 												delegate:self cancelButtonTitle:nil otherButtonTitles:nil];
+        ((TiAlertView*)alert).hideOnClick = hideOnClick;
+        
 		for (id btn in buttonNames)
 		{
 			NSString * thisButtonName = [TiUtils stringValue:btn];
@@ -138,6 +168,7 @@ static BOOL alertShowing = NO;
 
 		[self retain];
 		[alert show];
+		[self fireEvent:@"open" withObject:nil];
 	}
 }
 
@@ -185,9 +216,10 @@ static BOOL alertShowing = NO;
 	}
 }
 
+
 -(void)alertViewCancel:(UIAlertView *)alertView
 {
-    if (!persistentFlag) {
+    if (!persistentFlag && hideOnClick) {
         [self hide:[NSDictionary dictionaryWithObject:NUMBOOL(NO) forKey:@"animated"]];
     }
 }

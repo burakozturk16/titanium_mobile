@@ -11,26 +11,33 @@ import java.lang.ref.WeakReference;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.MaskableView;
+
+import com.trevorpage.tpsvg.SVGDrawable;
+
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
+import android.view.View.OnClickListener;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.ZoomControls;
 
-public class TiImageView extends ViewGroup implements Handler.Callback, OnClickListener
+public class TiImageView extends MaskableView implements Handler.Callback, OnClickListener
 {
 	private static final String TAG = "TiImageView";
 
@@ -52,10 +59,17 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	private float scaleIncrement;
 	private float scaleMin;
 	private float scaleMax;
-
+	
 	private Matrix baseMatrix;
 	private Matrix changeMatrix;
 
+	private Boolean readyToLayout = false;
+	private Boolean configured = false;
+	private boolean animateTransition = true;
+	private int  animationDuration = 500;
+	
+	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
+	
 	// Flags to help determine whether width/height is defined, so we can scale appropriately
 	private boolean viewWidthDefined;
 	private boolean viewHeightDefined;
@@ -77,12 +91,60 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		scaleMin = 1.0f;
 		scaleMax = 5.0f;
 		orientation = 0;
-
+		configured = false;
 		baseMatrix = new Matrix();
 		changeMatrix = new Matrix();
 
-		imageView = new ImageView(context);
-		addView(imageView);
+		imageView = new ImageView(context) {
+			@Override
+			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+				Drawable drawable  = imageView.getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    imageView.setImageDrawable(null); 
+			    int vWidth = w - getPaddingLeft() - getPaddingRight();
+			    int vHeight = h - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    imageView.setImageDrawable(drawable);
+			}
+			
+			@Override
+			public void setScaleType (ScaleType scaleType) {
+				super.setScaleType(scaleType);
+			    Drawable drawable  = getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    setImageDrawable(null); 
+			    ((SVGDrawable)drawable).setScaleType(scaleType);
+			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    setImageDrawable(drawable);
+			} 
+			
+			@Override
+			public void setImageDrawable(Drawable drawable) {
+				if (!(drawable instanceof SVGDrawable)) {
+					super.setImageDrawable(drawable);
+					return;
+				}
+				if (getDrawable() == drawable) {
+					return;
+				}
+				SVGDrawable svg = (SVGDrawable) drawable;
+				svg.setScaleType(getScaleType());
+				int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+				int vHeight = getHeight() - getPaddingTop()
+						- getPaddingBottom();
+				svg.adjustToParentSize(vWidth, vHeight);
+				super.setImageDrawable(svg);
+			}
+		};
+		addView(imageView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		setEnableScale(true);
 
 		gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()
@@ -172,15 +234,59 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	}
 
 	public Drawable getImageDrawable() {
-		return imageView.getDrawable();
+		Drawable drawable = imageView.getDrawable();
+		if (drawable instanceof TransitionDrawable) {
+			TransitionDrawable td = (TransitionDrawable) drawable;
+			return td.getDrawable(td.getNumberOfLayers() - 1);
+		}
+		return drawable;
 	}
-
+	
+	public void setAnimateTransition(boolean value)
+	{
+		this.animateTransition = value;
+	}
+	
+	public void setAnimationDuration(int value)
+	{
+		this.animationDuration = value;
+	}
+	
+	public void setImageDrawableWithFade(final ImageView imageView,
+			final Drawable drawable) {
+		Drawable currentDrawable = getImageDrawable();
+		if (currentDrawable != null) {
+			Drawable[] arrayDrawable = new Drawable[2];
+			arrayDrawable[0] = currentDrawable;
+			arrayDrawable[1] = drawable;
+			TransitionDrawable transitionDrawable = new TransitionDrawable(arrayDrawable);
+			transitionDrawable.setCrossFadeEnabled(true);
+			imageView.setImageDrawable(transitionDrawable);
+			transitionDrawable.startTransition(animationDuration);
+			
+		} else {
+			imageView.setImageDrawable(drawable);
+		}
+	}
 	/**
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void setImageBitmap(Bitmap bitmap) {
-		imageView.setImageBitmap(bitmap);
+//		if (animateTransition && animationDuration > 0) {
+//			setImageDrawableWithFade(imageView, new BitmapDrawable(getContext().getResources(), bitmap));
+//		}
+//		else {
+			imageView.setImageBitmap(bitmap);
+//		}
+	}
+	
+	/**
+	 * Sets a Bitmap as the content of imageView
+	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
+	 */
+	public void setImageDrawable(Drawable drawable) {
+		imageView.setImageDrawable(drawable);
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -257,8 +363,9 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		scheduleControlTimeout();
 	}
 
-	private void computeBaseMatrix()
+	private boolean computeBaseMatrix()
 	{
+		if (imageView.getScaleType() != ScaleType.MATRIX) return false;
 		Drawable d = imageView.getDrawable();
 		baseMatrix.reset();
 
@@ -297,7 +404,7 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 				dRectF = new RectF(0, -dheight, dwidth, 0);
 			} else {
 				Log.e(TAG, "Invalid value for orientation. Cannot compute the base matrix for the image.");
-				return;
+				return false;
 			}
 
 			Matrix m = new Matrix();
@@ -310,6 +417,7 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 			m.setRectToRect(dRectF, vRectF, scaleType);
 			baseMatrix.postConcat(m);
 		}
+		return true;
 	}
 
 	private void updateChangeMatrix(float dscale)
@@ -349,6 +457,22 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		}
 		return handled;
 	}
+	
+	private float getImageRatio(){
+		float ratio = 0;
+		Drawable drawable = getImageDrawable();
+		if (drawable instanceof BitmapDrawable) {
+			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+			if (bitmap != null && bitmap.getHeight() > 0)
+				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
+		}
+		else if (drawable instanceof SVGDrawable) {
+			SVGDrawable svg = (SVGDrawable)drawable;
+			ratio = (float)svg.getIntrinsicWidth() /  (float)svg.getIntrinsicHeight();
+		}
+		return ratio;
+	}
+	
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
@@ -359,47 +483,40 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 		int maxHeight = 0;
 
 //		if (DBG) {
-//			int w = MeasureSpec.getSize(widthMeasureSpec);
-//			int wm = MeasureSpec.getMode(widthMeasureSpec);
-//			int h = MeasureSpec.getSize(heightMeasureSpec);
-//			int hm = MeasureSpec.getMode(heightMeasureSpec);
-//
-//			Log.i(LCAT, "w: " + w + " wm: " + wm + " h: " + h + " hm: " + hm);
+		int w = MeasureSpec.getSize(widthMeasureSpec);
+		int wm = MeasureSpec.getMode(widthMeasureSpec);
+		int h = MeasureSpec.getSize(heightMeasureSpec);
+		int hm = MeasureSpec.getMode(heightMeasureSpec);
+
+//			Log.i(TAG, "w: " + w + " wm: " + wm + " h: " + h + " hm: " + hm);
 //		}
 
-		// If height or width is not defined, we need to set the height/width properly
-		// so that it doesn't get the content height/width
-		if (!viewWidthDefined || !viewHeightDefined) {
-			Drawable d = imageView.getDrawable();
-			float aspectRatio = 1;
-			int w = MeasureSpec.getSize(widthMeasureSpec);
-			int h = MeasureSpec.getSize(heightMeasureSpec);
-
-			if (d != null) {
-				int ih = d.getIntrinsicHeight();
-				int iw = d.getIntrinsicWidth();
-				if (ih != 0 && iw != 0) {
-					aspectRatio = ih / iw;
-				}
-			}
-
-			if (viewWidthDefined) {
-				maxWidth = w;
-				maxHeight = Math.round(w * aspectRatio);
-			}
-			if (viewHeightDefined) {
-				maxHeight = h;
-				maxWidth = Math.round(h / aspectRatio);
-			}
-		}
-		
 		// TODO padding and margins
 
 		measureChild(imageView, widthMeasureSpec, heightMeasureSpec);
+		int measuredWidth = imageView.getMeasuredWidth();
+		int measuredHeight = imageView.getMeasuredHeight();
+		
+		
+		if (measuredWidth > 0 && measuredHeight > 0) {
+			if(hm == MeasureSpec.EXACTLY && (wm == MeasureSpec.AT_MOST || wm == MeasureSpec.UNSPECIFIED)) { 
+				maxHeight = Math.max(h, Math.max(maxHeight, measuredHeight));
+				float ratio =  getImageRatio();
+				maxWidth = (int) Math.floor(maxHeight * ratio);
+			}
+			else if(wm == MeasureSpec.EXACTLY && (hm == MeasureSpec.AT_MOST || hm == MeasureSpec.UNSPECIFIED)) { 
+				maxWidth = Math.max(w, Math.max(maxWidth, measuredWidth));
+				float ratio =  getImageRatio();
+				if (ratio > 0)
+					maxHeight = (int) Math.floor(maxWidth / ratio);
+			}
+			else {
+				maxWidth = Math.max(maxWidth, measuredWidth);
+				maxHeight = Math.max(maxHeight, measuredHeight);
+			}
+		}
 
-		maxWidth = Math.max(maxWidth, imageView.getMeasuredWidth());
-		maxHeight = Math.max(maxHeight, imageView.getMeasuredHeight());
-
+		
 		// Allow for zoom controls.
 		if (enableZoomControls) {
 			measureChild(zoomControls, widthMeasureSpec, heightMeasureSpec);
@@ -413,8 +530,7 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	@Override
 	protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 	{
-		computeBaseMatrix();
-		imageView.setImageMatrix(getViewMatrix());
+		if (computeBaseMatrix()) imageView.setImageMatrix(getViewMatrix());
 
 		int parentLeft = 0;
 		int parentRight = right - left;
@@ -437,17 +553,21 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 	{
 		imageView.setColorFilter(filter);
 	}
+	
+	
 
 	private void updateScaleType()
 	{
+		if (!configured) return;
 		if (orientation > 0 || enableZoomControls) {
 			imageView.setScaleType(ScaleType.MATRIX);
 			imageView.setAdjustViewBounds(false);
 		} else {
 			if (viewWidthDefined && viewHeightDefined) {
 				imageView.setAdjustViewBounds(false);
-				imageView.setScaleType(ScaleType.FIT_XY);
-			} else if (!enableScale) {
+				imageView.setScaleType(wantedScaleType);
+			}
+			else if(!enableScale) {
 				imageView.setAdjustViewBounds(false);
 				imageView.setScaleType(ScaleType.CENTER);
 			} else {
@@ -455,19 +575,38 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 				imageView.setScaleType(ScaleType.FIT_CENTER);
 			}
 		}
-		requestLayout();
+		if (readyToLayout) requestLayout();
 	}
-
+	
+	public void setWantedScaleType(ScaleType type) {
+		wantedScaleType = type;
+		updateScaleType();
+	}
+	
+	public ScaleType getScaleType() {
+		return imageView.getScaleType();
+	}
+	
 	public void setWidthDefined(boolean defined)
 	{
 		viewWidthDefined = defined;
 		updateScaleType();
+	}
+	
+	public boolean getWidthDefined()
+	{
+		return viewWidthDefined;
 	}
 
 	public void setHeightDefined(boolean defined)
 	{
 		viewHeightDefined = defined;
 		updateScaleType();
+	}
+	
+	public boolean getHeightDefined()
+	{
+		return viewHeightDefined;
 	}
 
 	public void setOrientation(int orientation)
@@ -492,5 +631,22 @@ public class TiImageView extends ViewGroup implements Handler.Callback, OnClickL
 			return false;
 		}
 		return true;
+	}
+	
+	public void setReadyToLayout(boolean ready)
+	{
+		readyToLayout = ready;
+		if (readyToLayout) requestLayout();
+	}
+	
+	public void setConfigured(boolean configured)
+	{
+		this.configured = configured;
+		
+		if (configured)
+		{
+			updateScaleType();
+			readyToLayout = true;
+		}
 	}
 }

@@ -26,7 +26,10 @@ propertyAccessors = {
 	TiC.PROPERTY_COLOR,
 	TiC.PROPERTY_FONT,
 	TiC.PROPERTY_TEXT_ALIGN,
-	TiC.PROPERTY_VERTICAL_ALIGN
+	TiC.PROPERTY_VERTICAL_ALIGN,
+	TiC.PROPERTY_BACKGROUND_CHECKED_COLOR,
+	TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE,
+	TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT
 })
 public class SwitchProxy extends TiViewProxy
 {
@@ -35,7 +38,7 @@ public class SwitchProxy extends TiViewProxy
 		super();
 
 		setProperty(TiC.PROPERTY_VALUE, false);
-		setProperty(TiC.PROPERTY_STYLE, AndroidModule.SWITCH_STYLE_TOGGLEBUTTON);
+		setProperty(TiC.PROPERTY_STYLE, AndroidModule.SWITCH_STYLE_SWITCH);
 	}
 
 	public SwitchProxy(TiContext tiContext)

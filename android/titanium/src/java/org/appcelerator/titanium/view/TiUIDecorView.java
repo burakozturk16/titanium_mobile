@@ -22,9 +22,9 @@ public class TiUIDecorView extends TiUIView
 	}
 
 	@Override
-	public void add(TiUIView child)
+	public void add(TiUIView child, int index)
 	{
-		super.add(child);
+		super.add(child, index);
 
 		// Honeycomb has issues to redraw the decor view after adding a child. (TIMOB-10126)
 		// So we force it to invalidate the decor view here.

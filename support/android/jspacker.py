@@ -22,6 +22,10 @@ package ${package_name};
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.List;
+import java.util.Iterator;
 import java.nio.CharBuffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -49,6 +53,30 @@ ${init_assets}
       return null;
     }
     return new String(filterDataInRange(assetsBytes, range.offset, range.length)); // charset encoding?
+  }
+
+  public boolean assetExists(String path)
+  {
+    return assets.containsKey(path);
+  }
+
+  public List<String> list(String path) {
+    List<String> result = new ArrayList<String>();
+    String  realPath = path;
+    if (!realPath.endsWith("/")) {
+      realPath = realPath + "/";
+    }
+
+    Set<String> keys = assets.keySet();
+    Iterator<String> ite = keys.iterator();
+
+    while (ite.hasNext()) {
+      String candidate = ite.next();
+      if (candidate.startsWith(realPath)) {
+        result.add(candidate.replace(realPath, "").split("/")[0]);
+      }
+    }
+    return result;
   }
 
   private static byte[] filterDataInRange(byte[] data, int offset, int length)

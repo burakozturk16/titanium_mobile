@@ -10,14 +10,11 @@ package ti.modules.titanium.ui.widget.listview;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.View.MeasureSpec;
 
 public class TiBaseListViewItem extends TiCompositeLayout{
 
@@ -32,9 +29,9 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	public TiBaseListViewItem(Context context, AttributeSet set) {
 		super(context, set);
 		setId(TiListView.listContentId);
-		TiDimension heightDimension = new TiDimension(TiListView.MIN_ROW_HEIGHT, TiDimension.TYPE_UNDEFINED);
-		minHeight = heightDimension.getAsPixels(this);
-		setMinimumHeight(minHeight);
+//		TiDimension heightDimension = new TiDimension(TiListView.MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
+//		minHeight = heightDimension.getAsPixels(this);
+//		setMinimumHeight(minHeight);
 		viewsMap = new HashMap<String, ViewItem>();
 		viewItem = new ViewItem(null, new KrollDict());
 	}
@@ -45,6 +42,11 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	
 	public ViewItem getViewItem() {
 		return viewItem;
+	}
+	
+	public void setMinimumHeight(int value) {
+		minHeight = value;
+		super.setMinimumHeight(minHeight);
 	}
 	
 	public void bindView(String binding, ViewItem view) {

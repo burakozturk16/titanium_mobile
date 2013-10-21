@@ -37,6 +37,7 @@ import android.os.Message;
 	TiC.PROPERTY_SEARCH,
 	TiC.PROPERTY_SEPARATOR_COLOR,
 	TiC.PROPERTY_OVER_SCROLL_MODE,
+	TiC.PROPERTY_SEPARATOR_STYLE,
 	TiC.PROPERTY_MIN_ROW_HEIGHT
 })
 public class TableViewProxy extends TiViewProxy
@@ -59,6 +60,7 @@ public class TableViewProxy extends TiViewProxy
 	private static final int MSG_APPEND_SECTION = TiViewProxy.MSG_LAST_ID + 5009;
 	private static final int MSG_DELETE_SECTION = TiViewProxy.MSG_LAST_ID + 5010;
 	private static final int MSG_INSERT_SECTION = TiViewProxy.MSG_LAST_ID + 5011;
+	private static final int MSG_SCROLL_TO_BOTTOM = TiViewProxy.MSG_LAST_ID + 5012;
 
 	public static final String CLASSNAME_DEFAULT = "__default__";
 	public static final String CLASSNAME_HEADER = "__header__";
@@ -154,17 +156,20 @@ public class TableViewProxy extends TiViewProxy
 			// The data object may already be in use by the runtime thread
 			// due to a child view's event fire. Create a copy to be thread safe.
 			@SuppressWarnings("unchecked")
-			KrollDict dataCopy = new KrollDict((HashMap<String, Object>) data);
-			if (dataCopy.containsKey(TiC.PROPERTY_X) && dataCopy.containsKey(TiC.PROPERTY_Y)) {
-				double x = dataCopy.getDouble(TiC.PROPERTY_X);
-				double y = dataCopy.getDouble(TiC.PROPERTY_Y);
-				Object source = dataCopy.get(TiC.PROPERTY_SOURCE);
-				int index = getTableView().getTableView().getIndexFromXY(x, y);
-				if (index != -1 && source == this) {
+			KrollDict dataCopy = new KrollDict((HashMap<String, Object>)data);
+			
+			TiViewProxy source = (TiViewProxy)dataCopy.get(TiC.EVENT_PROPERTY_SOURCE);
+			if (source != null) {
+			TiUIView view  = source.peekView();
+			if (view != null && view.getNativeView() != null)
+			{
+				int index = getTableView().getTableView().getPositionForView(view.getNativeView());
+				if (index != -1) {
 					Item item = getTableView().getTableView().getItemAtPosition(index);
-					dataCopy.put(TiC.PROPERTY_SOURCE, item.proxy);
-					return item.proxy.fireEvent(eventName, dataCopy, bubbles);
+					TableViewRowProxy.fillClickEvent(dataCopy, getTableView().getModel(), item);
+					data = dataCopy;
 				}
+			}
 			}
 		}
 
@@ -407,6 +412,47 @@ public class TableViewProxy extends TiViewProxy
 			}
 		}
 		return index;
+	}
+
+	@Kroll.method
+	public TableViewRowProxy getRowByName(String name)
+	{
+		if (name != null) {
+			for (TableViewSectionProxy section : getSections()) {
+				for (TableViewRowProxy row : section.getRows()) {
+					String rname = TiConvert.toString(row.getProperty(TiC.PROPERTY_NAME));
+					if (rname != null && name.equals(rname)) {
+						return row;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	@Kroll.method
+	public TableViewRowProxy getRowAtPoint(KrollDict point)
+	{
+		if (point == null) {
+			throw new IllegalArgumentException("getRowAtPoint: point must not be null");
+		}
+		if (!point.containsKey(TiC.PROPERTY_X)) {
+			throw new IllegalArgumentException("getRowAtPoint: required property \"x\" not found in point");
+		}
+
+		if (!point.containsKey(TiC.PROPERTY_Y)) {
+			throw new IllegalArgumentException("getRowAtPoint: required property \"y\" not found in point");
+		}
+		double x = TiConvert.toDouble(point, TiC.PROPERTY_X);
+		double y = TiConvert.toDouble(point, TiC.PROPERTY_Y);
+		int index = getTableView().getTableView().getIndexFromXY(x, y);
+		if (index != -1) {
+			Item item = getTableView().getTableView().getItemAtPosition(index);
+			if (item.proxy instanceof TableViewRowProxy) {
+				return (TableViewRowProxy)item.proxy;
+			}
+		}
+		return null;
 	}
 
 	@Kroll.method
@@ -813,7 +859,12 @@ public class TableViewProxy extends TiViewProxy
 
 		return found;
 	}
-
+	
+	@Kroll.method
+	public void reloadData()
+	{
+		updateView();
+	}
 	public void updateView()
 	{
 		if (TiApplication.isUIThread()) {
@@ -825,8 +876,9 @@ public class TableViewProxy extends TiViewProxy
 	}
 
 	@Kroll.method
-	public void scrollToIndex(int index)
+	public void scrollToIndex(int index, @Kroll.argument(optional = true) KrollDict options)
 	{
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		// Message msg = getUIHandler().obtainMessage(MSG_SCROLL_TO_INDEX);
 		message.arg1 = index;
@@ -841,13 +893,23 @@ public class TableViewProxy extends TiViewProxy
 		message.sendToTarget();
 	}
 
+	@Kroll.method
+	public void scrollToTop(int y, @Kroll.argument(optional = true) KrollDict options)
+	{
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
+		message.sendToTarget();
+	}
 
 	@Kroll.method
-	public void scrollToTop(int index)
+	public void scrollToBottom(int y, @Kroll.argument(optional = true) KrollDict options)
 	{
-		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
-		// Message msg = getUIHandler().obtainMessage(MSG_SCROLL_TO_TOP);
-		message.arg1 = index;
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_BOTTOM);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
 		message.sendToTarget();
 	}
 
@@ -926,7 +988,10 @@ public class TableViewProxy extends TiViewProxy
 			}
 			return true;
 		} else if (msg.what == MSG_SCROLL_TO_TOP) {
-			getTableView().scrollToTop(msg.arg1);
+			getTableView().scrollToTop(msg.arg1, msg.arg2 == 1);
+			return true;
+		} else if (msg.what == MSG_SCROLL_TO_BOTTOM) {
+			getTableView().scrollToBottom(msg.arg1, msg.arg2 == 1);
 			return true;
 		} else if (msg.what == MSG_SELECT_ROW) {
 			getTableView().selectRow(msg.arg1);

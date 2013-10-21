@@ -33,7 +33,7 @@
 	
 	BOOL needsHandleContentSize;
 	
-	id	lastFocusedView; //DOES NOT RETAIN.
+//	id	lastFocusedView; //DOES NOT RETAIN.
 }
 
 @property(nonatomic,retain,readonly) TiUIScrollViewImpl * scrollView;

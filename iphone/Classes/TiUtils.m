@@ -20,6 +20,7 @@
 #import "TiBlob.h"
 #import "Base64Transcoder.h"
 #import "TiExceptionHandler.h"
+#import "SVGKit.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -444,7 +445,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	else if ([value isKindOfClass:[NSDictionary class]])
 	{
 		xDimension = [self dimensionValue:@"x" properties:value];
-		yDimension = [self dimensionValue:@"x" properties:value];
+		yDimension = [self dimensionValue:@"y" properties:value];
 	}
 	else
 	{
@@ -574,6 +575,18 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return TiDimensionFromObject(value);
 }
 
++(TiPoint*)tiPointValue:(id)value
+{
+	return [TiPoint pointWithObject:value];
+}
+
++(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def
+{
+    if (value != nil)
+        return [TiPoint pointWithObject:value];
+    return def;
+}
+
 +(id)valueFromDimension:(TiDimension)dimension
 {
 	switch (dimension.type)
@@ -606,7 +619,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		}
 		if (!CGSizeEqualToSize(newSize, imageSize))
 		{
-			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationDefault image:image hires:NO];
+			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationLow image:image hires:NO];
+            imageSize = [image size];
 		}
 	}
 	return image;
@@ -814,12 +828,13 @@ If the new path starts with / and the base url is app://..., we have to massage 
         return [(TiBlob*)object image];
     }
     else if ([object isKindOfClass:[NSString class]]) {
-        return [[ImageLoader sharedLoader] loadImmediateImage:[self toURL:object proxy:proxy]];
+        id result = [[ImageLoader sharedLoader] loadImmediateImage:[self toURL:object proxy:proxy]];
+        if ([result isKindOfClass:[UIImage class]]) return result;
+        else if ([result isKindOfClass:[SVGKImage class]]) return [((SVGKImage*)result) UIImage];
     }
     
     return nil;
 }
-
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)properties def:(int)def exists:(BOOL*) exists
 {
@@ -980,6 +995,33 @@ If the new path starts with / and the base url is app://..., we have to massage 
 }
 
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def exists:(BOOL*) exists
+{
+	if ([properties isKindOfClass:[NSDictionary class]])
+	{
+		id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+		{
+			if (exists != NULL) *exists = YES;
+			return nil;
+		}
+		if (value != nil)
+		{
+			if (exists != NULL)
+			{
+				*exists = YES;
+			}
+			return [self tiPointValue:value];
+		}
+	}
+	if (exists != NULL)
+	{
+		*exists = NO;
+	}
+	return def;
+	
+}
+
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props def:(int)def;
 {
 	return [self intValue:name properties:props def:def exists:NULL];
@@ -1020,7 +1062,10 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [self dimensionValue:name properties:properties def:def exists:NULL];
 }
 
-
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def
+{
+	return [self tiPointValue:name properties:properties def:def exists:NULL];
+}
 
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props;
 {
@@ -1062,6 +1107,41 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return [self dimensionValue:name properties:properties def:TiDimensionUndefined exists:NULL];
 }
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties
+{
+	return [self tiPointValue:name properties:properties def:nil exists:NULL];
+}
+
++(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
+{
+    CGPoint localPoint = [touch locationInView:view];
+    CGPoint globalPoint = [touch locationInView:nil];
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSNumber numberWithDouble:localPoint.x],@"x",
+                         [NSNumber numberWithDouble:localPoint.y],@"y",
+                         [NSDictionary dictionaryWithObjectsAndKeys:
+                            [NSNumber numberWithDouble:globalPoint.x],@"x",
+                            [NSNumber numberWithDouble:globalPoint.y],@"y",
+                             nil], @"globalPoint",
+                         nil];
+    return evt;
+}
+
++(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view
+{
+    CGPoint localPoint = [gesture locationInView:view];
+    CGPoint globalPoint = [gesture locationInView:nil];
+    NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
+                         [NSNumber numberWithDouble:localPoint.x],@"x",
+                         [NSNumber numberWithDouble:localPoint.y],@"y",
+                         [NSDictionary dictionaryWithObjectsAndKeys:
+                          [NSNumber numberWithDouble:globalPoint.x],@"x",
+                          [NSNumber numberWithDouble:globalPoint.y],@"y",
+                          nil], @"globalPoint",
+                         nil];
+    return evt;
+}
+
 +(NSDictionary*)pointToDictionary:(CGPoint)point
 {
 	return [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1100,6 +1180,36 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	CGRect f = [[UIScreen mainScreen] applicationFrame];
 	return CGRectMake(f.origin.x, height, f.size.width, f.size.height);
 }
+
+
++(CGRect)appFrame
+{
+	CGRect result;
+    if ([TiUtils isIOS7OrGreater]) {
+        result = [[UIScreen mainScreen] bounds];
+    }
+    else {
+        result = [[UIScreen mainScreen] applicationFrame];
+    }
+	switch ([[UIApplication sharedApplication] statusBarOrientation])
+	{
+		case UIInterfaceOrientationLandscapeLeft:
+		case UIInterfaceOrientationLandscapeRight:
+		{
+			CGFloat leftMargin = result.origin.y;
+			CGFloat topMargin = result.origin.x;
+			CGFloat newHeight = result.size.width;
+			CGFloat newWidth = result.size.height;
+			result = CGRectMake(leftMargin, topMargin, newWidth, newHeight);
+			break;
+		}
+		default: {
+			break;
+		}
+	}
+	return result;
+}
+
 
 +(CGFloat)sizeValue:(id)value
 {
@@ -1175,6 +1285,88 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	else if ([alignment isKindOfClass:[NSNumber class]])
 	{
 		align = [alignment intValue];
+	}
+	return align;
+}
+
++(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment
+{
+	UIControlContentVerticalAlignment align = UIControlContentVerticalAlignmentCenter;
+
+	if ([alignment isKindOfClass:[NSString class]])
+	{
+		if ([alignment isEqualToString:@"top"])
+		{
+			align = UIControlContentVerticalAlignmentTop;
+		}
+		else if ([alignment isEqualToString:@"middle"])
+		{
+			align = UIControlContentVerticalAlignmentCenter;
+		}
+		else if ([alignment isEqualToString:@"bottom"])
+		{
+			align = UIControlContentVerticalAlignmentBottom;
+		}
+	}
+	else if ([alignment isKindOfClass:[NSNumber class]])
+	{
+		align = [alignment intValue];
+		if (align < UIControlContentVerticalAlignmentCenter || align > UIControlContentVerticalAlignmentBottom)
+			align = UIControlContentVerticalAlignmentCenter;
+	}
+	return align;
+}
+
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment
+{
+	UIControlContentHorizontalAlignment align = UIControlContentHorizontalAlignmentCenter;
+    
+	if ([alignment isKindOfClass:[NSString class]])
+	{
+		if ([alignment isEqualToString:@"left"])
+		{
+			align = UIControlContentHorizontalAlignmentLeft;
+		}
+		else if ([alignment isEqualToString:@"center"])
+		{
+			align = UIControlContentHorizontalAlignmentCenter;
+		}
+		else if ([alignment isEqualToString:@"right"])
+		{
+			align = UIControlContentHorizontalAlignmentRight;
+		}
+	}
+	else if ([alignment isKindOfClass:[NSNumber class]])
+	{
+		align = [alignment intValue];
+		if (align < UIControlContentHorizontalAlignmentCenter || align > UIControlContentHorizontalAlignmentRight)
+			align = UIControlContentHorizontalAlignmentCenter;
+	}
+	return align;
+}
+
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValueFromTextAlignment:(id)alignment
+{
+	UIControlContentHorizontalAlignment align = UIControlContentHorizontalAlignmentCenter;
+    
+	if ([alignment isKindOfClass:[NSString class]])
+	{
+		return [TiUtils contentHorizontalAlignmentValue:alignment];
+	}
+	else if ([alignment isKindOfClass:[NSNumber class]])
+	{
+		align = [alignment intValue];
+		switch (align) {
+            case UITextAlignmentLeft:
+                align = UIControlContentHorizontalAlignmentLeft;
+                break;
+            case UITextAlignmentRight:
+                align = UIControlContentHorizontalAlignmentRight;
+                break;
+            default:
+                align = UIControlContentHorizontalAlignmentCenter;
+                break;
+        }
 	}
 	return align;
 }
@@ -1374,6 +1566,30 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 		}
 	}
 	return nil;
+}
+
+
++(NSArray *)getDirectoryListing:(NSString*)path
+{
+    NSURL *url = [NSURL fileURLWithPath:path];
+    NSString *urlstring = [[url standardizedURL] path];
+    NSString *resourceurl = [[NSBundle mainBundle] resourcePath];
+    NSRange range = [urlstring rangeOfString:resourceurl];
+    NSString *appurlstr = urlstring;
+    if (range.location!=NSNotFound)
+    {
+        appurlstr = [urlstring substringFromIndex:range.location + range.length + 1];
+    }
+    static id AppRouter;
+    if (AppRouter==nil)
+    {
+        AppRouter = NSClassFromString(@"ApplicationRouting");
+    }
+    if (AppRouter!=nil)
+    {
+        DebugLog(@"[DEBUG] getDirectoryListing: %@, Resource: %@",urlstring,appurlstr);
+        return [AppRouter performSelector:@selector(getDirectoryListing:) withObject:appurlstr];
+    }
 }
 
 +(BOOL)barTranslucencyForColor:(TiColor *)color
@@ -1769,32 +1985,67 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     return responseHeader;
 }
 
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy
 {
-    UIImage* resultImage = nil;
     if ([image isKindOfClass:[UIImage class]]) {
-        resultImage = image;
+        return image;
+    } else if ([image isKindOfClass:[TiBlob class]]) {
+        return ((TiBlob*)image).image;
     }
     else if ([image isKindOfClass:[NSString class]]) {
         NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
-        resultImage = [[ImageLoader sharedLoader] loadImmediateImage:bgURL];
+        id resultImage = [[ImageLoader sharedLoader] loadImmediateImage:bgURL];
         if (resultImage==nil && [image isEqualToString:@"Default.png"])
         {
             // special case where we're asking for Default.png and it's in Bundle not path
-            resultImage = [UIImage imageNamed:image];
+            return [UIImage imageNamed:image];
         }
-        if((resultImage != nil) && ([resultImage imageOrientation] != UIImageOrientationUp))
+        if((resultImage != nil) && ([resultImage isKindOfClass:[UIImage class]]) && ([resultImage imageOrientation] != UIImageOrientationUp))
         {
-            resultImage = [UIImageResize resizedImage:[resultImage size] 
+            return [UIImageResize resizedImage:[(UIImage*)resultImage size]
                                  interpolationQuality:kCGInterpolationNone 
                                                 image:resultImage 
                                                 hires:NO];
         }
+        return resultImage;
     }
+    return nil;
+}
+
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom
+{
+    UIImage* resultImage = nil;
+    if ([image isKindOfClass:[UIImage class]]) {
+        resultImage = image;
+    } else if ([image isKindOfClass:[TiBlob class]]) {
+        resultImage = ((TiBlob*)image).image;
+    }
+    else if ([image isKindOfClass:[NSString class]]) {
+        NSURL *bgURL = [TiUtils toURL:image proxy:proxy];
+        id resultImage = [[ImageLoader sharedLoader] loadImmediateStretchableImage:bgURL withLeftCap:left topCap:top rightCap:right bottomCap:bottom];
+        if (resultImage==nil && [image isEqualToString:@"Default.png"])
+        {
+            // special case where we're asking for Default.png and it's in Bundle not path
+            return [UIImage imageNamed:image];
+        }
+        if((resultImage != nil) && ([resultImage isKindOfClass:[UIImage class]]) && ([resultImage imageOrientation] != UIImageOrientationUp))
+        {
+            return [UIImageResize resizedImage:[(UIImage*)resultImage size]
+                          interpolationQuality:kCGInterpolationNone
+                                         image:resultImage
+                                         hires:NO];
+        }
+        return resultImage;    }
     else if ([image isKindOfClass:[TiBlob class]]) {
         resultImage = [image image];
     }
     return resultImage;
+}
+
++ (BOOL) isSVG:(id)arg
+{
+    return ([arg isKindOfClass:[NSString class]] && [((NSString*)arg) hasSuffix:@".svg"]) ||
+        ([arg isKindOfClass:[NSURL class]] && [[((NSURL*)arg) absoluteString] hasSuffix:@".svg"]);
 }
 
 + (NSString*)messageFromError:(NSError *)error

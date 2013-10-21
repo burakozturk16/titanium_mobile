@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
@@ -24,12 +27,14 @@ import ti.modules.titanium.ui.widget.tableview.TableViewModel.Item;
 import ti.modules.titanium.ui.widget.tableview.TiTableViewRowProxyItem;
 import android.app.Activity;
 import android.os.Message;
+import android.view.View;
 
 @Kroll.proxy(creatableInModule=UIModule.class,
 propertyAccessors = {
 	TiC.PROPERTY_HAS_CHECK,
 	TiC.PROPERTY_HAS_CHILD,
 	TiC.PROPERTY_CLASS_NAME,
+	TiC.PROPERTY_NAME,
 	TiC.PROPERTY_LAYOUT,
 	TiC.PROPERTY_LEFT_IMAGE,
 	TiC.PROPERTY_RIGHT_IMAGE,
@@ -43,8 +48,13 @@ public class TableViewRowProxy extends TiViewProxy
 
 	protected ArrayList<TiViewProxy> controls;
 	protected TiTableViewRowProxyItem tableViewItem;
+	public int index;
 
 	private static final int MSG_SET_DATA = TiViewProxy.MSG_LAST_ID + 5001;
+	private static final int MSG_ADD_CONTROL = TiViewProxy.MSG_LAST_ID + 5002;
+	private static final int MSG_REMOVE_CONTROL = TiViewProxy.MSG_LAST_ID + 5003;
+
+	public Boolean needsAnimation = false;
 
 	public TableViewRowProxy()
 	{
@@ -93,6 +103,13 @@ public class TableViewRowProxy extends TiViewProxy
 	{
 		return null;
 	}
+	
+	@Override
+	public View parentViewForChild(TiViewProxy child)
+	{
+		if (tableViewItem == null) return null;
+		return tableViewItem.getView();
+	}
 
 	public ArrayList<TiViewProxy> getControls()
 	{
@@ -113,17 +130,23 @@ public class TableViewRowProxy extends TiViewProxy
 		return controls.toArray(new TiViewProxy[controls.size()]);
 	}
 
-	public void add(TiViewProxy control)
+	@Override
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		else if (args instanceof HashMap) {
+			child = (TiViewProxy) KrollProxy.createProxy(TiViewProxy.class, null, new Object[] { args }, null);
+		}
+		
 		if (controls == null) {
 			controls = new ArrayList<TiViewProxy>();
 		}
-		controls.add(control);
-		control.setParent(this);
+		controls.add(child);
+		child.setParent(this);
 		if (tableViewItem != null) {
-			Message message = getMainHandler().obtainMessage(MSG_SET_DATA);
-			// Message msg = getUIHandler().obtainMessage(MSG_SET_DATA);
-			message.sendToTarget();
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CONTROL), child);
 		}
 	}
 
@@ -133,17 +156,17 @@ public class TableViewRowProxy extends TiViewProxy
 		if (controls == null) {
 			return;
 		}
+		control.setParent(null);
 		controls.remove(control);
 		if (tableViewItem != null) {
-			Message message = getMainHandler().obtainMessage(MSG_SET_DATA);
-			// Message msg = getUIHandler().obtainMessage(MSG_SET_DATA);
-			message.sendToTarget();
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_REMOVE_CONTROL), control);
 		}
 	}
 
 	public void setTableViewItem(TiTableViewRowProxyItem item)
 	{
 		this.tableViewItem = item;
+		setModelListener(item, false);
 	}
 
 	public TableViewProxy getTable()
@@ -180,6 +203,32 @@ public class TableViewRowProxy extends TiViewProxy
 				TiUITableView table = getTable().getTableView();
 				table.setModelDirty();
 				table.updateView();
+			}
+			return true;
+		}
+		else if (msg.what == MSG_ADD_CONTROL) {
+			if (tableViewItem != null) {
+				AsyncResult holder = (AsyncResult) msg.obj;
+				Object view = holder.getArg();
+				if (view instanceof TiViewProxy) {
+					tableViewItem.addControl((TiViewProxy) view);
+				} else if (view != null) {
+					Log.w(TAG, "addView() ignored. Expected a Titanium view object, got " + view.getClass().getSimpleName());
+				}
+				holder.setResult(null);
+			}
+			return true;
+		}
+		else if (msg.what == MSG_REMOVE_CONTROL) {
+			if (tableViewItem != null) {
+				AsyncResult holder = (AsyncResult) msg.obj;
+				Object view = holder.getArg();
+				if (view instanceof TiViewProxy) {
+					tableViewItem.removeControl((TiViewProxy) view);
+				} else if (view != null) {
+					Log.w(TAG, "addView() ignored. Expected a Titanium view object, got " + view.getClass().getSimpleName());
+				}
+				holder.setResult(null);
 			}
 			return true;
 		}
@@ -256,6 +305,18 @@ public class TableViewRowProxy extends TiViewProxy
 	}
 
 	public TiTableViewRowProxyItem getTableViewRowProxyItem()
+	{
+		return tableViewItem;
+	}
+	
+	@Override
+	public TiUIView peekView()
+	{
+		return null;
+	}
+
+	@Override
+	public View getOuterView()
 	{
 		return tableViewItem;
 	}

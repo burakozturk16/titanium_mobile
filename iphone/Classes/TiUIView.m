@@ -19,6 +19,11 @@
 #import "TiViewProxy.h"
 #import "TiApp.h"
 #import "UIImage+Resize.h"
+#import "TiUIHelper.h"
+#import "TiSVGImage.h"
+#import "TiImageHelper.h"
+#import "TiTransition.h"
+
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
@@ -148,7 +153,13 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 NSArray* listenerArray = nil;
 
-@interface TiUIView ()
+@interface TiUIView () {
+    TiSelectableBackgroundLayer* _bgLayer;
+    BOOL _shouldHandleSelection;
+    BOOL _customUserInteractionEnabled;
+}
+-(void)setBackgroundDisabledImage_:(id)value;
+-(void)setBackgroundSelectedImage_:(id)value;
 -(void)sanitycheckListeners;
 @end
 
@@ -160,7 +171,9 @@ NSArray* listenerArray = nil;
 
 DEFINE_EXCEPTIONS
 
-@synthesize proxy,touchDelegate,backgroundImage,oldSize;
+#define kTOUCH_MAX_DIST 70
+
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition;
 
 #pragma mark Internal Methods
 
@@ -180,10 +193,11 @@ DEFINE_EXCEPTIONS
 
 -(void)dealloc
 {
+    [childViews release];
+    [transferLock release];
 	[transformMatrix release];
 	[animation release];
-	[backgroundImage release];
-	[gradientLayer release];
+	[_bgLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
 	[twoFingerTapRecognizer release];
@@ -195,7 +209,33 @@ DEFINE_EXCEPTIONS
 	[longPressRecognizer release];
 	proxy = nil;
 	touchDelegate = nil;
+	childViews = nil;
 	[super dealloc];
+}
+
+-(void)detach
+{
+    if (proxy != nil && [(TiViewProxy*)proxy view] == self)
+    {
+        [(TiViewProxy*)proxy detachView];
+    }
+    else {
+        NSArray* subviews = [self subviews];
+        for (UIView* subview in subviews) {
+            if([subview isKindOfClass:[TiUIView class]])
+            {
+                [(TiUIView*)subview detach];
+                
+            }
+            else {
+                [subview removeFromSuperview];
+            }
+        }
+        [self cancelAllAnimations];
+        [self removeFromSuperview];
+        self.proxy = nil;
+        self.touchDelegate = nil;
+    }
 }
 
 -(void)removeFromSuperview
@@ -210,12 +250,36 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+- (void) initialize
+{
+    childViews  =[[NSMutableArray alloc] init];
+    transferLock = [[NSRecursiveLock alloc] init];
+    touchPassThrough = NO;
+    _shouldHandleSelection = YES;
+    self.clipsToBounds = clipChildren = YES;
+    self.userInteractionEnabled = YES;
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    backgroundOpacity = 1.0f;
+    _customUserInteractionEnabled = YES;
+    animateBgdTransition = NO;
+}
+
 - (id) init
 {
 	self = [super init];
 	if (self != nil)
 	{
+        [self initialize];
+	}
+	return self;
+}
 
+- (id)initWithFrame:(CGRect)frame
+{
+	self = [super initWithFrame:frame];
+	if (self != nil)
+	{
+        [self initialize];
 	}
 	return self;
 }
@@ -243,29 +307,20 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(BOOL)proxyHasGestureListeners
-{
-    return [(TiViewProxy*)proxy _hasListeners:@"swipe"] ||
-            [(TiViewProxy*)proxy _hasListeners:@"pinch"] ||
-            [(TiViewProxy*)proxy _hasListeners:@"longpress"];
-}
-
 -(BOOL)proxyHasTapListener
 {
-	return [proxy _hasListeners:@"singletap"] ||
-			[proxy _hasListeners:@"doubletap"] ||
-			[proxy _hasListeners:@"twofingertap"];
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"singletap", @"doubletap", @"twofingertap", nil]];
 }
 
 -(BOOL)proxyHasTouchListener
 {
-	return [proxy _hasListeners:@"touchstart"] ||
-			[proxy _hasListeners:@"touchcancel"] ||
-			[proxy _hasListeners:@"touchend"] ||
-			[proxy _hasListeners:@"touchmove"] ||
-			[proxy _hasListeners:@"click"] ||
-			[proxy _hasListeners:@"dblclick"];
-} 
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"touchstart", @"touchcancel", @"touchend", @"touchmove", @"click", @"dblclick", nil]];
+}
+
+-(BOOL) proxyHasGestureListeners
+{
+	return [proxy _hasAnyListeners:[NSArray arrayWithObjects:@"swipe", @"pinch", @"longpress", nil]];
+}
 
 -(void)updateTouchHandling
 {
@@ -278,13 +333,12 @@ DEFINE_EXCEPTIONS
     // If a user has not explicitly set whether or not the view interacts, base it on whether or
     // not it handles events, and if not, set it to the interaction default.
     if (!changedInteraction) {
-        self.userInteractionEnabled = handlesTouches || [self interactionDefault];
+        _customUserInteractionEnabled = handlesTouches || [self interactionDefault];
     }
 }
 
 -(void)initializeState
 {
-	virtualParentTransform = CGAffineTransformIdentity;
 	
 	[self updateTouchHandling];
 	 
@@ -292,10 +346,24 @@ DEFINE_EXCEPTIONS
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
+-(void)configurationStart
+{
+    configurationSet = needsToSetBackgroundImage = needsToSetBackgroundDisabledImage = needsToSetBackgroundSelectedImage = NO;
+}
+
 -(void)configurationSet
 {
 	// can be used to trigger things after all properties are set
     configurationSet = YES;
+    if (needsToSetBackgroundImage)
+        [self setBackgroundImage_:[[self proxy] valueForKey:@"backgroundImage"]];
+    if (needsToSetBackgroundDisabledImage)
+        [self setBackgroundDisabledImage_:[[self proxy] valueForKey:@"backgroundDisabledImage"]];
+    if (needsToSetBackgroundSelectedImage)
+        [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
+    if (_bgLayer) {
+        _bgLayer.readyToCreateDrawables = YES;
+    }
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -303,18 +371,6 @@ DEFINE_EXCEPTIONS
 	proxy = p;
 	[proxy setModelDelegate:self];
 	[self sanitycheckListeners];
-}
-
--(UIImage*)loadImage:(id)image 
-{
-	if (image==nil) return nil;
-	NSURL *url = [TiUtils toURL:image proxy:proxy];
-	if (url==nil)
-	{
-		NSLog(@"[WARN] could not find image: %@",image);
-		return nil;
-	}
-	return [[ImageLoader sharedLoader] loadImmediateStretchableImage:url withLeftCap:leftCap topCap:topCap];
 }
 
 -(id)transformMatrix
@@ -367,9 +423,15 @@ DEFINE_EXCEPTIONS
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    if (backgroundRepeat) {
-        [self renderRepeatedBackground:backgroundImage];
+    
+    if (_bgLayer) {
+        _bgLayer.frame = bounds;
     }
+    if (self.layer.mask != nil) {
+        [self.layer.mask setFrame:bounds];
+    }
+    [self updateTransform];
+    [self updateViewShadowPath];
 }
 
 
@@ -389,26 +451,34 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+
+-(void)updateBounds:(CGRect)newBounds
+{
+    //TIMOB-11197, TC-1264
+    [CATransaction begin];
+    if (!animating) {
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+    }
+    else {
+        [CATransaction setAnimationDuration:[animation animationDuration]];
+        [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
+    }
+    
+    [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
+    [CATransaction commit];
+}
+
+
 -(void)checkBounds
 {
     CGRect newBounds = [self bounds];
     if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
+        [self updateBounds:newBounds];
         oldSize = newBounds.size;
-        //TIMOB-11197, TC-1264
-        if (!animating) {
-            [CATransaction begin];
-            [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
-        }
-        [gradientLayer setFrame:newBounds];
-        if ([self backgroundImageLayer] != self.layer) {
-            [[self backgroundImageLayer] setFrame:newBounds];
-        }
-        if (!animating) {
-            [CATransaction commit];
-        }
-        [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
     }
 }
+
+
 
 -(void)setBounds:(CGRect)bounds
 {
@@ -422,30 +492,32 @@ DEFINE_EXCEPTIONS
 	[self checkBounds];
 }
 
+
+- (void)didMoveToSuperview
+{
+	[self updateTransform];
+	[super didMoveToSuperview];
+}
+
 -(void)updateTransform
 {
 #ifdef USE_TI_UI2DMATRIX	
-	if ([transformMatrix isKindOfClass:[Ti2DMatrix class]])
+	if ([transformMatrix isKindOfClass:[Ti2DMatrix class]] && self.superview != nil)
 	{
-		self.transform = CGAffineTransformConcat(virtualParentTransform, [(Ti2DMatrix*)transformMatrix matrix]);
+        CGSize size = self.bounds.size;
+        CGSize parentSize = self.superview.bounds.size;
+		self.transform = [(Ti2DMatrix*)transformMatrix matrixInViewSize:size andParentSize:parentSize];
 		return;
 	}
 #endif
 #if defined(USE_TI_UIIOS3DMATRIX) || defined(USE_TI_UI3DMATRIX)
 	if ([transformMatrix isKindOfClass:[Ti3DMatrix class]])
 	{
-		self.layer.transform = CATransform3DConcat(CATransform3DMakeAffineTransform(virtualParentTransform),[(Ti3DMatrix*)transformMatrix matrix]);
+		self.layer.transform = [(Ti3DMatrix*)transformMatrix matrix];
 		return;
 	}
 #endif
-	self.transform = virtualParentTransform;
-}
-
-
--(void)setVirtualParentTransform:(CGAffineTransform)newTransform
-{
-	virtualParentTransform = newTransform;
-	[self updateTransform];
+	self.transform = CGAffineTransformIdentity;
 }
 
 -(void)fillBoundsToRect:(TiRect*)rect
@@ -470,161 +542,242 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
+{
+    if (_bgLayer != nil) {
+        return _bgLayer;
+    }
+
+    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
+    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
+    
+    _bgLayer.opacity = backgroundOpacity;
+    _bgLayer.cornerRadius = self.layer.cornerRadius;
+    _bgLayer.readyToCreateDrawables = configurationSet;
+    _bgLayer.animateTransition = animateBgdTransition;
+    return _bgLayer;
+}
+
+-(CALayer*)backgroundLayer
+{
+    return _bgLayer;
+}
+
+-(void) setBackgroundGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateNormal];
+}
+
+-(void) setBackgroundSelectedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundDisabledGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateDisabled];
+}
+
+-(void) setBackgroundColor_:(id)color
+{
+    UIColor* uicolor;
+	if ([color isKindOfClass:[UIColor class]])
+	{
+        uicolor = (UIColor*)color;
+	}
+	else
+	{
+		uicolor = [[TiUtils colorValue:color] _color];
+	}
+    if (backgroundOpacity < 1.0f) {
+        const CGFloat* components = CGColorGetComponents(uicolor.CGColor);
+        float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
+        uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
+    }
+    super.backgroundColor = uicolor;
+}
+
+-(void) setBackgroundSelectedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundDisabledColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateDisabled];
+}
+
+-(UIImage*)convertToUIImage:(id)arg
+{
+	if (arg==nil) return nil;
+    UIImage *image = nil;
+	
+    if ([arg isKindOfClass:[TiBlob class]]) {
+        TiBlob *blob = (TiBlob*)arg;
+        image = [blob image];
+    }
+    else if ([arg isKindOfClass:[TiFile class]]) {
+        NSURL *url = [TiUtils toURL:arg proxy:proxy];
+        image = [[ImageLoader sharedLoader] loadImmediateImage:url];
+    }
+    else if ([arg isKindOfClass:[UIImage class]]) {
+		// called within this class
+        image = (UIImage*)arg;
+    }
+    return image;
+}
+
+
+-(id)loadImageOrSVG:(id)arg
+{
+    if (arg==nil) return nil;
+	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        return [TiUtils loadBackgroundImage:arg forProxy:proxy];
+    }
+    else {
+        return [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+    }
+	return nil;
+}
+-(UIImage*)loadImage:(id)arg
+{
+    if (arg==nil) return nil;
+    id result = nil;
+	if (TiDimensionIsUndefined(leftCap) && TiDimensionIsUndefined(topCap) &&
+        TiDimensionIsUndefined(rightCap) && TiDimensionIsUndefined(bottomCap)) {
+        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy];
+    }
+    else {
+        result =  [TiUtils loadBackgroundImage:arg forProxy:proxy withLeftCap:leftCap topCap:topCap rightCap:rightCap bottomCap:bottomCap];
+    }
+    if ([result isKindOfClass:[UIImage class]]) return result;
+    else if ([result isKindOfClass:[TiSVGImage class]]) return [((TiSVGImage*)result) fullImage];
+	return nil;
+}
+
+-(void) setBackgroundImage_:(id)image
+{
+    if (!configurationSet) {
+        needsToSetBackgroundImage = YES;
+        return;
+    }
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateNormal];
+}
+
+-(void) setBackgroundSelectedImage_:(id)arg
+{
+    if (!configurationSet) {
+        needsToSetBackgroundSelectedImage = YES;
+        return;
+    }
+    id image = [self loadImageOrSVG:arg];
+    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateHighlighted];
+    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
+}
+
+-(void) setBackgroundHighlightedImage_:(id)image
+{
+    if (!configurationSet) {
+        needsToSetBackgroundSelectedImage = YES;
+        return;
+    }
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundDisabledImage_:(id)image
+{
+    if (!configurationSet) {
+        needsToSetBackgroundDisabledImage = YES;
+        return;
+    }
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
+}
+
+-(void)setOpacity_:(id)opacity
+{
+ 	ENSURE_UI_THREAD_1_ARG(opacity);
+	self.alpha = [TiUtils floatValue:opacity];
+}
+
+-(void)setBackgroundRepeat_:(id)repeat
+{
+    [self getOrCreateCustomBackgroundLayer].imageRepeat = [TiUtils boolValue:repeat def:NO];
+}
+
+-(void)setBackgroundOpacity_:(id)opacity
+{
+    backgroundOpacity = [TiUtils floatValue:opacity def:1.0f];
+    
+    id value = [proxy valueForKey:@"backgroundColor"];
+    if (value!=nil) {
+        [self setBackgroundColor_:value];
+    }
+
+    if (_bgLayer) {
+        _bgLayer.opacity = backgroundOpacity;
+    }
+}
+
+-(void)setImageCap_:(id)arg
+{
+    ENSURE_SINGLE_ARG(arg,NSDictionary);
+    NSDictionary* dict = (NSDictionary*)arg;
+    if ([dict objectForKey:@"left"]) {
+        leftCap = TiDimensionFromObject([dict objectForKey:@"left"]);
+    }
+    if ([dict objectForKey:@"right"]) {
+        rightCap = TiDimensionFromObject([dict objectForKey:@"right"]);
+    }
+    if ([dict objectForKey:@"top"]) {
+        topCap = TiDimensionFromObject([dict objectForKey:@"top"]);
+    }
+    if ([dict objectForKey:@"bottom"]) {
+        bottomCap = TiDimensionFromObject([dict objectForKey:@"bottom"]);
+    }
+}
+
+
+-(void)setBorderRadius_:(id)radius
+{
+	self.layer.cornerRadius = [TiUtils floatValue:radius];
+    if (_bgLayer) {
+        _bgLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    [self updateViewShadowPath];
+}
+
+
 -(void)setBorderColor_:(id)color
 {
 	TiColor *ticolor = [TiUtils colorValue:color];
 	self.layer.borderWidth = MAX(self.layer.borderWidth,1);
 	self.layer.borderColor = [ticolor _color].CGColor;
 }
- 
+
 -(void)setBorderWidth_:(id)w
-{ 
-	self.layer.borderWidth = [TiUtils sizeValue:w];
-}
-
--(void)setBackgroundColor_:(id)color
 {
-	if ([color isKindOfClass:[UIColor class]])
-	{
-		super.backgroundColor = color;
-	}
-	else
-	{
-		TiColor *ticolor = [TiUtils colorValue:color];
-		super.backgroundColor = [ticolor _color];
-	}
-}
-
--(void)setTileBackground_:(id)image
-{
-    UIImage* tileImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
-
-}
-
--(void)setOpacity_:(id)opacity
-{
-	self.alpha = [TiUtils floatValue:opacity];
-}
-
--(CALayer *)backgroundImageLayer
-{
-	return [self layer];
-}
-
--(CALayer *)gradientLayer
-{
-    return gradientLayer;
-}
-
-// You might wonder why we don't just use the native feature of -[UIColor colorWithPatternImage:].
-// Here's why:
-// * It doesn't properly handle alpha channels
-// * You can't combine background tesselations with background colors
-// * By making the background-repeat flag a boolean swap, we would have to cache, check, and uncache
-//   background colors everywhere - and this starts getting really complicated for some views
-//   (on the off chance somebody wants to swap tesselation AND has a background color they want to replace it with).
-
--(void)renderRepeatedBackground:(id)image
-{
-    if (![NSThread isMainThread]) {
-        TiThreadPerformOnMainThread(^{
-            [self renderRepeatedBackground:image];
-        }, NO);
-        return;
-    }
-    
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
-    if (bgImage == nil) {
-        [self backgroundImageLayer].contents = nil;
-        return;
-    }
-    
-    // Due to coordinate system shenanagins (there are multiple translations between the UIKit coordinate system
-    // and the CG coordinate system happening here) we have to manually flip the background image to render
-    // before passing it to the tiling system (via passing it through another UIGraphics context; this orients the
-    // image in the "correct" way for the second pass).
-    //
-    // Note that this means passes through two different graphics contexts. They can be nested, but that makes the code
-    // even uglier.
-    //
-    // NOTE: Doing this begins the image tesselation starting at the upper-left, which is considered the 'origin' for all
-    // drawing operations on iOS (and presumably Android). By removing this code and instead blitting the [bgImage CGImage]
-    // directly into the graphics context, it tesselates from the lower-left.
-    
-    UIGraphicsBeginImageContextWithOptions(bgImage.size, NO, bgImage.scale);
-    CGContextRef imageContext = UIGraphicsGetCurrentContext();
-    CGContextDrawImage(imageContext, CGRectMake(0, 0, bgImage.size.width , bgImage.size.height), [bgImage CGImage]);
-    UIImage* translatedImage = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    
-    UIGraphicsBeginImageContextWithOptions(self.bounds.size, NO, bgImage.scale);
-    CGContextRef background = UIGraphicsGetCurrentContext();
-    if (background == nil) {
-        //TIMOB-11564. Either width or height of the bounds is zero
-        UIGraphicsEndImageContext();
-        return;
-    }
-    CGRect imageRect = CGRectMake(0, 0, bgImage.size.width, bgImage.size.height);
-    CGContextDrawTiledImage(background, imageRect, [translatedImage CGImage]);
-    UIImage* renderedBg = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-
-    [self backgroundImageLayer].contents = (id)renderedBg.CGImage;
-}
-
--(void)setBackgroundImage_:(id)image
-{
-    UIImage* bgImage = [TiUtils loadBackgroundImage:image forProxy:proxy];
-    
-    if (backgroundRepeat) {
-        [self renderRepeatedBackground:bgImage];
-    }
-    else {
-        [self backgroundImageLayer].contents = (id)bgImage.CGImage;
-        if (bgImage != nil) {
-            [self backgroundImageLayer].contentsScale = [bgImage scale];
-            [self backgroundImageLayer].contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [bgImage size]);
-            if (!CGPointEqualToPoint([self backgroundImageLayer].contentsCenter.origin,CGPointZero)) {
-                [self backgroundImageLayer].magnificationFilter = @"nearest";
-            } else {
-                [self backgroundImageLayer].magnificationFilter = @"linear";
-            }
-        }
-    }
-    
-    self.clipsToBounds = bgImage!=nil;
-    self.backgroundImage = bgImage;
-}
-
--(void)setBackgroundRepeat_:(id)repeat
-{
-    backgroundRepeat = [TiUtils boolValue:repeat def:NO];
-    [self setBackgroundImage_:backgroundImage];
-}
-
-
--(void)setBackgroundLeftCap_:(id)value
-{
-    TiDimension cap = TiDimensionFromObject(value);
-    if (!TiDimensionEqual(leftCap, cap)) {
-        leftCap = cap;
-        [self setBackgroundImage_:backgroundImage];
-    }
-}
-
--(void)setBackgroundTopCap_:(id)value
-{
-    TiDimension cap = TiDimensionFromObject(value);
-    if (!TiDimensionEqual(topCap, cap)) {
-        topCap = cap;
-        [self setBackgroundImage_:backgroundImage];
-    }
-}
-
--(void)setBorderRadius_:(id)radius
-{
-	self.layer.cornerRadius = [TiUtils floatValue:radius];
-	self.clipsToBounds = YES;
+	self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setAnchorPoint_:(id)point
@@ -646,18 +799,57 @@ DEFINE_EXCEPTIONS
 
 -(void)setVisible_:(id)visible
 {
+  	ENSURE_UI_THREAD_1_ARG(visible);
     BOOL oldVal = self.hidden;
-    self.hidden = ![TiUtils boolValue:visible];
-    //Redraw ourselves if changing from invisible to visible, to handle any changes made
-	if (!self.hidden && oldVal) {
-        TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
-        [viewProxy willEnqueue];
+    BOOL newVal = ![TiUtils boolValue:visible];
+    
+    
+    if (newVal == oldVal) return;
+    
+    self.hidden = newVal;
+	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
+    TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
+	
+	if(viewProxy.parentVisible)
+	{
+		if (newVal)
+		{
+			[viewProxy willHide];
+            [viewProxy refreshView:nil];
+		}
+		else
+		{
+            [viewProxy refreshView:nil];
+			[viewProxy willShow];
+            //Redraw ourselves if changing from invisible to visible, to handle any changes made
+		}
+	}
+    
+//    //Redraw ourselves if changing from invisible to visible, to handle any changes made
+//	if (!self.hidden && oldVal) {
+//        [viewProxy willEnqueue];
+//    }
+}
+
+-(void)setBgState:(UIControlState)state
+{
+    if (_bgLayer != nil) {
+        [_bgLayer setState:state];
     }
+}
+
+-(UIControlState)getBgState
+{
+    if (_bgLayer != nil) {
+        return [_bgLayer getState];
+    }
+    return UIControlStateNormal;
 }
 
 -(void)setTouchEnabled_:(id)arg
 {
-	self.userInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
+	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
+    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     changedInteraction = YES;
 }
 
@@ -665,41 +857,93 @@ DEFINE_EXCEPTIONS
 	return touchEnabled;
 }
 
--(UIView *)gradientWrapperView
+-(void)setTouchPassThrough_:(id)arg
+{
+	touchPassThrough = [TiUtils boolValue:arg];
+}
+
+-(BOOL)touchPassThrough {
+    return touchPassThrough;
+}
+
+-(UIView *)backgroundWrapperView
 {
 	return self;
 }
 
--(void)setBackgroundGradient_:(id)arg
+
+-(void)setClipChildren_:(id)arg
 {
-	if (arg == nil)
-	{
-		[gradientLayer removeFromSuperlayer];
-		RELEASE_TO_NIL(gradientLayer);
-	}
-	else if (gradientLayer == nil)
-	{
-		gradientLayer = [[TiGradientLayer alloc] init];
-		[(TiGradientLayer *)gradientLayer setGradient:arg];
-		[gradientLayer setNeedsDisplayOnBoundsChange:YES];
-		[gradientLayer setFrame:[self bounds]];
-		[gradientLayer setNeedsDisplay];
-		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
-	}
-	else
-	{
-		[(TiGradientLayer *)gradientLayer setGradient:arg];
-		[gradientLayer setNeedsDisplay];
-	}
+    clipChildren = [TiUtils boolValue:arg];
+    self.clipsToBounds = [self clipChildren];
+}
+
+-(BOOL)clipChildren
+{
+    return (clipChildren && ([[self shadowLayer] shadowOpacity] == 0));
+
+}
+
+
+-(CALayer *)shadowLayer
+{
+	return [self layer];
+}
+
+
+-(void)setViewShadow_:(id)arg
+{
+    ENSURE_SINGLE_ARG(arg,NSDictionary);
+    [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
+    [self updateViewShadowPath];
+}
+
+-(void)updateViewShadowPath
+{
+    if ([[self shadowLayer] shadowOpacity] > 0.0f)
+    {
+        //to speedup things
+        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
+    }
+}
+
+-(NSArray*) childViews
+{
+    return [NSArray arrayWithArray:childViews];
 }
 
 -(void)didAddSubview:(UIView*)view
 {
+    if ([view isKindOfClass:[TiUIView class]])
+    {
+        [childViews addObject:view];
+    }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
-	// Every time we add a new subview, we have to make sure the gradient stays where it belongs...
-	if (gradientLayer != nil) {
-		[[[self gradientWrapperView] layer] insertSublayer:gradientLayer atIndex:0];
-	}
+	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
+//    if (_bgLayer != nil) {
+//		[[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+//	}
+}
+
+- (void)willRemoveSubview:(UIView *)subview
+{
+    
+    if ([subview isKindOfClass:[TiUIView class]] && childViews)
+    {
+        [childViews removeObject:subview];
+    }
+}
+
+-(void)cancelAllAnimations
+{
+    if (animation != nil) {
+        [animation cancel:nil];
+        RELEASE_TO_NIL(animation);
+    }
+    [CATransaction begin];
+	[[self layer] removeAllAnimations];
+    [[self backgroundLayer] removeAllAnimations];
+	[CATransaction commit];
 }
 
 -(void)animate:(TiAnimation *)newAnimation
@@ -760,6 +1004,12 @@ DEFINE_EXCEPTIONS
 	return NSSelectorFromString(method);
 }
 
+-(SEL)selectorForlayoutProperty:(NSString*)key
+{
+	NSString *method = [NSString stringWithFormat:@"set%@%@:", [[key substringToIndex:1] uppercaseString], [key substringFromIndex:1]];
+	return NSSelectorFromString(method);
+}
+
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys
 {
 	DoProxyDelegateReadValuesWithKeysFromProxy(self, keys, proxy);
@@ -779,40 +1029,94 @@ DEFINE_EXCEPTIONS
 		value = nil;
 	}
 
-	SEL method = SetterWithObjectForKrollProperty(key);
-	if([self respondsToSelector:method])
+	NSString *method = SetterStringForKrollProperty(key);
+    
+	SEL methodSel = NSSelectorFromString([method stringByAppendingString:@"withObject:"]);
+	if([self respondsToSelector:methodSel])
 	{
-		[self performSelector:method withObject:value withObject:props];
+		[self performSelector:methodSel withObject:value withObject:props];
 		return;
 	}		
 
-	method = SetterForKrollProperty(key);
-	if([self respondsToSelector:method])
+	methodSel = NSSelectorFromString(method);
+	if([self respondsToSelector:methodSel])
 	{
-		[self performSelector:method withObject:value];
-	}	
+		[self performSelector:methodSel withObject:value];
+	}
+}
+
+- (void)detachViewProxy {
+    if(!proxy) return;
+    self.proxy = nil;
+    for (UIView *subview in self.subviews) {
+        if ([subview isKindOfClass:[TiUIView class]])
+            [(TiUIView*)subview detachViewProxy];
+    }
+}
+
+-(void)transferProxy:(TiViewProxy*)newProxy
+{
+    [self transferProxy:newProxy deep:NO];
 }
 
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
+{
+    [self transferProxy:newProxy withBlockBefore:nil withBlockAfter:nil deep:deep];
+}
+
+-(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
+                withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep
 {
 	TiViewProxy * oldProxy = (TiViewProxy *)[self proxy];
 	
 	// We can safely skip everything if we're transferring to ourself.
 	if (oldProxy != newProxy) {
-		NSArray * oldProperties = (NSArray *)[oldProxy allKeys];
-		NSArray * newProperties = (NSArray *)[newProxy allKeys];
-		NSArray * keySequence = [newProxy keySequence];
+        
+        if(blockBefore)
+        {
+            blockBefore(newProxy);
+        }
+        
+        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+        [transferLock lock];
+        
+        if (deep) {
+			NSArray *subProxies = [newProxy children];
+			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
+				TiViewProxy *newSubProxy = idx < [subProxies count] ? [subProxies objectAtIndex:idx] : nil;
+				[[oldSubProxy view] transferProxy:newSubProxy withBlockBefore:blockBefore withBlockAfter:blockAfter deep:deep];
+			}];
+		}
+        
+        NSSet* transferableProperties = [[oldProxy class] transferableProperties];
+        NSMutableSet* oldProperties = [NSMutableSet setWithArray:(NSArray *)[oldProxy allKeys]];
+        NSMutableSet* newProperties = [NSMutableSet setWithArray:(NSArray *)[newProxy allKeys]];
+        NSMutableSet* keySequence = [NSMutableSet setWithArray:[newProxy keySequence]];
+        NSMutableSet* layoutProps = [NSMutableSet setWithArray:[TiViewProxy layoutProperties]];
+        [oldProperties minusSet:newProperties];
+        [oldProperties minusSet:layoutProps];
+        [newProperties minusSet:keySequence];
+        [layoutProps intersectSet:newProperties];
+        [newProperties intersectSet:transferableProperties];
+        [oldProperties intersectSet:transferableProperties];
+        
+        id<NSFastEnumeration> keySeq = keySequence;
+        id<NSFastEnumeration> oldProps = oldProperties;
+        id<NSFastEnumeration> newProps = newProperties;
+        id<NSFastEnumeration> fastLayoutProps = layoutProps;
+        
 		[oldProxy retain];
-		[self retain];
 		
+        [self configurationStart];
 		[newProxy setReproxying:YES];
-		
+        
 		[oldProxy setView:nil];
 		[newProxy setView:self];
-		[self setProxy:[newProxy retain]];
-		
-		//The important sequence first:
-		for (NSString * thisKey in keySequence)
+        
+		[self setProxy:newProxy];
+
+        //The important sequence first:
+		for (NSString * thisKey in keySeq)
 		{
 			id newValue = [newProxy valueForKey:thisKey];
 			id oldValue = [oldProxy valueForKey:thisKey];
@@ -820,42 +1124,53 @@ DEFINE_EXCEPTIONS
 				[self setKrollValue:newValue forKey:thisKey withObject:nil];
 			}
 		}
-		
-		for (NSString * thisKey in oldProperties)
+        
+		for (NSString * thisKey in fastLayoutProps)
 		{
-			if([newProperties containsObject:thisKey] || [keySequence containsObject:thisKey])
-			{
-				continue;
+			id newValue = [newProxy valueForKey:thisKey];
+			id oldValue = [oldProxy valueForKey:thisKey];
+			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
+                SEL selector = [self selectorForlayoutProperty:thisKey];
+				if([[self proxy] respondsToSelector:selector])
+                {
+                    [[self proxy] performSelector:selector withObject:newValue];
+                }
 			}
+		}
+
+		for (NSString * thisKey in oldProps)
+		{
 			[self setKrollValue:nil forKey:thisKey withObject:nil];
 		}
-		
-		for (NSString * thisKey in newProperties)
+
+		for (NSString * thisKey in newProps)
 		{
-			if ([keySequence containsObject:thisKey])
-			{
-				continue;
+			id newValue = [newProxy valueForKey:thisKey];
+			id oldValue = [oldProxy valueForKey:thisKey];
+			if ((oldValue != newValue) && ![oldValue isEqual:newValue]) {
+				[self setKrollValue:newValue forKey:thisKey withObject:nil];
 			}
-			
-			// Always set the new value, even if 'equal' - some view setters (as in UIImageView)
-			// use internal voodoo to determine what to display.
-			// TODO: We may be able to take this out once the imageView.url property is taken out, and change it back to an equality test.
-			id newValue = [newProxy valueForUndefinedKey:thisKey];
-			[self setKrollValue:newValue forKey:thisKey withObject:nil];
 		}
-		
-		if (deep) {
-			NSArray *subProxies = [newProxy children];
-			[[oldProxy children] enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
-				TiViewProxy *newSubProxy = idx < [subProxies count] ? [subProxies objectAtIndex:idx] : nil;
-				[[oldSubProxy view] transferProxy:newSubProxy deep:YES];
-			}];
-		}
+        
+        [pool release];
+        pool = nil;
+
+        [self configurationSet];
+        
 		[oldProxy release];
 		
 		[newProxy setReproxying:NO];
-		[self release];
+
+ 
+        if(blockAfter)
+        {
+          blockAfter(newProxy);  
+        }
+
+        [transferLock unlock];
+        
 	}
+    
 }
 
 -(BOOL)validateTransferToProxy:(TiViewProxy*)newProxy deep:(BOOL)deep
@@ -864,21 +1179,38 @@ DEFINE_EXCEPTIONS
 	
 	if (oldProxy == newProxy) {
 		return YES;
-	}
+	}    
 	if (![newProxy isMemberOfClass:[oldProxy class]]) {
+        DebugLog(@"[ERROR] Cannot reproxy not same proxy class");
 		return NO;
 	}
+    
+    UIView * ourView = [[oldProxy parent] parentViewForChild:oldProxy];
+    UIView *parentView = [self superview];
+    if (parentView!=ourView)
+    {
+        DebugLog(@"[ERROR] Cannot reproxy not same parent view");
+        return NO;
+    }
 	
 	__block BOOL result = YES;
 	if (deep) {
 		NSArray *subProxies = [newProxy children];
 		NSArray *oldSubProxies = [oldProxy children];
 		if ([subProxies count] != [oldSubProxies count]) {
+            DebugLog(@"[ERROR] Cannot reproxy not same number of subproxies");
 			return NO;
 		}
 		[oldSubProxies enumerateObjectsUsingBlock:^(TiViewProxy *oldSubProxy, NSUInteger idx, BOOL *stop) {
 			TiViewProxy *newSubProxy = [subProxies objectAtIndex:idx];
-			result = [[oldSubProxy view] validateTransferToProxy:newSubProxy deep:YES];
+            TiUIView* view = [oldSubProxy view];
+            if (!view){
+                DebugLog(@"[ERROR] Cannot reproxy no subproxy view");
+                result = NO;
+                *stop = YES;
+            }
+            else
+                result = [view validateTransferToProxy:newSubProxy deep:YES]; //we assume that the view is already created
 			if (!result) {
 				*stop = YES;
 			}
@@ -904,7 +1236,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)singleTapRecognizer;
 {
 	if (singleTapRecognizer == nil) {
-		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		singleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
 		[self configureGestureRecognizer:singleTapRecognizer];
 		[self addGestureRecognizer:singleTapRecognizer];
 
@@ -918,7 +1250,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)doubleTapRecognizer;
 {
 	if (doubleTapRecognizer == nil) {
-		doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		doubleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedDoubleTap:)];
 		[doubleTapRecognizer setNumberOfTapsRequired:2];
 		[self configureGestureRecognizer:doubleTapRecognizer];
 		[self addGestureRecognizer:doubleTapRecognizer];
@@ -933,7 +1265,7 @@ DEFINE_EXCEPTIONS
 -(UITapGestureRecognizer*)twoFingerTapRecognizer;
 {
 	if (twoFingerTapRecognizer == nil) {
-		twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedTap:)];
+		twoFingerTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(recognizedSingleTap:)];
 		[twoFingerTapRecognizer setNumberOfTouchesRequired:2];
 		[self configureGestureRecognizer:twoFingerTapRecognizer];
 		[self addGestureRecognizer:twoFingerTapRecognizer];
@@ -1003,29 +1335,28 @@ DEFINE_EXCEPTIONS
 	return longPressRecognizer;
 }
 
-
--(void)recognizedTap:(UITapGestureRecognizer*)recognizer
+-(void)recognizedSingleTap:(UITapGestureRecognizer*)recognizer
 {
-	CGPoint tapPoint = [recognizer locationInView:self];
-	NSDictionary *event = [TiUtils pointToDictionary:tapPoint];
-	
-	if ([recognizer numberOfTouchesRequired] == 2) {
+	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
+    if ([recognizer numberOfTouchesRequired] == 2) {
 		[proxy fireEvent:@"twofingertap" withObject:event];
 	}
-	else if ([recognizer numberOfTapsRequired] == 2) {
-		//Because double-tap suppresses touchStart and double-click, we must do this:
-		if ([proxy _hasListeners:@"touchstart"])
-		{
-			[proxy fireEvent:@"touchstart" withObject:event propagate:YES];
-		}
-		if ([proxy _hasListeners:@"dblclick"]) {
-			[proxy fireEvent:@"dblclick" withObject:event propagate:YES];
-		}
-		[proxy fireEvent:@"doubletap" withObject:event];
-	}
-	else {
-		[proxy fireEvent:@"singletap" withObject:event];		
-	}
+    else
+        [proxy fireEvent:@"singletap" withObject:event];
+}
+
+-(void)recognizedDoubleTap:(UITapGestureRecognizer*)recognizer
+{
+	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
+    //Because double-tap suppresses touchStart and double-click, we must do this:
+    if ([proxy _hasListeners:@"touchstart"])
+    {
+        [proxy fireEvent:@"touchstart" withObject:event propagate:YES];
+    }
+    if ([proxy _hasListeners:@"dblclick"]) {
+        [proxy fireEvent:@"dblclick" withObject:event propagate:YES];
+    }
+    [proxy fireEvent:@"doubletap" withObject:event];
 }
 
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
@@ -1049,9 +1380,9 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
+-(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer
 {
-	NSString* swipeString;
+    NSString* swipeString;
 	switch ([recognizer direction]) {
 		case UISwipeGestureRecognizerDirectionUp:
 			swipeString = @"up";
@@ -1069,10 +1400,13 @@ DEFINE_EXCEPTIONS
 			swipeString = @"unknown";
 			break;
 	}
-	
-	CGPoint tapPoint = [recognizer locationInView:self];
-	NSMutableDictionary *event = [[TiUtils pointToDictionary:tapPoint] mutableCopy];
-	[event setValue:swipeString forKey:@"direction"];
+    return swipeString;
+}
+
+-(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
+{
+	NSMutableDictionary *event = [[TiUtils dictionaryFromGesture:recognizer inView:self] mutableCopy];
+	[event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
 	[proxy fireEvent:@"swipe" withObject:event];
 	[event release];
 
@@ -1088,7 +1422,7 @@ DEFINE_EXCEPTIONS
 
 - (BOOL)interactionEnabled
 {
-	return self.userInteractionEnabled;
+	return self.userInteractionEnabled && _customUserInteractionEnabled;
 }
 
 - (BOOL)hasTouchableListener
@@ -1100,11 +1434,12 @@ DEFINE_EXCEPTIONS
 {
 	BOOL hasTouchListeners = [self hasTouchableListener];
 
+	UIView *hitView = [super hitTest:point withEvent:event];
 	// if we don't have any touch listeners, see if interaction should
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if (hasTouchListeners == NO && [self interactionEnabled]==NO)
+	if ((hasTouchListeners == NO && [self interactionEnabled]==NO) && hitView == self)
 	{
 		return nil;
 	}
@@ -1121,7 +1456,13 @@ DEFINE_EXCEPTIONS
 	}
      */
 	
-    return [super hitTest:point withEvent:event];
+	if (touchPassThrough)
+	{
+		if (hitView != self) 
+			return hitView;
+		return nil;
+	}
+	return hitView;
 }
 
 // TODO: Revisit this design decision in post-1.3.0
@@ -1150,13 +1491,17 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    
     UITouch *touch = [touches anyObject];
+    if (_shouldHandleSelection) {
+        [self setBgState:UIControlStateSelected];
+    }
 	
 	if (handlesTouches)
 	{
-		NSDictionary *evt = [TiUtils pointToDictionary:[touch locationInView:self]];
 		if ([proxy _hasListeners:@"touchstart"])
 		{
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 			[proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
 			[self handleControlEvents:UIControlEventTouchDown];
 		}
@@ -1165,6 +1510,8 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    
+
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesMoved:touches withEvent:event];
     }
@@ -1174,11 +1521,17 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
 	UITouch *touch = [touches anyObject];
+    CGPoint localPoint = [touch locationInView:self];
+    BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
+                    localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
+    if (_shouldHandleSelection) {
+        [self setBgState:!outside?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    }
 	if (handlesTouches)
 	{
-		NSDictionary *evt = [TiUtils pointToDictionary:[touch locationInView:self]];
 		if ([proxy _hasListeners:@"touchmove"])
 		{
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 			[proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
 		}
 	}
@@ -1194,34 +1547,47 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-	if (handlesTouches)
+    if (_shouldHandleSelection) {
+        [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    }
+	if ([self interactionEnabled])
 	{
 		UITouch *touch = [touches anyObject];
-		NSDictionary *evt = [TiUtils pointToDictionary:[touch locationInView:self]];
-		if ([proxy _hasListeners:@"touchend"])
+        BOOL hasTouchEnd = [proxy _hasListeners:@"touchend"];
+        BOOL hasDblclick = [proxy _hasListeners:@"dblclick"];
+        BOOL hasClick = [proxy _hasListeners:@"click"];
+		if (hasTouchEnd || hasDblclick || hasClick)
 		{
-			[proxy fireEvent:@"touchend" withObject:evt propagate:YES];
-			[self handleControlEvents:UIControlEventTouchCancel];
-		}
-        
-		// Click handling is special; don't propagate if we have a delegate,
-		// but DO invoke the touch delegate.
-		// clicks should also be handled by any control the view is embedded in.
-		if ([touch tapCount] == 1 && [proxy _hasListeners:@"click"])
-		{
-			if (touchDelegate == nil) {
-				[proxy fireEvent:@"click" withObject:evt propagate:YES];
-				return;
-			}
-		} else if ([touch tapCount] == 2 && [proxy _hasListeners:@"dblclick"]) {
-			[proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
-			return;
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+            if (hasTouchEnd) {
+                [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
+                [self handleControlEvents:UIControlEventTouchCancel];
+            }
+            
+            // Click handling is special; don't propagate if we have a delegate,
+            // but DO invoke the touch delegate.
+            // clicks should also be handled by any control the view is embedded in.
+            if (hasDblclick && [touch tapCount] == 2) {
+                [proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+                return;
+            }
+            if (hasClick)
+            {
+                CGPoint localPoint = [touch locationInView:self];
+                BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
+                                localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
+                if (!outside && touchDelegate == nil) {
+                    [proxy fireEvent:@"click" withObject:evt propagate:YES];
+                    return;
+                } 
+            }
 		}
 	}
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
+    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -1233,8 +1599,7 @@ DEFINE_EXCEPTIONS
 	if (handlesTouches)
 	{
 		UITouch *touch = [touches anyObject];
-		CGPoint point = [touch locationInView:self];
-		NSDictionary *evt = [TiUtils pointToDictionary:point];
+		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 		if ([proxy _hasListeners:@"touchcancel"])
 		{
 			[proxy fireEvent:@"touchcancel" withObject:evt propagate:YES];
@@ -1296,7 +1661,6 @@ DEFINE_EXCEPTIONS
 -(void)handleListenerAddedWithEvent:(NSString *)event
 {
 	ENSURE_UI_THREAD_1_ARG(event);
-    [self updateTouchHandling];
     if ([event isEqualToString:@"swipe"]) {
         [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"dswipe"] setEnabled:YES];
@@ -1331,6 +1695,7 @@ DEFINE_EXCEPTIONS
 	if (count == 1 && [self viewSupportsBaseTouchEvents])
 	{
 		[self handleListenerAddedWithEvent:event];
+        [self updateTouchHandling];
 	}
 }
 
@@ -1339,6 +1704,7 @@ DEFINE_EXCEPTIONS
 	if (count == 0)
 	{
 		[self handleListenerRemovedWithEvent:event];
+        [self updateTouchHandling];
 	}
 }
 
@@ -1353,6 +1719,137 @@ DEFINE_EXCEPTIONS
 			[self handleListenerAddedWithEvent:eventName];
 		}
 	}
+}
+
+-(void)setViewMask_:(id)arg
+{
+    UIImage* image = [self loadImage:arg];
+    if (image == nil) {
+        self.layer.mask = nil;
+    }
+    else {
+        if (self.layer.mask == nil) {
+            self.layer.mask = [CALayer layer];
+            self.layer.mask.frame = self.layer.bounds;
+        }
+        self.layer.opaque = NO;
+        self.layer.mask.contentsScale = [image scale];
+        self.layer.mask.contentsCenter = TiDimensionLayerContentCenter(topCap, leftCap, topCap, leftCap, [image size]);
+        if (!CGPointEqualToPoint(self.layer.mask.contentsCenter.origin,CGPointZero)) {
+            self.layer.mask.magnificationFilter = @"nearest";
+        } else {
+            self.layer.mask.magnificationFilter = @"linear";
+        }
+        self.layer.mask.contents = (id)image.CGImage;
+    }
+    
+    [self.layer setNeedsDisplay];
+}
+
+-(void)setHighlighted:(BOOL)isHiglighted
+{
+    [self setBgState:isHiglighted?UIControlStateHighlighted:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+	for (TiUIView * thisView in [self childViews])
+	{
+		if ([thisView respondsToSelector:@selector(setHighlighted:)])
+		{
+			[(id)thisView setHighlighted:isHiglighted];
+		}
+	}
+}
+-(void)setSelected:(BOOL)isSelected
+{
+    [self setBgState:isSelected?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+	for (TiUIView * thisView in [self childViews])
+	{
+		if ([thisView respondsToSelector:@selector(setSelected:)])
+		{
+			[(id)thisView setSelected:isSelected];
+		}
+	}
+}
+
+- (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
+    [viewOut animationStarted];
+    [viewIn animationStarted];
+    
+    [self addSubview:viewIn];
+    ADTransition* adTransition = transition.adTransition;
+    [transition prepareViewHolder:self];
+    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:self];
+    
+    [CATransaction setCompletionBlock:^{
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];        [viewOut removeFromSuperview];
+        [viewOut animationCompleted];
+        [viewIn animationCompleted];
+        if (block != nil) {
+            block();
+        }
+    }];
+    
+    [adTransition startTransitionFromView:viewOut toView:viewIn inside:self];
+}
+
+- (void)blurBackground:(id)args
+{
+    //get the visible rect
+    CGRect visibleRect = [self.superview convertRect:self.frame toView:self];
+    visibleRect.origin.y += self.frame.origin.y;
+    visibleRect.origin.x += self.frame.origin.x;
+    
+    //hide all the blurred views from the superview before taking a screenshot
+    CGFloat alpha = self.alpha;
+    CGFloat superviewAlpha = self.superview.alpha;
+    self.alpha = 0.0f;
+    if (superviewAlpha == 0) {
+        self.superview.alpha = 1.0f;
+    }
+    //Render the layer in the image context
+    //Render the layer in the image context
+    UIGraphicsBeginImageContextWithOptions(visibleRect.size, NO, 1.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    CGContextTranslateCTM(context, -visibleRect.origin.x, -visibleRect.origin.y);
+    CALayer *layer = self.superview.layer;
+    [layer renderInContext:context];
+    
+    //show all the blurred views from the superview before taking a screenshot
+    self.alpha = alpha;
+    self.superview.alpha = superviewAlpha;
+   
+    __block UIImage *image = [UIGraphicsGetImageFromCurrentImageContext() retain];
+    UIGraphicsEndImageContext();
+    
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        NSArray* properties;
+        id firstArg = [args objectAtIndex:0];
+        if ([firstArg isKindOfClass:[NSArray class]]) {
+            properties = firstArg;
+        }
+        else {
+            properties = [NSArray arrayWithObject:[TiUtils stringValue:firstArg]];
+        }
+        NSDictionary* options;
+        ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary)
+        [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterBoxBlur]] forKey:@"filters"];
+        UIImage* result = [[TiImageHelper imageFiltered:[image autorelease] withOptions:options] retain];
+        if ([options objectForKey:@"callback"]) {
+            id callback = [options objectForKey:@"callback"];
+            ENSURE_TYPE(callback, KrollCallback)
+            if (callback != nil) {
+                TiThreadPerformOnMainThread(^{
+                    TiBlob* blob = [[TiBlob alloc] initWithImage:result];
+                    NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+                    [self.proxy _fireEventToListener:@"blurBackground" withObject:event listener:callback thisObject:nil];
+
+                    [blob release];
+                }, NO);
+            }
+        }
+            for (NSString* property in properties) {
+                [self.proxy setValue:result forKey:property];
+            }
+        [result release];
+    });
 }
 
 @end

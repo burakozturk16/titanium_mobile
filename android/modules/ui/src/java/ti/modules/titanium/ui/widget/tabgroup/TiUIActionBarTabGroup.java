@@ -9,6 +9,10 @@ package ti.modules.titanium.ui.widget.tabgroup;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.util.TiConvert;
+
+import org.appcelerator.kroll.KrollProxy;
 
 import ti.modules.titanium.ui.TabGroupProxy;
 import ti.modules.titanium.ui.TabProxy;
@@ -46,7 +50,13 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 		// Setup the action bar for navigation tabs.
 		actionBar = activity.getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		actionBar.setDisplayShowTitleEnabled(false);
+
+		if (proxy.hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN) && 
+			TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN))) {
+			actionBar.setDisplayShowTitleEnabled(false);
+			actionBar.setDisplayShowHomeEnabled(false);
+			actionBar.setDisplayUseLogoEnabled(false);
+		}
 
 		// Create a view to present the contents of the currently selected tab.
 		FrameLayout tabContent = new FrameLayout(activity);
@@ -55,6 +65,10 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 		params.autoFillsHeight = true;
 		params.autoFillsWidth = true;
 		((ViewGroup) activity.getLayout()).addView(tabContent, params);
+
+		if (proxy.hasProperty(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
+			actionBar.setBackgroundDrawable(TiConvert.toColorDrawable(proxy.getProperty(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR).toString()));
+		}
 
 		// The tab content view will act as the "native" view for the group.
 		// Note: since the tab bar is NOT part of the content, animations
@@ -168,5 +182,14 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 
 	@Override
 	public void onDestroy(Activity activity) { }
+
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
+		if (key.equals(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
+			actionBar.setBackgroundDrawable(TiConvert.toColorDrawable(newValue.toString()));
+		} else {
+			super.propertyChanged(key, oldValue, newValue, proxy);
+		}
+	}
 
 }

@@ -105,6 +105,7 @@ const CFOptionFlags writeStreamEventFlags =
             [self throwException:[NSString stringWithFormat:@"Couldn't resolve host %@: %d", hostName, h_errno]
                        subreason:nil
                         location:CODELOCATION];
+            return nil;
         }
         memcpy(&address.sin_addr.s_addr, host->h_addr_list[0], host->h_length);
     }

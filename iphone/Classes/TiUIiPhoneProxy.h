@@ -28,9 +28,6 @@
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	TiProxy *progressBarStyle;
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-	TiProxy *activityIndicatorStyle;
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	TiProxy *systemIcon;
 #endif
@@ -39,9 +36,6 @@
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	TiProxy *tableViewStyle;
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	TiProxy *tableViewSeparatorStyle;
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	TiProxy *tableViewScrollPosition;
@@ -60,9 +54,6 @@
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 	TiProxy *listViewCellSelectionStyle;
-#endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-	TiProxy *listViewSeparatorStyle;
 #endif
 }
 
@@ -84,9 +75,6 @@
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 @property(nonatomic,readonly) TiProxy* ProgressBarStyle;
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-@property(nonatomic,readonly) TiProxy* ActivityIndicatorStyle;
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 @property(nonatomic,readonly) TiProxy* SystemIcon;
 #endif
@@ -95,9 +83,6 @@
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 @property(nonatomic,readonly) TiProxy* TableViewStyle;
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-@property(nonatomic,readonly) TiProxy* TableViewSeparatorStyle;
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 @property(nonatomic,readonly) TiProxy* TableViewScrollPosition;
@@ -116,9 +101,6 @@
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 @property(nonatomic,readonly) TiProxy* ListViewCellSelectionStyle;
-#endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-@property(nonatomic,readonly) TiProxy* ListViewSeparatorStyle;
 #endif
 
 

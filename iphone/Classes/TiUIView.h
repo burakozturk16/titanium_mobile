@@ -8,10 +8,11 @@
 #import "TiAnimation.h"
 #import "TiGradient.h"
 #import "LayoutConstraint.h"
+#import "TiSelectableBackgroundLayer.h"
 
+@class TiTransition;
 //By declaring a scrollView protocol, TiUITextWidget can access 
 @class TiUIView;
-
 /**
  The protocol for scrolling.
  */
@@ -38,23 +39,24 @@ void OffsetScrollViewForRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFlo
 void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect);
 
 @class TiViewProxy;
+@class ADTransition;
 
 /**
  Base class for all Titanium views.
  @see TiViewProxy
  */
-@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing> 
+@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing>
 {
 @protected
     BOOL configurationSet;
-
+	BOOL needsToSetBackgroundImage;
+	BOOL needsToSetBackgroundSelectedImage;
+	BOOL needsToSetBackgroundDisabledImage;
+    NSMutableArray* childViews;
 @private
 	TiProxy *proxy;
 	TiAnimation *animation;
-	
-	CALayer *gradientLayer;
-	
-	CGAffineTransform virtualParentTransform;
+		
 	id transformMatrix;
 	BOOL childrenInitialized;
 	BOOL touchEnabled;
@@ -67,6 +69,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	BOOL handlesTouches;
 	UIView *touchDelegate;		 // used for touch delegate forwarding
 	BOOL animating;
+
+	BOOL touchPassThrough;
+	BOOL clipChildren;
 	
 	UITapGestureRecognizer*			singleTapRecognizer;
 	UITapGestureRecognizer*			doubleTapRecognizer;
@@ -81,11 +86,12 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 	//Resizing handling
 	CGSize oldSize;
     
-	// Image capping/backgrounds
-    id backgroundImage;
-    BOOL backgroundRepeat;
+    float backgroundOpacity;
     TiDimension leftCap;
     TiDimension topCap;
+    TiDimension bottomCap;
+    TiDimension rightCap;
+	NSRecursiveLock *transferLock;
 }
 
 /**
@@ -114,7 +120,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 /**
  Provides access to background image of the view.
  */
-@property(nonatomic,readwrite,retain) id backgroundImage;
+//@property(nonatomic,readwrite,retain) id backgroundImage;
 
 /**
  Returns enablement of touch events.
@@ -138,19 +144,11 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(BOOL)proxyHasGestureListeners;
 -(void)ensureGestureListeners;
 /**
- Returns CA layer for the background image of the view.
- */
--(CALayer *)backgroundImageLayer;
-/**
- Returns CA layer for the background gradient of the view.
- */
--(CALayer *)gradientLayer;
-
-/**
  Tells the view to start specified animation.
  @param newAnimation The animation to start.
  */
 -(void)animate:(TiAnimation *)newAnimation;
+-(void)cancelAllAnimations;
 
 #pragma mark Framework
 
@@ -162,13 +160,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 /**
  Performs view's configuration procedure.
  */
+-(void)configurationStart;
 -(void)configurationSet;
 
-/**
- Sets virtual parent transformation for the view.
- @param newTransform The transformation to set.
- */
--(void)setVirtualParentTransform:(CGAffineTransform)newTransform;
 -(void)setTransform_:(id)matrix;
 
 /*
@@ -177,17 +171,21 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  @return The loaded image.
  */
 -(UIImage*)loadImage:(id)image;
+-(id)loadImageOrSVG:(id)arg;
 
 -(id)proxyValueForKey:(NSString *)key;
 -(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys;
 
+-(NSArray*) childViews;
 /*
  Tells the view to change its proxy to the new one provided.
  @param newProxy The new proxy to set on the view.
  @param deep true for deep transfer
  */
 -(void)transferProxy:(TiViewProxy*)newProxy deep:(BOOL)deep;
-
+-(void)transferProxy:(TiViewProxy*)newProxy;
+-(void)transferProxy:(TiViewProxy*)newProxy withBlockBefore:(void (^)(TiViewProxy* proxy))blockBefore
+      withBlockAfter:(void (^)(TiViewProxy* proxy))blockAfter deep:(BOOL)deep;
 /*
  Returns whether the view tree matches proxy tree for later transfer.
  @param proxy The proxy to validate view tree with.
@@ -247,8 +245,17 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)setBackgroundImage_:(id)value;
 
--(UIView *)gradientWrapperView;
+-(UIView *)backgroundWrapperView;
+-(void)setBgState:(UIControlState)state;
+@property (nonatomic, readonly) TiSelectableBackgroundLayer* backgroundLayer;
+@property(nonatomic,assign) BOOL shouldHandleSelection;
+@property(nonatomic,assign) BOOL animateBgdTransition;
+
 -(void)checkBounds;
+-(void)updateBounds:(CGRect)newBounds;
+
+-(BOOL)clipChildren;
+-(void)updateViewShadowPath;
 
 @property (nonatomic, readonly) id accessibilityElement;
 
@@ -267,6 +274,20 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 - (void)processTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
 - (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
+
+-(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer;
+-(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer;
+-(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer;
+
+-(NSString*) swipeStringFromGesture:(UISwipeGestureRecognizer *)recognizer;
+
+-(void)detach;
+
+-(void)setHighlighted:(BOOL)isHiglighted;
+-(void)setSelected:(BOOL)isSelected;
+- (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block;
+- (void)blurBackground:(id)args;
+
 @end
 
 #pragma mark TO REMOVE, used only during transition.

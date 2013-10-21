@@ -195,7 +195,7 @@
 
 #pragma mark ImageLoaderRequest Delegates
 
--(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(UIImage*)image
+-(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
 	NSNumber* index = [[request userInfo] valueForKey:@"index"];
 	[loadLock lock];

@@ -118,6 +118,49 @@ void TiLogMessage(NSString* str, ...) {
     [message release];
 }
 
+
+void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName, NSString *format, ...) {
+    va_list ap;
+    // Initialize a variable argument list.
+    va_start (ap, format);
+    
+    NSString *message = [[[NSString alloc] initWithFormat:format arguments:ap] autorelease];
+    // End using variable argument list.
+    va_end (ap);
+    NSString *fileName = [[NSString stringWithUTF8String:file] lastPathComponent];
+    
+#if DEBUG
+    message = [[NSString alloc] initWithFormat:@"%@ [%@:%d:%s]", message, fileName, lineNumber, functionName];
+#endif
+    if ([[TiApp app] debugMode]) {
+        TiDebuggerLogMessage(OUT, message);
+    }
+    else {
+        
+        if (ApplicationBeingDebugged()) {
+            const char* s = [message UTF8String];
+            if (s[0]=='[')
+            {
+                fprintf(stderr,"%s\n", s);
+                fflush(stderr);
+            }
+            else
+            {
+                fprintf(stderr,"[DEBUG] %s\n", s);
+                fflush(stderr);
+            }
+        }
+        else{
+#pragma push
+#undef NSLog
+            NSLog(@"%@",message);
+#pragma pop
+        }
+    }
+//    [message release];
+}
+
+
 NSString * const kTiASCIIEncoding = @"ascii";
 NSString * const kTiISOLatin1Encoding = @"ios-latin-1";
 NSString * const kTiUTF8Encoding = @"utf8";

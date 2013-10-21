@@ -221,6 +221,10 @@ public class TiListViewTemplate {
 	public DataItem getRootItem() {
 		return rootItem;
 	}
+	
+	public KrollDict getProperties() {
+		return properties;
+	}
 
 	public void updateOrMergeWithDefaultProperties(KrollDict data, boolean update) {
 		for (String binding: data.keySet()) {

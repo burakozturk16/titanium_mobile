@@ -11,6 +11,11 @@
 @implementation TiPoint
 @synthesize xDimension,yDimension;
 
++(TiPoint*)pointWithObject:(id)object
+{
+    return [[[TiPoint alloc] initWithObject:object] autorelease];
+}
+
 -(id)initWithPoint:(CGPoint)point_
 {
 	if (self = [super init])
@@ -56,6 +61,13 @@
 			TiDimensionCalculateValue(yDimension, 0));
 }
 
+
+-(CGPoint)pointWithinSize:(CGSize)size
+{
+	return CGPointMake(TiDimensionCalculateValue(xDimension, size.width),
+                       TiDimensionCalculateValue(yDimension, size.height));
+}
+
 -(id)x
 {
 	return [TiUtils valueFromDimension:xDimension];
@@ -74,6 +86,18 @@
 -(void)setY:(id)y
 {
 	yDimension = TiDimensionFromObject(y);
+}
+
+
+// In the implementation
+-(id)copyWithZone:(NSZone *)zone
+{
+    // We'll ignore the zone for now
+    TiPoint *another = [[TiPoint alloc] init];
+    another.xDimension = TiDimensionMake(xDimension.type, xDimension.value);
+    another.yDimension = TiDimensionMake(yDimension.type, yDimension.value);
+    
+    return another;
 }
 
 @end

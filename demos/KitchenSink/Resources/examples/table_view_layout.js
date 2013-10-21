@@ -48,7 +48,7 @@ var data = [
 var tableView = Titanium.UI.createTableView({
 	backgroundColor:'transparent',
 	data:data,
-	separatorStyle:Ti.UI.iPhone.TableViewSeparatorStyle.NONE,
+	separatorStyle:Ti.UI.TableViewSeparatorStyle.NONE,
 	top:10
 });
 

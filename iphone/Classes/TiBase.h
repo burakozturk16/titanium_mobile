@@ -79,6 +79,7 @@ NSMutableDictionary* TiCreateNonRetainingDictionary();
 
 CGPoint midpointBetweenPoints(CGPoint a, CGPoint b);
 void TiLogMessage(NSString* str, ...);
+void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName, NSString *format, ...);
 
 /**
  * Protocol for classes to provide their JavaScript details (class name, in particular).
@@ -120,6 +121,12 @@ x = [(id)x stringValue]; \
 else \
 { \
 ENSURE_TYPE_OR_NIL(x,NSString); \
+} \
+
+#define EXTRACT_SINGLE_ARG(x) \
+if ([x isKindOfClass:[NSArray class]] && [x count]>0) \
+{ \
+x = [x objectAtIndex:0]; \
 } \
 
 #define ENSURE_SINGLE_ARG(x,t) \
@@ -409,7 +416,24 @@ DebugLog(@"[WARN] Ti%@.%@ DEPRECATED in %@, in favor of %@.",@"tanium",api,in,ne
 #define NUMFLOAT(x) \
 [NSNumber numberWithFloat:x]\
 
+    
+#define DEFINE_SUBPROXY(methodName,ivarName)	\
+-(TiProxy*)methodName	\
+{	\
+if (ivarName==nil)	\
+{	\
+ivarName = [[TiUIiPhone##methodName##Proxy alloc] _initWithPageContext:[self executionContext]];	\
+[self rememberProxy:ivarName]; \
+}	\
+return ivarName;	\
+}	\
 
+    
+#define FORGET_AND_RELEASE(x) \
+{\
+[self forgetProxy:x]; \
+RELEASE_TO_NIL(x); \
+}
 
  //MUST BE NEGATIVE, as it inhabits the same space as UIBarButtonSystemItem
 enum {

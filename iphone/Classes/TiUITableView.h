@@ -40,8 +40,9 @@
 @end
 
 @interface TiUITableView : TiUIView<UISearchDisplayDelegate,UIScrollViewDelegate,UITableViewDelegate,UITableViewDataSource,UISearchBarDelegate,TiScrolling,TiProxyObserver> {
-@private
+@protected
 	UITableView *tableview;
+@private
 	BOOL moving;
 	BOOL editing;
 	BOOL searchHidden;
@@ -49,6 +50,7 @@
     BOOL animateHide;
 	BOOL editable;
 	BOOL moveable;
+	BOOL settingData;
 	NSMutableArray * sectionIndex;
 	NSMutableDictionary * sectionIndexMap;
 	TiDimension rowHeight;
@@ -64,10 +66,10 @@
     BOOL searchActivated;
 	BOOL filterCaseInsensitive;
 	BOOL allowsSelectionSet;
-	id	lastFocusedView; //DOES NOT RETAIN.	
+//	id	lastFocusedView; //DOES NOT RETAIN.	
 	UITableViewController *tableController;
 	UISearchDisplayController *searchController;
-	NSInteger frameChanges;
+//	NSInteger frameChanges;
     TiViewProxy* headerViewProxy;
     TiViewProxy* footerViewProxy;
     BOOL viewWillDetach;
@@ -85,11 +87,13 @@
 -(void)dispatchAction:(TiUITableViewAction*)action;
 -(void)scrollToIndex:(NSInteger)index position:(UITableViewScrollPosition)position animated:(BOOL)animated;
 -(void)scrollToTop:(NSInteger)top animated:(BOOL)animated;
+-(void)scrollToBottom:(NSInteger)bottom animated:(BOOL)animated;
 -(NSIndexPath*)indexPathFromSearchIndex:(int)index;
 -(IBAction)hideSearchScreen:(id)sender;
 -(UITableView*)tableView;
 -(CGFloat)tableRowHeight:(CGFloat)height;
 -(void)setScrollsToTop_:(id)value;
+-(TiUITableViewRowProxy*)rowAtPoint:(CGPoint)point;
 
 #pragma Private
 -(void)selectRow:(id)args;

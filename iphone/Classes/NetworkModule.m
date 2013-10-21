@@ -14,6 +14,7 @@
 #import "TiNetworkSocketProxy.h"
 #import "ASIHTTPRequest.h"
 #import "TiUtils.h"
+#import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 
@@ -69,7 +70,7 @@ NSString* const INADDR_ANY_token = @"INADDR_ANY";
 	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
 	// wait until done is important to get the right state
-	TiThreadPerformOnMainThread(^{[self startReachability];}, YES);
+	TiThreadPerformOnMainThread(^{[self startReachability];}, NO);
 }
 
 -(void)_destroy
@@ -183,6 +184,15 @@ NSString* const INADDR_ANY_token = @"INADDR_ANY";
 		}
 	}
 	return @"UNKNOWN";
+}
+
+- (NSString*)carrierName
+{
+	CTTelephonyNetworkInfo *netinfo = [[[CTTelephonyNetworkInfo alloc] init] autorelease];
+    CTCarrier *carrier = [netinfo subscriberCellularProvider];
+    if (carrier != nil)
+        return [carrier carrierName];
+    return (NSString*)[NSNull null];
 }
 
 -(NSNumber*)networkType

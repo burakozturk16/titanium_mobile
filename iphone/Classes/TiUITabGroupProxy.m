@@ -19,7 +19,7 @@ static NSArray* tabGroupKeySequence;
     if (tabGroupKeySequence == nil)
     {
         //URL has to be processed first since the spinner depends on URL being remote
-        tabGroupKeySequence = [[NSArray arrayWithObjects:@"tabs",@"activeTab",nil] retain];
+        tabGroupKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"tabs",@"activeTab"]] retain];
     }
     return tabGroupKeySequence;
 }
@@ -57,7 +57,7 @@ static NSArray* tabGroupKeySequence;
 
 -(TiUIView*)newView
 {
-	TiUITabGroup *group = [[TiUITabGroup alloc] initWithFrame:[self appFrame]];
+	TiUITabGroup *group = [[TiUITabGroup alloc] initWithFrame:[TiUtils appFrame]];
 	return group;
 }
 
@@ -161,14 +161,14 @@ static NSArray* tabGroupKeySequence;
 
 -(void)windowWillOpen
 {
-	TiUITabGroup *tg = (TiUITabGroup*)self.view;
+	TiUITabGroup *tg = (TiUITabGroup*)[self getOrCreateView];
 	[tg open:nil];
 	return [super windowWillOpen];
 }
 
 -(void)windowWillClose
 {
-	TiUITabGroup *tabGroup = (TiUITabGroup*)self.view;
+	TiUITabGroup *tabGroup = (TiUITabGroup*)[self getOrCreateView];
 	if (tabGroup!=nil)
 	{
 		[tabGroup close:nil];

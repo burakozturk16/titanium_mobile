@@ -22,10 +22,70 @@
 @implementation TiAnimation
 
 @synthesize delegate;
-@synthesize zIndex, left, right, top, bottom, width, height;
+@synthesize zIndex;
 @synthesize duration, color, backgroundColor, opacity, opaque, view;
-@synthesize visible, curve, repeat, autoreverse, delay, transform, transition;
+@synthesize visible, curve, repeat, autoreverse, delay, transition;
 @synthesize animatedView, callback, isReverse, reverseAnimation, resetState;
+
+static NSArray *layoutProps;
+
++ (NSArray *)layoutProps
+{
+    if (!layoutProps)
+        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", @"transform", nil];
+    
+    return layoutProps;
+}
+
+static NSArray *animProps;
+
++ (NSArray *)animProps
+{
+    if (!animProps)
+        animProps = [[NSArray alloc] initWithObjects:@"backgroundColor", @"color", @"visible", @"opacity", @"zIndex", nil];
+    
+    return animProps;
+}
+
+-(void)setValue:(id)value forKey:(NSString *)key
+{
+    [super setValue:value forKey:key];
+    if ([key isEqualToString:@"top"]) {
+        RELEASE_TO_NIL(top);
+        top = [value retain];
+        topDefined = YES;
+    }
+    else if ([key isEqualToString:@"bottom"]) {
+        RELEASE_TO_NIL(bottom);
+        bottom = [value retain];
+        bottomDefined = YES;
+    }
+    else if ([key isEqualToString:@"left"]) {
+        RELEASE_TO_NIL(left);
+        left = [value retain];
+        leftDefined = YES;
+    }
+    else if ([key isEqualToString:@"right"]) {
+        RELEASE_TO_NIL(right);
+        right = [value retain];
+        rightDefined = YES;
+    }
+    else if ([key isEqualToString:@"width"]) {
+        RELEASE_TO_NIL(width);
+        width = [value retain];
+        widthDefined = YES;
+    }
+    else if ([key isEqualToString:@"height"]) {
+        RELEASE_TO_NIL(height);
+        height = [value retain];
+        heightDefined = YES;
+    }
+    else if ([key isEqualToString:@"transform"]) {
+        RELEASE_TO_NIL(transform);
+        transform = [value retain];
+        transformDefined = YES;
+    }
+}
 
 -(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context_ callback:(KrollCallback*)callback_
 {
@@ -71,11 +131,10 @@ self.p = [TiUtils colorValue:v];\
 }\
 }\
 
-#define SET_ID_PROP(p,d) \
+#define SET_LAYOUT_PROP(p,d) \
 {\
 id v = d==nil ? nil : [d objectForKey:@#p];\
-if (v!=nil && ![v isKindOfClass:[NSNull class]]) {\
-self.p = v;\
+[self setValue:[d objectForKey:@#p] forKey:@#p]; {\
 }\
 }\
 
@@ -86,26 +145,29 @@ if (v!=nil && ![v isKindOfClass:[NSNull class]]) {\
 self.p = v;\
 }\
 }\
-		
+        
+        leftDefined = rightDefined = topDefined = bottomDefined = widthDefined = heightDefined = transformDefined = NO;
+        
+        NSMutableSet *intersection = [NSMutableSet setWithArray:[TiAnimation layoutProps]];
+        [intersection intersectSet:[NSSet setWithArray:[properties allKeys]]];
+        
+        NSArray *layoutpropsToProcess = [intersection allObjects];
+        for (id prop in layoutpropsToProcess) {
+            [self setValue:[properties objectForKey:prop] forKey:prop];
+        }
+        
 		SET_FLOAT_PROP(zIndex,properties);
-		SET_ID_PROP(left,properties);
-		SET_ID_PROP(right,properties);
-		SET_ID_PROP(top,properties);
-		SET_ID_PROP(bottom,properties);
-		SET_ID_PROP(width,properties);
-		SET_ID_PROP(height,properties);
 		SET_FLOAT_PROP(duration,properties);
 		SET_FLOAT_PROP(opacity,properties);
 		SET_FLOAT_PROP(delay,properties);
 		SET_INT_PROP(curve,properties);
-		SET_INT_PROP(repeat,properties);
+		SET_FLOAT_PROP(repeat,properties);
 		SET_BOOL_PROP(visible,properties);
 		SET_BOOL_PROP(opaque,properties);
 		SET_BOOL_PROP(autoreverse,properties);
 		SET_POINT_PROP(center,properties);
 		SET_COLOR_PROP(backgroundColor,properties);
 		SET_COLOR_PROP(color,properties);
-		SET_ID_PROP(transform,properties);
 		SET_INT_PROP(transition,properties);
 		SET_PROXY_PROP(view,properties);
 
@@ -158,7 +220,8 @@ self.p = v;\
 	RELEASE_TO_NIL(callback);
 	RELEASE_TO_NIL(view);
 	RELEASE_TO_NIL(animatedView);
-    [animatedViewProxy release];
+	RELEASE_TO_NIL(reverseAnimation);
+	RELEASE_TO_NIL(animatedViewProxy);
 	[super dealloc];
 }
 
@@ -254,6 +317,7 @@ self.p = v;\
 	TiAnimation* animation = (TiAnimation*)context;
 	if ([(id)animation.animatedView isKindOfClass:[TiUIView class]]) {
 		TiUIView *v = (TiUIView*)animation.animatedView;
+        RELEASE_TO_NIL(animatedViewProxy);
 		animatedViewProxy = [(TiViewProxy*)v.proxy retain];
 	}
 	if (animation.delegate!=nil && [animation.delegate respondsToSelector:@selector(animationDidStart:)])
@@ -273,10 +337,13 @@ self.p = v;\
 #if ANIMATION_DEBUG==1	
 	NSLog(@"[DEBUG] ANIMATION: COMPLETED %@, %@",self,(id)context);
 #endif
-	
+	if (![finished boolValue]) {
+//        RELEASE_TO_NIL(animatedViewProxy);
+//        RELEASE_TO_NIL(animatedView);
+        return;
+    }
 	TiAnimation* animation = (TiAnimation*)context;
     if ([animation isReverse]) {
-        RELEASE_TO_NIL(animation.animatedView);
         
         animation = [animation reverseAnimation]; // Use the original animation for correct eventing
         //Make sure we have the animatedViewProxy so we can correctly signal end of animation
@@ -285,6 +352,9 @@ self.p = v;\
             TiUIView *v = (TiUIView*)animation.animatedView;
             animatedViewProxy = [(TiViewProxy*)v.proxy retain];
         }
+    }
+    else if ([finished boolValue]){
+        [self updateViewProxyProperties];
     }
     
 	if (animation.delegate!=nil && [animation.delegate respondsToSelector:@selector(animationWillComplete:)])
@@ -314,7 +384,56 @@ self.p = v;\
 	}	
 	
     RELEASE_TO_NIL(animatedViewProxy);
-	RELEASE_TO_NIL(animation.animatedView);
+    RELEASE_TO_NIL(animatedView);
+}
+
+-(void)updateViewProxyProperties
+{
+#define UPDATE_PROXY_PROP(p,d) \
+{\
+if (self.d != nil)\
+[p replaceValue:self.d forKey:@#d notification:NO];\
+}\
+
+#define UPDATE_PROXY_LAYOUT_PROP(p,methodName, value) \
+{\
+if (value != nil)\
+[p methodName:value];\
+}\
+
+    if (animatedViewProxy == nil) return;
+    UPDATE_PROXY_PROP(animatedViewProxy, zIndex)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setLeft, left)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setRight, right)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setBottom, bottom)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setTop, top)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setWidth, width)
+    UPDATE_PROXY_LAYOUT_PROP(animatedViewProxy, setHeight, height)
+    UPDATE_PROXY_PROP(animatedViewProxy, color)
+    UPDATE_PROXY_PROP(animatedViewProxy, backgroundColor)
+    UPDATE_PROXY_PROP(animatedViewProxy, visible)
+    UPDATE_PROXY_PROP(animatedViewProxy, opacity)
+    
+    if ([self valueForKey:@"transform"])
+        [animatedViewProxy replaceValue:[self valueForKey:@"transform"] forKey:@"transform" notification:NO];
+//    UPDATE_PROXY_PROP(animatedViewProxy, transform)
+}
+
+-(void)resetViewProxyProperties
+{
+    if (animatedViewProxy == nil) return;
+    
+    for (NSString* key in [TiAnimation layoutProps]) {
+        if ([self valueForKey:key]) {
+            [animatedViewProxy setValue:[animatedViewProxy valueForKey:key] forKey:key];
+        }
+    }
+    
+    for (NSString* key in [TiAnimation animProps]) {
+        if ([self valueForKey:key]) {
+            [animatedViewProxy setValue:[animatedViewProxy valueForKey:key] forKey:key];
+        }
+    }
 }
 
 -(BOOL)isTransitionAnimation
@@ -354,7 +473,7 @@ self.p = v;\
 -(void)animate:(id)args
 {
 	ENSURE_UI_THREAD(animate,args);
-
+    
 #if ANIMATION_DEBUG==1
 	NSLog(@"[DEBUG] ANIMATION: starting %@, %@, retain: %d",self,args,[self retainCount]);
 #endif
@@ -371,7 +490,7 @@ self.p = v;\
 		// vs.
 		//
 		// view.animate(animation)
-		// 
+		//
 		// which is totally fine, just hand it to the view and let him callback
 		//
 		theview = [args objectAtIndex:0];
@@ -392,18 +511,19 @@ self.p = v;\
 	
 	BOOL transitionAnimation = [self isTransitionAnimation];
 	
-	TiUIView *view_ = (transitionAnimation && view!=nil) ? 
-        [view view] : 
-        (([theview isKindOfClass:[TiViewProxy class]]) ? 
-            [(TiViewProxy*)theview view] : 
-            (TiUIView *)theview);
-	TiUIView *transitionView = transitionAnimation ? 
-        (([theview isKindOfClass:[TiViewProxy class]]) ? 
-            (TiUIView*)[(TiViewProxy*)theview view] : 
-            (TiUIView*)theview) : 
-        nil;
+	TiUIView *view_ = (transitionAnimation && view!=nil) ?
+    [view getOrCreateView] :
+    (([theview isKindOfClass:[TiViewProxy class]]) ?
+     [(TiViewProxy*)theview view] :
+     (TiUIView *)theview);
+    
+	TiUIView *transitionView = transitionAnimation ?
+    (([theview isKindOfClass:[TiViewProxy class]]) ?
+     (TiUIView*)[(TiViewProxy*)theview getOrCreateView] :
+     (TiUIView*)theview) :
+    nil;
 	
-	if (transitionView!=nil)
+	if (transitionView!=nil && transitionView != view_ && ![view_ animating])
 	{
 		// we need to first make sure our new view that we're transitioning to is sized but we don't want
 		// to add to the view hiearchry inside the animation block or you'll get the sizings as part of the
@@ -413,13 +533,18 @@ self.p = v;\
 		ApplyConstraintToViewWithBounds(contraints, view_, transitionView.bounds);
 		[ourProxy layoutChildren:NO];
 	}
-
-	animatedView = [theview retain];
+    if ([view_ animating])
+    {
+        NSLog(@"[DEBUG] ANIMATION: aleardy animating");
+    }
+    
+    
+	self.animatedView = theview;
     
     if (!transitionAnimation) {
         UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction); // Backwards compatible
         if (!resetState) {
-            options = (options | UIViewAnimationOptionBeginFromCurrentState);
+            options |= UIViewAnimationOptionBeginFromCurrentState;
         }
 		[view_ animationStarted];
         NSTimeInterval animationDuration = [self animationDuration];
@@ -432,7 +557,7 @@ self.p = v;\
         void (^animation)() = ^{
             CGFloat repeatCount = [repeat intValue];
             if ((options & UIViewAnimationOptionAutoreverse)) {
-                // What we have to do here in order to get the 'correct' animation 
+                // What we have to do here in order to get the 'correct' animation
                 // (where the view doesn't end up with the wrong settings) is reduce the repeat count
                 // by a half-step so the animation ends MIDWAY through the autoreverse (on the wrong frame)
                 // and then perform a SECOND animation upon completion - one which takes it back to the initial
@@ -441,7 +566,7 @@ self.p = v;\
                 // Works around radar #11919161 as a fix suggested by apple in animation documentation. Very unlikely
                 // that this bug will be fixed.
                 
-                reverseAnimation = [[TiAnimation alloc] initWithDictionary:nil context:[self pageContext] callback:[[self callback] listener]];
+                self.reverseAnimation = [[[TiAnimation alloc] initWithDictionary:nil context:[self pageContext] callback:[[self callback] listener]] autorelease];
                 [reverseAnimation setReverseAnimation:self];
                 [reverseAnimation setIsReverse:YES];
                 [reverseAnimation setDuration:duration];
@@ -474,44 +599,47 @@ self.p = v;\
                 [self animationStarted:[self description] context:self];
             }
             
-            if (transform!=nil)
-            {
-                if (reverseAnimation != nil) {
-                    id transformMatrix = [(TiUIView*)view_ transformMatrix];
-                    if (transformMatrix == nil) {
-                        transformMatrix = [[[Ti2DMatrix alloc] init] autorelease];
-                    }
-                    [reverseAnimation setTransform:transformMatrix];
-                }
-                [(TiUIView *)view_ setTransform_:transform];
-            }
+            
             
             if ([view_ isKindOfClass:[TiUIView class]])
-            {	//TODO: Shouldn't we be updating the proxy's properties to reflect this?
+            {
                 TiUIView *uiview = (TiUIView*)view_;
+                
+                if (transformDefined == YES)
+                {
+                    if (reverseAnimation != nil) {
+                        id transformMatrix = [(TiUIView*)view_ transformMatrix];
+                        if (transformMatrix == nil) {
+                            transformMatrix = [[[Ti2DMatrix alloc] init] autorelease];
+                        }
+                        [reverseAnimation setValue:transformMatrix forKey:@"transform"];
+                    }
+                    [uiview setTransform_:transform];
+                }
+                
                 LayoutConstraint *layoutProperties = [(TiViewProxy *)[uiview proxy] layoutProperties];
                 
                 BOOL doReposition = NO;
                 
-#define CHECK_LAYOUT_CHANGE(a) \
-if (a!=nil && layoutProperties!=NULL) \
+#define CHECK_LAYOUT_CHANGE(a, b) \
+if (b == YES && layoutProperties!=NULL) \
 {\
 id cacheValue = [[(TiUIView*)view_ proxy] valueForKey:@#a]; \
 [reverseAnimation setValue:cacheValue forKey:@#a]; \
 layoutProperties->a = TiDimensionFromObject(a); \
 doReposition = YES;\
 }
-
-                CHECK_LAYOUT_CHANGE(left);
-                CHECK_LAYOUT_CHANGE(right);
-                CHECK_LAYOUT_CHANGE(width);
-                CHECK_LAYOUT_CHANGE(height);
-                CHECK_LAYOUT_CHANGE(top);
-                CHECK_LAYOUT_CHANGE(bottom);
+                
+                CHECK_LAYOUT_CHANGE(left, leftDefined);
+                CHECK_LAYOUT_CHANGE(right, rightDefined);
+                CHECK_LAYOUT_CHANGE(width, widthDefined);
+                CHECK_LAYOUT_CHANGE(height, heightDefined);
+                CHECK_LAYOUT_CHANGE(top, topDefined);
+                CHECK_LAYOUT_CHANGE(bottom, bottomDefined);
                 if (center!=nil && layoutProperties != NULL)
                 {
                     [reverseAnimation setCenter:[[[TiPoint alloc] initWithPoint:[(TiUIView*)view_ center]] autorelease]];
-
+                    
                     layoutProperties->centerX = [center xDimension];
                     layoutProperties->centerY = [center yDimension];
                     doReposition = YES;
@@ -525,37 +653,7 @@ doReposition = YES;\
                 
                 if (doReposition)
                 {
-                    CABasicAnimation *boundsAnimation = nil;
-                    CABasicAnimation *positionAnimation = nil;
-                    bool hasGradient = ([uiview gradientLayer] != nil);
-                    if (hasGradient) {
-                        boundsAnimation = [CABasicAnimation animationWithKeyPath:@"bounds"];
-                        boundsAnimation.fromValue = [NSValue valueWithCGRect:[uiview bounds]];
-                        boundsAnimation.duration = animationDuration;
-                        boundsAnimation.timingFunction = [self timingFunction];
-                    
-                        positionAnimation = [CABasicAnimation animationWithKeyPath:@"position"];
-                        positionAnimation.fromValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
-                        positionAnimation.duration = animationDuration;
-                        positionAnimation.timingFunction = [self timingFunction];
-                    }
-                    
-                    [(TiViewProxy *)[uiview proxy] reposition];
-                    
-                    if (hasGradient) {
-                        boundsAnimation.toValue = [NSValue valueWithCGRect:[uiview bounds]];
-                        positionAnimation.toValue = [NSValue valueWithCGPoint:CGPointMake([uiview bounds].size.width / 2, [uiview bounds].size.height / 2)];
-                        if (repeatCount > 0) {
-                            boundsAnimation.autoreverses = (reverseAnimation != nil);
-                            boundsAnimation.repeatCount = repeatCount;
-                            
-                            positionAnimation.autoreverses = (reverseAnimation != nil);
-                            positionAnimation.repeatCount = repeatCount;
-                        }
-                    
-                        [[uiview gradientLayer] addAnimation:boundsAnimation forKey:@"animateBounds"];
-                        [[uiview gradientLayer] addAnimation:positionAnimation forKey:@"animatePosition"];
-                    }
+                    [(TiViewProxy *)[uiview proxy] repositionWithinAnimation:self];
                 }
             }
             
@@ -596,8 +694,12 @@ doReposition = YES;\
         
         void (^complete)(BOOL) = ^(BOOL finished) {
             if ((reverseAnimation != nil) && ![self isReverse] && finished) {
+                // tell our view that we're done, essetially here we set the animating flag to false
+                if (animatedViewProxy != nil) {
+                    [animatedViewProxy animationCompleted:self];
+                }
                 [reverseAnimation animate:args];
-                RELEASE_TO_NIL(reverseAnimation);
+                self.reverseAnimation = nil;
             }
             else {
                 [self animationCompleted:[self description] finished:[NSNumber numberWithBool:finished] context:self];
@@ -646,11 +748,11 @@ doReposition = YES;\
                                 }
                                 [transitionView addSubview:view_];
                                 
-                                //AnimationStarted needs to be called here, otherwise the animation flags for 
-                                //the view being transitioned will end up in a improper state, resulting in 
+                                //AnimationStarted needs to be called here, otherwise the animation flags for
+                                //the view being transitioned will end up in a improper state, resulting in
                                 //layout warning.
-                                [self animationStarted:[NSString stringWithFormat:@"%X",(void *)theview] 
-                                               context:self];                               
+                                [self animationStarted:[NSString stringWithFormat:@"%X",(void *)theview]
+                                               context:self];
                             }
                             completion:^(BOOL finished) {
                                 [self animationCompleted:[NSString stringWithFormat:@"%X",(void *)theview]
@@ -665,11 +767,58 @@ doReposition = YES;\
              ];
 		}
 	}
-
+    
 	
-#if ANIMATION_DEBUG==1	
+#if ANIMATION_DEBUG==1
 	NSLog(@"[DEBUG] ANIMATION: committed %@, %@",self,args);
 #endif
+}
+
+
+-(void)simulateFinish:(TiViewProxy*)proxy
+{
+    animatedViewProxy = [proxy retain];
+    
+    if ([autoreverse boolValue] == NO)
+        [self updateViewProxyProperties];
+        
+	if (self.delegate!=nil && [self.delegate respondsToSelector:@selector(animationWillComplete:)])
+	{
+		[self.delegate animationWillComplete:self];
+	}
+	
+	// fire the event and call the callback
+	if ([self _hasListeners:@"complete"])
+	{
+		[self fireEvent:@"complete" withObject:nil];
+	}
+	
+	// tell our view that we're done
+	if (animatedViewProxy != nil) {
+		[animatedViewProxy animationCompleted:self];
+	}
+	
+	if (self.delegate!=nil && [self.delegate respondsToSelector:@selector(animationDidComplete:)])
+	{
+		[self.delegate animationDidComplete:self];
+	}
+	
+    RELEASE_TO_NIL(animatedViewProxy);
+}
+
+-(void)cancel:(id)args
+{
+    // tell our view that we're done
+	if (animatedView != nil) {
+        [animatedView.layer removeAllAnimations];
+        RELEASE_TO_NIL(animatedView);
+	}
+    // tell our view that we're done
+	if (animatedViewProxy != nil) {
+		[self resetViewProxyProperties];
+		[animatedViewProxy animationCompleted:self];
+        RELEASE_TO_NIL(animatedViewProxy);
+	}
 }
 
 @end

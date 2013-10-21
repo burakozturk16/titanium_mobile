@@ -6,7 +6,10 @@
  */
 package ti.modules.titanium.ui;
 
+import java.util.HashMap;
+
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -102,12 +105,18 @@ public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
 	}
 
 	@Override
-	public void add(TiViewProxy o)
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		else if (args instanceof HashMap) {
+			child = (PickerRowProxy) KrollProxy.createProxy(PickerRowProxy.class, null, new Object[] { args }, null);
+		}
 		if (TiApplication.isUIThread()) {
-			handleAddRow(o);
+			handleAddRow(child);
 		} else {
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD), o);
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD), child);
 		}
 	}
 	
@@ -130,7 +139,7 @@ public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
 		if (o == null)return;
 		if (o instanceof PickerRowProxy) {
 			((PickerRowProxy)o).setRowListener(this);
-			super.add((PickerRowProxy)o);
+			super.add((PickerRowProxy)o, new Integer(-1));
 			if (columnListener != null && !suppressListenerEvents) {
 				int index = children.indexOf(o);
 				columnListener.rowAdded(this, index);

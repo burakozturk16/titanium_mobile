@@ -265,6 +265,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PROPERTY_GLOBALPOINT = "globalPoint";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PROPERTY_INDEX = "index";
 
 	/**
@@ -390,6 +395,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PROPERTY_WINDOW = "window";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PROPERTY_X = "x";
 
 	/**
@@ -425,6 +435,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_SCROLLSTART= "scrollstart";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_DRAGEND = "dragend";
 
 	/**
@@ -441,6 +456,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_STOP = "stop";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_REPEAT = "repeat";
 	
 	/**
 	 * @module.api
@@ -506,6 +526,7 @@ public class TiC
 	public static final String INTENT_PROPERTY_MSG_ACTIVITY_CREATED_ID = "msgActivityCreatedId";
 	public static final String INTENT_PROPERTY_MSG_ID = "messageId";
 	public static final String INTENT_PROPERTY_START_MODE = "startMode";
+	public static final String INTENT_PROPERTY_ON_BOOT = "onBoot";
 	public static final String INTENT_PROPERTY_USE_ACTIVITY_WINDOW = "useActivityWindow";
 	public static final String INTENT_PROPERTY_WINDOW_ID = "windowId";
 	public static final String LAYOUT_FILL = "fill";
@@ -556,6 +577,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_ACTION = "action";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ACTION_BAR = "actionBar";
+	
 	/**
 	 * @module.api
 	 */
@@ -625,6 +651,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ANIMATED = "animated";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ANIMATION_DURATION = "animationDuration";
 	
 	/**
 	 * @module.api
@@ -685,7 +716,22 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_COLOR = "backgroundColor";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_COLOR = "backgroundCheckedColor";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_IMAGE = "backgroundCheckedImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_GRADIENT = "backgroundCheckedGradient";
+	
 	/**
 	 * @module.api
 	 */
@@ -699,6 +745,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_DISABLED_GRADIENT = "backgroundDisabledGradient";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_FOCUSED_COLOR = "backgroundFocusedColor";
 
 	/**
@@ -709,12 +760,22 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_FOCUSED_GRADIENT = "backgroundFocusedGradient";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_GRADIENT = "backgroundGradient";
 
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_IMAGE = "backgroundImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_OPACITY = "backgroundOpacity";
 
 	/**
 	 * @module.api
@@ -742,6 +803,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BAR_COLOR = "barColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_SELECTED_GRADIENT = "backgroundSelectedGradient";
 
 	/**
 	 * @module.api
@@ -826,6 +892,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_CACHE_SIZE = "cacheSize";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_CALENDAR_VIEW_SHOWN = "calendarViewShown";
 
 	/**
@@ -898,6 +969,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_CLEAR_ON_EDIT = "clearOnEdit";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_CLIP_CHILDREN = "clipChildren";
+	
 	/**
 	 * @module.api
 	 */
@@ -1037,6 +1113,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_DISPLAY_ADDRESS = "displayAddress";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISPLAY_HOME_AS_UP = "displayHomeAsUp";
+
 	
 	/**
 	 * @module.api
@@ -1062,7 +1144,7 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ELLIPSIZE = "ellipsize";
-	
+
 	/**
 	 * @module.api
 	 */
@@ -1096,6 +1178,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_EXCLUSIVE_TOUCH = "exclusiveTouch";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_EXIT_ON_CLOSE = "exitOnClose";
 
 	/**
@@ -1107,6 +1194,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FILE = "file";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FILTER = "filter";
 
 	/**
 	 * @module.api
@@ -1248,6 +1340,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_HIDE_ON_CLICK = "hideOnClick";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_HIGHLIGHTED_COLOR = "highlightedColor";
 
 	/**
@@ -1300,6 +1397,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_IMAGE = "image";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_IMAGE_ANCHOR = "imageAnchor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_IMAGE_MASK = "imageMask";
 
 	/**
 	 * @module.api
@@ -1429,6 +1536,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_LOCAL_LOAD_SYNC = "localLoadSync";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_LOCATION = "location";
 
 	/**
@@ -1471,6 +1583,10 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_MAX_LINES = "maxLines";
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_MEDIA = "media";
 
 	/**
@@ -1482,6 +1598,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MENU = EVENT_PROPERTY_MENU;
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MENU_PANNING_MODE = "menuPanningMode";
 
 	/**
 	 * @module.api
@@ -1545,6 +1666,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MOTHER = "mother";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MULTILINE_ELLIPSIZE = "multiLineEllipsize";
 
 	/**
 	 * @module.api
@@ -1649,7 +1775,22 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_PAGE_OFFSET = "pageOffset";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PAGE_WIDTH = "pageWidth";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_PAGING_CONTROL_TIMEOUT = "pagingControlTimeout";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PANNING_MODE = "panningMode";
 
 	/**
 	 * @module.api
@@ -1701,6 +1842,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PLAY = "play";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PLAY_MODE = "playMode";
+	
 	/**
 	 * @module.api
 	 */
@@ -1789,6 +1935,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_RESTART_FROM_BEGINNING = "restartFromBeginning";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_RETURN_KEY_TYPE = "returnKeyType";
 
 	public static final String PROPERTY_REVERSE = "reverse";
@@ -1836,12 +1987,22 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_SCALE_TYPE = "scaleType";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_SCALING_MODE = "scalingMode";
 
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_SCALES_PAGE_TO_FIT = "scalesPageToFit";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHOW_SCROLLBARS = "showScrollbars";
 
 	/**
 	 * @module.api
@@ -1896,12 +2057,27 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_SELECTED = "selected";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_SELECTED_BACKGROUND_COLOR = "selectedBackgroundColor";
 
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_SELECTED_BACKGROUND_IMAGE = "selectedBackgroundImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SELECTED_BACKGROUND_GRADIENT = "selectedBackgroundGradient";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SELECTED_COLOR = "selectedColor";
 
 	/**
 	 * @module.api
@@ -1917,6 +2093,31 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SEPARATOR_COLOR = "separatorColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SEPARATOR_STYLE = "separatorStyle";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHADOW_COLOR = "shadowColor";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHADOW_OFFSET = "shadowOffset";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHADOW_RADIUS = "shadowRadius";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SHADOW_WIDTH = "shadowWidth";
 
 	/**
 	 * @module.api
@@ -2036,6 +2237,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_SUBSTYLE = "substyle";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_SUBTITLE = "subtitle";
 
 	/**
@@ -2056,13 +2262,18 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_TABS_BOTTOM = "tabsBottom";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_TAB_OPEN = "tabOpen";
 	
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_TABS_BACKGROUND_COLOR = "tabsBackgroundColor";
-	
+
 	/**
 	 * @module.api
 	 */
@@ -2102,6 +2313,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_TI_PROXY = "tiProxy";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TEXT_PADDING = "textPadding";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TITLE_PADDING = "titlePadding";
 
 	/**
 	 * @module.api
@@ -2175,7 +2396,17 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_TOUCH_PASSTHROUGH = "touchPassThrough";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_TRANSFORM = "transform";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_TRANSITION = "transition";
 
 	/**
 	 * @module.api
@@ -2241,6 +2472,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_VIEW = "view";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_VIEW_MASK = "viewMask";
 
 	/**
 	 * @module.api

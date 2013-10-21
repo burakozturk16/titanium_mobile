@@ -36,6 +36,9 @@ public class TiUITableView extends TiUIView
 	implements OnItemClickedListener, OnItemLongClickedListener, OnLifecycleEvent
 {
 	private static final String TAG = "TitaniumTableView";
+	
+	public static final int SEPARATOR_NONE = 0;
+	public static final int SEPARATOR_SINGLE_LINE = 1;
 
 	protected TiTableView tableView;
 
@@ -44,6 +47,15 @@ public class TiUITableView extends TiUIView
 		super(proxy);
 		getLayoutParams().autoFillsHeight = true;
 		getLayoutParams().autoFillsWidth = true;
+
+		Log.d(TAG, "Creating a tableView", Log.DEBUG_MODE);
+		tableView = new TiTableView((TableViewProxy) proxy);
+		Activity activity = proxy.getActivity();
+		if (activity instanceof TiBaseActivity) {
+			((TiBaseActivity) activity).addOnLifecycleEventListener(this);
+		}
+		tableView.setOnItemClickListener(this);
+		tableView.setOnItemLongClickListener(this);
 	}
 
 	@Override
@@ -75,14 +87,29 @@ public class TiUITableView extends TiUIView
 
 	public void scrollToIndex(final int index)
 	{
-		tableView.getListView().setSelection(index);
+		tableView.getListView().smoothScrollToPosition(index);
 	}
 
-	public void scrollToTop(final int index)
+	public void scrollToTop(final int y, boolean animated)
 	{
-		tableView.getListView().setSelectionFromTop(index, 0);
+		if (animated) {
+			tableView.getListView().smoothScrollToPosition(0);
+		}
+		else {
+			tableView.getListView().setSelectionFromTop(0, y);
+		}
 	}
-	
+
+	public void scrollToBottom(final int y, boolean animated)
+	{
+		if (animated) {
+			tableView.getListView().smoothScrollToPosition(tableView.getCount() - 1);
+		}
+		else {
+			tableView.getListView().setSelection(tableView.getCount() - 1);
+		}
+	}
+
 	public void selectRow(final int row_id)
 	{
 		tableView.getListView().setSelection(row_id);
@@ -138,8 +165,8 @@ public class TiUITableView extends TiUIView
 				layout.setPadding(0, 0, 0, 0);
 
 				RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(
-						RelativeLayout.LayoutParams.FILL_PARENT,
-						RelativeLayout.LayoutParams.FILL_PARENT);
+						RelativeLayout.LayoutParams.MATCH_PARENT,
+						RelativeLayout.LayoutParams.MATCH_PARENT);
 				p.addRule(RelativeLayout.ALIGN_PARENT_TOP);
 				p.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 				p.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -155,8 +182,8 @@ public class TiUITableView extends TiUIView
 				layout.addView(search.getNativeView(), p);
 
 				p = new RelativeLayout.LayoutParams(
-						RelativeLayout.LayoutParams.FILL_PARENT,
-						RelativeLayout.LayoutParams.FILL_PARENT);
+						RelativeLayout.LayoutParams.MATCH_PARENT,
+						RelativeLayout.LayoutParams.MATCH_PARENT);
 				p.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 				p.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
 				p.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
@@ -183,6 +210,14 @@ public class TiUITableView extends TiUIView
 				getListView().setOverScrollMode(TiConvert.toInt(d.get(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
 			}
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			tableView.setSeparatorColor(TiConvert.toString(d, TiC.PROPERTY_SEPARATOR_COLOR));
+		}
+		if (d.containsKey(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			tableView.setSeparatorStyle(TiConvert.toInt(d, TiC.PROPERTY_SEPARATOR_STYLE));
+		}
+		
 		boolean filterCaseInsensitive = true;
 		if (d.containsKey(TiC.PROPERTY_FILTER_CASE_INSENSITIVE)) {
 			filterCaseInsensitive = TiConvert.toBoolean(d, TiC.PROPERTY_FILTER_CASE_INSENSITIVE);
@@ -246,7 +281,9 @@ public class TiUITableView extends TiUIView
 
 		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			tableView.setSeparatorColor(TiConvert.toString(newValue));
-		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)) {
+		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			tableView.setSeparatorStyle(TiConvert.toInt(newValue));
+		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)){
 			if (Build.VERSION.SDK_INT >= 9) {
 				getListView().setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
 			}

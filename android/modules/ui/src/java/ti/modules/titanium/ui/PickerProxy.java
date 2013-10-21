@@ -44,6 +44,7 @@ import android.widget.TimePicker;
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	"locale", "visibleItems", "value", TiC.PROPERTY_CALENDAR_VIEW_SHOWN
 })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class PickerProxy extends TiViewProxy implements PickerColumnListener
 {
 	private int type = UIModule.PICKER_TYPE_PLAIN;
@@ -205,16 +206,10 @@ public class PickerProxy extends TiViewProxy implements PickerColumnListener
 		}
 	}
 
-	@Override
-	public void add(TiViewProxy child)
-	{
-		this.add((Object)child);
-	}
-
 	// We need a special add() method above and beyond the TiViewProxy add() because
 	// because we can also accept array of PickerRowProxys
 	@Kroll.method
-	public void add(Object child) 
+	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
 	{
 		if (!isPlainPicker()) {
 			Log.w(TAG, "Attempt to add to date/time or countdown picker ignored.");
@@ -262,7 +257,7 @@ public class PickerProxy extends TiViewProxy implements PickerColumnListener
 	private void addColumn(PickerColumnProxy column)
 	{
 		prepareColumn(column);
-		super.add(column);
+		super.add(column, new Integer(-1));
 		if (peekView() instanceof TiUIPicker) {
 			((TiUIPicker)peekView()).onColumnAdded(children.indexOf(column));
 		}

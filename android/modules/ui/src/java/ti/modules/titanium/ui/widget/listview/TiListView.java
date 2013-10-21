@@ -30,6 +30,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.SearchBarProxy;
 import ti.modules.titanium.ui.UIModule;
+import android.annotation.SuppressLint;
 import ti.modules.titanium.ui.android.SearchViewProxy;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
@@ -38,6 +39,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.support.v4.view.ViewPager;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -51,7 +55,9 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.AbsListView.OnScrollListener;
 
+@SuppressLint("NewApi")
 public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 	private ListView listView;
@@ -77,6 +83,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	private boolean caseInsensitive;
 	private RelativeLayout searchLayout;
 	private static final String TAG = "TiListView";
+
 	
 	/* We cache properties that already applied to the recycled list tiem in ViewItem.java
 	 * However, since Android randomly selects a cached view to recycle, our cached properties
@@ -87,14 +94,14 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	 */
 	public static List<String> MUST_SET_PROPERTIES = Arrays.asList(TiC.PROPERTY_VALUE);
 	
+	public static final String MIN_ROW_HEIGHT = "40dp";
 	public static final String MIN_SEARCH_HEIGHT = "50dp";
-	public static final String MIN_ROW_HEIGHT = "30dp";
 	public static final int HEADER_FOOTER_WRAP_ID = 12345;
 	public static final int HEADER_FOOTER_VIEW_TYPE = 0;
 	public static final int HEADER_FOOTER_TITLE_TYPE = 1;
 	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 2;
 
-	class ListViewWrapper extends FrameLayout {
+	class ListViewWrapper extends TiCompositeLayout {
 
 		public ListViewWrapper(Context context) {
 			super(context);
@@ -174,6 +181,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				ListSectionProxy section = sections.get(i);
 				count += section.getItemCount();
 			}
+			
 			return count;
 		}
 
@@ -246,13 +254,35 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			} else {
 				content = inflater.inflate(listItemId, null);
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
+				setMinHeightForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
+				params.optionHeight = new TiDimension(MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
 				section.generateCellContent(sectionIndex, data, template, itemContent, sectionItemIndex, content);
 			}
 			return content;
 
+		}
+		
+		private void setMinHeightForBaseItem(TiBaseListViewItem item)  {
+			String minRowHeight = MIN_ROW_HEIGHT;
+			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
+				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
+			}
+			item.setMinimumHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT).getAsPixels(listView));
+		}
+		
+		@Override
+		public void notifyDataSetChanged()
+		{
+			// save index and top position
+			int index = listView.getFirstVisiblePosition();
+			View v = listView.getChildAt(0);
+			int top = (v == null) ? 0 : v.getTop();
+			super.notifyDataSetChanged();
+			// restore
+			listView.setSelectionFromTop(index, top);
 		}
 
 	}
@@ -279,10 +309,64 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		ListViewWrapper wrapper = new ListViewWrapper(activity);
 		wrapper.setFocusable(false);
 		wrapper.setFocusableInTouchMode(false);
+		wrapper.setAddStatesFromChildren(true);
 		listView = new ListView(activity);
-		listView.setLayoutParams(new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		wrapper.addView(listView);
+		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+		params.autoFillsHeight = true;
+		params.autoFillsWidth = true;
+//		listView.setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
+		wrapper.addView(listView, params);
 		adapter = new TiBaseAdapter(activity);
+		
+		final KrollProxy fProxy = proxy;
+		listView.setOnScrollListener(new OnScrollListener()
+		{
+			private boolean scrollValid = false;
+			private int lastValidfirstItem = 0;
+			
+			@Override
+			public void onScrollStateChanged(AbsListView view, int scrollState)
+			{
+				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
+				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
+					scrollValid = false;
+					if (!fProxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
+					KrollDict eventArgs = new KrollDict();
+					KrollDict size = new KrollDict();
+					size.put("width", TiListView.this.getNativeView().getWidth());
+					size.put("height", TiListView.this.getNativeView().getHeight());
+					eventArgs.put("size", size);
+					KrollDict scrollEndArgs = new KrollDict(eventArgs);
+					fProxy.fireEvent(TiC.EVENT_SCROLLEND, eventArgs);
+				}
+				else if (scrollState == OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+					scrollValid = true;
+				}
+			}
+
+			@Override
+			public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount)
+			{
+				boolean fireScroll = scrollValid;
+				if (!fireScroll && visibleItemCount > 0) {
+					//Items in a list can be selected with a track ball in which case
+					//we must check to see if the first visibleItem has changed.
+					fireScroll = (lastValidfirstItem != firstVisibleItem);
+				}
+				if(fireScroll && fProxy.hasListeners(TiC.EVENT_SCROLL)) {
+					lastValidfirstItem = firstVisibleItem;
+					KrollDict eventArgs = new KrollDict();
+					eventArgs.put("firstVisibleItem", firstVisibleItem);
+					eventArgs.put("visibleItemCount", visibleItemCount);
+					eventArgs.put("totalItemCount", totalItemCount);
+					KrollDict size = new KrollDict();
+					size.put("width", TiListView.this.getNativeView().getWidth());
+					size.put("height", TiListView.this.getNativeView().getHeight());
+					eventArgs.put("size", size);
+					fProxy.fireEvent(TiC.EVENT_SCROLL, eventArgs);
+				}
+			}
+		});
 		
 		//init inflater
 		if (inflater == null) {
@@ -342,7 +426,48 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			textView.setVisibility(View.VISIBLE);
 		}
 	}
-	
+
+	private TiUIView layoutHeaderOrFooter(TiViewProxy viewProxy)
+	{
+		//We are always going to create a new view here. So detach outer view here and recreate
+		View outerView = (viewProxy.peekView() == null) ? null : viewProxy.peekView().getOuterView();
+		if (outerView != null) {
+			ViewParent vParent = outerView.getParent();
+			if ( vParent instanceof ViewGroup ) {
+				((ViewGroup)vParent).removeView(outerView);
+			}
+		}
+		TiUIView tiView = viewProxy.forceCreateView();
+		View nativeView = tiView.getOuterView();
+		TiCompositeLayout.LayoutParams params = tiView.getLayoutParams();
+
+		int width = AbsListView.LayoutParams.WRAP_CONTENT;
+		int height = AbsListView.LayoutParams.WRAP_CONTENT;
+		if (params.sizeOrFillHeightEnabled) {
+			if (params.autoFillsHeight) {
+				height = AbsListView.LayoutParams.MATCH_PARENT;
+			}
+		} else if (params.optionHeight != null) {
+			height = params.optionHeight.getAsPixels(listView);
+		}
+		if (params.sizeOrFillWidthEnabled) {
+			if (params.autoFillsWidth) {
+				width = AbsListView.LayoutParams.MATCH_PARENT;
+			}
+		} else if (params.optionWidth != null) {
+			width = params.optionWidth.getAsPixels(listView);
+		}
+		AbsListView.LayoutParams p = new AbsListView.LayoutParams(width, height);
+		nativeView.setLayoutParams(p);
+		return tiView;
+	}
+
+	public void setSeparatorStyle(int separatorHeight) {
+		Drawable drawable = listView.getDivider();
+		listView.setDivider(drawable);
+		listView.setDividerHeight(separatorHeight);
+	}
+
 	@Override
 	public void registerForTouch()
 	{
@@ -414,7 +539,20 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 
 		listProxy.clearPreloadSections();
-		
+
+		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			setSeparatorColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_SEPARATOR_COLOR)));
+		}
+
+		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			setSeparatorStyle(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SEPARATOR_STYLE)));
+		}
+
+		if (proxy.hasProperty(TiC.PROPERTY_OVER_SCROLL_MODE)) {
+			if (Build.VERSION.SDK_INT >= 9) {
+				listView.setOverScrollMode(TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
+			}
+		}
 		if (d.containsKey(TiC.PROPERTY_HEADER_VIEW)) {
 			Object viewObj = d.get(TiC.PROPERTY_HEADER_VIEW);
 			setHeaderOrFooterView(viewObj, true);
@@ -537,8 +675,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	}
 	
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-
-		if (key.equals(TiC.PROPERTY_HEADER_TITLE)) {
+		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
+			setSeparatorColor(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
+			setSeparatorStyle(TiConvert.toInt(newValue));
+		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)){
+			if (Build.VERSION.SDK_INT >= 9) {
+				listView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
+			}
+		} else if (key.equals(TiC.PROPERTY_HEADER_TITLE)) {
 			setHeaderTitle(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_FOOTER_TITLE)) {
 			setFooterTitle(TiConvert.toString(newValue));
@@ -577,9 +722,6 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		} else if (key.equals(TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE) && newValue != null) {
 			defaultTemplateBinding = TiConvert.toString(newValue);
 			refreshItems();
-		} else if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
-			String color = TiConvert.toString(newValue);
-			setSeparatorColor(color);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
@@ -681,6 +823,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				section.applyFilter(searchText);
 			}
 		}
+		else if(sec instanceof HashMap) {
+			ListSectionProxy section = (ListSectionProxy) KrollProxy.createProxy(ListSectionProxy.class, null, new Object[]{sec}, null);
+			processSection(section, index);
+		}
 	}
 	
 	protected Pair<ListSectionProxy, Pair<Integer, Integer>> getSectionInfoByEntryIndex(int index) {
@@ -779,13 +925,73 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 		return position;
 	}
+
+	private int getCount() {
+		if (adapter != null) {
+			return adapter.getCount();
+		}
+		return 0;
+	}
 	
-	public void scrollToItem(int sectionIndex, int sectionItemIndex) {
+	public static void ensureVisible(ListView listView, int pos)
+	{
+	    if (listView == null)
+	    {
+	        return;
+	    }
+
+	    if(pos < 0 || pos >= listView.getCount())
+	    {
+	        return;
+	    }
+
+	    int first = listView.getFirstVisiblePosition();
+	    int last = listView.getLastVisiblePosition();
+
+	    if (pos < first)
+	    {
+	        listView.setSelection(pos);
+	        return;
+	    }
+
+	    if (pos >= last)
+	    {
+	        listView.setSelection(1 + pos - (last - first));
+	        return;
+	    }
+	}
+	
+	public void scrollToItem(int sectionIndex, int sectionItemIndex, boolean animated) {
 		int position = findItemPosition(sectionIndex, sectionItemIndex);
 		if (position > -1) {
-			listView.smoothScrollToPosition(position + 1);
+			if (animated)
+				listView.smoothScrollToPosition(position + 1);
+			else
+				ensureVisible(listView, position + 1);
 		}
 	}
+
+	public void scrollToTop(final int y, boolean animated)
+	{
+		if (animated) {
+			listView.smoothScrollToPosition(0);
+		}
+		else {
+			listView.setSelection(0); 
+		}
+	}
+
+	public void scrollToBottom(final int y, boolean animated)
+	{
+		//strangely if i put getCount()-1 it doesnt go to the full bottom but make sure the -1 is shown …
+		if (animated) {
+			listView.smoothScrollToPosition(getCount());
+		}
+		else {
+			listView.setSelection(getCount());
+		}
+	}
+
 	
 	public void release() {
 		for (int i = 0; i < sections.size(); i++) {

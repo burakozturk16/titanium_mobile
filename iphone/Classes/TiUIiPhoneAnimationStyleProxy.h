@@ -18,6 +18,7 @@
 @property(nonatomic,readonly) NSNumber *CURL_DOWN;
 @property(nonatomic,readonly) NSNumber *FLIP_FROM_LEFT;
 @property(nonatomic,readonly) NSNumber *FLIP_FROM_RIGHT;
+@property(nonatomic,readonly) NSNumber *CROSS_DISSOLVE;
 
 
 @end

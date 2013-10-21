@@ -296,7 +296,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 //To fire the keyboard frame change event.
 -(void)keyboardFrameChanged:(NSNotification*) notification
 {
-    if (![self _hasListeners:@"keyboardFrameChanged"] && ![self _hasListeners:@"keyboardframechanged"])
+    BOOL oldApi = [self _hasListeners:@"keyboardFrameChanged"];
+    BOOL newApi = [self _hasListeners:@"keyboardframechanged"];
+    if (!oldApi && !newApi)
     {
         return;
     }
@@ -313,8 +315,8 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
                                 [TiUtils rectToDictionary:keyboardEndFrame], @"keyboardFrame",
                                 nil];
     
-    [self fireEvent:@"keyboardFrameChanged" withObject:event]; 
-    [self fireEvent:@"keyboardframechanged" withObject:event];     
+    if (oldApi) [self fireEvent:@"keyboardFrameChanged" withObject:event];
+    if (newApi) [self fireEvent:@"keyboardframechanged" withObject:event];
 }
 
 - (void)timeChanged:(NSNotification*)notiication
@@ -466,7 +468,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 - (void)fireSystemEvent:(id)args
 {
-	NSString *eventName;
+	NSString *eventName = nil;
 	id argument = nil;
 	UIAccessibilityNotifications notification;
 	

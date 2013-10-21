@@ -11,8 +11,9 @@
 #import "UIImage+Alpha.h"
 #import "UIImage+Resize.h"
 #import "UIImage+RoundedCorner.h"
-
+#import "ImageLoader.h"
 //NOTE:FilesystemFile is conditionally compiled based on the filesystem module.
+#import "TiRect.h"
 #import "TiFilesystemFileProxy.h"
 
 static NSString *const MIMETYPE_PNG = @"image/png";
@@ -61,7 +62,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-		return image.size.width;
+		return image.size.width * image.scale;
 	}
 	return 0;
 }
@@ -71,7 +72,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-		return image.size.height;
+		return image.size.height * image.scale;
 	}
 	return 0;
 }
@@ -81,7 +82,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-		return image.size.width * image.size.height;
+		return image.size.width * image.scale * image.size.height * image.scale;
 	}
 	switch (type)
 	{
@@ -201,11 +202,18 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	{
 		case TiBlobTypeFile:
 		{
-			return [UIImage imageWithContentsOfFile:path];
+            if (image == nil) {
+                NSURL * result = [TiUtils toURL:path proxy:self];
+                image = [[UIImage alloc] initWithContentsOfFile:[result path]];
+            }
+            break;
 		}
 		case TiBlobTypeData:
 		{
-			return [UIImage imageWithData:data];
+            if (image == nil) {
+                image = [UIImage imageWithData:data];
+            }
+            break;
 		}
 		default: {
 			break;
@@ -379,17 +387,44 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	[self ensureImageLoaded];
 	if (image!=nil)
 	{
-		ENSURE_SINGLE_ARG(args,NSDictionary);
+        CGSize imageSize = [image size];
 		CGRect bounds;
-		CGSize imageSize = [image size];
-		bounds.size.width = [TiUtils floatValue:@"width" properties:args def:imageSize.width];
-		bounds.size.height = [TiUtils floatValue:@"height" properties:args def:imageSize.height];
-		bounds.origin.x = [TiUtils floatValue:@"x" properties:args def:(imageSize.width - bounds.size.width) / 2.0];
-		bounds.origin.y = [TiUtils floatValue:@"y" properties:args def:(imageSize.height - bounds.size.height) / 2.0];
-		TiBlob *blob = [[TiBlob alloc] initWithImage:[UIImageResize croppedImage:bounds image:image]];
+        NSDictionary *options = nil;
+        ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 1, NSDictionary);
+		EXTRACT_SINGLE_ARG(args);
+        if ([args isKindOfClass:[TiRect class]]) {
+            bounds = [((TiRect*)args) rect];
+        }
+        else {
+            bounds.size.width = [TiUtils floatValue:@"width" properties:args def:imageSize.width];
+            bounds.size.height = [TiUtils floatValue:@"height" properties:args def:imageSize.height];
+            bounds.origin.x = [TiUtils floatValue:@"x" properties:args def:(imageSize.width - bounds.size.width) / 2.0];
+            bounds.origin.y = [TiUtils floatValue:@"y" properties:args def:(imageSize.height - bounds.size.height) / 2.0];
+
+        }
+        if (options) {
+            if ([options objectForKey:@"scale"]) {
+                float scale = [TiUtils floatValue:@"scale" properties:options def:1.0f];
+                if ([TiUtils isRetinaDisplay])
+                {
+                    scale*=2;
+                }
+                bounds.origin.x *= scale;
+                bounds.origin.y *= scale;
+                bounds.size.width *= scale;
+                bounds.size.height *= scale;
+            }
+        }
+        TiBlob *blob = [[TiBlob alloc] initWithImage:[UIImageResize croppedImage:bounds image:image]];
 		return [blob autorelease];
 	}
 	return nil;
+}
+
+-(id)toImage:(id)args
+{
+    [self ensureImageLoaded];
+    return self;
 }
 
 -(id)toString:(id)args

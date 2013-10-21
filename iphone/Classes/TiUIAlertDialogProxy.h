@@ -10,6 +10,7 @@
 @private
 	UIAlertView *alert;
     BOOL persistentFlag;
+    BOOL hideOnClick;
 }
 
 -(void)show:(id)args;

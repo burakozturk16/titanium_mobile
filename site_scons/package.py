@@ -300,6 +300,9 @@ def zip_iphone_ipad(zf,basepath,platform,version,version_tag):
 	zf.write(os.path.join(ticore_lib,'libti_ios_debugger.a'),'%s/%s/libti_ios_debugger.a'%(basepath,platform))
 	zf.write(os.path.join(ticore_lib,'libti_ios_profiler.a'),'%s/%s/libti_ios_profiler.a'%(basepath,platform))
 
+	#externals libraries used by Titanium
+	zip_dir(zf, os.path.join(top_dir, 'iphone', 'libexternals'), basepath+'/iphone/libexternals')
+
 	zf.writestr('%s/%s/package.json' % (basepath, platform), codecs.open(os.path.join(top_dir, 'iphone', 'package.json'), 'r', 'utf-8').read().replace('__VERSION__', version))
 
 	zip_dir(zf,osx_dir,basepath)
@@ -374,6 +377,8 @@ def zip_ivi(zf, basepath, version):
 
 def resolve_npm_deps(dir, version, node_appc_branch):
 	package_json_file = os.path.join(dir, 'package.json')
+	package_json_original = codecs.open(package_json_file, 'r', 'utf-8').read()
+	return lambda: None if not os.path.exists(package_json_file) else codecs.open(package_json_file, 'w', 'utf-8').write(package_json_original)
 	if os.path.exists(package_json_file):
 		# ensure fresh npm install for everything EXCEPT titanium-sdk
 		node_modules_dir = os.path.join(dir, 'node_modules')
@@ -386,7 +391,6 @@ def resolve_npm_deps(dir, version, node_appc_branch):
 					else:
 						os.remove(file);
 
-		package_json_original = codecs.open(package_json_file, 'r', 'utf-8').read()
 		package_json_contents = package_json_original
 
 		subs = {

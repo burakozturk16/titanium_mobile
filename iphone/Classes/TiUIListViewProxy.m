@@ -190,22 +190,6 @@
 
 #pragma mark - Public API
 
-- (void)setTemplates:(id)args
-{
-	ENSURE_TYPE_OR_NIL(args,NSDictionary);
-	NSMutableDictionary *templates = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
-	[(NSDictionary *)args enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
-		TiViewTemplate *template = [TiViewTemplate templateFromViewTemplate:obj];
-		if (template != nil) {
-			[templates setObject:template forKey:key];
-		}
-	}];
-	TiThreadPerformOnMainThread(^{
-		[self.listView setDictTemplates_:templates];
-	}, NO);
-	[templates release];
-}
-
 - (NSArray *)sections
 {
 	return [self dispatchBlockWithResult:^() {
@@ -224,10 +208,18 @@
 {
 	ENSURE_TYPE_OR_NIL(args,NSArray);
 	NSMutableArray *insertedSections = [args mutableCopy];
-	[insertedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
-		ENSURE_TYPE(section, TiUIListSectionProxy);
-		[self rememberProxy:section];
-	}];
+    for (int i = 0; i < [insertedSections count]; i++) {
+        id section = [insertedSections objectAtIndex:i];
+        if ([section isKindOfClass:[NSDictionary class]]) {
+            //wer support directly sending a dictionnary
+            section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
+            [insertedSections replaceObjectAtIndex:i withObject:section];
+        }
+        else {
+            ENSURE_TYPE(section, TiUIListSectionProxy);
+        }
+        [self rememberProxy:section];
+    }
 	[self dispatchBlock:^(UITableView *tableView) {
 		[_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
 			section.delegate = nil;
@@ -347,7 +339,7 @@
 	ENSURE_ARG_COUNT(args, 2);
 	NSUInteger replaceIndex = [TiUtils intValue:[args objectAtIndex:0]];
 	TiUIListSectionProxy *section = [args objectAtIndex:1];
-	ENSURE_TYPE_OR_NIL(section, TiUIListSectionProxy);
+	ENSURE_TYPE(section, TiUIListSectionProxy);
 	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
 	[self rememberProxy:section];
@@ -391,6 +383,26 @@
 		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
 		[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:scrollPosition animated:animated];
 	}];
+}
+
+-(void)scrollToTop:(id)args
+{
+	ENSURE_UI_THREAD(scrollToTop,args);
+	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
+	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
+	
+	[self.listView scrollToTop:top animated:animated];
+}
+
+-(void)scrollToBottom:(id)args
+{
+	ENSURE_UI_THREAD(scrollToBottom,args);
+	NSInteger top = [TiUtils intValue:[args objectAtIndex:0]];
+	NSDictionary *options = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	BOOL animated = [TiUtils boolValue:@"animated" properties:options def:YES];
+	
+	[self.listView scrollToBottom:top animated:animated];
 }
 
 - (void)selectItem:(id)args

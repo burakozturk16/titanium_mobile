@@ -150,9 +150,43 @@ timodule.xml.
 		<mkdir dir="${dist}"/>
 	</target>
 
-	<target name="process.annotations" depends="init"
+	<target name="generate.aidl" depends="init"
+		description="Generate remote interfaces from aidl files">
+		<property name="framework_aidl" location="${android.platform}/framework.aidl"/>
+		<if>
+			<isset property="android.build.tools"/> 
+			<then>
+				<echo>android.build.tools already set: ${android.build.tools}</echo>
+			</then>
+			<else>
+				<property name="android.build.tools"  value="17.0.0"/>
+			</else>
+		</if>
+		<property name="aidl" location="${android.sdk}/build-tools/${android.build.tools}/aidl"/>
+
+		<path id="aidl.files">
+			<fileset dir="${src}" includes="**/*.aidl"/>
+		</path>
+
+		<for param="aidl.file">
+			<path refid="aidl.files"/>
+			<sequential>
+				<echo>Generating remote interface for @{aidl.file}</echo>
+				<!-- <idswitch file="@{aidl}"/> -->
+				<exec executable="${aidl}" dir="${ti.module.root}" failonerror="true">
+					<arg value="-p${framework_aidl}"/>
+					<arg value="-I${ti.module.root}"/>
+					<arg value="-o${genjava}"/>
+					<arg value="@{aidl.file}"/>
+				</exec>
+			</sequential>
+		</for>
+	</target>
+
+	<target name="process.annotations" depends="generate.aidl"
 		description="Processes @Kroll.proxy and @Kroll.module annotations">
 		<mkdir dir="${genjson}"/>
+		<mkdir dir="${genjava}"/>
 
 		<javac 
 			srcdir="${src}" 
@@ -161,6 +195,7 @@ timodule.xml.
 			source="1.6"
 			debug="${javac.debug}"
 			includeantruntime="false">
+			<src path="${genjava}" />
 				<compilerarg value="-processor"/>
 				<compilerarg value="org.appcelerator.kroll.annotations.generator.KrollJSONGenerator"/>
 				<compilerarg value="-s"/>
@@ -270,10 +305,19 @@ timodule.xml.
 			</condition>
 			
 			<property name="mobilesdk.dir" location="${titanium.platform}/.."/>
-			<property name="ndk.verbose" value="0"/>
+			<if>
+				<isset property="ndk.verbose"/> 
+				<then>
+					<echo>ndk.verbose already set: ${ndk.verbose}</echo>
+				</then>
+				<else>
+					<property name="ndk.verbose"  value="0"/>
+				</else>
+			</if>
 			<propertyregex property="user.name.nospaces" input="${user.name}" regexp=" " replace="_" global="true" defaultValue="${user.name}"/>
 			<property name="tmpdir" value="${java.io.tmpdir}/${user.name.nospaces}/${ant.project.name}-generated" />
 
+			<delete dir="${tmpdir}"/>
 			<mkdir dir="${tmpdir}" />
 			<copy todir="${tmpdir}" preservelastmodified="true" overwrite="true" includeEmptyDirs="true">
 				<fileset dir="@{gendir}"/>
@@ -322,6 +366,8 @@ timodule.xml.
 			file="${module.generated.dir}/Android.mk">
 			<filterset refid="ndk.filter"/>
 		</copy>
+		
+		<copy overwrite="true" failonerror="false" tofile="${genjni.local}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
 		
 		<build.ndk gendir="${gen}"/>
 

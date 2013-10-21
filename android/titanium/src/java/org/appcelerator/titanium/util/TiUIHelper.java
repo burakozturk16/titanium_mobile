@@ -6,13 +6,11 @@
  */
 package org.appcelerator.titanium.util;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,8 +36,13 @@ import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy.PostOpenListener;
 import org.appcelerator.titanium.view.TiBackgroundDrawable;
 import org.appcelerator.titanium.view.TiDrawableReference;
+import org.appcelerator.titanium.view.TiGradientDrawable;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.trevorpage.tpsvg.SVGDrawable;
+import com.trevorpage.tpsvg.SVGFlyweightFactory;
+
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -63,8 +66,6 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.LayerDrawable;
-import android.graphics.drawable.StateListDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
@@ -74,13 +75,16 @@ import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.MeasureSpec;
+import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 /**
  * A set of utility methods focused on UI and View operations.
  */
+@SuppressLint("DefaultLocale")
 public class TiUIHelper
 {
 	private static final String TAG = "TiUIHelper";
@@ -93,11 +97,26 @@ public class TiUIHelper
 	public static final int FACE_UP = 5;
 	public static final int FACE_DOWN = 6;
 	public static final int UNKNOWN = 7;
-	public static final Pattern SIZED_VALUE = Pattern.compile("([0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|pt|in)?");
+	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
 
 	private static Method overridePendingTransition;
 	private static Map<String, String> resourceImageKeys = Collections.synchronizedMap(new HashMap<String, String>());
 	private static Map<String, Typeface> mCustomTypeFaces = Collections.synchronizedMap(new HashMap<String, Typeface>());
+	
+	public static class FontDesc {
+		public Float size = 15.0f;
+		public int sizeUnit = TypedValue.COMPLEX_UNIT_PX;
+		public Typeface typeface = null;
+		public int style = Typeface.NORMAL;
+		
+		public void setDefaults(Context context){
+			typeface = toTypeface(context, null);
+			float[] result = new float[2];
+			getSizeAndUnits(null, result);
+			sizeUnit = (int)result[0];
+			size = result[1];
+		}
+	}
 	
 	public static OnClickListener createDoNothingListener() {
 		return new OnClickListener() {
@@ -276,6 +295,49 @@ public class TiUIHelper
 
 		return units;
 	}
+	
+	public static void getSizeAndUnits(String size, float[] result) {
+		int units = TypedValue.COMPLEX_UNIT_PX;
+		float value = 15.0f;
+		String unitString = null;
+
+		if (size != null) {
+			Matcher m = SIZED_VALUE.matcher(size.trim());
+			if (m.matches()) {
+				if (m.groupCount() == 2) {
+					unitString = m.group(2);
+					value = Float.parseFloat(m.group(1));
+				}
+			}
+		}
+
+		if (unitString == null) {
+			unitString = TiApplication.getInstance().getDefaultUnit();
+		}
+
+		if (TiDimension.UNIT_PX.equals(unitString) || TiDimension.UNIT_SYSTEM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_PX;
+		} else if (TiDimension.UNIT_PT.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_PT;
+		} else if (TiDimension.UNIT_DP.equals(unitString) || TiDimension.UNIT_DIP.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_DIP;
+		} else if (TiDimension.UNIT_SP.equals(unitString) || TiDimension.UNIT_SIP.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_SP;
+		} else if (TiDimension.UNIT_MM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_MM;
+		} else if (TiDimension.UNIT_CM.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_MM;
+			value *= 10;
+		} else if (TiDimension.UNIT_IN.equals(unitString)) {
+			units = TypedValue.COMPLEX_UNIT_IN;
+		} else {
+			if (unitString != null) {
+				Log.w(TAG, "Unknown unit: " + unitString, Log.DEBUG_MODE);
+			}
+		}
+		result[0] = units;
+		result[1] = value;
+	}
 
 	public static float getSize(String size) {
 		float value = 15.0f;
@@ -298,40 +360,79 @@ public class TiUIHelper
 		}
 		return TypedValue.applyDimension(unit, size, r.getDisplayMetrics());
 	}
+
+	public static float getRawSize(int unit, float size) {
+		return getRawSize(unit, size, null);
+	}
 	
 	public static float getRawDIPSize(float size, Context context) {
 		return getRawSize(TypedValue.COMPLEX_UNIT_DIP, size, context);
 	}
 	
 	public static float getRawSize(String size, Context context) {
-		return getRawSize(getSizeUnits(size), getSize(size), context);
+		float[] result = new float[2];
+		getSizeAndUnits(size, result);
+		return getRawSize((int)result[0], result[1], context);
 	}
 
-	public static void styleText(TextView tv, HashMap<String, Object> d) {
-	
-		if (d == null) {
-			TiUIHelper.styleText(tv, null, null, null);
-			return;
-		}
-		
-		String fontSize = null;
-		String fontWeight = null;
-		String fontFamily = null;
-		String fontStyle = null;
+	public static float getRawSize(String size) {
+		return getRawSize(size, null);
+	}
 
+	public static float getRawSizeOrZero(KrollDict dict, String property,
+			Context context) {
+		if (dict.containsKey(property)) {
+			return TiUIHelper.getRawSize(dict.getString(property), context);
+		}
+		return 0;
+	}
+
+	public static float getRawSizeOrZero(KrollDict dict, String property) {
+		return getRawSizeOrZero(dict, property, null);
+	}
+
+	public static float getRawSizeOrZero(Object value) {
+		return getRawSize(TiConvert.toString(value), null);
+	}
+	
+	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
+		FontDesc desc = new FontDesc();
+		if (d == null) {
+			desc.setDefaults(context);
+			return desc;
+		}
+		String fontSize = null;
 		if (d.containsKey("fontSize")) {
 			fontSize = TiConvert.toString(d, "fontSize");
 		}
-		if (d.containsKey("fontWeight")) {
-			fontWeight = TiConvert.toString(d, "fontWeight");
-		}
+		float[] result = new float[2];
+		getSizeAndUnits(fontSize, result);
+		desc.sizeUnit = (int)result[0]; 
+		desc.size = result[1]; 
+		
+		String fontFamily = null;
 		if (d.containsKey("fontFamily")) {
 			fontFamily = TiConvert.toString(d, "fontFamily");
+		}
+		desc.typeface = toTypeface(context, fontFamily);
+		
+		String fontWeight = null;
+		String fontStyle = null;
+		if (d.containsKey("fontWeight")) {
+			fontWeight = TiConvert.toString(d, "fontWeight");
 		}
 		if (d.containsKey("fontStyle")) {
 			fontStyle = TiConvert.toString(d, "fontStyle");
 		}
-		TiUIHelper.styleText(tv, fontFamily, fontSize, fontWeight, fontStyle);
+		desc.style = toTypefaceStyle(fontWeight, fontStyle);
+
+		return desc;
+	}
+	
+	public static void styleText(TextView tv, HashMap<String, Object> d) {
+		FontDesc desc = getFontStyle(tv.getContext(), d);
+		tv.setTypeface(desc.typeface, desc.style);
+		tv.setTextSize(desc.sizeUnit, desc.size);
 	}
 
 	public static void styleText(TextView tv, String fontFamily, String fontSize, String fontWeight)
@@ -344,7 +445,9 @@ public class TiUIHelper
 		Typeface tf = tv.getTypeface();
 		tf = toTypeface(tv.getContext(), fontFamily);
 		tv.setTypeface(tf, toTypefaceStyle(fontWeight, fontStyle));
-		tv.setTextSize(getSizeUnits(fontSize), getSize(fontSize));
+		float[] result = new float[2];
+		getSizeAndUnits(fontSize, result);
+		tv.setTextSize((int)result[0], result[1]);
 	}
 
 	public static Typeface toTypeface(Context context, String fontFamily)
@@ -377,6 +480,7 @@ public class TiUIHelper
 		return toTypeface(null, fontFamily);
 	}
 
+	@SuppressLint("DefaultLocale")
 	private static Typeface loadTypeface(Context context, String fontFamily)
 	{
 		if (context == null) {
@@ -427,6 +531,23 @@ public class TiUIHelper
 		}
 
 		return style;
+	}
+
+	public static int getGravity(String align, boolean vertical) {
+		if (align != null) {
+			if ("left".equals(align)) {
+				 return Gravity.LEFT;
+			} else if ("center".equals(align)) {
+				return vertical?Gravity.CENTER_VERTICAL:Gravity.CENTER_HORIZONTAL;
+			} else if ("right".equals(align)) {
+				return Gravity.RIGHT;
+			} else if ("top".equals(align)) {
+				return Gravity.TOP;
+			} else if ("bottom".equals(align)) {
+				return Gravity.BOTTOM;
+			}
+		}
+		return Gravity.NO_GRAVITY;
 	}
 
 	public static void setAlignment(TextView tv, String textAlign, String verticalAlign) 
@@ -486,22 +607,52 @@ public class TiUIHelper
 		textView.setPadding(rawHPadding, rawVPadding, rawHPadding, rawVPadding);
 	}
 
-	public static Drawable buildBackgroundDrawable(String color, String image, boolean tileImage, Drawable gradientDrawable)
-	{
-		// Create an array of the layers that will compose this background.
-		// Note that the order in which the layers is important to get the
-		// correct rendering behavior.
-		ArrayList<Drawable> layers = new ArrayList<Drawable>(3);
+	public static final int[] BACKGROUND_DEFAULT_STATE_1 = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_DEFAULT_STATE_2 = {
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_SELECTED_STATE = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled,
+		android.R.attr.state_pressed
+	};
+	public static final int[] BACKGROUND_CHECKED_STATE = {
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled,
+		android.R.attr.state_checked
+	};
+	public static final int[] BACKGROUND_FOCUSED_STATE = {
+		android.R.attr.state_focused,
+		android.R.attr.state_window_focused,
+		android.R.attr.state_enabled
+	};
+	public static final int[] BACKGROUND_DISABLED_STATE = {
+		-android.R.attr.state_enabled
+	};
 
+	public static ColorDrawable buildColorDrawable(int color) {	
+		return new ColorDrawable(color);
+	}
+	
+	public static ColorDrawable buildColorDrawable(String color) {
+		ColorDrawable colorDrawable = null;
 		if (color != null) {
-			Drawable colorDrawable = new ColorDrawable(TiColorHelper.parseColor(color));
-			layers.add(colorDrawable);
+			colorDrawable = buildColorDrawable(TiColorHelper.parseColor(color));
+		}			
+		return colorDrawable;
+	}
+	
+	private static String resolveImageUrl(String path, KrollProxy proxy) {
+		return path.length() > 0 ? proxy.resolveUrl(null, path) : null;
+	}
+	
+	public static Drawable buildImageDrawable(String image, boolean tileImage, KrollProxy proxy) {
+		if (image != null) {
+			image = resolveImageUrl(image, proxy);
 		}
-
-		if (gradientDrawable != null) {
-			layers.add(gradientDrawable);
-		}
-
 		Drawable imageDrawable = null;
 		if (image != null) {
 			TiFileHelper tfh = TiFileHelper.getInstance();
@@ -512,75 +663,37 @@ public class TiUIHelper
 					BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
 					tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
 					tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
-					imageDrawable = tiledBackground;
 				}
 			}
-
-			if (imageDrawable != null) {
-				layers.add(imageDrawable);
+		}
+		return imageDrawable;
+	}
+	
+	public static Drawable buildImageDrawable(Context context, Bitmap image, boolean tileImage, KrollProxy proxy) {
+		BitmapDrawable imageDrawable = new BitmapDrawable(context.getResources(), image);
+		
+		if (tileImage) {
+			if (imageDrawable instanceof BitmapDrawable) {
+				BitmapDrawable tiledBackground = (BitmapDrawable) imageDrawable;
+				tiledBackground.setTileModeX(Shader.TileMode.REPEAT);
+				tiledBackground.setTileModeY(Shader.TileMode.REPEAT);
+				imageDrawable = tiledBackground;
 			}
 		}
-
-		return new LayerDrawable(layers.toArray(new Drawable[layers.size()]));
+		return imageDrawable;
 	}
-
-	private static final int[] BACKGROUND_DEFAULT_STATE_1 = {
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_DEFAULT_STATE_2 = {
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_SELECTED_STATE = {
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled,
-		android.R.attr.state_pressed
-	};
-	private static final int[] BACKGROUND_FOCUSED_STATE = {
-		android.R.attr.state_focused,
-		android.R.attr.state_window_focused,
-		android.R.attr.state_enabled
-	};
-	private static final int[] BACKGROUND_DISABLED_STATE = {
-		-android.R.attr.state_enabled
-	};
-
-	public static StateListDrawable buildBackgroundDrawable(
-		String image,
-		boolean tileImage,
-		String color,
-		String selectedImage,
-		String selectedColor,
-		String disabledImage,
-		String disabledColor,
-		String focusedImage,
-		String focusedColor,
-		Drawable gradientDrawable)
-	{
-		StateListDrawable sld = new StateListDrawable();
-
-		Drawable bgSelectedDrawable = buildBackgroundDrawable(selectedColor, selectedImage, tileImage, gradientDrawable);
-		if (bgSelectedDrawable != null) {
-			sld.addState(BACKGROUND_SELECTED_STATE, bgSelectedDrawable);
+	
+	public static TiGradientDrawable buildGradientDrawable(KrollDict gradientProperties) {
+		TiGradientDrawable gradientDrawable = null;
+		if (gradientProperties != null) {
+			try {
+				gradientDrawable = new TiGradientDrawable(gradientProperties);
+			}
+			catch (IllegalArgumentException e) {
+				gradientDrawable = null;
+			}
 		}
-
-		Drawable bgFocusedDrawable = buildBackgroundDrawable(focusedColor, focusedImage, tileImage, gradientDrawable);
-		if (bgFocusedDrawable != null) {
-			sld.addState(BACKGROUND_FOCUSED_STATE, bgFocusedDrawable);
-		}
-
-		Drawable bgDisabledDrawable = buildBackgroundDrawable(disabledColor, disabledImage, tileImage, gradientDrawable);
-		if (bgDisabledDrawable != null) {
-			sld.addState(BACKGROUND_DISABLED_STATE, bgDisabledDrawable);
-		}
-
-		Drawable bgDrawable = buildBackgroundDrawable(color, image, tileImage, gradientDrawable);
-		if (bgDrawable != null) {
-			sld.addState(BACKGROUND_DEFAULT_STATE_1, bgDrawable);
-			sld.addState(BACKGROUND_DEFAULT_STATE_2, bgDrawable);
-		}
-
-		return sld;
+		return gradientDrawable;
 	}
 
 	public static KrollDict createDictForImage(int width, int height, byte[] data)
@@ -614,95 +727,143 @@ public class TiUIHelper
 		}
 		return null;
 	}
+	
+	 /**
+     * Draw the view into a bitmap.
+     */
+    private static Bitmap getViewBitmap(View v) {
+        v.clearFocus();
+        v.setPressed(false);
 
-	public static KrollDict viewToImage(KrollDict proxyDict, View view)
+        boolean willNotCache = v.willNotCacheDrawing();
+        v.setWillNotCacheDrawing(false);
+
+        // Reset the drawing cache background color to fully transparent
+        // for the duration of this operation
+        int color = v.getDrawingCacheBackgroundColor();
+        v.setDrawingCacheBackgroundColor(0);
+
+        if (color != 0) {
+            v.destroyDrawingCache();
+        }
+        v.buildDrawingCache();
+        Bitmap cacheBitmap = v.getDrawingCache();
+        if (cacheBitmap == null) {
+            Log.e(TAG, "failed getViewBitmap(" + v + ")", new RuntimeException());
+            return null;
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
+
+        // Restore the view
+        v.destroyDrawingCache();
+        v.setWillNotCacheDrawing(willNotCache);
+        v.setDrawingCacheBackgroundColor(color);
+
+        return bitmap;
+    }
+	
+	public static Bitmap viewToBitmap(KrollDict proxyDict, View view)
 	{
-		KrollDict image = new KrollDict();
+		Bitmap bitmap = null;
 
 		if (view != null) {
 			int width = view.getWidth();
 			int height = view.getHeight();
-
-			// maybe move this out to a separate method once other refactor regarding "getWidth", etc is done
-			if (view.getWidth() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_WIDTH)) {
-				TiDimension widthDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_WIDTH), TiDimension.TYPE_WIDTH);
-				width = widthDimension.getAsPixels(view);
-			}
-			if (view.getHeight() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_HEIGHT)) {
-				TiDimension heightDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_HEIGHT),
-					TiDimension.TYPE_HEIGHT);
-				height = heightDimension.getAsPixels(view);
-			}
-
-			int wmode = width == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
-			int hmode = height == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
-			view.measure(MeasureSpec.makeMeasureSpec(width, wmode), MeasureSpec.makeMeasureSpec(height, hmode));
-
-			// Will force the view to layout itself, grab dimensions
-			width = view.getMeasuredWidth();
-			height = view.getMeasuredHeight();
-
-			// set a default BS value if the dimension is still 0 and log a warning
-			if (width == 0) {
-				width = 100;
-				Log.e(TAG, "Width property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
-			}
-			if (height == 0) {
-				height = 100;
-				Log.e(TAG, "Height property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
-			}
-
-			if (view.getParent() == null) {
-				Log.i(TAG, "View does not have parent, calling layout", Log.DEBUG_MODE);
-				view.layout(0, 0, width, height);
-			}
-
-			// opacity should support transparency by default
-			Config bitmapConfig = Config.ARGB_8888;
-
-			Drawable viewBackground = view.getBackground();
-			if (viewBackground != null) {
-				/*
-				 * If the background is opaque then we should be able to safely use a space saving format that
-				 * does not support the alpha channel. Basically, if a view has a background color set then the
-				 * the pixel format will be opaque. If a background image supports an alpha channel, the pixel
-				 * format will report transparency (even if the image doesn't actually look transparent). In
-				 * short, most of the time the Config.ARGB_8888 format will be used when viewToImage is used
-				 * but in the cases where the background is opaque, the lower memory approach will be used.
-				 */
-				if (viewBackground.getOpacity() == PixelFormat.OPAQUE) {
-					bitmapConfig = Config.RGB_565;
+			bitmap = getViewBitmap(view);
+			if (bitmap == null) {
+				if (view.getWidth() == 0 || view.getHeight() == 0) {
+					// maybe move this out to a separate method once other refactor regarding "getWidth", etc is done
+					if (view.getWidth() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_WIDTH)) {
+						TiDimension widthDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_WIDTH), TiDimension.TYPE_WIDTH);
+						width = widthDimension.getAsPixels(view);
+					}
+					if (view.getHeight() == 0 && proxyDict != null && proxyDict.containsKey(TiC.PROPERTY_HEIGHT)) {
+						TiDimension heightDimension = new TiDimension(proxyDict.getString(TiC.PROPERTY_HEIGHT),
+							TiDimension.TYPE_HEIGHT);
+						height = heightDimension.getAsPixels(view);
+					}
+		
+					int wmode = width == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
+					int hmode = height == 0 ? MeasureSpec.UNSPECIFIED : MeasureSpec.EXACTLY;
+					view.measure(MeasureSpec.makeMeasureSpec(width, wmode), MeasureSpec.makeMeasureSpec(height, hmode));
+		
+					// Will force the view to layout itself, grab dimensions
+					width = view.getMeasuredWidth();
+					height = view.getMeasuredHeight();
+					
+					// set a default BS value if the dimension is still 0 and log a warning
+					if (width == 0) {
+						width = 100;
+						Log.e(TAG, "Width property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
+					}
+					if (height == 0) {
+						height = 100;
+						Log.e(TAG, "Height property is 0 for view, display view before calling toImage()", Log.DEBUG_MODE);
+					}
+	
 				}
+				
+				if (view.getParent() == null) {
+					Log.i(TAG, "View does not have parent, calling layout", Log.DEBUG_MODE);
+					view.layout(0, 0, width, height);
+				}
+	//			float viewRatio = height / width;
+	
+	//			int bmpWidth =  (int) (width * scale);
+	//			int bmpHeight = (int) (width * viewRatio);
+				// opacity should support transparency by default
+				Config bitmapConfig = Config.ARGB_8888;
+	
+				Drawable viewBackground = view.getBackground();
+				if (viewBackground != null) {
+					/*
+					 * If the background is opaque then we should be able to safely use a space saving format that
+					 * does not support the alpha channel. Basically, if a view has a background color set then the
+					 * the pixel format will be opaque. If a background image supports an alpha channel, the pixel
+					 * format will report transparency (even if the image doesn't actually look transparent). In
+					 * short, most of the time the Config.ARGB_8888 format will be used when viewToImage is used
+					 * but in the cases where the background is opaque, the lower memory approach will be used.
+					 */
+					if (viewBackground.getOpacity() == PixelFormat.OPAQUE) {
+						bitmapConfig = Config.RGB_565;
+					}
+				}
+	
+				bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
+				Canvas canvas = new Canvas(bitmap);
+				view.draw(canvas);
+				canvas = null;
 			}
-
-			Bitmap bitmap = Bitmap.createBitmap(width, height, bitmapConfig);
-			Canvas canvas = new Canvas(bitmap);
-			view.draw(canvas);
-
-			ByteArrayOutputStream bos = new ByteArrayOutputStream();
-			if (bitmap.compress(CompressFormat.PNG, 100, bos)) {
-				image = createDictForImage(width, height, bos.toByteArray());
-			}
-
-			canvas = null;
-			bitmap.recycle();
 		}
 
-		return image;
+		return bitmap;
+	}
+
+	public static TiBlob viewToImage(KrollDict proxyDict, View view)
+	{
+		Bitmap bitmap = viewToBitmap(proxyDict, view);
+		if (bitmap != null) {
+			return TiBlob.blobFromImage(bitmap);
+		}
+		return null;
 	}
 
 	/**
 	 * Creates and returns a Bitmap from an InputStream.
 	 * @param stream an InputStream to read bitmap data.
+	 * @param opts BitmapFactory options
 	 * @return a new bitmap instance.
 	 * @module.api
 	 */
-	public static Bitmap createBitmap(InputStream stream)
+	public static Bitmap createBitmap(InputStream stream, BitmapFactory.Options opts)
 	{
 		Rect pad = new Rect();
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inPurgeable = true;
-		opts.inInputShareable = true;
+		if (opts == null) {
+			opts = new BitmapFactory.Options();
+			opts.inPurgeable = true;
+			opts.inInputShareable = true;
+		}
 
 		Bitmap b = null;
 		try {
@@ -711,6 +872,16 @@ public class TiUIHelper
 			Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage());
 		}
 		return b;
+	}
+	/**
+	 * Creates and returns a Bitmap from an InputStream.
+	 * @param stream an InputStream to read bitmap data.
+	 * @return a new bitmap instance.
+	 * @module.api
+	 */
+	public static Bitmap createBitmap(InputStream stream)
+	{
+		return createBitmap(stream, null);
 	}
 	
 	private static String getResourceKeyForImage(String url)
@@ -836,8 +1007,12 @@ public class TiUIHelper
 		if (id == 0) {
 			return null;
 		}
-		
-		return getResourceDrawable(id);
+		if (url.endsWith(".svg")) {
+			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(id, TiApplication.getInstance().getCurrentActivity()));
+		}
+		else {
+			return getResourceDrawable(id);
+		}
 	}
 	
 	public static Drawable getResourceDrawable(int res_id)
@@ -941,6 +1116,7 @@ public class TiUIHelper
 	 */
 	public static void showSoftKeyboard(View view, boolean show) 
 	{
+		if (view == null) return;
 		InputMethodManager imm = (InputMethodManager) view.getContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
 
 		if (imm != null) {
@@ -1004,5 +1180,46 @@ public class TiUIHelper
 		if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
 			proxy.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
 		}
+	}
+
+	public static boolean isViewInsideViewOfClass(View view, Class<?>[] testClass) {
+		ViewParent parent = view.getParent();
+		if (parent != null) {
+			for (int i = 0; i < testClass.length; i++) {
+				if (testClass[i].isAssignableFrom(parent.getClass()))
+					return true;
+			}
+			if (parent instanceof View)
+				return isViewInsideViewOfClass((View)parent, testClass);
+		}
+		return false;
+	}
+	
+	public static void removeViewFromSuperView(View view) {
+		if (view == null) return;
+		 ViewGroup parentViewGroup = (ViewGroup) view.getParent();
+        if (parentViewGroup != null) {
+            parentViewGroup.removeView(view);
+        }
+	}
+	
+	public static void addView(ViewGroup parent, View view) {
+		removeViewFromSuperView(view);
+		parent.addView(view);
+	}
+	
+	public static void addView(ViewGroup parent, View view, int index) {
+		removeViewFromSuperView(view);
+		parent.addView(view, index);
+	}
+	
+	public static void addView(ViewGroup parent, View view, ViewGroup.LayoutParams params) {
+		removeViewFromSuperView(view);
+		parent.addView(view, params);
+	}
+	
+	public static void addView(ViewGroup parent, View view, int index, ViewGroup.LayoutParams params) {
+		removeViewFromSuperView(view);
+		parent.addView(view, index, params);
 	}
 }

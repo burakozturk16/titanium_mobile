@@ -7,21 +7,26 @@
 #ifdef USE_TI_UILABEL
 
 #import "TiUIView.h"
+#import "TTTAttributedLabel.h"
 
-@interface TiUILabel : TiUIView<LayoutAutosizing> {
+
+@interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
-    UILabel *label;
-    UIView* wrapperView;
-    CALayer* bgdLayer;
-    BOOL requiresLayout;
+	TTTAttributedLabel *label;
     CGRect padding;
     CGRect textPadding;
-    UIControlContentVerticalAlignment verticalAlign;
     CGRect initialLabelFrame;
+    BOOL needsUpdateBackgroundImageFrame;
+    BOOL needsPadLabel;
+    BOOL needsSetText;
 }
 
 @property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
--(UILabel*)label;
+
+-(void)setAttributedTextViewContent;
+- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth;
+
 @end
+
 
 #endif

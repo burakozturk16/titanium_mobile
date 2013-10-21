@@ -29,9 +29,6 @@
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	#import "TiUIiPhoneProgressBarStyleProxy.h"
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-	#import "TiUIiPhoneActivityIndicatorStyleProxy.h"
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	#import "TiUIiPhoneSystemIconProxy.h"
 #endif
@@ -40,9 +37,6 @@
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	#import "TiUIiPhoneTableViewStyleProxy.h"
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	#import "TiUIiPhoneTableViewSeparatorStyleProxy.h"
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	#import "TiUIiPhoneTableViewScrollPositionProxy.h"
@@ -74,9 +68,6 @@
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 #import "TiUIiPhoneTableViewCellSelectionStyleProxy.h"
 #endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-#import "TiUIiPhoneTableViewSeparatorStyleProxy.h"
-#endif
 
 @implementation TiUIiPhoneProxy
 
@@ -106,9 +97,6 @@ RELEASE_TO_NIL(x); \
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	FORGET_AND_RELEASE(progressBarStyle);
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-	FORGET_AND_RELEASE(activityIndicatorStyle);
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	FORGET_AND_RELEASE(systemIcon);
 #endif
@@ -117,9 +105,6 @@ RELEASE_TO_NIL(x); \
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	FORGET_AND_RELEASE(tableViewStyle);
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	FORGET_AND_RELEASE(tableViewScrollPosition);
@@ -138,9 +123,6 @@ RELEASE_TO_NIL(x); \
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 	FORGET_AND_RELEASE(listViewCellSelectionStyle);
-#endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
 	[super dealloc];
 }
@@ -185,9 +167,6 @@ RELEASE_TO_NIL(x); \
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	DEFINE_SUBPROXY(ProgressBarStyle,progressBarStyle);
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-	DEFINE_SUBPROXY(ActivityIndicatorStyle,activityIndicatorStyle);
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	DEFINE_SUBPROXY(SystemIcon,systemIcon);
 #endif
@@ -196,9 +175,6 @@ RELEASE_TO_NIL(x); \
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	DEFINE_SUBPROXY(TableViewStyle,tableViewStyle);
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	DEFINE_SUBPROXY(TableViewSeparatorStyle,tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	DEFINE_SUBPROXY(TableViewScrollPosition,tableViewScrollPosition);
@@ -217,9 +193,6 @@ DEFINE_SUBPROXY_AS(ListViewScrollPosition, TableViewScrollPosition, listViewScro
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 DEFINE_SUBPROXY_AS(ListViewCellSelectionStyle, TableViewCellSelectionStyle, listViewCellSelectionStyle);
-#endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSeparatorStyle);
 #endif
 
 -(NSString*)apiName
@@ -370,9 +343,6 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT,UIModalPresentationCurrentCo
 #ifdef USE_TI_UIIPHONEPROGRESSBARSTYLE
 	FORGET_AND_RELEASE(progressBarStyle);
 #endif
-#ifdef USE_TI_UIIPHONEACTIVITYINDICATORSTYLE
-	FORGET_AND_RELEASE(activityIndicatorStyle);
-#endif
 #ifdef USE_TI_UIIPHONESYSTEMICON
 	FORGET_AND_RELEASE(systemIcon);
 #endif
@@ -381,9 +351,6 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT,UIModalPresentationCurrentCo
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSTYLE
 	FORGET_AND_RELEASE(tableViewStyle);
-#endif
-#ifdef USE_TI_UIIPHONETABLEVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(tableViewSeparatorStyle);
 #endif
 #ifdef USE_TI_UIIPHONETABLEVIEWSCROLLPOSITION
 	FORGET_AND_RELEASE(tableViewScrollPosition);
@@ -402,9 +369,6 @@ MAKE_SYSTEM_PROP(MODAL_PRESENTATION_CURRENT_CONTEXT,UIModalPresentationCurrentCo
 #endif
 #ifdef USE_TI_UIIPHONELISTVIEWCELLSELECTIONSTYLE
 	FORGET_AND_RELEASE(listViewCellSelectionStyle);
-#endif
-#ifdef USE_TI_UIIPHONELISTVIEWSEPARATORSTYLE
-	FORGET_AND_RELEASE(listViewSeparatorStyle);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }

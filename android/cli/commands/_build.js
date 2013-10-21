@@ -385,43 +385,74 @@ exports.run = function (logger, config, cli, finished) {
 };
 
 function sendAnalytics(cli) {
-	var eventName = 'android.' + cli.argv.target;
+	// var eventName = 'android.' + cli.argv.target;
 
-	if (cli.argv.target == 'dist-playstore') {
-		eventName = "android.distribute.playstore";
-	} else if(cli.argv['debug-host']) {
-		eventName += '.debug';
-	} else {
-		eventName += '.run';
-	}
+	// if (cli.argv.target == 'dist-playstore') {
+	// 	eventName = "android.distribute.playstore";
+	// } else if(cli.argv['debug-host']) {
+	// 	eventName += '.debug';
+	// } else {
+	// 	eventName += '.run';
+	// }
 
-	cli.addAnalyticsEvent(eventName, {
-		dir: cli.argv['project-dir'],
-		name: cli.tiapp.name,
-		publisher: cli.tiapp.publisher,
-		url: cli.tiapp.url,
-		image: cli.tiapp.icon,
-		appid: cli.tiapp.id,
-		description: cli.tiapp.description,
-		type: cli.argv.type,
-		guid: cli.tiapp.guid,
-		version: cli.tiapp.version,
-		copyright: cli.tiapp.copyright,
-		date: (new Date()).toDateString()
-	});
+	// cli.addAnalyticsEvent(eventName, {
+	// 	dir: cli.argv['project-dir'],
+	// 	name: cli.tiapp.name,
+	// 	publisher: cli.tiapp.publisher,
+	// 	url: cli.tiapp.url,
+	// 	image: cli.tiapp.icon,
+	// 	appid: cli.tiapp.id,
+	// 	description: cli.tiapp.description,
+	// 	type: cli.argv.type,
+	// 	guid: cli.tiapp.guid,
+	// 	version: cli.tiapp.version,
+	// 	copyright: cli.tiapp.copyright,
+	// 	date: (new Date()).toDateString()
+	// });
 }
 
 function build(logger, config, cli, finished) {
+	this.logger = logger;
+	this.cli = cli;
+	this.config = config;
+
+	this.tiapp = cli.tiapp;
+	this.target = cli.argv.target;
+	this.platform = cli.argv.platform;
+	this.projectDir = cli.argv['project-dir'];
+	this.buildDir = path.join(this.projectDir, 'build', this.platform);
+	this.assetsDir = path.join(this.buildDir, 'assets');
+	this.buildBinDir = path.join(this.buildDir, 'bin');
+	this.buildManifestFile = path.join(this.buildDir, 'build-manifest.json');
+
+	this.writeBuildManifest = function(callback) {
+		var buildManifest = {};
+		if (this.config['plugins'])
+			buildManifest['config-plugins'] = this.config.plugins;
+		
+		logger.debug('writeBuildManifest: %s', this.buildManifestFile);
+		fs.writeFile(this.buildManifestFile, JSON.stringify(buildManifest, null, '\t'), callback);
+	}
+	
+	var that = this;
+
 	cli.fireHook('build.pre.compile', this, function (e) {
 		var env = {};
 		for (var i in process.env) {
 			env[i] = process.env[i];
 		}
 
+
 		// Make sure we have an app.js. This used to be validated in validate(), but since plugins like
 		// Alloy generate an app.js, it may not have existed during validate(), but should exist now
 		// that build.pre.compile was fired.
 		ti.validateAppJsExists(cli.argv['project-dir'], logger);
+
+		if (!afs.exists(that.buildDir)) {
+			wrench.mkdirSyncRecursive(that.buildDir);
+		}
+
+		that.writeBuildManifest();
 
 		if (cli.argv['skip-js-minify']) {
 			process.env.SKIP_JS_MINIFY = '1';
@@ -495,12 +526,12 @@ function build(logger, config, cli, finished) {
 					// build failed, error out
 					logger.error(__('Build process exited with code %s', code));
 					emulatorProcess && emulatorProcess.kill('SIGKILL');
-					finished && finished(code);
+					finished && finished.call(that, code);
 					finished = buildProcess = emulatorProcess = null;
 
 				} else {
 					// we call finished here to display the build time and fire post build plugins
-					finished && finished();
+					finished && finished.call(that);
 
 					if (cli.argv.target == 'emulator') {
 						if (!emulatorRunning) {
@@ -526,7 +557,7 @@ function build(logger, config, cli, finished) {
 							});
 						}
 
-					} else if (cli.argv.target == 'device') {
+					} else if (cli.argv.target == 'device' && !cli.argv['build-only']) {
 						// Since installing on device does not run
 						// the application we must send the "intent" ourselves.
 						// We will launch the MAIN activity for the application.

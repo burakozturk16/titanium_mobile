@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiFastDev;
+import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
@@ -122,6 +123,8 @@ public class TiResourceFile extends TiBaseFile
 	@Override
 	public TiBlob read() throws IOException
 	{
+		if (KrollAssetHelper.fileExists(path))
+			return TiBlob.blobFromString(KrollAssetHelper.readAsset(path));
 		return TiBlob.blobFromFile(this);
 	}
 
@@ -149,28 +152,30 @@ public class TiResourceFile extends TiBaseFile
 	@Override
 	public boolean exists()
 	{
-		boolean result = false;
-		InputStream is = null;
-		try {
-			if (TiFastDev.isFastDevEnabled()) {
-				result = TiFastDev.getInstance().fileExists(path);
-			} else {
-				is = getInputStream();
-				result = (is != null);
-			}
-		} catch (IOException e) {
-			// getInputStream() will throw a FileNotFoundException if it is a
-			// directory. We check if there are directory listings. If there is,
-			// we can assume it is a directory and it exists.
-			if (!getDirectoryListing().isEmpty()) {
-				result = true;
-			}
-		} finally {
-			if (is != null) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					// Ignore
+		boolean result = KrollAssetHelper.fileExists(path);
+		if (result == false) {
+			InputStream is = null;
+			try {
+				if (TiFastDev.isFastDevEnabled()) {
+					result = TiFastDev.getInstance().fileExists(path);
+				} else {
+					is = getInputStream();
+					result = (is != null);
+				}
+			} catch (IOException e) {
+				// getInputStream() will throw a FileNotFoundException if it is a
+				// directory. We check if there are directory listings. If there is,
+				// we can assume it is a directory and it exists.
+				if (!getDirectoryListing().isEmpty()) {
+					result = true;
+				}
+			} finally {
+				if (is != null) {
+					try {
+						is.close();
+					} catch (IOException e) {
+						// Ignore
+					}
 				}
 			}
 		}
@@ -244,6 +249,7 @@ public class TiResourceFile extends TiBaseFile
 	public List<String> getDirectoryListing()
 	{
 		List<String> listing = new ArrayList<String>();
+		KrollAssetHelper.getDirectoryListing(path, listing);
 		try {
 			String lpath = TiFileHelper2.joinSegments("Resources", path);
 			if (lpath.endsWith("/")) {

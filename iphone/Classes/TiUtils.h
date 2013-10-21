@@ -13,6 +13,7 @@
 @class TiBuffer;
 @class WebFont;
 @class TiScriptError;
+@class TiPoint;
 
 /*	NOTE TO MODULE DEVELOPERS:
  *	The following 4 imports will be going away as it's better to simply
@@ -148,6 +149,13 @@ typedef enum
 +(NSData *)loadAppResource:(NSURL*)url;
 
 /**
+ getDirectoryListing for compiled resources.
+ @param path The path to list
+ @return The array of found files.
+ */
++(NSArray *)getDirectoryListing:(NSString*)path;
+
+/**
  Encodes the input string according by escaping illegal characters.
  @param unencodedString The input string.
  @return The encoded string.
@@ -164,6 +172,7 @@ typedef enum
 
 +(UIImage*)toImage:(id)object proxy:(TiProxy*)proxy size:(CGSize)imageSize;
 +(UIImage*)toImage:(id)object proxy:(TiProxy*)proxy;
++(UIImage*)scaleImage:(UIImage *)image toSize:(CGSize)newSize;
 
 /**
  Constructs URL from string using provided base URL.
@@ -341,6 +350,9 @@ typedef enum
  */
 +(TiDimension)dimensionValue:(id)value;
 
++(TiPoint*)tiPointValue:(id)value;
++(TiPoint*)tiPointValue:(id)value def:(TiPoint*)def;
+
 +(id)valueFromDimension:(TiDimension)dimension;
 
 /**
@@ -441,6 +453,8 @@ typedef enum
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties def:(TiDimension)def;
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def;
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties def:(TiPoint*)def exists:(BOOL*) exists;
 
 +(WebFont*)fontValue:(NSDictionary*)properties def:(WebFont*)def;
 
@@ -464,7 +478,11 @@ typedef enum
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
 
++(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
+
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
++(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
++(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture inView:(UIView*)view;
 
 +(NSDictionary*)rectToDictionary:(CGRect)rect;
 
@@ -473,6 +491,7 @@ typedef enum
 +(UIEdgeInsets)contentInsets:(id)value;
 
 +(CGRect)contentFrame:(BOOL)window;
++(CGRect)appFrame;
 
 +(CGFloat)sizeValue:(id)value;
 
@@ -481,6 +500,10 @@ typedef enum
 +(TiScriptError*) scriptErrorValue:(id)value;
 
 +(UITextAlignment)textAlignmentValue:(id)alignment;
+
++(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment;
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment;
++(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValueFromTextAlignment:(id)alignment;
 
 /**
  Whether or not the current device orientation is portrait.
@@ -612,7 +635,9 @@ typedef enum
 
 +(NSString*)getResponseHeader:(NSString*)header fromHeaders:(NSDictionary*)responseHeaders;
 
-+(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy;
++(id)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy;
++(UIImage*)loadBackgroundImage:(id)image forProxy:(TiProxy*)proxy withLeftCap:(TiDimension)left topCap:(TiDimension)top rightCap:(TiDimension)right bottomCap:(TiDimension)bottom;
++ (BOOL) isSVG:(id)arg;
 
 /**
  Convenience method to extract a useful error message from NSError, or nil if none exist.

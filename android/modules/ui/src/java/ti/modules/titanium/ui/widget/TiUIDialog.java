@@ -26,6 +26,8 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.support.v4.view.ViewCompat;
 import android.widget.ListView;
+import android.widget.Button;
+import android.view.View;
 
 public class TiUIDialog extends TiUIView
 {
@@ -35,16 +37,18 @@ public class TiUIDialog extends TiUIView
 	protected Builder builder;
 	protected TiUIView view;
 	private DialogWrapper dialogWrapper;
+	private boolean hideOnClick = true;
 
-	protected class ClickHandler implements DialogInterface.OnClickListener
+	protected class ClickHandler implements View.OnClickListener
 	{
 		private int result;
 		public ClickHandler(int id) {
 			this.result = id;
 		}
-		public void onClick(DialogInterface dialog, int which) {
+		public void onClick(View v) {
 			handleEvent(result);
-			hide(null);
+			Log.d(TAG, "onClick hideOnClick: "  + hideOnClick, Log.DEBUG_MODE);
+			if (hideOnClick == true) hide(null);
 		}
 	}
 
@@ -105,6 +109,10 @@ public class TiUIDialog extends TiUIView
 			dialogWrapper.setPersistent(d.getBoolean(TiC.PROPERTY_PERSISTENT));
 		}
 
+		if (d.containsKey(TiC.PROPERTY_HIDE_ON_CLICK)) {
+			hideOnClick = d.getBoolean(TiC.PROPERTY_HIDE_ON_CLICK);
+		}
+
 		if (buttonText != null) {
 			processButtons(buttonText);
 		}
@@ -116,9 +124,18 @@ public class TiUIDialog extends TiUIView
 		getBuilder().setSingleChoiceItems(optionText, selectedIndex , new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int which) {
 				handleEvent(which);
-				hide(null);
+				if (hideOnClick == true) hide(null);
 			}
 		});
+	}
+
+	private void setButtonsListeners(AlertDialog dialog){
+		Button button = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+		if (button!= null )button.setOnClickListener(new ClickHandler(0 | BUTTON_MASK));
+		button = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+		if (button!= null )button.setOnClickListener(new ClickHandler(2 | BUTTON_MASK));
+		button = dialog.getButton(DialogInterface.BUTTON_NEUTRAL);
+		if (button!= null )button.setOnClickListener(new ClickHandler(1 | BUTTON_MASK));
 	}
 
 	private void processButtons(String[] buttonText)
@@ -144,13 +161,13 @@ public class TiUIDialog extends TiUIView
 			ClickHandler clicker = new ClickHandler(id | BUTTON_MASK);
 			switch (id) {
 			case 0:
-				getBuilder().setPositiveButton(text, clicker);
+				getBuilder().setPositiveButton(text, null);
 				break;
 			case 1:
-				getBuilder().setNeutralButton(text, clicker);
+				getBuilder().setNeutralButton(text, null);
 				break;
 			case 2:
-				getBuilder().setNegativeButton(text, clicker);
+				getBuilder().setNegativeButton(text, null);
 				break;
 			default:
 				Log.e(TAG, "Only 3 buttons are supported");
@@ -229,6 +246,11 @@ public class TiUIDialog extends TiUIView
 			}
 		} else if (key.equals(TiC.PROPERTY_PERSISTENT) && newValue != null) {
 			dialogWrapper.setPersistent(TiConvert.toBoolean(newValue));
+		} else if (key.equals(TiC.PROPERTY_HIDE_ON_CLICK) && newValue != null) {
+			hideOnClick = TiConvert.toBoolean(newValue);
+			if (dialog != null) {
+				dialog.setCancelable(hideOnClick);
+			}
 		} else if (key.indexOf("accessibility") == 0) {
 			if (dialog != null) {
 				ListView listView = dialog.getListView();
@@ -262,12 +284,14 @@ public class TiUIDialog extends TiUIView
 				@Override
 				public void onCancel(DialogInterface dlg) {
 					int cancelIndex = (proxy.hasProperty(TiC.PROPERTY_CANCEL)) ? TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_CANCEL)) : -1;
-					Log.d(TAG, "onCancelListener called. Sending index: " + cancelIndex, Log.DEBUG_MODE);
+					Log.d(TAG, "onCancelListener called. Sending index: " + cancelIndex + ", hideOnClick: " + hideOnClick, Log.DEBUG_MODE);
 					handleEvent(cancelIndex);
-					hide(null);
+					if (hideOnClick == true) hide(null);
 				}
 			});
 			dialog = getBuilder().create();
+			dialog.setCancelable(hideOnClick);
+
 
 			// Initially apply accessibility properties here, the first time
 			// the dialog actually becomes available. After this, propertyChanged
@@ -296,6 +320,8 @@ public class TiUIDialog extends TiUIView
 					//add dialog to its activity so we can clean it up later to prevent memory leak.
 					((TiBaseActivity) dialogActivity).addDialog(dialogWrapper);
 					dialog.show();
+					setButtonsListeners(dialog);
+					fireEvent(TiC.EVENT_OPEN, new KrollDict());
 				}
 			} else {
 				dialog = null;
@@ -308,6 +334,7 @@ public class TiUIDialog extends TiUIView
 
 	public void hide(KrollDict options)
 	{
+		fireEvent(TiC.EVENT_CLOSE, new KrollDict());
 		AlertDialog dialog = dialogWrapper.getDialog();
 		if (dialog != null) {
 			dialog.dismiss();

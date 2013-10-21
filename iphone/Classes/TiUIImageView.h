@@ -38,12 +38,15 @@
 	NSInteger readyCount;
 	NSInteger loadTotal;
 	UIImageView * imageView;
+    UIViewContentMode scaleType;
+	BOOL localLoadSync;
 }
 
 -(void)start;
 -(void)stop;
 -(void)pause;
 -(void)resume;
+-(id)getImage;
 
 -(void)setImage_:(id)arg;
 

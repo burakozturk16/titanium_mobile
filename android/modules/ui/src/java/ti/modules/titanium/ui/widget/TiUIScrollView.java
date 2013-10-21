@@ -20,6 +20,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.os.Build;
@@ -30,6 +31,8 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
 
+@SuppressLint("NewApi")
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class TiUIScrollView extends TiUIView
 {
 	public static final int TYPE_VERTICAL = 0;
@@ -166,10 +169,11 @@ public class TiUIScrollView extends TiUIView
 		{
 			super(context);
 			setScrollBarStyle(SCROLLBARS_INSIDE_OVERLAY);
+			setScrollContainer(true);
 
 			layout = new TiScrollViewLayout(context, arrangement);
-			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
-				ViewGroup.LayoutParams.FILL_PARENT);
+			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
 			layout.setLayoutParams(params);
 			super.addView(layout, params);
 		}
@@ -273,8 +277,8 @@ public class TiUIScrollView extends TiUIView
 			setScrollContainer(true);
 
 			layout = new TiScrollViewLayout(context, arrangement);
-			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT,
-				ViewGroup.LayoutParams.FILL_PARENT);
+			FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+				ViewGroup.LayoutParams.MATCH_PARENT);
 			layout.setLayoutParams(params);
 			super.addView(layout, params);
 
@@ -595,9 +599,13 @@ public class TiUIScrollView extends TiUIView
 	}
 
 	@Override
-	public void add(TiUIView child)
+	public void add(TiUIView child, int index)
 	{
-		super.add(child);
+		if (child.hWAccelerationDisabled()) {
+			hardwareAccEnabled = false;
+			disableHWAcceleration(getOuterView());	
+		}
+		super.add(child, index);
 
 		if (getNativeView() != null) {
 			getLayout().requestLayout();

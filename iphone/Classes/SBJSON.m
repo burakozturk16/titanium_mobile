@@ -536,7 +536,7 @@ static char ctrl[0x24];
 {
     if (!strncmp(c, "rue", 3)) {
         c += 3;
-        *o = [NSNumber numberWithBool:YES];
+        *o = @YES;
         return YES;
     }
     if(error) *error = err(EPARSE, @"Expected 'true'");
@@ -547,7 +547,7 @@ static char ctrl[0x24];
 {
     if (!strncmp(c, "alse", 4)) {
         c += 4;
-        *o = [NSNumber numberWithBool:NO];
+        *o = @NO;
         return YES;
     }
     if(error) *error = err(EPARSE, @"Expected 'false'");

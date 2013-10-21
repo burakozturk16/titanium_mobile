@@ -15,6 +15,7 @@ from androidsdk import AndroidSDK
 from manifest import Manifest
 import traceback, uuid, time, thread, string, markdown
 from os.path import join, splitext, split, exists
+import re
 
 def run_pipe(args, cwd=None):
 	return subprocess.Popen(args, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, cwd=cwd)
@@ -96,6 +97,7 @@ def stage(platform, project_dir, manifest, callback):
 	try:
 		name = manifest.name
 		moduleid = manifest.moduleid
+		tiappid = manifest.moduleid + 'testapp'
 		version = manifest.version
 		script = os.path.join(template_dir, '..', 'project.py')
 		
@@ -121,6 +123,10 @@ def stage(platform, project_dir, manifest, callback):
 		# generate a guid since this is currently done by developer
 		guid = str(uuid.uuid4())
 		xml = xml.replace('<guid></guid>', '<guid>%s</guid>' % guid)
+		
+		#run a module test app in debug mode
+		xml = xml.replace('</ti:app>', '<property name="ti.android.debug" type="bool">true</property>\n<property name="ti.android.compilejs" type="bool">false</property>\n</ti:app>')
+
 		tiappf.write(xml)
 		tiappf.close()
 
@@ -179,6 +185,15 @@ def read_properties(file):
 		properties[key.strip()] = value.strip().replace('\\\\', '\\')
 	return properties
 
+def read_property(properties, key):
+	result = properties[key]
+	m = re.search('(?<=\${)[^}{]+?(?=})', result)
+	while m is not None:
+		result = result.replace("${" + m.group(0) + "}", properties[m.group(0)])
+		m = re.search('(?<=\${)[^}{]+?(?=})', result)
+	return result
+
+
 def main(args):
 	global android_sdk
 	# command platform project_dir
@@ -190,7 +205,7 @@ def main(args):
 	
 	if is_android(platform):
 		build_properties = read_properties(open(os.path.join(project_dir, 'build.properties')))
-		android_sdk_path = os.path.dirname(os.path.dirname(build_properties['android.platform']))
+		android_sdk_path = os.path.dirname(os.path.dirname(read_property(build_properties, 'android.platform')))
 		android_sdk = AndroidSDK(android_sdk_path)
 
 	if command == 'run':

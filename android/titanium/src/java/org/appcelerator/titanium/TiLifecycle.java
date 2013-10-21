@@ -75,6 +75,16 @@ public class TiLifecycle
 		 */
 		public boolean interceptOnBackPressed();
 	}
+	
+	/**
+	 * An interface to intercept OnBackPressed events.
+	 */
+	public interface interceptOnHomePressedEvent {
+		/**
+		 * Implementing classes should use this to intercept native Android onBackPressed events.
+		 */
+		public boolean interceptOnHomePressed();
+	}
 
 	public static void fireLifecycleEvent(Activity activity, OnLifecycleEvent listener, int which)
 	{

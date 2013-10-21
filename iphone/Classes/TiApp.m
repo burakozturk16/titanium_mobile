@@ -19,6 +19,7 @@
 #import "ApplicationDefaults.h"
 #import <libkern/OSAtomic.h>
 #import "TiExceptionHandler.h"
+#import "DTCoreText.h"
 
 #ifdef KROLL_COVERAGE
 # import "KrollCoverage.h"
@@ -191,7 +192,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 	NSString *filePath = [[NSBundle mainBundle] pathForResource:@"debugger" ofType:@"plist"];
     if (filePath != nil) {
-        NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithContentsOfFile:filePath];
+        NSMutableDictionary *params = [NSMutableDictionary dictionaryWithContentsOfFile:filePath];
         NSString *host = [params objectForKey:@"host"];
         NSInteger port = [[params objectForKey:@"port"] integerValue];
         NSString *airkey = [params objectForKey:@"airkey"];
@@ -312,6 +313,9 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 {
 	started = [NSDate timeIntervalSinceReferenceDate];
 	[TiExceptionHandler defaultExceptionHandler];
+    
+	// preload font matching table
+	[DTCoreTextFontDescriptor asyncPreloadFontLookupTable];
 
 	// nibless window
 	window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];

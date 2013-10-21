@@ -21,12 +21,15 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 
@@ -153,6 +156,13 @@ public class TiConvert
 		return toColor(TiConvert.toString(hashMap.get(key)));
 	}
 
+	public static int toColor(HashMap<String, Object> hashMap, String key, int def)
+	{
+		if (hashMap.containsKey(key))
+			return toColor(TiConvert.toString(hashMap.get(key)));
+		return def;
+	}
+
 	public static ColorDrawable toColorDrawable(String value)
 	{
 		return new ColorDrawable(toColor(value));
@@ -164,16 +174,11 @@ public class TiConvert
 	}
 
 	// Layout
-	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams)
+	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams, boolean withMatrix)
 	{
 		boolean dirty = false;
 		Object width = null;
 		Object height = null;
-
-		// Don't use fill or size by default to trigger the undefined behavior. When we have undefined behavior, we try
-		// to calculate the height/width from the pins if possible.
-		layoutParams.sizeOrFillWidthEnabled = false;
-		layoutParams.sizeOrFillHeightEnabled = false;
 
 		if (hashMap.containsKey(TiC.PROPERTY_SIZE)) {
 			HashMap<String, Object> size = (HashMap<String, Object>) hashMap.get(TiC.PROPERTY_SIZE);
@@ -269,7 +274,12 @@ public class TiConvert
 			}
 			dirty = true;
 		}
-
+		
+		if (withMatrix && hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
+			dirty = true;
+		}
+		
 		if (hashMap.containsKey(TiC.PROPERTY_ZINDEX)) {
 			Object zIndex = hashMap.get(TiC.PROPERTY_ZINDEX);
 			if (zIndex != null) {
@@ -281,11 +291,11 @@ public class TiConvert
 			dirty = true;
 		}
 
-		if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			layoutParams.optionTransform = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
-		}
-
 		return dirty;
+	}
+	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams)
+	{
+		return fillLayout(hashMap, layoutParams, true);
 	}
 
 	public static void updateLayoutCenter(Object value, LayoutParams layoutParams)
@@ -367,7 +377,9 @@ public class TiConvert
 	 */
 	public static boolean toBoolean(HashMap<String, Object> hashMap, String key, boolean def)
 	{
-		return toBoolean(hashMap.get(key), def);
+		if (hashMap != null)
+			return toBoolean(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -438,6 +450,21 @@ public class TiConvert
 	}
 
 	/**
+	 * Takes a value out of a hash table then attempts to convert it using {@link #toInt(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key.
+	 * @param def the default value to return.
+	 * @return an int value.
+	 * @module.api
+	 */
+	public static int toInt(HashMap<String, Object> hashMap, String key, int def)
+	{
+		if (hashMap != null)
+			return toInt(hashMap.get(key), def);
+		return def;
+	}
+
+	/**
 	 * If value is a Double, Integer or String, converts it to Float. Otherwise,
 	 * an exception is thrown.
 	 * @param value the value to convert.
@@ -502,7 +529,9 @@ public class TiConvert
 	 */
 	public static float toFloat(HashMap<String, Object> hashMap, String key, float def)
 	{
-		return toFloat(hashMap.get(key), def);
+		if (hashMap != null)
+			return toFloat(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -527,6 +556,23 @@ public class TiConvert
 			throw new NumberFormatException("Unable to convert " + value.getClass().getName());
 		}
 	}
+	
+	/**
+	 * If value is a Float, Integer, Long or String, converts it to Double. Otherwise
+	 * returns default value.
+	 * @param value the value to convert.
+	 * @param def the default value to return
+	 * @return an double value.
+	 * @module.api
+	 */
+	public static double toDouble(Object value, double def)
+	{
+		try {
+			return toDouble(value);
+		} catch (NumberFormatException e) {
+			return def;
+		}
+	}
 
 	/**
 	 * Takes a value out of a hash table then attempts to convert it using {@link #toDouble(Object)} for more details.
@@ -538,6 +584,22 @@ public class TiConvert
 	public static double toDouble(HashMap<String, Object> hashMap, String key)
 	{
 		return toDouble(hashMap.get(key));
+	}
+	
+
+	/**
+	 * Takes a value out of a hash table then attempts to convert it using {@link #toDouble(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key.
+	 * @param def the default value to return.
+	 * @return a double value.
+	 * @module.api
+	 */
+	public static double toDouble(HashMap<String, Object> hashMap, String key, double def)
+	{
+		if (hashMap != null)
+			return toDouble(hashMap.get(key), def);
+		return def;
 	}
 
 	/**
@@ -612,6 +674,47 @@ public class TiConvert
 		return outArray;
 	}
 
+	/**
+	 * Converts an array of boxed objects into a primitive float array.
+	 * @param inArray array that contains Number objects
+	 * @return a primitive float array
+	 * @throws ClassCastException if a non-Integer object is found in the array.
+	 */
+	public static float[] toFloatArray(Object[] inArray) {
+		float[] outArray = new float[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = ((Number) inArray[i]).floatValue();
+		}
+		return outArray;
+	}
+
+	/**
+	 * Converts an array of boxed objects into a primitive double array.
+	 * @param inArray array that contains Number objects
+	 * @return a primitive double array
+	 * @throws ClassCastException if a non-Integer object is found in the array.
+	 */
+	public static double[] toDoubleArray(Object[] inArray) {
+		double[] outArray = new double[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = ((Number) inArray[i]).doubleValue();
+		}
+		return outArray;
+	}
+
+	/**
+	 * Converts an array of boxed objects into a primitive Number array.
+	 * @param inArray array that contains Number objects
+	 * @return a primitive Number array
+	 * @throws ClassCastException if a non-Integer object is found in the array.
+	 */
+	public static Number[] toNumberArray(Object[] inArray) {
+		Number[] outArray = new Number[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = (Number) inArray[i];
+		}
+		return outArray;
+	}
 	/**
 	 * Returns a new TiDimension object given a String value and type.
 	 * Refer to {@link TiDimension#TiDimension(String, int)} for more details.
@@ -847,6 +950,77 @@ public class TiConvert
 	{
 		return toDate(hashMap.get(key));
 	}
+	
+	/**
+	 * Converts HashMap into Rect object and returns it.
+	 * @param value the HashMap to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	public static RectF toRect(HashMap<String, Object>  map)
+	{
+		if (map.containsKey(TiC.PROPERTY_X) && map.containsKey(TiC.PROPERTY_Y) &&
+				map.containsKey(TiC.PROPERTY_WIDTH) && map.containsKey(TiC.PROPERTY_HEIGHT)) {
+			float left = toFloat(map, TiC.PROPERTY_X);
+			float top = toFloat(map, TiC.PROPERTY_Y);
+			float width = toFloat(map, TiC.PROPERTY_WIDTH);
+			float height = toFloat(map, TiC.PROPERTY_HEIGHT);
+			return new RectF(left, top, left + width, top + height);
+		}
+
+		return null;
+	}
+	/**
+	 * Converts value into Rect object and returns it.
+	 * @param value the value to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	@SuppressWarnings("unchecked")
+	public static RectF toRect(Object value)
+	{
+		if (value instanceof RectF) {
+			return (RectF)value;
+
+		} else if (value instanceof HashMap<?,?>) {
+			return toRect((HashMap<String, Object>)value);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * A wrapper function.
+	 * Refer to {@link #toRect(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	public static RectF toRect(HashMap<String, Object> hashMap, String key)
+	{
+		return toRect(hashMap.get(key));
+	}
+	
+	/**
+	 * Converts value into Rect object and returns it.
+	 * @param value the value to convert.
+	 * @return a RectF instance.
+	 * @module.api
+	 */
+	@SuppressWarnings("unchecked")
+	public static TiPoint toPoint(Object value)
+	{
+		if (value instanceof TiPoint) {
+			return (TiPoint)value;
+
+		} else if (value instanceof HashMap || value instanceof KrollDict) {
+			return new TiPoint((HashMap)value);
+		}
+
+		return null;
+	}
+
 }
 
 

@@ -73,7 +73,7 @@
     }
 	NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : [NSDictionary dictionary];
     TiThreadPerformOnMainThread(^{
-        [[self view] performSelector:@selector(pushOnUIThread:) withObject:args];
+        [[self getOrCreateView] performSelector:@selector(pushOnUIThread:) withObject:args];
     }, YES);
 }
 

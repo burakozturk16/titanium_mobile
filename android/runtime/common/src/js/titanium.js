@@ -77,6 +77,17 @@ function TitaniumWrapper(context) {
 	this.Android = new AndroidWrapper(context);
 	this.UI = new UIWrapper(context, this.Android);
 
+	Object.defineProperty(this, "resourcesRelativePath", {
+		get: function() {
+
+			var value = context.sourceUrl.replace("app://", "");
+			var splitValue = value.split('/');
+			if (splitValue.length > 1 || stringEndsWith(value, '.js')) 
+				value = value.split('/').slice(0, -1).join('/');
+			return value;
+		}
+	});
+
 	var scopeVars = new kroll.ScopeVars({
 		sourceUrl: sourceUrl,
 		module: context.module,
@@ -152,8 +163,16 @@ function initScopeVars(scopeVars, sourceUrl) {
 }
 Titanium.initScopeVars = initScopeVars;
 
-// Gets the source string for a specified URL / filename combo
 function getUrlSource(filename, sourceUrl) {
+	return getUrlSourceInternal(filename, sourceUrl, false);
+}
+
+function stringEndsWith(str, suffix) {
+	return str.indexOf(suffix, str.length - suffix.length) !== -1;
+};
+
+// Gets the source string for a specified URL / filename combo
+function getUrlSourceInternal(filename, sourceUrl, inModule) {
 	var source;
 
 	// Load the source code for the script.
@@ -163,8 +182,19 @@ function getUrlSource(filename, sourceUrl) {
 		var filepath = url.toFilePath(sourceUrl);
 		source = assets.readFile(filepath);
 	} else if (sourceUrl.assetPath) {
-		var assetPath = url.toAssetPath(sourceUrl);
-		source = assets.readAsset(assetPath);
+		if (inModule) {
+			var filepath = filename;
+			if (filepath[0] === '/')
+				filepath = filepath.slice(1);
+			if (stringEndsWith(filepath, '.js'))
+				filepath = filepath.slice(0,-3);
+			source = kroll.getExternalCommonJsModule(filepath);
+		}
+		else {
+			var assetPath = url.toAssetPath(sourceUrl);
+			source = assets.readAsset(assetPath);
+		}
+		
 	} else {
 		throw new Error("Unable to load source for filename: " + filename);
 	}
@@ -184,18 +214,26 @@ Titanium.getUrlSource = getUrlSource;
 // - We use TitaniumWrapper as the base for all context / scope-specific APIs
 function TiInclude(filename, baseUrl, scopeVars) {
 	var sourceUrl = url.resolve(baseUrl, filename);
-	scopeVars = initScopeVars(scopeVars, sourceUrl.href);
 
+	scopeVars = initScopeVars(scopeVars, sourceUrl.href);
+	
 	// Create a context-bound Titanium module.
 	var ti = new TitaniumWrapper(scopeVars);
+
+	var inModule = false;
+	var modulePath = filename.split('/')[0];
+	if (!stringEndsWith(modulePath, '.js')) //discard case app.js
+	{
+		inModule = kroll.isExternalCommonJsModule(modulePath);
+	}
 
 	// This is called "localSandbox" so we don't overshadow the "sandbox" on global scope
 	var localSandbox = createSandbox(ti, scopeVars.sourceUrl);
 
-	var source = getUrlSource(filename, sourceUrl),
+	var contextGlobal = ti.global,
+		source = getUrlSourceInternal(filename, sourceUrl, inModule),
 		wrappedSource = "with(sandbox) { " + source + "\n }",
-		filePath = sourceUrl.href.replace("app://", ""),
-		contextGlobal = ti.global;
+		filePath = sourceUrl.href.replace("app://", "");
 
 	if (contextGlobal) {
 		// We're running inside another window, so we run against it's context

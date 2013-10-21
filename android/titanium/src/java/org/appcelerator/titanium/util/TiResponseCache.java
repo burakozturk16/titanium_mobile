@@ -194,6 +194,19 @@ public class TiResponseCache extends ResponseCache
 		if (!bFile.exists() || !hFile.exists()) return false;
 		return true;
 	}
+	
+	public static void remove(URI uri)
+	{
+		TiResponseCache rc = (TiResponseCache) TiResponseCache.getDefault();
+		if (rc == null) return;
+		if (rc.cacheDir == null) return;
+		
+		String hash = DigestUtils.shaHex(uri.toString());
+		File hFile = new File(rc.cacheDir, hash + HEADER_SUFFIX);
+		File bFile = new File(rc.cacheDir, hash + BODY_SUFFIX);
+		if (bFile.exists()) bFile.delete();
+		if (hFile.exists()) hFile.delete();
+	}
 
 	public static InputStream openCachedStream(URI uri)
 	{

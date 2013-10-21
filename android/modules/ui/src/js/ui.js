@@ -38,10 +38,12 @@ exports.bootstrap = function(Titanium) {
 	require("tab").bootstrap(Titanium);
 	require("listview").bootstrap(Titanium);
 	require("webview").bootstrap(Titanium);
+	require("navigationwindow").bootstrap(Titanium);
 
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createWindow"});
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createTabGroup"});
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createTab"});
+	Titanium.invocationAPIs.push({namespace: "UI", api: "createNavigationWindow"});
 
 	function iPhoneConstant(name) {
 		Titanium.API.error("!!!");

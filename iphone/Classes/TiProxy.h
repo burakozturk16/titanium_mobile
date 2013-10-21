@@ -87,6 +87,7 @@ typedef enum {
 
 @end
 
+NSString * SetterStringForKrollProperty(NSString * key);
 SEL SetterForKrollProperty(NSString * key);
 SEL SetterWithObjectForKrollProperty(NSString * key);
 
@@ -110,6 +111,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 	NSString *krollDescription;
 	pthread_rwlock_t listenerLock;
 	BOOL reproxying;
+//    BOOL initPropertiesOnCreation;
 @protected
 	NSMutableDictionary *dynprops; 
 	pthread_rwlock_t dynpropsLock; // NOTE: You must respect the dynprops lock when accessing dynprops elsewhere!
@@ -148,6 +150,7 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context;
 -(id)_initWithPageContext:(id<TiEvaluator>)context args:(NSArray*)args;
+-(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args withPropertiesInit:(BOOL)init;
 -(void)_initWithProperties:(NSDictionary*)properties;
 
 /**
@@ -156,6 +159,13 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
  @return _YES_ if the proxy has any listeners for the specified event type, _NO_ otherwise.
  */
 -(BOOL)_hasListeners:(NSString*)type;
+
+/**
+ Whether or not the proxy has listeners for the specified event types.
+ @param type The event types.
+ @return _YES_ if the proxy has any listeners for anyof the specified event types, _NO_ otherwise.
+ */
+-(BOOL)_hasAnyListeners:(NSArray*)types;
 
 /**
  Tells the proxy to fire an event of the specified type to a listener.
@@ -344,5 +354,6 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target
 
 + (id)createProxy:(NSString *)qualifiedName withProperties:(NSDictionary *)properties inContext:(id<TiEvaluator>)context;
 
+-(void)applyProperties:(id)args;
 -(NSString*)apiName;
 @end

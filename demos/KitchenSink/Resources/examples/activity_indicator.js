@@ -8,7 +8,7 @@ var actInd = Titanium.UI.createActivityIndicator({
 	bottom:10, 
 	height:30,
 	width:30,
-	style:Titanium.UI.iPhone.ActivityIndicatorStyle.PLAIN
+	style:Titanium.UI.ActivityIndicatorStyle.PLAIN
 });
 
 var button0 = Titanium.UI.createButton({
@@ -45,7 +45,7 @@ var button1 = Titanium.UI.createButton({
 
 button1.addEventListener('click', function()
 {
-	actInd.style = Titanium.UI.iPhone.ActivityIndicatorStyle.PLAIN;
+	actInd.style = Titanium.UI.ActivityIndicatorStyle.PLAIN;
 	if(!indicatorAdded)
 	{
 		win.add(actInd);
@@ -67,7 +67,7 @@ var button2 = Titanium.UI.createButton({
 
 button2.addEventListener('click', function()
 {
-	actInd.style = Titanium.UI.iPhone.ActivityIndicatorStyle.BIG;
+	actInd.style = Titanium.UI.ActivityIndicatorStyle.BIG;
 	if(!indicatorAdded)
 	{
 		win.add(actInd);
@@ -88,7 +88,7 @@ var button3 = Titanium.UI.createButton({
 
 button3.addEventListener('click', function()
 {
-	actInd.style = Titanium.UI.iPhone.ActivityIndicatorStyle.DARK;
+	actInd.style = Titanium.UI.ActivityIndicatorStyle.DARK;
 	if(!indicatorAdded)
 	{
 		win.add(actInd);
@@ -109,7 +109,7 @@ var button4 = Titanium.UI.createButton({
 
 button4.addEventListener('click', function()
 {
-	actInd.style = Titanium.UI.iPhone.ActivityIndicatorStyle.PLAIN;
+	actInd.style = Titanium.UI.ActivityIndicatorStyle.PLAIN;
 	actInd.font = {fontFamily:'Helvetica Neue', fontSize:15,fontWeight:'bold'};
 	actInd.color = 'white';
 	actInd.message = 'Loading...';
@@ -136,7 +136,7 @@ var button5 = Titanium.UI.createButton({
 
 button5.addEventListener('click', function()
 {
-	toolActInd.style = Titanium.UI.iPhone.ActivityIndicatorStyle.PLAIN;
+	toolActInd.style = Titanium.UI.ActivityIndicatorStyle.PLAIN;
 	toolActInd.font = {fontFamily:'Helvetica Neue', fontSize:15,fontWeight:'bold'};
 	toolActInd.color = 'white';
 	toolActInd.message = 'Loading...';

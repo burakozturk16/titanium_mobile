@@ -75,8 +75,8 @@ public class TiDefaultListViewTemplate extends TiListViewTemplate {
 		Iterator<String> bindings = data.keySet().iterator();
 		while (bindings.hasNext()) {
 			String binding = bindings.next();
-			if (!binding.equals(TiC.PROPERTY_PROPERTIES)) {
-				Log.e(TAG, "Please only use 'properties' key for built-in template", Log.DEBUG_MODE);
+			if (!binding.equals(TiC.PROPERTY_PROPERTIES) && !binding.equals(TiC.PROPERTY_TEMPLATE)) {
+//				Log.e(TAG, "Please only use 'properties' key for built-in template: " + binding, Log.DEBUG_MODE);
 				bindings.remove();
 			}
 		}
@@ -111,7 +111,7 @@ public class TiDefaultListViewTemplate extends TiListViewTemplate {
 	public void updateOrMergeWithDefaultProperties(KrollDict data, boolean update) {
 
 		if (!data.containsKey(TiC.PROPERTY_PROPERTIES)) {
-			Log.e(TAG, "Please use 'properties' binding for builtInTemplate");
+//			Log.e(TAG, "Please use 'properties' binding for builtInTemplate");
 			if (!update) {
 				//apply default behavior
 				data.clear();

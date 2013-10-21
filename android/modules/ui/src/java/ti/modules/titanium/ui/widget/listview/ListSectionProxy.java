@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -33,6 +34,7 @@ import android.view.View;
 
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 })
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ListSectionProxy extends ViewProxy{
 
 	private static final String TAG = "ListSectionProxy";
@@ -63,6 +65,12 @@ public class ListSectionProxy extends ViewProxy{
 	private static final int MSG_UPDATE_ITEM_AT = MSG_FIRST_ID + 706;
 	private static final int MSG_GET_ITEMS = MSG_FIRST_ID + 707;
 
+
+	private static HashMap<String, String> toPassProps;
+	
+
+
+	
 	public class ListItemData {
 		private KrollDict properties;
 		private TiListViewTemplate template;
@@ -98,6 +106,14 @@ public class ListSectionProxy extends ViewProxy{
 	
 	public ListSectionProxy () {
 		//initialize variables
+		if (toPassProps == null) {
+			toPassProps = new HashMap<String, String>();
+			toPassProps.put(TiC.PROPERTY_ACCESSORY_TYPE, TiC.PROPERTY_ACCESSORY_TYPE);
+			toPassProps.put(TiC.PROPERTY_SELECTED_BACKGROUND_COLOR, TiC.PROPERTY_BACKGROUND_SELECTED_COLOR);
+			toPassProps.put(TiC.PROPERTY_SELECTED_BACKGROUND_IMAGE, TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE);
+			toPassProps.put(TiC.PROPERTY_SELECTED_BACKGROUND_GRADIENT, TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT);
+			toPassProps.put(TiC.PROPERTY_ROW_HEIGHT, TiC.PROPERTY_HEIGHT);
+		}
 		listItemData = new ArrayList<ListItemData>();
 		filterIndices = new ArrayList<Integer>();
 		itemCount = 0;
@@ -646,7 +662,6 @@ public class ListSectionProxy extends ViewProxy{
 			DataItem child = childrenItem.get(i);
 			TiViewProxy proxy = child.getViewProxy();
 			TiUIView view = proxy.createView(proxy.getActivity());
-			view.registerForTouch();
 			generateChildContentViews(child, view, rootItem, false);
 			//Bind view to root.
 			
@@ -654,7 +669,7 @@ public class ListSectionProxy extends ViewProxy{
 			rootItem.bindView(child.getBindingId(), viewItem);
 			//Add it to view hierarchy
 			if (root) {
-				rootItem.addView(view.getNativeView(), view.getLayoutParams());
+				rootItem.addView(view.getOuterView(), view.getLayoutParams());
 			} else {
 				parentContent.add(view);
 			}
@@ -702,12 +717,25 @@ public class ListSectionProxy extends ViewProxy{
 		
 		TiListItem listItem = (TiListItem) cell;
 		KrollDict listItemProperties;
+		KrollDict templateProperties = template.getProperties();
+		KrollDict listViewProperties = getListView().getProxy().getProperties();
 		String itemId = null;
 
 		if (data.containsKey(TiC.PROPERTY_PROPERTIES)) {
 			listItemProperties = new KrollDict((HashMap)data.get(TiC.PROPERTY_PROPERTIES));
 		} else {
 			listItemProperties = template.getRootItem().getDefaultProperties(); 
+		}
+		
+		for (Map.Entry<String, String> entry : toPassProps.entrySet()) {
+			String inProp = entry.getKey();
+			if (listItemProperties.containsKey(inProp)) continue;
+			String outProp = entry.getValue();
+			if (templateProperties.containsKey(inProp)) {
+				listItemProperties.put(outProp, templateProperties.get(inProp));
+			} else if (listViewProperties.containsKey(inProp)) {
+				listItemProperties.put(outProp, listViewProperties.get(inProp));
+			}
 		}
 		
 		//find out if we need to update itemId

@@ -6,6 +6,10 @@
  */
 package ti.modules.titanium.network;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
@@ -14,21 +18,31 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiContext;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
+import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.telephony.TelephonyManager;
 
 @Kroll.module
 public class NetworkModule extends KrollModule {
 
 	private static final String TAG = "TiNetwork";
 
+	public static final String EVENT_ACCESS_POINT_CREATED = "accesspointcreated";
+	public static final String EVENT_ACCESS_POINT_FAILED = "accesspointfailed";
+	public static final String EVENT_ACCESS_POINT_CLOSED = "accesspointclosed";
 	public static final String EVENT_CONNECTIVITY = "change";
+	public static final String EVENT_WIFI_SCAN = "wifiscan";
 	public static final String NETWORK_USER_AGENT = System.getProperties().getProperty("http.agent") ;
 
 	@Kroll.constant public static final int NETWORK_NONE = 0;
@@ -73,40 +87,61 @@ public class NetworkModule extends KrollModule {
 	private NetInfo lastNetInfo;
 
 	private boolean isListeningForConnectivity;
+	private boolean isListeningForWifiScan;
 	private TiNetworkListener networkListener;
 	private ConnectivityManager connectivityManager;
+	private TiWifiScanner wifiScannerListener;
 
 	private Handler messageHandler = new Handler() {
 		public void handleMessage(Message msg)
 		{
 			Bundle b = msg.getData();
-
-			boolean connected = b.getBoolean(TiNetworkListener.EXTRA_CONNECTED);
-			int type = b.getInt(TiNetworkListener.EXTRA_NETWORK_TYPE);
-			String typeName = b.getString(TiNetworkListener.EXTRA_NETWORK_TYPE_NAME);
-			boolean failover = b.getBoolean(TiNetworkListener.EXTRA_FAILOVER);
-			String reason = b.getString(TiNetworkListener.EXTRA_REASON);
-
-			// Set last state
-			synchronized(lastNetInfo) {
-				if (connected) {
-					lastNetInfo.state = State.CONNECTED;
-				} else {
-					lastNetInfo.state = State.NOT_CONNECTED;
+			
+			if (b.containsKey(TiNetworkListener.EXTRA_CONNECTED)) {
+				boolean connected = b.getBoolean(TiNetworkListener.EXTRA_CONNECTED);
+				int type = b.getInt(TiNetworkListener.EXTRA_NETWORK_TYPE);
+				String typeName = b.getString(TiNetworkListener.EXTRA_NETWORK_TYPE_NAME);
+				boolean failover = b.getBoolean(TiNetworkListener.EXTRA_FAILOVER);
+				String reason = b.getString(TiNetworkListener.EXTRA_REASON);
+	
+				// Set last state
+				synchronized(lastNetInfo) {
+					if (connected) {
+						lastNetInfo.state = State.CONNECTED;
+					} else {
+						lastNetInfo.state = State.NOT_CONNECTED;
+					}
+					lastNetInfo.type = type;
+					lastNetInfo.typeName = typeName;
+					lastNetInfo.failover = failover;
+					lastNetInfo.reason = reason;
 				}
-				lastNetInfo.type = type;
-				lastNetInfo.typeName = typeName;
-				lastNetInfo.failover = failover;
-				lastNetInfo.reason = reason;
+	
+				KrollDict data = new KrollDict();
+				data.put("online", connected);
+				int titaniumType = networkTypeToTitanium(connected, type);
+				data.put("networkType", titaniumType);
+				data.put("networkTypeName", networkTypeToTypeName(titaniumType));
+				data.put("reason", reason);
+				fireEvent(EVENT_CONNECTIVITY, data);
 			}
-
-			KrollDict data = new KrollDict();
-			data.put("online", connected);
-			int titaniumType = networkTypeToTitanium(connected, type);
-			data.put("networkType", titaniumType);
-			data.put("networkTypeName", networkTypeToTypeName(titaniumType));
-			data.put("reason", reason);
-			fireEvent(EVENT_CONNECTIVITY, data);
+			else if(b.containsKey(TiWifiScanner.EXTRA_SCAN_RESULTS)) {
+				ArrayList<ScanResult> scanResults = b.getParcelableArrayList(TiWifiScanner.EXTRA_SCAN_RESULTS);
+				KrollDict data = new KrollDict();
+				KrollDict[] array = new KrollDict[scanResults.size()];
+				for (int i =  0; i < scanResults.size(); i++) {
+					ScanResult result = scanResults.get(i);
+					KrollDict dataresult = new KrollDict();
+					dataresult.put("ssid", result.SSID);
+					dataresult.put("bssid", result.BSSID);
+					dataresult.put("capabilities", result.capabilities);
+					dataresult.put("frequency", result.frequency);
+					dataresult.put("level", result.level);
+					array[i] = dataresult;
+				}
+				data.put("results", array);
+				fireEvent(EVENT_WIFI_SCAN, data);
+			}
 		}
 	};
 
@@ -116,6 +151,7 @@ public class NetworkModule extends KrollModule {
 
 		this.lastNetInfo = new NetInfo();
 		this.isListeningForConnectivity = false;
+		this.isListeningForWifiScan = false;
 	}
 
 	public NetworkModule(TiContext tiContext)
@@ -138,6 +174,11 @@ public class NetworkModule extends KrollModule {
 		if ("change".equals(event)) {
 			if (!isListeningForConnectivity) {
 				manageConnectivityListener(true);
+			}
+		}
+		else if (EVENT_WIFI_SCAN.equals(event)) {
+			if (!isListeningForWifiScan) {
+				manageWifiScanListener(true);
 			}
 		}
 	}
@@ -215,6 +256,237 @@ public class NetworkModule extends KrollModule {
 		return networkTypeToTypeName(getNetworkType());
 	}
 
+	@Kroll.getProperty @Kroll.method
+	public String getCarrierName()
+	{
+		TelephonyManager manager = (TelephonyManager)TiApplication.getInstance().getRootActivity().getSystemService(Context.TELEPHONY_SERVICE);
+		if (manager != null) {
+			manager.getNetworkOperatorName();
+		}
+		return null;
+	}
+	
+	@Kroll.getProperty @Kroll.method
+	public Boolean getWifiEnabled()
+	{
+		Boolean result = false;
+		TiApplication tiApp = TiApplication.getInstance();
+
+		if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+			WifiManager wm = (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+			if (wm != null) {
+				result = wm.isWifiEnabled();
+			}
+		} else {
+			Log.w(TAG, "Must have android.permission.ACCESS_WIFI_STATE to get mac address.");
+		}
+		return result;
+	}
+	
+	@Kroll.method
+	public void scanWifi()
+	{
+		if (wifiScannerListener != null) {
+			wifiScannerListener.scanWifi();
+		} else {
+			Log.w(TAG, "No need to scanWifi as no one is listening.");
+		}
+	}
+	
+	@Kroll.method
+	public void closeWifiAccessPoint() {
+		WifiConfiguration currentConf = getCurrentWifiApConfiguration();
+		if (currentConf != null) {
+			TiApplication tiApp = TiApplication.getInstance();
+			if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+				WifiManager wm = (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+				if (wm != null) {
+					Method[] wmMethods = wm.getClass().getDeclaredMethods();   //Get all declared methods in WifiManager class
+					Method setWifiApEnabledMethod = null;
+					for(Method method: wmMethods){
+						if(method.getName().equals("setWifiApEnabled")) {
+							setWifiApEnabledMethod = method;
+							break;
+						}
+					}
+					if (setWifiApEnabledMethod != null) {
+						try {
+			            	Log.d(TAG, "Closing a Wi-Fi Network", Log.DEBUG_MODE);
+			                boolean apstatus=(Boolean) setWifiApEnabledMethod.invoke(wm, currentConf,false);          
+			                if(apstatus)
+			                {
+			                	wm.setWifiEnabled(true);
+				            	Log.d(TAG, "AccessPoint closed", Log.DEBUG_MODE);
+				            	KrollDict data = new KrollDict();
+								data.put("ssid", currentConf.SSID);
+								data.put("pwd", currentConf.preSharedKey);
+								fireEvent(EVENT_ACCESS_POINT_CLOSED, data);
+			                }else {
+				            	Log.d(TAG, "failed to close accessPoint", Log.DEBUG_MODE);
+
+			                }
+						} catch (IllegalArgumentException e1) {
+							e1.printStackTrace();
+						} catch (IllegalAccessException e1) {
+							e1.printStackTrace();
+						} catch (InvocationTargetException e1) {
+							e1.printStackTrace();
+						}
+				    }
+					else {
+		            	Log.w(TAG, "Can't create accessPoint, Your phone's API does not contain setWifiApEnabled method");
+				    }
+				}
+				else {
+	            	Log.w(TAG, "Can't access WifiManager");
+				}
+			}
+			else {
+				Log.w(TAG, "Must have android.permission.ACCESS_WIFI_STATE to get mac address.");
+			}  
+		}
+	}
+	
+	@Kroll.method
+	public void createWifiAccessPoint(String ssid, String pwd) {
+		TiApplication tiApp = TiApplication.getInstance();
+		if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+			WifiManager wm = (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+			if (wm != null) {
+				if(wm.isWifiEnabled())
+			    {
+					wm.setWifiEnabled(false);          
+			    }
+				Method[] wmMethods = wm.getClass().getDeclaredMethods();   //Get all declared methods in WifiManager class
+				Method setWifiApEnabledMethod = null;
+				for(Method method: wmMethods){
+					if(method.getName().equals("setWifiApEnabled")) {
+						setWifiApEnabledMethod = method;
+						break;
+					}
+				}
+				if (setWifiApEnabledMethod != null) {
+		            WifiConfiguration netConfig = new WifiConfiguration();
+		            netConfig.SSID = ssid;
+		            netConfig.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
+		            if (pwd.length() > 0)
+		            {
+		            	netConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
+			            netConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
+			            netConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
+			            netConfig.preSharedKey=pwd;
+			            netConfig.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.CCMP);
+			            netConfig.allowedPairwiseCiphers.set(WifiConfiguration.PairwiseCipher.TKIP);
+			            netConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.CCMP);
+			            netConfig.allowedGroupCiphers.set(WifiConfiguration.GroupCipher.TKIP);
+		            }
+			            
+		            try {
+		            	Log.d(TAG, "Creating a Wi-Fi Network \""+netConfig.SSID+"\"", Log.DEBUG_MODE);
+		                boolean apstatus=(Boolean) setWifiApEnabledMethod.invoke(wm, netConfig,true);          
+		                if(apstatus)
+		                {
+			            	Log.d(TAG, "Wi-Fi Network \""+netConfig.SSID+"\" created", Log.DEBUG_MODE);
+			            	KrollDict data = new KrollDict();
+							data.put("ssid", netConfig.SSID);
+							data.put("bssid", netConfig.BSSID);
+							data.put("pwd", pwd);
+							fireEvent(EVENT_ACCESS_POINT_CREATED, data);
+		                }else {
+			            	Log.d(TAG, "failed to create Wi-Fi Network \""+netConfig.SSID+"\"", Log.DEBUG_MODE);
+			            	KrollDict data = new KrollDict();
+							data.put("ssid", netConfig.SSID);
+							data.put("pwd", pwd);
+							fireEvent(EVENT_ACCESS_POINT_FAILED, data);
+		                }
+
+		            } catch (IllegalArgumentException e) {
+		                e.printStackTrace();
+		            } catch (IllegalAccessException e) {
+		                e.printStackTrace();
+		            } catch (InvocationTargetException e) {
+		                e.printStackTrace();
+		            }
+			    }
+				else {
+	            	Log.w(TAG, "Can't create accessPoint, Your phone's API does not contain setWifiApEnabled method");
+			    }
+			}
+			else {
+            	Log.w(TAG, "Can't access WifiManager");
+			}
+		}
+		else {
+			Log.w(TAG, "Must have android.permission.ACCESS_WIFI_STATE to get mac address.");
+		}    
+	}
+	
+	private WifiConfiguration getCurrentWifiApConfiguration() {
+		WifiConfiguration result = null;
+		TiApplication tiApp = TiApplication.getInstance();
+		if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+			WifiManager wm = (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+			if (wm != null) {
+				Method[] wmMethods = wm.getClass().getDeclaredMethods();   //Get all declared methods in WifiManager class
+				Method getWifiApConfigurationMethod = null;
+				Method isWifiApEnabledMethod = null;
+				for(Method method: wmMethods){
+					if(method.getName().equals("getWifiApConfiguration"))
+						getWifiApConfigurationMethod = method;
+					else if(method.getName().equals("isWifiApEnabled"))
+						isWifiApEnabledMethod = method;
+				}
+				if (getWifiApConfigurationMethod != null && isWifiApEnabledMethod != null) {
+					try {
+						Boolean isEnabled = (Boolean)isWifiApEnabledMethod.invoke(wm);
+						if (isEnabled) {
+							result = (WifiConfiguration)getWifiApConfigurationMethod.invoke(wm);
+						}
+					} catch (IllegalArgumentException e) {
+						e.printStackTrace();
+					} catch (IllegalAccessException e) {
+						e.printStackTrace();
+					} catch (InvocationTargetException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	@Kroll.method
+	public KrollDict currentWifiAccessPoint()
+	{
+		KrollDict result = null;
+		WifiConfiguration currentConf = getCurrentWifiApConfiguration();
+		if (currentConf != null){
+			result = new KrollDict();
+			result.put("ssid", currentConf.SSID);
+			result.put("bssid", currentConf.BSSID);
+			result.put("pwd", currentConf.preSharedKey);
+		}
+		return result;
+	}
+	
+	@Kroll.setProperty @Kroll.method
+	public void setWifiEnabled(Boolean enabled)
+	{
+		TiApplication tiApp = TiApplication.getInstance();
+
+		if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+			WifiManager wm = (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+			if (wm != null) {
+				wm.setWifiEnabled(enabled);
+			}
+			else {
+				Log.w(TAG, "Cannot access WifiManager");
+			}
+		} else {
+			Log.w(TAG, "Must have android.permission.ACCESS_WIFI_STATE to get mac address.");
+		}
+	}
+
 	private String networkTypeToTypeName(int type)
 	{
 		switch(type)
@@ -254,6 +526,27 @@ public class NetworkModule extends KrollModule {
 				networkListener.detach();
 				isListeningForConnectivity = false;
 				Log.d(TAG, "Removing connectivity listener.", Log.DEBUG_MODE);
+			}
+		}
+	}
+	
+	protected void manageWifiScanListener(boolean attach) {
+		if (attach) {
+			if (!isListeningForWifiScan) {
+				if (hasListeners(EVENT_WIFI_SCAN)) {
+					if (wifiScannerListener == null) {
+						wifiScannerListener = new TiWifiScanner(messageHandler);
+					}
+					wifiScannerListener.attach(TiApplication.getInstance().getApplicationContext());
+					isListeningForWifiScan = true;
+					Log.d(TAG, "Adding wifiScanner listener", Log.DEBUG_MODE);
+				}
+			}
+		} else {
+			if (isListeningForWifiScan) {
+				wifiScannerListener.detach();
+				isListeningForWifiScan = false;
+				Log.d(TAG, "Removing wifiScanner listener.", Log.DEBUG_MODE);
 			}
 		}
 	}

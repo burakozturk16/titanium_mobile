@@ -40,7 +40,11 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
 {
 	//TODO: Refactor for elegance.
 	CGFloat width;
+    CGFloat height;
     BOOL ignorePercent = NO;
+    BOOL needsWidthAutoCompute = NO;
+    BOOL needsHeightAutoCompute = NO;
+    BOOL parentCanGrow = NO;
     CGSize parentSize = CGSizeZero;
     
     if ([autoSizer isKindOfClass:[TiViewProxy class]]) {
@@ -49,15 +53,16 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             //Sandbox with percent values is garbage
             ignorePercent = YES;
             parentSize = [parent size].rect.size;
-        }      
+            parentCanGrow = TiDimensionIsAutoSize([parent layoutProperties]->height);
+        }
     }
     
-
+    
 	if(resultResizing != NULL)
 	{
 		*resultResizing &= ~(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 	}
-
+    
     switch (constraint->width.type)
     {
         case TiDimensionTypeDip:
@@ -89,45 +94,12 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         case TiDimensionTypeAutoFill:
         {
             width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
-            BOOL autoFill = NO;
-            //Undefined falls to auto behavior
-            if ( TiDimensionIsUndefined(constraint->width) || TiDimensionIsAuto(constraint->width) ) 
-            {
-                //Check if default auto behavior is fill
-                if ([autoSizer respondsToSelector:@selector(defaultAutoWidthBehavior:)]) {
-                    if (TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil])) {
-                        autoFill = YES;
-                    }
-                }
-            }
-            if (TiDimensionIsAutoFill(constraint->width) || autoFill) {
-                if(resultResizing != NULL){
-                    *resultResizing |= UIViewAutoresizingFlexibleWidth;
-                }
-                break;
-            }
-            //If it comes here it has to follow SIZE behavior
-            if ([autoSizer respondsToSelector:@selector(autoWidthForSize:)])
-            {
-                CGFloat desiredWidth = [autoSizer autoWidthForSize:CGSizeMake(width, referenceSize.height)];
-                width = width < desiredWidth?width:desiredWidth;
-            }
-            else if(resultResizing != NULL)
-            {
-                *resultResizing |= UIViewAutoresizingFlexibleWidth;
-            }
+            needsWidthAutoCompute = YES;
             break;
         }
     }
-	
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
-    {
-        width = [autoSizer verifyWidth:width];
-    }
-	
-    CGFloat height;
-
+    
+    
     switch (constraint->height.type)
     {
         case TiDimensionTypeDip:
@@ -159,43 +131,81 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         case TiDimensionTypeAutoFill:
         {
             height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
-            BOOL autoFill = NO;
-            //Undefined falls to auto behavior
-            if ( TiDimensionIsUndefined(constraint->height) || TiDimensionIsAuto(constraint->height) ) 
+            needsHeightAutoCompute = YES;
+			break;
+        }
+    }
+    
+    if (needsWidthAutoCompute) {
+        BOOL autoFill = NO;
+        //Undefined falls to auto behavior
+        if ( TiDimensionIsUndefined(constraint->width) || TiDimensionIsAuto(constraint->width) )
+        {
+            //Check if default auto behavior is fill
+            if ([autoSizer respondsToSelector:@selector(defaultAutoWidthBehavior:)]) {
+                if (TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil])) {
+                    autoFill = YES;
+                }
+            }
+        }
+        if ((TiDimensionIsAutoFill(constraint->width) || autoFill) && resultResizing != NULL) {
+            *resultResizing |= UIViewAutoresizingFlexibleWidth;
+        }
+        else {
+            //If it comes here it has to follow SIZE behavior
+            if ([autoSizer respondsToSelector:@selector(autoWidthForSize:)])
             {
-                //Check if default auto behavior is fill
-                if ([autoSizer respondsToSelector:@selector(defaultAutoHeightBehavior:)]) {
-                    if (TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil])) {
-                        autoFill = YES;
-                    }
+                CGFloat desiredWidth = [autoSizer autoWidthForSize:CGSizeMake(width, height)];
+                width = width < desiredWidth?width:desiredWidth;
+            }
+            else if(resultResizing != NULL)
+            {
+                *resultResizing |= UIViewAutoresizingFlexibleWidth;
+            }
+        }
+    }
+    
+    //Should we always do this or only for auto
+    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
+    {
+        width = [autoSizer verifyWidth:width];
+    }
+    
+    if (needsHeightAutoCompute) {
+        BOOL autoFill = NO;
+        //Undefined falls to auto behavior
+        if ( TiDimensionIsUndefined(constraint->height) || TiDimensionIsAuto(constraint->height) )
+        {
+            //Check if default auto behavior is fill
+            if ([autoSizer respondsToSelector:@selector(defaultAutoHeightBehavior:)]) {
+                if (TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil])) {
+                    autoFill = YES;
                 }
             }
-            if (TiDimensionIsAutoFill(constraint->height) || autoFill) {
-                if(resultResizing != NULL){
-                    *resultResizing |= UIViewAutoresizingFlexibleHeight;
-                }
-                break;
-            }
+        }
+        if ((TiDimensionIsAutoFill(constraint->height) || autoFill) && resultResizing != NULL) {
+            *resultResizing |= UIViewAutoresizingFlexibleHeight;
+        }
+        else {
             //If it comes here it has to follow size behavior
             if ([autoSizer respondsToSelector:@selector(autoHeightForSize:)])
             {
                 CGFloat desiredHeight = [autoSizer autoHeightForSize:CGSizeMake(width, height)];
-                height = height < desiredHeight?height:desiredHeight;
+                height = parentCanGrow?desiredHeight:(height < desiredHeight?height:desiredHeight);
             }
             else if(resultResizing != NULL)
             {
                 *resultResizing |= UIViewAutoresizingFlexibleHeight;
             }
-			break;
         }
     }
-
+    
     //Should we always do this or only for auto
     if ([autoSizer respondsToSelector:@selector(verifyHeight:)])
     {
         height = [autoSizer verifyHeight:height];
     }
-
+    
 	// when you use negative top, you get into a situation where you get smaller
 	// then intended sizes when using auto.  this allows you to set a floor for
 	// the height/width so that it won't be smaller than specified - defaults to 0

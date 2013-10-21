@@ -20,6 +20,14 @@
 @implementation TiUIImageViewProxy
 @synthesize imageURL;
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
+                                              @"scaleType",@"localLoadSync",@"images",
+                                              @"duration", @"repeatCount", @"reverse", nil]];
+}
+
 static NSArray* imageKeySequence;
 
 #pragma mark Internal
@@ -28,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[NSArray arrayWithObjects:@"width",@"height",nil] retain];
+		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync"]] retain];
 	}
 	return imageKeySequence;
 }
@@ -48,13 +56,17 @@ static NSArray* imageKeySequence;
     }
     
     if ([self _hasListeners:@"load"]) {
-        NSDictionary *event = [NSDictionary dictionaryWithObject:stateString forKey:@"state"];
+        TiUIImageView *iv = (TiUIImageView*)[self view];
+        TiBlob* blob = [[TiBlob alloc] initWithImage:[iv getImage]];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
+        
         [self fireEvent:@"load" withObject:event];
     }
 }
 
 -(void)_configure
 {
+    [self replaceValue:NUMINT(UIViewContentModeScaleAspectFit) forKey:@"scaleType" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"reverse" notification:NO];
@@ -171,6 +183,11 @@ USE_VIEW_FOR_CONTENT_WIDTH
 
 USE_VIEW_FOR_CONTENT_HEIGHT
 
+-(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+{
+    return [[self view] contentWidthForWidth:suggestedWidth withHeight:calculatedHeight];
+}
+
 #pragma mark Handling ImageLoader
 
 -(void)setImage:(id)newImage
@@ -180,6 +197,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
     {
         image = nil;
     }
+	[self cancelPendingImageLoads];
     [self replaceValue:image forKey:@"image" notification:YES];
 }
 
@@ -204,7 +222,7 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 	}
 }
 
--(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(UIImage*)image
+-(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
 	if (request != urlRequest)
 	{
@@ -242,6 +260,12 @@ USE_VIEW_FOR_CONTENT_HEIGHT
 -(TiDimension)defaultAutoHeightBehavior:(id)unused
 {
     return TiDimensionAutoSize;
+}
+
+- (void)prepareForReuse
+{
+    [self cancelPendingImageLoads];
+    [super prepareForReuse];
 }
 
 @end

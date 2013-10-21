@@ -61,10 +61,11 @@ public class PickerRowProxy extends TiViewProxy
 	}
 	
 	@Override
-	public void add(TiViewProxy child)
+	public void add(Object child, @Kroll.argument(optional = true) Object index)
 	{
 		Log.w(TAG, "PickerRow does not support child controls");
 	}
+	
 	@Override
 	public void remove(TiViewProxy child)
 	{

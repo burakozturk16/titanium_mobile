@@ -160,6 +160,11 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	[self setValue:callback forUndefinedKey:@"onsendstream"];
 }
 
+-(void)setOnredirect:(KrollCallback *)callback
+{
+	hasOnredirect = [callback isKindOfClass:[KrollCallback class]];
+	[self setValue:callback forUndefinedKey:@"onredirect"];
+}
 -(void)_destroy
 {
 	if (request!=nil && connected)
@@ -375,6 +380,32 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 }
 
+-(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) request
+{
+	if (hasOnsendstream)
+    {
+        [request setUploadProgressDelegate:self];
+    }
+    if (hasOndatastream)
+    {
+        [request setDownloadProgressDelegate:self];
+    }
+}
+
+- (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL
+{
+    if (hasOnredirect)
+    {
+		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[request url] absoluteString],@"from",
+                               [newURL absoluteString],@"to", @"redirect",@"type",nil];
+		[self fireCallback:@"onredirect" withArg:event withSource:thisPointer];
+		[thisPointer release];
+    }
+    if ([request shouldRedirect])
+        [request redirectToURL:newURL];
+}
+
 -(void)open:(id)args
 {
 	RELEASE_TO_NIL(request);
@@ -405,14 +436,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
         [request setTimeOutSeconds:timeoutVal];
     }
 	
-	if (hasOnsendstream)
-	{
-		[request setUploadProgressDelegate:self];
-	}
-	if (hasOndatastream)
-	{
-		[request setDownloadProgressDelegate:self];
-	}
+	[self setResponseHandlersFroRequest:request];
 	
 	[request addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
 	

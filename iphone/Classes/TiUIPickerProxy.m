@@ -20,7 +20,7 @@ NSArray* pickerKeySequence;
 {
 	if (pickerKeySequence == nil)
 	{
-		pickerKeySequence = [[NSArray arrayWithObjects:@"type",@"minDate",@"maxDate",@"minuteInterval",nil] retain];
+		pickerKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"type",@"minDate",@"maxDate",@"minuteInterval"]] retain];
 	}
 	return pickerKeySequence;
 }

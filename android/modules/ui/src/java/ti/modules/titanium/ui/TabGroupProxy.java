@@ -24,10 +24,12 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.TiBlob;
 
 import ti.modules.titanium.ui.widget.tabgroup.TiUIAbstractTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUIActionBarTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUITabHostGroup;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Build;
@@ -298,6 +300,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 		topActivity.startActivity(intent);
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	public void windowCreated(TiBaseActivity activity) {
 		tabGroupActivity = new WeakReference<Activity>(activity);
@@ -463,13 +466,6 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 		} else {
 			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, activity.isTaskRoot());
 		}
-	}
-
-	@Override
-	public KrollDict handleToImage()
-	{
-		// TODO we need to expose properties again as a KrollDict?
-		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView());
 	}
 
 	@Override

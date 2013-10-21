@@ -8,7 +8,11 @@ package org.appcelerator.titanium;
 
 import java.util.HashMap;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.util.TiConvert;
+
+import android.content.Context;
+import android.graphics.Point;
 
 public class TiPoint {
 	private TiDimension x, y;
@@ -18,8 +22,8 @@ public class TiPoint {
 	 * coordinates in pixel units.
 	 */
 	public TiPoint(double x, double y) {
-		this.x = new TiDimension(x, TiDimension.TYPE_WIDTH);
-		this.y = new TiDimension(y, TiDimension.TYPE_HEIGHT);
+		this.x = new TiDimension(x, TiDimension.TYPE_LEFT);
+		this.y = new TiDimension(y, TiDimension.TYPE_TOP);
 	}
 
 	/*
@@ -37,16 +41,22 @@ public class TiPoint {
 	 * properties is missing, the default values will be used.
 	 */
 	public TiPoint(HashMap object, double defaultValueX, double defaultValueY) {
-		x = TiConvert.toTiDimension(object.get(TiC.PROPERTY_X), TiDimension.TYPE_WIDTH);
+		x = TiConvert.toTiDimension(object.get(TiC.PROPERTY_X), TiDimension.TYPE_LEFT);
 		if (x == null) {
-			x = new TiDimension(defaultValueX, TiDimension.TYPE_WIDTH);
+			x = new TiDimension(defaultValueX, TiDimension.TYPE_LEFT);
 		}
 
-		y = TiConvert.toTiDimension(object.get(TiC.PROPERTY_Y), TiDimension.TYPE_HEIGHT);
+		y = TiConvert.toTiDimension(object.get(TiC.PROPERTY_Y), TiDimension.TYPE_TOP);
 		if (y == null) {
-			y = new TiDimension(defaultValueY, TiDimension.TYPE_HEIGHT);
+			y = new TiDimension(defaultValueY, TiDimension.TYPE_TOP);
 		}
 	}
+	
+	public TiPoint(Object xObj, Object yObj) {
+		x = TiConvert.toTiDimension(xObj, TiDimension.TYPE_LEFT);
+		y = TiConvert.toTiDimension(yObj, TiDimension.TYPE_TOP);
+	}
+	
 	
 	/*
 	 * Create a new point with the 'x' and 'y'
@@ -56,8 +66,8 @@ public class TiPoint {
 	 */
 	public TiPoint(String x, String y)
 	{
-		this.x = new TiDimension(x, TiDimension.TYPE_WIDTH);
-		this.y = new TiDimension(y, TiDimension.TYPE_HEIGHT);
+		this.x = new TiDimension(x, TiDimension.TYPE_LEFT);
+		this.y = new TiDimension(y, TiDimension.TYPE_TOP);
 	}
 
 	public TiDimension getX() {
@@ -66,5 +76,12 @@ public class TiPoint {
 
 	public TiDimension getY() {
 		return y;
+	}
+	
+	public Point compute(Context context, int width, int height) {
+		Point result = new Point();
+		result.x  = x.getAsPixels(context, width, height);
+		result.y  = y.getAsPixels(context, width, height);
+		return result;
 	}
 }

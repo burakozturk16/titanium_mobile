@@ -17,6 +17,9 @@
 @interface TiUITableViewProxy : TiViewProxy
 {
 	NSMutableArray *sections;
+    id dataToSetOnCreation;
+    
+    BOOL needsReloadOnAttach;
 }
 -(void)setData:(id)args withObject:(id)properties;
 -(NSArray*)data;

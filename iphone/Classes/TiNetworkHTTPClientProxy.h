@@ -37,12 +37,14 @@ typedef enum {
     NSNumber* timeout;
     NSNumber* autoRedirect;
 	
+@protected
 	// callbacks are now in the JS object
 	BOOL hasOnload;
 	BOOL hasOnerror;
 	BOOL hasOnreadystatechange;
 	BOOL hasOndatastream;
 	BOOL hasOnsendstream;
+	BOOL hasOnredirect;
 }
 // Internal
 -(NSDictionary*)responseHeaders;
@@ -53,6 +55,7 @@ typedef enum {
 -(void)setOnreadystatechange:(KrollCallback *)callback;
 -(void)setOndatastream:(KrollCallback *)callback;
 -(void)setOnsendstream:(KrollCallback *)callback;
+-(void)setOnredirect:(KrollCallback *)callback;
 
 // state information
 @property(nonatomic,readonly) NSInteger status;

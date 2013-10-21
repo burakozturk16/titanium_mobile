@@ -139,7 +139,7 @@ public class TiUISpinner extends TiUIPicker
 		}
 	}
 	@Override
-	public void add(TiUIView child)
+	public void add(TiUIView child, int index)
 	{
 		if (proxy.hasProperty(TiC.PROPERTY_VISIBLE_ITEMS)) {
 			child.getProxy().setProperty(TiC.PROPERTY_VISIBLE_ITEMS, TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_VISIBLE_ITEMS)), true);
@@ -147,7 +147,7 @@ public class TiUISpinner extends TiUIPicker
 		if (proxy.hasProperty(TiC.PROPERTY_SELECTION_INDICATOR)) {
 			child.getProxy().setProperty(TiC.PROPERTY_SELECTION_INDICATOR, TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_SELECTION_INDICATOR)), true);
 		}
-		super.add(child);
+		super.add(child, index);
 	}
 	public void forceRequestLayout()
 	{

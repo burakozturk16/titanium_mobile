@@ -460,7 +460,9 @@ class Compiler(object):
 			self.add_symbol(symbol)
 
 	def add_symbol(self,api):
+
 		print "[DEBUG] detected symbol: %s" % api
+		api = re.sub('^(Ti|Titanium)\.', "", api)
 		curtoken = ''
 		tokens = api.split(".")
 		try:
@@ -474,42 +476,23 @@ class Compiler(object):
 				self.defines.index(symbol)
 			except:
 				self.defines.append(symbol)
-
-	def extract_tokens(self,sym,line):
-		# sloppy joe parsing coooode
-		# could be prettier and faster but it works and rather reliable
-		c = 0
-		tokens = []
-		search = sym + "."
-		size = len(search)
-		while True:
-			i = line.find(search,c)
-			if i < 0:
-				break
-			found = False
-			buf = ''
-			x = 0
-			for n in line[i+size:]:
-				# look for a terminal - this could probably be easier
-				if n in ['(',')','{','}','=',',',' ',':','!','[',']','+','*','/','~','^','%','\n','\t','\r']:
-					found = True
-					break
-				buf+=n
-				x+=1
-			tokens.append(buf)
-			if found:
-				c = i + x + 1
-				continue
-			break
-
-		return sorted(set(tokens))
 		
 	def compile_js(self,file_contents):
-		for line in file_contents.split(';'):
-			for symbol in ('Titanium','Ti'):
-				for sym in self.extract_tokens(symbol,line):
-					self.add_symbol(sym)
-					self.exports.append(sym)
+		results = re.findall('((Titanium|Ti)\.\w+(\.\w+)*)', file_contents, re.M)
+		if not results is None:
+			for result in results:
+				symbol = result[0]
+				tokens = symbol.split(".")
+				length = len(tokens)
+				lasttoken = tokens[length-1]
+				if (not re.match('create*', lasttoken)):
+					if (length == 2):
+						symbol = None
+					else:
+						symbol = '.'.join(tokens[:(length-1)])
+				if not symbol is None and not symbol in self.exports:
+					self.add_symbol(symbol)
+					self.exports.append(symbol)
 
 	def process_html_files(self,data,source_root):
 		compile = []

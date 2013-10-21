@@ -19,6 +19,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiUIHelper.FontDesc;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.PickerColumnProxy;
@@ -60,8 +61,8 @@ public class TiUISpinnerColumn extends TiUIView implements WheelView.OnItemSelec
 	@Override
 	public void processProperties(KrollDict d) {
 		super.processProperties(d);
-		if (d.containsKeyStartingWith("font")) {
-			setFontProperties();
+		if (d.containsKey(TiC.PROPERTY_FONT)) {			
+			setFontProperties( d.getKrollDict(TiC.PROPERTY_FONT));
 		}
 		if (d.containsKey(TiC.PROPERTY_COLOR)) {
 			((WheelView)nativeView).setTextColor(new Integer(TiConvert.toColor(d, TiC.PROPERTY_COLOR)));
@@ -77,59 +78,24 @@ public class TiUISpinnerColumn extends TiUIView implements WheelView.OnItemSelec
 		refreshNativeView();
 	}
 
-	private void setFontProperties()
+	private void setFontProperties(KrollDict d)
 	{
 		WheelView view = (WheelView)nativeView;
-		String fontFamily = null;
-		Float fontSize = null;
-		String fontWeight = null;
-		Typeface typeface = null;
-		// TODO KrollDict d = proxy.getProperties();
-		KrollDict d = new KrollDict();
-		if (d.containsKey(TiC.PROPERTY_FONT) && d.get(TiC.PROPERTY_FONT) instanceof HashMap) {
-			KrollDict font = d.getKrollDict(TiC.PROPERTY_FONT);
-			if (font.containsKey("fontSize")) {
-				String sFontSize = TiConvert.toString(font, "fontSize");
-				fontSize = new Float(TiUIHelper.getSize(sFontSize));
-			}
-			if (font.containsKey("fontFamily")) {
-				fontFamily = TiConvert.toString(font, "fontFamily");
-			}
-			if (font.containsKey("fontWeight")) {
-				fontWeight = TiConvert.toString(font, "fontWeight");
-			}
-		}
-		if (d.containsKeyAndNotNull(TiC.PROPERTY_FONT_FAMILY)) {
-			fontFamily = TiConvert.toString(d, TiC.PROPERTY_FONT_FAMILY);
-		}
-		if (d.containsKeyAndNotNull(TiC.PROPERTY_FONT_SIZE)) {
-			String sFontSize = TiConvert.toString(d, TiC.PROPERTY_FONT_SIZE);
-			fontSize = new Float(TiUIHelper.getSize(sFontSize));
-		}
-		if (d.containsKeyAndNotNull(TiC.PROPERTY_FONT_WEIGHT)) {
-			fontWeight = TiConvert.toString(d, TiC.PROPERTY_FONT_WEIGHT);
-		}
-		if (fontFamily != null) {
-			typeface = TiUIHelper.toTypeface(fontFamily);
-		}
-		Integer typefaceWeight = null;
-		if (fontWeight != null) {
-			typefaceWeight = new Integer(TiUIHelper.toTypefaceStyle(fontWeight, null));
-		}
+
+		TiUIHelper.FontDesc desc = TiUIHelper.getFontStyle(view.getContext(), d);
 		
 		boolean dirty = false;
-		if (typeface != null) {
-			dirty = dirty || !typeface.equals(view.getTypeface());
-			view.setTypeface(typeface);
+		if (!desc.typeface.equals(view.getTypeface())) {
+			dirty = true;
+			view.setTypeface(desc.typeface);
 		}
-		if (typefaceWeight != null) {
-			dirty = dirty || typefaceWeight.intValue() != view.getTypefaceWeight();
-			view.setTypefaceWeight(typefaceWeight);
+		if (desc.style != view.getTypefaceWeight()) {
+			dirty = true;
+			view.setTypefaceWeight(desc.style);
 		}
-		if (fontSize != null) {
-			int fontSizeInt = fontSize.intValue();
-			dirty = dirty || fontSizeInt != view.getTextSize();
-			view.setTextSize(fontSize.intValue());
+		if (desc.size != view.getTextSize()) {
+			dirty = true;
+			view.setTextSize(desc.size.intValue());
 		}
 		if (dirty) {
 			((PickerColumnProxy)proxy).parentShouldRequestLayout();
@@ -140,8 +106,8 @@ public class TiUISpinnerColumn extends TiUIView implements WheelView.OnItemSelec
 	public void propertyChanged(String key, Object oldValue, Object newValue,
 			KrollProxy proxy)
 	{
-		if (key.startsWith("font")) {
-			setFontProperties();
+		if (key.equals(TiC.PROPERTY_FONT)) {
+			setFontProperties((KrollDict) newValue);
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
 			((WheelView)nativeView).setTextColor(new Integer(TiConvert.toColor(TiConvert.toString(newValue))));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE_ITEMS)) {

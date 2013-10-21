@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+	package="com.titanium.test" android:versionCode="1" android:versionName="1">
+	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="17"/>
+
+	<!-- TI_MANIFEST -->
+	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
+	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+	<uses-permission android:name="android.permission.READ_CONTACTS"/>
+		<application 
+		android:label="TitaniumTest" android:name="TitaniumtestApplication"
+			android:theme="@style/AppTheme"
+		android:debuggable="true" android:allowBackup="false"
+		android:hardwareAccelerated="true">
+
+		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
+			android:enabled="true"
+        	android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+		    <intent-filter>
+		        <action android:name="android.intent.action.BOOT_COMPLETED" />
+		    </intent-filter>
+		</receiver>
+		<!-- TI_APPLICATION -->
+
+		<activity android:name=".TitaniumtestActivity"
+			android:label="TitaniumTest"
+			android:configChanges="keyboardHidden|orientation|screenSize">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
+		</activity>
+
+		<!-- TI_ACTIVITIES -->
+
+		<activity android:name="org.appcelerator.titanium.TiActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
+			android:theme="@style/AppTheme" />
+		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
+			android:theme="@style/AppTheme" />
+		<activity android:name="org.appcelerator.titanium.TiModalActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize"
+			android:theme="@style/AppTheme" />
+		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
+			android:configChanges="keyboardHidden|orientation|screenSize" />
+		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
+		<!-- TI_SERVICES -->
+
+	</application>
+
+	<!-- TI_PERMISSIONS -->
+	
+</manifest>

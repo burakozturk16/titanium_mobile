@@ -10,7 +10,7 @@
 /**
  The class for point proxy.
  */
-@interface TiPoint : TiProxy {
+@interface TiPoint : TiProxy <NSCopying>  {
 	TiDimension xDimension;
 	TiDimension yDimension;
 }
@@ -22,8 +22,11 @@
 -(id)initWithPoint:(CGPoint)point_;
 
 -(id)initWithObject:(id)object;
++(TiPoint*)pointWithObject:(id)object;
 
 -(void)setValues:(id)object;
+
+-(CGPoint)pointWithinSize:(CGSize)size;
 
 /**
  Provides access to point struct.

@@ -7,6 +7,7 @@
 package org.appcelerator.titanium;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -20,6 +21,7 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.OnWindowFocusChangedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
+import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
@@ -37,6 +39,8 @@ import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 
+import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -71,7 +75,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 	private int originalOrientationMode = -1;
 	private TiWeakList<OnLifecycleEvent> lifecycleListeners = new TiWeakList<OnLifecycleEvent>();
 	private TiWeakList<OnWindowFocusChangedEvent> windowFocusChangedListeners = new TiWeakList<OnWindowFocusChangedEvent>();
-	private TiWeakList<interceptOnBackPressedEvent> interceptOnBackPressedListeners = new TiWeakList<interceptOnBackPressedEvent>();
+	protected TiWeakList<interceptOnBackPressedEvent> interceptOnBackPressedListeners = new TiWeakList<interceptOnBackPressedEvent>();
+	protected TiWeakList<interceptOnHomePressedEvent> interceptOnHomePressedListeners = new TiWeakList<interceptOnHomePressedEvent>();
 
 	protected View layout;
 	protected TiActivitySupportHelper supportHelper;
@@ -92,6 +97,15 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
+	
+	static boolean isPaused = true;
+	
+	private boolean fullscreen = false;
+	private boolean defaultFullscreen = false;
+	private boolean navBarHidden = false;
+	private boolean defaultNavBarHidden = false;
+	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
+	private int softInputMode = defaultSoftInputMode;
 
 	public class DialogWrapper {
 		boolean isPersistent;
@@ -157,6 +171,8 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (!isEmpty) {
 			proxy.onWindowFocusChange(true);
 		}
+		
+		updateTitle(proxy);
 	}
 
 	public void removeWindowFromStack(TiWindowProxy proxy)
@@ -165,12 +181,21 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 		boolean isTopWindow = ( (!windowStack.isEmpty()) && (windowStack.peek() == proxy) ) ? true : false;
 		windowStack.remove(proxy);
-
-		//Fire focus only if activity is not paused and the removed window was topWindow
-		if (!windowStack.empty() && isResumed && isTopWindow) {
+		
+		if (!windowStack.empty()) {
 			TiWindowProxy nextWindow = windowStack.peek();
-			nextWindow.onWindowFocusChange(true);
+			updateTitle(nextWindow);
+			//Fire focus only if activity is not paused and the removed window was topWindow
+			if (isResumed && isTopWindow) {
+				nextWindow.onWindowFocusChange(true);
+				updateTitle(proxy);
+			}
 		}
+		else
+		{
+			updateTitle(this.window);
+		}
+		
 	}
 
 	/**
@@ -224,10 +249,45 @@ public abstract class TiBaseActivity extends FragmentActivity
 	 * Sets the window proxy.
 	 * @param proxy
 	 */
+	@SuppressLint("NewApi")
 	public void setWindowProxy(TiWindowProxy proxy)
 	{
 		this.window = proxy;
-		updateTitle();
+		updateTitle(this.window);
+		
+		KrollDict props = this.window.getProperties();
+		boolean fullscreen = props.optBoolean(TiC.PROPERTY_FULLSCREEN, this.defaultFullscreen);
+		boolean newNavBarHidden = props.optBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, this.defaultFullscreen);
+		int softInputMode = props.optInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, this.defaultSoftInputMode);
+		boolean hasSoftInputMode = softInputMode != -1;
+		
+		if (fullscreen != this.fullscreen) {
+			this.fullscreen = fullscreen;
+			setFullscreen(fullscreen);
+		}
+		if (newNavBarHidden != this.navBarHidden) {
+			this.navBarHidden = newNavBarHidden;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+				ActionBar actionBar = getActionBar();
+				if (actionBar != null) {
+					if (this.navBarHidden) actionBar.hide();
+					else actionBar.show();
+				}
+			}
+			
+		}
+		if (hasSoftInputMode && softInputMode != this.softInputMode) {
+			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
+			getWindow().setSoftInputMode(softInputMode);  
+		}
+		KrollDict activityDict = null;
+		if (this.window.hasProperty(TiC.PROPERTY_ACTIVITY)) {
+			activityDict = new KrollDict((HashMap)this.window.getProperty(TiC.PROPERTY_ACTIVITY));
+		}
+		else {
+			activityDict = new KrollDict(); //to make sure we update actionbar
+		}
+		getActivityProxy().setProperties(activityDict);
 	}
 
 	/**
@@ -352,13 +412,13 @@ public abstract class TiBaseActivity extends FragmentActivity
 	}
 
 
-	protected void updateTitle()
+	protected void updateTitle(TiWindowProxy proxy)
 	{
-		if (window == null) return;
+		if (proxy == null) return;
 
-		if (window.hasProperty(TiC.PROPERTY_TITLE)) {
+		if (proxy.hasProperty(TiC.PROPERTY_TITLE)) {
 			String oldTitle = (String) getTitle();
-			String newTitle = TiConvert.toString(window.getProperty(TiC.PROPERTY_TITLE));
+			String newTitle = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_TITLE));
 
 			if (oldTitle == null) {
 				oldTitle = "";
@@ -401,6 +461,9 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (fullscreen) {
 			getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
 		}
+		else {
+			getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+		}
 	}
 
 	protected void setNavBarHidden(boolean hidden)
@@ -419,14 +482,15 @@ public abstract class TiBaseActivity extends FragmentActivity
 			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		}
 	}
-
+	
+	
 	// Subclasses can override to handle post-creation (but pre-message fire) logic
 	protected void windowCreated()
 	{
-		boolean fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
-		boolean navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
+		defaultFullscreen = fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
+		defaultNavBarHidden = navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
-		int softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, -1);
+		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
 		
 		setFullscreen(fullscreen);
@@ -801,18 +865,35 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		switch (item.getItemId()) {
 			case android.R.id.home:
+				synchronized (interceptOnHomePressedListeners.synchronizedList()) {
+					for (interceptOnHomePressedEvent listener : interceptOnHomePressedListeners.nonNull()) {
+						try {
+							if (listener.interceptOnHomePressed()) {
+								return true;
+							}
+
+						} catch (Throwable t) {
+							Log.e(TAG, "Error dispatching interceptOnHomePressed event: " + t.getMessage(), t);
+						}
+					}
+				}
+				
 				if (activityProxy != null) {
 					ActionBarProxy actionBarProxy = activityProxy.getActionBar();
 					if (actionBarProxy != null) {
 						KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
 							.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
-						KrollDict event = new KrollDict();
-						event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
 						if (onHomeIconItemSelected != null) {
+							KrollDict event = new KrollDict();
+							event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+							event.put(TiC.EVENT_PROPERTY_WINDOW, window);
 							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
+							return true;
 						}
 					}
 				}
+				
+				
 				return true;
 			default:
 				return menuHelper.onOptionsItemSelected(item);
@@ -878,10 +959,43 @@ public abstract class TiBaseActivity extends FragmentActivity
 	{
 		interceptOnBackPressedListeners.add(new WeakReference<interceptOnBackPressedEvent>(listener));
 	}
+	
+	public void removeInterceptOnBackPressedEventListener(interceptOnBackPressedEvent listener)
+	{
+		for (int i = 0; i < interceptOnBackPressedListeners.size(); i++) {
+			interceptOnBackPressedEvent iListener = interceptOnBackPressedListeners.get(i).get();
+			if (listener == iListener) {
+				interceptOnBackPressedListeners.remove(i);
+				return;
+			}
+		}
+	}
+	
+	public void addInterceptOnHomePressedEventListener(interceptOnHomePressedEvent listener)
+	{
+		interceptOnHomePressedListeners.add(new WeakReference<interceptOnHomePressedEvent>(listener));
+	}
+	
+	public void removeInterceptOnHomePressedEventListener(interceptOnHomePressedEvent listener)
+	{
+		for (int i = 0; i < interceptOnHomePressedListeners.size(); i++) {
+			interceptOnHomePressedEvent iListener = interceptOnHomePressedListeners.get(i).get();
+			if (listener == iListener) {
+				interceptOnHomePressedListeners.remove(i);
+				return;
+			}
+		}
+	}
 
 	public void removeOnLifecycleEventListener(OnLifecycleEvent listener)
 	{
-		// TODO stub
+		for (int i = 0; i < lifecycleListeners.size(); i++) {
+			OnLifecycleEvent iListener = lifecycleListeners.get(i).get();
+			if (listener == iListener) {
+				lifecycleListeners.remove(i);
+				return;
+			}
+		}
 	}
 
 	private void releaseDialogs(boolean finish)
@@ -957,6 +1071,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
 		}
+		TiApplication.getInstance().activityPaused(this);
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1008,6 +1123,10 @@ public abstract class TiBaseActivity extends FragmentActivity
 			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
 			activityProxy.fireSyncEvent(TiC.EVENT_RESUME, null, 4000);
 		}
+		
+		TiApplication.getInstance().activityResumed(this);
+		TiApplication.getInstance().setStartingActivity(false);
+
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1026,7 +1145,13 @@ public abstract class TiBaseActivity extends FragmentActivity
 		String deployType = tiApp.getSystemProperties().getString("ti.deploytype", "unknown");
 		tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppStartEvent(tiApp, deployType));
 	}
-
+	
+	@Override
+	public void startActivity(Intent intent)	{
+		TiApplication.getInstance().setStartingActivity(true);
+		super.startActivity(intent);
+	}
+	
 	@Override
 	/**
 	 * When this activity starts, this method updates the current activity to this if necessary and
@@ -1055,7 +1180,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 			return;
 		}
 
-		updateTitle();
+		updateTitle(this.window);
 
 		if (activityProxy != null) {
 			// we only want to set the current activity for good in the resume state but we need it right now.
@@ -1235,6 +1360,14 @@ public abstract class TiBaseActivity extends FragmentActivity
 			view.releaseViews();
 			view = null;
 		}
+		
+		if (!windowStack.isEmpty()) {
+			Iterator itr = windowStack.iterator();
+		    while( itr.hasNext() ) {
+		        TiWindowProxy window = (TiWindowProxy)itr.next();
+		        window.closeFromActivity(isFinishing);
+		    }
+		}
 
 		if (window != null) {
 			window.closeFromActivity(isFinishing);
@@ -1297,15 +1430,22 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 	protected boolean shouldFinishRootActivity()
 	{
-		return getIntentBoolean(TiC.INTENT_PROPERTY_FINISH_ROOT, false);
+		if (window != null)
+			return TiConvert.toBoolean(window.getProperties(), TiC.PROPERTY_EXIT_ON_CLOSE, false);
+		return false;
 	}
 
 	@Override
 	public void finish()
 	{
-		super.finish();
+		finish(false);
+	}
 
-		if (shouldFinishRootActivity()) {
+	public void finish(boolean force)
+	{
+		super.finish();
+		
+		if (shouldFinishRootActivity() || force == true) {
 			TiApplication app = getTiApp();
 			if (app != null) {
 				TiRootActivity rootActivity = app.getRootActivity();

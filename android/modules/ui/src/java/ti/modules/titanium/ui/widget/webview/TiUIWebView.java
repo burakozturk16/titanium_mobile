@@ -109,7 +109,7 @@ public class TiUIWebView extends TiUIView
 				}
 			}
 			
-			boolean swipeHandled = detector.onTouchEvent(ev);
+			boolean swipeHandled = (detector != null && detector.onTouchEvent(ev));
 			
 			// Don't return here -- must call super.onTouchEvent()
 			
@@ -230,6 +230,12 @@ public class TiUIWebView extends TiUIView
 	}
 
 	@Override
+	protected void doSetClickable(View view, boolean clickable)
+	{
+		super.doSetClickable(view, clickable);
+	}
+
+	@Override
 	public void processProperties(KrollDict d)
 	{
 		super.processProperties(d);
@@ -270,6 +276,12 @@ public class TiUIWebView extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_PLUGIN_STATE)) {
 			setPluginState(TiConvert.toInt(d, TiC.PROPERTY_PLUGIN_STATE));
 		}
+
+		if (d.containsKey(TiC.PROPERTY_SHOW_SCROLLBARS)) {
+			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_SCROLLBARS);
+			getWebView().setVerticalScrollBarEnabled(value);
+			getWebView().setHorizontalScrollBarEnabled(value);
+		}
 		
 		if (d.containsKey(TiC.PROPERTY_OVER_SCROLL_MODE)) {
 			if (Build.VERSION.SDK_INT >= 9) {
@@ -298,6 +310,10 @@ public class TiUIWebView extends TiUIView
 			}
 		} else if (TiC.PROPERTY_CACHE_MODE.equals(key)) { 
 			getWebView().getSettings().setCacheMode(TiConvert.toInt(newValue));
+		} else if (TiC.PROPERTY_SHOW_SCROLLBARS.equals(key)){
+			boolean value = TiConvert.toBoolean(newValue);
+			getWebView().setVerticalScrollBarEnabled(value);
+			getWebView().setHorizontalScrollBarEnabled(value);
 		} else if (TiC.PROPERTY_LIGHT_TOUCH_ENABLED.equals(key)) {
 			WebSettings settings = getWebView().getSettings();
 			settings.setLightTouchEnabled(TiConvert.toBoolean(newValue));

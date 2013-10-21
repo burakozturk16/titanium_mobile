@@ -10,6 +10,7 @@ package ti.modules.titanium.ui.widget.listview;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
@@ -41,6 +42,12 @@ public class ListItemProxy extends TiViewProxy
 			return listProxy.get();
 		}
 		return null;
+	}
+
+	@Override
+	public KrollProxy getParentForBubbling()
+	{
+		return getListProxy();
 	}
 
 	public boolean fireEvent(final String event, final Object data, boolean bubbles)

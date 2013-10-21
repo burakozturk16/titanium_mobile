@@ -10,7 +10,7 @@ var label = Ti.UI.createLabel({
 var act = Ti.UI.createActivityIndicator({
 	bottom:10
 });
-act.style = Titanium.UI.iPhone.ActivityIndicatorStyle.DARK;
+act.style = Titanium.UI.ActivityIndicatorStyle.DARK;
 act.font = {fontFamily:'Helvetica Neue', fontSize:15,fontWeight:'bold'};
 act.color = 'black';
 act.message = 'Waiting for timer to fire...';

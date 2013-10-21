@@ -16,7 +16,7 @@
 	CGFloat max;
 	CGFloat min;
 	
-	BOOL requiresLayout;
+//	BOOL requiresLayout;
 	UILabel * messageLabel;
 }
 

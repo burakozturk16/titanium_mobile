@@ -505,7 +505,7 @@ typedef void (^PermissionBlock)(BOOL granted)
 		{
 			ENSURE_TYPE(cameraViewProxy,TiViewProxy);
             cameraView = [cameraViewProxy retain];
-			UIView *view = [cameraView view];
+			UIView *view = [cameraView getOrCreateView];
 			if (editable)
 			{
 				// turn off touch enablement if image editing is enabled since it will
@@ -526,8 +526,9 @@ typedef void (^PermissionBlock)(BOOL granted)
 		id transform = [args objectForKey:@"transform"];
 		if (transform!=nil)
 		{
+            CGSize size = [picker view].bounds.size;
 			ENSURE_TYPE(transform,Ti2DMatrix);
-			[picker setCameraViewTransform:[transform matrix]];
+			[picker setCameraViewTransform:[transform matrixInViewSize:size andParentSize:size]];
 		}
 		else if (cameraView!=nil)
 		{
@@ -995,20 +996,22 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
 	ENSURE_SINGLE_ARG_OR_NIL(args,NSDictionary);
 	ENSURE_UI_THREAD(openPhotoGallery,args);
 	[self showPicker:args isCamera:NO];
-}	
+}
 
--(void)takeScreenshot:(id)arg
++(UIImage*) takeScreenshotWithScale:(CGFloat)scale
 {
-	ENSURE_SINGLE_ARG(arg,KrollCallback);
-	ENSURE_UI_THREAD(takeScreenshot,arg);
-
     // Create a graphics context with the target size
-
- 	CGSize imageSize = [[UIScreen mainScreen] bounds].size;
-	UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0);
-
-	CGContextRef context = UIGraphicsGetCurrentContext();
-
+    
+    CGSize imageSize = [[UIScreen mainScreen] bounds].size;
+    if ([TiUtils isRetinaDisplay])
+    {
+        scale*=2;
+        
+    }
+    UIGraphicsBeginImageContextWithOptions(imageSize, NO, scale);
+    
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
     // Iterate over every window from back to front
     for (UIWindow *window in [[UIApplication sharedApplication] windows])
     {
@@ -1025,38 +1028,67 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
             CGContextTranslateCTM(context,
                                   -[window bounds].size.width * [[window layer] anchorPoint].x,
                                   -[window bounds].size.height * [[window layer] anchorPoint].y);
-
+            
             // Render the layer hierarchy to the current context
             [[window layer] renderInContext:context];
-
+            
             // Restore the context
             CGContextRestoreGState(context);
         }
     }
-
+    
     // Retrieve the screenshot image
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-
+    
     UIGraphicsEndImageContext();
+    
+    UIInterfaceOrientation windowOrientation = [[UIApplication sharedApplication] statusBarOrientation];
+    switch (windowOrientation) {
+        case UIInterfaceOrientationPortraitUpsideDown:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationDown];
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationRight];
+            break;
+        case UIInterfaceOrientationLandscapeRight:
+            image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationLeft];
+            break;
+        default:
+            break;
+    }
+    return image;
+}
 
-	UIInterfaceOrientation windowOrientation = [[UIApplication sharedApplication] statusBarOrientation];
-	switch (windowOrientation) {
-		case UIInterfaceOrientationPortraitUpsideDown:
-			image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationDown];
-			break;
-		case UIInterfaceOrientationLandscapeLeft:
-			image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationRight];
-			break;
-		case UIInterfaceOrientationLandscapeRight:
-			image = [UIImage imageWithCGImage:[image CGImage] scale:[image scale] orientation:UIImageOrientationLeft];
-			break;
-		default:
-			break;
-	}
-	
-	TiBlob *blob = [[[TiBlob alloc] initWithImage:image] autorelease];
-	NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"media"];
-	[self _fireEventToListener:@"screenshot" withObject:event listener:arg thisObject:nil];
+-(TiBlob*)takeScreenshot:(id)args
+{
+    KrollCallback *callback = nil;
+    float scale = 1.0f;
+    
+    NSObject *obj = nil;
+    if( [args count] > 0) {
+        obj = [args objectAtIndex:0];
+        
+        if (obj == [NSNull null]) {
+            obj = nil;
+        }
+        
+        if( [args count] > 1) {
+            scale = [TiUtils floatValue:[args objectAtIndex:1] def:1.0f];
+        }
+    }
+	ENSURE_SINGLE_ARG_OR_NIL(obj,KrollCallback);
+    callback = (KrollCallback*)obj;
+ 	TiBlob *blob = [[[TiBlob alloc] init] autorelease];
+   
+	TiThreadPerformOnMainThread(^{
+        // Retrieve the screenshot image
+        UIImage *image = [MediaModule takeScreenshotWithScale:scale];
+		[blob setImage:image];
+        [blob setMimeType:@"image/png" type:TiBlobTypeImage];
+        NSDictionary *event = [NSDictionary dictionaryWithObject:blob forKey:@"image"];
+        [self _fireEventToListener:@"screenshot" withObject:event listener:callback thisObject:nil];
+	}, (callback==nil));
+	return blob;
 }
 
 -(void)saveToPhotoGallery:(id)arg
@@ -1288,7 +1320,7 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
 -(NSArray*)queryMusicLibrary:(id)arg
 {
     ENSURE_SINGLE_ARG(arg, NSDictionary);
-    MPMediaGrouping grouping = [TiUtils intValue:[arg valueForKey:@"grouping"] def:MPMediaGroupingTitle];
+//    MPMediaGrouping grouping = [TiUtils intValue:[arg valueForKey:@"grouping"] def:MPMediaGroupingTitle];
     
     NSMutableSet* predicates = [NSMutableSet set];
     for (NSString* prop in [MediaModule filterableItemProperties]) {

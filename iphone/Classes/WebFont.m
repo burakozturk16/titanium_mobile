@@ -330,7 +330,7 @@
 +(WebFont *)fontWithName:(NSString*)name
 {
 	WebFont * result = [[self alloc] init];
-	result.family = [name copy];
+	result.family = [[name copy] autorelease];
 	result.size = 15;
 	return [result autorelease];
 }

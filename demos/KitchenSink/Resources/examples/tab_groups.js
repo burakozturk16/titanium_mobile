@@ -22,7 +22,7 @@ addTabButton.addEventListener('click', function(e)
 		var newtab = Titanium.UI.createTab({  
 			icon:'../images/tabs/KS_nav_mashup.png',
 			title:'New Tab',
-			win:win
+			window:win
 		});
 		tabGroup.addTab(newtab);
 	}

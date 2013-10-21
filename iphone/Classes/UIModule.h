@@ -28,6 +28,22 @@
 #ifdef USE_TI_UICLIPBOARD	
 	TiProxy *clipboard;
 #endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+	TiProxy *activityIndicatorStyle;
+#endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+	TiProxy *tableViewSeparatorStyle;
+#endif
+
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+	TiProxy *listViewSeparatorStyle;
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+	TiProxy *transitionStyle;
+#endif
+#ifdef USE_TI_UIBLENDMODE
+	TiProxy *blendMode;
+#endif
 }
 
 //TODO: review these, maybe they need to go on iPhone Animation Style - however, they are platform generic
@@ -44,6 +60,13 @@
 @property(nonatomic,readonly) NSNumber *TEXT_VERTICAL_ALIGNMENT_TOP;
 @property(nonatomic,readonly) NSNumber *TEXT_VERTICAL_ALIGNMENT_CENTER;
 @property(nonatomic,readonly) NSNumber *TEXT_VERTICAL_ALIGNMENT_BOTTOM;
+
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_SCALE_TO_FILL;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_ASPECT_FIT;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_ASPECT_FILL;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_CENTER;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_LEFT;
+@property(nonatomic,readonly) NSNumber *SCALE_TYPE_RIGHT;
 
 @property(nonatomic,readonly) NSNumber *RETURNKEY_DEFAULT;
 @property(nonatomic,readonly) NSNumber *RETURNKEY_GO;
@@ -75,6 +98,12 @@
 @property(nonatomic,readonly) NSNumber *TEXT_AUTOCAPITALIZATION_SENTENCES;
 @property(nonatomic,readonly) NSNumber *TEXT_AUTOCAPITALIZATION_ALL;
 
+@property(nonatomic,readonly) NSNumber *TEXT_ELLIPSIZE_NONE;
+@property(nonatomic,readonly) NSNumber *TEXT_ELLIPSIZE_HEAD;
+@property(nonatomic,readonly) NSNumber *TEXT_ELLIPSIZE_MIDDLE;
+@property(nonatomic,readonly) NSNumber *TEXT_ELLIPSIZE_TAIL;
+
+
 @property(nonatomic,readonly) NSNumber *INPUT_BUTTONMODE_NEVER;
 @property(nonatomic,readonly) NSNumber *INPUT_BUTTONMODE_ALWAYS;
 @property(nonatomic,readonly) NSNumber *INPUT_BUTTONMODE_ONFOCUS;
@@ -98,35 +127,6 @@
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_DATE;
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_TIME;
 @property(nonatomic,readonly) NSNumber *PICKER_TYPE_COUNT_DOWN_TIMER;
-
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_NORMAL;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_MULTIPLY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SCREEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_OVERLAY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DARKEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_LIGHTEN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR_DODGE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR_BURN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOFT_LIGHT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_HARD_LIGHT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DIFFERENCE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_EXCLUSION;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_HUE;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SATURATION;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COLOR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_LUMINOSITY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_CLEAR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_COPY;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_IN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_OUT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_SOURCE_ATOP;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_OVER;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_IN;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_OUT;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_DESTINATION_ATOP;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_XOR;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_PLUS_DARKER;
-@property(nonatomic,readonly) NSNumber *BLEND_MODE_PLUS_LIGHTER;
 
 @property(nonatomic,readonly) NSNumber *AUTODETECT_NONE;
 @property(nonatomic,readonly) NSNumber *AUTODETECT_ALL;
@@ -188,6 +188,8 @@
 @property(nonatomic,readonly) NSString *TEXT_STYLE_CAPTION1;
 @property(nonatomic,readonly) NSString *TEXT_STYLE_CAPTION2;
 
+@property(nonatomic,readonly) NSNumber *INFINITE;
+
 #ifdef USE_TI_UI2DMATRIX
 -(id)create2DMatrix:(id)args;
 #endif
@@ -216,6 +218,24 @@
 @property(nonatomic,readonly)			TiProxy* Clipboard;
 #endif
 
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+@property(nonatomic,readonly)           TiProxy* ActivityIndicatorStyle;
+#endif
+
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+@property(nonatomic,readonly) TiProxy* TableViewSeparatorStyle;
+#endif
+
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+@property(nonatomic,readonly) TiProxy* ListViewSeparatorStyle;
+#endif
+
+#ifdef USE_TI_UITRANSITIONSTYLE
+@property(nonatomic,readonly) TiProxy* TransitionStyle;
+#endif
+#ifdef USE_TI_UIBLENDMODE
+@property(nonatomic,readonly) TiProxy* BlendMode;
+#endif
 @end
 
 

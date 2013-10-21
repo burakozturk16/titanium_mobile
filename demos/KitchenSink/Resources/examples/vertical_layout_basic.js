@@ -25,4 +25,9 @@ var footer = Ti.UI.createView({height:50,borderWidth:1,borderColor:'#999',backgr
 var footerLabel = Ti.UI.createLabel({color:'#777', textAlign:'center', height:'auto', text:'Footer'});
 footer.add(footerLabel);
 
+footer.addEventListener('click', function(){
+	bodyView2.visible = !bodyView2.visible;
+
+});
+
 win.add(footer);

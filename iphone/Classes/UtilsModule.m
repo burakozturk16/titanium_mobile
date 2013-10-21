@@ -133,6 +133,14 @@
 	return [TiUtils convertToHex:(unsigned char*)&result length:CC_SHA256_DIGEST_LENGTH];
 }
 
+-(id)blob:(id)args
+{
+   	ENSURE_SINGLE_ARG(args,NSString);
+    TiBlob* result = [[TiBlob alloc] initWithFile:args];
+    result.executionContext = [self executionContext];
+    return [result autorelease];
+}
+
 @end
 
 #endif

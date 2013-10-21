@@ -110,9 +110,7 @@ typedef enum {
 #if defined(USE_TI_UIIPADDOCUMENTVIEWER) || defined(USE_TI_UIIOSDOCUMENTVIEWER)
 -(id)createDocumentViewer:(id)args;
 #endif
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
--(id)createNavigationWindow:(id)args;
-#endif
+
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
 -(id)createAttributedString:(id)args;
 #endif

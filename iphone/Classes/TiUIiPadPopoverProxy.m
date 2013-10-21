@@ -214,7 +214,7 @@ static NSArray* popoverSequence;
 		properties = nil;
 	}
 
-	[self setNavBarHidden:[NSNumber numberWithBool:NO] withObject:properties];
+	[self setNavBarHidden:@NO withObject:properties];
 }
 
 -(void)hideNavBar:(NSArray*)args
@@ -229,7 +229,7 @@ static NSArray* popoverSequence;
 		properties = nil;
 	}
 
-	[self setNavBarHidden:[NSNumber numberWithBool:YES] withObject:properties];
+	[self setNavBarHidden:@YES withObject:properties];
 }
 
 

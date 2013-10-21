@@ -74,6 +74,7 @@ class Android(object):
 			'appid': self.id,
 			'appname' : self.name,
 			'appversion' : '1',
+			'appversioncode' : '1',
 			'apiversion' : '7', #Android 2.1
 			'deploy_type': deploy_type,
 			'compile_js': False

@@ -31,6 +31,7 @@ import android.os.Message;
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 	TiC.PROPERTY_HEADER_TITLE,
 	TiC.PROPERTY_FOOTER_TITLE,
+	TiC.PROPERTY_TEMPLATES,
 	TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE,
 	TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 	TiC.PROPERTY_SECTIONS,
@@ -51,6 +52,8 @@ public class ListViewProxy extends TiViewProxy {
 	private static final int MSG_INSERT_SECTION_AT = MSG_FIRST_ID + 402;
 	private static final int MSG_DELETE_SECTION_AT = MSG_FIRST_ID + 403;
 	private static final int MSG_REPLACE_SECTION_AT = MSG_FIRST_ID + 404;
+	private static final int MSG_SCROLL_TO_TOP = MSG_FIRST_ID + 405;
+	private static final int MSG_SCROLL_TO_BOTTOM = MSG_FIRST_ID + 406;
 
 
 	//indicate if user attempts to add/modify/delete sections before TiListView is created 
@@ -73,6 +76,8 @@ public class ListViewProxy extends TiViewProxy {
 		super.handleCreationArgs(createdInModule, args);
 		
 	}
+
+	@Override
 	public void handleCreationDict(KrollDict options) {
 		super.handleCreationDict(options);
 		//Adding sections to preload sections, so we can handle appendSections/insertSection
@@ -144,13 +149,15 @@ public class ListViewProxy extends TiViewProxy {
 	}
 
 	@Kroll.method
-	public void scrollToItem(int sectionIndex, int itemIndex) {
+	public void scrollToItem(int sectionIndex, int itemIndex, @Kroll.argument(optional = true) KrollDict options) {
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
 		if (TiApplication.isUIThread()) {
-			handleScrollToItem(sectionIndex, itemIndex);
+			handleScrollToItem(sectionIndex, itemIndex, animated);
 		} else {
 			KrollDict d = new KrollDict();
 			d.put("itemIndex", itemIndex);
 			d.put("sectionIndex", sectionIndex);
+			d.put("animated", animated);
 			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SCROLL_TO_ITEM), d);
 		}
 	}
@@ -168,6 +175,25 @@ public class ListViewProxy extends TiViewProxy {
 		}
 	}
 	
+	@Kroll.method
+	public void scrollToTop(int y, @Kroll.argument(optional = true) KrollDict options)
+	{
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_TOP);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
+		message.sendToTarget();
+	}
+
+	@Kroll.method
+	public void scrollToBottom(int y, @Kroll.argument(optional = true) KrollDict options)
+	{
+		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+		Message message = getMainHandler().obtainMessage(MSG_SCROLL_TO_BOTTOM);
+		message.arg1 = y;
+		message.arg2 = animated?1:0;
+		message.sendToTarget();
+	}
 
 	@Override
 	public boolean handleMessage(final Message msg) 	{
@@ -185,8 +211,17 @@ public class ListViewProxy extends TiViewProxy {
 				KrollDict data = (KrollDict) result.getArg();
 				int sectionIndex = data.getInt("sectionIndex");
 				int itemIndex = data.getInt("itemIndex");
-				handleScrollToItem(sectionIndex, itemIndex);
+				boolean animated = data.getBoolean("animated");
+				handleScrollToItem(sectionIndex, itemIndex, animated);
 				result.setResult(null);
+				return true;
+			}
+			case MSG_SCROLL_TO_TOP: {
+				handleScrollToTop(msg.arg1, msg.arg2 == 1);
+				return true;
+			}
+			case MSG_SCROLL_TO_BOTTOM: {
+				handleScrollToBottom(msg.arg1, msg.arg2 == 1);
 				return true;
 			}
 			case MSG_APPEND_SECTION: {
@@ -215,13 +250,27 @@ public class ListViewProxy extends TiViewProxy {
 				return super.handleMessage(msg);
 		}
 	}
-	private void handleScrollToItem(int sectionIndex, int itemIndex) {
+	private void handleScrollToItem(int sectionIndex, int itemIndex, boolean animated) {
 		TiUIView listView = peekView();
 		if (listView != null) {
-			((TiListView) listView).scrollToItem(sectionIndex, itemIndex);
+			((TiListView) listView).scrollToItem(sectionIndex, itemIndex, animated);
 		}
 	}
-	
+
+	private void handleScrollToTop(int y, boolean animated) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			((TiListView) listView).scrollToTop(y, animated);
+		}
+	}
+
+	private void handleScrollToBottom(int y, boolean animated) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			((TiListView) listView).scrollToBottom(y, animated);
+		}
+	}
+
 	@Kroll.method
 	public void appendSection(Object section) {
 		if (TiApplication.isUIThread()) {

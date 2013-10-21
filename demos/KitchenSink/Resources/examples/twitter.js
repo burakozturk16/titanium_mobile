@@ -37,7 +37,7 @@ function getTweets(screen_name){
 
 				// Create a vertical layout view to hold all the info labels and images for each tweet
 				var post_view = Ti.UI.createView({
-					height:'auto',
+					height:Ti.UI.SIZE,
 					layout:'vertical',
 					left:5,
 					top:5,

@@ -21,7 +21,8 @@ typedef enum
     TiUITableViewActionAppendRowWithSection,
 	TiUITableViewActionSectionReload,
 	TiUITableViewActionRowReload,
-	TiUITableViewActionSetData
+	TiUITableViewActionSetData,
+    TiUITableViewActionReloadData
 } TiUITableViewActionType;
 
 

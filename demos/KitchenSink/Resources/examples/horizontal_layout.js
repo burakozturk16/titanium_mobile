@@ -33,3 +33,8 @@ var l3 = Ti.UI.createLabel({
 });
 
 view.add(l3);
+
+win.addEventListener('click', function(){
+	l2.visible = !l2.visible;
+
+});

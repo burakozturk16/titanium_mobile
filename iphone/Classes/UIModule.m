@@ -44,30 +44,82 @@
 #ifdef USE_TI_UITABBEDBAR
     #import "TiUIiOSTabbedBarProxy.h"
 #endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+#import "TiUIActivityIndicatorStyleProxy.h"
+#endif
+
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+#import "TiUITableViewSeparatorStyleProxy.h"
+#endif
 #import "TiApp.h"
 #import "ImageLoader.h"
 #import "Webcolor.h"
 #import "TiUtils.h"
+#import "UIControl+TiUIView.h"
+
+#ifdef USE_TI_UINAVIGATIONWINDOW
+#import "TiUINavigationWindowProxy.h"
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+#import "TiUITransitionStyleProxy.h"
+#endif
+#ifdef USE_TI_UIBLENDMODE
+#import "TiUIBlendModeProxy.h"
+#endif
+
+#define DEFINE_SUBPROXY_AS(methodName,className, ivarName)	\
+-(TiProxy*)methodName	\
+{	\
+if (ivarName==nil)	\
+{	\
+ivarName = [[TiUI##className##Proxy alloc] _initWithPageContext:[self executionContext]];	\
+[self rememberProxy:ivarName]; \
+}	\
+return ivarName;	\
+}	\
 
 @implementation UIModule
+
++(void)swizzle
+{
+    [UIControl swizzle];
+}
+
+-(void)startup
+{
+    //should be done only once. And must be done before any TiUIButton is allocated
+    [UIModule swizzle];
+	[super startup];
+}
 
 -(void)dealloc
 {
 #ifdef USE_TI_UIIPHONE
-    [self forgetProxy:iphone];
-	RELEASE_TO_NIL(iphone);
+	FORGET_AND_RELEASE(iphone);
 #endif
 #ifdef USE_TI_UIIPAD
-    [self forgetProxy:ipad];
-    RELEASE_TO_NIL(ipad);
+    FORGET_AND_RELEASE(ipad);
 #endif
 #ifdef USE_TI_UIIOS
-    [self forgetProxy:ios];
-    RELEASE_TO_NIL(ios);
+    FORGET_AND_RELEASE(ios);
 #endif
-#ifdef USE_TI_UICLIPBOARD	
-    [self forgetProxy:clipboard];
-    RELEASE_TO_NIL(clipboard);
+#ifdef USE_TI_UICLIPBOARD
+    FORGET_AND_RELEASE(clipboard);
+#endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+    FORGET_AND_RELEASE(activityIndicatorStyle);
+#endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+    FORGET_AND_RELEASE(tableViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+	FORGET_AND_RELEASE(listViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+    FORGET_AND_RELEASE(transitionStyle);
+#endif
+#ifdef USE_TI_UIBLENDMODE
+    FORGET_AND_RELEASE(blendMode);
 #endif
 	[super dealloc];
 }
@@ -91,6 +143,18 @@ MAKE_SYSTEM_PROP(TEXT_VERTICAL_ALIGNMENT_BOTTOM,UIControlContentVerticalAlignmen
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_LEFT,NSTextAlignmentLeft);
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_CENTER,NSTextAlignmentCenter);
 MAKE_SYSTEM_PROP(TEXT_ALIGNMENT_RIGHT,NSTextAlignmentRight);
+
+MAKE_SYSTEM_PROP(SCALE_TYPE_SCALE_TO_FILL,UIViewContentModeScaleToFill);
+MAKE_SYSTEM_PROP(SCALE_TYPE_ASPECT_FIT,UIViewContentModeScaleAspectFit);
+MAKE_SYSTEM_PROP(SCALE_TYPE_ASPECT_FILL,UIViewContentModeScaleAspectFill);
+MAKE_SYSTEM_PROP(SCALE_TYPE_CENTER,UIViewContentModeCenter);
+MAKE_SYSTEM_PROP(SCALE_TYPE_LEFT,UIViewContentModeLeft);
+MAKE_SYSTEM_PROP(SCALE_TYPE_RIGHT,UIViewContentModeRight);
+
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_NONE,UILineBreakModeWordWrap);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_HEAD,UILineBreakModeHeadTruncation);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_MIDDLE,UILineBreakModeMiddleTruncation);
+MAKE_SYSTEM_PROP(TEXT_ELLIPSIZE_TAIL,UILineBreakModeTailTruncation);
 
 MAKE_SYSTEM_PROP(RETURNKEY_DEFAULT,UIReturnKeyDefault);
 MAKE_SYSTEM_PROP(RETURNKEY_GO,UIReturnKeyGo);
@@ -179,34 +243,11 @@ MAKE_SYSTEM_PROP(LIST_ACCESSORY_TYPE_CHECKMARK,UITableViewCellAccessoryCheckmark
 MAKE_SYSTEM_PROP(LIST_ACCESSORY_TYPE_DETAIL,UITableViewCellAccessoryDetailDisclosureButton);
 MAKE_SYSTEM_PROP(LIST_ACCESSORY_TYPE_DISCLOSURE,UITableViewCellAccessoryDisclosureIndicator);
 
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_NORMAL,kCGBlendModeNormal, @"UI.BLEND_MODE_NORMAL", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_NORMAL");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_MULTIPLY,kCGBlendModeMultiply, @"UI.BLEND_MODE_MULTIPLY", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_MULTIPLY");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SCREEN,kCGBlendModeScreen, @"UI.BLEND_MODE_SCREEN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SCREEN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_OVERLAY,kCGBlendModeOverlay, @"UI.BLEND_MODE_OVERLAY", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_OVERLAY");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DARKEN,kCGBlendModeDarken, @"UI.BLEND_MODE_DARKEN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DARKEN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_LIGHTEN,kCGBlendModeLighten, @"UI.BLEND_MODE_LIGHTEN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_LIGHTEN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_COLOR_DODGE,kCGBlendModeColorDodge, @"UI.BLEND_MODE_COLOR_DODGE", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_COLOR_DODGE");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_COLOR_BURN,kCGBlendModeColorBurn, @"UI.BLEND_MODE_COLOR_BURN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_COLOR_BURN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SOFT_LIGHT,kCGBlendModeSoftLight, @"UI.BLEND_MODE_SOFT_LIGHT", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SOFT_LIGHT");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_HARD_LIGHT,kCGBlendModeHardLight, @"UI.BLEND_MODE_HARD_LIGHT", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_HARD_LIGHT");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DIFFERENCE,kCGBlendModeDifference, @"UI.BLEND_MODE_DIFFERENCE", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DIFFERENCE");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_EXCLUSION,kCGBlendModeExclusion, @"UI.BLEND_MODE_NORMAL", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_NORMAL");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_HUE,kCGBlendModeHue, @"UI.BLEND_MODE_HUE", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_HUE");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SATURATION,kCGBlendModeSaturation, @"UI.BLEND_MODE_SATURATION", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SATURATION");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_COLOR,kCGBlendModeColor, @"UI.BLEND_MODE_COLOR", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_COLOR");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_LUMINOSITY,kCGBlendModeLuminosity, @"UI.BLEND_MODE_LUMINOSITY", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_LUMINOSITY");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_CLEAR,kCGBlendModeClear, @"UI.BLEND_MODE_CLEAR", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_CLEAR");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_COPY,kCGBlendModeCopy, @"UI.BLEND_MODE_COPY", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_COPY");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SOURCE_IN,kCGBlendModeSourceIn, @"UI.BLEND_MODE_SOURCE_IN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SOURCE_IN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SOURCE_OUT,kCGBlendModeSourceOut, @"UI.BLEND_MODE_SOURCE_OUT", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SOURCE_OUT");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_SOURCE_ATOP,kCGBlendModeSourceAtop, @"UI.BLEND_MODE_SOURCE_ATOP", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_SOURCE_ATOP");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DESTINATION_OVER,kCGBlendModeDestinationOver, @"UI.BLEND_MODE_DESTINATION_OVER", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DESTINATION_OVER");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DESTINATION_IN,kCGBlendModeDestinationIn, @"UI.BLEND_MODE_DESTINATION_IN", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DESTINATION_IN");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DESTINATION_OUT,kCGBlendModeDestinationOut, @"UI.BLEND_MODE_DESTINATION_OUT", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DESTINATION_OUT");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_DESTINATION_ATOP,kCGBlendModeDestinationAtop, @"UI.BLEND_MODE_DESTINATION_ATOP", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_DESTINATION_ATOP");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_XOR,kCGBlendModeXOR, @"UI.BLEND_MODE_XOR", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_XOR");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_PLUS_DARKER,kCGBlendModePlusDarker, @"UI.BLEND_MODE_PLUS_DARKER", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_PLUS_DARKER");
-MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(BLEND_MODE_PLUS_LIGHTER,kCGBlendModePlusLighter, @"UI.BLEND_MODE_PLUS_LIGHTER", @"1.8.0", @"Ti.UI.iOS.BLEND_MODE_PLUS_LIGHTER");
+-(NSNumber*)INFINITE
+{
+    return [NSNumber numberWithDouble:HUGE_VALF];
+}
+
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_NONE,UIDataDetectorTypeNone, @"UI.AUTODETECT_NONE", @"1.8.0", @"Ti.UI.AUTOLINK_NONE");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_ALL,UIDataDetectorTypeAll, @"UI.AUTODETECT_ALL", @"1.8.0", @"Ti.UI.AUTOLINK_ALL");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_PHONE,UIDataDetectorTypePhoneNumber, @"UI.AUTODETECT_PHONE", @"1.8.0", @"Ti.UI.AUTOLINK_PHONE_NUMBERS");
@@ -215,6 +256,9 @@ MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_LINK,UIDataDetectorTypeLink, @"U
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_ADDRESS,UIDataDetectorTypeAddress, @"UI.AUTODETECT_ADDRESS", @"1.8.0", @"Ti.UI.AUTOLINK_MAP_ADDRESSES");
 MAKE_SYSTEM_PROP_DEPRECATED_REPLACED(AUTODETECT_CALENDAR,UIDataDetectorTypeCalendarEvent, @"UI.AUTODETECT_CALENDAR", @"1.8.0", @"Ti.UI.AUTOLINK_CALENDAR");
 
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSeparatorStyle);
+#endif
 
 -(void)setBackgroundColor:(id)color
 {
@@ -418,21 +462,81 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
     return [[[TiUIiOSTabbedBarProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
+
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+-(id)ActivityIndicatorStyle
+{
+	if (activityIndicatorStyle==nil)
+	{
+		activityIndicatorStyle = [[TiUIActivityIndicatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:activityIndicatorStyle];
+	}
+	return activityIndicatorStyle;
+}
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+-(id)TableViewSeparatorStyle
+{
+	if (tableViewSeparatorStyle==nil)
+	{
+		tableViewSeparatorStyle = [[TiUITableViewSeparatorStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:tableViewSeparatorStyle];
+	}
+	return tableViewSeparatorStyle;
+}
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+-(id)TransitionStyle
+{
+	if (transitionStyle==nil)
+	{
+		transitionStyle = [[TiUITransitionStyleProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:transitionStyle];
+	}
+	return transitionStyle;
+}
+#endif
+#ifdef USE_TI_UIBLENDMODE
+-(id)BlendMode
+{
+	if (blendMode==nil)
+	{
+		blendMode = [[TiUIBlendModeProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:blendMode];
+	}
+	return blendMode;
+}
+#endif
+#endif
 #pragma mark Internal Memory Management
 
 -(void)didReceiveMemoryWarning:(NSNotification*)notification
 {
 #ifdef USE_TI_UIIPHONE
-	RELEASE_TO_NIL(iphone);
+	FORGET_AND_RELEASE(iphone);
 #endif
 #ifdef USE_TI_UIIPAD
-	RELEASE_TO_NIL(ipad);
+	FORGET_AND_RELEASE(ipad);
 #endif
 #ifdef USE_TI_UIIOS
-	RELEASE_TO_NIL(ios);
+	FORGET_AND_RELEASE(ios);
 #endif
 #ifdef USE_TI_UICLIPBOARD
-	RELEASE_TO_NIL(clipboard);
+	FORGET_AND_RELEASE(clipboard);
+#endif
+#ifdef USE_TI_UIACTIVITYINDICATORSTYLE
+	FORGET_AND_RELEASE(activityIndicatorStyle);
+#endif
+#ifdef USE_TI_UITABLEVIEWSEPARATORSTYLE
+	FORGET_AND_RELEASE(tableViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE
+	FORGET_AND_RELEASE(listViewSeparatorStyle);
+#endif
+#ifdef USE_TI_UITRANSITIONSTYLE
+	FORGET_AND_RELEASE(transitionStyle);
+#endif
+#ifdef USE_TI_UIBLENDMODE
+	FORGET_AND_RELEASE(blendMode);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }
@@ -470,8 +574,8 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 {
     ENSURE_ARG_COUNT(args, 2);
     
-	NSString* convertFromValue;
-	NSString* convertToUnits;
+	NSString* convertFromValue = nil;
+	NSString* convertToUnits = nil;
     
 	ENSURE_ARG_AT_INDEX(convertFromValue, args, 0, NSString);
 	ENSURE_ARG_AT_INDEX(convertToUnits, args, 1, NSString);  

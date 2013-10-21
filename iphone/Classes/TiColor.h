@@ -47,5 +47,6 @@
 
 -(UIColor*)_color;
 -(NSString*)_name;
+- (CGColorRef)cgColor;
 
 @end

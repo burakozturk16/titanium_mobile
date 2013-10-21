@@ -62,6 +62,7 @@
  */
 @interface TiAnimation : TiProxy {
 @private
+        
 	NSNumber	*zIndex;
 	id  left;
 	id  right;
@@ -69,6 +70,15 @@
 	id  bottom;
 	id  width;
 	id  height;
+    
+    BOOL  leftDefined;
+	BOOL  rightDefined;
+	BOOL  topDefined;
+	BOOL  bottomDefined;
+	BOOL  widthDefined;
+	BOOL  heightDefined;
+	BOOL  transformDefined;
+    
 	NSNumber	*duration;
 	TiPoint		*center;
 	TiColor		*backgroundColor;
@@ -104,20 +114,14 @@
  */
 @property(nonatomic,assign,readwrite) NSObject<TiAnimationDelegate> *delegate;
 
-@property(nonatomic,readwrite,assign) UIView* animatedView;
+@property(nonatomic,readwrite,retain) UIView* animatedView;
 @property(nonatomic,readonly) ListenerEntry* callback;
-@property(nonatomic,readwrite,assign) TiAnimation* reverseAnimation;
+@property(nonatomic,readwrite,retain) TiAnimation* reverseAnimation;
 @property(nonatomic,readwrite,assign) BOOL isReverse;
 @property(nonatomic,readwrite,assign) BOOL resetState;
 
 // animatable properties against what is being animated
 @property(nonatomic,retain,readwrite) NSNumber	*zIndex;
-@property(nonatomic,retain,readwrite) id    left;
-@property(nonatomic,retain,readwrite) id    right;
-@property(nonatomic,retain,readwrite) id    top;
-@property(nonatomic,retain,readwrite) id    bottom;
-@property(nonatomic,retain,readwrite) id    width;
-@property(nonatomic,retain,readwrite) id    height;
 @property(nonatomic,retain,readwrite) NSNumber	*duration;
 @property(nonatomic,retain,readwrite) TiPoint	*center;
 @property(nonatomic,retain,readwrite) TiColor	*color;
@@ -131,7 +135,7 @@
 @property(nonatomic,retain,readwrite) NSNumber	*repeat;
 @property(nonatomic,retain,readwrite) NSNumber	*autoreverse;
 @property(nonatomic,retain,readwrite) NSNumber	*delay;
-@property(nonatomic,retain,readwrite) TiProxy	*transform;
+//@property(nonatomic,retain,readwrite) TiProxy	*transform;
 @property(nonatomic,retain,readwrite) NSNumber	*transition;
 @property(nonatomic,retain,readwrite) TiProxy	*view;
 
@@ -150,6 +154,10 @@
 -(BOOL)isTransitionAnimation;
 
 -(NSTimeInterval)animationDuration;
+-(CAMediaTimingFunction*) timingFunction;
 -(void)animationCompleted:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
+-(void)simulateFinish:(TiViewProxy*)proxy;
+-(void)cancel:(id)args;
+
 
 @end

@@ -42,7 +42,7 @@ import requireIndex
 
 resourceFiles = ['strings.xml', 'attrs.xml', 'styles.xml', 'bools.xml', 'colors.xml',
 				'dimens.xml', 'ids.xml', 'integers.xml', 'arrays.xml']
-ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store'];
+ignoreFiles = ['.gitignore', '.cvsignore', '.DS_Store', '.gitmodules', '.git'];
 ignoreDirs = ['.git','.svn','_svn', 'CVS'];
 android_avd_hw = {'hw.camera': 'yes', 'hw.gps':'yes'}
 res_skips = ['style']
@@ -315,7 +315,7 @@ def remove_orphaned_files(source_folder, target_folder, ignore=[]):
 				os.remove(full)
 
 def is_resource_drawable(path):
-	if re.search("android/images/(high|medium|low|res-[^/]+)/", path.replace(os.sep, "/")):
+	if re.search("android/images(/(extra high|high|medium|low|res-[^/]+))?/", path.replace(os.sep, "/")):
 		return True
 	else:
 		return False
@@ -324,13 +324,17 @@ def resource_drawable_folder(path):
 	if not is_resource_drawable(path):
 		return None
 	else:
-		pattern = r'/android/images/(high|medium|low|res-[^/]+)/'
+		pattern = r'/android/images(/(extra high|high|medium|low|res-[^/]+))?/'
 		match = re.search(pattern, path.replace(os.sep, "/"))
-		if not match.groups():
+		if  match == None:
 			return None
-		folder = match.groups()[0]
-		if re.match('high|medium|low', folder):
+		folder = match.groups()[1]
+		if folder == None:
+			return 'drawable'
+		elif re.match('high|medium|low', folder):
 			return 'drawable-%sdpi' % folder[0]
+		elif re.match('extra high', folder):
+				return 'drawable-xhdpi'
 		else:
 			return 'drawable-%s' % folder.replace('res-', '')
 
@@ -365,6 +369,10 @@ def remove_duplicate_nodes_in_res_file(full_path, node_names_to_check):
 		f.write(new_contents)
 		f.close()
 
+def loadJSONFile(file):
+	json_data=open(file).read()
+	return simplejson.loads(json_data)
+
 class Builder(object):
 
 	def __init__(self, name, sdk, project_dir, support_dir, app_id, is_emulator):
@@ -379,7 +387,7 @@ class Builder(object):
 		self.app_id = app_id
 		self.support_dir = support_dir
 		self.compiled_files = []
-		self.force_rebuild = False
+		self.force_rebuild = True
 		self.debugger_host = None
 		self.debugger_port = -1
 		self.profiler_host = None
@@ -389,7 +397,21 @@ class Builder(object):
 		self.compile_js = False
 		self.tool_api_level = MIN_API_LEVEL
 		self.abis = list(KNOWN_ABIS)
+		self.config_plugins = {}
 
+		buildManifestFile = os.path.join(self.project_dir, 'build-manifest.json')
+		if (os.path.isfile(buildManifestFile)):
+			buildManifest = loadJSONFile(buildManifestFile)
+			if 'config-plugins' in buildManifest:
+				self.config_plugins = buildManifest['config-plugins']
+
+		ignoreRegExpStr = "^" + '|'.join(ignoreFiles).replace('.', '\\.')
+		if 'ignoreFiles' in self.config_plugins:
+			ignoreRegExpStr += '|' + '|'.join(self.config_plugins['ignoreFiles'])
+		ignoreRegExpStr += "$";
+		self.ignoreFilesRegex = re.compile(ignoreRegExpStr)
+		debug("ignoreRegExpStr: %s" % ignoreRegExpStr)
+		
 		# don't build if a java keyword in the app id would cause the build to fail
 		tok = self.app_id.split('.')
 		for token in tok:
@@ -734,7 +756,7 @@ class Builder(object):
 
 	def include_path(self, path, isfile):
 		if not isfile and os.path.basename(path) in ignoreDirs: return False
-		elif isfile and os.path.basename(path) in ignoreFiles: return False
+		elif isfile and re.search(self.ignoreFilesRegex, os.path.basename(path)): return False
 		return True
 
 	def warn_dupe_drawable_folders(self):
@@ -769,7 +791,7 @@ class Builder(object):
 
 		def make_resource_drawable_filename(orig):
 			normalized = orig.replace(os.sep, "/")
-			matches = re.search("/android/images/(high|medium|low|res-[^/]+)/(?P<chopped>.*$)", normalized)
+			matches = re.search("/android/images(/(extra high|high|medium|low|res-[^/]+))?/(?P<chopped>.*$)", normalized)
 			if matches and matches.groupdict() and 'chopped' in matches.groupdict():
 				chopped = matches.groupdict()['chopped'].lower()
 				for_hash = chopped
@@ -898,7 +920,7 @@ class Builder(object):
 
 		for delta in self.project_deltas:
 			path = delta.get_path()
-			if re.search("android/images/(high|medium|low|res-[^/]+)/", path.replace(os.sep, "/")):
+			if re.search("android/images(/(extra high|high|medium|low|res-[^/]+))?/", path.replace(os.sep, "/")):
 				continue # density images are handled later
 
 			if delta.get_status() == Delta.DELETED and path.startswith(android_resources_dir):
@@ -1205,6 +1227,14 @@ class Builder(object):
 <style name="Theme.Titanium" parent="android:%s">
     <item name="android:windowBackground">@drawable/background</item>
 </style>
+<style name="Theme.Titanium.Translucent" parent="android:Theme">
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:colorBackgroundCacheHint">@null</item>
+    <item name="android:windowIsTranslucent">true</item>
+</style>
+<style name="Theme.Titanium.Translucent.Fullscreen">
+    <item name="android:windowFullscreen">true</item>
+</style>
 </resources>
 """ % theme_flags
 			theme_file.write(TITANIUM_THEME)
@@ -1215,7 +1245,7 @@ class Builder(object):
 		android_images_dir = os.path.join(resources_dir, 'android', 'images')
 		# look for density-specific default.png's first
 		if os.path.exists(android_images_dir):
-			pattern = r'/android/images/(high|medium|low|res-[^/]+)/default.png'
+			pattern = r'/android/images(/(extra high|high|medium|low|res-[^/]+))?/default.png'
 			for root, dirs, files in os.walk(android_images_dir):
 				remove_ignored_dirs(dirs)
 				for f in files:
@@ -1299,15 +1329,31 @@ class Builder(object):
 			return xml
 
 		application_xml = ''
+		application_services = []
+		application_receivers = []
 		def get_application_xml(tiapp, template_obj=None):
 			xml = ''
 			if 'application' in tiapp.android_manifest:
 				for app_el in tiapp.android_manifest['application']:
+					if app_el.nodeName == 'service' and app_el.hasAttribute('android:name'):
+						service_name =  app_el.getAttribute('android:name')
+						if (service_name in application_services):
+							continue
+						else:
+							application_services.append(service_name)
+					if app_el.nodeName == 'receiver' and app_el.hasAttribute('android:name'):
+						receiver_name =  app_el.getAttribute('android:name')
+						if (receiver_name in application_receivers):
+							continue
+						else:
+							application_receivers.append(receiver_name)
 					this_xml = app_el.toxml()
 					if template_obj is not None and "${" in this_xml:
 						this_xml = render_template_with_tiapp(this_xml, template_obj)
-					xml += this_xml
+					xml += this_xml + '\n'
 			return xml
+
+		
 
 		# add manifest / application entries from tiapp.xml
 		manifest_xml += get_manifest_xml(self.tiapp)
@@ -1735,7 +1781,7 @@ class Builder(object):
 
 		# add module native libraries
 		for module in self.modules:
-			exclude_libs = []
+			exclude_libs = ['libstlport_shared.so']
 			add_native_libs(module.get_resource('libs'), exclude_libs)
 
 		# add any native libraries : libs/**/*.so -> lib/**/*.so
@@ -1838,14 +1884,14 @@ class Builder(object):
 		webview_js_files = []
 
 		pkg_assets_dir = self.assets_dir
-		if self.deploy_type == "test":
+		if self.deploy_type == "development":
 			compile_js = False
 
 		if compile_js and os.environ.has_key('SKIP_JS_MINIFY'):
 			compile_js = False
 			info("Disabling JavaScript minification")
-
-		if self.deploy_type == "production" and compile_js:
+		
+		if compile_js:
 			webview_js_files = get_js_referenced_in_html()
 			non_js_assets = os.path.join(self.project_dir, 'bin', 'non-js-assets')
 			if not os.path.exists(non_js_assets):
@@ -1959,13 +2005,13 @@ class Builder(object):
 		# Quick check: the existence of /sdcard/Android,
 		# which really should be there on all phones and emulators.
 		output = self.run_adb('shell', 'cd /sdcard/Android && echo SDCARD READY')
-		if 'SDCARD READY' in output:
+		if output is not None and "SDCARD READY" in output:
 			return True
 
 		# Our old way of checking in case the above
 		# didn't succeed:
 
-		mount_points_check = ['/sdcard', '/mnt/sdcard']
+		mount_points_check = ['/sdcard', '/mnt/sdcard', '/mnt/sdcard-ext', '/mnt/sdcard/external_sd']
 		# Check the symlink that is typically in root.
 		# If you find it, add its target to the mount points to check.
 		output = self.run_adb('shell', 'ls', '-l', '/sdcard')
@@ -1984,6 +2030,10 @@ class Builder(object):
 					tokens = mount_point.split()
 					if len(tokens) < 2: continue
 					mount_path = tokens[1]
+					if mount_path in mount_points_check:
+						return True
+					if len(tokens) < 3: continue
+					mount_path = tokens[2]
 					if mount_path in mount_points_check:
 						return True
 			else:
@@ -2051,9 +2101,8 @@ class Builder(object):
 				raise
 			finally:
 				res_zip_file.close()
-
-	def build_and_run(self, install, avd_id, keystore=None, keystore_pass='tirocks', keystore_alias='tidev', dist_dir=None, build_only=False, device_args=None, debugger_host=None, profiler_host=None):
-		deploy_type = 'development'
+				
+	def build_and_run(self, install, avd_id, keystore=None, keystore_pass='tirocks', keystore_alias='tidev', dist_dir=None, build_only=False, device_args=None, debugger_host=None, profiler_host=None, deploy_type=None):
 		self.build_only = build_only
 		self.device_args = device_args
 		self.postbuild_modules = []
@@ -2062,10 +2111,14 @@ class Builder(object):
 		if install:
 			if self.device_args == None:
 				self.device_args = ['-d']
-			if keystore == None:
-				deploy_type = 'test'
-			else:
-				deploy_type = 'production'
+			if deploy_type == None:
+				if keystore == None:
+					deploy_type = 'test'
+				else:
+					deploy_type = 'production'
+		else:
+			if deploy_type == None:
+				deploy_type = 'development'
 		if self.device_args == None:
 			self.device_args = ['-e']
 
@@ -2105,7 +2158,7 @@ class Builder(object):
 				info("plugin=%s" % plugin_file)
 				if not os.path.exists(local_plugin_file) and not os.path.exists(plugin_file):
 					error("Build Failed (Missing plugin for %s)" % plugin['name'])
-					sys.exit(1)
+					continue
 				info("Detected compiler plugin: %s/%s" % (plugin['name'],plugin['version']))
 				code_path = plugin_file
 				if os.path.exists(local_plugin_file):
@@ -2258,7 +2311,7 @@ class Builder(object):
 				if self.tiapp.to_bool(self.tiapp.get_app_property('ti.android.compilejs')):
 					self.compile_js = True
 			elif self.tiapp.has_app_property('ti.deploytype'):
-				if self.tiapp.get_app_property('ti.deploytype') == 'production':
+				if self.tiapp.get_app_property('ti.deploytype') != 'development':
 					self.compile_js = True
 
 			if self.compile_js and os.environ.has_key('SKIP_JS_MINIFY'):
@@ -2270,10 +2323,11 @@ class Builder(object):
 				if self.tiapp.to_bool(self.tiapp.get_app_property('ti.android.include_all_modules')):
 					include_all_ti_modules = True
 			if self.tiapp_changed or (self.js_changed and not self.fastdev) or \
-					self.force_rebuild or self.deploy_type == "production" or \
+					self.force_rebuild or self.deploy_type != "development" or \
 					(self.fastdev and not built_all_modules) or \
 					(not self.fastdev and built_all_modules):
 				self.android.config['compile_js'] = self.compile_js
+				self.android.config['appversion'] = self.tiapp.properties['version']
 				trace("Generating Java Classes")
 				self.android.create(os.path.abspath(os.path.join(self.top_dir,'..')),
 					True, project_dir = self.top_dir, include_all_ti_modules=include_all_ti_modules)
@@ -2631,7 +2685,10 @@ if __name__ == "__main__":
 			output_dir = dequote(sys.argv[9])
 			builder.build_and_run(True, None, key, password, alias, output_dir)
 		elif command == 'build':
-			builder.build_and_run(False, 1, build_only=True)
+			if len(sys.argv) >= 7:
+				builder.build_and_run(False, 1, build_only=True, deploy_type=sys.argv[6])
+			else:
+				builder.build_and_run(False, 1, build_only=True)
 		else:
 			error("Unknown command: %s" % command)
 			usage()

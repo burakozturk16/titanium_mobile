@@ -7,8 +7,11 @@
 package org.appcelerator.kroll;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.TiC;
@@ -111,6 +114,33 @@ public class KrollDict
 		return false;
 	}
 	
+	public boolean equalsKrollDict(KrollDict otherDict)
+	{
+		if (otherDict.size() != size()) return false;
+		for(Entry<String, Object> e: entrySet()){
+			String key = e.getKey();
+			Object newvalue = e.getValue();
+			if (!otherDict.containsKeyWithValue(key, newvalue))
+				return false;
+		}
+		return true;
+	}
+	
+	public boolean containsKeyWithValue(String key, Object value) {
+		
+		Object myValue = get(key);
+		
+		if (myValue == null || value == null) return (myValue == value);
+		boolean result;
+		if (myValue instanceof KrollDict && value instanceof KrollDict)
+			result = ((KrollDict)myValue).equalsKrollDict((KrollDict)value);
+		else
+		{
+			result = value.equals(myValue);
+		}
+		return result;
+	}
+	
 	public boolean getBoolean(String key) {
 		return TiConvert.toBoolean(get(key));
 	}
@@ -118,7 +148,7 @@ public class KrollDict
 	public boolean optBoolean(String key, boolean defaultValue) {
 		boolean result = defaultValue;
 
-		if (containsKey(key)) {
+		if (containsKey(key) && get(key) != null) {
 			result = getBoolean(key);
 		}
 		return result;
@@ -143,7 +173,7 @@ public class KrollDict
 		Integer result = defaultValue;
 
 		if (containsKey(key)) {
-			result = getInt(key);
+			result = TiConvert.toInt(get(key), defaultValue);
 		}
 		return result;
 	}
@@ -152,8 +182,104 @@ public class KrollDict
 		return TiConvert.toDouble(get(key));
 	}
 
+	public Double optDouble(String key, Double defaultValue) {
+		Double result = defaultValue;
+
+		if (containsKey(key)) {
+			result =  TiConvert.toDouble(get(key), defaultValue);
+		}
+		return result;
+	}
+
+	public float getFloat(String key) {
+		return TiConvert.toFloat(get(key));
+	}
+
+	public float optFloat(String key, float defaultValue) {
+		float result = defaultValue;
+
+		if (containsKey(key)) {
+			result = TiConvert.toFloat(get(key), defaultValue);
+		}
+		return result;
+	}
+
+	public int getColor(String key) {
+		return TiConvert.toColor(getString(key));
+	}
+
+	public int optColor(String key, int defaultValue) {
+		int result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getColor(key);
+		}
+		return result;
+	}
+
 	public String[] getStringArray(String key) {
 		return TiConvert.toStringArray((Object[])get(key));
+	}
+
+	public String[] optStringArray(String key, String[] defaultValue) {
+		String[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getStringArray(key);
+		}
+		return result;
+	}
+
+	public int[] getIntArray(String key) {
+		return TiConvert.toIntArray((Object[])get(key));
+	}
+
+	public int[] optIntArray(String key, int[] defaultValue) {
+		int[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getIntArray(key);
+		}
+		return result;
+	}
+
+	public float[] getFloatArray(String key) {
+		return TiConvert.toFloatArray((Object[])get(key));
+	}
+
+	public float[] optFloatArray(String key, float[] defaultValue) {
+		float[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getFloatArray(key);
+		}
+		return result;
+	}
+
+	public double[] getDoubleArray(String key) {
+		return TiConvert.toDoubleArray((Object[])get(key));
+	}
+
+	public double[] optDoubleArray(String key, double[] defaultValue) {
+		double[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getDoubleArray(key);
+		}
+		return result;
+	}
+
+	public Number[] getNumberArray(String key) {
+		return TiConvert.toNumberArray((Object[])get(key));
+	}
+
+	public Number[] optIntArray(String key, Number[] defaultValue) {
+		Number[] result = defaultValue;
+
+		if (containsKey(key)) {
+			result = getNumberArray(key);
+		}
+		return result;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -176,4 +302,11 @@ public class KrollDict
 	public String toString() {
 		return new JSONObject(this).toString();
 	}
+	
+	public Set<String> minusKeys(final KrollDict that) {
+		Set<String> keys = new HashSet<String>(keySet());
+		Set<String> thatkeys = that.keySet();
+		keys.removeAll(thatkeys);
+		return keys;
+    }
 }

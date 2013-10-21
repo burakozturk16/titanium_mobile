@@ -11,6 +11,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
@@ -22,16 +23,17 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
 import android.widget.TextView;
 
 public class TiUISearchBar extends TiUIText
 {
 	protected ImageButton cancelBtn;
 	private TiEditText tv;
+	private FocusFixedEditText fullTv;
 	private TextView promptText;
 	
 	public interface OnSearchChangeListener {
@@ -43,8 +45,8 @@ public class TiUISearchBar extends TiUIText
 	public TiUISearchBar(final TiViewProxy proxy)
 	{
 		super(proxy, true);
-
-		tv = (TiEditText) getNativeView();
+		fullTv = (FocusFixedEditText)getNativeView();
+		tv = (TiEditText) fullTv.getRealEditText();
 		tv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 		promptText = new TextView(proxy.getActivity());
 		promptText.setEllipsize(TruncateAt.END);
@@ -55,7 +57,6 @@ public class TiUISearchBar extends TiUIText
 		// Steal the Text's nativeView. We're going to replace it with our layout.
 		cancelBtn = new ImageButton(proxy.getActivity());
 		cancelBtn.isFocusable();
-		cancelBtn.setId(101);
 		cancelBtn.setImageResource(android.R.drawable.ic_input_delete);
 		// set some minimum dimensions for the cancel button, in a density-independent way.
 		final float scale = cancelBtn.getContext().getResources().getDisplayMetrics().density;
@@ -75,7 +76,7 @@ public class TiUISearchBar extends TiUIText
 				fireEvent("cancel", null);
 			}
 		});
-
+		fullTv.setRightView(cancelBtn);
 		RelativeLayout layout = new RelativeLayout(proxy.getActivity())
 		{
 			@Override
@@ -97,17 +98,8 @@ public class TiUISearchBar extends TiUIText
 		layout.addView(promptText, params);
 
 		params = new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
 		params.addRule(RelativeLayout.CENTER_VERTICAL);
-		params.addRule(RelativeLayout.LEFT_OF, 101);
-//		params.setMargins(4, 4, 4, 4);
-		layout.addView(tv, params);
-
-		params = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-		params.addRule(RelativeLayout.CENTER_VERTICAL);
-//		params.setMargins(0, 4, 4, 4);
-		layout.addView(cancelBtn, params);
+		layout.addView(fullTv, params);
 
 		setNativeView(layout);
 	}
@@ -124,9 +116,15 @@ public class TiUISearchBar extends TiUIText
 	public void processProperties(KrollDict d)
 	{
 		super.processProperties(d);
+
 		if (d.containsKey(TiC.PROPERTY_SHOW_CANCEL)) {
 			boolean showCancel = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_CANCEL, false);
-			cancelBtn.setVisibility(showCancel ? View.VISIBLE : View.GONE);
+			if (showCancel)
+				fullTv.showRightView();
+			else
+				fullTv.hideRightView();
+		} else if (d.containsKey(TiC.PROPERTY_BAR_COLOR)) {
+			nativeView.setBackgroundColor(TiConvert.toColor(d, TiC.PROPERTY_BAR_COLOR));
 		}
 		if (d.containsKey(TiC.PROPERTY_BAR_COLOR)) {
 			nativeView.setBackgroundColor(TiConvert.toColor(d, TiC.PROPERTY_BAR_COLOR));
@@ -135,9 +133,6 @@ public class TiUISearchBar extends TiUIText
 			String strPrompt = TiConvert.toString(d, TiC.PROPERTY_PROMPT);
 			promptText.setText(strPrompt);
 		}
-		if (d.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			processBackgroundImage(proxy.getProperty(TiC.PROPERTY_BACKGROUND_IMAGE), proxy);
-		}
 	}
 
 	@Override
@@ -145,27 +140,20 @@ public class TiUISearchBar extends TiUIText
 	{
 		if (key.equals(TiC.PROPERTY_SHOW_CANCEL)) {
 			boolean showCancel = TiConvert.toBoolean(newValue);
-			cancelBtn.setVisibility(showCancel ? View.VISIBLE : View.GONE);
+			if (showCancel)
+				fullTv.showRightView();
+			else
+				fullTv.hideRightView();
 		} else if (key.equals(TiC.PROPERTY_BAR_COLOR)) {
 			nativeView.setBackgroundColor(TiConvert.toColor(TiConvert.toString(newValue)));
 		} else if (key.equals(TiC.PROPERTY_PROMPT)) {
 			String strPrompt = TiConvert.toString(newValue);
 			promptText.setText(strPrompt);
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			processBackgroundImage(newValue, proxy);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
 	}
 
-	private void processBackgroundImage(Object imgValue, KrollProxy proxy)
-	{
-		String bkgdImage = TiConvert.toString(imgValue);
-		TiFileHelper tfh = new TiFileHelper(tv.getContext());
-		String url = proxy.resolveUrl(null, bkgdImage);
-		Drawable background = tfh.loadDrawable(url, false);
-		nativeView.setBackgroundDrawable(background);
-	}
 
 	public void setOnSearchChangeListener(OnSearchChangeListener listener) {
 		this.searchChangeListener = listener;

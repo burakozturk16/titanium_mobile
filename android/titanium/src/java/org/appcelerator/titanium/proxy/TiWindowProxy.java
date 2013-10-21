@@ -17,7 +17,11 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
+import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiWindowManager;
+import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiAnimation;
@@ -25,6 +29,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Message;
 import android.view.View;
@@ -56,7 +61,12 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected boolean inTab;
 	protected PostOpenListener postOpenListener;
 	protected boolean windowActivityCreated = false;
-
+	
+	private TiWindowManager winManager = null;
+	
+	/**
+	 * An interface to intercept OnBackPressed events.
+	 */
 
 	public static interface PostOpenListener
 	{
@@ -106,6 +116,9 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void open(@Kroll.argument(optional = true) Object arg)
 	{
 		if (opened || opening) { return; }
+		if (winManager != null && winManager.handleOpen(this, arg)) {
+			return;
+		}
 
 		waitingForOpen = new WeakReference<TiWindowProxy>(this);
 		opening = true;
@@ -141,7 +154,9 @@ public abstract class TiWindowProxy extends TiViewProxy
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
-
+		if (winManager != null && winManager.handleClose(this, arg)) {
+			return;
+		}
 		KrollDict options = null;
 		TiAnimation animation = null;
 
@@ -229,10 +244,10 @@ public abstract class TiWindowProxy extends TiViewProxy
 		this.postOpenListener = listener;
 	}
 
-	public KrollDict handleToImage()
-	{
-		return TiUIHelper.viewToImage(new KrollDict(), getActivity().getWindow().getDecorView());
-	}
+//	 public TiBlob handleToImage(Number scale)
+//	 {
+//	 	return TiUIHelper.viewToImage(null, getActivity().getWindow().getDecorView(), scale.floatValue());
+//	 }
 
 	/*
 	 * Called when the window's activity has been created.
@@ -240,12 +255,18 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void onWindowActivityCreated()
 	{
 		windowActivityCreated = true;
-
+		
+		if (hasProperty(TiC.PROPERTY_ORIENTATION_MODES)) {
+			Object obj = getProperty(TiC.PROPERTY_ORIENTATION_MODES);
+			if (obj instanceof Object[]) {
+				orientationModes = TiConvert.toIntArray((Object[]) obj);
+			}
+		}
 		// Make sure the activity opens according to any orientation modes 
 		// set on the window before the activity was actually created.
-		if (orientationModes != null) {
+//		if (orientationModes != null) {
 			setOrientationModes(orientationModes);
-		}
+//		}
 	}
 
 	/**
@@ -401,12 +422,12 @@ public abstract class TiWindowProxy extends TiViewProxy
 	protected abstract void handleOpen(KrollDict options);
 	protected abstract void handleClose(KrollDict options);
 	protected abstract Activity getWindowActivity();
-
+	
 	/**
 	 * Sub-classes will need to call handlePostOpen after their window is visible
 	 * so any pending dialogs can successfully show after the window is opened
 	 */
-	protected void handlePostOpen()
+	public void handlePostOpen()
 	{
 		if (postOpenListener != null)
 		{
@@ -422,7 +443,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 			waitingForOpen = null;
 		}
 
-		View nativeView = view.getNativeView();
+		View nativeView = (view != null)?view.getNativeView():null;
 
 		// Make sure we draw the view during the layout pass. This does not seem to cause another layout pass. We need
 		// to force the view to be drawn due to TIMOB-7685
@@ -453,5 +474,22 @@ public abstract class TiWindowProxy extends TiViewProxy
 			return null;
 		}
 		return super.getParentForBubbling();
+	}
+
+	public void setWindowManager(TiWindowManager manager)
+	{
+		this.winManager = manager;
+	}
+	
+
+	@Override
+	public TiBlob handleToImage(Number scale)
+	{
+		float scaleValue = scale.floatValue();
+		Bitmap bitmap = TiUIHelper.viewToBitmap(null, getActivity().getWindow().getDecorView());
+		if (scaleValue != 1.0f) {
+			bitmap = TiImageHelper.imageScaled(bitmap, scaleValue);
+		}
+		return TiBlob.blobFromImage(bitmap);
 	}
 }

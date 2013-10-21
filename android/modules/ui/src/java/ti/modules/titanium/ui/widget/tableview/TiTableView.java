@@ -25,10 +25,12 @@ import ti.modules.titanium.ui.TableViewProxy;
 import ti.modules.titanium.ui.TableViewRowProxy;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.tableview.TableViewModel.Item;
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
+import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -41,6 +43,7 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.ListView;
 
+@SuppressLint("DefaultLocale")
 public class TiTableView extends FrameLayout
 	implements OnSearchChangeListener
 {
@@ -78,9 +81,11 @@ public class TiTableView extends FrameLayout
 		TableViewModel viewModel;
 		ArrayList<Integer> index;
 		private boolean filtered;
+        private TableViewProxy proxy;
 
-		TTVListAdapter(TableViewModel viewModel) {
+		TTVListAdapter(TableViewModel viewModel, TableViewProxy proxy) {
 			this.viewModel = viewModel;
+            this.proxy = proxy;
 			this.index = new ArrayList<Integer>(viewModel.getRowCount());
 			reIndexItems();
 		}
@@ -173,14 +178,16 @@ public class TiTableView extends FrameLayout
 		 */
 		public View getView(int position, View convertView, ViewGroup parent) {
 			Item item = (Item) getItem(position);
+			TiViewProxy newProxy = item.proxy;
 			TiBaseTableViewItem v = null;
-			
+			boolean sameView = false;
+			//we have a conversion view, first lets check if it s compatible with our proxy
 			if (convertView != null) {
 				v = (TiBaseTableViewItem) convertView;
 				// Default creates view for each Item
-				boolean sameView = false;
-				if (item.proxy instanceof TableViewRowProxy) {
-					TableViewRowProxy row = (TableViewRowProxy)item.proxy;
+				
+				if (newProxy instanceof TableViewRowProxy) {
+					TableViewRowProxy row = (TableViewRowProxy)newProxy;
 					if (row.getTableViewRowProxyItem() != null) {
 						sameView = row.getTableViewRowProxyItem().equals(convertView);
 					}
@@ -195,11 +202,44 @@ public class TiTableView extends FrameLayout
 						v = null;
 					} else {
 						// otherwise compare class names
-						if (!v.getClassName().equals(item.className)) {
+						if (!(item.proxy instanceof TableViewRowProxy) || !v.getClassName().equals(item.className)) {
 							Log.w(TAG, "Handed a view to convert with className " + v.getClassName() + " expected "
 								+ item.className, Log.DEBUG_MODE);
 							v = null;
 						}
+					}
+				}
+				if (v!= null)
+				{
+					TiViewProxy oldProxy = v.getRowData().proxy;
+					//last check, verify that we can transfer proxy
+					Boolean canreproxy = true;
+					TiViewProxy[] oldproxies = oldProxy.getChildren();
+					TiViewProxy[] newproxies = newProxy.getChildren();
+					if (oldproxies.length != newproxies.length)
+					{
+						canreproxy = false;
+					}
+					else
+					{
+						for (int i = 0; i < oldproxies.length; i++) {
+							TiViewProxy newSubProxy = newproxies[i];
+							TiViewProxy oldSubProxy = oldproxies[i];
+							
+							if (oldSubProxy.validateTransferToProxy(newSubProxy, true) == false)
+							{
+								canreproxy = false;
+								break;
+							}
+						}
+					}
+					
+					if (canreproxy == false && ((ViewGroup)v.getView()).getChildCount() > 0)
+					{
+						Log.w(TAG, "We cant reuse that view, will create a new one", Log.DEBUG_MODE);
+						
+						//we must clear this viewItem. As a consequence it will be as creating a new one
+						v.clearViews();
 					}
 				}
 			}
@@ -226,7 +266,14 @@ public class TiTableView extends FrameLayout
 				v.setLayoutParams(new AbsListView.LayoutParams(
 					AbsListView.LayoutParams.MATCH_PARENT, AbsListView.LayoutParams.MATCH_PARENT));
 			}
-			v.setRowData(item);
+            else if (sameView == false) 
+            {
+            	v.prepareForReuse();
+            }
+            if (v.getRowData() != item || sameView == false)
+            {
+                v.setRowData(item);
+            }
 			return v;
 		}
 
@@ -280,6 +327,7 @@ public class TiTableView extends FrameLayout
 		listView.setFocusableInTouchMode(true);
 		listView.setBackgroundColor(Color.TRANSPARENT);
 		listView.setCacheColorHint(Color.TRANSPARENT);
+		listView.setScrollingCacheEnabled(false);
 		final KrollProxy fProxy = proxy;
 		listView.setOnScrollListener(new OnScrollListener()
 		{
@@ -289,6 +337,7 @@ public class TiTableView extends FrameLayout
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState)
 			{
+				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
 					scrollValid = false;
 					KrollDict eventArgs = new KrollDict();
@@ -333,7 +382,7 @@ public class TiTableView extends FrameLayout
 		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			setSeparatorColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_SEPARATOR_COLOR)));
 		}
-		adapter = new TTVListAdapter(viewModel);
+		adapter = new TTVListAdapter(viewModel, proxy);
 		if (proxy.hasProperty(TiC.PROPERTY_HEADER_VIEW)) {
 			TiViewProxy view = (TiViewProxy) proxy.getProperty(TiC.PROPERTY_HEADER_VIEW);
 			listView.addHeaderView(layoutHeaderOrFooter(view).getOuterView(), null, false);
@@ -407,6 +456,16 @@ public class TiTableView extends FrameLayout
 		}
 		return viewModel.getViewModel().get(adapter.index.get(position));
 	}
+	
+	public int getPositionForView(View view) {
+		int result = -1;
+		try {
+			result = listView.getPositionForView(view);
+		} catch(NullPointerException e){
+			
+		}
+		return result;
+	}
 
 	public int getIndexFromXY(double x, double y) {
 		int bound = listView.getLastVisiblePosition() - listView.getFirstVisiblePosition();
@@ -457,7 +516,7 @@ public class TiTableView extends FrameLayout
 				((ViewGroup)vParent).removeView(outerView);
 			}
 		}
-		TiBaseTableViewItem.clearChildViews(viewProxy);
+		viewProxy.clearViews();
 		TiUIView tiView = viewProxy.forceCreateView();
 		View nativeView = tiView.getOuterView();
 		TiCompositeLayout.LayoutParams params = tiView.getLayoutParams();
@@ -484,6 +543,13 @@ public class TiTableView extends FrameLayout
 		}
 	}
 
+	public int getCount() {
+		if (adapter != null) {
+			return adapter.getCount();
+		}
+		return 0;
+	}
+
 	public void setOnItemClickListener(OnItemClickedListener listener) {
 		this.itemClickListener = listener;
 	}
@@ -498,6 +564,12 @@ public class TiTableView extends FrameLayout
 		int dividerHeight = listView.getDividerHeight();
 		listView.setDivider(new ColorDrawable(sepColor));
 		listView.setDividerHeight(dividerHeight);
+	}
+	
+	public void setSeparatorStyle(int separatorHeight) {
+		Drawable drawable = listView.getDivider();
+		listView.setDivider(drawable);
+		listView.setDividerHeight(separatorHeight);
 	}
 
 	public TableViewModel getTableViewModel() {

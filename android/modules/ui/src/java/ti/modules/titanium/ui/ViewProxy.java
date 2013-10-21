@@ -6,6 +6,9 @@
  */
 package ti.modules.titanium.ui;
 
+import java.util.HashMap;
+
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -34,5 +37,17 @@ public class ViewProxy extends TiViewProxy
 		view.getLayoutParams().autoFillsHeight = true;
 		view.getLayoutParams().autoFillsWidth = true;
 		return view;
+	}
+	
+	@Override
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
+	{
+		TiViewProxy child = null;
+		if (args instanceof TiViewProxy)
+			child = (TiViewProxy) args;
+		else if (args instanceof HashMap) {
+			child = (ViewProxy) KrollProxy.createProxy(ViewProxy.class, null, new Object[] { args }, null);
+		}
+		super.add(child, index);
 	}
 }

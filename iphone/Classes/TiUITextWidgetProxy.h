@@ -29,6 +29,8 @@
 //Internal values
 -(void)noteValueChange:(NSString *)newValue;
 
+-(BOOL)selectNextTextWidget;
+
 @property(nonatomic,readwrite,assign)	BOOL suppressFocusEvents;
 
 @end

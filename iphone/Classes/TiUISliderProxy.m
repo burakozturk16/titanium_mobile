@@ -12,13 +12,28 @@ NSArray* sliderKeySequence;
 
 @implementation TiUISliderProxy
 
++(NSSet*)transferableProperties
+{
+    NSSet *common = [TiViewProxy transferableProperties];
+    return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"min",
+                                              @"max",@"value",@"enabled",@"leftTrackLeftCap",
+                                              @"leftTrackTopCap",@"rightTrackLeftCap",
+                                              @"rightTrackTopCap", @"thumbImage",
+                                              @"selectedThumbImage",@"highlightedThumbImage",
+                                              @"disabledThumbImage", @"leftTrackImage",
+                                              @"selectedLeftTrackImage",@"highlightedLeftTrackImage",
+                                              @"disabledLeftTrackImage", @"rightTrackImage",
+                                              @"selectedRightTrackImage",@"highlightedRightTrackImage",
+                                              @"disabledRightTrackImage", nil]];
+}
+
 -(NSArray *)keySequence
 {
 	if (sliderKeySequence == nil)
 	{
-		sliderKeySequence = [[NSArray arrayWithObjects:@"min",@"max",@"value",@"leftTrackLeftCap",@"leftTrackTopCap",@"rightTrackLeftCap",@"rightTrackTopCap",
+		sliderKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"min",@"max",@"value",@"leftTrackLeftCap",@"leftTrackTopCap",@"rightTrackLeftCap",@"rightTrackTopCap",
                               @"leftTrackImage",@"selectedLeftTrackImage", @"highlightedLeftTrackImage", @"disabledLeftTrackImage",
-                              @"rightTrackImage",@"selectedRightTrackImage", @"highlightedRightTrackImage", @"disabledRightTrackImage",nil] retain];
+                              @"rightTrackImage",@"selectedRightTrackImage", @"highlightedRightTrackImage", @"disabledRightTrackImage"]] retain];
 	}
 	return sliderKeySequence;
 }

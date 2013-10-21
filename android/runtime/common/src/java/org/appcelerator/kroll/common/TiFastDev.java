@@ -281,7 +281,7 @@ public class TiFastDev implements Handler.Callback
 	public static boolean isFastDevEnabled()
 	{
 		if (_instance == null) {
-			_instance = new TiFastDev(KrollRuntime.getInstance().getKrollApplication());
+			return false;
 		}
 
 		return _instance.isEnabled();
