@@ -26,15 +26,15 @@
     float dest = 0;
     if (![self isTransitionPush]) {
         multiplier = 1;
-        outView = !outView;
+//        outView = !outView;
     }
-    
-    int viewWidth = view.frame.size.width;
-    int viewHeight = view.frame.size.height;
     
     float alpha = 1;
     
-    double currentPercent = percent - floorf(percent); // between 0 and 1
+    double currentPercent = percent;
+    if (percent > 1) {
+        currentPercent -= floorf(percent); // between 0 and 1
+    }
     CATransform3D transform = CATransform3DIdentity;
     
     
@@ -48,23 +48,20 @@
         alpha  = (1-percent/2);
         scaleFactor = 1 - percent*(1-kScaleFactor);
     }
-    else if (currentPercent > 0.66f) // first half
+    else
     {
-        float percent = 3*currentPercent - 2;
-        alpha = 0.0f;
-        scaleFactor = kScaleFactor;
-        if ([self isTransitionVertical]) {
-            translateY += -1;
+        float percent;
+        if (currentPercent > 0.66f) { // first half
+            percent = 3*currentPercent - 2;
+            alpha = 0.0f;
+            percent = 1;
         }
         else {
-            translateX += +1;
+            percent = 3*currentPercent - 1;
+            scaleFactor = kScaleFactor;
+            alpha  = (1-percent)*0.5f;
         }
-    }
-    else {
-        float percent = 3*currentPercent - 1;
-        scaleFactor = kScaleFactor;
-        alpha  = (1-percent)*0.5f;
-        if (outView)percent  = -percent;
+        if (outView) percent = -percent;
         if ([self isTransitionVertical]) {
             translateY += percent;
         }
@@ -72,16 +69,15 @@
             translateX += -percent;
         }
     }
+
     translateX *= multiplier;
     translateY *= multiplier;
-    if ([self isTransitionVertical]) {
-        if (adjust) {
-            translateY += position;
+    if (adjust) {
+        if ([self isTransitionVertical]) {
+                translateY += position;
         }
-    }
-    else {
-        if (adjust) {
-            translateX += -position;
+        else {
+                translateX += -position;
         }
     }
     translateX *= size.width;
