@@ -404,7 +404,6 @@
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
     TiUIListItem *cell = (TiUIListItem *)[self.listView.tableView cellForRowAtIndexPath:indexPath];
     id bindObject = [[cell proxy] valueForUndefinedKey:bindId];
-    [self.listView.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
     return bindObject;
 }
 
