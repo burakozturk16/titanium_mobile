@@ -8,6 +8,7 @@
 
 #import "SlideMenuDrawerController.h"
 #import "TiProxy.h"
+#import "TiApp.h"
 
 @interface SlideMenuDrawerController ()
 {
@@ -237,6 +238,16 @@
         default:
             break;
     }
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+	return [[[TiApp app] controller] shouldAutorotateToInterfaceOrientation:interfaceOrientation];
+}
+
+- (UIInterfaceOrientation)preferredInterfaceOrientationForPresentation
+{
+    return [[[TiApp app] controller] preferredInterfaceOrientationForPresentation];
 }
 
 @end
