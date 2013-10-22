@@ -377,8 +377,8 @@ def zip_ivi(zf, basepath, version):
 
 def resolve_npm_deps(dir, version, node_appc_branch):
 	package_json_file = os.path.join(dir, 'package.json')
-	package_json_original = codecs.open(package_json_file, 'r', 'utf-8').read()
-	return lambda: None if not os.path.exists(package_json_file) else codecs.open(package_json_file, 'w', 'utf-8').write(package_json_original)
+	# package_json_original = codecs.open(package_json_file, 'r', 'utf-8').read()
+	# return lambda: None if not os.path.exists(package_json_file) else codecs.open(package_json_file, 'w', 'utf-8').write(package_json_original)
 	if os.path.exists(package_json_file):
 		# ensure fresh npm install for everything EXCEPT titanium-sdk
 		node_modules_dir = os.path.join(dir, 'node_modules')
