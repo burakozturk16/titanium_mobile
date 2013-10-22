@@ -8,6 +8,7 @@
 
 #import "TiUIListViewProxy.h"
 #import "TiUIListView.h"
+#import "TiUIListItem.h"
 #import "TiUtils.h"
 #import "TiViewTemplate.h"
 
@@ -383,6 +384,28 @@
 		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
 		[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:scrollPosition animated:animated];
 	}];
+}
+
+- (id)getChildByBindId:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
+	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+	NSString *bindId = [TiUtils stringValue:[args objectAtIndex:2]];
+    if ([_sections count] <= sectionIndex) {
+        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        return nil;
+    }
+    TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+    if ([section itemCount] <= itemIndex) {
+        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        return nil;
+    }
+    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
+    TiUIListItem *cell = (TiUIListItem *)[self.listView.tableView cellForRowAtIndexPath:indexPath];
+    id bindObject = [[cell proxy] valueForUndefinedKey:bindId];
+    [self.listView.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
+    return bindObject;
 }
 
 -(void)scrollToTop:(id)args
