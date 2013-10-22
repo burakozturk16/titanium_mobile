@@ -243,15 +243,20 @@
         openAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
         [self rememberProxy:openAnimation];
     }
-    //TODO Argument Processing
-    id object = [self valueForUndefinedKey:@"orientationModes"];
-    _supportedOrientations = [TiUtils TiOrientationFlagsFromObject:object];
+    [self updateOrientationModes];
     
     //GO ahead and call open on the UI thread
     TiThreadPerformOnMainThread(^{
         [self openOnUIThread:args];
     }, YES);
     
+}
+
+-(void)updateOrientationModes
+{
+    //TODO Argument Processing
+    id object = [self valueForUndefinedKey:@"orientationModes"];
+    _supportedOrientations = [TiUtils TiOrientationFlagsFromObject:object];
 }
 
 -(void)setStatusBarStyle:(id)style
