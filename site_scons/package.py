@@ -391,6 +391,7 @@ def resolve_npm_deps(dir, version, node_appc_branch):
 					else:
 						os.remove(file);
 
+		package_json_original = codecs.open(package_json_file, 'r', 'utf-8').read()
 		package_json_contents = package_json_original
 
 		subs = {

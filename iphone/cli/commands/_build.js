@@ -1,8 +1,23 @@
-/*
- * build.js: Titanium IOS CLI build command
+/**
+ * iOS build command.
  *
- * Copyright (c) 2012, Appcelerator, Inc.  All Rights Reserved.
- * See the LICENSE file for more information.
+ * @module cli/_build
+ *
+ * @copyright
+ * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ *
+ * @license
+ * Licensed under the terms of the Apache Public License
+ * Please see the LICENSE included with this distribution for details.
+ *
+ * @requires clean-css
+ * @requires humanize
+ * @requires node-appc
+ * @requires node-uuid
+ * @requires titanium-sdk
+ * @requires uglify-js
+ * @requires wrench
+ * @requires xmldom
  */
 
 var ti = require('titanium-sdk'),
@@ -18,11 +33,10 @@ var ti = require('titanium-sdk'),
 	DOMParser = require('xmldom').DOMParser,
 	uuid = require('node-uuid'),
 	appc = require('node-appc'),
-	i18n = appc.i18n(__dirname),
-	__ = i18n.__,
-	__n = i18n.__n,
+	humanize = require('humanize'),
+	detect = require('../lib/detect').detect,
+	__ = appc.i18n(__dirname).__,
 	afs = appc.fs,
-	ios = appc.ios,
 	version = appc.version,
 	parallel = appc.async.parallel,
 	series = appc.async.series,
@@ -84,9 +98,16 @@ var ti = require('titanium-sdk'),
 // silence uglify's default warn mechanism
 UglifyJS.AST_Node.warn_function = function () {};
 
-exports.config = function (logger, config, cli) {
+/**
+ * Returns iOS build-specific configuration options.
+ * @param {Object} logger - The logger instance
+ * @param {Object} config - The CLI config
+ * @param {Object} cli - The CLI instance
+ * @returns {Function} A function that returns the config info
+ */
+exports.config = function config(logger, config, cli) {
 	return function (done) {
-		ios.detect(function (env) {
+		detect(config, { minSDK: minIosSdkVersion }, function (env) {
 			iosEnv = env || {};
 
 			var sdks = {},
@@ -94,9 +115,8 @@ exports.config = function (logger, config, cli) {
 				defaultSdk,
 				conf,
 				devName,
-				lowerCasedDevNames = iosEnv.certs.devNames.map(function (s) { return s.toLowerCase(); }),
-				lowerCasedDistNames = iosEnv.certs.distNames.map(function (s) { return s.toLowerCase(); }),
-				humanize = require('humanize'),
+				lowerCasedDevNames = [],
+				lowerCasedDistNames = [],
 				libTiCoreSize = humanize.filesize(fs.statSync(afs.resolvePath(__dirname, '..', '..', 'libTiCore.a')).size, 1024, 1).toUpperCase();
 
 			iosEnv.certs.devNames = [];
@@ -885,7 +905,7 @@ function build(logger, config, cli, finished) {
 	} else {
 		this.deployType = /device|simulator|adhoc/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
 	}
-	this.xcodeTarget = process.env.CONFIGURATION || (/device|simulator/.test(this.target) ? 'Debug' : 'Release');
+	this.xcodeTarget = process.env.CONFIGURATION || (/^device|simulator$/.test(this.target) ? 'Debug' : 'Release');
 	this.iosSdkVersion = cli.argv['ios-version'];
 	this.iosSimVersion = cli.argv['sim-version'];
 	this.iosSimType = cli.argv['sim-type'];
@@ -924,7 +944,7 @@ function build(logger, config, cli, finished) {
 	this.logger.debug(__('iOS WWDR certificate: %s', iosEnv.certs.wwdr ? __('installed').cyan : __('not found').cyan));
 	if (this.target == 'device') {
 		this.logger.info(__('iOS Development Certificate: %s', this.certDeveloperName.cyan));
-	} else if (/dist-appstore|dist\-adhoc/.test(this.target)) {
+	} else if (/^dist-appstore|dist\-adhoc$/.test(this.target)) {
 		this.logger.info(__('iOS Distribution Certificate: %s', this.certDistributionName.cyan));
 	}
 
@@ -942,7 +962,7 @@ function build(logger, config, cli, finished) {
 	}
 	this.logger.info(__('Minimum iOS version: %s', version.format(this.minIosVer, 2, 3).cyan));
 
-	if (/device|dist\-appstore|dist\-adhoc/.test(this.target)) {
+	if (/^device|dist\-appstore|dist\-adhoc$/.test(this.target)) {
 		if (this.keychain) {
 			this.logger.info(__('Using keychain: %s', this.keychain));
 		} else {
@@ -1262,7 +1282,7 @@ build.prototype = {
 
 		
 		Array.isArray(plist.CFBundleIconFiles) || (plist.CFBundleIconFiles = []);
-		['.png', '@2x.png', '-72.png', '-60.png', '-60@2x.png', '-Small-50.png', '-72@2x.png', '-Small-50@2x.png', '-Small.png', '-Small@2x.png', '-Small-40.png', '-Small-40@2x.png'].forEach(function (name) {
+		['.png', '@2x.png', '-72.png', '-60.png', '-60@2x.png', '-76.png', '-76@2x.png', '-Small-50.png', '-72@2x.png', '-Small-50@2x.png', '-Small.png', '-Small@2x.png', '-Small-40.png', '-Small-40@2x.png'].forEach(function (name) {
 			name = iconName + name;
 			if (fs.existsSync(this.projectDir, 'Resources', name) ||
 				fs.existsSync(this.projectDir, 'Resources', 'iphone', name) ||
@@ -2746,7 +2766,7 @@ build.prototype = {
 			if (ex.line) {
 				this.logger.error(__('%s [line %s, column %s]', ex.message, ex.line, ex.col));
 			} else {
-				this.logger.error(__('%s', ex.message));
+				this.logger.error(ex.message);
 			}
 			try {
 				original = original.split('\n');
