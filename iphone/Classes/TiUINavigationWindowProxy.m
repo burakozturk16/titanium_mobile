@@ -52,27 +52,23 @@
 
 -(TiOrientationFlags) orientationFlags
 {
-    if ([self isModal]) {
-        return [super orientationFlags];
-    } else {
-        for (id thisController in [[navController viewControllers] reverseObjectEnumerator])
+    for (id thisController in [[navController viewControllers] reverseObjectEnumerator])
+    {
+        if (![thisController isKindOfClass:[TiViewController class]])
         {
-            if (![thisController isKindOfClass:[TiViewController class]])
+            continue;
+        }
+        TiWindowProxy * thisProxy = (TiWindowProxy *)[(TiViewController *)thisController proxy];
+        if ([thisProxy conformsToProtocol:@protocol(TiOrientationController)])
+        {
+            TiOrientationFlags result = [thisProxy orientationFlags];
+            if (result != TiOrientationNone)
             {
-                continue;
-            }
-            TiWindowProxy * thisProxy = (TiWindowProxy *)[(TiViewController *)thisController proxy];
-            if ([thisProxy conformsToProtocol:@protocol(TiOrientationController)])
-            {
-                TiOrientationFlags result = [thisProxy orientationFlags];
-                if (result != TiOrientationNone)
-                {
-                    return result;
-                }
+                return result;
             }
         }
-        return _supportedOrientations;
     }
+    return _supportedOrientations;
 }
 
 #pragma mark - TiTab Protocol
