@@ -33,6 +33,24 @@
 	return menu;
 }
 
+#pragma mark - TiOrientationController
+
+-(TiOrientationFlags) orientationFlags
+{
+    UIViewController* topVC = [[self _controller] centerViewController];
+    if ([topVC isKindOfClass:[TiViewController class]]) {
+        TiWindowProxy * thisProxy = (TiWindowProxy *)[(TiViewController *)topVC proxy];
+        if ([thisProxy conformsToProtocol:@protocol(TiOrientationController)]) {
+            TiOrientationFlags result = [thisProxy orientationFlags];
+            if (result != TiOrientationNone)
+            {
+                return result;
+            }
+        }
+    }
+    return [super orientationFlags];
+}
+
 #pragma mark - TiWindowProtocol
 -(void)viewWillAppear:(BOOL)animated
 {

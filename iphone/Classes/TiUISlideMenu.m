@@ -131,6 +131,7 @@
     }
     if ([centerView isKindOfClass:[TiUIWindowProxy class]]) {
         TiUIWindowProxy* window = (TiUIWindowProxy*)centerView;
+        [window updateOrientationModes];
         [window setIsManaged:YES];
     }
     
