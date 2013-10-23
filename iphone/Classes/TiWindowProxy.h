@@ -36,6 +36,7 @@
 
 @property (nonatomic, readwrite, assign) TiViewProxy<TiTab> *tab;
 @property (nonatomic, readonly) TiProxy* tabGroup;
+-(void)updateOrientationModes;
 
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
 -(TiUIiOSTransitionAnimationProxy*) transitionAnimation;
