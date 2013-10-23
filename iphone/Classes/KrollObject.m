@@ -783,6 +783,13 @@ bool KrollHasInstance(TiContextRef ctx, TiObjectRef constructor, TiValueRef poss
 					i = ((iIMP)methodFunction)(target,selector);
 					return [NSNumber numberWithInt:i];
 				}
+                else if ([attributes hasPrefix:@"TI,"])
+				{
+					int i;
+					typedef int (*iIMP)(id, SEL, ...);
+					i = ((iIMP)methodFunction)(target,selector);
+					return [NSNumber numberWithUnsignedInt:i];
+				}
 				else if ([attributes hasPrefix:@"Tl,"])
 				{
 					long l;
