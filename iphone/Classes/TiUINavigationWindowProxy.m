@@ -340,7 +340,7 @@
     TiThreadPerformOnMainThread(^{
         if (navController != nil) {
             [navController setDelegate:nil];
-            NSArray* currentControllers = [navController viewControllers];
+            NSArray* currentControllers = [[navController viewControllers] retain];
             [navController setViewControllers:[NSMutableArray array]];
             
             for (TiViewController* viewController in currentControllers) {
