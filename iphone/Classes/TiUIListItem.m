@@ -306,9 +306,9 @@ static NSArray* handledKeys;
 -(void)unHighlight:(NSArray*)views
 {
     for (UIView *subview in views) {
-		if ([subview respondsToSelector:@selector(setHighlighted:)])
+		if ([(id)subview respondsToSelector:@selector(setHighlighted:)])
         {
-            [subview setHighlighted:NO];
+            [(id)subview setHighlighted:NO];
         }
         // Get the subviews of the view
         NSArray *subviews = [subview subviews];

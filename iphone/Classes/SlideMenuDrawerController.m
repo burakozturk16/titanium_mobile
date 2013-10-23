@@ -18,6 +18,7 @@
     UIView* _rightViewFadingView;
 //    CGFloat _fadeDegree; //between 0.0f and 1.0f
 }
+-(UIView*)childControllerContainerView;
 @property (nonatomic, assign) CGRect startingPanRect;
 
 @end

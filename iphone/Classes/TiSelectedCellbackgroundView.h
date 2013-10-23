@@ -27,16 +27,6 @@ typedef enum
 @property(nonatomic) TiCellBackgroundViewPosition position;
 @property(nonatomic,retain) UIColor *fillColor;
 @property(nonatomic) BOOL grouped;
-
-
-- (void)setState:(UIControlState)state;
-- (void)setColor:(UIColor*)color forState:(UIControlState)state;
-- (void)setImage:(UIImage*)image forState:(UIControlState)state;
-- (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
-- (void)setSelected:(BOOL)selected animated:(BOOL)animated;
-- (void)setHighlighted:(BOOL)selected animated:(BOOL)animated;
--(void)setBackgroundOpacity:(CGFloat)opacity;
--(void)setBorderRadius:(CGFloat)radius;
 @end
 
 #endif
