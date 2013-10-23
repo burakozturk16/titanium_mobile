@@ -18,6 +18,7 @@ NSString * const kTiUIViewKey = @"kTiView";
 {
 	[UIControl jr_swizzleMethod:@selector(setSelected:) withMethod:@selector(setSelectedCustom:) error:nil];
 	[UIControl jr_swizzleMethod:@selector(setHighlighted:) withMethod:@selector(setHighlightedCustom:) error:nil];
+	[UIControl jr_swizzleMethod:@selector(setEnabled:) withMethod:@selector(setEnabledCustom:) error:nil];
 }
 
 - (void)setTiUIView:(TiUIView *)view
@@ -50,5 +51,15 @@ NSString * const kTiUIViewKey = @"kTiView";
     TiUIView* tiView = [self tiUIView];
     if (tiView)
         [tiView setHighlighted:highlighted];
+}
+
+-(void)setEnabledCustom:(BOOL)highlighted
+{
+    
+    //WARNING: this is the swizzle trick, will actually call [UIButton setHighlighted:]
+    [self setEnabledCustom:highlighted];
+    TiUIView* tiView = [self tiUIView];
+    if (tiView)
+        [tiView setBgState:[tiView realStateForState:UIControlStateNormal]];
 }
 @end

@@ -24,39 +24,9 @@
 {
 	[button removeTarget:self action:NULL forControlEvents:UIControlEventAllTouchEvents];
 	RELEASE_TO_NIL(button);
-//	RELEASE_TO_NIL(backgroundImageCache)
-//	RELEASE_TO_NIL(backgroundImageUnstretchedCache);
 	[super dealloc];
 }
 
-//-(void)configurationSet
-//{
-//    [super configurationSet];
-//    
-//    if (needsToSetBackgroundImage)
-//    {
-//        // to prevent multiple calls because of topCap and leftCap
-//
-//        id value = [[self proxy] valueForKey:@"backgroundImage"];
-//        if (value)
-//            [self setBackgroundImage_:value];
-//        value = [[self proxy] valueForKey:@"backgroundSelectedImage"];
-//        if (value)
-//            [self setBackgroundSelectedImage_:value];
-//        
-//        value = [[self proxy] valueForKey:@"backgroundHighlightedImage"];
-//        if (value)
-//            [self setBackgroundHighlightedImage_:value];
-//        
-//        value = [[self proxy] valueForKey:@"backgroundFocusedImage"];
-//        if (value)
-//            [self setBackgroundFocusedImage_:value];
-//
-//        value = [[self proxy] valueForKey:@"backgroundDisabledImage"];
-//        if (value)
-//            [self setBackgroundDisabledImage_:value];
-//    }
-//}
 
 -(BOOL)hasTouchableListener
 {
@@ -64,53 +34,6 @@
 	// just always return YES no matter what listeners we have registered
 	return YES;
 }
-
-//-(void)setHighlighting:(BOOL)isHiglighted
-//{
-//	for (TiUIView * thisView in [self subviews])
-//	{
-//		if ([thisView respondsToSelector:@selector(setHighlighted:)])
-//		{
-//			[(id)thisView setHighlighted:isHiglighted];
-//		}
-//	}
-//}
-
-//-(void)updateBackgroundImage
-//{
-//	CGRect bounds = [self bounds];
-//	[button setFrame:bounds];
-//	if ((backgroundImageCache == nil) || (bounds.size.width == 0) || (bounds.size.height == 0)) {
-//		[button setBackgroundImage:nil forState:UIControlStateNormal];
-//		return;
-//	}
-//	CGSize imageSize = [backgroundImageCache size];
-//	if((bounds.size.width>=imageSize.width) && (bounds.size.height>=imageSize.height)){
-//		[button setBackgroundImage:backgroundImageCache forState:UIControlStateNormal];
-//		return;
-//	}
-//    //If the bounds are smaller than the image size render it in an imageView and get the image of the view.
-//    //Should be pretty inexpensive since it happens rarely. TIMOB-9166
-//    CGSize unstrechedSize = (backgroundImageUnstretchedCache != nil) ? [backgroundImageUnstretchedCache size] : CGSizeZero;
-//    if (backgroundImageUnstretchedCache == nil || !CGSizeEqualToSize(unstrechedSize,bounds.size) ) {
-//        UIImageView* theView = [[UIImageView alloc] initWithFrame:bounds];
-//        [theView setImage:backgroundImageCache];
-//        UIGraphicsBeginImageContextWithOptions(bounds.size, [theView.layer isOpaque], 0.0);
-//        [theView.layer renderInContext:UIGraphicsGetCurrentContext()];
-//        UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-//        UIGraphicsEndImageContext();
-//        RELEASE_TO_NIL(backgroundImageUnstretchedCache);
-//        backgroundImageUnstretchedCache = [image retain];
-//        [theView release];
-//    }
-//	[button setBackgroundImage:backgroundImageUnstretchedCache forState:UIControlStateNormal];	
-//}
-
-//-(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
-//{
-//	[super frameSizeChanged:frame bounds:bounds];
-//	[self updateBackgroundImage];
-//}
 
 - (void)controlAction:(id)sender forEvent:(UIEvent *)event
 {
@@ -184,14 +107,6 @@
 	return button;
 }
 
-//-(UIView *) hitTest:(CGPoint)point withEvent:(UIEvent *)event {
-//	if ([[self button] pointInside:point withEvent:event]) {
-//		return [self button];
-//    }
-//    
-//	return [super hitTest:point withEvent:event];
-//}
-
 - (id)accessibilityElement
 {
 	return [self button];
@@ -235,7 +150,6 @@
 -(void)setEnabled_:(id)value
 {
 	[[self button] setEnabled:[TiUtils boolValue:value]];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
 }
 
 -(BOOL) enabledForBgState {
@@ -246,7 +160,6 @@
 -(void)setSelected_:(id)value
 {
 	[[self button] setSelected:[TiUtils boolValue:value]];
-    [self setSelected_:[self button].selected];
 }
 
 
