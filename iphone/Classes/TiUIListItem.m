@@ -282,22 +282,17 @@ static NSArray* handledKeys;
 {
     if (handledKeys == nil)
     {
-        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font", @"opacity", @"backgroundGradient", @"backgroundImage", @"backgroundOpacity", @"backgroundColor"] retain];
+        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font", @"opacity", @"backgroundGradient", @"backgroundImage", @"backgroundOpacity", @"backgroundColor"
+                         , @"backgroundSelectedGradient", @"backgroundSelectedImage", @"backgroundSelectedColor"] retain];
     }
     return handledKeys;
 }
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-	if (_templateStyle != TiUIListItemTemplateStyleCustom &&  [[self handledKeys] indexOfObject:key] != NSNotFound) {
+	if ([[self handledKeys] indexOfObject:key] != NSNotFound) {
         DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
-    }
-    else if ([key isEqualToString:@"selectedBackgroundGradient"] || [key isEqualToString:@"backgroundSelectedGradient"]) {
-        [self setBackgroundSelectedGradient_:newValue];
-	} else if ([key isEqualToString:@"selectedBackgroundImage"] || [key isEqualToString:@"backgroundSelectedImage"]) {
-        [self setBackgroundSelectedImage_:newValue];
-	} else if ([key isEqualToString:@"selectedBackgroundColor"] || [key isEqualToString:@"backgroundSelectedColor"]) {
-	} else {
+    } else {
         DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
     }
 }
