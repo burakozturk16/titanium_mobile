@@ -47,6 +47,7 @@
 -(BOOL)handleFocusEvents;
 //ViewController support. Always returns TiViewController (or subclass).
 -(UIViewController*) hostingController;
+-(TiViewProxy *)topWindow;
 @end
 
 /**

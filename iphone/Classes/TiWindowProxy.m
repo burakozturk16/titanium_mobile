@@ -434,6 +434,11 @@
     return controller;
 }
 
+-(TiProxy *)topWindow
+{
+    return self;
+}
+
 #pragma mark - Private Methods
 -(TiProxy*)tabGroup
 {

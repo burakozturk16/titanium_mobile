@@ -460,7 +460,17 @@
     [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }
 
-
+-(TiProxy *)topWindow
+{
+    UIViewController* topVC = [navController topViewController];
+    if ([topVC isKindOfClass:[TiViewController class]]) {
+        TiViewProxy* theProxy = [(TiViewController*)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            return [(id<TiWindowProtocol>)theProxy topWindow];
+        }
+    }
+    return self;
+}
 
 #pragma mark - TiViewProxy overrides
 -(TiUIView*)newView

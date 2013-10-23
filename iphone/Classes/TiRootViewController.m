@@ -712,6 +712,31 @@
     }
 }
 
+-(TiViewProxy *)topWindow
+{
+    UIViewController* topVC = [self topPresentedController];
+    if ([topVC isKindOfClass:[TiErrorController class]]) {
+        DebugLog(@"[ERROR] ErrorController is up");
+        return nil;
+    }
+    if (topVC == self) {
+        [[containedWindows lastObject] resignFocus];
+    } else if ([topVC respondsToSelector:@selector(proxy)]) {
+        id theProxy = [(id)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            return [(id<TiWindowProtocol>)theProxy topWindow];
+        }
+    }
+    
+    if ([modalWindows count] > 0) {
+        return [[modalWindows lastObject] topWindow];
+    } else if ([containedWindows count] > 0) {
+        return [[containedWindows lastObject] topWindow];
+    } else {
+        return nil;
+    }
+}
+
 
 #if defined(DEBUG) || defined(DEVELOPER)
 -(void)shutdownUi:(id)arg
