@@ -6,6 +6,7 @@
 //
 //
 
+#ifdef USE_TI_UIBLENDMODE
 #import "TiUIBlendModeProxy.h"
 
 @implementation TiUIBlendModeProxy
@@ -28,3 +29,4 @@ MAKE_SYSTEM_PROP(SRC_OVER,kCGBlendModeDestinationOver);
 MAKE_SYSTEM_PROP(OVERLAY,kCGBlendModeDarken);
 MAKE_SYSTEM_PROP(XOR,kCGBlendModeXOR);
 @end
+#endif
