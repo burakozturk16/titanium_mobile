@@ -235,13 +235,18 @@
 -(void)setEnabled_:(id)value
 {
 	[[self button] setEnabled:[TiUtils boolValue:value]];
-    [self setBgState:[self button].enabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
+}
+
+-(BOOL) enabledForBgState {
+    return [self button].enabled && [super enabledForBgState];
 }
 
 
 -(void)setSelected_:(id)value
 {
 	[[self button] setSelected:[TiUtils boolValue:value]];
+    [self setSelected_:[self button].selected];
 }
 
 

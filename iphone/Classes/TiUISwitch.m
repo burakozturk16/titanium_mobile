@@ -43,10 +43,14 @@
 
 #pragma mark View controller stuff
 
+-(BOOL) enabledForBgState {
+    return [self switchView].enabled && [super enabledForBgState];
+}
+
 -(void)setEnabled_:(id)value
 {
 	[[self switchView] setEnabled:[TiUtils boolValue:value]];
-    [self setBgState:[self switchView].enabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
 }
 
 -(void)setValue_:(id)value

@@ -246,10 +246,14 @@
 	[self setValue_:value withObject:nil];
 }
 
+-(BOOL) enabledForBgState {
+    return [self sliderView].enabled && [super enabledForBgState];
+}
+
 -(void)setEnabled_:(id)value
 {
 	[[self sliderView] setEnabled:[TiUtils boolValue:value]];
-    [self setBgState:[self sliderView].enabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
 }
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight

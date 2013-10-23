@@ -849,7 +849,7 @@ DEFINE_EXCEPTIONS
 -(void)setTouchEnabled_:(id)arg
 {
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
-    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
     changedInteraction = YES;
 }
 
@@ -1481,6 +1481,17 @@ DEFINE_EXCEPTIONS
     return NO;
 }
 
+-(BOOL) enabledForBgState
+{
+    return [self interactionEnabled];
+}
+
+-(UIControlState)realStateForState:(UIControlState)state
+{
+    if ([self enabledForBgState]) return state;
+    return UIControlStateDisabled;
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
@@ -1494,7 +1505,7 @@ DEFINE_EXCEPTIONS
     
     UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
-        [self setBgState:UIControlStateSelected];
+        [self setBgState:[self realStateForState:UIControlStateSelected]];
     }
 	
 	if (handlesTouches)
@@ -1525,7 +1536,7 @@ DEFINE_EXCEPTIONS
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
     if (_shouldHandleSelection) {
-        [self setBgState:!outside?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+        [self setBgState:[self realStateForState:!outside?UIControlStateSelected:UIControlStateNormal]];
     }
 	if (handlesTouches)
 	{
@@ -1548,7 +1559,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+        [self setBgState:[self realStateForState:UIControlStateNormal]];
     }
 	if ([self interactionEnabled])
 	{
@@ -1587,7 +1598,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -1748,7 +1759,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
-    [self setBgState:isHiglighted?UIControlStateHighlighted:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    [self setBgState:[self realStateForState:UIControlStateHighlighted]];
 	for (TiUIView * thisView in [self childViews])
 	{
 		if ([thisView respondsToSelector:@selector(setHighlighted:)])
@@ -1759,7 +1770,7 @@ DEFINE_EXCEPTIONS
 }
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:isSelected?UIControlStateSelected:[self interactionEnabled]?UIControlStateNormal:UIControlStateDisabled];
+    [self setBgState:[self realStateForState:UIControlStateSelected]];
 	for (TiUIView * thisView in [self childViews])
 	{
 		if ([thisView respondsToSelector:@selector(setSelected:)])
