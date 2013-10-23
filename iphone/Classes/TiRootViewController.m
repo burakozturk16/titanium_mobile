@@ -394,6 +394,17 @@
 		[self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
 	}
     
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow _hasListeners:@"keyboard"]) {
+        UIView * ourView = [self viewForKeyboardAccessory];
+        CGRect endingFrame = [ourView convertRect:endFrame fromView:nil];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithInt:(keyboardVisible?leaveDuration:enterDuration)*1000], @"animationDuration",
+                               [NSNumber numberWithBool:keyboardVisible], @"keyboardVisible",
+                               [TiUtils rectToDictionary:endingFrame], @"keyboardFrame",
+                               nil];
+        [topWindow fireEvent:@"keyboard" withObject:event];
+    }
 }
 
 - (void)keyboardWillShow:(NSNotification*)notification
@@ -409,6 +420,18 @@
 		updatingAccessoryView = YES;
 		[self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
 	}
+    
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow _hasListeners:@"keyboard"]) {
+        UIView * ourView = [self viewForKeyboardAccessory];
+        CGRect startingFrame = [ourView convertRect:startFrame fromView:nil];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithInt:(keyboardVisible?leaveDuration:enterDuration)*1000], @"animationDuration",
+                               [NSNumber numberWithBool:keyboardVisible], @"keyboardVisible",
+                               [TiUtils rectToDictionary:startingFrame], @"keyboardFrame",
+                               nil];
+        [topWindow fireEvent:@"keyboard" withObject:event];
+    }
 }
 
 - (void)adjustKeyboardHeight:(NSNumber*)_keyboardVisible
