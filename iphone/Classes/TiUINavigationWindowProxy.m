@@ -347,8 +347,8 @@
             NSArray* currentControllers = [navController viewControllers];
             [navController setViewControllers:[NSMutableArray array]];
             
-            for (UIViewController* viewController in currentControllers) {
-                TiWindowProxy* win = (TiWindowProxy *)[(TiViewController*)viewController proxy];
+            for (TiViewController* viewController in currentControllers) {
+                TiWindowProxy* win = (TiWindowProxy *)[viewController proxy];
                 [win setTab:nil];
                 [win setParentOrientationController:nil];
                 [win close:nil];
@@ -356,6 +356,7 @@
             [navController.view removeFromSuperview];
             RELEASE_TO_NIL(navController);
             RELEASE_TO_NIL(current);
+            RELEASE_TO_NIL(currentControllers);
         }
     },YES);
 }
