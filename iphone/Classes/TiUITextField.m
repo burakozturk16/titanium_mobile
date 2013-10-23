@@ -337,14 +337,18 @@
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:_trulyEnabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
+}
+
+-(BOOL) enabledForBgState {
+    return [self textWidgetView].enabled && [super enabledForBgState];
 }
 
 -(void)setEnabled_:(id)value
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:_trulyEnabled];
+    [self setBgState:[self realStateForState:UIControlStateNormal]];
 }
 
 -(void)setHintText_:(id)value
