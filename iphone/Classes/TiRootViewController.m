@@ -541,6 +541,11 @@
         keyboardHeight -= focusedToolbarBounds.size.height;
     }
     
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow valueForKey:@"keyboardOffset"]) {
+        keyboardHeight -= [TiUtils floatValue:[topWindow valueForKey:@"keyboardOffset"] def:0.0f];
+    }
+    
 	if ((scrolledView != nil) && (keyboardHeight > 0))	//If this isn't IN the toolbar, then we update the scrollviews to compensate.
 	{
 		UIView * possibleScrollView = [scrolledView superview];
