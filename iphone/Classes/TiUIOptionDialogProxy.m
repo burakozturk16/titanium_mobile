@@ -99,7 +99,7 @@
         {
             NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
                                    [NSNumber numberWithInt:buttonIndex],@"index",
-                                   [NSNumber numberWithInt:[actionSheet cancelButtonIndex]],@"cancel",
+                                   [NSNumber numberWithBool:(buttonIndex == [actionSheet cancelButtonIndex])],@"cancel",
                                    [NSNumber numberWithInt:[actionSheet destructiveButtonIndex]],@"destructive",
                                    nil];
             [self fireEvent:@"click" withObject:event];
