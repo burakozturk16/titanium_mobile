@@ -1605,8 +1605,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     updateStarted = YES;
     allowLayoutUpdate = NO;
 	// Set horizontal layout wrap:true as default 
-	layoutProperties.layoutFlags.horizontalWrap = YES;
-	[self initializeProperty:@"horizontalWrap" defaultValue:NUMBOOL(NO)];
+	layoutProperties.layoutFlags.horizontalWrap = NO;
 	[self initializeProperty:@"visible" defaultValue:NUMBOOL(YES)];
 	
 	if (properties!=nil)
