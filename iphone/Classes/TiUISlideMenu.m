@@ -144,23 +144,32 @@
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
     
 	RELEASE_TO_NIL(leftView);
-    leftView = [args retain];
-    CGRect rect = [self controller].view.bounds;
-    rect.size.width = [self controller].maximumLeftDrawerWidth;
-    UIViewController* ctlr = [self controllerForViewProxy:leftView withFrame:rect];
-    [self controller].leftDrawerViewController = ctlr;
+    if (args != nil) {
+        leftView = [args retain];
+        CGRect rect = [self controller].view.bounds;
+        rect.size.width = [self controller].maximumLeftDrawerWidth;
+        [self controller].leftDrawerViewController = [self controllerForViewProxy:leftView withFrame:rect];
+    }
+    else {
+        [self controller].leftDrawerViewController = nil;
+    }
 }
 
 -(void)setRightView_:(id)args
 {
     ENSURE_UI_THREAD(setRightView_,args);
     ENSURE_TYPE_OR_NIL(args,TiViewProxy);
-  
+    
 	RELEASE_TO_NIL(rightView);
-    rightView = [args retain];
-    CGRect frame = [[self controller] childControllerContainerViewFrame];
-    UIViewController* ctlr = [self controllerForViewProxy:leftView withFrame:frame];
-    [self controller].rightDrawerViewController = ctlr;
+    if (args != nil) {
+        rightView = [args retain];
+        CGRect rect = [self controller].view.bounds;
+        rect.size.width = [self controller].maximumRightDrawerWidth;
+        [self controller].rightDrawerViewController = [self controllerForViewProxy:rightView withFrame:rect];
+    }
+    else {
+        [self controller].rightDrawerViewController = nil;
+    }
 }
 
 -(void)setLeftViewWidth_:(id)args
