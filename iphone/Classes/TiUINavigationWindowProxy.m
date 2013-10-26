@@ -302,7 +302,7 @@
         int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
         BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
         if (animated) {
-            TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[navController lastTransition]] containerView:self.view];
+            TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
             [navController popViewControllerWithTransition:transition.adTransition];
         }
         else {
