@@ -104,7 +104,7 @@ public abstract class TiBaseActivity extends FragmentActivity
 	private boolean defaultFullscreen = false;
 	private boolean navBarHidden = false;
 	private boolean defaultNavBarHidden = false;
-	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
+	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
 	private int softInputMode = defaultSoftInputMode;
 
 	public class DialogWrapper {
