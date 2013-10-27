@@ -23,6 +23,7 @@ import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Rect;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.View;
@@ -34,11 +35,11 @@ public class TiUIButton extends TiUINonViewGroupView
 	private static final String TAG = "TiUIButton";
 	
 	private int defaultColor;
+	private float shadowRadius = 0f;
+	private float shadowX = 0f;
+	private float shadowY = 0f;
+	private int shadowColor = Color.TRANSPARENT;
 
-	private int shadowColor;
-	private int shadowDx;
-	private int shadowDy;
-	private float shadowRadius;
 	private Rect titlePadding;
 	private Drawable imageDrawable;
 	private int imageGravity;
@@ -46,10 +47,6 @@ public class TiUIButton extends TiUINonViewGroupView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
-		shadowColor = 0;
-		shadowRadius = 1;
-		shadowDx = 0;
-		shadowDy = 0;
 		imageGravity = Gravity.LEFT;
 		titlePadding = new Rect();
 		titlePadding.left = 8;
@@ -106,6 +103,8 @@ public class TiUIButton extends TiUINonViewGroupView
 	{
 		super.processProperties(d);
 
+		boolean needShadow = false;
+
 		Button btn = (Button) getNativeView();
 		if (d.containsKey(TiC.PROPERTY_IMAGE)) {
 			Object value = d.get(TiC.PROPERTY_IMAGE);
@@ -160,20 +159,6 @@ public class TiUIButton extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_IMAGE_ANCHOR)) {
 			imageGravity = TiUIHelper.getGravity(d.getString(TiC.PROPERTY_IMAGE_ANCHOR), false);
 		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
-			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(d, TiC.PROPERTY_SHADOW_RADIUS);
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
-			KrollDict value = d.getKrollDict(TiC.PROPERTY_SHADOW_OFFSET);
-			shadowDx = value.getInt(TiC.PROPERTY_X);
-			shadowDy = value.getInt(TiC.PROPERTY_Y);
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		}
 		if (d.containsKey(TiC.PROPERTY_WORD_WRAP)) {
 			btn.setSingleLine(!TiConvert.toBoolean(d, TiC.PROPERTY_WORD_WRAP));
 		}
@@ -181,6 +166,26 @@ public class TiUIButton extends TiUINonViewGroupView
 			btn.setPressed(TiConvert.toBoolean(d, TiC.PROPERTY_SELECTED));
 		}
 		updateImage();
+		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
+			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
+			if (value instanceof HashMap) {
+				needShadow = true;
+				HashMap dict = (HashMap) value;
+				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
+				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+			}
+		}
+		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
+			needShadow = true;
+			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), 0);
+		}
+		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
+			needShadow = true;
+			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
+		}
+		if (needShadow) {
+			btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+		}
 		btn.invalidate();
 	}
 
@@ -226,18 +231,6 @@ public class TiUIButton extends TiUINonViewGroupView
 			}
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 			btn.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
-			shadowColor = TiConvert.toColor((String) newValue);
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(newValue);
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
-			KrollDict dict = (KrollDict) newValue;
-			shadowDx = TiConvert.toInt(dict.get(TiC.PROPERTY_X));
-			shadowDy = TiConvert.toInt(dict.get(TiC.PROPERTY_Y));
-			btn.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
 			btn.setSingleLine(!TiConvert.toBoolean(newValue));
 			btn.requestLayout();
@@ -260,6 +253,19 @@ public class TiUIButton extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_IMAGE_ANCHOR)) {
 			imageGravity = TiUIHelper.getGravity(TiConvert.toString(newValue), false);
 			updateImage();
+		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
+			if (newValue instanceof HashMap) {
+				HashMap dict = (HashMap) newValue;
+				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
+				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+			}
+		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(newValue, 0);
+			btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
+			shadowColor = TiConvert.toColor(TiConvert.toString(newValue));
+			btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}

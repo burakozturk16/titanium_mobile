@@ -333,7 +333,9 @@ public class ListSectionProxy extends ViewProxy{
 	
 	@Kroll.method @Kroll.getProperty
 	public Object[] getItems() {
-		if (TiApplication.isUIThread()) {
+		if (itemProperties == null) {
+			return new Object[0];
+		} else if (TiApplication.isUIThread()) {
 			return itemProperties.toArray();
 		} else {
 			return (Object[]) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_GET_ITEMS));
@@ -934,5 +936,10 @@ public class ListSectionProxy extends ViewProxy{
 	{
 		listView = null;
 	}
-	
+
+	@Override
+	public String getApiName()
+	{
+		return "Ti.UI.ListSection";
+	}
 }

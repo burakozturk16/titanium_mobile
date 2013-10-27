@@ -1397,5 +1397,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		return new TiContext(getActivity(), proxyId);
 	}
 
+	// For subclasses to override
+	@Kroll.method @Kroll.getProperty
+	public String getApiName()
+	{
+		return "Ti.Proxy";
+	}
 }
 

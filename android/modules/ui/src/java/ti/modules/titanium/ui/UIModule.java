@@ -314,4 +314,10 @@ public class UIModule extends KrollModule implements Handler.Callback
 
 		return super.handleMessage(message);
 	}
+
+	@Override
+	public String getApiName()
+	{
+		return "Ti.UI";
+	}
 }

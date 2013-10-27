@@ -178,4 +178,10 @@ public class AndroidModule extends KrollModule
 			
 		});
 	}
+
+	@Override
+	public String getApiName()
+	{
+		return "Ti.UI.Android";
+	}
 }

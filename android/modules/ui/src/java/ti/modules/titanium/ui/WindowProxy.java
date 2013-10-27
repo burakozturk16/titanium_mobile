@@ -477,4 +477,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		return (opened && lightweight);
 	}
 
+	@Override
+	public String getApiName()
+	{
+		return "Ti.UI.Window";
+	}
 }

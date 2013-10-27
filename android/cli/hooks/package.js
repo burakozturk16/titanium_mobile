@@ -1,39 +1,45 @@
 /*
  * package.js: Titanium iOS CLI package hook
  *
- * Copyright (c) 2012, Appcelerator, Inc.  All Rights Reserved.
+ * Copyright (c) 2012-2013, Appcelerator, Inc.  All Rights Reserved.
  * See the LICENSE file for more information.
  */
 
 var appc = require('node-appc'),
-	i18n = appc.i18n(__dirname),
-	__ = i18n.__,
-	__n = i18n.__n,
-	afs = appc.fs,
 	fs = require('fs'),
 	path = require('path'),
-	async = require('async'),
 	wrench = require('wrench'),
-	exec = require('child_process').exec;
+	__ = appc.i18n(__dirname).__;
 
-exports.cliVersion = '>=3.X';
+exports.cliVersion = '>=3.2';
 
 exports.init = function (logger, config, cli) {
-	
-	cli.addHook('build.post.compile', {
-		priority: 8000,
-		post: function (build, finished) {
-			if (/dist-playstore/.test(cli.argv.target)) return finished();
-			
-			if (cli.argv['build-only'] && cli.argv['output-dir']) {
-				var apk = path.join(build.buildBinDir, 'app.apk')
-				dest = path.join(cli.argv['output-dir'], build.tiapp.name + '.apk');
-				afs.exists(dest) && fs.unlink(dest);
-				afs.copyFileSync(apk, dest, { logger: logger.debug });
 
+	cli.on('build.post.compile', {
+		priority: 10000,
+		post: function (builder, finished) {
+			if (builder.target != 'dist-playstore') return finished();
+
+			var dest = builder.apkFile,
+				outputDir = builder.outputDir;
+
+			if (!dest || !fs.existsSync(dest)) {
+				logger.error(__('No APK file to deploy, skipping'));
 				return finished();
 			}
+
+			if (outputDir && outputDir != path.dirname(dest)) {
+				fs.existsSync(outputDir) || wrench.mkdirSyncRecursive(outputDir);
+				dest = path.join(outputDir, path.basename(dest));
+				fs.existsSync(dest) && fs.unlinkSync(dest);
+				appc.fs.copyFileSync(builder.apkFile, dest, { logger: logger.debug });
+			}
+
+			logger.info(__('Packaging complete'));
+			logger.info(__('Package location: %s', dest.cyan));
+
+			finished();
 		}
 	});
-	
+
 };

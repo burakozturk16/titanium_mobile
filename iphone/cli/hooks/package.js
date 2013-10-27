@@ -1,7 +1,7 @@
 /*
  * package.js: Titanium iOS CLI package hook
  *
- * Copyright (c) 2012, Appcelerator, Inc.  All Rights Reserved.
+ * Copyright (c) 2012-2013, Appcelerator, Inc.  All Rights Reserved.
  * See the LICENSE file for more information.
  */
 
@@ -14,7 +14,7 @@ var appc = require('node-appc'),
 	wrench = require('wrench'),
 	exec = require('child_process').exec;
 
-exports.cliVersion = '>=3.X';
+exports.cliVersion = '>=3.2';
 
 exports.init = function (logger, config, cli) {
 
@@ -66,7 +66,7 @@ exports.init = function (logger, config, cli) {
 									newPlist = new appc.plist(),
 									appBundle = 'Applications/' + name + '.app';
 
-								fs.unlink(tempPlist);
+								fs.unlinkSync(tempPlist);
 
 								appc.util.mix(newPlist, {
 									ApplicationProperties: {
@@ -107,12 +107,9 @@ exports.init = function (logger, config, cli) {
 					if (!cli.argv['build-only']) {
 						return finished();
 					}
-				case 'dist-adhoc':
-					if (cli.argv.target == 'dist-adhoc')
-						logger.info('Packaging for Ad Hoc distribution');
-					else
-						logger.info('Packaging for dev distribution');
 
+				case 'dist-adhoc':
+					logger.info('Packaging for Ad Hoc distribution');
 					var pkgapp = path.join(build.xcodeEnv.path, 'Platforms', 'iPhoneOS.platform', 'Developer', 'usr', 'bin', 'PackageApplication');
 					exec('"' + pkgapp + '" "' + build.xcodeAppDir + '"', function (err, stdout, stderr) {
 						if (err) {
@@ -143,12 +140,11 @@ exports.init = function (logger, config, cli) {
 								finished();
 							});
 						}
-						else {
-							logger.info(__('Packaging complete'));
-							logger.info(__('Package location: %s', dest.cyan));
-						
-							finished();
-						}
+
+						logger.info(__('Packaging complete'));
+						logger.info(__('Package location: %s', dest.cyan));
+
+						finished();
 					});
 					break;
 			}
