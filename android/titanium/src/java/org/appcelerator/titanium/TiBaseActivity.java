@@ -275,12 +275,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			
 		}
 		
-		if (this.window.hasProperty(TiC.PROPERTY_BAR_COLOR)) {
-			ActionBarProxy actionBarProxy = getActionBarProxy();
-			if (actionBarProxy != null) {
-				actionBarProxy.onPropertyChanged(TiC.PROPERTY_BACKGROUND_COLOR, this.window.getProperty(TiC.PROPERTY_BAR_COLOR));
-			}
-		}
+		
 		
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
@@ -292,6 +287,20 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		}
 		else {
 			activityDict = new KrollDict(); //to make sure we update actionbar
+		}
+		
+		if (this.window.hasProperty(TiC.PROPERTY_BAR_COLOR)) {
+			KrollDict actionBarDict = null;
+			if (activityDict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
+				actionBarDict = activityDict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+			}
+			else {
+				actionBarDict = new KrollDict(); //to make sure we go into processProperties
+			}
+			if (!actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+				actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, this.window.getProperty(TiC.PROPERTY_BAR_COLOR));
+			}
+			activityDict.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
 		}
 		getActivityProxy().setProperties(activityDict);
 	}
