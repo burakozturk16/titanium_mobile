@@ -1564,8 +1564,8 @@ function navWindowEx() {
 		title:'TransitionWindow'
 	};
 	if (isAndroid) {
+		args.barColor = 'red';
 		args.activity = {actionBar:{icon:Ti.Android.R.drawable.ic_menu_preferences,
-			backgroundColor:'red',
 			onHomeIconItemSelected:function(e) {
 				slidingMenu.toggleLeftView();
 		}}};
@@ -1879,7 +1879,7 @@ function slideMenuEx() {
 					slidingMenu.close();
 				}}]}]});
 	slidingMenu.leftView = listview;
-	slidingMenu.centerView = Ti.UI.createWindow({backgroundColor:backColor});
+	slidingMenu.centerView = Ti.UI.createWindow({backgroundColor:backColor, navBarHidden:true});
 	otherWindows.push(slidingMenu);
 	slidingMenu.open();
 }

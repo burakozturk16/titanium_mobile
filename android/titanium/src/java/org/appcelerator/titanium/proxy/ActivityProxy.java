@@ -23,6 +23,7 @@ import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiActivitySupportHelper;
 
 import android.app.Activity;
+import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Message;
@@ -251,10 +252,8 @@ public class ActivityProxy extends KrollProxy
 	@Kroll.method @Kroll.getProperty
 	public ActionBarProxy getActionBar()
 	{
-		Activity activity = getWrappedActivity();
-		if (actionBarProxy == null && activity != null && Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-			actionBarProxy = new ActionBarProxy(activity);
-		}
+		ActionBarActivity activity = (ActionBarActivity)getWrappedActivity();
+		actionBarProxy = new ActionBarProxy(activity);
 
 		return actionBarProxy;
 	}
@@ -300,9 +299,9 @@ public class ActivityProxy extends KrollProxy
 
 	private void handleInvalidateOptionsMenu()
 	{
-		Activity activity = getWrappedActivity();
+		TiBaseActivity activity = (TiBaseActivity) getWrappedActivity();
 		if (activity != null) {
-			activity.invalidateOptionsMenu();
+			activity.supportInvalidateOptionsMenu();
 		}
 	}
 
@@ -355,23 +354,18 @@ public class ActivityProxy extends KrollProxy
 
 	public void processProperties(KrollDict dict) 
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
 			ActionBarProxy actionBarProxy = getActionBar();
 			if (actionBarProxy != null) {
 				KrollDict actionBarDict = null;
 				if (dict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
 					actionBarDict = dict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
 				}
-//				else if (hasProperty(TiC.PROPERTY_ACTION_BAR)) {
-//					actionBarDict = new KrollDict((HashMap)getProperty(TiC.PROPERTY_ACTION_BAR));
-//				}
 				else {
 					actionBarDict = new KrollDict(); //to make sure we go into processProperties
 				}
 				actionBarProxy.setProperties(actionBarDict); //apply to actually update properties
 				invalidateOptionsMenu();
 			}
-		}
 	}
 
 	public void propertyChanged(String key, Object oldValue, Object newValue,

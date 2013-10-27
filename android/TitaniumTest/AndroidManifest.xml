@@ -48,8 +48,10 @@
 			android:configChanges="keyboardHidden|orientation|screenSize"
 			android:theme="@style/AppTheme" />
 		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize" />
-		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
+			android:configChanges="keyboardHidden|orientation|screenSize" 
+			android:theme="@style/AppTheme" />
+		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" 
+		    android:theme="@style/AppTheme" />
 		<!-- TI_SERVICES -->
 
 	</application>

@@ -45,7 +45,6 @@ import com.nineoldandroids.animation.AnimatorSet;
 
 import ti.modules.titanium.ui.transitionstyle.TransitionStyleModule;
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -53,6 +52,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
@@ -171,9 +171,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void updateHomeButton(TiWindowProxy proxy){
 		boolean canGoBack = (windows.size() > 1);
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
 	    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
-	    	ActionBar actionBar = getActivity().getActionBar();
+	    	ActionBar actionBar = ((TiBaseActivity)getActivity()).getSupportActionBar();
 	    	if (actionBar == null) return;
 	    	if (proxy == null) {
 	    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
@@ -186,7 +185,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
 	    		
 	    	}
-		}
 	}
 	
 	private void removeWindow(TiWindowProxy proxy) {
