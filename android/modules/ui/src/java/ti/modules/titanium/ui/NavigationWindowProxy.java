@@ -174,14 +174,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
 	    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
 	    	ActionBar actionBar = getActivity().getActionBar();
+	    	if (actionBar == null) return;
 	    	if (proxy == null) {
 	    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
 	    		actionBar.setHomeButtonEnabled(canGoBack);
 	    	}
 	    	else {
 	    		KrollDict props = actionBarProxy.getProperties();
+	    		if (props == null) props = new KrollDict();
 	    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
 	    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
+	    		
 	    	}
 		}
 	}
