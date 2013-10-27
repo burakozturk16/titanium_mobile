@@ -729,19 +729,19 @@ public abstract class TiBaseActivity extends FragmentActivity
 			case KeyEvent.KEYCODE_BACK : {
 				
 				if (event.getAction() == KeyEvent.ACTION_UP) {
-					String backEvent = "android:back";
+					// String backEvent = "android:back";
 					KrollProxy proxy = null;
 					//android:back could be fired from a tabGroup window (activityProxy)
 					//or hw window (window).This event is added specifically to the activity
 					//proxy of a tab group in window.js
-					if (activityProxy.hasListeners(backEvent)) {
+					if (activityProxy.hasListeners(TiC.EVENT_ANDROID_BACK)) {
 						proxy = activityProxy;
-					} else if (window.hasListeners(backEvent)) {
+					} else if (window.hasListeners(TiC.EVENT_ANDROID_BACK)) {
 						proxy = window;
 					}
 					
 					if (proxy != null) {
-						proxy.fireEvent(backEvent, null);
+						proxy.fireEvent(TiC.EVENT_ANDROID_BACK, null);
 						handled = true;
 					}
 					

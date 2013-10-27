@@ -10,6 +10,7 @@
 #import "TiUISliderProxy.h"
 #import "TiUtils.h"
 #import "ImageLoader.h"
+#import "UIControl+TiUIView.h"
 
 @implementation TiUISlider
 
@@ -44,6 +45,7 @@
 		[sliderView addTarget:self action:@selector(sliderChanged:) forControlEvents:UIControlEventValueChanged];
 		[sliderView addTarget:self action:@selector(sliderBegin:) forControlEvents:UIControlEventTouchDown];
 		[sliderView addTarget:self action:@selector(sliderEnd:) forControlEvents:(UIControlEventTouchUpInside | UIControlEventTouchUpOutside | UIControlEventTouchCancel)];
+        [sliderView setTiUIView:self];
 		[self addSubview:sliderView];
 		lastTouchUp = [[NSDate alloc] init];
 		lastTimeInterval = 1.0; // Short-circuit so that we don't ignore the first fire

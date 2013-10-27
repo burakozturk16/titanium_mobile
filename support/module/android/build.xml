@@ -368,6 +368,7 @@ timodule.xml.
 		</copy>
 		
 		<copy overwrite="true" failonerror="false" tofile="${genjni.local}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
+		<copy overwrite="true" failonerror="false" tofile="${gen}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
 		
 		<build.ndk gendir="${gen}"/>
 
@@ -399,6 +400,8 @@ timodule.xml.
 			file="${module.generated.dir}/Application.mk">
 			<filterset refid="ndk.filter"/>
 		</copy>
+		<copy overwrite="true" failonerror="false" tofile="${genjni.local}/Application.mk" file="${ti.module.root}/jni/Application.mk"/> <!-- will fail if the requested file does not exist. -->
+
 		<mkdir dir="${genjni.local}/jni"/>
 		<copy todir="${genjni.local}/jni">
 			<fileset dir="${ti.module.root}/jni">

@@ -70,7 +70,7 @@ public class TiCompositeLayout extends FreeLayout implements
 	private int horizontalLayoutTopBuffer = 0;
 	private int horizontalLayoutCurrentLeft = 0;
 	private int horizontalLayoutLineHeight = 0;
-	private boolean enableHorizontalWrap = true;
+	private boolean enableHorizontalWrap = false;
 	private int horizontalLayoutLastIndexBeforeWrap = 0;
 	private int horiztonalLayoutPreviousRight = 0;
 

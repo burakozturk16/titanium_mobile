@@ -1605,8 +1605,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     updateStarted = YES;
     allowLayoutUpdate = NO;
 	// Set horizontal layout wrap:true as default 
-	layoutProperties.layoutFlags.horizontalWrap = YES;
-	[self initializeProperty:@"horizontalWrap" defaultValue:NUMBOOL(YES)];
+	layoutProperties.layoutFlags.horizontalWrap = NO;
 	[self initializeProperty:@"visible" defaultValue:NUMBOOL(YES)];
 	
 	if (properties!=nil)
@@ -3409,9 +3408,12 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             pthread_rwlock_unlock(&childrenLock);
             
             TiUIView* view2 = [view2Proxy getOrCreateView];
+            [view2Proxy windowWillOpen];
+            [view2Proxy windowDidOpen];
+            [self relayout];
+            [self layoutChildren:NO];
             LayoutConstraint *contraints = [view2Proxy layoutProperties];
             ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
-            [view2Proxy layoutChildren:NO];
             
             TiTransition* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
             transition.adTransition.type = ADTransitionTypePush;

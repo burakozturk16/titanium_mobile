@@ -42,6 +42,18 @@ static NSArray* keysToGetFromListView;
 	return keysToGetFromListView;
 }
 
+static NSDictionary* listViewKeysToReplace;
+-(NSDictionary *)listViewKeysToReplace
+{
+	if (listViewKeysToReplace == nil)
+	{
+		listViewKeysToReplace = [@{@"selectedBackgroundColor": @"backgroundSelectedColor",
+                                   @"selectedBackgroundGradient": @"backgroundSelectedGradient",
+                                   @"selectedBackgroundImage": @"backgroundSelectedImage"
+                                   } retain];
+	}
+	return listViewKeysToReplace;
+}
 
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context
 {
@@ -215,8 +227,13 @@ static NSArray* keysToGetFromListView;
     
     NSDictionary* listViewProps = [_listViewProxy allProperties];
     for (NSString* key in [self keysToGetFromListView]) {
-        if ([listViewProps objectForKey:key] && ![properties objectForKey:key]) {
-            [properties setObject:[listViewProps objectForKey:key] forKey:key];
+        if ([listViewProps objectForKey:key]) {
+            NSString* realKey = key;
+            if ([[self listViewKeysToReplace] objectForKey:realKey]) {
+                realKey = [[self listViewKeysToReplace] objectForKey:realKey];
+            }
+            if(![properties objectForKey:realKey])
+                [properties setObject:[listViewProps objectForKey:key] forKey:realKey];
         }
     }
     

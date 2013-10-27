@@ -8,6 +8,7 @@
 #import "TiUISwitch.h"
 #import "TiUtils.h"
 #import "TiViewProxy.h"
+#import "UIControl+TiUIView.h"
 
 @implementation TiUISwitch
 
@@ -24,6 +25,7 @@
 	{
 		switchView = [[UISwitch alloc] init];
 		[switchView addTarget:self action:@selector(switchChanged:) forControlEvents:UIControlEventValueChanged];
+        [switchView setTiUIView:self];
 		[self addSubview:switchView];
 	}
 	return switchView;

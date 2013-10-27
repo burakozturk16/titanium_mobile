@@ -394,6 +394,17 @@
 		[self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
 	}
     
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow _hasListeners:@"keyboard"]) {
+        UIView * ourView = [self viewForKeyboardAccessory];
+        CGRect endingFrame = [ourView convertRect:endFrame fromView:nil];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithInt:(keyboardVisible?leaveDuration:enterDuration)*1000], @"animationDuration",
+                               [NSNumber numberWithBool:keyboardVisible], @"keyboardVisible",
+                               [TiUtils rectToDictionary:endingFrame], @"keyboardFrame",
+                               nil];
+        [topWindow fireEvent:@"keyboard" withObject:event];
+    }
 }
 
 - (void)keyboardWillShow:(NSNotification*)notification
@@ -409,6 +420,18 @@
 		updatingAccessoryView = YES;
 		[self performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
 	}
+    
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow _hasListeners:@"keyboard"]) {
+        UIView * ourView = [self viewForKeyboardAccessory];
+        CGRect startingFrame = [ourView convertRect:startFrame fromView:nil];
+        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
+                               [NSNumber numberWithInt:(keyboardVisible?leaveDuration:enterDuration)*1000], @"animationDuration",
+                               [NSNumber numberWithBool:keyboardVisible], @"keyboardVisible",
+                               [TiUtils rectToDictionary:startingFrame], @"keyboardFrame",
+                               nil];
+        [topWindow fireEvent:@"keyboard" withObject:event];
+    }
 }
 
 - (void)adjustKeyboardHeight:(NSNumber*)_keyboardVisible
@@ -516,6 +539,11 @@
     CGFloat keyboardHeight = endingFrame.origin.y;
     if(focusedToolbar != nil){
         keyboardHeight -= focusedToolbarBounds.size.height;
+    }
+    
+    TiViewProxy* topWindow = [self topWindow];
+    if ([topWindow valueForKey:@"keyboardOffset"]) {
+        keyboardHeight -= [TiUtils floatValue:[topWindow valueForKey:@"keyboardOffset"] def:0.0f];
     }
     
 	if ((scrolledView != nil) && (keyboardHeight > 0))	//If this isn't IN the toolbar, then we update the scrollviews to compensate.
@@ -709,6 +737,31 @@
         return (UIView *)[[containedWindows lastObject] view];
     } else {
         return [self view];
+    }
+}
+
+-(TiViewProxy *)topWindow
+{
+    UIViewController* topVC = [self topPresentedController];
+    if ([topVC isKindOfClass:[TiErrorController class]]) {
+        DebugLog(@"[ERROR] ErrorController is up");
+        return nil;
+    }
+    if (topVC == self) {
+        [[containedWindows lastObject] resignFocus];
+    } else if ([topVC respondsToSelector:@selector(proxy)]) {
+        id theProxy = [(id)topVC proxy];
+        if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
+            return [(id<TiWindowProtocol>)theProxy topWindow];
+        }
+    }
+    
+    if ([modalWindows count] > 0) {
+        return [[modalWindows lastObject] topWindow];
+    } else if ([containedWindows count] > 0) {
+        return [[containedWindows lastObject] topWindow];
+    } else {
+        return nil;
     }
 }
 

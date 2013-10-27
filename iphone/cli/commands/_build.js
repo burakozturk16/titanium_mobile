@@ -3108,6 +3108,9 @@ build.prototype = {
 								'#define USE_TI_UITEXTFIELD',
 								'#define USE_TI_UITEXTAREA',
 								'#endif');
+							contents.push('#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE',
+								'#define USE_TI_UITABLEVIEWSEPARATORSTYLE',
+								'#endif');
 							contents = contents.join('\n');
 
 							if (!fs.existsSync(dest) || fs.readFileSync(dest).toString() != contents) {

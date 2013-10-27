@@ -1508,7 +1508,7 @@ DEFINE_EXCEPTIONS
         [self setBgState:[self realStateForState:UIControlStateSelected]];
     }
 	
-	if (handlesTouches)
+	if ([self interactionEnabled])
 	{
 		if ([proxy _hasListeners:@"touchstart"])
 		{
@@ -1538,7 +1538,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self setBgState:[self realStateForState:!outside?UIControlStateSelected:UIControlStateNormal]];
     }
-	if (handlesTouches)
+	if ([self interactionEnabled])
 	{
 		if ([proxy _hasListeners:@"touchmove"])
 		{
@@ -1607,7 +1607,7 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-	if (handlesTouches)
+	if ([self interactionEnabled])
 	{
 		UITouch *touch = [touches anyObject];
 		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
