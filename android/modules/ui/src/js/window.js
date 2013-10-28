@@ -20,12 +20,12 @@ exports.bootstrap = function(Titanium) {
 	var TiWindow = Titanium.TiWindow;
 	var Window = Titanium.UI.Window;
 	Window.prototype._cachedActivityProxy = null;
+	Window.prototype._children = [];
 
 	function createWindow(scopeVars, options) {
 		var window = new Window(options);
 		window._sourceUrl = scopeVars.sourceUrl;
 		window._module = scopeVars.module;
-		window._children = [];
 
 		return window;
 	}
