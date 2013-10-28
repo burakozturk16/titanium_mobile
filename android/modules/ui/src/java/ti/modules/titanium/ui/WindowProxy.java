@@ -56,7 +56,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
-	public boolean firstLayout = true;
+	protected boolean firstLayout = true;
 
 	private WeakReference<TiBaseActivity> windowActivity;
 
