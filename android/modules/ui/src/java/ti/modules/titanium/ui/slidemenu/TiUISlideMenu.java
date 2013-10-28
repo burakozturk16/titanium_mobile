@@ -304,21 +304,33 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	}
 	
 	private void updateMenus() {
-		if (this.leftView != null && this.rightView != null) {
-			slidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
-			slidingMenu.setMenu((this.leftView).getOrCreateView().getOuterView());
-			slidingMenu.setSecondaryMenu((this.rightView).getOrCreateView().getOuterView());
+		View leftV = null;
+		View rightV = null;
+		if (this.leftView != null) {
+			leftV = (this.leftView).getOrCreateView().getOuterView();
+			TiUIHelper.removeViewFromSuperView(leftV);
 		}
-		else if (this.rightView != null)
+		if (this.rightView != null) {
+			rightV = (this.rightView).getOrCreateView().getOuterView();
+			TiUIHelper.removeViewFromSuperView(rightV);
+		}
+
+
+		if (leftV != null && rightV != null) {
+			slidingMenu.setMode(SlidingMenu.LEFT_RIGHT);
+			slidingMenu.setMenu(leftV);
+			slidingMenu.setSecondaryMenu(rightV);
+		}
+		else if (rightV != null)
 		{
 			slidingMenu.setMode(SlidingMenu.RIGHT);
-			slidingMenu.setMenu((this.rightView).getOrCreateView().getOuterView());
+			slidingMenu.setMenu(rightV);
 			slidingMenu.setSecondaryMenu(null);
 		}
-		else if (this.leftView != null)
+		else if (leftV != null)
 		{
 			slidingMenu.setMode(SlidingMenu.LEFT);
-			slidingMenu.setMenu((this.leftView).getOrCreateView().getOuterView());
+			slidingMenu.setMenu(leftV);
 			slidingMenu.setSecondaryMenu(null);
 		}
 		else
