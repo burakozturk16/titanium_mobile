@@ -17,8 +17,12 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.TiWindowManager;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiUIView;
+
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
@@ -39,7 +43,7 @@ import android.os.Message;
 	SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_DISPLACEMENT,
 	TiC.PROPERTY_SHADOW_WIDTH
 })
-public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
+public class SlideMenuProxy extends WindowProxy implements TiActivityWindow, TiWindowManager
 {
 	private static final String TAG = "SlideMenuProxy";
 
@@ -55,7 +59,7 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
-	private WeakReference<Activity> slideMenuActivity;
+//	private WeakReference<Activity> slideMenuActivity;
 	private WeakReference<SlidingMenu> slidingMenu;
 
 	public SlideMenuProxy()
@@ -105,149 +109,158 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 			}
 		}
 	}
+//
+//	@Override
+//	public void handleCreationDict(KrollDict options) {
+//		super.handleCreationDict(options);
+//
+//		// Support setting orientation modes at creation.
+//		Object orientationModes = options.get(TiC.PROPERTY_ORIENTATION_MODES);
+//		if (orientationModes != null && orientationModes instanceof Object[]) {
+//			try {
+//				int[] modes = TiConvert.toIntArray((Object[]) orientationModes);
+//				setOrientationModes(modes);
+//
+//			} catch (ClassCastException e) {
+//				Log.e(TAG, "Invalid orientationMode array. Must only contain orientation mode constants.");
+//			}
+//		}
+//	}
+
+
+//	@Override
+//	protected void handleOpen(KrollDict options)
+//	{
+//		Activity topActivity = TiApplication.getAppCurrentActivity();
+//		Intent intent = new Intent(topActivity, TiActivity.class);
+//		fillIntent(topActivity, intent);
+//
+//		int windowId = TiActivityWindows.addWindow(this);
+//		intent.putExtra(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, true);
+//		intent.putExtra(TiC.INTENT_PROPERTY_WINDOW_ID, windowId);
+//
+//		topActivity.startActivity(intent);
+//	}
+	
 
 	@Override
-	public void handleCreationDict(KrollDict options) {
-		super.handleCreationDict(options);
-
-		// Support setting orientation modes at creation.
-		Object orientationModes = options.get(TiC.PROPERTY_ORIENTATION_MODES);
-		if (orientationModes != null && orientationModes instanceof Object[]) {
-			try {
-				int[] modes = TiConvert.toIntArray((Object[]) orientationModes);
-				setOrientationModes(modes);
-
-			} catch (ClassCastException e) {
-				Log.e(TAG, "Invalid orientationMode array. Must only contain orientation mode constants.");
-			}
-		}
-	}
-
-
-	@Override
-	protected void handleOpen(KrollDict options)
+	public TiUIView createView(Activity activity)
 	{
-		Activity topActivity = TiApplication.getAppCurrentActivity();
-		Intent intent = new Intent(topActivity, TiActivity.class);
-		fillIntent(topActivity, intent);
-
-		int windowId = TiActivityWindows.addWindow(this);
-		intent.putExtra(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, true);
-		intent.putExtra(TiC.INTENT_PROPERTY_WINDOW_ID, windowId);
-
-		topActivity.startActivity(intent);
+//		slideMenuActivity = new WeakReference<Activity>(activity);
+		TiUISlideMenu v = new TiUISlideMenu(this, (TiBaseActivity) activity);
+		slidingMenu = new WeakReference<SlidingMenu>((v).getSlidingMenu());
+		setView(v);
+		return v;
 	}
 
-	@Override
-	public void windowCreated(TiBaseActivity activity) {
-		slideMenuActivity = new WeakReference<Activity>(activity);
-		activity.setWindowProxy(this);
-		setActivity(activity);
-		view = new TiUISlideMenu(this, activity);
-		slidingMenu = new WeakReference<SlidingMenu>(((TiUISlideMenu)view).getSlidingMenu());
-		setModelListener(view);
+//	@Override
+//	public void windowCreated(TiBaseActivity activity) {
+//		activity.setWindowProxy(this);
+//		setActivity(activity);
+//		view = new TiUISlideMenu(this, activity);
+//		setModelListener(view);
+//
+//		handlePostOpen();
+//
+//		// Push the tab group onto the window stack. It needs to intercept
+//		// stack changes to properly dispatch tab focus and blur events
+//		// when windows open and close on top of it.
+//		activity.addWindowToStack(this);
+//	}
 
-		handlePostOpen();
+//	@Override
+//	public void handlePostOpen()
+//	{
+//		super.handlePostOpen();
+//
+//		opened = true;
+//
+//		// First open before we load and focus our first tab.
+//		fireEvent(TiC.EVENT_OPEN, null);
+//
+//		// Setup the new tab activity like setting orientation modes.
+//		onWindowActivityCreated();
+//	}
 
-		// Push the tab group onto the window stack. It needs to intercept
-		// stack changes to properly dispatch tab focus and blur events
-		// when windows open and close on top of it.
-		activity.addWindowToStack(this);
-	}
+//	@Override
+//	protected void handleClose(KrollDict options)
+//	{
+//		Log.d(TAG, "handleClose: " + options, Log.DEBUG_MODE);
+//		
+//		modelListener = null;
+//		releaseViews();
+//		view = null;
+//
+//		opened = false;
+//
+//		Activity activity = slideMenuActivity.get();
+//		if (activity != null && !activity.isFinishing()) {
+//			activity.finish();
+//		}
+//	}
 
-	@Override
-	public void handlePostOpen()
-	{
-		super.handlePostOpen();
+//	@Override
+//	public void closeFromActivity(boolean activityIsFinishing) {
+//
+//		// Call super to fire the close event on the tab group.
+//		// This event must fire after each tab has been closed.
+//		super.closeFromActivity(activityIsFinishing);
+//	}
 
-		opened = true;
+//	@Override
+//	public void onWindowFocusChange(boolean focused) {
+//	}
 
-		// First open before we load and focus our first tab.
-		fireEvent(TiC.EVENT_OPEN, null);
-
-		// Setup the new tab activity like setting orientation modes.
-		onWindowActivityCreated();
-	}
-
-	@Override
-	protected void handleClose(KrollDict options)
-	{
-		Log.d(TAG, "handleClose: " + options, Log.DEBUG_MODE);
-		
-		modelListener = null;
-		releaseViews();
-		view = null;
-
-		opened = false;
-
-		Activity activity = slideMenuActivity.get();
-		if (activity != null && !activity.isFinishing()) {
-			activity.finish();
-		}
-	}
-
-	@Override
-	public void closeFromActivity(boolean activityIsFinishing) {
-
-		// Call super to fire the close event on the tab group.
-		// This event must fire after each tab has been closed.
-		super.closeFromActivity(activityIsFinishing);
-	}
-
-	@Override
-	public void onWindowFocusChange(boolean focused) {
-	}
-
-	private void fillIntent(Activity activity, Intent intent)
-	{
-		if (hasProperty(TiC.PROPERTY_FULLSCREEN)) {
-			intent.putExtra(TiC.PROPERTY_FULLSCREEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN)));
-		}
-		if (hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)) {
-			intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)));
-		}
-		if (hasProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)) {
-			intent.putExtra(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)));
-		}
-
-		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
-			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, TiConvert.toBoolean(getProperty(TiC.PROPERTY_EXIT_ON_CLOSE)));
-		} else {
-			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, activity.isTaskRoot());
-		}
-	}
+//	private void fillIntent(Activity activity, Intent intent)
+//	{
+//		if (hasProperty(TiC.PROPERTY_FULLSCREEN)) {
+//			intent.putExtra(TiC.PROPERTY_FULLSCREEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN)));
+//		}
+//		if (hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)) {
+//			intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)));
+//		}
+//		if (hasProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)) {
+//			intent.putExtra(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)));
+//		}
+//
+//		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
+//			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, TiConvert.toBoolean(getProperty(TiC.PROPERTY_EXIT_ON_CLOSE)));
+//		} else {
+//			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, activity.isTaskRoot());
+//		}
+//	}
 
 	@Override
 	public void releaseViews()
 	{
 		super.releaseViews();
-//		if (hasProperty(TiC.PROPERTY_LEFT_VIEW))
-//		{
-//			((TiViewProxy)getProperty(TiC.PROPERTY_LEFT_VIEW)).releaseViews();
-//		}
-//		if (hasProperty(TiC.PROPERTY_RIGHT_VIEW))
-//		{
-//			((TiViewProxy)getProperty(TiC.PROPERTY_RIGHT_VIEW)).releaseViews();
-//		}
-//		if (hasProperty(TiC.PROPERTY_CENTER_VIEW))
-//		{
-//			((TiViewProxy)getProperty(TiC.PROPERTY_CENTER_VIEW)).releaseViews();
-//		}
+		if (hasProperty(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW))
+		{
+			((TiViewProxy)getProperty(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW)).releaseViews();
+		}
+		if (hasProperty(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW))
+		{
+			((TiViewProxy)getProperty(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW)).releaseViews();
+		}
+		if (hasProperty(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW))
+		{
+			((TiViewProxy)getProperty(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW)).releaseViews();
+		}
 	}
 
-	@Override
-	protected Activity getWindowActivity()
-	{
-		return (slideMenuActivity != null) ? slideMenuActivity.get() : null;
-	}
+//	@Override
+//	protected Activity getWindowActivity()
+//	{
+//		return (slideMenuActivity != null) ? slideMenuActivity.get() : null;
+//	}
 
-	@Kroll.method @Kroll.setProperty
-	@Override
-	public void setOrientationModes(int[] modes) {
-		// Unlike Windows this setter is not defined in JavaScript.
-		// We need to expose it here with an annotation.
-		super.setOrientationModes(modes);
-	}
+//	@Kroll.method @Kroll.setProperty
+//	@Override
+//	public void setOrientationModes(int[] modes) {
+//		// Unlike Windows this setter is not defined in JavaScript.
+//		// We need to expose it here with an annotation.
+//		super.setOrientationModes(modes);
+//	}
 	
 //	@Kroll.method @Kroll.getProperty
 //	public int getLeftViewWidth() {
@@ -438,5 +451,33 @@ public class SlideMenuProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		SlidingMenu menu = slidingMenu.get();
 		return menu.getBehindWidth();
+	}
+
+	@Override
+	public boolean handleClose(TiWindowProxy proxy, Object arg) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean handleOpen(TiWindowProxy proxy, Object arg) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+
+	@Override
+	public boolean realUpdateOrientationModes()
+	{
+		if (hasProperty(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW))
+		{
+			TiViewProxy proxy = ((TiViewProxy)getProperty(SlideMenuOptionsModule.PROPERTY_CENTER_VIEW));
+			if (proxy instanceof TiWindowProxy)
+			{
+				if (((TiWindowProxy) proxy).realUpdateOrientationModes())
+					return true;
+			}
+		}
+		return super.realUpdateOrientationModes();
 	}
 }
