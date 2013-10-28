@@ -7,12 +7,8 @@ package ti.modules.titanium.ui;
 
 import java.lang.ref.WeakReference;
 
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiActivity;
 import org.appcelerator.titanium.TiActivityWindow;
-import org.appcelerator.titanium.TiActivityWindows;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
@@ -28,7 +24,6 @@ import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import ti.modules.titanium.ui.slidemenu.TiUISlideMenu;
 import ti.modules.titanium.ui.slidemenu.SlideMenuOptionsModule;
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Message;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
@@ -464,7 +459,6 @@ public class SlideMenuProxy extends WindowProxy implements TiActivityWindow, TiW
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
 
 	@Override
 	public boolean realUpdateOrientationModes()

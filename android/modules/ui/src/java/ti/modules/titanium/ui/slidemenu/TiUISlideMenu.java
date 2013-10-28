@@ -17,6 +17,7 @@ import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -25,6 +26,7 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.GradientDrawable.Orientation;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
@@ -49,6 +51,8 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private static TiDimension defaultWidth = new TiDimension(200, TiDimension.TYPE_WIDTH);
 	private TiDimension leftViewDisplacement =  defaultDisplacement;
 	private TiDimension rightViewDisplacement =  defaultDisplacement;
+	private boolean firstLayout = true;
+	private TiCompositeLayout parentViewForChildren;
 	
 	public TiUISlideMenu(final SlideMenuProxy proxy, TiBaseActivity activity)
 	{
@@ -61,6 +65,23 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 				super.onSizeChanged(w, h, oldw, oldh);
 				updateMenuWidth();
+			}
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				if (firstLayout) {
+					firstLayout = false;
+					fireEvent(TiC.EVENT_OPEN, null);
+				}
+				TiUIHelper.firePostLayoutEvent(TiUISlideMenu.this);
+			}
+			
+			@Override
+			protected void attachViewToParent(ViewGroup group) {
+				super.attachViewToParent(group);
+				parentViewForChildren = new TiCompositeLayout(this.getContext());
+				group.addView(parentViewForChildren, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 			}
 		};
 		slidingMenu.setClassForNonViewPager(TiViewPagerLayout.class);
@@ -143,6 +164,12 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		slidingMenu.setSecondaryShadowDrawable(shadowR);
 
 		setNativeView(slidingMenu);
+	}
+	
+
+	public View getParentViewForChild()
+	{
+		return parentViewForChildren;
 	}
 	
 	public SlidingMenu getSlidingMenu()
