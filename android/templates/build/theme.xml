@@ -2,8 +2,13 @@
 <resources>
 
 	<style name="Theme.Titanium" parent="@style/<%- flags %>">
+		<item name="android:windowBackground">@android:color/transparent</item>
+		<item name="actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
+		<item name="android:actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
 	</style>
-	<style name="Theme.Titanium.NoActionBar" parent="@style/<%- flags %>.NoActionBar">
+	<style name="Theme.Titanium.NoActionBar" parent="Theme.Titanium">
+		<item name="android:windowActionBar">false</item>
+		<item name="android:windowNoTitle">true</item>
 	</style>
 	<style name="Theme.Titanium.SplashScreen" parent="Theme.Titanium.NoActionBar">
 		<item name="android:windowBackground">@drawable/background</item>
@@ -11,7 +16,7 @@
 	<style name="Theme.Titanium.Translucent" parent="Theme.Titanium">
 		<item name="android:windowBackground">@android:color/transparent</item>
 		<item name="android:colorBackgroundCacheHint">@null</item>
-<!--           <item name="android:windowIsTranslucent">true</item>-->
+		<item name="android:windowIsTranslucent">true</item>
 		<item name="android:background">#00000000</item>
 	</style>
 </resources>
