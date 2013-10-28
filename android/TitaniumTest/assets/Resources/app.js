@@ -81,7 +81,9 @@ function openWin(_win, _withoutActionBar) {
 	if (isAndroid) {
 		if (_withoutActionBar != true) _win.activity = androidActivitysSettings;
 	}
-	mainWin.openWindow(_win);
+	mainWin.openWindow(_win, {transition:{
+			style:Ti.UI.TransitionStyle.CUBE
+	}});
 }
 
 function transformExs() {
@@ -1068,7 +1070,7 @@ function listViewEx() {
 
 function fadeInEx() {
 	var win = createWin();
-	var view = Ti.UI.createView({backgroundColor:'red', opacity:0, width:200, height:200})
+	var view = Ti.UI.createView({backgroundColor:'red', opacity:0, width:200, height:200});
 	view.add(Ti.UI.createView({backgroundColor:'blue', bottom:10, width:50, height:50}));
 	var showMe = function() {
 		view.opacity = 0;
@@ -1621,6 +1623,7 @@ function navWindowEx() {
 			Ti.UI.LANDSCAPE_RIGHT,
 			Ti.UI.LANDSCAPE_LEFT],
 		leftViewWidth:-60,
+		exitOnClose:true,
 		leftViewDisplacement:40,
 		shadowWidth:0,
 		backgroundGradient:{type:'linear',
@@ -1845,7 +1848,7 @@ function slideMenuEx() {
 	}
 
 	var button = Ti.UI.createButton({bottom:0, bubbleParent:false, title:'Transition'});
-	button.addEventListener('click', function(){choseTransition(scrollView, 'transition')});
+	button.addEventListener('click', function(){choseTransition(scrollView, 'transition');});
 	rootWindow1.add(button);
 	rootWindows.push(rootWindow1);
 	function openRootWindow(_win) {
@@ -1859,6 +1862,8 @@ function slideMenuEx() {
 
 	var slidingMenu = Ti.UI.createSlideMenu({backgroundColor:backColor,
 		navBarHidden:true,
+		exitOnClose:true,
+		leftViewWidth:'40%',
 		backgroundColor:'gray',
 		// fading:1.0,
 		leftTransition:{
@@ -1874,13 +1879,15 @@ function slideMenuEx() {
 				{properties:{title:'test2', accessoryType:Titanium.UI.LIST_ACCESSORY_TYPE_CHECKMARK}, callback:transform2Ex},
 				{properties:{title:'PopIn'}, callback:transform3Ex},
 				{properties:{title:'SlideIn'}, callback:transform4Ex},
-				{properties:{title:'Transition Style'}, callback:function(){choseTransition(slidingMenu, 'leftTransition')}},
+				{properties:{title:'Transition Style'}, callback:function(){choseTransition(slidingMenu, 'leftTransition');}},
 				{properties:{title:'Close'}, callback:function() {
 					slidingMenu.close();
 				}}]}]});
 	slidingMenu.leftView = listview;
 	slidingMenu.centerView = Ti.UI.createWindow({backgroundColor:backColor, navBarHidden:true});
 	otherWindows.push(slidingMenu);
+	alert('fuck');
+	slidingMenu.add(Ti.UI.createView({backgroundColor:'red', top:0, height:20, width:Ti.UI.FILL}));
 	slidingMenu.open();
 }
 
@@ -1904,6 +1911,7 @@ listview.sections = [{items:[{properties:{title:'Transform', backgroundColor:col
 		{properties:{title:'ListView2'}, callback:listView2Ex}]}];
 firstWindow.add(listview);
 var mainWin = Ti.UI.createNavigationWindow({backgroundColor:backColor,
+
 	exitOnClose:true,
 	window:firstWindow});
 
