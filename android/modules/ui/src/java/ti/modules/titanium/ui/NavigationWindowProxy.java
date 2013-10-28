@@ -39,6 +39,7 @@ import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 
+import com.actionbarsherlock.app.ActionBar;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -52,7 +53,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
-import android.support.v7.app.ActionBar;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;

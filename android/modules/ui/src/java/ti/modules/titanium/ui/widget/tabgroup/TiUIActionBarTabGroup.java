@@ -14,11 +14,12 @@ import org.appcelerator.titanium.util.TiConvert;
 
 import org.appcelerator.kroll.KrollProxy;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar.Tab;
+import com.actionbarsherlock.app.ActionBar.TabListener;
+
 import ti.modules.titanium.ui.TabGroupProxy;
 import ti.modules.titanium.ui.TabProxy;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.app.ActionBar.TabListener;
 import android.app.Activity;
 import android.support.v4.app.FragmentTransaction;
 import android.view.ViewGroup;

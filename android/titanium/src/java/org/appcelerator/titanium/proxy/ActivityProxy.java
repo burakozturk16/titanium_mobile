@@ -23,9 +23,7 @@ import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiActivitySupportHelper;
 
 import android.app.Activity;
-import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Message;
 
 @Kroll.proxy(propertyAccessors = {
@@ -252,7 +250,7 @@ public class ActivityProxy extends KrollProxy
 	@Kroll.method @Kroll.getProperty
 	public ActionBarProxy getActionBar()
 	{
-		ActionBarActivity activity = (ActionBarActivity)getWrappedActivity();
+		TiBaseActivity activity = (TiBaseActivity)getWrappedActivity();
 		actionBarProxy = new ActionBarProxy(activity);
 
 		return actionBarProxy;
@@ -271,12 +269,10 @@ public class ActivityProxy extends KrollProxy
 	@Kroll.method
 	public void invalidateOptionsMenu()
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_HONEYCOMB) {
-			if (TiApplication.isUIThread()) {
-				handleInvalidateOptionsMenu();
-			} else {
-				getMainHandler().obtainMessage(MSG_INVALIDATE_OPTIONS_MENU).sendToTarget();
-			}
+		if (TiApplication.isUIThread()) {
+			handleInvalidateOptionsMenu();
+		} else {
+			getMainHandler().obtainMessage(MSG_INVALIDATE_OPTIONS_MENU).sendToTarget();
 		}
 	}
 	

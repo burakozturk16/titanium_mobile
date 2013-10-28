@@ -51,20 +51,21 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 
 /**
  * The base class for all non tab Titanium activities. To learn more about Activities, see the
  * <a href="http://developer.android.com/reference/android/app/Activity.html">Android Activity documentation</a>.
  */
-public abstract class TiBaseActivity extends ActionBarActivity 
+public abstract class TiBaseActivity extends SherlockFragmentActivity
 	implements TiActivitySupport/*, ITiWindowHandler*/
 {
 	private static final String TAG = "TiBaseActivity";

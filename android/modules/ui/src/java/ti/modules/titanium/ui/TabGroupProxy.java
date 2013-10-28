@@ -29,7 +29,6 @@ import org.appcelerator.titanium.TiBlob;
 import ti.modules.titanium.ui.widget.tabgroup.TiUIAbstractTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUIActionBarTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUITabHostGroup;
-import android.support.v7.app.ActionBarActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Message;
@@ -53,7 +52,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
 	private ArrayList<TabProxy> tabs = new ArrayList<TabProxy>();
-	private WeakReference<ActionBarActivity> tabGroupActivity;
+	private WeakReference<TiBaseActivity> tabGroupActivity;
 	private TabProxy selectedTab;
 	private boolean isFocused;
 
@@ -288,7 +287,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	protected void handleOpen(KrollDict options)
 	{
-		ActionBarActivity topActivity = (ActionBarActivity)TiApplication.getAppCurrentActivity();
+		TiBaseActivity topActivity = (TiBaseActivity)TiApplication.getAppCurrentActivity();
 		Intent intent = new Intent(topActivity, TiActivity.class);
 		fillIntent(topActivity, intent);
 
@@ -301,7 +300,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 
 	@Override
 	public void windowCreated(TiBaseActivity activity) {
-		tabGroupActivity = new WeakReference<ActionBarActivity>(activity);
+		tabGroupActivity = new WeakReference<TiBaseActivity>(activity);
 		activity.setWindowProxy(this);
 		activity.setLayoutProxy(this);
 		setActivity(activity);
@@ -367,7 +366,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 
 		opened = false;
 
-		ActionBarActivity activity = tabGroupActivity.get();
+		TiBaseActivity activity = tabGroupActivity.get();
 		if (activity != null && !activity.isFinishing()) {
 			activity.finish();
 		}
@@ -442,7 +441,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 		selectedTab.onFocusChanged(true, focusEventData);
 	}
 
-	private void fillIntent(ActionBarActivity activity, Intent intent)
+	private void fillIntent(TiBaseActivity activity, Intent intent)
 	{
 		if (hasProperty(TiC.PROPERTY_FULLSCREEN)) {
 			intent.putExtra(TiC.PROPERTY_FULLSCREEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN)));
@@ -491,7 +490,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	@Override
-	protected ActionBarActivity getWindowActivity()
+	protected TiBaseActivity getWindowActivity()
 	{
 		return (tabGroupActivity != null) ? tabGroupActivity.get() : null;
 	}

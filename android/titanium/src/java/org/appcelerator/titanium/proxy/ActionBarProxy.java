@@ -15,6 +15,7 @@ import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
@@ -26,10 +27,9 @@ import org.appcelerator.titanium.util.TiUrl;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
@@ -72,7 +72,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	private Drawable themeBackgroundDrawable;
 	private Drawable themeIconDrawable;
 
-	public ActionBarProxy(ActionBarActivity activity)
+	public ActionBarProxy(TiBaseActivity activity)
 	{
 		super();
 		actionBar = activity.getSupportActionBar();
@@ -86,7 +86,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
             int[] styleAttrs) throws ResourceNotFoundException {
         // Need to get resource id of style pointed to from the theme attr
         TypedValue outValue = new TypedValue();
-    	int resourceId = TiRHelper.getResource("android.support.v7.appcompat.R$", "attr.actionBarStyle");
+    	int resourceId = TiRHelper.getResource("com.actionbarsherlock.R$", "attr.actionBarStyle");
        context.getTheme().resolveAttribute(resourceId, outValue, true);
         final int styleResId =  outValue.resourceId;
 

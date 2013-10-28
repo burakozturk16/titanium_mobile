@@ -18,15 +18,13 @@ import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
 
-import android.annotation.SuppressLint;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
+
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Message;
-import android.view.MenuItem;
-import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
 
-@SuppressLint("NewApi")
 @Kroll.proxy
 public class MenuItemProxy extends KrollProxy
 {
@@ -74,9 +72,7 @@ public class MenuItemProxy extends KrollProxy
 	{
 		this.item = item;
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			item.setOnActionExpandListener(new ActionExpandListener());
-		}
+		item.setOnActionExpandListener(new ActionExpandListener());
 	}
 
 	@Override
@@ -357,17 +353,12 @@ public class MenuItemProxy extends KrollProxy
 	public void setActionView(Object view)
 	{
 		if (view instanceof TiViewProxy) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				final View v = ((TiViewProxy) view).getOrCreateView().getNativeView();
-				TiMessenger.postOnMain(new Runnable() {
-					public void run() {
-						item.setActionView(v);
-					}
-				});
-
-			} else {
-				Log.i(TAG, "Action bar is not available on this device. Ignoring actionView property.", Log.DEBUG_MODE);
-			}
+			final View v = ((TiViewProxy) view).getOrCreateView().getNativeView();
+			TiMessenger.postOnMain(new Runnable() {
+				public void run() {
+					item.setActionView(v);
+				}
+			});
 		} else {
 			Log.w(TAG, "Invalid type for actionView", Log.DEBUG_MODE);
 		}
@@ -375,59 +366,38 @@ public class MenuItemProxy extends KrollProxy
 
 	@Kroll.method @Kroll.setProperty
 	public void setShowAsAction(final int flag) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.setShowAsAction(flag);
-				}
-			});
-
-		} else {
-			Log.i(TAG, "Action bar unsupported by this device. Ignoring showAsAction property.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.setShowAsAction(flag);
+			}
+		});
 	}
 
 	@Kroll.method
 	public void collapseActionView() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.collapseActionView();
-				}
-			});
-
-		} else {
-			Log.i(TAG, "This device does not support collapsing action views. No operation performed.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.collapseActionView();
+			}
+		});
 	}
 
 	@Kroll.method
 	public void expandActionView() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.expandActionView();
-				}
-			});
-
-		} else {
-			Log.i(TAG, "This device does not support expanding action views. No operation performed.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.expandActionView();
+			}
+		});
 	}
 
 	@Kroll.method @Kroll.getProperty
 	public boolean isActionViewExpanded() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (TiApplication.isUIThread()) {
-				return item.isActionViewExpanded();
-			}
-
-			return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ACTION_VIEW_EXPANDED));
+		if (TiApplication.isUIThread()) {
+			return item.isActionViewExpanded();
 		}
 
-		// If this system does not support expandable action views, we will
-		// always return false since the menu item can never "expand".
-		return false;
+		return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ACTION_VIEW_EXPANDED));
 	}
 
 	@Override
