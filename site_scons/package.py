@@ -403,7 +403,7 @@ def resolve_npm_deps(dir, version, node_appc_branch):
 		json['version'] = version
 		if node_appc_branch:
 			print 'node-appc-branch = %s' % node_appc_branch
-			json['dependencies']['node-appc'] = 'git://github.com/appcelerator/node-appc.git#%s' % node_appc_branch
+			json['dependencies']['node-appc'] = 'git://github.com/Akylas/node-appc.git#%s' % node_appc_branch
 			package_json_contents = simplejson.dumps(json, indent=True)
 		else:
 			print 'node-appc = %s' % json['dependencies']['node-appc']
