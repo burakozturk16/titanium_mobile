@@ -1476,6 +1476,11 @@ AndroidBuilder.prototype.initialize = function initialize(next) {
 	var includeAllTiModulesProp = this.tiapp.properties['ti.android.include_all_modules'];
 	this.includeAllTiModules = includeAllTiModulesProp && includeAllTiModulesProp.value;
 
+	this.externalLibraries = [{
+		javaClass:'com.actionbarsherlock',
+		resPath:path.join(this.platformPath, 'externals/actionbarsherlock/res')
+	}];
+
 	// directories
 	this.buildAssetsDir             = path.join(this.buildDir, 'assets');
 	this.buildBinDir                = path.join(this.buildDir, 'bin');
@@ -2759,11 +2764,11 @@ AndroidBuilder.prototype.generateTheme = function generateTheme(next) {
 	if (!fs.existsSync(themeFile)) {
 		this.logger.info(__('Generating %s', themeFile.cyan));
 
-		var flags = 'Theme';
+		var flags = 'Theme.Sherlock';
 		if ((this.tiapp.fullscreen || this.tiapp['statusbar-hidden']) && this.tiapp['navbar-hidden']) {
-			flags += '.NoTitleBar.Fullscreen';
+			flags += '.NoActionBar.Fullscreen';
 		} else if (this.tiapp['navbar-hidden']) {
-			flags += '.NoTitleBar';
+			flags += '.NoActionBar';
 		}
 
 		fs.writeFileSync(themeFile, ejs.render(fs.readFileSync(path.join(this.templatesDir, 'theme.xml')).toString(), {
@@ -2844,7 +2849,7 @@ AndroidBuilder.prototype.generateAndroidManifest = function generateAndroidManif
 				'activity': {
 					'name': 'ti.modules.titanium.media.TiVideoActivity',
 					'configChanges': ['keyboardHidden', 'orientation'],
-					'theme': '@android:style/Theme.NoTitleBar.Fullscreen',
+					'theme': '@style/Theme.Sherlock.Fullscreen',
 					'launchMode': 'singleTask'
 				}
 			},
@@ -2852,7 +2857,7 @@ AndroidBuilder.prototype.generateAndroidManifest = function generateAndroidManif
 				'activity': {
 					'name': 'ti.modules.titanium.media.TiCameraActivity',
 					'configChanges': ['keyboardHidden', 'orientation'],
-					'theme': '@android:style/Theme.Translucent.NoTitleBar.Fullscreen'
+					'theme': '@style/Theme.Sherlock.NoActionBar.Fullscreen'
 				}
 			}
 		},
@@ -3024,14 +3029,24 @@ AndroidBuilder.prototype.packageApp = function packageApp(next) {
 		'package',
 		'-f',
 		'-m',
-		'-J', path.join(this.buildDir, 'gen'),
+		'--auto-add-overlay',
 		'-M', this.androidManifestFile,
 		'-A', this.buildBinAssetsDir,
 		'-S', this.buildResDir,
 		'-I', this.androidTargetSDK.androidJar,
 		'-I', path.join(this.platformPath, 'titanium.jar'),
+		'-J', path.join(this.buildDir, 'gen'),
 		'-F', this.ap_File
-	];
+		];
+
+	var len = this.externalLibraries.length;
+	for (i = 0; i < len; i++) {
+		var lib = this.externalLibraries[i];
+		args.push('--extra-packages');
+		args.push(lib.javaClass);
+		args.push('-S');
+		args.push(lib.resPath);
+	}
 
 	this.logger.info(__('Packaging application: %s', (this.androidInfo.sdk.executables.aapt + ' "' + args.join('" "') + '"').cyan));
 
@@ -3117,12 +3132,20 @@ AndroidBuilder.prototype.compileJavaClasses = function compileJavaClasses(next) 
 	if (this.allowProfiling && this.profilePort) {
 		classpath[path.join(this.platformPath, 'lib', 'titanium-profiler.jar')] = 1;
 	}
+	var _t = this;
+			this.logger.debug('scanJavaFiles');
 
+	var dirs = [this.buildGenAppIdDir, this.buildSrcDir];
+	var len = this.externalLibraries.length;
+	for (i = 0; i < len; i++) {
+		var lib = this.externalLibraries[i];
+		dirs.push(path.join(this.buildDir, 'gen', lib.javaClass.split('.').join(path.sep)));
+	}
 	// find all java files and write them to the temp file
 	var javaFiles = [],
 		javaRegExp = /\.java$/,
 		javaSourcesFile = path.join(this.buildDir, 'java-sources.txt');
-	[this.buildGenAppIdDir, this.buildSrcDir].forEach(function scanJavaFiles(dir) {
+	dirs.forEach(function scanJavaFiles(dir) {
 		fs.readdirSync(dir).forEach(function (name) {
 			var file = path.join(dir, name);
 			if (fs.existsSync(file)) {
