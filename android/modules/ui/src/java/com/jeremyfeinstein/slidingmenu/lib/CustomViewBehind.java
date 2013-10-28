@@ -13,9 +13,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.CanvasTransformer;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.ViewTransformer;
-import com.nineoldandroids.view.ViewHelper;
 
 public class CustomViewBehind extends ViewGroup {
 
