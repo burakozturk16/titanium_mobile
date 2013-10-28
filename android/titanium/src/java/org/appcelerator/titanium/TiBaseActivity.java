@@ -277,7 +277,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 		
 		
-		
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
@@ -626,7 +625,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		originalOrientationMode = getRequestedOrientation();
 
 		if (window != null) {
-			window.onWindowActivityCreated();
+			if (window.getWindowManager() != null)
+				window.getWindowManager().onWindowActivityCreated();
+			else {
+				window.onWindowActivityCreated();
+			}
 		}
 	}
 
@@ -867,7 +870,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 		return null;
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -1455,7 +1458,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	protected boolean shouldFinishRootActivity()
 	{
 		if (window != null)
-			return TiConvert.toBoolean(window.getProperties(), TiC.PROPERTY_EXIT_ON_CLOSE, false);
+			return window.shouldExitOnClose();
 		return false;
 	}
 

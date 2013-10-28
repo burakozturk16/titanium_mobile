@@ -248,6 +248,27 @@ public abstract class TiWindowProxy extends TiViewProxy
 //	 {
 //	 	return TiUIHelper.viewToImage(null, getActivity().getWindow().getDecorView(), scale.floatValue());
 //	 }
+	
+	public boolean realUpdateOrientationModes(){
+		if (hasProperty(TiC.PROPERTY_ORIENTATION_MODES)) {
+			Object obj = getProperty(TiC.PROPERTY_ORIENTATION_MODES);
+			if (obj instanceof Object[]) {
+				orientationModes = TiConvert.toIntArray((Object[]) obj);
+			}
+			setOrientationModes(orientationModes);
+			return true;
+		}
+		return false;
+	}
+	
+	public void updateOrientationModes(){
+		if (winManager != null){
+			winManager.updateOrientationModes();
+		}
+		else {
+			realUpdateOrientationModes();
+		}
+	}
 
 	/*
 	 * Called when the window's activity has been created.
@@ -255,18 +276,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void onWindowActivityCreated()
 	{
 		windowActivityCreated = true;
-		
-		if (hasProperty(TiC.PROPERTY_ORIENTATION_MODES)) {
-			Object obj = getProperty(TiC.PROPERTY_ORIENTATION_MODES);
-			if (obj instanceof Object[]) {
-				orientationModes = TiConvert.toIntArray((Object[]) obj);
-			}
-		}
-		// Make sure the activity opens according to any orientation modes 
-		// set on the window before the activity was actually created.
-//		if (orientationModes != null) {
-			setOrientationModes(orientationModes);
-//		}
+		updateOrientationModes();
 	}
 
 	/**
@@ -479,6 +489,20 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void setWindowManager(TiWindowManager manager)
 	{
 		this.winManager = manager;
+	}
+	
+	public TiWindowManager getWindowManager()
+	{
+		return winManager;
+	}
+	
+	public boolean shouldExitOnClose() {
+		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE))
+			return TiConvert.toBoolean(properties, TiC.PROPERTY_EXIT_ON_CLOSE, false);
+		else if (winManager != null) {
+			return winManager.shouldExitOnClose();
+		}
+		return false;
 	}
 	
 
