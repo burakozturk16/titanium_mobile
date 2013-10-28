@@ -86,7 +86,7 @@ public class TiUIDateSpinner extends TiUIView
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUIDateSpinner.this);
 			}
 		};
 		layout.setOrientation(LinearLayout.HORIZONTAL);

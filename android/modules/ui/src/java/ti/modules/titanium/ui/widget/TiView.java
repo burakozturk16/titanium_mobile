@@ -15,6 +15,6 @@ public class TiView extends TiUIView
 
 	public TiView(TiViewProxy proxy) {
 		super(proxy);
-		setNativeView(new TiCompositeLayout(proxy.getActivity(), proxy));
+		setNativeView(new TiCompositeLayout(proxy.getActivity(), this));
 	}
 }

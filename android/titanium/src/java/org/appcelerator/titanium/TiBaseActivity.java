@@ -313,7 +313,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	public void setLayoutProxy(TiViewProxy proxy)
 	{
 		if (layout instanceof TiCompositeLayout) {
-			((TiCompositeLayout) layout).setProxy(proxy);
+			((TiCompositeLayout) layout).setView(proxy.peekView());
 		}
 	}
 

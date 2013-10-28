@@ -544,9 +544,6 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			int zoomHeight = zoomControls.getMeasuredHeight();
 			zoomControls.layout(parentRight - zoomWidth, parentBottom - zoomHeight, parentRight, parentBottom);
 		}
-		
-		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
-		TiUIHelper.firePostLayoutEvent(viewProxy);
 	}
 
 	public void setColorFilter(ColorFilter filter)

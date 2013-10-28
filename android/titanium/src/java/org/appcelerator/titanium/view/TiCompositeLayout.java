@@ -76,7 +76,7 @@ public class TiCompositeLayout extends FreeLayout implements
 
 	private float alpha = 1.0f;
 
-	private WeakReference<TiViewProxy> proxy;
+	private WeakReference<TiUIView> view;
 	private static final int HAS_SIZE_FILL_CONFLICT = 1;
 	private static final int NO_SIZE_FILL_CONFLICT = 2;
 
@@ -120,8 +120,8 @@ public class TiCompositeLayout extends FreeLayout implements
 	 * @param proxy
 	 *            the associated proxy.
 	 */
-	public TiCompositeLayout(Context context, TiViewProxy proxy) {
-		this(context, LayoutArrangement.DEFAULT, proxy);
+	public TiCompositeLayout(Context context, TiUIView view) {
+		this(context, LayoutArrangement.DEFAULT, view);
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class TiCompositeLayout extends FreeLayout implements
 	 *            the associated proxy.
 	 */
 	public TiCompositeLayout(Context context, LayoutArrangement arrangement,
-			TiViewProxy proxy) {
+			TiUIView view) {
 		super(context);
 		this.arrangement = arrangement;
 		this.viewSorter = new TreeSet<View>(new Comparator<View>() {
@@ -187,7 +187,7 @@ public class TiCompositeLayout extends FreeLayout implements
 
 		setNeedsSort(true);
 		setOnHierarchyChangeListener(this);
-		this.proxy = new WeakReference<TiViewProxy>(proxy);
+		this.view = new WeakReference<TiUIView>(view);
 	}
 
 	private String viewToString(View view) {
@@ -746,8 +746,8 @@ public class TiCompositeLayout extends FreeLayout implements
 			currentHeight += getLayoutOptionAsPixels(params.optionTop, TiDimension.TYPE_TOP, params, this);
 		}
 
-		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
-		TiUIHelper.firePostLayoutEvent(viewProxy);
+		TiUIView view = (this.view == null ? null : this.view.get());
+		TiUIHelper.firePostLayoutEvent(view);
 
 	}
 
@@ -1200,8 +1200,8 @@ public class TiCompositeLayout extends FreeLayout implements
 		}
 	}
 
-	public void setProxy(TiViewProxy proxy) {
-		this.proxy = new WeakReference<TiViewProxy>(proxy);
+	public void setView(TiUIView view) {
+		this.view = new WeakReference<TiUIView>(view);
 	}
 
 	public void setTouchPassThrough(boolean passthrough) {

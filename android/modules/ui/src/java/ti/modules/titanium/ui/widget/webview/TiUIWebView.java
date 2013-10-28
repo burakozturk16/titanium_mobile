@@ -34,6 +34,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.WebViewProxy;
 import ti.modules.titanium.ui.android.AndroidModule;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -44,6 +45,7 @@ import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+@SuppressLint("NewApi")
 public class TiUIWebView extends TiUIView
 {
 
@@ -123,7 +125,7 @@ public class TiUIWebView extends TiUIView
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
 			super.onLayout(changed, left, top, right, bottom);
-			TiUIHelper.firePostLayoutEvent(proxy);
+			TiUIHelper.firePostLayoutEvent(TiUIWebView.this);
 		}
 	}
 

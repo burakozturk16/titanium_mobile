@@ -970,7 +970,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		
 		public TiViewPagerLayout(Context context)
 		{
-			super(context, proxy);      
+			super(context, TiUIScrollableView.this);      
 			setFocusable(true);
 			setFocusableInTouchMode(true);
 			setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);			

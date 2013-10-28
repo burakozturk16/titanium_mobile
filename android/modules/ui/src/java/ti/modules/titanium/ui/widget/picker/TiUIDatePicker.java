@@ -18,6 +18,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Build;
 import android.widget.DatePicker;
@@ -36,7 +37,7 @@ public class TiUIDatePicker extends TiUIView
 	{
 		super(proxy);
 	}
-	public TiUIDatePicker(final TiViewProxy proxy, Activity activity)
+	public TiUIDatePicker(TiViewProxy proxy, Activity activity)
 	{
 		this(proxy);
 		Log.d(TAG, "Creating a date picker", Log.DEBUG_MODE);
@@ -47,7 +48,7 @@ public class TiUIDatePicker extends TiUIView
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUIDatePicker.this);
 			}
 		};
 		setNativeView(picker);
@@ -170,6 +171,7 @@ public class TiUIDatePicker extends TiUIView
 		suppressChangeEvent = false;
 	}
 	
+	@SuppressLint("NewApi")
 	public void setCalendarView(boolean value)
 	{
 		if (Build.VERSION.SDK_INT >= 11) {

@@ -224,7 +224,7 @@ public class TiUISwitch extends TiUIView
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 						{
 							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
+							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
 						}
 					};
 				}
@@ -238,7 +238,7 @@ public class TiUISwitch extends TiUIView
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 						{
 							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
+							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
 						}
 					};
 				}
@@ -252,7 +252,7 @@ public class TiUISwitch extends TiUIView
 						protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 						{
 							super.onLayout(changed, left, top, right, bottom);
-							TiUIHelper.firePostLayoutEvent(proxy);
+							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
 						}
 					};
 				}

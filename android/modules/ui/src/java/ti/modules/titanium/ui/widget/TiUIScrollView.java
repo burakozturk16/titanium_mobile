@@ -52,7 +52,7 @@ public class TiUIScrollView extends TiUIView
 
 		public TiScrollViewLayout(Context context, LayoutArrangement arrangement)
 		{
-			super(context, arrangement, proxy);
+			super(context, arrangement, TiUIScrollView.this);
 		}
 
 		public void setParentWidth(int width)

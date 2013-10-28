@@ -34,12 +34,8 @@ import org.appcelerator.titanium.util.TiLoadImageManager;
 import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
-import org.appcelerator.titanium.view.TiUIView;
-import org.appcelerator.titanium.view.FreeLayout.LayoutParams;
 
 import com.trevorpage.tpsvg.SVGDrawable;
 
@@ -53,10 +49,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewParent;
 import android.view.View.MeasureSpec;
 import android.widget.ImageView.ScaleType;
 
@@ -103,7 +96,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		imageViewProxy = (ImageViewProxy) proxy;
 		Log.d(TAG, "Creating an ImageView", Log.DEBUG_MODE);
 
-		TiImageView view = new TiImageView(proxy.getActivity(), proxy);
+		TiImageView view = new TiImageView(proxy.getActivity(), proxy) {
+			@Override
+			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
+			{
+				super.onLayout(changed, left, top, right, bottom);
+				TiUIHelper.firePostLayoutEvent(TiUIImageView.this);
+			}
+		};
 		setImage(null); //this actually creates a drawable which will allow transition
 
 		downloadListener = new TiDownloadListener()

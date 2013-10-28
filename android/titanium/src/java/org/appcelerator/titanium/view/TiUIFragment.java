@@ -23,7 +23,7 @@ public abstract class TiUIFragment extends TiUIView implements Handler.Callback
 	{
 		super(proxy);
 
-		TiCompositeLayout container = new TiCompositeLayout(activity, proxy)
+		TiCompositeLayout container = new TiCompositeLayout(activity, this)
 		{
 			@Override
 			public boolean dispatchTouchEvent(MotionEvent ev)

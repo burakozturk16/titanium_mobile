@@ -57,7 +57,7 @@ public class TiUISlider extends TiUIView
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUISlider.this);
 			}
 		};
 		seekBar.setOnSeekBarChangeListener(this);

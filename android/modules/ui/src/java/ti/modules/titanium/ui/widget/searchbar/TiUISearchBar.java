@@ -16,6 +16,7 @@ import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 
 import ti.modules.titanium.ui.widget.TiUIText;
+import ti.modules.titanium.ui.widget.picker.TiUITimePicker;
 import android.graphics.drawable.Drawable;
 import android.text.InputType;
 import android.text.TextUtils.TruncateAt;
@@ -83,7 +84,7 @@ public class TiUISearchBar extends TiUIText
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUISearchBar.this);
 			}
 		};
 

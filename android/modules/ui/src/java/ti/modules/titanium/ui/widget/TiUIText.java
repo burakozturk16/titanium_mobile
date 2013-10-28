@@ -130,7 +130,7 @@ public class TiUIText extends TiUIView
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
 			super.onLayout(changed, left, top, right, bottom);
-			TiUIHelper.firePostLayoutEvent(proxy);
+			TiUIHelper.firePostLayoutEvent(TiUIText.this);
 		}
 	}
 
@@ -598,7 +598,7 @@ public class TiUIText extends TiUIView
 				actionId == EditorInfo.IME_ACTION_DONE ) {
 			Log.d(TAG, "onEditorAction for textview with text " + v.getText(), Log.DEBUG_MODE);
 			tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-			proxy.fireEvent("return", data);
+			fireEvent("return", data);
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
