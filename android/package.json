@@ -29,7 +29,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/appcelerator/titanium_mobile_android.git"
+		"url": "git://github.com/Akylas/titanium_mobile.git"
 	},
 	"license": "Apache Public License v2"
 }
