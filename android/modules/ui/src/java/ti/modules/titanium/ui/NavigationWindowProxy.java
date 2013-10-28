@@ -321,12 +321,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			opened = true; //because handlePush needs this
 			opening = false;
 			updateHomeButton(getCurrentWindow());
+			super.onWindowActivityCreated();
 			getParentViewForChild().setId(viewId++);
 			WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
 			if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
 				proxy.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
 			}
-			super.onWindowActivityCreated();
 			handlePush(proxy, true, null);
 		}
 	}
