@@ -9,6 +9,7 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBaseActivity.ConfigurationChangedListener;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
@@ -40,9 +41,12 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	private TiViewProxy centerView;
 	private static final String TAG = "TiUISlideMenu";
 	private TiBaseActivity activity;
-	private int menuWidth;
-	private int rightMenuWidth;
+	private TiDimension menuWidth = defaultWidth;
+	private int realMenuWidth;
+	private TiDimension rightMenuWidth = defaultWidth;
+	private int realRightMenuWidth;
 	private static TiDimension defaultDisplacement = new TiDimension(0, TiDimension.TYPE_WIDTH);
+	private static TiDimension defaultWidth = new TiDimension(200, TiDimension.TYPE_WIDTH);
 	private TiDimension leftViewDisplacement =  defaultDisplacement;
 	private TiDimension rightViewDisplacement =  defaultDisplacement;
 	
@@ -56,7 +60,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			@Override
 			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 				super.onSizeChanged(w, h, oldw, oldh);
-				updateDisplacements();
+				updateMenuWidth();
 			}
 		};
 		slidingMenu.setClassForNonViewPager(TiViewPagerLayout.class);
@@ -124,8 +128,6 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		
 		slidingMenu.setMode(SlidingMenu.LEFT);
 		slidingMenu.setTouchModeAbove(SlidingMenu.TOUCHMODE_FULLSCREEN);
-		menuWidth = -100;
-		rightMenuWidth = -100;
 		slidingMenu.setFadeDegree(0.0f);
 		slidingMenu.setBehindScrollScale(0.0f);
 		slidingMenu.setShadowWidth(20);
@@ -150,26 +152,29 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	
 	private void updateMenuWidth()
 	{
-		if (menuWidth > 0)
-			slidingMenu.setBehindWidth(menuWidth);
+		realMenuWidth = menuWidth.getAsPixels(slidingMenu);
+		if (realMenuWidth > 0)
+			slidingMenu.setBehindWidth(realMenuWidth);
 		else
-			slidingMenu.setBehindOffset(-menuWidth);
-		if (rightMenuWidth > 0)
-			slidingMenu.setSecondaryBehindWidth(rightMenuWidth);
+			slidingMenu.setBehindOffset(-realMenuWidth);
+		
+		realRightMenuWidth = rightMenuWidth.getAsPixels(slidingMenu);
+		if (realRightMenuWidth > 0)
+			slidingMenu.setSecondaryBehindWidth(realRightMenuWidth);
 		else
-			slidingMenu.setSecondaryBehindOffset(-rightMenuWidth);
+			slidingMenu.setSecondaryBehindOffset(-realRightMenuWidth);
 		updateDisplacements();
 	}
 
 	private void updateDisplacements()
 	{
-		int leftMenuWidth = menuWidth;
+		int leftMenuWidth = realMenuWidth;
 		if (leftMenuWidth < 0) {
 			leftMenuWidth += slidingMenu.getWidth();
 		}
 		if (leftMenuWidth > 0) slidingMenu.setBehindScrollScale(leftViewDisplacement.getAsPixels(slidingMenu.getContext(), leftMenuWidth, leftMenuWidth)/(float)leftMenuWidth);
 
-		int myRightMenuWidth = rightMenuWidth;
+		int myRightMenuWidth = realRightMenuWidth;
 		if (myRightMenuWidth < 0) {
 			myRightMenuWidth += slidingMenu.getWidth();
 		}
@@ -178,12 +183,12 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 	
 	public int getLeftMenuWidth()
 	{
-		return menuWidth;
+		return realMenuWidth;
 	}
 	
 	public int getRightMenuWidth()
 	{
-		return rightMenuWidth;
+		return realMenuWidth;
 	}
 	
 	// for animations
@@ -327,10 +332,10 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		}
 
 		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH)) {
-			menuWidth = d.getInt(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH);
+			menuWidth = TiConvert.toTiDimension(d, SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH, TiDimension.TYPE_WIDTH);
 		}
 		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH)) {
-			rightMenuWidth = d.getInt(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH);
+			rightMenuWidth = TiConvert.toTiDimension(d, SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH, TiDimension.TYPE_WIDTH);
 		}
 		
 		if (d.containsKey(SlideMenuOptionsModule.PROPERTY_FADING)) {
@@ -379,10 +384,10 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_PANNING_MODE)) {
 			updatePanningMode(TiConvert.toInt(newValue, SlideMenuOptionsModule.MENU_PANNING_CENTER_VIEW));
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_LEFT_VIEW_WIDTH)) {
-			menuWidth = TiConvert.toInt(newValue);
+			menuWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateMenuWidth();
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH)) {
-			menuWidth = TiConvert.toInt(newValue);
+			menuWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateMenuWidth();
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_FADING)) {
 			slidingMenu.setFadeDegree(TiConvert.toFloat(newValue));
@@ -432,6 +437,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 					params.autoFillsWidth = true;
 					content.addView(newProxy.getOrCreateView().getOuterView(), index, params);
 					if (newProxy instanceof TiWindowProxy) {
+						((TiWindowProxy) newProxy).setWindowManager((TiWindowManager) this.proxy);
 						activity.setWindowProxy((TiWindowProxy) newProxy);
 					}
 				}
@@ -446,6 +452,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		{
 			if (isCenterView) {
 				content.removeView(oldProxy.getOuterView());
+				if (oldProxy instanceof TiWindowProxy) {
+					((TiWindowProxy) oldProxy).setWindowManager(null);
+				}
 			}
 			oldProxy.setActivity(null);
 			oldProxy.blur();
