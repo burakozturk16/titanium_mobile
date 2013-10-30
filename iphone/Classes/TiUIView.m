@@ -1757,22 +1757,41 @@ DEFINE_EXCEPTIONS
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
-    [self setBgState:[self realStateForState:UIControlStateHighlighted]];
+    [self setBgState:[self realStateForState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal]];
 	for (TiUIView * thisView in [self childViews])
 	{
-		if ([thisView respondsToSelector:@selector(setHighlighted:)])
-		{
+        if ([thisView.subviews count] > 0) {
+            id firstChild = [thisView.subviews objectAtIndex:0];
+            if ([firstChild isKindOfClass:[UIControl class]])
+            {
+                [(UIControl*)firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
+            }
+            else {
+                [(id)thisView setHighlighted:isHiglighted];
+            }
+        }
+        else {
 			[(id)thisView setHighlighted:isHiglighted];
 		}
 	}
 }
+
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:[self realStateForState:UIControlStateSelected]];
+    [self setBgState:[self realStateForState:isSelected?UIControlStateSelected:UIControlStateNormal]];
 	for (TiUIView * thisView in [self childViews])
 	{
-		if ([thisView respondsToSelector:@selector(setSelected:)])
-		{
+        if ([thisView.subviews count] > 0) {
+            id firstChild = [thisView.subviews objectAtIndex:0];
+            if ([firstChild isKindOfClass:[UIControl class]])
+            {
+                [(UIControl*)firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
+            }
+            else {
+                [(id)thisView setSelected:isSelected];
+            }
+        }
+        else {
 			[(id)thisView setSelected:isSelected];
 		}
 	}
