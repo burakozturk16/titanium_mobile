@@ -1430,16 +1430,20 @@ DEFINE_EXCEPTIONS
 	return handlesTouches;
 }
 
-- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event 
+-(UIView*)viewForHitTest
+{
+    return self;
+}
+
+- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
 {
 	BOOL hasTouchListeners = [self hasTouchableListener];
-
 	UIView *hitView = [super hitTest:point withEvent:event];
 	// if we don't have any touch listeners, see if interaction should
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((hasTouchListeners == NO && [self interactionEnabled]==NO) && hitView == self)
+	if ((touchPassThrough || (hasTouchListeners == NO && [self interactionEnabled]==NO)) && hitView == [self viewForHitTest])
 	{
 		return nil;
 	}
@@ -1449,19 +1453,13 @@ DEFINE_EXCEPTIONS
     // The touch never reaches the button, because the touchDelegate is as deep as the touch goes.
     
     /*
-	// delegate to our touch delegate if we're hit but it's not for us
-	if (hasTouchListeners==NO && touchDelegate!=nil)
-	{
-		return touchDelegate;
-	}
+     // delegate to our touch delegate if we're hit but it's not for us
+     if (hasTouchListeners==NO && touchDelegate!=nil)
+     {
+     return touchDelegate;
+     }
      */
-	
-	if (touchPassThrough)
-	{
-		if (hitView != self) 
-			return hitView;
-		return nil;
-	}
+    
 	return hitView;
 }
 

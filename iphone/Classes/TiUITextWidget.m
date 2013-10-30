@@ -31,6 +31,10 @@
 	return self;
 }
 
+-(UIView*)viewForHitTest
+{
+    return [self textWidgetView];
+}
 
 -(void)setAttributedString_:(id)arg
 {

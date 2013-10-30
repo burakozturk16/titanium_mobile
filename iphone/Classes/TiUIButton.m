@@ -35,6 +35,11 @@
 	return YES;
 }
 
+-(UIView*)viewForHitTest
+{
+    return button;
+}
+
 - (void)controlAction:(id)sender forEvent:(UIEvent *)event
 {
     UITouch *touch = [[event allTouches] anyObject];
@@ -319,6 +324,25 @@
             UIColor* uicolor = [UIColor whiteColor];
 			[b setTitleColor:uicolor forState:UIControlStateSelected];
 			[b setTitleColor:uicolor forState:UIControlStateHighlighted];
+		}
+	}
+}
+
+-(void)setDisabledColor_:(id)color
+{
+	if (color!=nil)
+	{
+		TiColor *selColor = [TiUtils colorValue:color];
+		UIButton *b = [self button];
+		if (selColor!=nil)
+		{
+            UIColor* uicolor = [selColor _color];
+			[b setTitleColor:uicolor forState:UIControlStateDisabled];
+		}
+		else if (b.buttonType==UIButtonTypeCustom)
+		{
+            UIColor* uicolor = [UIColor whiteColor];
+			[b setTitleColor:uicolor forState:UIControlStateDisabled];
 		}
 	}
 }

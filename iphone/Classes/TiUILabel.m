@@ -35,6 +35,11 @@
     [super dealloc];
 }
 
+-(UIView*)viewForHitTest
+{
+    return label;
+}
+
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth
 {
     CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);

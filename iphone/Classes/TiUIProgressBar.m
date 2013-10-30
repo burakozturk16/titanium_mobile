@@ -31,6 +31,11 @@
 	[super dealloc];
 }
 
+-(UIView*)viewForHitTest
+{
+    return progress;
+}
+
 -(CGSize)sizeForFont:(CGFloat)suggestedWidth
 {
 	NSString *value = [messageLabel text];

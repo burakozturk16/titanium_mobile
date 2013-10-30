@@ -31,6 +31,11 @@
 	return switchView;
 }
 
+-(UIView*)viewForHitTest
+{
+    return switchView;
+}
+
 - (id)accessibilityElement
 {
 	return [self switchView];
