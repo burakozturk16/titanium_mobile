@@ -1097,7 +1097,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	
 		TiApplication.updateActivityTransitionState(true);
 		tiApp.setCurrentActivity(this, null);
-		TiUIHelper.showSoftKeyboard(getWindow().getDecorView(), false);
+		TiUIHelper.hideSoftKeyboard(getWindow().getDecorView());
 
 		if (this.isFinishing()) {
 			releaseDialogs(true);

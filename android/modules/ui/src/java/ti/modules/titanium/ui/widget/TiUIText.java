@@ -277,9 +277,9 @@ public class TiUIText extends TiUIView
 			if (this.getVisibility() == View.INVISIBLE) return;
 			if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
 					&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
-				TiUIHelper.showSoftKeyboard(editText, false);
 				editText.clearFocus();
 				this.requestFocus();
+				TiUIHelper.hideSoftKeyboard(editText);
 			}
 			else {
 				editText.requestFocus();
@@ -289,9 +289,9 @@ public class TiUIText extends TiUIView
 
 		public void blur() {
 			if (editText.hasFocus()) {
-				TiUIHelper.showSoftKeyboard(editText, false);
 				editText.clearFocus();
 				this.requestFocus();
+				TiUIHelper.hideSoftKeyboard(editText);
 			}
 
 		}

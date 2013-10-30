@@ -51,7 +51,6 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -1107,6 +1106,15 @@ public class TiUIHelper
 				Log.w(TAG, "Unknown onFocus state: " + focusState);
 			}
 		}
+	}
+	
+	/**
+	 * hides the soft keyboard.
+	 * @param view the current focused view.
+	 */
+	public static void hideSoftKeyboard(View view) 
+	{
+		showSoftKeyboard(view, false);
 	}
 	
 	/**
