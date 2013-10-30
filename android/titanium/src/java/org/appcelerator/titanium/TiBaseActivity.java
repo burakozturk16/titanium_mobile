@@ -246,6 +246,29 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		return this.window;
 	}
 
+	private KrollDict updatePropertiesFromWindow(KrollDict properties, KrollDict windowProperties)
+	{
+		KrollDict actionBarDict = null;
+		if (properties.containsKey(TiC.PROPERTY_ACTION_BAR)) {
+			actionBarDict = properties.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+		}
+		else {
+			actionBarDict = new KrollDict(); //to make sure we go into processProperties
+		}
+		
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_COLOR) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, windowProperties.get(TiC.PROPERTY_BAR_COLOR));
+		}
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_IMAGE) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			actionBarDict.put(TiC.PROPERTY_BACKGROUND_IMAGE, windowProperties.get(TiC.PROPERTY_BAR_IMAGE));
+		}
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_ICON) && !actionBarDict.containsKey(TiC.PROPERTY_ICON)) {
+			actionBarDict.put(TiC.PROPERTY_ICON, windowProperties.get(TiC.PROPERTY_BAR_ICON));
+		}
+		properties.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
+		return properties;
+	}
+
 	/**
 	 * Sets the window proxy.
 	 * @param proxy
@@ -288,20 +311,8 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		else {
 			activityDict = new KrollDict(); //to make sure we update actionbar
 		}
-		
-		if (this.window.hasProperty(TiC.PROPERTY_BAR_COLOR)) {
-			KrollDict actionBarDict = null;
-			if (activityDict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
-				actionBarDict = activityDict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
-			}
-			else {
-				actionBarDict = new KrollDict(); //to make sure we go into processProperties
-			}
-			if (!actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
-				actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, this.window.getProperty(TiC.PROPERTY_BAR_COLOR));
-			}
-			activityDict.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
-		}
+		updatePropertiesFromWindow(activityDict, this.window.getProperties());
+
 		getActivityProxy().setProperties(activityDict);
 	}
 

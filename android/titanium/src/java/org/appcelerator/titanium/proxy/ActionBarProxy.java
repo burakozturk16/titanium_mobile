@@ -163,7 +163,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundImage(String url)
 	{
 		if (TiApplication.isUIThread()) {
@@ -175,7 +174,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundColor(int color)
 	{
 		if (TiApplication.isUIThread()) {
@@ -185,7 +183,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundGradient(KrollDict gradient)
 	{
 		if (TiApplication.isUIThread()) {
@@ -195,7 +192,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setTitle(String title)
 	{
 		if (TiApplication.isUIThread()) {
@@ -207,7 +203,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.getProperty
 	public String getTitle()
 	{
 		if (actionBar == null) {
@@ -216,7 +211,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		return (String) actionBar.getTitle();
 	}
 
-	@Kroll.method @Kroll.getProperty
 	public int getNavigationMode()
 	{
 		if (actionBar == null) {
@@ -245,21 +239,17 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setLogo(String url)
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
-			if (TiApplication.isUIThread()) {
-				handleSetLogo(url);
-			} else {
-				Message message = getMainHandler().obtainMessage(MSG_SET_LOGO, url);
-				message.getData().putString(LOGO, url);
-				message.sendToTarget();
-			}
+		if (TiApplication.isUIThread()) {
+			handleSetLogo(url);
+		} else {
+			Message message = getMainHandler().obtainMessage(MSG_SET_LOGO, url);
+			message.getData().putString(LOGO, url);
+			message.sendToTarget();
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setIcon(Object value)
 	{
 		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
@@ -472,6 +462,9 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		if (properties.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			setBackgroundGradient(properties.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
 		}
+		if (properties.containsKey(TiC.PROPERTY_LOGO)) {
+			setLogo(properties.getString(TiC.PROPERTY_LOGO));
+		}
 		Object obj= properties.get(TiC.PROPERTY_ICON);
 		if (obj != null) {
 			if (obj instanceof String) {
@@ -498,6 +491,8 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 			setBackgroundImage(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 				setBackgroundGradient((KrollDict)newValue);
+		} else if (key.equals(TiC.PROPERTY_LOGO)) {
+			setLogo(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_DISPLAY_HOME_AS_UP)) {
 			setDisplayHomeAsUp(TiConvert.toBoolean(newValue, false));
 		} else if (key.equals(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED)) {
