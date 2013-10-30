@@ -55,7 +55,7 @@ SEL SetterWithObjectForKrollProperty(NSString * key)
 	return NSSelectorFromString(method);
 }
 
-void DoProxyDelegateChangedValuesWithProxy(UIView<TiProxyDelegate> * target, NSString * key, id oldValue, id newValue, TiProxy * proxy)
+void DoProxyDelegateChangedValuesWithProxy(id<TiProxyDelegate> target, NSString * key, id oldValue, id newValue, TiProxy * proxy)
 {
 	// default implementation will simply invoke the setter property for this object
 	// on the main UI thread
@@ -96,7 +96,7 @@ void DoProxyDelegateChangedValuesWithProxy(UIView<TiProxyDelegate> * target, NSS
 	}
 }
 
-void DoProxyDispatchToSecondaryArg(UIView<TiProxyDelegate> * target, SEL sel, NSString *key, id newValue, TiProxy * proxy)
+void DoProxyDispatchToSecondaryArg(id<TiProxyDelegate> target, SEL sel, NSString *key, id newValue, TiProxy * proxy)
 {
 	id firstarg = newValue;
 	id secondarg = [NSDictionary dictionary];
@@ -122,7 +122,7 @@ void DoProxyDispatchToSecondaryArg(UIView<TiProxyDelegate> * target, SEL sel, NS
 	}
 }
 
-void DoProxyDelegateReadKeyFromProxy(UIView<TiProxyDelegate> * target, NSString *key, TiProxy * proxy, NSNull * nullValue, BOOL useThisThread)
+void DoProxyDelegateReadKeyFromProxy(id<TiProxyDelegate> target, NSString *key, TiProxy * proxy, NSNull * nullValue, BOOL useThisThread)
 {
 	// use valueForUndefined since this should really come from dynprops
 	// not against the real implementation
@@ -157,7 +157,7 @@ void DoProxyDelegateReadKeyFromProxy(UIView<TiProxyDelegate> * target, NSString 
 	}
 }
 
-void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target, id<NSFastEnumeration> keys, TiProxy * proxy)
+void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<NSFastEnumeration> keys, TiProxy * proxy)
 {
 	BOOL isMainThread = [NSThread isMainThread];
 	NSNull * nullObject = [NSNull null];

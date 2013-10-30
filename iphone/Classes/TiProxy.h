@@ -91,8 +91,8 @@ NSString * SetterStringForKrollProperty(NSString * key);
 SEL SetterForKrollProperty(NSString * key);
 SEL SetterWithObjectForKrollProperty(NSString * key);
 
-void DoProxyDelegateChangedValuesWithProxy(UIView<TiProxyDelegate> * target, NSString * key, id oldValue, id newValue, TiProxy * proxy);
-void DoProxyDelegateReadValuesWithKeysFromProxy(UIView<TiProxyDelegate> * target, id<NSFastEnumeration> keys, TiProxy * proxy);
+void DoProxyDelegateChangedValuesWithProxy(id<TiProxyDelegate> target, NSString * key, id oldValue, id newValue, TiProxy * proxy);
+void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<NSFastEnumeration> keys, TiProxy * proxy);
 //Why are these here? Because they can be commonly used between TiUIView and TiUITableViewCell.
 
 
