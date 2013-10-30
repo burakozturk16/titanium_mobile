@@ -17,6 +17,7 @@ import org.appcelerator.titanium.TiBaseActivity.DialogWrapper;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
@@ -336,6 +337,10 @@ public class TiUIDialog extends TiUIView
 	{
 		fireEvent(TiC.EVENT_CLOSE, new KrollDict());
 		AlertDialog dialog = dialogWrapper.getDialog();
+		//we have to try and hide the keyboard before the dialog is dismissed
+		if (view != null) {
+			TiUIHelper.hideSoftKeyboard(view.getOuterView());
+		}
 		if (dialog != null) {
 			dialog.dismiss();
 			dialogWrapper.getActivity().removeDialog(dialog);
