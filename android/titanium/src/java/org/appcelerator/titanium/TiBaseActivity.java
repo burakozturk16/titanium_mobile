@@ -1045,11 +1045,20 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			boolean persistent = p.getPersistent();
 			//if the activity is pausing but not finishing, clean up dialogs only if
 			//they are non-persistent
+			
 			if (finish || !persistent) {
 				if (dialog != null && dialog.isShowing()) {
+					if (dialog.getCurrentFocus() != null) {
+						TiUIHelper.hideSoftKeyboard(dialog.getCurrentFocus());
+					}
 					dialog.dismiss();
 				}
 				dialogs.remove(p);
+			}
+			else {
+				if (dialog != null && dialog.getCurrentFocus() != null) {
+					TiUIHelper.hideSoftKeyboard(dialog.getCurrentFocus());
+				}
 			}
 		}
 	}
@@ -1099,12 +1108,8 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		tiApp.setCurrentActivity(this, null);
 		TiUIHelper.hideSoftKeyboard(getWindow().getDecorView());
 
-		if (this.isFinishing()) {
-			releaseDialogs(true);
-		} else {
-			//release non-persistent dialogs when activity hides
-			releaseDialogs(false);
-		}
+		//release non-persistent dialogs
+		releaseDialogs(this.isFinishing());
 
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
