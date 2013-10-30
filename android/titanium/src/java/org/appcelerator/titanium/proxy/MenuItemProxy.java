@@ -6,7 +6,12 @@
  */
 package org.appcelerator.titanium.proxy;
 
+import java.util.List;
+
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -17,6 +22,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
+import org.appcelerator.titanium.view.TiUIView;
 
 import com.actionbarsherlock.view.MenuItem;
 import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
@@ -24,9 +30,10 @@ import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
 import android.graphics.drawable.Drawable;
 import android.os.Message;
 import android.view.View;
+import android.view.ViewGroup;
 
 @Kroll.proxy
-public class MenuItemProxy extends KrollProxy
+public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 {
 	private static final String TAG = "MenuItem";
 
@@ -71,6 +78,7 @@ public class MenuItemProxy extends KrollProxy
 	protected MenuItemProxy(MenuItem item)
 	{
 		this.item = item;
+		setModelListener(this, false);
 
 		item.setOnActionExpandListener(new ActionExpandListener());
 	}
@@ -257,7 +265,6 @@ public class MenuItemProxy extends KrollProxy
 		return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_VISIBLE));
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setCheckable(boolean checkable) {
 		if (TiApplication.isUIThread()) {
 			item.setCheckable(checkable);
@@ -277,7 +284,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_CHECKED), checked);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setEnabled(boolean enabled) {
 		if (TiApplication.isUIThread()) {
 			item.setEnabled(enabled);
@@ -309,7 +315,6 @@ public class MenuItemProxy extends KrollProxy
 		}
 		return this;
 	}
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setIcon(Object icon) 
 	{
 		if (TiApplication.isUIThread()) {
@@ -319,7 +324,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_ICON), icon);	
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setTitle(String title) {
 		if (TiApplication.isUIThread()) {
 			item.setTitle(title);
@@ -329,7 +333,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_TITLE), title);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setTitleCondensed(String title) {
 		if (TiApplication.isUIThread()) {
 			item.setTitleCondensed(title);
@@ -339,7 +342,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_TITLE_CONDENSED), title);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setVisible(boolean visible) {
 		if (TiApplication.isUIThread()) {
 			item.setVisible(visible);
@@ -349,11 +351,10 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_VISIBLE), visible);
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setActionView(Object view)
 	{
 		if (view instanceof TiViewProxy) {
-			final View v = ((TiViewProxy) view).getOrCreateView().getNativeView();
+			final View v = ((TiViewProxy) view).getOrCreateView().getOuterView();
 			TiMessenger.postOnMain(new Runnable() {
 				public void run() {
 					item.setActionView(v);
@@ -364,7 +365,6 @@ public class MenuItemProxy extends KrollProxy
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setShowAsAction(final int flag) {
 		TiMessenger.postOnMain(new Runnable() {
 			public void run() {
@@ -404,5 +404,82 @@ public class MenuItemProxy extends KrollProxy
 	public String getApiName()
 	{
 		return "Ti.Android.MenuItem";
+	}
+
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue,
+			KrollProxy proxy) {
+		if (key.equals(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_CHECKABLE)) {
+			setCheckable(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_CHECKED)) {
+			setChecked(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_ENABLED)) {
+			setEnabled(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_ICON)) {
+			setIcon(newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_TITLE_CONDENSED)) {
+			setTitleCondensed(TiConvert.toString(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_VISIBLE)) {
+			setVisible(TiConvert.toBoolean(newValue));
+		}
+	}
+
+	@Override
+	public void processProperties(KrollDict d) {
+		// TODO Auto-generated method stub
+		if (d.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(d.get(TiC.PROPERTY_ACTION_VIEW));
+		}
+		if (d.containsKey(TiC.PROPERTY_CHECKABLE)) {
+			setCheckable(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKABLE));
+		}
+		if (d.containsKey(TiC.PROPERTY_CHECKED)) {
+			setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKED));
+		}
+		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
+			setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
+		}
+		if (d.containsKey(TiC.PROPERTY_ICON)) {
+			setIcon(d.get(TiC.PROPERTY_ICON));
+		}
+		if (d.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(d, TiC.PROPERTY_SHOW_AS_ACTION));
+		}
+		if (d.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
+			setTitleCondensed(TiConvert.toString(d, TiC.PROPERTY_TITLE_CONDENSED));
+		}
+		if (d.containsKey(TiC.PROPERTY_VISIBLE)) {
+			setVisible(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE));
+		}
+	}
+
+	@Override
+	public void propertiesChanged(List<KrollPropertyChange> changes,
+			KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerAdded(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerRemoved(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
 	}
 }
