@@ -28,6 +28,7 @@ import android.graphics.drawable.GradientDrawable.Orientation;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
+import android.widget.RelativeLayout;
 
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu.ViewTransformer;
@@ -81,7 +82,9 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			protected void attachViewToParent(ViewGroup group) {
 				super.attachViewToParent(group);
 				parentViewForChildren = new TiCompositeLayout(this.getContext());
-				group.addView(parentViewForChildren, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+				RelativeLayout layout = new RelativeLayout(this.getContext());
+				layout.addView(parentViewForChildren, new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+				group.addView(layout, new RelativeLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 			}
 		};
 		slidingMenu.setClassForNonViewPager(TiViewPagerLayout.class);
