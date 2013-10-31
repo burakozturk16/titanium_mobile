@@ -1339,7 +1339,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void hideKeyboard()
 	{
-		View nv = getNativeView();
+		View nv = getOuterView();
 		if (nv != null) {
 			TiUIHelper.showSoftKeyboard(nv, false);
 		}
