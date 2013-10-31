@@ -634,12 +634,6 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
 //    [[UIApplication sharedApplication] openURL:url];
 //}
 
-
--(void)touchSetHighlighted:(BOOL)highlighted
-{
-    [self setHighlighted:highlighted];
-}
-
 @end
 
 #endif

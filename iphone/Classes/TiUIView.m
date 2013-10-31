@@ -158,6 +158,7 @@ NSArray* listenerArray = nil;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
+    BOOL _dispatchPressed;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -263,6 +264,7 @@ DEFINE_EXCEPTIONS
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
     _touchEnabled = YES;
+    _dispatchPressed = NO;
     animateBgdTransition = NO;
 }
 
@@ -850,7 +852,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setTouchEnabled_:(id)arg
 {
-	_touchEnabled = [TiUtils boolValue:arg def:YES];
+	_touchEnabled = [TiUtils boolValue:arg def:_touchEnabled];
 }
 
 -(void)setEnabled_:(id)arg
@@ -858,6 +860,11 @@ DEFINE_EXCEPTIONS
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
     [self setBgState:[self realStateForState:UIControlStateNormal]];
     changedInteraction = YES;
+}
+
+-(void)setDispatchPressed_:(id)arg
+{
+	_dispatchPressed = [TiUtils boolValue:arg def:_dispatchPressed];
 }
 
 -(BOOL) touchEnabled {
@@ -1507,7 +1514,7 @@ DEFINE_EXCEPTIONS
 
 -(void)touchSetHighlighted:(BOOL)highlighted
 {
-    [self setBgState:[self realStateForState:highlighted?UIControlStateHighlighted:UIControlStateNormal]];
+    [self setHighlighted:highlighted];
 }
 
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -1770,6 +1777,7 @@ DEFINE_EXCEPTIONS
 -(void)setHighlighted:(BOOL)isHiglighted
 {
     [self setBgState:[self realStateForState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal]];
+    if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
@@ -1791,6 +1799,7 @@ DEFINE_EXCEPTIONS
 -(void)setSelected:(BOOL)isSelected
 {
     [self setBgState:[self realStateForState:isSelected?UIControlStateSelected:UIControlStateNormal]];
+    if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
