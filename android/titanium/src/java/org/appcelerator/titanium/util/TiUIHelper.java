@@ -463,7 +463,12 @@ public class TiUIHelper
 			} else {
 				Typeface loadedTf = null;
 				if (context != null) {
-					loadedTf = loadTypeface(context, fontFamily);
+					try {
+						loadedTf = loadTypeface(context, fontFamily);
+					} catch (Exception e) {
+						loadedTf = null;
+				Log.e(TAG, "Unable to load font " + fontFamily + ": " + e.getMessage());
+					}
 				}
 				if (loadedTf == null) {
 					Log.w(TAG, "Unsupported font: '" + fontFamily
@@ -618,6 +623,7 @@ public class TiUIHelper
 		android.R.attr.state_enabled,
 		android.R.attr.state_pressed
 	};
+
 	public static final int[] BACKGROUND_CHECKED_STATE = {
 		android.R.attr.state_window_focused,
 		android.R.attr.state_enabled,
