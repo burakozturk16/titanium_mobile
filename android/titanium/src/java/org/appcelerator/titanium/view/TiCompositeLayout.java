@@ -1206,7 +1206,11 @@ public class TiCompositeLayout extends FreeLayout implements
 		TiUIView view = (this.view == null ? null : this.view.get());
 		if (view != null && (view.getDispatchPressed() == true))
 		{
-			super.dispatchSetPressed(pressed);
+			int count = getChildCount();
+			for (int i = 0; i < count; i++) {
+	            final View child = getChildAt(i);
+	            child.setPressed(pressed);
+	        }
 		}
 	};
 

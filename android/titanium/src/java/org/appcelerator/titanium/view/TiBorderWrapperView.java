@@ -19,6 +19,7 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.view.View;
 import android.view.ViewParent;
 
 /**
@@ -166,5 +167,14 @@ public class TiBorderWrapperView extends MaskableView
 		this.alpha = alpha;
 		postInvalidate();
 	}
+	
+	@Override
+	public void dispatchSetPressed(boolean pressed) {
+		int count = getChildCount();
+		for (int i = 0; i < count; i++) {
+            final View child = getChildAt(i);
+            child.setPressed(pressed);
+        }
+	};
 
 }

@@ -48,7 +48,6 @@ public class TiUIButton extends TiUINonViewGroupView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
-		dispatchPressed = true;
 		imageGravity = Gravity.LEFT;
 		titlePadding = new Rect();
 		titlePadding.left = 8;
@@ -66,7 +65,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			@Override
 			public void setPressed(boolean pressed) {
 				super.setPressed(pressed);
-				if (childrenHolder != null) {
+				if (dispatchPressed == true && childrenHolder != null) {
 					int count = childrenHolder.getChildCount();
 					for (int i = 0; i < count; i++) {
 			            final View child = childrenHolder.getChildAt(i);

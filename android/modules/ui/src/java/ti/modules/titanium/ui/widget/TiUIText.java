@@ -30,6 +30,7 @@ import android.text.method.NumberKeyListener;
 import android.text.method.PasswordTransformationMethod;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
@@ -133,6 +134,13 @@ public class TiUIText extends TiUIView
 		{
 			super.onLayout(changed, left, top, right, bottom);
 			TiUIHelper.firePostLayoutEvent(TiUIText.this);
+		}
+
+		@Override
+		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough == true)
+				return false;
+			return super.dispatchTouchEvent(event);
 		}
 	}
 

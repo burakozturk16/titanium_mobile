@@ -157,7 +157,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		@Override
 		public void setPressed(boolean pressed) {
 			super.setPressed(pressed);
-			if (childrenHolder != null) {
+			if (dispatchPressed == true && childrenHolder != null) {
 				int count = childrenHolder.getChildCount();
 				for (int i = 0; i < count; i++) {
 		            final View child = childrenHolder.getChildAt(i);
@@ -622,7 +622,6 @@ public class TiUILabel extends TiUINonViewGroupView
 	public TiUILabel(final TiViewProxy proxy)
 	{
 		super(proxy);
-		dispatchPressed = true;
 		Log.d(TAG, "Creating a text label", Log.DEBUG_MODE);
 		tv = new EllipsizingTextView(getProxy().getActivity());
 		textPadding = new Rect();
