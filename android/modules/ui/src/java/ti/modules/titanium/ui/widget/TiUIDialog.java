@@ -29,6 +29,7 @@ import android.support.v4.view.ViewCompat;
 import android.widget.ListView;
 import android.widget.Button;
 import android.view.View;
+import android.text.Html;
 
 public class TiUIDialog extends TiUIView
 {
@@ -82,10 +83,10 @@ public class TiUIDialog extends TiUIView
 	{
 		String[] buttonText = null;
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
-			getBuilder().setTitle(d.getString(TiC.PROPERTY_TITLE));
+			getBuilder().setTitle(Html.fromHtml(d.getString(TiC.PROPERTY_TITLE)));
 		}
 		if (d.containsKey(TiC.PROPERTY_MESSAGE)) {
-			getBuilder().setMessage(d.getString(TiC.PROPERTY_MESSAGE));
+			getBuilder().setMessage(Html.fromHtml(d.getString(TiC.PROPERTY_MESSAGE)));
 		}
 		if (d.containsKey(TiC.PROPERTY_BUTTON_NAMES))
 		{
@@ -194,11 +195,11 @@ public class TiUIDialog extends TiUIView
 		AlertDialog dialog = dialogWrapper.getDialog();
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			if (dialog != null) {
-				dialog.setTitle((String) newValue);
+				dialog.setTitle(Html.fromHtml((String) newValue));
 			}
 		} else if (key.equals(TiC.PROPERTY_MESSAGE)) {
 			if (dialog != null) {
-				dialog.setMessage((String) newValue);
+				dialog.setMessage(Html.fromHtml((String) newValue));
 			}
 		} else if (key.equals(TiC.PROPERTY_BUTTON_NAMES)) {
 			if (dialog != null) {

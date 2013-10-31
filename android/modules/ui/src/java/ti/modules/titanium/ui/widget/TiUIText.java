@@ -38,6 +38,7 @@ import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import android.content.res.ColorStateList;
 
 public class TiUIText extends TiUIView
 	implements TextWatcher, OnEditorActionListener, OnFocusChangeListener
@@ -72,6 +73,7 @@ public class TiUIText extends TiUIView
 	private static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
 	private static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
 
+	private int defaultColor;
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
@@ -322,8 +324,29 @@ public class TiUIText extends TiUIView
 		} else {
 			realtv.setGravity(Gravity.TOP | Gravity.LEFT);
 		}
-
+		defaultColor = realtv.getCurrentTextColor();
 		setNativeView(tv);
+	}
+
+
+	private void setTextColors(int color, int selectedColor, int disabledColor) {
+		
+		int[][] states = new int[][] {
+			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
+			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
+			TiUIHelper.BACKGROUND_FOCUSED_STATE,  // pressed
+			TiUIHelper.BACKGROUND_CHECKED_STATE,  // pressed
+			new int [] {android.R.attr.state_pressed},  // pressed
+			new int [] {android.R.attr.state_focused},  // pressed
+			new int [] {}
+		};
+
+		ColorStateList colorStateList = new ColorStateList(
+			states,
+			new int[] {disabledColor, selectedColor, selectedColor, selectedColor, selectedColor, selectedColor, color}
+		);
+
+		realtv.setTextColor(colorStateList);
 	}
 
 	@Override
@@ -348,8 +371,11 @@ public class TiUIText extends TiUIView
 		}
 		disableChangeEvent = false;
 		
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			realtv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
@@ -429,8 +455,12 @@ public class TiUIText extends TiUIView
 				realtv.setText(truncateText);
 				realtv.setSelection(cursor);
 			}
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			realtv.setTextColor(TiConvert.toColor((String) newValue));
+		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			KrollDict properties = proxy.getProperties();
+			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		} else if (key.equals(TiC.PROPERTY_HINT_TEXT)) {
 			realtv.setHint((String) newValue);
 		} else if (key.equals(TiC.PROPERTY_ELLIPSIZE)) {
