@@ -4,7 +4,6 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
 
 public class TiUINonViewGroupView extends TiUIView {
 
@@ -12,19 +11,23 @@ public class TiUINonViewGroupView extends TiUIView {
 		super(proxy);
 	}
 
-	private TiCompositeLayout childrenHolder;
+	protected TiCompositeLayout childrenHolder;
 	@Override
 	public void add(TiUIView child, int index)
 	{
 		if (childrenHolder == null) {
-			childrenHolder = new TiCompositeLayout(proxy.getActivity());
-			TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
-			params.height = ViewGroup.LayoutParams.MATCH_PARENT;
-			params.width = ViewGroup.LayoutParams.MATCH_PARENT;
-			getOrCreateBorderView().addView(childrenHolder, params);
-			updateLayoutForChildren(proxy.getProperties());	
+			createChildrenHolder();
 		}
 		super.add(child, index);
+	}
+	
+	protected void createChildrenHolder(){
+		childrenHolder = new TiCompositeLayout(proxy.getActivity(), this);
+		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
+		params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+		params.width = ViewGroup.LayoutParams.MATCH_PARENT;
+		getOrCreateBorderView().addView(childrenHolder, params);
+		updateLayoutForChildren(proxy.getProperties());	
 	}
 
 	@Override
