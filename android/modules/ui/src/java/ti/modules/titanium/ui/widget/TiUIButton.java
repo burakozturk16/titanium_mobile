@@ -26,6 +26,7 @@ import android.graphics.Rect;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.content.res.ColorStateList;
@@ -47,6 +48,7 @@ public class TiUIButton extends TiUINonViewGroupView
 	public TiUIButton(final TiViewProxy proxy)
 	{
 		super(proxy);
+		dispatchPressed = true;
 		imageGravity = Gravity.LEFT;
 		titlePadding = new Rect();
 		titlePadding.left = 8;
