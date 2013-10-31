@@ -67,13 +67,23 @@ public class TiUIButton extends TiUINonViewGroupView
 		setNativeView(btn);
 	}
 	
-	private void setTextColors(int color, int selectedColor) {
+	private void setTextColors(int color, int selectedColor, int disabledColor) {
+		
+		int[][] states = new int[][] {
+			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
+			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
+			TiUIHelper.BACKGROUND_FOCUSED_STATE,  // pressed
+			TiUIHelper.BACKGROUND_CHECKED_STATE,  // pressed
+			new int [] {android.R.attr.state_pressed},  // pressed
+			new int [] {android.R.attr.state_focused},  // pressed
+			new int [] {}
+		};
+
 		ColorStateList colorStateList = new ColorStateList(
-			new int[][] {	new int [] {android.R.attr.state_pressed},
-							new int [] {android.R.attr.state_focused},
-							new int [] {}},
-			new int[] {selectedColor, selectedColor, color}
+			states,
+			new int[] {disabledColor, selectedColor, selectedColor, selectedColor, selectedColor, selectedColor, color}
 		);
+
 		((Button) getNativeView()).setTextColor(colorStateList);
 	}
 
@@ -124,10 +134,12 @@ public class TiUIButton extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
 			btn.setText(d.getString(TiC.PROPERTY_TITLE));
 		}
-		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+		
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
 			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			setTextColors(color, selectedColor);
+			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, d.getKrollDict(TiC.PROPERTY_FONT));
@@ -198,15 +210,12 @@ public class TiUIButton extends TiUINonViewGroupView
 		Button btn = (Button) getNativeView();
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			btn.setText((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			int color = TiConvert.toColor(TiConvert.toString(newValue));
-			int selectedColor = proxy.getProperties().optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			setTextColors(color, selectedColor);
-		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
-			btn.setTextColor(TiConvert.toColor(TiConvert.toString(newValue)));
-			int selectedColor = TiConvert.toColor(TiConvert.toString(newValue));
-			int color = proxy.getProperties().optColor(TiC.PROPERTY_COLOR, selectedColor);
-			setTextColors(color, selectedColor);
+		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			KrollDict properties = proxy.getProperties();
+			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
