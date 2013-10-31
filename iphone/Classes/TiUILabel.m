@@ -391,6 +391,12 @@
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
 }
 
+-(void)setSelectedColor_:(id)color
+{
+	UIColor * newColor = [[TiUtils colorValue:color] _color];
+	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
+}
+
 -(void)setFont_:(id)fontValue
 {
     UIFont * font;
@@ -627,6 +633,12 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
 //{
 //    [[UIApplication sharedApplication] openURL:url];
 //}
+
+
+-(void)touchSetHighlighted:(BOOL)highlighted
+{
+    [self setHighlighted:highlighted];
+}
 
 @end
 

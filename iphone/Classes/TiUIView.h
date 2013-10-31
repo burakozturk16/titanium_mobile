@@ -288,6 +288,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 - (void)blurBackground:(id)args;
 -(UIControlState)realStateForState:(UIControlState)state;
 -(BOOL) enabledForBgState;
+-(void)touchSetHighlighted:(BOOL)highlighted;
 
 @end
 

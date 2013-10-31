@@ -1505,12 +1505,17 @@ DEFINE_EXCEPTIONS
     [super touchesBegan:touches withEvent:event];
 }
 
+-(void)touchSetHighlighted:(BOOL)highlighted
+{
+    [self setBgState:[self realStateForState:highlighted?UIControlStateHighlighted:UIControlStateNormal]];
+}
+
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     
     UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:UIControlStateSelected]];
+        [self touchSetHighlighted:YES];
     }
 	
 	if ([self interactionEnabled])
@@ -1541,7 +1546,7 @@ DEFINE_EXCEPTIONS
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:!outside?UIControlStateSelected:UIControlStateNormal]];
+        [self touchSetHighlighted:!outside];
     }
 	if ([self interactionEnabled])
 	{
@@ -1564,7 +1569,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:UIControlStateNormal]];
+        [self touchSetHighlighted:NO];
     }
 	if ([self interactionEnabled])
 	{
@@ -1769,7 +1774,7 @@ DEFINE_EXCEPTIONS
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]])
+            if ([firstChild respondsToSelector:@selector(setHighlighted:)])
             {
                 [(UIControl*)firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
             }
@@ -1790,7 +1795,7 @@ DEFINE_EXCEPTIONS
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]])
+            if ([firstChild respondsToSelector:@selector(setSelected:)])
             {
                 [(UIControl*)firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
             }
