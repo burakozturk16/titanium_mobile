@@ -19,6 +19,7 @@ import org.appcelerator.titanium.view.TiUINonViewGroupView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.text.Html;
 import android.text.InputType;
@@ -655,6 +656,26 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		return htmlText;
 	}
+	
+	private void setTextColors(int color, int selectedColor, int disabledColor) {
+		
+		int[][] states = new int[][] {
+			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
+			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
+			TiUIHelper.BACKGROUND_FOCUSED_STATE,  // pressed
+			TiUIHelper.BACKGROUND_CHECKED_STATE,  // pressed
+			new int [] {android.R.attr.state_pressed},  // pressed
+			new int [] {android.R.attr.state_focused},  // pressed
+			new int [] {}
+		};
+
+		ColorStateList colorStateList = new ColorStateList(
+			states,
+			new int[] {disabledColor, selectedColor, selectedColor, selectedColor, selectedColor, selectedColor, color}
+		);
+
+		tv.setTextColor(colorStateList);
+	}
 
 	@Override
 	public void processProperties(KrollDict d)
@@ -686,14 +707,13 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_TITLE)), TextView.BufferType.SPANNABLE);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			Object color = d.get(TiC.PROPERTY_COLOR);
-			if (color == null) {
-				tv.setTextColor(defaultColor);
-			} else {
-				tv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
-			}
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		}
+		
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			tv.setHighlightColor(TiConvert.toColor(d, TiC.PROPERTY_HIGHLIGHTED_COLOR));
 		}
@@ -801,12 +821,12 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(text);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			if (newValue == null) {
-				tv.setTextColor(defaultColor);
-			} else {
-				tv.setTextColor(TiConvert.toColor((String) newValue));
-			}
+		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			KrollDict properties = proxy.getProperties();
+			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		} else if (key.equals(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			tv.setHighlightColor(TiConvert.toColor((String) newValue));
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
