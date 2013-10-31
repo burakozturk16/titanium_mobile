@@ -157,6 +157,7 @@ NSArray* listenerArray = nil;
     TiSelectableBackgroundLayer* _bgLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
+    BOOL _touchEnabled;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -261,6 +262,7 @@ DEFINE_EXCEPTIONS
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
+    _touchEnabled = YES;
     animateBgdTransition = NO;
 }
 
@@ -848,13 +850,18 @@ DEFINE_EXCEPTIONS
 
 -(void)setTouchEnabled_:(id)arg
 {
+	_touchEnabled = [TiUtils boolValue:arg def:YES];
+}
+
+-(void)setEnabled_:(id)arg
+{
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
     [self setBgState:[self realStateForState:UIControlStateNormal]];
     changedInteraction = YES;
 }
 
 -(BOOL) touchEnabled {
-	return touchEnabled;
+	return _touchEnabled;
 }
 
 -(void)setTouchPassThrough_:(id)arg
@@ -1443,7 +1450,7 @@ DEFINE_EXCEPTIONS
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((touchPassThrough || (hasTouchListeners == NO && [self interactionEnabled]==NO)) && hitView == [self viewForHitTest])
+	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)) && hitView == [self viewForHitTest])
 	{
 		return nil;
 	}

@@ -59,7 +59,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 		
 	id transformMatrix;
 	BOOL childrenInitialized;
-	BOOL touchEnabled;
 
 	unsigned int animationDelayGuard;
 	unsigned int animationDelayGuardForLayout;
