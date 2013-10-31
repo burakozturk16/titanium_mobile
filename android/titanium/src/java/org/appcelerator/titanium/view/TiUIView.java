@@ -117,8 +117,9 @@ public abstract class TiUIView
 	protected TiBackgroundDrawable background;
 	
 	protected KrollDict additionalEventData;
-
-	private float animatedAlpha = Float.MIN_VALUE; // i.e., no animated alpha.
+	
+	protected boolean touchPassThrough = false;
+	protected boolean dispatchPressed = false;
 
 	protected KrollDict lastUpEvent = new KrollDict(2);
 	protected KrollDict lastDownEvent = new KrollDict(2);
@@ -665,9 +666,7 @@ public abstract class TiUIView
 			applyAccessibilityHidden(newValue);
 
 		} else if (key.equals(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) nativeView).setTouchPassThrough(TiConvert.toBoolean(newValue));
-			}
+			touchPassThrough = TiConvert.toBoolean(newValue);
 		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
 //			if (nativeView instanceof TiCompositeLayout) {
 //				((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(newValue));
@@ -726,8 +725,8 @@ public abstract class TiUIView
 			}
 		}
 
-		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH) && (nativeView instanceof TiCompositeLayout)) {
-			((TiCompositeLayout)nativeView).setTouchPassThrough(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+			touchPassThrough = TiConvert.toBoolean(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
@@ -1563,6 +1562,14 @@ public abstract class TiUIView
 			}
 		}
 		return null;
+	}
+	
+	public boolean getTouchPassThrough() {
+		return touchPassThrough;
+	}
+	
+	public boolean getDispatchPressed() {
+		return dispatchPressed;
 	}
 
 	protected void doSetClickable(View view, boolean clickable)

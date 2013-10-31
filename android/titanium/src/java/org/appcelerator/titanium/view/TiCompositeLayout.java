@@ -17,7 +17,6 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiLaunchActivity;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
 
 import android.app.Activity;
@@ -80,7 +79,6 @@ public class TiCompositeLayout extends FreeLayout implements
 	private static final int HAS_SIZE_FILL_CONFLICT = 1;
 	private static final int NO_SIZE_FILL_CONFLICT = 2;
 
-	private boolean touchPassThrough = false;
 
 	// We need these two constructors for backwards compatibility with modules
 
@@ -1203,14 +1201,28 @@ public class TiCompositeLayout extends FreeLayout implements
 	public void setView(TiUIView view) {
 		this.view = new WeakReference<TiUIView>(view);
 	}
+	@Override
+	public void dispatchSetPressed(boolean pressed) {
+		TiUIView view = (this.view == null ? null : this.view.get());
+		if (view != null && (view.getDispatchPressed() == true))
+		{
+			super.dispatchSetPressed(pressed);
+		}
+	};
 
-	public void setTouchPassThrough(boolean passthrough) {
-		touchPassThrough = passthrough;
-	}
+	
+//	@Override
+//    public boolean onInterceptTouchEvent(MotionEvent ev) {
+//		TiUIView view = (this.view == null ? null : this.view.get());
+//		if (view != null && (view.getTouchPassThrough() == true))
+//			return false;
+//        return super.onInterceptTouchEvent(ev);
+//    }
 
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event) {
-		if (touchPassThrough)
+		TiUIView view = (this.view == null ? null : this.view.get());
+		if (view != null && (view.getTouchPassThrough() == true))
 			return false;
 		return super.dispatchTouchEvent(event);
 	}
