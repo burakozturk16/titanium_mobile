@@ -10,6 +10,7 @@ import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
 import android.util.StateSet;
@@ -22,12 +23,14 @@ public class TiBackgroundDrawable extends Drawable {
 	private RectF innerRect;
 	private SparseArray<OneStateDrawable> drawables;
 	private OneStateDrawable currentDrawable;
+	private ColorDrawable defaultColorDrawable;
 	private SparseArray<int[]> mStateSets;
 	
 
 	public TiBackgroundDrawable()
 	{
 		currentDrawable = null;
+		defaultColorDrawable = null;
 		mStateSets = new SparseArray<int[]>();
 		drawables = new SparseArray<OneStateDrawable>();
 		innerRect = new RectF();
@@ -74,6 +77,9 @@ public class TiBackgroundDrawable extends Drawable {
 		
 		if (currentDrawable != null) {
 			currentDrawable.draw(canvas);
+		}
+		else if(defaultColorDrawable != null) {
+			defaultColorDrawable.draw(canvas);
 		}
 
 		canvas.restore();
@@ -142,6 +148,7 @@ public class TiBackgroundDrawable extends Drawable {
 			key = mStateSets.size();
 			mStateSets.append(key, stateSet);
 			drawable = new OneStateDrawable();
+			drawable.setDefaultColorDrawable(defaultColorDrawable);
 			drawables.append(key, drawable);
 		}
 		else
@@ -258,5 +265,14 @@ public class TiBackgroundDrawable extends Drawable {
 	@Override
 	public void setColorFilter(ColorFilter cf) {
 		
+	}
+
+	public void setDefaultColorDrawable(ColorDrawable colorDrawable) {
+		defaultColorDrawable = colorDrawable;
+		int length = drawables.size();
+		for(int i = 0; i < length; i++) {
+			OneStateDrawable drawable = drawables.valueAt(i);
+			drawable.setDefaultColorDrawable(colorDrawable);
+		}
 	}
 }

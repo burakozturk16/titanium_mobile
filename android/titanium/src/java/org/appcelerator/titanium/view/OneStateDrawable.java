@@ -1,7 +1,5 @@
 package org.appcelerator.titanium.view;
 
-import org.appcelerator.kroll.common.Log;
-
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -18,11 +16,15 @@ public class OneStateDrawable extends Drawable {
 	Drawable colorDrawable;
 	Drawable imageDrawable; //BitmapDrawable or NinePatchDrawable
 	Drawable gradientDrawable;
+	private Drawable defaultColorDrawable;
 
 	@Override
 	public void draw(Canvas canvas) {
 		if (colorDrawable != null)
 			colorDrawable.draw(canvas);
+		else if(defaultColorDrawable != null) {
+			defaultColorDrawable.draw(canvas);
+		}
 		if (gradientDrawable != null)
 			gradientDrawable.draw(canvas);
 		if (imageDrawable != null) {
@@ -143,6 +145,9 @@ public class OneStateDrawable extends Drawable {
 			TiGradientDrawable drawable  = (TiGradientDrawable)gradientDrawable;
 			drawable.invalidateSelf();
 		}
+	}
+	public void setDefaultColorDrawable(ColorDrawable drawable) {
+		defaultColorDrawable = drawable;
 	}
 	
 }

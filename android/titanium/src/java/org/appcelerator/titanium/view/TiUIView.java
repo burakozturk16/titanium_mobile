@@ -750,6 +750,7 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
+			bgdDrawable.setDefaultColorDrawable(colorDrawable);
 			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, colorDrawable);
 			bgdDrawable.setColorDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, colorDrawable);
 		}
