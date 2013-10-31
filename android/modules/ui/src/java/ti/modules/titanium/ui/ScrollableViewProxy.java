@@ -336,10 +336,15 @@ public class ScrollableViewProxy extends TiViewProxy
 	@Override
 	public void setActivity(Activity activity)
 	{
-		super.setActivity(activity);
-		ArrayList<TiViewProxy> list = getView().getViews();
-		for (TiViewProxy proxy : list) {
-			proxy.setActivity(activity);
+		Object viewsObject = getProperty(TiC.PROPERTY_VIEWS);
+		if (viewsObject instanceof Object[]) {
+			Object[] views = (Object[])viewsObject;
+			for (int i = 0; i < views.length; i++) {
+				if (views[i] instanceof TiViewProxy) {
+					TiViewProxy proxy = (TiViewProxy)views[i];
+					proxy.setActivity(activity);
+				}
+			}
 		}
 	}
 
