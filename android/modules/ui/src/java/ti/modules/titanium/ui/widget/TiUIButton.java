@@ -60,6 +60,26 @@ public class TiUIButton extends TiUINonViewGroupView
 				super.onLayout(changed, left, top, right, bottom);
 				TiUIHelper.firePostLayoutEvent(TiUIButton.this);
 			}
+
+			@Override
+			public void setPressed(boolean pressed) {
+				super.setPressed(pressed);
+				if (childrenHolder != null) {
+					int count = childrenHolder.getChildCount();
+					for (int i = 0; i < count; i++) {
+			            final View child = childrenHolder.getChildAt(i);
+			            child.setPressed(pressed);
+			        }
+				}
+			}
+
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+
 		};
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);

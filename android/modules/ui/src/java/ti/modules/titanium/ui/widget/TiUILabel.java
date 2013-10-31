@@ -15,10 +15,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
-import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -28,6 +25,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.util.Linkify;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.graphics.Paint;
@@ -151,6 +149,27 @@ public class TiUILabel extends TiUINonViewGroupView
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
 			super.onLayout(changed, left, top, right, bottom);
+			TiUIHelper.firePostLayoutEvent(TiUILabel.this);
+		}
+		
+
+		@Override
+		public void setPressed(boolean pressed) {
+			super.setPressed(pressed);
+			if (childrenHolder != null) {
+				int count = childrenHolder.getChildCount();
+				for (int i = 0; i < count; i++) {
+		            final View child = childrenHolder.getChildAt(i);
+		            child.setPressed(pressed);
+		        }
+			}
+		}
+
+		@Override
+		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough == true)
+				return false;
+			return super.dispatchTouchEvent(event);
 		}
 		
 		public EllipsizingTextView(Context context) {
@@ -602,6 +621,7 @@ public class TiUILabel extends TiUINonViewGroupView
 	public TiUILabel(final TiViewProxy proxy)
 	{
 		super(proxy);
+		dispatchPressed = true;
 		Log.d(TAG, "Creating a text label", Log.DEBUG_MODE);
 		tv = new EllipsizingTextView(getProxy().getActivity());
 		textPadding = new Rect();
