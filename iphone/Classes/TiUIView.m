@@ -1624,6 +1624,9 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if (_shouldHandleSelection) {
+        [self touchSetHighlighted:NO];
+    }
 	if ([self interactionEnabled])
 	{
 		UITouch *touch = [touches anyObject];
