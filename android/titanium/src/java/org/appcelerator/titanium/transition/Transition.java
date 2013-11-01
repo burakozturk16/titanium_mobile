@@ -83,10 +83,11 @@ public abstract class Transition {
 		setTargets(true, inTarget, outTarget);
 	}
 	public void setTargets(View inTarget, View outTarget) {
-		setTargets(false, inTarget, outTarget);
+		setTargets(isReversed, inTarget, outTarget);
 	}
 	
 	public AnimatorSet getSet(AnimatorListener _listener) {
+		if (isReversed) return getReversedSet(_listener);
 		AnimatorSet set = new AnimatorSet();
 		if (_listener != null) {
 			set.addListener(_listener);
@@ -119,6 +120,10 @@ public abstract class Transition {
 	
 	public boolean isReversed(){
 		return isReversed;
+	}
+	
+	public void setReversed(boolean reversed){
+		isReversed = reversed;
 	}
 	
 	public void transformView(View view, float position, boolean adjustScroll) {

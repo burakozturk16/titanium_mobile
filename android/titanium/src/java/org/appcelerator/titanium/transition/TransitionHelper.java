@@ -228,11 +228,12 @@ public class TransitionHelper {
 		int style = TiConvert.toInt(defaultOptions, TiC.PROPERTY_STYLE,-1);
 		int substyle = TiConvert.toInt(defaultOptions, TiC.PROPERTY_SUBSTYLE,SubTypes.kRightToLeft.ordinal());
 		int duration = TiConvert.toInt(defaultOptions, TiC.PROPERTY_DURATION, (defaultTransition != null)?defaultTransition.getDuration():300);
-		
+		boolean reverse = false;
 		if (options != null) {
 			style = TiConvert.toInt(options, TiC.PROPERTY_STYLE, style);
 			substyle = TiConvert.toInt(options, TiC.PROPERTY_SUBSTYLE, substyle);
 			duration = TiConvert.toInt(options, TiC.PROPERTY_DURATION, duration);
+			reverse = TiConvert.toBoolean(options, TiC.PROPERTY_REVERSE, reverse);
 		}
 
 		if (style != -1  && (defaultTransition == null || substyle != defaultTransition.subType.ordinal())) {
@@ -240,6 +241,7 @@ public class TransitionHelper {
 		}
 		else if (result != null) {
 			result.setDuration(duration);
+			result.setReversed(reverse);
 		}
 		return result;
 	}
