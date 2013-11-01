@@ -241,6 +241,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (animated) {
 			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), null, transition);
 		}
+		
+		if (hasListeners("closeWindow")) {
+			KrollDict options = new KrollDict();
+			options.put(TiC.PROPERTY_WINDOW, winToFocus);
+			options.put(TiC.PROPERTY_ANIMATED, animated);
+			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition, true));
+			fireEvent("closeWindow", options);
+		}
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
@@ -358,7 +366,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	static HashMap kDefaultTransition = new HashMap<String, Object>(){{
 	       put(TiC.PROPERTY_STYLE, Integer.valueOf(TransitionStyleModule.SWIPE)); 
 	       put(TiC.PROPERTY_SUBSTYLE,  Integer.valueOf(TransitionStyleModule.RIGHT_TO_LEFT));}};
-
+	       
+	private KrollDict getDictFromTransition(Transition transition, boolean reversed)
+	{
+		if (transition == null) return null;
+		KrollDict transitionDict = new KrollDict();
+		transitionDict.put(TiC.PROPERTY_STYLE, transition.getType());
+		transitionDict.put(TiC.PROPERTY_SUBSTYLE, transition.subType.ordinal());
+		transitionDict.put(TiC.PROPERTY_DURATION, transition.getDuration());
+		transitionDict.put(TiC.PROPERTY_REVERSE, reversed);
+		return transitionDict;
+	}
 	
 	private void handlePush(final TiWindowProxy proxy, boolean isFirst, Object arg) 
 	{
@@ -375,7 +393,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		
 		if (!isFirst && animated) {
 			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), kDefaultTransition, transition);
-		}		
+		}
+		if (hasListeners("openWindow")) {
+			KrollDict options = new KrollDict();
+			options.put(TiC.PROPERTY_WINDOW, proxy);
+			options.put(TiC.PROPERTY_ANIMATED, animated);
+			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition, false));
+			fireEvent("openWindow", options);
+		}
 		if (viewToAddTo != null) {
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();
    			viewToAdd.setVisibility(View.GONE);			
