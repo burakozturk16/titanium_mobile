@@ -117,6 +117,10 @@ public abstract class Transition {
 		return duration;
 	}
 	
+	public boolean isReversed(){
+		return isReversed;
+	}
+	
 	public void transformView(View view, float position, boolean adjustScroll) {
 		
 	}
