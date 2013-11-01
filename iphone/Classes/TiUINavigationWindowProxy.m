@@ -228,6 +228,33 @@
     }
 }
 
+
+-(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
+{
+    if (!transition) return     ;
+    return @{@"duration": NUMINT([transition getDuration]*1000),
+             @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
+             @"substyle": NUMINT(transition.orientation),
+             @"reverse": NUMBOOL(transition.isReversed)};
+}
+
+- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    if ([self _hasListeners:@"openWindow"]) {
+		[self fireEvent:@"openWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
+                                                   @"transition":[self propsDictFromTransition:transition],
+                                                   @"animated": NUMBOOL(transition != nil)}];
+    }
+}
+- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    if ([self _hasListeners:@"closeWindow"]) {
+		[self fireEvent:@"closeWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
+                                                    @"transition":[self propsDictFromTransition:transition],
+                                                    @"animated": NUMBOOL(transition != nil)}];
+    }
+}
+
 #pragma mark - Private API
 
 -(void)setFrame:(CGRect)bounds
@@ -278,14 +305,14 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-    [window windowWillOpen];
+    TiTransition* transition = nil;
     if (animated) {
-        TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
-        [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
     }
-    else {
-        [navController pushViewController:[window hostingController] withTransition:nil];
-    }
+    
+    [window windowWillOpen];
+    
+    [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
 }
 
 -(void)popOnUIThread:(NSArray*)args
@@ -297,17 +324,15 @@
 	}
 	TiWindowProxy *window = [args objectAtIndex:0];
     
+    NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+    BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
+    TiTransition* transition = nil;
+    if (animated) {
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
+    }
+    
     if (window == current) {
-        NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
-        int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
-        BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-        if (animated) {
-            TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
-            [navController popViewControllerWithTransition:transition.adTransition];
-        }
-        else {
-            [navController popViewControllerWithTransition:nil];
-        }
+        [navController popViewControllerWithTransition:transition.adTransition];
     }
     else {
         [self closeWindow:window animated:NO];
