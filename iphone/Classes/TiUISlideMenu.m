@@ -22,8 +22,10 @@
     TiViewProxy* leftView;
     TiViewProxy* rightView;
     TiViewProxy* centerView;
-    TiDimension _leftScrollScale; //between 0.0f and 1.0f
-    TiDimension _rightScrollScale; //between 0.0f and 1.0f
+    TiDimension _leftScrollScale;
+    TiDimension _rightScrollScale;
+    TiDimension _leftViewWidth;
+    TiDimension _rightViewWidth;
     TiTransition* _leftTransition;
     TiTransition* _rightTransition;
 }
@@ -55,6 +57,8 @@
     {
         _leftScrollScale = TiDimensionDip(0.0f);
         _rightScrollScale = TiDimensionDip(0.0f);
+        _leftViewWidth = TiDimensionDip(200.0f);
+        _rightViewWidth = TiDimensionDip(200.0f);
     }
     return self;
 }
@@ -65,6 +69,8 @@
     {
         _leftScrollScale = TiDimensionDip(0.0f);
         _rightScrollScale = TiDimensionDip(0.0f);
+        _leftViewWidth = TiDimensionDip(200.0f);
+        _rightViewWidth = TiDimensionDip(200.0f);
     }
     return self;
 }
@@ -100,8 +106,7 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    [self updateLeftDisplacement];
-    [self updateRightDisplacement];
+    [self update];
 
     [super frameSizeChanged:frame bounds:bounds];
 }
@@ -174,21 +179,31 @@
 
 -(void)setLeftViewWidth_:(id)args
 {
-    ENSURE_UI_THREAD(setLeftViewWidth_,args);
-    ENSURE_TYPE_OR_NIL(args,NSNumber);
-    
-    CGFloat value = [args floatValue];
-    [self controller].maximumLeftDrawerWidth = value;
-    [self updateLeftDisplacement];
+    _leftViewWidth = [TiUtils dimensionValue:args];
+    [self updateLeftViewWidth];
 }
 
 -(void)setRightViewWidth_:(id)args
 {
-    ENSURE_TYPE_OR_NIL(args,NSNumber);
-    ENSURE_UI_THREAD(setRightViewWidth_,args);
-    
-    CGFloat value = [args floatValue];
-    [self controller].maximumRightDrawerWidth = value;
+    _rightViewWidth = [TiUtils dimensionValue:args];
+    [self updateRightViewWidth];
+}
+
+-(void)update
+{
+    [self updateLeftViewWidth];
+    [self updateRightDisplacement];
+}
+
+-(void)updateLeftViewWidth
+{
+    [self controller].maximumLeftDrawerWidth = TiDimensionCalculateValue(_leftViewWidth, self.bounds.size.width);
+    [self updateLeftDisplacement];
+}
+
+-(void)updateRightViewWidth
+{
+    [self controller].maximumRightDrawerWidth = TiDimensionCalculateValue(_rightViewWidth, self.bounds.size.width);
     [self updateRightDisplacement];
 }
 
