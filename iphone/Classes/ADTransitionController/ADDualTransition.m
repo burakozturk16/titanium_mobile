@@ -17,12 +17,14 @@
     if (self = [self init]) {
         _inAnimation = [inAnimation retain];
         _outAnimation = [outAnimation retain];
+        _duration = _inAnimation.duration;
         [self finishInit];
     }
     return self;
 }
 
 - (id)initWithDuration:(CFTimeInterval)duration {
+    _duration = duration;
     return nil;
 }
 

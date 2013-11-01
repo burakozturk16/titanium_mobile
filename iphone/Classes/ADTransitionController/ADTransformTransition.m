@@ -25,6 +25,7 @@
 - (id)initWithAnimation:(CAAnimation *)animation inLayerTransform:(CATransform3D)inTransform outLayerTransform:(CATransform3D)outTransform {
     if (self = [super init]) {
         _animation = [animation copy]; // the instances should be different because we don't want them to have the same delegate
+        _duration = _animation.duration;
         _animation.delegate = self;
         _inLayerTransform = inTransform;
         _outLayerTransform = outTransform;
@@ -34,6 +35,7 @@
 
 - (id)initWithDuration:(CFTimeInterval)duration {
     if (self = [super init]) {
+        _duration = duration;
         _inLayerTransform = CATransform3DIdentity;
         _outLayerTransform = CATransform3DIdentity;
     }

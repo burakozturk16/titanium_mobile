@@ -34,6 +34,11 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     return nil;
 }
 
+- (float)getDuration {
+    return _duration;
+}
+
+
 - (void)dealloc {
     [super dealloc];
 }

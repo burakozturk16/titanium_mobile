@@ -40,6 +40,7 @@ typedef enum {
     id <ADTransitionDelegate> _delegate;
     ADTransitionType _type;
     ADTransitionOrientation _orientation;
+    CGFloat _duration;
 }
 
 @property (nonatomic, assign) id <ADTransitionDelegate> delegate;
@@ -54,4 +55,5 @@ typedef enum {
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
+- (float)getDuration;
 @end
