@@ -181,10 +181,12 @@ static NSDictionary* typeMap = nil;
     TiTransition* result = transition;
     if (arg != nil || defaultArg != nil) {
         float duration = [TiUtils floatValue:@"duration" properties:arg def:[TiUtils floatValue:@"duration" properties:defaultArg def:300]]/1000;
+        BOOL reversed =  [TiUtils boolValue:@"reverse" properties:arg def:(transition && [transition.adTransition isReversed])];
+        
         ADTransitionOrientation subtype = [TiUtils intValue:@"substyle" properties:arg def:transition?transition.orientation:[TiUtils intValue:@"substyle" properties:defaultArg def:ADTransitionRightToLeft]];
         NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:-1]];
         result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg];
-        if (result && transition && [transition.adTransition isReversed])
+        if (result && reversed)
         {
             [result reverseADTransition];
         }
