@@ -261,10 +261,10 @@
 -(NSDictionary*)defaultTransition
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return @{ @"type" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
     }
     else {
-        return @{ @"type" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
     }
 }
 
