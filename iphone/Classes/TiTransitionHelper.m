@@ -102,6 +102,7 @@
     }
     if (result != nil) {
         result.type = type;
+        result.duration = duration;
     }
     return result;
 }
