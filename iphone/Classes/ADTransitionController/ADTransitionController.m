@@ -297,6 +297,10 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     [self addChildViewController:viewController];
     [viewController beginAppearanceTransition:YES animated:animated];
+    
+    if ([self.delegate respondsToSelector:@selector(transitionController:willPushViewController:transition:)]) {
+        [self.delegate transitionController:self willPushViewController:viewController transition:transition];
+    }
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:viewController animated:animated];
     }
@@ -353,6 +357,10 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     UIViewController * inViewController = _viewControllers[([_viewControllers count] - 2)];
     [inViewController beginAppearanceTransition:YES animated:animated];
+    
+    if ([self.delegate respondsToSelector:@selector(transitionController:willPopToViewController:transition:)]) {
+        [self.delegate transitionController:self willPopToViewController:inViewController transition:transition];
+    }
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:inViewController animated:animated];
     }
