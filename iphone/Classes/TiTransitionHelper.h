@@ -39,5 +39,6 @@ typedef enum NWTransition {
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultTransition:(TiTransition*)transition containerView:(UIView*)container;
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg containerView:(UIView*)container;
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container;
++(NSNumber*)tiTransitionTypeForADTransition:(ADTransition*)transition;
 
 @end

@@ -28,7 +28,56 @@
 
 #import "TiTransition.h"
 
+#import "ADCarrouselTransition.h"
+#import "ADCubeTransition.h"
+#import "ADCrossTransition.h"
+#import "ADFadeTransition.h"
+#import "ADFlipTransition.h"
+#import "ADSwapTransition.h"
+#import "ADGhostTransition.h"
+#import "ADBackFadeTransition.h"
+#import "ADZoomTransition.h"
+#import "ADSwipeTransition.h"
+#import "ADSwipeFadeTransition.h"
+#import "ADScaleTransition.h"
+#import "ADGlueTransition.h"
+#import "ADPushRotateTransition.h"
+#import "ADFoldTransition.h"
+#import "ADSlideTransition.h"
+#import "ADModernPushTransition.h"
+
 @implementation TiTransitionHelper
+
+
+static NSDictionary* typeMap = nil;
++(NSDictionary*)typeMap
+{
+    if (typeMap == nil) {
+        typeMap = [@{NSStringFromClass([ADCrossTransition class]): NUMINT(NWTransitionCross),
+                    NSStringFromClass([ADCarrouselTransition class]): NUMINT(NWTransitionCarousel),
+                    NSStringFromClass([ADCubeTransition class]): NUMINT(NWTransitionCube),
+                    NSStringFromClass([ADFadeTransition class]): NUMINT(NWTransitionFade),
+                    NSStringFromClass([ADFlipTransition class]): NUMINT(NWTransitionFlip),
+                    NSStringFromClass([ADSwapTransition class]): NUMINT(NWTransitionSwap),
+                    NSStringFromClass([ADGhostTransition class]): NUMINT(NWTransitionGhost),
+                    NSStringFromClass([ADBackFadeTransition class]): NUMINT(NWTransitionBackFade),
+                    NSStringFromClass([ADZoomTransition class]): NUMINT(NWTransitionZoom),
+                    NSStringFromClass([ADSwipeTransition class]): NUMINT(NWTransitionSwipe),
+                    NSStringFromClass([ADSwipeFadeTransition class]): NUMINT(NWTransitionSwipeFade),
+                    NSStringFromClass([ADScaleTransition class]): NUMINT(NWTransitionScale),
+                    NSStringFromClass([ADGlueTransition class]): NUMINT(NWTransitionGlue),
+                    NSStringFromClass([ADPushRotateTransition class]): NUMINT(NWTransitionPushRotate),
+                    NSStringFromClass([ADFoldTransition class]): NUMINT(NWTransitionFold),
+                    NSStringFromClass([ADSlideTransition class]): NUMINT(NWTransitionSlide),
+                    NSStringFromClass([ADModernPushTransition class]): NUMINT(NWTransitionModernPush)} retain];
+    }
+    return typeMap;
+}
+
++(NSNumber*)tiTransitionTypeForADTransition:(ADTransition*)transition
+{
+    return [[self typeMap] objectForKey:NSStringFromClass([transition class])];
+}
 
 +(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options
 {
