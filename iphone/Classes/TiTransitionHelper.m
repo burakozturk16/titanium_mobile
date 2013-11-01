@@ -132,7 +132,7 @@
     if (arg != nil || defaultArg != nil) {
         float duration = [TiUtils floatValue:@"duration" properties:arg def:[TiUtils floatValue:@"duration" properties:defaultArg def:300]]/1000;
         ADTransitionOrientation subtype = [TiUtils intValue:@"substyle" properties:arg def:transition?transition.orientation:[TiUtils intValue:@"substyle" properties:defaultArg def:ADTransitionRightToLeft]];
-        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"type" properties:defaultArg def:-1]];
+        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:-1]];
         result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg];
         if (result && transition && [transition.adTransition isReversed])
         {
