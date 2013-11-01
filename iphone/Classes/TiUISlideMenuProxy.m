@@ -227,4 +227,15 @@
     [[self _controller] closeDrawerAnimated:animated completion:nil];
 }
 
+
+-(void)closeViews:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args, NSNumber);
+    ENSURE_UI_THREAD_1_ARG(args);
+    BOOL animated = YES;
+	if (args != nil)
+		animated = [args boolValue];
+    [[self _controller] closeDrawerAnimated:animated completion:nil];
+}
+
 @end
