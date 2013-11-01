@@ -1461,6 +1461,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
    			viewToAdd.setVisibility(View.VISIBLE);						
 		}
+		else {
+			add(viewIn);
+			remove(viewOut);
+		}
 	}
 	
 	@Kroll.method
