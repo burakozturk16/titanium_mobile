@@ -3394,13 +3394,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 -(void)transitionViews:(id)args
 {
 	ENSURE_UI_THREAD_1_ARG(args)
-	if ([self viewAttached])
-	{
-        if ([args count] > 1) {
-            TiViewProxy *view1Proxy = nil;
-            TiViewProxy *view2Proxy = nil;
-            ENSURE_ARG_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
-            ENSURE_ARG_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
+    if ([args count] > 1) {
+        TiViewProxy *view1Proxy = nil;
+        TiViewProxy *view2Proxy = nil;
+        ENSURE_ARG_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
+        ENSURE_ARG_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
+        if ([self viewAttached])
+        {
             pthread_rwlock_wrlock(&childrenLock);
             if (![children containsObject:view1Proxy])
             {
@@ -3429,9 +3429,12 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 [self add:view2Proxy];
             }];
         }
-        
-        
+        else {
+            [self remove:view1Proxy];
+            [self add:view2Proxy];
+        }
 	}
+    
 }
 
 -(void)blurBackground:(id)args
