@@ -222,10 +222,10 @@ static NSSet* transferableProps = nil;
         return;
     }
 	
-    if ([arg conformsToProtocol:@protocol(TiWindowProtocol)]) {
-        DebugLog(@"Can not add a window as a child of a view. Returning");
-        return;
-    }
+//    if ([arg conformsToProtocol:@protocol(TiWindowProtocol)]) {
+//        DebugLog(@"Can not add a window as a child of a view. Returning");
+//        return;
+//    }
     
 	if ([NSThread isMainThread])
 	{
