@@ -1875,7 +1875,7 @@
 	moveable = [TiUtils boolValue:args];
 }
 
--(void)setScrollable_:(id)args
+-(void)setScrollingEnabled_:(id)args
 {
 	UITableView *table = [self tableView];
 	[table setScrollEnabled:[TiUtils boolValue:args]];

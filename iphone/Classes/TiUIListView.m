@@ -493,7 +493,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     pruneSections = [TiUtils boolValue:args def:NO];
 }
 
--(void)setCanScroll_:(id)args
+-(void)setScrollingEnabled_:(id)args
 {
     UITableView *table = [self tableView];
     [table setScrollEnabled:[TiUtils boolValue:args def:YES]];
