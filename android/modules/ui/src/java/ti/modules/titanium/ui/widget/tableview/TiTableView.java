@@ -23,6 +23,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.TableViewProxy;
 import ti.modules.titanium.ui.TableViewRowProxy;
+import ti.modules.titanium.ui.widget.CustomListView;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.tableview.TableViewModel.Item;
 import android.annotation.SuppressLint;
@@ -54,7 +55,7 @@ public class TiTableView extends FrameLayout
 	protected static final int MAX_CLASS_NAMES = 32;
 
 	private TableViewModel viewModel;
-	private ListView listView;
+	private CustomListView listView;
 	private TTVListAdapter adapter;
 	private OnItemClickedListener itemClickListener;
 	private OnItemLongClickedListener itemLongClickListener;
@@ -320,7 +321,7 @@ public class TiTableView extends FrameLayout
 		rowTypes.put(TableViewProxy.CLASSNAME_DEFAULT, rowTypeCounter.incrementAndGet());
 
 		this.viewModel = new TableViewModel(proxy);
-		this.listView = new ListView(getContext());
+		this.listView = new CustomListView(getContext());
 		listView.setId(TI_TABLE_VIEW_ID);
 
 		listView.setFocusable(true);
@@ -576,7 +577,7 @@ public class TiTableView extends FrameLayout
 		return this.viewModel;
 	}
 
-	public ListView getListView() {
+	public CustomListView getListView() {
 		return listView;
 	}
 

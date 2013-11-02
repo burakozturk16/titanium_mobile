@@ -32,6 +32,7 @@ import ti.modules.titanium.ui.SearchBarProxy;
 import ti.modules.titanium.ui.UIModule;
 import android.annotation.SuppressLint;
 import ti.modules.titanium.ui.android.SearchViewProxy;
+import ti.modules.titanium.ui.widget.CustomListView;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
@@ -51,7 +52,6 @@ import android.view.ViewParent;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -60,7 +60,7 @@ import android.widget.AbsListView.OnScrollListener;
 @SuppressLint("NewApi")
 public class TiListView extends TiUIView implements OnSearchChangeListener {
 
-	private ListView listView;
+	private CustomListView listView;
 	private TiBaseAdapter adapter;
 	private ArrayList<ListSectionProxy> sections;
 	private AtomicInteger itemTypeCount;
@@ -310,7 +310,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		wrapper.setFocusable(false);
 		wrapper.setFocusableInTouchMode(false);
 		wrapper.setAddStatesFromChildren(true);
-		listView = new ListView(activity);
+		listView = new CustomListView(activity);
 		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
 		params.autoFillsHeight = true;
 		params.autoFillsWidth = true;
@@ -568,6 +568,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			footerView = inflater.inflate(headerFooterId, null);
 			setFooterTitle(TiConvert.toString(d, TiC.PROPERTY_FOOTER_TITLE));
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_SCROLLING_ENABLED)) {
+			listView.setScrollingEnabled(d.get(TiC.PROPERTY_SCROLLING_ENABLED));
+		}
 
 		//Check to see if headerView and footerView are specified. If not, we hide the views
 		if (headerView == null) {
@@ -722,6 +726,8 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		} else if (key.equals(TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE) && newValue != null) {
 			defaultTemplateBinding = TiConvert.toString(newValue);
 			refreshItems();
+		} else if (key.equals(TiC.PROPERTY_SCROLLING_ENABLED)) {
+			listView.setScrollingEnabled(newValue);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
