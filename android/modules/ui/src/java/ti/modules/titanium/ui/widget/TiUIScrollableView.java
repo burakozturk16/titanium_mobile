@@ -385,9 +385,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		left.setOnClickListener(new OnClickListener(){
 			public void onClick(View v)
 			{
-				if (mEnabled) {
-					movePrevious();
-				}
+				movePrevious();
 			}});
 		RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		params.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
@@ -403,9 +401,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		right.setOnClickListener(new OnClickListener(){
 			public void onClick(View v)
 			{
-				if (mEnabled) {
-					moveNext();
-				}
+				moveNext();
 			}});
 		params = new RelativeLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT);
