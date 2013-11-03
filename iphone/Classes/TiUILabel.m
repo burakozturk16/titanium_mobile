@@ -84,7 +84,7 @@
     {
         [self updateBackgroundImageFrameWithPadding];
     }
-	[(TiViewProxy *)[self proxy] contentsWillChange];
+//	[(TiViewProxy *)[self proxy] contentsWillChange];
 	return;
 }
 
@@ -114,8 +114,8 @@
     if (needsUpdateBackgroundImageFrame)
         [self updateBackgroundImageFrameWithPadding];
     
-//    if (needsSetText)
-    [self setAttributedTextViewContent];
+    if (needsSetText)
+        [self setAttributedTextViewContent];
 }
 
 -(TTTAttributedLabel*)label
@@ -318,12 +318,7 @@
     }
     
     id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
-//    if ([attr isKindOfClass:[NSAttributedString class]])
-//        [[self label] setText:attr];
-//    else
     [[self label] setText:attr];
-    
-    
 }
 
 -(void)setHighlighted:(BOOL)newValue

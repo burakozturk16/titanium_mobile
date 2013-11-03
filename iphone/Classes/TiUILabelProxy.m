@@ -121,21 +121,27 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             break;
         }
     }
-    if ([self view]) {
-        [(TiUILabel*)[self view] setAttributedTextViewContent];
+    if (view!=nil) {
+        [(TiUILabel*)view setAttributedTextViewContent];
         [self contentsWillChange];
     }
     attributeTextNeedsUpdate = NO;
 }
 
--(void)_initWithProperties:(NSDictionary *)properties
+-(void)configurationStart:(BOOL)recursive
 {
-    configSet = FALSE;
-    [super _initWithProperties:properties];
+    configSet = NO;
+    [super configurationStart:recursive];
+}
+
+-(void)configurationSet:(BOOL)recursive
+{
     configSet = YES;
+    [super configurationSet:recursive];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
 }
+
 
 -(CGSize) suggestedSizeForWidth:(CGFloat)suggestedWidth
 {

@@ -21,6 +21,12 @@
 #import <pthread.h>
 
 
+@interface TiViewProxy()
+{
+    BOOL needsContentChange;
+    BOOL allowContentChange;
+}
+@end
 
 #define IGNORE_IF_NOT_OPENED if (!windowOpened||[self viewAttached]==NO) return;
 
@@ -104,6 +110,16 @@ static NSSet* transferableProps = nil;
     block(self);
 }
 
+-(void)makeChildrenPerformSelector:(SEL)selector withObject:(id)object
+{
+    [[self children] makeObjectsPerformSelector:selector withObject:object];
+}
+
+-(void)makeVisibleChildrenPerformSelector:(SEL)selector withObject:(id)object
+{
+    [[self visibleChildren] makeObjectsPerformSelector:selector withObject:object];
+}
+
 -(NSArray*)visibleChildren
 {
     NSArray* copy = nil;
@@ -162,9 +178,9 @@ static NSSet* transferableProps = nil;
 
 -(void)applyProperties:(id)args
 {
-    [view configurationStart];
+    [self configurationStart];
     [super applyProperties:args];
-    [view configurationSet];
+    [self configurationSet];
 }
 
 -(void)startLayout:(id)arg
@@ -3444,6 +3460,30 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         [[self view] blurBackground:args];
     }
 }
+-(void)configurationStart:(BOOL)recursive
+{
+    needsContentChange = allowContentChange = NO;
+    [view configurationStart];
+    if (recursive)[self makeChildrenPerformSelector:@selector(configurationStart:) withObject:recursive];
+}
 
+-(void)configurationStart
+{
+    [self configurationStart:NO];
+}
 
+-(void)configurationSet:(BOOL)recursive
+{
+    [view configurationSet];
+    if (recursive)[self makeChildrenPerformSelector:@selector(configurationSet:) withObject:recursive];
+    allowContentChange = YES;
+//    if (needsContentChange) {
+//        [self contentsWillChange];
+//    }
+}
+
+-(void)configurationSet
+{
+    [self configurationSet:NO];
+}
 @end

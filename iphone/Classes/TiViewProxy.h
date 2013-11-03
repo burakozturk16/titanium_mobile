@@ -626,6 +626,13 @@ enum
 - (void)unarchiveFakeFromTemplate:(id)viewTemplate;
 + (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
+/**
+ Performs view's configuration procedure.
+ */
+-(void)configurationStart;
+-(void)configurationStart:(BOOL)recursive;
+-(void)configurationSet;
+-(void)configurationSet:(BOOL)recursive;
 @end
 
 

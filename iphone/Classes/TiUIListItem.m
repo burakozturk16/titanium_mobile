@@ -367,7 +367,6 @@ static NSArray* handledKeys;
 {
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
-    [_viewHolder configurationSet];
 }
 
 -(void)setAccessoryType_:(id)newValue
