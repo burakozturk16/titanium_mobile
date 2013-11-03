@@ -266,13 +266,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)setText:(id)value
 {
     [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeText];
-	[self replaceValue:value forKey:@"text" notification:YES];
+	[self replaceValue:value forKey:@"text" notification:NO];
 }
 
 -(void)setHtml:(id)value
 {
     [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
-	[self replaceValue:value forKey:@"html" notification:YES];
+	[self replaceValue:value forKey:@"html" notification:NO];
 }
 
 -(void)setColor:(id)color
