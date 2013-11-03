@@ -11,6 +11,7 @@ typedef enum NWTransition {
     NWTransitionModernPush,
     NWTransitionSwipe,
     NWTransitionSwipeFade,
+    NWTransitionSwipeDualFade,
     NWTransitionCube,
     NWTransitionCarousel,
     NWTransitionCross,

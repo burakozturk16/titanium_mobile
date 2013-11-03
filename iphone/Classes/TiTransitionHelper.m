@@ -20,6 +20,7 @@
 #import "TiTransitionSlide.h"
 #import "TiTransitionSwipe.h"
 #import "TiTransitionSwipeFade.h"
+#import "TiTransitionSwipeDualFade.h"
 #import "TiTransitionCarousel.h"
 #import "TiTransitionFlip.h"
 #import "TiTransitionFade.h"
@@ -39,6 +40,7 @@
 #import "ADZoomTransition.h"
 #import "ADSwipeTransition.h"
 #import "ADSwipeFadeTransition.h"
+#import "ADSwipeDualFadeTransition.h"
 #import "ADScaleTransition.h"
 #import "ADGlueTransition.h"
 #import "ADPushRotateTransition.h"
@@ -64,6 +66,7 @@ static NSDictionary* typeMap = nil;
                     NSStringFromClass([ADZoomTransition class]): NUMINT(NWTransitionZoom),
                     NSStringFromClass([ADSwipeTransition class]): NUMINT(NWTransitionSwipe),
                     NSStringFromClass([ADSwipeFadeTransition class]): NUMINT(NWTransitionSwipeFade),
+                    NSStringFromClass([ADSwipeDualFadeTransition class]): NUMINT(NWTransitionSwipeDualFade),
                     NSStringFromClass([ADScaleTransition class]): NUMINT(NWTransitionScale),
                     NSStringFromClass([ADGlueTransition class]): NUMINT(NWTransitionGlue),
                     NSStringFromClass([ADPushRotateTransition class]): NUMINT(NWTransitionPushRotate),
@@ -88,6 +91,9 @@ static NSDictionary* typeMap = nil;
             break;
         case NWTransitionSwipeFade:
             result = [[TiTransitionSwipeFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            break;
+        case NWTransitionSwipeDualFade:
+            result = [[TiTransitionSwipeDualFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
         case NWTransitionCube:
         {
