@@ -88,6 +88,8 @@
         [rootWindow setTab:(TiViewProxy<TiTab> *)self];
         [rootWindow setParentOrientationController:self];
         [rootWindow open:nil];
+        [rootWindow windowWillOpen];
+        [rootWindow windowDidOpen];
     }
     return [rootWindow hostingController];
 }
@@ -108,9 +110,12 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
     
-    if (window == rootWindow) {
-        [rootWindow windowWillOpen];
-        [rootWindow windowDidOpen];
+    if (window == current) return;
+
+    if ((window == rootWindow && ![rootWindow opening]) || [self controllerForWindow:window] != nil) {
+        TiThreadPerformOnMainThread(^{
+            [self popOnUIThread:args];
+        }, YES);
         return;
     }
     [window setIsManaged:YES];
@@ -140,10 +145,37 @@
         DebugLog(@"[ERROR] Can not close root window of the navWindow. Close this window instead");
         return;
     }
+    UIViewController* winController = [self controllerForWindow:window];
+    if (winController != nil) {
+        TiWindowProxy *realWindow = rootWindow;
+        int index = [[navController viewControllers] indexOfObject:winController];
+        if (index > 0) {
+            realWindow = (TiWindowProxy *)[[[navController viewControllers] objectAtIndex:(index-1)] proxy];
+            TiThreadPerformOnMainThread(^{
+                [self popOnUIThread:([args count] > 1) ? @[realWindow,[args objectAtIndex:1]] : @[realWindow]];
+            }, YES);
+        }
+    }
     TiThreadPerformOnMainThread(^{
         [self popOnUIThread:args];
     }, YES);
 }
+
+-(void)closeCurrentWindow:(NSArray*)args
+{
+    TiThreadPerformOnMainThread(^{
+        [self popOnUIThread:([args count] > 0) ? @[current,[args objectAtIndex:0]] : @[current]];
+    }, YES);
+}
+
+
+-(void)closeAllWindows:(NSArray*)args
+{
+    TiThreadPerformOnMainThread(^{
+        [self popOnUIThread:args];
+    }, YES);
+}
+
 
 -(id)stackSize
 {
@@ -243,6 +275,7 @@
     if ([self _hasListeners:@"openWindow"]) {
 		[self fireEvent:@"openWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
                                                    @"transition":[self propsDictFromTransition:transition],
+                                                   @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
                                                    @"animated": NUMBOOL(transition != nil)}];
     }
 }
@@ -251,6 +284,7 @@
     if ([self _hasListeners:@"closeWindow"]) {
 		[self fireEvent:@"closeWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
                                                     @"transition":[self propsDictFromTransition:transition],
+                                                    @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
                                                     @"animated": NUMBOOL(transition != nil)}];
     }
 }
@@ -322,9 +356,17 @@
 		[self performSelector:_cmd withObject:args afterDelay:0.1];
 		return;
 	}
-	TiWindowProxy *window = [args objectAtIndex:0];
+    int propsIndex = 0;
+    TiWindowProxy *window;
+    if ([[args objectAtIndex:0] isKindOfClass:[TiWindowProxy class]]) {
+        window = [args objectAtIndex:0];
+        propsIndex = 1;
+    }
+    else {
+        window = rootWindow;
+    }
     
-    NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+    NSDictionary* props = ([args count] > propsIndex)?[args objectAtIndex:propsIndex]:nil;
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
@@ -335,9 +377,31 @@
         [navController popViewControllerWithTransition:transition.adTransition];
     }
     else {
-        [self closeWindow:window animated:NO];
+        if (window == rootWindow) {
+            [navController popToRootViewControllerWithTransition:transition.adTransition];
+        }
+        else {
+            UIViewController* winController = [self controllerForWindow:window];
+            if (winController) {
+                [navController popToViewController:winController withTransition:transition.adTransition];
+            }
+        }
+        
     }
     
+}
+
+-(UIViewController*) controllerForWindow:(TiWindowProxy*)window
+{
+    if (navController != nil) {
+        for (TiViewController* viewController in [navController viewControllers]) {
+            TiWindowProxy* win = (TiWindowProxy *)[viewController proxy];
+            if (win == window) {
+                return viewController;
+            }
+        }
+    }
+    return nil;
 }
 
 - (void)closeWindow:(TiWindowProxy*)window animated:(BOOL)animated
@@ -359,6 +423,7 @@
     RELEASE_TO_NIL_AUTORELEASE(window);
     RELEASE_TO_NIL(windowController);
 }
+
 
 -(void) cleanNavStack
 {
