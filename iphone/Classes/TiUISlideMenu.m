@@ -151,9 +151,9 @@
 	RELEASE_TO_NIL(leftView);
     if (args != nil) {
         leftView = [args retain];
-        CGRect rect = [self controller].view.bounds;
-        rect.size.width = [self controller].maximumLeftDrawerWidth;
-        [self controller].leftDrawerViewController = [self controllerForViewProxy:leftView withFrame:rect];
+        CGRect frame = [[self controller] childControllerContainerViewFrame];
+        frame.size.width = [self controller].maximumLeftDrawerWidth;
+        [self controller].leftDrawerViewController = [self controllerForViewProxy:leftView withFrame:frame];
     }
     else {
         [self controller].leftDrawerViewController = nil;
@@ -168,9 +168,9 @@
 	RELEASE_TO_NIL(rightView);
     if (args != nil) {
         rightView = [args retain];
-        CGRect rect = [self controller].view.bounds;
-        rect.size.width = [self controller].maximumRightDrawerWidth;
-        [self controller].rightDrawerViewController = [self controllerForViewProxy:rightView withFrame:rect];
+        CGRect frame = [[self controller] childControllerContainerViewFrame];
+        frame.size.width = [self controller].maximumRightDrawerWidth;
+        [self controller].rightDrawerViewController = [self controllerForViewProxy:rightView withFrame:frame];
     }
     else {
         [self controller].rightDrawerViewController = nil;
