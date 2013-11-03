@@ -287,7 +287,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 #pragma mark -
 
 - (void)setAttributedText:(NSAttributedString *)text {
-    if ([text isEqualToAttributedString:_attributedText]) {
+    if (text == _attributedText || [text isEqualToAttributedString:_attributedText]) {
         return;
     }
     
