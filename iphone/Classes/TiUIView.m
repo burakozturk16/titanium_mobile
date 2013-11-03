@@ -346,7 +346,7 @@ DEFINE_EXCEPTIONS
 	
 	[self updateTouchHandling];
 	 
-	self.backgroundColor = [UIColor clearColor]; 
+	super.backgroundColor = [UIColor clearColor];
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
@@ -592,7 +592,11 @@ DEFINE_EXCEPTIONS
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
     [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateDisabled];
 }
-
+-(void)setBackgroundColor:(UIColor*)color
+{
+    // this trick is to prevent tableviewcell from changing our color. When we want
+    // to actually change our color, lets call super!
+}
 -(void) setBackgroundColor_:(id)color
 {
     UIColor* uicolor;
