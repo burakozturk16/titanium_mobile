@@ -3431,27 +3431,33 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             pthread_rwlock_unlock(&childrenLock);
             
-            TiUIView* view2 = [view2Proxy getOrCreateView];
-            [view2Proxy windowWillOpen];
-            [view2Proxy windowDidOpen];
-            [self relayout];
-            [self layoutChildren:NO];
-            LayoutConstraint *contraints = [view2Proxy layoutProperties];
-            ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+            TiUIView* view1 = nil;
+            TiUIView* view2 = nil;
+            if (view2Proxy) {
+                view2 = [view2Proxy getOrCreateView];
+                [view2Proxy windowWillOpen];
+                [view2Proxy windowDidOpen];
+                [self relayout];
+                [self layoutChildren:NO];
+                LayoutConstraint *contraints = [view2Proxy layoutProperties];
+                ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+            }
+            if (view1Proxy != nil) {
+                view1 = [view1Proxy getOrCreateView];
+            }
             
             TiTransition* transition = [TiTransitionHelper transitionFromArg:props containerView:self.view];
             transition.adTransition.type = ADTransitionTypePush;
-            [[self view] transitionfromView:[view1Proxy getOrCreateView] toView:view2 withTransition:transition completionBlock:^{
-                [self remove:view1Proxy];
-                [self add:view2Proxy];
+            [[self view] transitionfromView:view1 toView:view2 withTransition:transition completionBlock:^{
+                if (view1Proxy) [self remove:view1Proxy];
+                if (view2Proxy) [self add:view2Proxy];
             }];
         }
         else {
-            [self remove:view1Proxy];
-            [self add:view2Proxy];
+            if (view1Proxy) [self remove:view1Proxy];
+            if (view2Proxy)[self add:view2Proxy];
         }
 	}
-    
 }
 
 -(void)blurBackground:(id)args
