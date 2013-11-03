@@ -73,25 +73,30 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 
 - (void)_setupLayers:(NSArray *)layers {
     for (CALayer * layer in layers) {
-        layer.shouldRasterize = YES;
-        layer.rasterizationScale = [UIScreen mainScreen].scale;
+        if (![layer isKindOfClass:[NSNull class]]) {
+            layer.shouldRasterize = YES;
+            layer.rasterizationScale = [UIScreen mainScreen].scale;
+        }
     }
 }
 
 - (void)_teardownLayers:(NSArray *)layers {
     for (CALayer * layer in layers) {
-        layer.shouldRasterize = NO;
+        if (![layer isKindOfClass:[NSNull class]]) {
+            layer.shouldRasterize = NO;
+        }
     }
 }
 
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    viewIn.layer.doubleSided = NO;
-    viewOut.layer.doubleSided = NO;
-    [self _setupLayers:@[viewIn.layer, viewOut.layer]];
+    [[viewIn layer] setDoubleSided:NO];
+    [[viewOut layer] setDoubleSided:NO];
+    
+    [self _setupLayers:@[viewIn?[viewIn layer]:[NSNull null], viewOut?[viewOut layer]:[NSNull null]]];
 }
 
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    [self _teardownLayers:@[viewIn.layer, viewOut.layer]];
+    [self _teardownLayers:@[viewIn?[viewIn layer]:[NSNull null], viewOut?[viewOut layer]:[NSNull null]]];
 }
 
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
