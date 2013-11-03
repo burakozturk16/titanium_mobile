@@ -138,8 +138,6 @@
 		24CA8B96111161FE0084E2DE /* TiUIProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6C111161FD0084E2DE /* TiUIProgressBar.m */; };
 		24CA8B97111161FE0084E2DE /* TiUIOptionDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6E111161FD0084E2DE /* TiUIOptionDialogProxy.m */; };
 		24CA8B98111161FE0084E2DE /* TiUINavBarButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A70111161FD0084E2DE /* TiUINavBarButton.m */; };
-		24CA8B99111161FE0084E2DE /* TiUILabelOldProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A72111161FD0084E2DE /* TiUILabelOldProxy.m */; };
-		24CA8B9A111161FE0084E2DE /* TiUILabelOld.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A74111161FD0084E2DE /* TiUILabelOld.m */; };
 		24CA8B9B111161FE0084E2DE /* TiUIiPhoneProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A76111161FD0084E2DE /* TiUIiPhoneProxy.m */; };
 		24CA8B9C111161FE0084E2DE /* TiUIImageViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A78111161FD0084E2DE /* TiUIImageViewProxy.m */; };
 		24CA8B9D111161FE0084E2DE /* TiUIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A7A111161FD0084E2DE /* TiUIImageView.m */; };
@@ -293,8 +291,6 @@
 		24D8E410119B9D8A00F8CAA6 /* TiUIProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6C111161FD0084E2DE /* TiUIProgressBar.m */; };
 		24D8E411119B9D8A00F8CAA6 /* TiUIOptionDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6E111161FD0084E2DE /* TiUIOptionDialogProxy.m */; };
 		24D8E412119B9D8A00F8CAA6 /* TiUINavBarButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A70111161FD0084E2DE /* TiUINavBarButton.m */; };
-		24D8E413119B9D8A00F8CAA6 /* TiUILabelOldProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A72111161FD0084E2DE /* TiUILabelOldProxy.m */; };
-		24D8E414119B9D8A00F8CAA6 /* TiUILabelOld.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A74111161FD0084E2DE /* TiUILabelOld.m */; };
 		24D8E415119B9D8A00F8CAA6 /* TiUIiPhoneProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A76111161FD0084E2DE /* TiUIiPhoneProxy.m */; };
 		24D8E416119B9D8A00F8CAA6 /* TiUIImageViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A78111161FD0084E2DE /* TiUIImageViewProxy.m */; };
 		24D8E417119B9D8A00F8CAA6 /* TiUIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A7A111161FD0084E2DE /* TiUIImageView.m */; };
@@ -1027,8 +1023,6 @@
 		DABB36EB12E8CB280026A6EA /* TiUIProgressBar.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6C111161FD0084E2DE /* TiUIProgressBar.m */; };
 		DABB36EC12E8CB280026A6EA /* TiUIOptionDialogProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A6E111161FD0084E2DE /* TiUIOptionDialogProxy.m */; };
 		DABB36ED12E8CB280026A6EA /* TiUINavBarButton.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A70111161FD0084E2DE /* TiUINavBarButton.m */; };
-		DABB36EE12E8CB280026A6EA /* TiUILabelOldProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A72111161FD0084E2DE /* TiUILabelOldProxy.m */; };
-		DABB36EF12E8CB280026A6EA /* TiUILabelOld.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A74111161FD0084E2DE /* TiUILabelOld.m */; };
 		DABB36F012E8CB280026A6EA /* TiUIiPhoneProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A76111161FD0084E2DE /* TiUIiPhoneProxy.m */; };
 		DABB36F112E8CB280026A6EA /* TiUIImageViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A78111161FD0084E2DE /* TiUIImageViewProxy.m */; };
 		DABB36F212E8CB280026A6EA /* TiUIImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 24CA8A7A111161FD0084E2DE /* TiUIImageView.m */; };
@@ -1497,10 +1491,6 @@
 		24CA8A6F111161FD0084E2DE /* TiUIOptionDialogProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIOptionDialogProxy.h; path = ../Classes/TiUIOptionDialogProxy.h; sourceTree = SOURCE_ROOT; };
 		24CA8A70111161FD0084E2DE /* TiUINavBarButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUINavBarButton.m; path = ../Classes/TiUINavBarButton.m; sourceTree = SOURCE_ROOT; };
 		24CA8A71111161FD0084E2DE /* TiUINavBarButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUINavBarButton.h; path = ../Classes/TiUINavBarButton.h; sourceTree = SOURCE_ROOT; };
-		24CA8A72111161FD0084E2DE /* TiUILabelOldProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUILabelOldProxy.m; path = ../Classes/TiUILabelOldProxy.m; sourceTree = SOURCE_ROOT; };
-		24CA8A73111161FD0084E2DE /* TiUILabelOldProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUILabelOldProxy.h; path = ../Classes/TiUILabelOldProxy.h; sourceTree = SOURCE_ROOT; };
-		24CA8A74111161FD0084E2DE /* TiUILabelOld.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUILabelOld.m; path = ../Classes/TiUILabelOld.m; sourceTree = SOURCE_ROOT; };
-		24CA8A75111161FD0084E2DE /* TiUILabelOld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUILabelOld.h; path = ../Classes/TiUILabelOld.h; sourceTree = SOURCE_ROOT; };
 		24CA8A76111161FD0084E2DE /* TiUIiPhoneProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIiPhoneProxy.m; path = ../Classes/TiUIiPhoneProxy.m; sourceTree = SOURCE_ROOT; };
 		24CA8A77111161FD0084E2DE /* TiUIiPhoneProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiUIiPhoneProxy.h; path = ../Classes/TiUIiPhoneProxy.h; sourceTree = SOURCE_ROOT; };
 		24CA8A78111161FD0084E2DE /* TiUIImageViewProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiUIImageViewProxy.m; path = ../Classes/TiUIImageViewProxy.m; sourceTree = SOURCE_ROOT; };
@@ -3517,10 +3507,6 @@
 				D56915C9168F2E7300C3F89F /* TiUILabel.m */,
 				D56915CA168F2E7300C3F89F /* TiUILabelProxy.h */,
 				D56915CB168F2E7300C3F89F /* TiUILabelProxy.m */,
-				24CA8A72111161FD0084E2DE /* TiUILabelOldProxy.m */,
-				24CA8A73111161FD0084E2DE /* TiUILabelOldProxy.h */,
-				24CA8A74111161FD0084E2DE /* TiUILabelOld.m */,
-				24CA8A75111161FD0084E2DE /* TiUILabelOld.h */,
 			);
 			name = Label;
 			sourceTree = "<group>";
@@ -4851,8 +4837,6 @@
 				24CA8B97111161FE0084E2DE /* TiUIOptionDialogProxy.m in Sources */,
 				24CA8B98111161FE0084E2DE /* TiUINavBarButton.m in Sources */,
 				D5C06C1F17C7D8F700FA0E98 /* TiUIHelper.m in Sources */,
-				24CA8B99111161FE0084E2DE /* TiUILabelOldProxy.m in Sources */,
-				24CA8B9A111161FE0084E2DE /* TiUILabelOld.m in Sources */,
 				24CA8B9B111161FE0084E2DE /* TiUIiPhoneProxy.m in Sources */,
 				24CA8B9C111161FE0084E2DE /* TiUIImageViewProxy.m in Sources */,
 				24CA8B9D111161FE0084E2DE /* TiUIImageView.m in Sources */,
@@ -5234,8 +5218,6 @@
 				24D8E410119B9D8A00F8CAA6 /* TiUIProgressBar.m in Sources */,
 				24D8E411119B9D8A00F8CAA6 /* TiUIOptionDialogProxy.m in Sources */,
 				24D8E412119B9D8A00F8CAA6 /* TiUINavBarButton.m in Sources */,
-				24D8E413119B9D8A00F8CAA6 /* TiUILabelOldProxy.m in Sources */,
-				24D8E414119B9D8A00F8CAA6 /* TiUILabelOld.m in Sources */,
 				24D8E415119B9D8A00F8CAA6 /* TiUIiPhoneProxy.m in Sources */,
 				24D8E416119B9D8A00F8CAA6 /* TiUIImageViewProxy.m in Sources */,
 				24D8E417119B9D8A00F8CAA6 /* TiUIImageView.m in Sources */,
@@ -5612,8 +5594,6 @@
 				DABB36EB12E8CB280026A6EA /* TiUIProgressBar.m in Sources */,
 				DABB36EC12E8CB280026A6EA /* TiUIOptionDialogProxy.m in Sources */,
 				DABB36ED12E8CB280026A6EA /* TiUINavBarButton.m in Sources */,
-				DABB36EE12E8CB280026A6EA /* TiUILabelOldProxy.m in Sources */,
-				DABB36EF12E8CB280026A6EA /* TiUILabelOld.m in Sources */,
 				DABB36F012E8CB280026A6EA /* TiUIiPhoneProxy.m in Sources */,
 				DABB36F112E8CB280026A6EA /* TiUIImageViewProxy.m in Sources */,
 				DABB36F212E8CB280026A6EA /* TiUIImageView.m in Sources */,
