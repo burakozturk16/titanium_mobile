@@ -439,6 +439,12 @@
     return self;
 }
 
+-(TiProxy *)parentForBubbling
+{
+    if (parent) return parent;
+    else return tab;
+}
+
 #pragma mark - Private Methods
 -(TiProxy*)tabGroup
 {
