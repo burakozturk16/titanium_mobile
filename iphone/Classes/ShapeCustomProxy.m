@@ -125,19 +125,19 @@
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary);
     RELEASE_TO_NIL(_center)
     _center = [[TiUtils tiPointValue:arg def:[self defaultCenter]] retain];
-	[self replaceValue:arg forKey:kAnimCenter notification:YES];
+	[self replaceValue:arg forKey:kAnimCenter notification:NO];
 }
 
 -(void)setLineColor:(id)color
 {
     [self setLayerValue:(id)[[TiUtils colorValue:color] cgColor] forKey:kAnimLineColor];
-	[self replaceValue:color forKey:kAnimLineColor notification:YES];
+	[self replaceValue:color forKey:kAnimLineColor notification:NO];
 }
 
 -(void)setFillColor:(id)color
 {
     [self setLayerValue:(id)[[TiUtils colorValue:color] cgColor] forKey:kAnimFillColor];
-	[self replaceValue:color forKey:kAnimFillColor notification:YES];
+	[self replaceValue:color forKey:kAnimFillColor notification:NO];
 }
 
 -(void)setLineJoin:(id)arg
@@ -150,7 +150,7 @@
         result = [TiUtils intValue:arg def:kCGLineJoinMiter];
     }
     [self setLayerValue:[NSNumber numberWithInt:result] forKey:kAnimLineJoin];
-	[self replaceValue:arg forKey:kAnimLineJoin notification:YES];
+	[self replaceValue:arg forKey:kAnimLineJoin notification:NO];
 }
 
 -(void)setLineCap:(id)arg
@@ -163,7 +163,7 @@
         result = [TiUtils intValue:arg def:kCGLineCapButt];
     }
     [self setLayerValue:[NSNumber numberWithInt:result] forKey:kAnimLineCap];
-	[self replaceValue:arg forKey:kAnimLineCap notification:YES];
+	[self replaceValue:arg forKey:kAnimLineCap notification:NO];
 }
 
 -(void)setLineDash:(id)arg
@@ -176,14 +176,14 @@
     if ([arg objectForKey:@"phase"]) {
         [self setLayerValue:[NSNumber numberWithFloat:[TiUtils floatValue:[arg objectForKey:@"phase"]]] forKey:@"dashPhase"];
     }
-	[self replaceValue:arg forKey:@"lineDash" notification:YES];
+	[self replaceValue:arg forKey:@"lineDash" notification:NO];
 }
 
 -(void)setLineWidth:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSNumber);
     [self setLayerValue:(arg!=nil)?arg:[NSNumber numberWithFloat:1.0f] forKey:kAnimLineWidth];
-	[self replaceValue:arg forKey:kAnimLineWidth notification:YES];
+	[self replaceValue:arg forKey:kAnimLineWidth notification:NO];
 }
 
 -(void)setLineShadow:(id)arg
@@ -193,7 +193,7 @@
     [self setLayerValue:(id)shadow.color forKey:@"lineShadowColor"];
     [self setLayerValue:[NSValue valueWithCGSize:shadow.offset]  forKey:@"lineShadowOffset"];
     [self setLayerValue:[NSNumber numberWithFloat:shadow.radius]  forKey:@"lineShadowRadius"];
-    [self replaceValue:arg forKey:@"lineShadow" notification:YES];
+    [self replaceValue:arg forKey:@"lineShadow" notification:NO];
 }
 
 -(void)setFillShadow:(id)arg
@@ -203,21 +203,21 @@
     [self setLayerValue:(id)shadow.color forKey:@"fillShadowColor"];
     [self setLayerValue:[NSValue valueWithCGSize:shadow.offset]  forKey:@"fillShadowOffset"];
     [self setLayerValue:[NSNumber numberWithFloat:shadow.radius]  forKey:@"fillShadowRadius"];
-    [self replaceValue:arg forKey:@"fillShadow" notification:YES];
+    [self replaceValue:arg forKey:@"fillShadow" notification:NO];
 }
 
 -(void)setLineGradient:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary);
     [self setLayerValue:[TiGradient gradientFromObject:arg proxy:self] forKey:kAnimLineGradient];
-	[self replaceValue:arg forKey:kAnimLineGradient notification:YES];
+	[self replaceValue:arg forKey:kAnimLineGradient notification:NO];
 }
 
 -(void)setFillGradient:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary);
     [self setLayerValue:[TiGradient gradientFromObject:arg proxy:self] forKey:kAnimFillGradient];
-	[self replaceValue:arg forKey:kAnimFillGradient notification:YES];
+	[self replaceValue:arg forKey:kAnimFillGradient notification:NO];
 }
 
 
@@ -251,49 +251,49 @@
 -(void)setLineImage:(id)arg
 {
     [self setLayerValue:[self loadImage:arg] forKey:kAnimLineImage];
-	[self replaceValue:arg forKey:kAnimLineImage notification:YES];
+	[self replaceValue:arg forKey:kAnimLineImage notification:NO];
 }
 
 -(void)setFillImage:(id)arg
 {
     [self setLayerValue:[self loadImage:arg] forKey:kAnimFillImage];
-	[self replaceValue:arg forKey:kAnimFillImage notification:YES];
+	[self replaceValue:arg forKey:kAnimFillImage notification:NO];
 }
 
 -(void)setLineInversed:(id)arg
 {
     [self setLayerValue:arg forKey:kAnimLineInversed];
-	[self replaceValue:arg forKey:kAnimLineInversed notification:YES];
+	[self replaceValue:arg forKey:kAnimLineInversed notification:NO];
 }
 
 -(void)setFillInversed:(id)arg
 {
     [self setLayerValue:arg forKey:kAnimFillInversed];
-	[self replaceValue:arg forKey:kAnimFillInversed notification:YES];
+	[self replaceValue:arg forKey:kAnimFillInversed notification:NO];
 }
 
 -(void)setLineClipped:(id)arg
 {
     [self setLayerValue:arg forKey:@"lineClipped"];
-	[self replaceValue:arg forKey:@"lineClipped" notification:YES];
+	[self replaceValue:arg forKey:@"lineClipped" notification:NO];
 }
 
 -(void)setRetina:(id)arg
 {
     [self setLayerValue:arg forKey:@"retina"];
-	[self replaceValue:arg forKey:@"retina" notification:YES];
+	[self replaceValue:arg forKey:@"retina" notification:NO];
 }
 
 -(void)setAntialiasing:(id)arg
 {
     [self setLayerValue:arg forKey:@"antialiasing"];
-	[self replaceValue:arg forKey:@"antialiasing" notification:YES];
+	[self replaceValue:arg forKey:@"antialiasing" notification:NO];
 }
 //
 //-(void)setTransform:(id)transform
 //{
 //    [super setTransform:transform];
-//    [self replaceValue:transform forKey:@"transform" notification:YES];
+//    [self replaceValue:transform forKey:@"transform" notification:NO];
 //}
 
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_

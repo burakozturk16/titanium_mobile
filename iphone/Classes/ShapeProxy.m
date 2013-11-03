@@ -652,19 +652,19 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
 -(void)setLineColor:(id)color
 {
     [self getOrCreateStrokeLayer].strokeColor = [[TiUtils colorValue:color] cgColor];
-	[self replaceValue:color forKey:@"lineColor" notification:YES];
+	[self replaceValue:color forKey:@"lineColor" notification:NO];
 }
 
 -(void)setFillColor:(id)color
 {
     [self getOrCreateFillLayer].fillColor = [[TiUtils colorValue:color] cgColor];
-	[self replaceValue:color forKey:@"fillColor" notification:YES];
+	[self replaceValue:color forKey:@"fillColor" notification:NO];
 }
 
 -(void)setLineWidth:(id)arg
 {
     [self getOrCreateStrokeLayer].lineWidth = [TiUtils floatValue:arg def:1];
-	[self replaceValue:arg forKey:@"lineWidth" notification:YES];
+	[self replaceValue:arg forKey:@"lineWidth" notification:NO];
 }
 
 
@@ -676,7 +676,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     else {
         [self getOrCreateStrokeLayer].lineJoin = [TiUtils stringValue:arg];
     }
-	[self replaceValue:arg forKey:@"lineJoin" notification:YES];
+	[self replaceValue:arg forKey:@"lineJoin" notification:NO];
 }
 
 -(void)setLineCap:(id)arg
@@ -687,26 +687,26 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     else {
         [self getOrCreateStrokeLayer].lineCap = [TiUtils stringValue:arg];
     }
-	[self replaceValue:arg forKey:@"lineCap" notification:YES];
+	[self replaceValue:arg forKey:@"lineCap" notification:NO];
 }
 
 -(void)setLineOpacity:(id)arg
 {
     [self getOrCreateStrokeLayer].opacity = [TiUtils floatValue:arg def:1.0f];
-	[self replaceValue:arg forKey:@"lineOpacity" notification:YES];
+	[self replaceValue:arg forKey:@"lineOpacity" notification:NO];
 }
 
 -(void)setFillOpacity:(id)arg
 {
     [self getOrCreateFillLayer].opacity = [TiUtils floatValue:arg def:1.0f];
-	[self replaceValue:arg forKey:@"fillOpacity" notification:YES];
+	[self replaceValue:arg forKey:@"fillOpacity" notification:NO];
 }
 
 -(void)setLineShadow:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self getOrCreateStrokeLayer]];
-    [self replaceValue:arg forKey:@"lineShadow" notification:YES];
+    [self replaceValue:arg forKey:@"lineShadow" notification:NO];
 }
 
 -(void)setLineDash:(id)arg
@@ -720,14 +720,14 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if ([arg objectForKey:@"phase"]) {
         [self getOrCreateStrokeLayer].lineDashPhase = [TiUtils floatValue:[arg objectForKey:@"phase"]];
     }
-	[self replaceValue:arg forKey:@"lineDash" notification:YES];
+	[self replaceValue:arg forKey:@"lineDash" notification:NO];
 }
 
 -(void)setFillShadow:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self getOrCreateFillLayer]];
-    [self replaceValue:arg forKey:@"fillShadow" notification:YES];
+    [self replaceValue:arg forKey:@"fillShadow" notification:NO];
 }
 
 
@@ -741,7 +741,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     else {
         _transform = nil;
     }
-    [self replaceValue:transform forKey:@"transform" notification:YES];
+    [self replaceValue:transform forKey:@"transform" notification:NO];
     if (!_configurationSet)  return;
     [self updateRealTransform];
 }
