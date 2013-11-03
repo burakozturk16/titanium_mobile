@@ -235,9 +235,7 @@ static NSDictionary* listViewKeysToReplace;
                 realKey = [[self listViewKeysToReplace] objectForKey:realKey];
             }
             if ([self shouldUpdateValue:value forKeyPath:realKey]) {
-                [self recordChangeValue:value forKeyPath:realKey withBlock:^{
                     [properties setObject:value forKey:realKey];
-                }];
             }
         }
     }

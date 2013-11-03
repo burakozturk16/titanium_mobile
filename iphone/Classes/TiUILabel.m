@@ -40,9 +40,9 @@
     return label;
 }
 
-- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth
+- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
-    CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
+    CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
     maxSize.width -= textPadding.origin.x + textPadding.size.width;
     CGFloat textWidth = [[self label] sizeThatFits:maxSize].width;
     textWidth = MIN(textWidth,  maxSize.width);
@@ -52,18 +52,13 @@
     textRect.origin.y = 0;
     textRect.size.width += textPadding.origin.x + textPadding.size.width;
     textRect.size.height += textPadding.origin.y + textPadding.size.height;
-
+    
     return textRect.size;
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-    return [self suggestedFrameSizeToFitEntireStringConstraintedToWidth:suggestedWidth].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width
-{
-    return [self suggestedFrameSizeToFitEntireStringConstraintedToWidth:width].height;
+    return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
 }
 
 -(void)padLabel

@@ -421,15 +421,15 @@
     [button setNeedsLayout];
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)value
+-(CGSize)contentSizeForSize:(CGSize)value
 {
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].width + [self button].titleEdgeInsets.left + [self button].titleEdgeInsets.right;
+    CGSize result = [[self button] sizeThatFits:value];
+    result.width += [self button].titleEdgeInsets.left + [self button].titleEdgeInsets.right;
+    result.height += [self button].titleEdgeInsets.top + [self button].titleEdgeInsets.bottom;
+
+    return result;
 }
 
--(CGFloat)contentHeightForWidth:(CGFloat)value
-{
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].height + [self button].titleEdgeInsets.top + [self button].titleEdgeInsets.bottom;
-}
 
 @end
 

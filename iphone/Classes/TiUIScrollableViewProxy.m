@@ -252,27 +252,17 @@
 	return nil;
 }
 
--(CGFloat)autoWidthForSize:(CGSize)size
+-(CGSize)autSizeForSize:(CGSize)size
 {
-    CGFloat result = 0.0;
+    CGSize result = CGSizeZero;
     NSArray* theChildren = [self views];
     for (TiViewProxy * thisChildProxy in theChildren) {
-        CGFloat thisWidth = [thisChildProxy minimumParentWidthForSize:size];
-        if (result < thisWidth) {
-            result = thisWidth;
+        CGSize thisSize = [thisChildProxy minimumParentSizeForSize:size];
+        if (result.width < thisSize.width) {
+            result.width = thisSize.width;
         }
-    }
-    return result;
-}
-
--(CGFloat)autoHeightForSize:(CGSize)size
-{
-    CGFloat result = 0.0;
-    NSArray* theChildren = [self views];
-    for (TiViewProxy * thisChildProxy in theChildren) {
-        CGFloat thisHeight = [thisChildProxy minimumParentHeightForSize:size];
-        if (result < thisHeight) {
-            result = thisHeight;
+        if (result.height < thisSize.height) {
+            result.height = thisSize.height;
         }
     }
     return result;

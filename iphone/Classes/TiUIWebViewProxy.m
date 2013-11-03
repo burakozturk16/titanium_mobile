@@ -87,8 +87,9 @@ static NSArray* webKeySequence;
     return (inKJSThread ? evalResult : [evalResult autorelease]);
 }
 
-USE_VIEW_FOR_CONTENT_HEIGHT
-USE_VIEW_FOR_CONTENT_WIDTH
+//USE_VIEW_FOR_CONTENT_HEIGHT
+//USE_VIEW_FOR_CONTENT_WIDTH
+USE_VIEW_FOR_CONTENT_SIZE
 
 - (NSString*)html
 {

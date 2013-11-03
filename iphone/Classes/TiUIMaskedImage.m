@@ -37,25 +37,14 @@
 	return [TiUtils toImage:value proxy:ourProxy];
 }
 
-
--(CGFloat)contentWidthForWidth:(CGFloat)value
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-	UIImage * image = [self image];
+    UIImage * image = [self image];
 	if (image!=nil)
 	{
-		return image.size.width;
+		return image.size;
 	}
-	return value;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)value
-{
-	UIImage * image = [self image];
-	if (image!=nil)
-	{
-		return image.size.height;
-	}
-	return value;
+	return size;
 }
 
 - (void)dealloc 

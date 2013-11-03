@@ -301,29 +301,19 @@
 Text area constrains the text event though the content offset and edge insets are set to 0 
 */
 #define TXT_OFFSET 20
--(CGFloat)contentWidthForWidth:(CGFloat)value
+
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-    UITextView* ourView = (UITextView*)[self textWidgetView];
+	UITextView* ourView = (UITextView*)[self textWidgetView];
     NSString* txt = ourView.text;
     //sizeThatFits does not seem to work properly.
-    CGFloat txtWidth = [txt sizeWithFont:ourView.font constrainedToSize:CGSizeMake(value, 1E100) lineBreakMode:UILineBreakModeWordWrap].width;
-    if (value - txtWidth >= TXT_OFFSET) {
-        return (txtWidth + TXT_OFFSET);
+    CGFloat height = [ourView sizeThatFits:CGSizeMake(size.height, 1E100)].height;
+    CGFloat txtWidth = [txt sizeWithFont:ourView.font constrainedToSize:CGSizeMake(size.width, 1E100) lineBreakMode:UILineBreakModeWordWrap].width;
+    if (size.width - txtWidth >= TXT_OFFSET) {
+        return CGSizeMake((txtWidth + TXT_OFFSET), height);
     }
-    return txtWidth + 2 * self.layer.borderWidth;
+    return CGSizeMake(txtWidth + 2 * self.layer.borderWidth, height);
 }
-
--(CGFloat)contentHeightForWidth:(CGFloat)value
-{
-    UITextView* ourView = (UITextView*)[self textWidgetView];
-//    NSString* txt = ourView.text;
-//    if (txt.length == 0) {
-//        txt = @" ";
-//    }
-    
-    return [ourView sizeThatFits:CGSizeMake(value, 1E100)].height;
-}
-
 - (void)scrollViewDidScroll:(id)scrollView
 {
     //Ensure that system messages that cause the scrollView to 

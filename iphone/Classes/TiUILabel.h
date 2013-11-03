@@ -25,6 +25,7 @@
 
 -(void)setAttributedTextViewContent;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth;
+- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
 
 @end
 

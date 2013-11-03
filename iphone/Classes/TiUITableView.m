@@ -1375,7 +1375,7 @@
 }
 
 
--(CGFloat)contentHeightForWidth:(CGFloat)suggestedWidth
+-(CGSize)contentSizeForSize:(CGSize)size
 {
     CGFloat height = 0.0;
     NSUInteger sectionCount = [self numberOfSectionsInTableView:tableview];
@@ -1389,7 +1389,7 @@
         }
     }
     
-    return height;
+    return CGSizeMake(size.width, height);
 }
 
 #pragma mark Searchbar-related IBActions
@@ -2434,7 +2434,7 @@ return result;	\
 				size += viewLayout->height.value;
 				break;
 			case TiDimensionTypeAuto:
-				size += [viewProxy autoHeightForSize:[tableview bounds].size];
+				size += [viewProxy autoSizeForSize:[tableview bounds].size].height;
 				break;
 			default:
 				size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -2483,7 +2483,7 @@ return result;	\
 				size += viewLayout->height.value;
 				break;
 			case TiDimensionTypeAuto:
-				size += [viewProxy autoHeightForSize:[tableview bounds].size];
+				size += [viewProxy autoSizeForSize:[tableview bounds].size].height;
 				break;
 			default:
 				size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;

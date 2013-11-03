@@ -408,6 +408,16 @@ static NSArray* handledKeys;
 {
     self.detailTextLabel.text = [newValue description];
 }
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (_templateStyle == TiUIListItemTemplateStyleCustom) {
+        // prevent any crashes that could be caused by unsupported layouts
+//        _proxy.layoutProperties->layoutStyle = TiLayoutRuleAbsolute;
+        [_proxy layoutChildren:NO];
+    }
+}
 @end
 
 #endif

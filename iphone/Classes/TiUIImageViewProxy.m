@@ -179,14 +179,7 @@ static NSArray* imageKeySequence;
 	
 }
 
-USE_VIEW_FOR_CONTENT_WIDTH
-
-USE_VIEW_FOR_CONTENT_HEIGHT
-
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
-{
-    return [[self view] contentWidthForWidth:suggestedWidth withHeight:calculatedHeight];
-}
+USE_VIEW_FOR_CONTENT_SIZE
 
 #pragma mark Handling ImageLoader
 

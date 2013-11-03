@@ -136,6 +136,10 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
     }
     
+    BOOL autoSizeComputed = NO;
+    
+    CGSize autoSize;
+    
     if (needsWidthAutoCompute) {
         BOOL autoFill = NO;
         //Undefined falls to auto behavior
@@ -153,9 +157,11 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
         else {
             //If it comes here it has to follow SIZE behavior
-            if ([autoSizer respondsToSelector:@selector(autoWidthForSize:)])
+            if ([autoSizer respondsToSelector:@selector(autoSizeForSize:)])
             {
-                CGFloat desiredWidth = [autoSizer autoWidthForSize:CGSizeMake(width, height)];
+                autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
+                autoSizeComputed = YES;
+                CGFloat desiredWidth = autoSize.width;
                 width = width < desiredWidth?width:desiredWidth;
             }
             else if(resultResizing != NULL)
@@ -188,10 +194,14 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
         else {
             //If it comes here it has to follow size behavior
-            if ([autoSizer respondsToSelector:@selector(autoHeightForSize:)])
+            if ([autoSizer respondsToSelector:@selector(autoSizeForSize:)])
             {
-                CGFloat desiredHeight = [autoSizer autoHeightForSize:CGSizeMake(width, height)];
-                height = parentCanGrow?desiredHeight:(height < desiredHeight?height:desiredHeight);
+                if (autoSizeComputed == NO) {
+                    autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
+                    autoSizeComputed = YES;
+                }
+                 height = parentCanGrow?autoSize.height:(height < autoSize.height?height:autoSize.height);
+                
             }
             else if(resultResizing != NULL)
             {

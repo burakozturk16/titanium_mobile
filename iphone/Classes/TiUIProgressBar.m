@@ -44,16 +44,11 @@
 	return [value sizeWithFont:font constrainedToSize:maxSize lineBreakMode:UILineBreakModeTailTruncation];
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-	return [self sizeForFont:suggestedWidth].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width
-{
-	CGSize fontSize = [self sizeForFont:width];
+    CGSize fontSize = [self sizeForFont:size.width];
 	CGSize progressSize = [progress sizeThatFits:fontSize];
-	return fontSize.height + progressSize.height;
+    return CGSizeMake(fontSize.width, fontSize.height + progressSize.height);
 }
 
 #pragma mark Accessors

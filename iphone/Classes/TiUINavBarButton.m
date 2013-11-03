@@ -112,13 +112,8 @@ DEFINE_EXCEPTIONS
             }
             //Sanity check. If the view bounds are zero set the bounds to auto dimensions
             CGRect bounds = [[proxy_ view] bounds];
-            if (bounds.size.width == 0) {
-                CGFloat desiredWidth = [proxy_ autoWidthForSize:CGSizeMake(1000, 1000)];
-                bounds.size.width = desiredWidth;                        
-            }
-            if (bounds.size.height == 0) {
-                CGFloat desiredHeight = [proxy_ autoHeightForSize:CGSizeMake(bounds.size.width, 1000)];
-                bounds.size.height = desiredHeight;
+            if (bounds.size.width == 0 || bounds.size.height == 0) {
+                bounds.size = [proxy_ autoSizeForSize:CGSizeMake(1000, 1000)];
             }
             [[proxy_ view] setBounds:bounds];
         }

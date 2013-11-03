@@ -63,75 +63,32 @@ DEFINE_EXCEPTIONS
 	[super dealloc];
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-    if (autoWidth > 0)
-	{
-		if (autoHeight > 0 && calculatedHeight != autoHeight)
-            return (calculatedHeight*autoWidth/autoHeight);
-		return autoWidth;
-	}
-	
-	CGFloat calculatedWidth = TiDimensionCalculateValue(width, autoWidth);
-	if (calculatedWidth > 0)
-	{
-		return calculatedWidth;
-	}
-	
-	if (container!=nil)
-	{
-		return container.bounds.size.width;
-	}
-	
-	return 0;
-}
-
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
-{
-	if (autoWidth > 0)
-	{
-		if (autoHeight > 0 && !TiDimensionIsAuto(height) && !TiDimensionIsAutoSize(height) && !TiDimensionIsUndefined(height))
-            return (height.value*autoWidth/autoHeight);
-		return autoWidth;
-	}
-	
-	CGFloat calculatedWidth = TiDimensionCalculateValue(width, autoWidth);
-	if (calculatedWidth > 0)
-	{
-		return calculatedWidth;
-	}
-	
-	if (container!=nil)
-	{
-		return container.bounds.size.width;
-	}
-	
-	return 0;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width_
-{
-    if (width_ != autoWidth && autoWidth>0 && autoHeight > 0) {
-        return (width_*autoHeight/autoWidth);
+    CGSize result = size;
+    if (CGSizeEqualToSize(size, CGSizeZero)) {
+        result = CGSizeMake(autoWidth, autoHeight);
     }
-    
-	if (autoHeight > 0)
-	{
-		return autoHeight;
-	}
-	
-	CGFloat calculatedHeight = TiDimensionCalculateValue(height, autoHeight);
-	if (calculatedHeight > 0)
-	{
-		return calculatedHeight;
-	}
-	
-	if (container!=nil)
-	{
-		return container.bounds.size.height;
-	}
-	
-	return 0;
+    else if(size.width == 0 && autoHeight>0) {
+        result.width = (size.height*autoWidth/autoHeight);
+    }
+    else if(size.height == 0 && autoWidth > 0) {
+        result.height = (size.width*autoHeight/autoWidth);
+    }
+    else if(autoHeight == 0 || autoWidth == 0) {
+        result = container.bounds.size;
+    }
+    else {
+        float ratio = autoWidth/autoHeight;
+        float viewratio = size.width/size.height;
+        if(viewratio > ratio) {
+            result.width = (size.height*autoWidth/autoHeight);
+        }
+        else {
+            result.height = (size.width*autoHeight/autoWidth);
+        }
+    }
+    return result;
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -511,7 +468,7 @@ DEFINE_EXCEPTIONS
 -(void)loadDefaultImage:(CGSize)imageSize
 {
     // use a placeholder image - which the dev can specify with the
-    // defaultImage property or we'll provide the Titanium stock one
+    // defaultImage property or we'll provide the MCTS stock one
     // if not specified
     NSURL *defURL = [TiUtils toURL:[self.proxy valueForKey:@"defaultImage"] proxy:self.proxy];
     

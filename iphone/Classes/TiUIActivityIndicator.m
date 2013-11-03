@@ -216,14 +216,9 @@
 
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-	return [self sizeThatFits:CGSizeZero].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width
-{
-	return [self sizeThatFits:CGSizeZero].height;
+    return [self sizeThatFits:CGSizeZero];
 }
 
 @end

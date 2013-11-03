@@ -336,8 +336,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	CGFloat result = 0;
 	if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height))
 	{
-//        result = [self minimumParentHeightForSize:CGSizeMake(width, [self table].bounds.size.height)];
-		result = [self minimumParentHeightForSize:CGSizeMake(width, INT_MAX)];
+		result = [self minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height;
 	}
     if (TiDimensionIsPercent(height) && [self table] != nil) {
         result = TiDimensionCalculateValue(height, [self table].bounds.size.height);

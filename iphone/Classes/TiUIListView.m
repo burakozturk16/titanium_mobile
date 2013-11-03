@@ -1357,7 +1357,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoHeightForSize:[self.tableView bounds].size];
+                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -1417,7 +1417,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoHeightForSize:[self.tableView bounds].size];
+                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -1523,7 +1523,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
                 [cellProxy setDataItem:item];
-                return [cellProxy minimumParentHeightForSize:CGSizeMake(width, INT_MAX)];
+                return [cellProxy minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height;
             }
         }
     }

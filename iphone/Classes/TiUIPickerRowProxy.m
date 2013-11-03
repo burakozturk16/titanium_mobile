@@ -55,13 +55,8 @@
             CGSize size = myview.bounds.size;
             if (CGSizeEqualToSize(size, CGSizeZero) || size.width==0 || size.height==0)
             {
-                CGFloat width = [self autoWidthForSize:CGSizeMake(1000,1000)];
-                CGFloat height = [self autoHeightForSize:CGSizeMake(width,0)];
-                if (width > 0 && height > 0)
-                {
-                    size = CGSizeMake(width, height);
-                }
-                if (CGSizeEqualToSize(size, CGSizeZero) || width==0 || height == 0)
+                CGSize size = [self autoSizeForSize:CGSizeMake(1000,1000)];
+                if (size.width==0 || size.height == 0)
                 {
                     size = [UIScreen mainScreen].bounds.size;
                 }

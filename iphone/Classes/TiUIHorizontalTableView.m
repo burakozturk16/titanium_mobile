@@ -81,7 +81,7 @@
     CGFloat tableviewWidth = self.bounds.size.height;
 	if (TiDimensionIsAuto(width) || TiDimensionIsAutoSize(width) || TiDimensionIsUndefined(width))
 	{
-		result = [rowproxy minimumParentWidthForSize:CGSizeMake(0, height)];
+		result = [rowproxy minimumParentSizeForSize:CGSizeMake(0, height)].width;
 	}
     if (TiDimensionIsPercent(width)) {
         result = TiDimensionCalculateValue(width, tableviewWidth);

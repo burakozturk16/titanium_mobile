@@ -551,14 +551,9 @@
 	return YES;
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)value
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-	return [[self textWidgetView] sizeThatFits:CGSizeMake(value, 0)].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)value
-{
-	return [[self textWidgetView] sizeThatFits:CGSizeMake(value, 0)].height;
+	return [[self textWidgetView] sizeThatFits:size];
 }
 
 

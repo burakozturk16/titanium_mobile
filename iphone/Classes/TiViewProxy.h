@@ -644,8 +644,7 @@ enum
 
 #define USE_VIEW_FOR_VERIFY_WIDTH	USE_VIEW_FOR_METHOD(CGFloat,verifyWidth,CGFloat)
 #define USE_VIEW_FOR_VERIFY_HEIGHT	USE_VIEW_FOR_METHOD(CGFloat,verifyHeight,CGFloat)
-#define USE_VIEW_FOR_CONTENT_WIDTH	USE_VIEW_FOR_METHOD(CGFloat,contentWidthForWidth,CGFloat)
-#define USE_VIEW_FOR_CONTENT_HEIGHT	USE_VIEW_FOR_METHOD(CGFloat,contentHeightForWidth,CGFloat)
+#define USE_VIEW_FOR_CONTENT_SIZE	USE_VIEW_FOR_METHOD(CGSize,contentSizeForSize,CGSize)
 
 #define DECLARE_VIEW_CLASS_FOR_NEWVIEW(viewClass)	\
 -(TiUIView*)newView	\
