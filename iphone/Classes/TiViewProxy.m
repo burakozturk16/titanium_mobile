@@ -3414,16 +3414,18 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     if ([args count] > 1) {
         TiViewProxy *view1Proxy = nil;
         TiViewProxy *view2Proxy = nil;
-        ENSURE_ARG_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
-        ENSURE_ARG_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
+        ENSURE_ARG_OR_NIL_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
+        ENSURE_ARG_OR_NIL_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
         if ([self viewAttached])
         {
-            pthread_rwlock_wrlock(&childrenLock);
-            if (![children containsObject:view1Proxy])
-            {
-                pthread_rwlock_unlock(&childrenLock);
-                DebugLog(@"[WARN] Called transitionViews for %@ on %@, but %@ isn't a child.",view1Proxy,self,view1Proxy);
-                return;
+            if (view1Proxy != nil) {
+                pthread_rwlock_wrlock(&childrenLock);
+                if (![children containsObject:view1Proxy])
+                {
+                    pthread_rwlock_unlock(&childrenLock);
+                    DebugLog(@"[WARN] Called transitionViews for %@ on %@, but %@ isn't a child.",view1Proxy,self,view1Proxy);
+                    return;
+                }
             }
             NSDictionary* props = [args count] > 2 ? [args objectAtIndex:2] : nil;
             if (props == nil) {

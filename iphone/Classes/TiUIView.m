@@ -1825,13 +1825,14 @@ DEFINE_EXCEPTIONS
     [viewOut animationStarted];
     [viewIn animationStarted];
     
-    [self addSubview:viewIn];
+    if (viewIn) [self addSubview:viewIn];
     ADTransition* adTransition = transition.adTransition;
     [transition prepareViewHolder:self];
     [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:self];
     
     [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];        [viewOut removeFromSuperview];
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];
+        [viewOut removeFromSuperview];
         [viewOut animationCompleted];
         [viewIn animationCompleted];
         if (block != nil) {
