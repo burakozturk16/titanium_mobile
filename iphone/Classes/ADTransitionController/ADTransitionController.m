@@ -609,6 +609,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    [self.viewControllers.lastObject willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
     [self updateLayout];
     [self updateLayoutForController:self.viewControllers.lastObject];
 }
