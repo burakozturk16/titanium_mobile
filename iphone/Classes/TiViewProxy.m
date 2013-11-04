@@ -2823,6 +2823,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
     BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height);
     //    CGFloat desiredHeight = 0;
+    __block CGSize autoSize;
+    __block BOOL autoSizeComputed = FALSE;
+    
+    
     
     if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
     {
@@ -2833,6 +2837,12 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             boundingValue = 0;
         }
         
+        void (^computeAutoSize)() = ^() {
+            if (autoSizeComputed == FALSE) {
+                autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingValue)];
+                autoSizeComputed = YES;
+            }
+        };
         //Ensure that autoHeightForSize is called with the lowest limiting bound
         //        CGFloat desiredWidth = MIN([child minimumParentWidthForSize:bounds.size],bounds.size.width);
         
@@ -2858,7 +2868,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
         else if (TiDimensionIsAutoSize(constraint))
         {
-            CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingValue)];
+            computeAutoSize();
             bounds.size.height = autoSize.height + offsetV;
             verticalLayoutBoundary += bounds.size.height;
         }
@@ -2871,7 +2881,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             else {
                 //SIZE behavior
-                CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingValue)];
+                computeAutoSize();
                 bounds.size.height = autoSize.height + offsetV;
                 verticalLayoutBoundary += bounds.size.height;
             }
@@ -2899,7 +2909,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             else {
                 //SIZE behavior
-                CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingValue)];
+                computeAutoSize();
                 bounds.size.height = autoSize.height + offsetV;
                 verticalLayoutBoundary += bounds.size.height;
             }
@@ -2926,6 +2936,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         BOOL recalculateWidth = NO;
         BOOL isPercent = NO;
         
+        void (^computeAutoSize)() = ^() {
+            if (autoSizeComputed == FALSE) {
+                autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
+                autoSizeComputed = YES;
+            }
+        };
+        
         if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
         {
             desiredWidth =  bounds.size.width + offsetH;
@@ -2940,7 +2957,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             else if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
                 recalculateWidth = YES;
                 followsFillBehavior = YES;
-                CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(boundingWidth, boundingHeight)];
+                autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
+                autoSizeComputed = YES;
                 desiredWidth = autoSize.width + offsetH;
             }
             else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
@@ -2949,14 +2967,14 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             else {
                 recalculateWidth = YES;
-                CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(boundingWidth, boundingHeight)];
+                computeAutoSize();
                 desiredWidth = autoSize.width + offsetH;
             }
         }
         else {
             //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
             recalculateWidth = YES;
-            CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(boundingWidth, boundingHeight)];
+            computeAutoSize();
             desiredWidth = autoSize.width + offsetH;
             if (TiDimensionIsAutoSize(constraint)) {
                 followsFillBehavior = NO;
@@ -2974,7 +2992,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 {
                     //TIMOB-11998. minimumParentHeightForSize:CGSize will limit width anyways. Pass bounding width here
                     //desiredHeight = [child minimumParentHeightForSize:CGSizeMake(desiredWidth,boundingHeight)];
-                    CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
+                    computeAutoSize();
                     bounds.size.height = autoSize.height + offsetH;
                 }
                 verticalLayoutBoundary += bounds.size.height;
@@ -2998,8 +3016,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                             //TIMOB-11998. minimumParentHeightForSize:CGSize will limit width anyways. Pass bounding width here
                             //desiredHeight = [child minimumParentHeightForSize:CGSizeMake(desiredWidth,boundingHeight)];
                             
-                            CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
-                            
+                            computeAutoSize();
                             bounds.size.height = autoSize.height;
                         }
                         horizontalLayoutBoundary += desiredWidth;
@@ -3010,8 +3027,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                         //Will take up whole row
                         if (!childIsFixedHeight)
                         {
-                            CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
-                            
+                            computeAutoSize();
                             bounds.size.height = autoSize.height;
                         }
                         verticalLayoutBoundary += bounds.size.height;
@@ -3021,14 +3037,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                     //Will take up whole row
                     if (!childIsFixedHeight)
                     {
-                        CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
-                        
+                        computeAutoSize();
                         bounds.size.height = autoSize.height;
                     }
                     verticalLayoutBoundary += bounds.size.height;
                 }
                 else {
-                    CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
+                    computeAutoSize();
                     desiredWidth = autoSize.width + offsetH;
                     if (!childIsFixedHeight)
                     {
@@ -3051,9 +3066,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             //If it fits update the horizontal layout row height
             if (!childIsFixedHeight)
             {
-                //TIMOB-11998. minimumParentHeightForSize:CGSize will limit width anyways. Pass bounding width here
-                //desiredHeight = [child minimumParentHeightForSize:CGSizeMake(desiredWidth,boundingHeight)];
-                CGSize autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
+                computeAutoSize();
                 bounds.size.height = autoSize.height;
             }
             bounds.origin.x = horizontalLayoutBoundary;
@@ -3088,7 +3101,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
     }
     else {
-        CGSize autoSize = [child minimumParentSizeForSize:bounds.size];
+//        CGSize autoSize = [child minimumParentSizeForSize:bounds.size];
     }
     return bounds;
 }
