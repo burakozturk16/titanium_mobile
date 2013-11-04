@@ -1789,9 +1789,9 @@ DEFINE_EXCEPTIONS
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild respondsToSelector:@selector(setHighlighted:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:)])
             {
-                [(UIControl*)firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
+                [firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
             }
             else {
                 [(id)thisView setHighlighted:isHiglighted];
@@ -1811,9 +1811,9 @@ DEFINE_EXCEPTIONS
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild respondsToSelector:@selector(setSelected:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:)])
             {
-                [(UIControl*)firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
+                [firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
             }
             else {
                 [(id)thisView setSelected:isSelected];
