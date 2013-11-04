@@ -740,6 +740,9 @@
 		D57007FA18255C520063F7FE /* TiTransitionSwipeDualFade.m in Sources */ = {isa = PBXBuildFile; fileRef = D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */; };
 		D57007FB18255C520063F7FE /* TiTransitionSwipeDualFade.m in Sources */ = {isa = PBXBuildFile; fileRef = D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */; };
 		D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
+		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
+		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -791,9 +794,6 @@
 		D5C2866517FC18C0005B2628 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866317FC18C0005B2628 /* libGPUImage.a */; };
 		D5C2866617FC18C0005B2628 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866317FC18C0005B2628 /* libGPUImage.a */; };
 		D5C2866717FC18C1005B2628 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866317FC18C0005B2628 /* libGPUImage.a */; };
-		D5C2866817FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
-		D5C2866917FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
-		D5C2866A17FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */; };
 		D5C8C96717EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
 		D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
 		D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */; };
@@ -2191,6 +2191,7 @@
 		D57007F318255BBD0063F7FE /* ADSwipeDualFadeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADSwipeDualFadeTransition.m; path = ../Classes/ADTransitionController/ADSwipeDualFadeTransition.m; sourceTree = "<group>"; };
 		D57007F718255C520063F7FE /* TiTransitionSwipeDualFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSwipeDualFade.h; sourceTree = "<group>"; };
 		D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwipeDualFade.m; sourceTree = "<group>"; };
+		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		D58DCBCB17FEF0F50011FE0E /* TiSVGImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSVGImage.h; sourceTree = "<group>"; };
@@ -2294,7 +2295,6 @@
 		D5C06C1D17C7D8F700FA0E98 /* TiUIHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIHelper.h; sourceTree = "<group>"; };
 		D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIHelper.m; sourceTree = "<group>"; };
 		D5C2866317FC18C0005B2628 /* libGPUImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGPUImage.a; path = ../libexternals/libGPUImage.a; sourceTree = "<group>"; };
-		D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.1.1.0pre.a"; path = "../libexternals/libSVGKit-iOS.1.1.0pre.a"; sourceTree = "<group>"; };
 		D5C8C93D17EF45C900F54C19 /* ADBackFadeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADBackFadeTransition.h; path = ../Classes/ADTransitionController/ADBackFadeTransition.h; sourceTree = "<group>"; };
 		D5C8C93E17EF45C900F54C19 /* ADBackFadeTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADBackFadeTransition.m; path = ../Classes/ADTransitionController/ADBackFadeTransition.m; sourceTree = "<group>"; };
 		D5C8C93F17EF45C900F54C19 /* ADCarrouselTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADCarrouselTransition.h; path = ../Classes/ADTransitionController/ADCarrouselTransition.h; sourceTree = "<group>"; };
@@ -2452,6 +2452,7 @@
 				24CA8C82111167B60084E2DE /* MessageUI.framework in Frameworks */,
 				24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */,
 				24CA8C86111167B60084E2DE /* OpenGLES.framework in Frameworks */,
+				D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */,
 				24CA8C88111167B60084E2DE /* QuartzCore.framework in Frameworks */,
 				24CA8C8A111167B60084E2DE /* SystemConfiguration.framework in Frameworks */,
 				24CA8C8E111167B60084E2DE /* libsqlite3.dylib in Frameworks */,
@@ -2463,7 +2464,6 @@
 				24597035118FF66300519F79 /* StoreKit.framework in Frameworks */,
 				242E8E3111BA39FD0046A0D0 /* libTiCore.a in Frameworks */,
 				242EA11611BD956F0046A0D0 /* ExternalAccessory.framework in Frameworks */,
-				D5C2866817FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				24D5C75911E6364F00F097E2 /* libtiverify.a in Frameworks */,
 				DAA4B2AE134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				508DB8FD16D431F100F9910E /* libti_ios_profiler.a in Frameworks */,
@@ -2485,6 +2485,7 @@
 				D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */,
 				D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */,
 				84BBA58A16570FA0006B8C22 /* Security.framework in Frameworks */,
+				D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */,
 				24D8E498119B9D8A00F8CAA6 /* Foundation.framework in Frameworks */,
 				24D8E499119B9D8A00F8CAA6 /* UIKit.framework in Frameworks */,
 				24D8E49A119B9D8A00F8CAA6 /* CoreGraphics.framework in Frameworks */,
@@ -2492,7 +2493,6 @@
 				24D8E49D119B9D8A00F8CAA6 /* AddressBookUI.framework in Frameworks */,
 				24D8E49E119B9D8A00F8CAA6 /* CFNetwork.framework in Frameworks */,
 				24D8E49F119B9D8A00F8CAA6 /* CoreLocation.framework in Frameworks */,
-				D5C2866917FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				24D8E4A0119B9D8A00F8CAA6 /* MapKit.framework in Frameworks */,
 				24D8E4A1119B9D8A00F8CAA6 /* MessageUI.framework in Frameworks */,
 				24D8E4A2119B9D8A00F8CAA6 /* MobileCoreServices.framework in Frameworks */,
@@ -2529,6 +2529,7 @@
 				D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */,
 				D53D20FA16A0901800D36D2C /* ImageIO.framework in Frameworks */,
 				D53D20F916A0901300D36D2C /* CoreData.framework in Frameworks */,
+				D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */,
 				84BBA58B16570FAF006B8C22 /* Security.framework in Frameworks */,
 				DABB37A212E8CB280026A6EA /* Foundation.framework in Frameworks */,
 				DABB37A312E8CB280026A6EA /* UIKit.framework in Frameworks */,
@@ -2536,7 +2537,6 @@
 				DABB37A512E8CB280026A6EA /* AddressBook.framework in Frameworks */,
 				DABB37A612E8CB280026A6EA /* AddressBookUI.framework in Frameworks */,
 				DABB37A712E8CB280026A6EA /* CFNetwork.framework in Frameworks */,
-				D5C2866A17FC18C1005B2628 /* libSVGKit-iOS.1.1.0pre.a in Frameworks */,
 				DABB37A812E8CB280026A6EA /* CoreLocation.framework in Frameworks */,
 				DABB37A912E8CB280026A6EA /* MapKit.framework in Frameworks */,
 				DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */,
@@ -3725,7 +3725,7 @@
 			children = (
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
 				D5C2866317FC18C0005B2628 /* libGPUImage.a */,
-				D5C2866417FC18C0005B2628 /* libSVGKit-iOS.1.1.0pre.a */,
+				D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */,
 				D585BC8817E630CD0062275E /* CoreMedia.framework */,
 				D585BC8417E630AB0062275E /* CoreVideo.framework */,
 				D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */,
