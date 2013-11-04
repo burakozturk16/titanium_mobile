@@ -197,6 +197,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     CGFloat navigationBarHeight = _navigationBar.hidden?0:_navigationBar.frame.size.height;
     CGFloat toolbarHeight = _toolbar.hidden?0:_toolbar.frame.size.height;
     for (UIView* view in inView.subviews) {
+        //the UITableViewCell test is for tableviewcell inside scrollview
         if ([view isKindOfClass:[UIScrollView class]])
         {
             UIScrollView* scrollview = (UIScrollView*)view;
@@ -222,6 +223,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
                 scrollview.contentInset = scrollview.scrollIndicatorInsets = inset;
                 scrollview.contentOffset = CGPointMake(0,-inset.top);
             }
+            continue;
         }
         [self adjustScrollViewInsetsForView:view topCrop:topCrop bottomCrop:bottomCrop topView:topView];
     }
