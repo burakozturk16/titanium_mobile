@@ -137,9 +137,9 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)configurationSet:(BOOL)recursive
 {
     configSet = YES;
-    [super configurationSet:recursive];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
+    [super configurationSet:recursive];
 }
 
 
