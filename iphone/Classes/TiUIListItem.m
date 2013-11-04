@@ -413,8 +413,6 @@ static NSArray* handledKeys;
 {
     [super layoutSubviews];
     if (_templateStyle == TiUIListItemTemplateStyleCustom) {
-        // prevent any crashes that could be caused by unsupported layouts
-//        _proxy.layoutProperties->layoutStyle = TiLayoutRuleAbsolute;
         [_proxy layoutChildren:NO];
     }
 }
