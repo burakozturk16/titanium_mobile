@@ -2763,7 +2763,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 if (TiDimensionIsAutoFill([child layoutProperties]->height))
                 {
                     CGRect bounds = [ourView bounds];
-                    [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:(([ourView bounds].size.height - heightNonFill) / nbHeightAutoFill)]];
+                    [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:((bounds.size.height - heightNonFill) / nbHeightAutoFill)]];
                     
                 }
                 [(TiRect*)[measuredBounds objectAtIndex:i] setY:[NSNumber numberWithInt:currentTop]];
@@ -2821,7 +2821,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 {
-    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height);
+    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height) || TiDimensionIsAutoFill([child layoutProperties]->height);
     //    CGFloat desiredHeight = 0;
     __block CGSize autoSize;
     __block BOOL autoSizeComputed = FALSE;
@@ -2876,7 +2876,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         {
             if (followsFillBehavior) {
                 //FILL behavior
-                bounds.size.height = boundingValue + offsetV;
+                bounds.size.height = boundingValue;
                 verticalLayoutBoundary += bounds.size.height;
             }
             else {
