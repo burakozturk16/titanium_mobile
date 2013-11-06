@@ -122,7 +122,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static final int MSG_FINISH_APPLY_PROPS = MSG_FIRST_ID + 112;
 	private static final int MSG_GETABSRECT = MSG_FIRST_ID + 113;
 	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 114;
-	private static final int MSG_TRANSFERVIEWS = MSG_FIRST_ID + 115;
+	private static final int MSG_TRANSITION_VIEWS = MSG_FIRST_ID + 115;
 	private static final int MSG_BLUR_BACKGROUND = MSG_FIRST_ID + 116;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
@@ -386,7 +386,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				handleFinishBatchPropertyApply();
 				return true;
 			}
-			case MSG_TRANSFERVIEWS : {
+			case MSG_TRANSITION_VIEWS : {
 				ArrayList<Object> args = (ArrayList<Object>)msg.obj;
 				handleTransitionViews((TiViewProxy)args.get(0), (TiViewProxy)args.get(1), args.get(2));
 				return true;
@@ -1427,52 +1427,61 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
-		if (!children.contains(viewOut)) return;
+		Log.w(TAG, "handleTransitionViews "  + viewOut + " " + viewIn);
+		if (viewOut != null && !children.contains(viewOut)) return;
 
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
 		Transition transition = TransitionHelper.transitionFromObject((arg != null)?(HashMap)arg:null, null, null);
-	
+
 		if (viewToAddTo != null) {
-			viewIn.setActivity(getActivity());
-			final View viewToAdd = viewIn.getOrCreateView().getOuterView();
-			viewToAdd.setVisibility(View.GONE);
-			TiUIHelper.addView(viewToAddTo, viewToAdd, viewIn.peekView().getLayoutParams()); //make sure it s removed from its parent
-			final View viewToHide = viewOut.getOuterView();
+			if (viewIn!=null) viewIn.setActivity(getActivity());
+			final View viewToAdd = (viewIn!=null)?viewIn.getOrCreateView().getOuterView():null;
+			if (viewToAdd!=null) {
+				viewToAdd.setVisibility(View.GONE);
+				TiUIHelper.addView(viewToAddTo, viewToAdd, viewIn.peekView().getLayoutParams()); //make sure it s removed from its parent
+			}
+			final View viewToHide = (viewOut!=null)?viewOut.getOuterView():null;
 			if (transition != null) {
-				transition.setTargets(viewToAdd, viewToHide);
+				transition.setTargets(viewToAddTo, viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
 					public void onAnimationEnd(Animator arg0) {	
-						add(viewIn);
-						viewToAddTo.removeView(viewToHide);
-						remove(viewOut);
+						if (viewIn!=null) add(viewIn);
+						if (viewOut!=null) {
+							viewToAddTo.removeView(viewToHide);
+							remove(viewOut);
+						}
 					}
 
-					public void onAnimationCancel(Animator arg0) {		
-						add(viewIn);
-						viewToAddTo.removeView(viewToHide);
-						remove(viewOut);
+					public void onAnimationCancel(Animator arg0) {
+						if (viewIn!=null) add(viewIn);
+						if (viewOut!=null) {
+							viewToAddTo.removeView(viewToHide);
+							remove(viewOut);
+						}
 					}
 
 					public void onAnimationRepeat(Animator arg0) {
 					}
 
-					public void onAnimationStart(Animator arg0) {						
+					public void onAnimationStart(Animator arg0) {
 					}
 				});
 				set.start();
 			}
 			else {
-				add(viewIn);
-				viewToAddTo.removeView(viewToHide);
-				remove(viewOut);
+				if (viewIn!=null) add(viewIn);
+				if (viewOut!=null) {
+					viewToAddTo.removeView(viewToHide);
+					remove(viewOut);
+				}
 			}
-   			viewToAdd.setVisibility(View.VISIBLE);						
+			if (viewIn!=null) viewToAdd.setVisibility(View.VISIBLE);
 		}
 		else {
-			add(viewIn);
-			remove(viewOut);
+			if (viewIn!=null) add(viewIn);
+			if (viewOut!=null) remove(viewOut);
 		}
 	}
 	
@@ -1486,7 +1495,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			args.add(viewOut);
 			args.add(viewIn);
 			args.add(arg);
-			getMainHandler().obtainMessage(MSG_TRANSFERVIEWS, args).sendToTarget();
+			getMainHandler().obtainMessage(MSG_TRANSITION_VIEWS, args).sendToTarget();
 		}
 	}
 	
