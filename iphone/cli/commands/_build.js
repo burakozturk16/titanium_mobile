@@ -917,6 +917,20 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 		}
 	}
 
+	// determine if we're going to be minifying javascript
+	var compileJSProp = cli.tiapp.properties['ti.compilejs'];
+	if (cli.argv['skip-js-minify']) {
+		if (this.compileJS) {
+			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', '--skip-js-minify'.cyan));
+		}
+		this.compileJS = this.encryptJS = this.minifyJS = false;
+	} else if (compileJSProp) {
+		if (this.compileJS && !compileJSProp.value) {
+			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', 'ti.android.loadfromsdcard'.cyan));
+		}
+		this.compileJS = this.encryptJS = this.minifyJS = !!compileJSProp.value;
+	}
+
 	// if in the prepare phase and doing a device/dist build...
 	if (!cli.argv.xcode && cli.argv.target != 'simulator') {
 		// make sure they have Apple's WWDR cert installed
@@ -2148,7 +2162,7 @@ iOSBuilder.prototype.writeBuildManifest = function writeBuildManifest(next) {
 		description: this.tiapp.description,
 		copyright: this.tiapp.copyright,
 		guid: this.tiapp.guid,
-		skipJSMinification: !!this.cli.argv['skip-js-minify'],
+		skipJSMinification: !!this.minifyJS ,
 		forceCopy: !!this.forceCopy,
 		forceCopyAll: !!this.forceCopyAll,
 		encryptJS: !!this.encryptJS
