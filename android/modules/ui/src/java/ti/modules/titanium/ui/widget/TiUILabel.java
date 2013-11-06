@@ -126,19 +126,19 @@ public class TiUILabel extends TiUINonViewGroupView
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
 		{
 			int w = MeasureSpec.getSize(widthMeasureSpec);
-//			int wm = MeasureSpec.getMode(widthMeasureSpec);
+			int wm = MeasureSpec.getMode(widthMeasureSpec);
 			int h = MeasureSpec.getSize(heightMeasureSpec);
 			int hm = MeasureSpec.getMode(heightMeasureSpec);
 			if (hm == 0) h = 100000;
 			
 			if (w > 0) {
 				updateEllipsize(w - getPaddingLeft() - getPaddingRight(), 
-						h - getPaddingTop() - getPaddingBottom());
+					h - getPaddingTop() - getPaddingBottom());
 		//			 Only allow label to exceed the size of parent when it's size behavior with wordwrap disabled
 				if (!wordWrap && layoutParams.optionWidth == null && !layoutParams.autoFillsWidth) {
-					widthMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(widthMeasureSpec),
+					widthMeasureSpec = MeasureSpec.makeMeasureSpec(w,
 						MeasureSpec.UNSPECIFIED);
-					heightMeasureSpec = MeasureSpec.makeMeasureSpec(MeasureSpec.getSize(heightMeasureSpec),
+					heightMeasureSpec = MeasureSpec.makeMeasureSpec(h,
 						MeasureSpec.UNSPECIFIED);
 				}
 			}
