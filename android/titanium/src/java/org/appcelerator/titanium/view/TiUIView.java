@@ -54,7 +54,6 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.Bitmap.Config;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -184,6 +183,13 @@ public abstract class TiUIView
 					}
 					children.add(child);
 					child.parent = proxy;
+					TiViewProxy childProxy = child.proxy;
+					if (childProxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
+						boolean value = TiConvert.toBoolean(childProxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
+						if (value == false) {
+							((ViewGroup) nv).setClipChildren(false);
+						}
+					}
 				}
 			}
 		}
@@ -670,9 +676,19 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_DISPATCH_PRESSED)) {
 			dispatchPressed = TiConvert.toBoolean(newValue);
 		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
-//			if (nativeView instanceof TiCompositeLayout) {
-//				((TiCompositeLayout) nativeView).setClipToPadding(TiConvert.toBoolean(newValue));
-//			}
+			boolean value = TiConvert.toBoolean(newValue);
+			View parentViewForChild = getParentViewForChild();
+			if (parentViewForChild instanceof ViewGroup) {
+				((ViewGroup)parentViewForChild).setClipChildren(value);
+			}
+			if (borderView != null) {
+				borderView.setClipChildren(value);
+			}
+			if (!value) {
+				ViewGroup parent =  (ViewGroup)getOuterView().getParent();
+				parent.setClipChildren(value);
+			}
+			
 		} else if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
@@ -719,11 +735,12 @@ public abstract class TiUIView
 		}
 			
 		updateLayoutForChildren(d);
-
+		
 		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
-			View rootView = getRootView();
-			if (rootView instanceof ViewGroup) {
-				((ViewGroup) rootView).setClipToPadding(TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN));				
+			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN);
+			View parentViewForChild = getParentViewForChild();
+			if (parentViewForChild instanceof ViewGroup) {
+				((ViewGroup) parentViewForChild).setClipChildren(value);
 			}
 		}
 
@@ -737,7 +754,6 @@ public abstract class TiUIView
 		
 		if (TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
 			getOuterView().setLayoutParams(layoutParams);
-//			getOuterView().requestLayout();
 		}
 		
 		registerForTouch();
@@ -1091,7 +1107,10 @@ public abstract class TiUIView
 			
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR))
 				borderView.setColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR))));
-			
+			if (proxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
+				boolean value = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
+				borderView.setClipChildren(value);
+			}
 			
 			addBorderView();
 		}

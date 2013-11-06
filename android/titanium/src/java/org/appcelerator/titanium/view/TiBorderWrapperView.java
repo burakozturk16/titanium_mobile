@@ -39,6 +39,7 @@ public class TiBorderWrapperView extends MaskableView
 	private Path innerPath;
 	private Path borderPath;
 	private Paint paint;
+	private boolean clipChildren = true;
 	
 	
 
@@ -52,6 +53,7 @@ public class TiBorderWrapperView extends MaskableView
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
+		if (!this.clipChildren) return;
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -63,6 +65,12 @@ public class TiBorderWrapperView extends MaskableView
 			canvas.clipRect(innerRect);
 		}
 	}
+	
+	@Override
+    public void setClipChildren(boolean clipChildren) {
+		this.clipChildren = clipChildren;
+		super.setClipChildren(clipChildren);
+    }
 	
 	@Override
     public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
@@ -83,6 +91,12 @@ public class TiBorderWrapperView extends MaskableView
 		drawBorder(canvas);
  	 	super.onDraw(canvas);
  		clipCanvas(canvas);
+	}
+	
+	@Override
+	protected void dispatchDraw(Canvas canvas)
+	{
+ 	 	super.dispatchDraw(canvas);
 	}
 
 	private void updateBorderPath()
