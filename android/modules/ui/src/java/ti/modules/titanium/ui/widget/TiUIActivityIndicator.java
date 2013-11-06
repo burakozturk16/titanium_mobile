@@ -30,7 +30,7 @@ public class TiUIActivityIndicator extends TiUIView
 	private static final String TAG = "TiUIActivityIndicator";
 
 	protected int currentStyle;
-	protected boolean visible;
+	protected boolean visible = true;
 	private TextView label;
 	private ProgressBar progress;
 	private LinearLayout view;
@@ -71,8 +71,6 @@ public class TiUIActivityIndicator extends TiUIView
 
 		view.addView(progress);
 		view.addView(label);
-		view.setVisibility(View.INVISIBLE);
-		visible = false;
 
 		setNativeView(view);
 	}
