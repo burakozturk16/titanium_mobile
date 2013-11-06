@@ -58,6 +58,7 @@ import android.text.style.TextAppearanceSpan;
 import android.text.style.TypefaceSpan;
 import android.text.style.URLSpan;
 import android.text.style.UnderlineSpan;
+import android.util.TypedValue;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TiUILabel extends TiUINonViewGroupView
@@ -66,7 +67,6 @@ public class TiUILabel extends TiUINonViewGroupView
 
 	private int defaultColor;
 	private boolean wordWrap = true;
-	private boolean ellipsize;
 	private float shadowRadius = 0f;
 	private float shadowX = 0f;
 	private float shadowY = -1f; // to have the same value as ios
@@ -115,12 +115,15 @@ public class TiUILabel extends TiUINonViewGroupView
 		private TruncateAt multiLineEllipsize = null;
 		private boolean isEllipsized;
 		private boolean needsEllipsing;
+		private boolean needsResizing;
 		private boolean singleline = false;
 		private boolean readyToEllipsize = false;
 		private CharSequence fullText;
 		private int maxLines;
 		private float lineSpacingMultiplier = 1.0f;
 		private float lineAdditionalVerticalPadding = 0.0f;
+		private float minTextSize;
+		private float maxTextSize;
 		
 		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
@@ -131,7 +134,11 @@ public class TiUILabel extends TiUINonViewGroupView
 			int hm = MeasureSpec.getMode(heightMeasureSpec);
 			if (hm == 0) h = 100000;
 			
+			
 			if (w > 0) {
+				if (needsResizing) {
+					refitText(this.getText().toString(), w);
+				}
 				updateEllipsize(w - getPaddingLeft() - getPaddingRight(), 
 					h - getPaddingTop() - getPaddingBottom());
 		//			 Only allow label to exceed the size of parent when it's size behavior with wordwrap disabled
@@ -142,7 +149,6 @@ public class TiUILabel extends TiUINonViewGroupView
 						MeasureSpec.UNSPECIFIED);
 				}
 			}
-			
 			super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 		}
 
@@ -160,9 +166,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			if (dispatchPressed == true && childrenHolder != null) {
 				int count = childrenHolder.getChildCount();
 				for (int i = 0; i < count; i++) {
-		            final View child = childrenHolder.getChildAt(i);
-		            child.setPressed(pressed);
-		        }
+					final View child = childrenHolder.getChildAt(i);
+					child.setPressed(pressed);
+				}
 			}
 		}
 
@@ -175,7 +181,31 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		public EllipsizingTextView(Context context) {
 			super(context);
+			maxTextSize = this.getTextSize();
+			if (maxTextSize < 35) {
+				maxTextSize = 30;
+			}
+			minTextSize = 20;
+			needsResizing = false;
 		}
+		
+
+		public float getMinTextSize() {
+			return minTextSize;
+		}
+		
+		public void setMinTextSize(int minTextSize) {
+			this.minTextSize = minTextSize;
+		}
+		
+		public float getMaxTextSize() {
+			return maxTextSize;
+		}
+		
+		public void setMaxTextSize(int minTextSize) {
+			this.maxTextSize = minTextSize;
+		}
+
 
 		public boolean isEllipsized() {
 			return isEllipsized;
@@ -183,8 +213,8 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		public void SetReadyToEllipsize(Boolean value){
 			readyToEllipsize = value;
-			 if (readyToEllipsize == true)
-			 	updateEllipsize();
+			if (readyToEllipsize == true)
+				updateEllipsize();
 		}
 
 		@Override
@@ -279,12 +309,40 @@ public class TiUILabel extends TiUINonViewGroupView
 			ellipsize = where;
 			updateEllipsize();
 		}
+		
+		@Override
+		protected void onTextChanged(final CharSequence text, final int start,
+			final int before, final int after) {
+			if (needsResizing) {
+				refitText(this.getText().toString(),  this.getWidth());
+			}
+		}
 
 		public void setMultiLineEllipsize(TruncateAt where) {
 			multiLineEllipsize = where;
 			updateEllipsize();
 		}
 		
+		private void refitText(String text, int textWidth) {
+			if (textWidth > 0) {
+				int availableWidth = textWidth - this.getPaddingLeft()
+				- this.getPaddingRight();
+				float trySize = maxTextSize;
+
+				this.setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize);
+				while ((trySize > minTextSize)
+					&& (this.getPaint().measureText(text) > availableWidth)) {
+					trySize -= 1;
+				if (trySize <= minTextSize) {
+					trySize = minTextSize;
+					break;
+				}
+				this.setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize);
+			}
+			this.setTextSize(TypedValue.COMPLEX_UNIT_PX, trySize);
+		}
+	}
+	
 //		private CharSequence ellipsisWithStyle(CharSequence text, TruncateAt where)
 //		{
 //			int length = ELLIPSIZE_CHAR.length();
