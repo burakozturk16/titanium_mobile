@@ -28,7 +28,6 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -38,7 +37,6 @@ import android.os.Message;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
-@SuppressLint("ValidFragment")
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_ACTIVITY,
@@ -301,16 +299,21 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	public void onWindowActivityCreated()
 	{
-		TiBaseActivity activity = windowActivity.get();
-		// Fire the open event after setContentView() because getActionBar() need to be called
-		// after setContentView(). (TIMOB-14914)
-		activity.getActivityProxy().getDecorView().add(this);
-		activity.addWindowToStack(this);
 		
 		opened = true;
 		opening = false;
-		// fireEvent(TiC.EVENT_OPEN, null);
+		
+		if (parent == null) {
+			TiBaseActivity activity = windowActivity.get();
+			// Fire the open event after setContentView() because getActionBar() need to be called
+			// after setContentView(). (TIMOB-14914)
+			activity.getActivityProxy().getDecorView().add(this);
+			activity.addWindowToStack(this);
+		}
+		
+		
 		handlePostOpen();
+		
 
 		super.onWindowActivityCreated();
 	}

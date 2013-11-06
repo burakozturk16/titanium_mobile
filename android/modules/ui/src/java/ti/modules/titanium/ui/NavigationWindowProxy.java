@@ -320,7 +320,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public void onWindowActivityCreated()
 	{
-		if (opened == true) { //this is not the first time we come here!
+		if (opened == true) { 
+			
+			if (windows.size() == 0) {
+				WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
+				handlePush(proxy, true, null);
+			}
 			((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
 			updateHomeButton(getCurrentWindow());
 			super.onWindowActivityCreated();
@@ -385,6 +390,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			pushing = false;
 			return;
 		}
+
+		int index = windows.indexOf(proxy);
+		if (index >=0 ){
+			poping = false;
+			popUpToWindow(proxy, arg);
+			return;
+		}
+
 		Transition transition = null;
 		boolean animated = true;
 		if (arg != null && arg instanceof HashMap<?, ?>) {
@@ -402,9 +415,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("openWindow", options);
 		}
+		TiBaseActivity activity = (TiBaseActivity) getActivity();
 		if (viewToAddTo != null) {
+			proxy.setActivity(activity);
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();
-   			viewToAdd.setVisibility(View.GONE);			
+			viewToAdd.setVisibility(View.GONE);			
 			TiUIHelper.addView(viewToAddTo, viewToAdd, proxy.peekView().getLayoutParams());
 			TiWindowProxy winToBlur = getCurrentWindow();
 			final View viewToHide = winToBlur.getOuterView();
@@ -438,8 +453,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		}
 		addWindow(proxy, transition);
 		
-		TiBaseActivity activity = (TiBaseActivity) getActivity();
-		proxy.setActivity(activity);
+		
 		proxy.onWindowActivityCreated();
 		activity.setWindowProxy((TiWindowProxy) proxy);
 		updateHomeButton(proxy);

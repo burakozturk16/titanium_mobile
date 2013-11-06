@@ -516,4 +516,11 @@ public abstract class TiWindowProxy extends TiViewProxy
 		}
 		return TiBlob.blobFromImage(bitmap);
 	}
+	
+	
+	public boolean isOpenedOrOpening()
+	{
+		// We know whether a window is lightweight or not only after it opens.
+		return (opened || opening);
+	}
 }
