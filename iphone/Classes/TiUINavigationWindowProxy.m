@@ -48,6 +48,26 @@
     return @"Ti.UI.iOS.NavigationWindow";
 }
 
+
+-(void)popGestureStateHandler:(UIGestureRecognizer *)recognizer
+{
+    UIGestureRecognizerState curState = recognizer.state;
+    
+    switch (curState) {
+        case UIGestureRecognizerStateBegan:
+            transitionWithGesture = YES;
+            break;
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            transitionWithGesture = NO;
+            break;
+        default:
+            break;
+    }
+    
+}
+
 #pragma mark - TiOrientationController
 
 -(TiOrientationFlags) orientationFlags
@@ -101,6 +121,9 @@
         navController.delegate = self;
         [TiUtils configureController:navController withObject:self];
         navController.navigationBar.translucent = YES;
+        if ([TiUtils isIOS7OrGreater]) {
+            [navController.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
+        }
     }
     return navController;
 }
@@ -209,7 +232,9 @@
 
 - (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-	transitionIsAnimating = YES;
+    if (!transitionWithGesture) {
+        transitionIsAnimating = YES;
+    }
     if (current != nil) {
         UIViewController *curController = [current hostingController];
         NSArray* curStack = [navController viewControllers];
@@ -242,6 +267,7 @@
 - (void)transitionController:(ADTransitionController *)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
     transitionIsAnimating = NO;
+    transitionWithGesture = NO;
     if (current != nil) {
         UIViewController* oldController = [current hostingController];
         
@@ -331,7 +357,7 @@
 
 -(void)pushOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating)
+	if (transitionIsAnimating || transitionWithGesture)
 	{
 		[self performSelector:_cmd withObject:args afterDelay:0.1];
 		return;
@@ -351,7 +377,7 @@
 
 -(void)popOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating)
+	if (transitionIsAnimating || transitionWithGesture)
 	{
 		[self performSelector:_cmd withObject:args afterDelay:0.1];
 		return;

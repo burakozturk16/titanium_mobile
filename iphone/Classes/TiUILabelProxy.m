@@ -290,6 +290,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(CGFloat) verifyHeight:(CGFloat)suggestedHeight
 {
 	int height = ceil(suggestedHeight);
+    if ([self viewInitialized]) {
+        int minHeight = ceil([[[(TiUILabel*)view label] font] lineHeight]);
+        if (height < minHeight) {
+            height = minHeight;
+        }
+    }
+    
 	if (height & 0x01)
 	{
 		height ++;

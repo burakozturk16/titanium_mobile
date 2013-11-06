@@ -102,7 +102,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	public static final int BUILT_IN_TEMPLATE_ITEM_TYPE = 2;
 
 	class ListViewWrapper extends TiCompositeLayout {
-
+		private boolean viewFocused = false;
 		public ListViewWrapper(Context context) {
 			super(context);
 		}
@@ -113,7 +113,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			// by ListView temporarily taking focus, we will disable focus events until
 			// layout has finished.
 			// First check for a quick exit. listView can be null, such as if window closing.
-			if (listView == null) {
+			// Starting with API 18, calling requestFocus() will trigger another layout pass of the listview,
+			// resulting in an infinite loop. Here we check if the view is already focused, and stop the loop.
+			if (listView == null || (Build.VERSION.SDK_INT >= 18 && listView != null && !changed && viewFocused)) {
+				viewFocused = false;
 				super.onLayout(changed, left, top, right, bottom);
 				return;
 			}
@@ -155,6 +158,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 					focusListener.onFocusChange(focusedView, false);
 				} else {
 					//Ok right now focus is with listView. So set it back to the focusedView
+					viewFocused = true;
 					focusedView.requestFocus();
 					focusedView.setOnFocusChangeListener(focusListener);
 					//Restore cursor position
@@ -164,6 +168,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				}
 			}
 		}
+		
 	}
 	
 	public class TiBaseAdapter extends BaseAdapter {

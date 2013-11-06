@@ -45,7 +45,6 @@ import com.nineoldandroids.view.ViewHelper;
 import com.nineoldandroids.view.animation.AnimatorProxy;
 
 import android.annotation.TargetApi;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -406,28 +405,38 @@ public abstract class TiUIView
 				((View) viewParent).postInvalidate();
 			}
 		}
-//		View parent = (proxy.getParent() != null)?proxy.getParent().getParentViewForChild():null;
-//		if (parent instanceof FreeLayout) {
-			// layoutParams.matrix = timatrix;
-			// outerView.setLayoutParams(layoutParams);
-//		}
-//		else if (HONEYCOMB_OR_GREATER) {
-//			if (timatrix != null) {
-//				DecomposedType decompose = timatrix.getAffineTransform(outerView, true).decompose();
-//				outerView.setTranslationX((float)decompose.translateX);
-//				outerView.setTranslationY((float)decompose.translateY);
-//				outerView.setRotation((float)(decompose.angle*180/Math.PI));
-//				outerView.setScaleX((float)decompose.scaleX);
-//				outerView.setScaleY((float)decompose.scaleY);
-//			}
-//			else {
-//				outerView.setTranslationX(0);
-//				outerView.setTranslationY(0);
-//				outerView.setRotation(0);
-//				outerView.setScaleX(1);
-//				outerView.setScaleY(1);
-//			}
-//		}
+
+		View outerView = getOuterView();
+		if (outerView == null) {
+			return;
+		}
+
+		boolean clearTransform = (matrix == null);
+		Ti2DMatrix matrixApply = matrix; // To not change original.
+
+		if (clearTransform) {
+			outerView.clearAnimation();
+			// Since we may have used property animators, which
+			// do not set the animation property of a view,
+			// we should also quickly apply a matrix with
+			// no rotation, no rotation and scale of 1.
+			matrixApply = (new Ti2DMatrix()).rotate(new Object[] { 0d })
+					.translate(0d, 0d).scale(new Object[] { 1d, 1d });
+		}
+
+		HashMap<String, Object> options = new HashMap<String, Object>(2);
+		options.put(TiC.PROPERTY_TRANSFORM, matrixApply);
+		options.put(TiC.PROPERTY_DURATION, 1);
+
+		animBuilder.applyOptions(options);
+
+		// When using Honeycomb+ property Animators, we can only use absolute values to specify the anchor point, eg. "50px".
+		// Therefore, we must start the transformation after the layout pass when we get the height and width of the view.
+		if (animBuilder.isUsingPropertyAnimators()) {
+			startTransformAfterLayout(outerView);
+		} else {
+			animBuilder.start(this.proxy, outerView);
+		}
 	}
 
 	public void forceLayoutNativeView(boolean informParent)

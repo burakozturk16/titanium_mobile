@@ -69,6 +69,17 @@
 	return win;
 }
 
+-(BOOL)suppressesRelayout
+{
+    if (controller != nil) {
+        //If controller view is not loaded, sandbox bounds will become zero.
+        //In that case we do not want to mess up our sandbox, which is by default
+        //mainscreen bounds. It will adjust when view loads.
+        return ![controller isViewLoaded];
+    }
+    return [super suppressesRelayout];
+}
+
 #pragma mark - Utility Methods
 -(void)windowWillOpen
 {
@@ -403,12 +414,11 @@
         }
         UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
         [[self view] setAccessibilityElementsHidden:NO];
-        
-        if ([TiUtils isIOS7OrGreater]) {
-            TiThreadPerformOnMainThread(^{
-                [self forceNavBarFrame];
-            }, NO);
-        }
+    }
+    if ([TiUtils isIOS7OrGreater]) {
+        TiThreadPerformOnMainThread(^{
+            [self forceNavBarFrame];
+        }, NO);
     }
 
 }

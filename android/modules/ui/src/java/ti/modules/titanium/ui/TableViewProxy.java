@@ -166,8 +166,10 @@ public class TableViewProxy extends TiViewProxy
 				int index = getTableView().getTableView().getPositionForView(view.getNativeView());
 				if (index != -1) {
 					Item item = getTableView().getTableView().getItemAtPosition(index);
-					TableViewRowProxy.fillClickEvent(dataCopy, getTableView().getModel(), item);
-					data = dataCopy;
+					if (item != null) {
+						TableViewRowProxy.fillClickEvent(dataCopy, getTableView().getModel(), item);
+						data = dataCopy;
+					}
 				}
 			}
 			}
