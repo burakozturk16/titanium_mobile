@@ -3133,7 +3133,6 @@ AndroidBuilder.prototype.compileJavaClasses = function compileJavaClasses(next) 
 		classpath[path.join(this.platformPath, 'lib', 'titanium-profiler.jar')] = 1;
 	}
 	var _t = this;
-			this.logger.debug('scanJavaFiles');
 
 	var dirs = [this.buildGenAppIdDir, this.buildSrcDir];
 	var len = this.externalLibraries.length;
