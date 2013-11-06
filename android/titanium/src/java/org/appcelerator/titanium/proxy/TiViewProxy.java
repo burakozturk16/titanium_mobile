@@ -643,6 +643,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				for (TiViewProxy p : children) {
 					TiUIView cv = p.getOrCreateView(enableModelListener, processProperties);
 					view.add(cv);
+					if (p instanceof TiWindowProxy && !((TiWindowProxy)p).isOpenedOrOpening()) {
+						((TiWindowProxy)p).onWindowActivityCreated();
+						p.focus();
+					}
 				}
 			} catch (ConcurrentModificationException e) {
 				Log.e(TAG, e.getMessage(), e);
@@ -756,8 +760,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			children.add(child);
 		}
 		child.parent = new WeakReference<TiViewProxy>(this);
+		child.setActivity(getActivity());
+		if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
+			((TiWindowProxy)child).onWindowActivityCreated();
+			child.focus();
+		}
 		if (view != null) {
-			child.setActivity(getActivity());
+			
 			if (this instanceof DecorViewProxy) {
 				child.isDecorView = true;
 			}
