@@ -26,7 +26,6 @@ import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
@@ -38,7 +37,6 @@ import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
 
-import ti.modules.titanium.ui.slidemenu.SlideMenuOptionsModule;
 import ti.modules.titanium.ui.transitionstyle.TransitionStyleModule;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -49,6 +47,7 @@ import android.view.ViewParent;
 
 import android.view.ViewGroup;
 
+@SuppressWarnings({"unchecked", "rawtypes", "serial"})
 @SuppressLint({ "ValidFragment"})
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
@@ -246,6 +245,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (hasListeners("closeWindow")) {
 			KrollDict options = new KrollDict();
 			options.put(TiC.PROPERTY_WINDOW, winToFocus);
+			options.put("stackIndex", windows.indexOf(winToFocus));
 			options.put(TiC.PROPERTY_ANIMATED, animated);
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("closeWindow", options);
@@ -259,7 +259,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			viewToFocus.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
 			if (transition != null && animated) {
-				transition.setTargets(viewToFocus, viewToRemove);
+				transition.setTargets(viewToRemoveFrom, viewToFocus, viewToRemove);
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
 					@Override
 					public void onAnimationStart(Animator arg0) {	
@@ -301,6 +301,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		TiBaseActivity newActivity = (TiBaseActivity) activity;
 		
 		if (newActivity == oldActivity) return;
+		Log.d(TAG, "setActivity " + activity);
 		super.setActivity(activity);
 		
 		if (oldActivity != null) {
@@ -352,7 +353,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public void windowCreated(TiBaseActivity activity) {
 		super.windowCreated(activity);
@@ -408,9 +408,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (!isFirst && animated) {
 			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), kDefaultTransition, null);
 		}
-		if (hasListeners("openWindow")) {
+		if (!isFirst && hasListeners("openWindow")) {
 			KrollDict options = new KrollDict();
 			options.put(TiC.PROPERTY_WINDOW, proxy);
+			options.put("stackIndex", windows.size());
 			options.put(TiC.PROPERTY_ANIMATED, animated);
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("openWindow", options);
@@ -424,7 +425,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			TiWindowProxy winToBlur = getCurrentWindow();
 			final View viewToHide = winToBlur.getOuterView();
 			if (transition != null) {	
-				transition.setTargets(viewToAdd, viewToHide);
+				transition.setTargets(viewToAddTo, viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
 					public void onAnimationStart(Animator arg0) {							
