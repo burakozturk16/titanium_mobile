@@ -429,7 +429,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			menuWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateMenuWidth();
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_RIGHT_VIEW_WIDTH)) {
-			menuWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			rightMenuWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
 			updateMenuWidth();
 		} else if (key.equals(SlideMenuOptionsModule.PROPERTY_FADING)) {
 			slidingMenu.setFadeDegree(TiConvert.toFloat(newValue));
