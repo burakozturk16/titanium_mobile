@@ -772,7 +772,7 @@ public class TiUIText extends TiUIView
 			textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
 			// Sometimes password transformation does not work properly when the input type is set after the transformation method.
 			// This issue has been filed at http://code.google.com/p/android/issues/detail?id=7092
-			realtv.setInputType(tv.getInputType() | textTypeAndClass);
+			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
 			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.
@@ -781,7 +781,7 @@ public class TiUIText extends TiUIView
 			}
 
 		} else {
-			realtv.setInputType(tv.getInputType() | textTypeAndClass);
+			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
 			if (realtv.getTransformationMethod() instanceof PasswordTransformationMethod) {
 				realtv.setTransformationMethod(null);
 			}

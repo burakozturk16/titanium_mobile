@@ -29,20 +29,20 @@ public class TiViewHelper {
 		return height;
 	}
 
-	public static void setTranslationFloatX(View view, float val) {
+	public static void setTranslationRelativeX(View view, float val) {
 		ViewHelper.setTranslationX(view, getWidthForView(view) * val);
 
 	}
 
-	public static float getTranslationFloatX(View view) {
+	public static float getTranslationRelativeX(View view) {
 	return (ViewHelper.getTranslationX(view)/getWidthForView(view));
 }
 
-	public static void setTranslationFloatY(View view, float val) {
+	public static void setTranslationRelativeY(View view, float val) {
 		ViewHelper.setTranslationY(view, getHeightForView(view) * val);
 	}
 
-	public static float getTranslationFloatY(View view) {
+	public static float getTranslationRelativeY(View view) {
 		return (ViewHelper.getTranslationY(view) / getHeightForView(view));
 	}
 

@@ -23,6 +23,14 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 	return filterDataInRange([NSData dataWithBytesNoCopy:data length:sizeof(data) freeWhenDone:NO], ranges[index.integerValue]);
 }
 
++ (NSData*) resolveAppAsset:(NSString*)path
+{
+	NSDictionary* map = [ApplicationRouting map];
+	NSNumber *index = [map objectForKey:path];
+	if (index == nil) { return nil; }
+	return filterDataInRange([NSData dataWithBytesNoCopy:data length:sizeof(data) freeWhenDone:NO], ranges[index.integerValue]);
+}
+
 + (NSArray*) getDirectoryListing:(NSString*)path
 {
 	NSDictionary* map = [ApplicationRouting map];
@@ -30,21 +38,21 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 	NSMutableArray* result = [[NSMutableArray alloc] init];
 	NSString* pathToCompare = path;
 	if (![pathToCompare hasSuffix:@"/"])
-	pathToCompare = [pathToCompare stringByAppendingString:@"/"];
+		pathToCompare = [pathToCompare stringByAppendingString:@"/"];
 	id key;
 	NSArray *keys = [map allKeys];
 	int count = [keys count];
 	for (int i = 0; i < count; i++)
 	{
-	key = [keys objectAtIndex: i];
-	if ([key hasPrefix:path]) {
-	NSString* value = [[key substringFromIndex:[pathToCompare length]] stringByReplacingOccurrencesOfString:@"_" withString:@"."];
-	[result addObject: value];
-	}
+		key = [keys objectAtIndex: i];
+		if ([key hasPrefix:path]) {
+			NSString* value = [[key substringFromIndex:[pathToCompare length]] stringByReplacingOccurrencesOfString:@"_" withString:@"."];
+			[result addObject: value];
+		}
 	}
 	NSArray* array = [NSArray arrayWithArray:result];
 	[result release];
 	return array;
-}
+ }
 
 @end

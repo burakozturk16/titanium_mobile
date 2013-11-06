@@ -1266,7 +1266,7 @@ iOSBuilder.prototype.initialize = function initialize(next) {
 	if (argv.xcode) {
 		this.deployType = argv['deploy-type'];
 	} else {
-		this.deployType = /device|simulator|adhoc/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : deployTypes[this.target];
+		this.deployType = /device|simulator|adhoc/.test(this.target) && argv['deploy-type'] ? argv['deploy-type'] : this.deployTypes[this.target];
 	}
 	this.xcodeTarget = process.env.CONFIGURATION || (/^device|simulator$/.test(this.target) ? 'Debug' : 'Release');
 	this.iosSdkVersion = argv['ios-version'];
@@ -2971,18 +2971,17 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 									}
 
 									if (out.indexOf('initWithObjectsAndKeys') != -1) {
-										var outstr = out.join('');
-										outstr = outstr.replace(/static NSDictionary \*map = nil;\s*if \(map == nil\) \{\s*map = /, "+(NSDictionary*) map;{ static NSDictionary *map = nil;if (map == nil) {map = ");
-										outstr = outstr.replace(/nil\];\s*\}/, "nil]; }return map;}");
-										outstr = outstr.replace(/static NSRange ranges\[\] = \{/, "const NSRange ranges[] = {");
-										outstr = outstr.replace(/static UInt8 data\[\] = \{/, "UInt8 data[] = {");
+										out = out.replace(/static NSDictionary \*map = nil;\s*if \(map == nil\) \{\s*map = /, "+(NSDictionary*) map;{ static NSDictionary *map = nil;if (map == nil) {map = ");
+										out = out.replace(/nil\];\s*\}/, "nil]; }return map;}");
+										out = out.replace(/static NSRange ranges\[\] = \{/, "const NSRange ranges[] = {");
+										out = out.replace(/static UInt8 data\[\] = \{/, "UInt8 data[] = {");
 										// success!
 										var file = path.join(this.buildDir, 'Classes', 'ApplicationRouting.m');
 										this.logger.debug(__('Writing application routing source file: %s', file.cyan));
 										fs.writeFileSync(
 											file,
 											ejs.render(fs.readFileSync(path.join(this.templatesDir, 'ApplicationRouting.m')).toString(), {
-												bytes: outstr
+												bytes: out
 											})
 										);
 										completed = true;
@@ -3030,14 +3029,20 @@ iOSBuilder.prototype.processTiSymbols = function processTiSymbols(finished) {
 		symbols[ns.toUpperCase()] = 1;
 	});
 
+	var _this = this;
 	function addSymbol(symbol) {
 		var parts = symbol.replace(/^(Ti|Titanium)./, '').split('.');
 		if (parts.length) {
+			if (parts.indexOf('Android') != -1) return;
 			namespaces[parts[0].toLowerCase()] = 1;
-			symbols[parts.join('.').replace(/\.create/gi, '').replace(/\./g, '').replace(/\-/g, '_').toUpperCase()] = 1;
+			var current = '';
+			parts.forEach(function (t) {
+				current += t + '.';
+				var s = current.replace(/\.create/g, '').replace(/\./g, '').replace(/\-/g, '_').toUpperCase();
+				symbols[s] = 1;
+			}, this);
 		}
 	}
-
 	// add the symbols we found
 	Object.keys(this.tiSymbols).forEach(function (file) {
 		this.tiSymbols[file].forEach(addSymbol);
@@ -3099,8 +3104,6 @@ iOSBuilder.prototype.processTiSymbols = function processTiSymbols(finished) {
 	contents.push('#ifdef USE_TI_UILISTVIEWSEPARATORSTYLE',
 		'#define USE_TI_UITABLEVIEWSEPARATORSTYLE',
 		'#endif');
-	contents = contents.join('\n');
-
 	contents = contents.join('\n');
 
 	if (!fs.existsSync(dest) || fs.readFileSync(dest).toString() != contents) {

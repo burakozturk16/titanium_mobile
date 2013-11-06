@@ -72,6 +72,7 @@
 @property (nonatomic, assign) id<ADTransitionControllerDelegate> delegate;
 @property(nonatomic, getter = isNavigationBarHidden, setter = setNavigationBarHidden:) BOOL navigationBarHidden;
 @property(nonatomic, getter = isToolbarHidden, setter = setToolbarHidden:) BOOL toolbarHidden;
+@property(nonatomic, readonly) UIGestureRecognizer *interactivePopGestureRecognizer;
 
 - (id)initWithRootViewController:(UIViewController *)rootViewController;
 - (void)setNavigationBarHidden:(BOOL)hidden animated:(BOOL)animated;

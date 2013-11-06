@@ -634,6 +634,9 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 -(UIStatusBarStyle)preferredStatusBarStyle{
     return [self.viewControllers.lastObject preferredStatusBarStyle];
 }
+-(UIGestureRecognizer*) getInteractivePopGestureRecognizer {
+    return nil;
+}
 
 @end
 
