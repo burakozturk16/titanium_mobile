@@ -798,7 +798,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		TiUIHelper.linkifyIfEnabled(tv, d.get(TiC.PROPERTY_AUTO_LINK));
 
 		((EllipsizingTextView)tv).SetReadyToEllipsize(true);
-		// tv.invalidate();
+		tv.requestLayout();
 	}
 	
 	@Override
