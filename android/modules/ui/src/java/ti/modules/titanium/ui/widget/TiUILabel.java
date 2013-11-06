@@ -69,7 +69,7 @@ public class TiUILabel extends TiUINonViewGroupView
 	private boolean ellipsize;
 	private float shadowRadius = 0f;
 	private float shadowX = 0f;
-	private float shadowY = 0f;
+	private float shadowY = -1f; // to have the same value as ios
 	private int shadowColor = Color.TRANSPARENT;
 
 	private Rect textPadding;
