@@ -16,37 +16,41 @@ import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.view.ViewHelper;
 
 public class TransitionCarousel extends Transition {
-	private static final float translation = 0.8f;
+	private static final float translation = 1.0f;
+	private static final float angle = 90f;
 	private static final float scale = 0.5f;
 	
-	private int nbFaces = 7;
+	
+	private int nbFaces = 4;
 
 	public TransitionCarousel(int subtype, boolean isOut, int duration) {
 		super(subtype, isOut, duration, 400);
 	}
 	
 	public int getType(){
-		return TransitionHelper.Types.kTransitionCarousel.ordinal();
+		return TransitionHelper.Types.kTransitionCube.ordinal();
 	}
 	
-	protected void prepareAnimators() {
-		float destTranslation = translation;
-		float destAngle = - (360 / nbFaces);
+	protected void prepareAnimators(View inTarget, View outTarget) {
+		float destTranslation = rect.width();
+		float destAngle = -angle;
 		
 		String rotateProp = "y";
 		String translateProp = "x";
+		if (TransitionHelper.isVerticalSubType(subType)) {
+			destTranslation = rect.height();
+			translateProp = "y";
+			rotateProp = "x";
+		}
 		if (!TransitionHelper.isPushSubType(subType)) {
 			destTranslation = -destTranslation;
 			destAngle = -destAngle;
 		}
-		if (TransitionHelper.isVerticalSubType(subType)) {
-			translateProp = "y";
-			rotateProp = "x";
-		}
+		
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTranslation, 0.0f));
-		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), scale, 1.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTranslation*translation, 0.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), scale, 1));
 		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), destAngle, 0.0f));
 		inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
@@ -54,7 +58,7 @@ public class TransitionCarousel extends Transition {
 		inAnimator.setDuration(duration);
 
 		propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0, -destTranslation));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0, -destTranslation*translation));
 		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale));
 		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), 0,
 				-destAngle));
@@ -64,31 +68,42 @@ public class TransitionCarousel extends Transition {
 		outAnimator.setDuration(duration);
 	};
 
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
 		
-		float destTranslation = translation;
-		float destAngle = (360 / nbFaces);
+		float destTranslation = rect.width();
+		float destAngle = -angle;
 		if (reversed) {
 			destTranslation = -destTranslation;
 			destAngle = -destAngle;
 		}
-		TiViewHelper.setScale(inTarget, scale, scale);
-		TiViewHelper.setTranslationFloatX(inTarget, destTranslation);
-		ViewHelper.setRotationY(inTarget, destAngle);
 		
+		if (TransitionHelper.isVerticalSubType(subType)) {
+			destTranslation = rect.height();
+			if (outTarget != null) TiViewHelper.setPivotFloat(outTarget, 0.5f, reversed?0.f:1.0f);
+			if (inTarget != null) {
+				TiViewHelper.setPivotFloat(inTarget, 0.5f, reversed?1.0f:0.0f);
+				ViewHelper.setTranslationY(inTarget, destTranslation*translation);
+				ViewHelper.setRotationX(inTarget, destAngle);
+			}
+		}
+		else {
+			if (outTarget != null) TiViewHelper.setPivotFloat(outTarget, reversed?0.f:1.0f, 0.5f);
+			if (inTarget != null) {
+				TiViewHelper.setPivotFloat(inTarget, reversed?1.0f:0.0f, 0.5f);
+				ViewHelper.setTranslationX(inTarget, destTranslation*translation);
+				ViewHelper.setRotationY(inTarget, destAngle);
+			}
+		}
 	}
 	
 	@Override
 	public void transformView(View view, float position, boolean adjustScroll) {
-		float percent = Math.abs(position);
-		if (percent >= nbFaces - 1)
+		if (Math.abs(position) >= nbFaces - 1)
 	    {
 			ViewHelper.setAlpha(view, 0);
 	        return;
 	    }
-		double currentPercent = percent - Math.floor(percent); // between 0 and 1
-		double middlePercent = 2* ((currentPercent <= 0.5)?currentPercent:1-currentPercent);
 		ViewHelper.setAlpha(view, 1);
 		boolean out = (position < 0);
 		float multiplier = 1;
@@ -98,18 +113,17 @@ public class TransitionCarousel extends Transition {
 		}
 		float angle = (360 / nbFaces);
 		float rot = angle * position;
-		float alpha = (Math.abs(rot) < 90.0f)?1.0f:0.0f;
+		float alpha = (Math.abs(rot) <= 90.0f)?1.0f:0.0f;
 		ViewHelper.setAlpha(view, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setPivotFloat(view, 0.5f, out?0.0f:1.0f);
+			TiViewHelper.setPivotFloat(view, 0.5f, out?1.0f:0.0f);
+			if (!adjustScroll) TiViewHelper.setTranslationRelativeY(view, position * multiplier);
 			ViewHelper.setRotationX(view, rot);
-			if (!adjustScroll) TiViewHelper.setTranslationFloatY(view, position * multiplier);
 		}
 		else {
-			TiViewHelper.setPivotFloat(view, out?0.0f:1.0f, 0.5f);
-			if (!adjustScroll) TiViewHelper.setTranslationFloatX(view, position * multiplier);
+			TiViewHelper.setPivotFloat(view, out?1.0f:0.0f, 0.5f);
+			if (!adjustScroll) TiViewHelper.setTranslationRelativeX(view, position * multiplier);
 			ViewHelper.setRotationY(view, rot);
 		}
-		TiViewHelper.setScale(view, (float) (1 - middlePercent * 0.3f));
 	}
 }

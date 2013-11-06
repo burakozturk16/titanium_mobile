@@ -19,7 +19,7 @@ public class TransitionBackFade extends Transition {
 	public int getType(){
 		return TransitionHelper.Types.kTransitionBackFade.ordinal();
 	}
-	protected void prepareAnimators() {
+	protected void prepareAnimators(View inTarget, View outTarget) {
 		
 		inAnimator = new AnimatorSet();
 		Animator anim1 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 0, 1.0f);
@@ -35,9 +35,9 @@ public class TransitionBackFade extends Transition {
 		((AnimatorSet) outAnimator).playTogether(anim3, anim4);
 		outAnimator.setDuration(duration);
 	}
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
-		ViewHelper.setAlpha(inTarget, 0.0f);
-		outTarget.bringToFront();
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
+		if (inTarget != null) ViewHelper.setAlpha(inTarget, 0.0f);
+		if (outTarget != null) outTarget.bringToFront();
 	}
 }

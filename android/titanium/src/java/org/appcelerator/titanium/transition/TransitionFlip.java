@@ -19,7 +19,7 @@ public class TransitionFlip extends Transition {
 	public int getType(){
 		return TransitionHelper.Types.kTransitionFlip.ordinal();
 	}
-	protected void prepareAnimators() {
+	protected void prepareAnimators(View inTarget, View outTarget) {
 		float destAngle = 180;
 		if (isOut) {
 			destAngle = -destAngle;
@@ -54,8 +54,8 @@ public class TransitionFlip extends Transition {
 		((AnimatorSet) outAnimator).playTogether(anim3, anim4);
 	}
 	
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
-		ViewHelper.setAlpha(inTarget, 0);
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
+		if (inTarget != null) ViewHelper.setAlpha(inTarget, 0);
 	}
 }

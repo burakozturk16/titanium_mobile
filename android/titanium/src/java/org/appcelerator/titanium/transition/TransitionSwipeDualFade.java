@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
-import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.view.View;
@@ -14,35 +13,38 @@ import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
 import com.nineoldandroids.view.ViewHelper;
 
-public class TransitionSwipeFade extends Transition {
-	private static final float destTrans = 0.3f;
+public class TransitionSwipeDualFade extends Transition {
+	private static final float destTrans = 1.0f;
 	private static final float alpha = 0.0f;
 
-	public TransitionSwipeFade(int subtype, boolean isOut, int duration) {
+	public TransitionSwipeDualFade(int subtype, boolean isOut, int duration) {
 		super(subtype, isOut, duration, 200);	
 	}
 	public int getType(){
-		return TransitionHelper.Types.kTransitionSwipeFade.ordinal();
+		return TransitionHelper.Types.kTransitionSwipeDualFade.ordinal();
 	}
 	
 	protected void prepareAnimators(View inTarget, View outTarget) {
-		float outdestFactor = destTrans;
-		float dest = rect.width();
+		float indest = rect.width();
 		String translateProp = "x";
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
-			dest = rect.height();
+			indest = rect.height();
 		}
 		if (!TransitionHelper.isPushSubType(subType)) {
-			dest = -dest;
+			indest = -indest;
 		}
 		
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp),dest, 0.0f);
+		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+		propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), alpha, 1));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),indest, 0.0f));
+		inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
+				propertiesList.toArray(new PropertyValuesHolder[0]));
 		inAnimator.setDuration(duration);
 
-		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+		propertiesList = new ArrayList<PropertyValuesHolder>();
 		propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, alpha));
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),0, -dest*outdestFactor));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),0, -indest*destTrans));
 		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
 		outAnimator.setDuration(duration);
@@ -51,23 +53,21 @@ public class TransitionSwipeFade extends Transition {
 	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
 		super.setTargets(reversed, holder, inTarget, outTarget);
 		float dest = rect.width();
-		float destFactor = 1.0f;
 		if (reversed) {
-			destFactor = -destTrans;
-			if (inTarget != null) ViewHelper.setAlpha(inTarget, alpha);
-			if (outTarget != null) outTarget.bringToFront();
+			dest = -dest;
+			outTarget.bringToFront();
+		}
+		if (!TransitionHelper.isPushSubType(subType)) {
+			dest = -dest;
 		}
 		if (inTarget == null) return;
-		if (!TransitionHelper.isPushSubType(subType)) {
-			destFactor = -destFactor;
-		}
-		
+		ViewHelper.setAlpha(inTarget, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			dest = rect.height();
-			TiViewHelper.setTranslationRelativeY(inTarget, dest*destFactor);
+			TiViewHelper.setTranslationRelativeY(inTarget, dest*destTrans);
 		}
 		else {
-			TiViewHelper.setTranslationRelativeX(inTarget, dest*destFactor);
+			TiViewHelper.setTranslationRelativeX(inTarget, dest*destTrans);
 		}
 	}
 	
@@ -80,10 +80,9 @@ public class TransitionSwipeFade extends Transition {
 			multiplier = -1;
 			out = !out;
 		}
-		float alpha = 1;
+		float alpha = 1 - Math.abs(position);
 		if (out) { //out
 			dest = multiplier* Math.abs(position)*(adjustScroll?(1-destTrans):destTrans);
-			alpha = 1 - Math.abs(position);
 		}
 
 		ViewHelper.setAlpha(view, alpha);

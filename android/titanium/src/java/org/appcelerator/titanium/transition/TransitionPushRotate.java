@@ -6,6 +6,7 @@ import java.util.List;
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.RotationProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
+import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 
@@ -14,6 +15,7 @@ import android.view.View;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
+import com.nineoldandroids.view.ViewHelper;
 
 public class TransitionPushRotate extends Transition {
 		private static final float angle = 90;
@@ -23,21 +25,24 @@ public class TransitionPushRotate extends Transition {
 		public int getType(){
 			return TransitionHelper.Types.kTransitionPushRotate.ordinal();
 		}
-		protected void prepareAnimators() {
+		protected void prepareAnimators(View inTarget, View outTarget) {
 			
 			float destAngle = -angle;		
-			float destTrans = 1;
+			float destTrans = rect.width();
 			
 			String translateProp = "x";
 			String rotateProp = "y";
+			
+			if (TransitionHelper.isVerticalSubType(subType)) {
+				destTrans = rect.height();
+				translateProp = "y";
+				rotateProp = "x";
+			}
 			if (!TransitionHelper.isPushSubType(subType)) {
 				destTrans = -destTrans;
 				destAngle = -destAngle;
 			}
-			if (TransitionHelper.isVerticalSubType(subType)) {
-				translateProp = "y";
-				rotateProp = "x";
-			}
+			
 			
 			inAnimator = new AnimatorSet();
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
@@ -55,24 +60,28 @@ public class TransitionPushRotate extends Transition {
 			outAnimator.setDuration(duration);
 
 		}
-		public void setTargets(boolean reversed, View inTarget, View outTarget) {
-			super.setTargets(reversed, inTarget, outTarget);
-//			ViewHelper.setAlpha(inTarget, 0);
-			if (!reversed) {
-				float dest = 1.0f;
+		public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+			super.setTargets(reversed, holder, inTarget, outTarget);
+			if (!reversed && inTarget != null) {
+				float multiplier = 1.0f;
+				float dest = rect.width();
 				if (!TransitionHelper.isPushSubType(subType)) {
-					dest = -dest;
+					multiplier = -dest;
 				}
 				
 				if (TransitionHelper.isVerticalSubType(subType)) {
-					TiViewHelper.setTranslationFloatY(inTarget, dest);
+					dest = rect.height();
+					ViewHelper.setTranslationY(inTarget, dest*multiplier);
 				}
 				else {
-					TiViewHelper.setTranslationFloatX(inTarget, dest);
+					ViewHelper.setTranslationX(inTarget, dest*multiplier);
 				}
 			}
 			View target = reversed?inTarget:outTarget;
-			TiViewHelper.setPivotFloatX(target, (subType == SubTypes.kLeftToRight)?1:0);
-			TiViewHelper.setPivotFloatY(target, (subType == SubTypes.kTopToBottom)?1:0);
+			if (target != null) {
+				TiViewHelper.setPivotFloatX(target, (subType == SubTypes.kLeftToRight)?1:0);
+				TiViewHelper.setPivotFloatY(target, (subType == SubTypes.kTopToBottom)?1:0);
+			}
+			
 		}
 	}

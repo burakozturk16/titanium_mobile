@@ -14,7 +14,7 @@ public class TransitionFade extends Transition {
 	public int getType(){
 		return TransitionHelper.Types.kTransitionFade.ordinal();
 	}
-	protected void prepareAnimators() {
+	protected void prepareAnimators(View inTarget, View outTarget) {
 		inAnimator = ObjectAnimator
 				.ofFloat(null, new AlphaProperty(), 0.0f, 1.0f);
 		inAnimator.setDuration(duration);
@@ -23,8 +23,8 @@ public class TransitionFade extends Transition {
 				.ofFloat(null, new AlphaProperty(), 1.0f, 0.0f);
 		outAnimator.setDuration(duration);
 	}
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
-		ViewHelper.setAlpha(inTarget, 0.0f);
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
+		if (inTarget != null) ViewHelper.setAlpha(inTarget, 0.0f);
 	}
 }

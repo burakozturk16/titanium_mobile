@@ -34,56 +34,55 @@ public abstract class Transition {
 		subType = SubTypes.values()[subtype];
 		this.isOut = isOut;
 	}
-	protected void prepareAnimators() {};
+	protected void prepareAnimators(View inTarget, View outTarget) {};
 	public void setRect(Rect rect) {
 		this.rect = rect;
 	}
 
-	public void prepare(View inTarget, View outTarget) {
-		if (rect == null) {
-			View parent = (View) inTarget.getParent();
-			if (parent != null) {
-				rect = new Rect(0, 0, parent.getWidth(), parent.getHeight());
-			}
-			else {
-				rect = new Rect(0, 0, inTarget.getWidth(), inTarget.getHeight());
-			}
+	public void prepare(View holder, View inTarget, View outTarget) {
+		setRect(new Rect(0, 0, holder.getWidth(), holder.getHeight()));
+		inAnimator = null;
+		outAnimator = null;
+		prepareAnimators(inTarget, outTarget);
+		if (outAnimator != null) {
+			inInversedAnimator = outAnimator.clone();
+			inInversedAnimator.setInterpolator(new Interpolator() {
+				public float getInterpolation(float input) {
+					return 1.0f - input;
+				}
+			});
 		}
-		prepareAnimators();
-		inInversedAnimator = outAnimator.clone();
-		inInversedAnimator.setInterpolator(new Interpolator() {
-			public float getInterpolation(float input) {
-				return 1.0f - input;
-			}
-		});
 		
-		outInversedAnimator = inAnimator.clone();
-		outInversedAnimator.setInterpolator(new Interpolator() {
-			public float getInterpolation(float input) {
-				return 1.0f - input;
-			}
-		});
+		if (inAnimator != null) {
+			outInversedAnimator = inAnimator.clone();
+			outInversedAnimator.setInterpolator(new Interpolator() {
+				public float getInterpolation(float input) {
+					return 1.0f - input;
+				}
+			});
+		}
 	};
-	protected void setTargets(boolean reversed, View inTarget, View outTarget) {
-		if (inAnimator == null) {
-			prepare(inTarget, inTarget);
-		}
-		TiViewHelper.resetValues(inTarget);
-		TiViewHelper.resetValues(outTarget);
-		ViewHelper.setAlpha(inTarget, 1.0f);
-		ViewHelper.setAlpha(outTarget, 1.0f);
-		
-		inAnimator.setTarget(inTarget);
-		outAnimator.setTarget(outTarget);
-		inInversedAnimator.setTarget(inTarget);
-		outInversedAnimator.setTarget(outTarget);
+	protected void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		prepare(holder, inTarget, inTarget);
+		if (inTarget != null) {
+			TiViewHelper.resetValues(inTarget);
+			ViewHelper.setAlpha(inTarget, 1.0f);
+			inAnimator.setTarget(inTarget);
+			inInversedAnimator.setTarget(inTarget);			
+		} else inAnimator = inInversedAnimator = null;
+		if (outTarget != null) {
+			TiViewHelper.resetValues(outTarget);
+			ViewHelper.setAlpha(outTarget, 1.0f);
+			outAnimator.setTarget(outTarget);
+			outInversedAnimator.setTarget(outTarget);
+		} else outAnimator = outInversedAnimator = null;
 	}
 	
-	public void setTargetsForReversed(View inTarget, View outTarget) {
-		setTargets(true, inTarget, outTarget);
+	public void setTargetsForReversed(View holder, View inTarget, View outTarget) {
+		setTargets(true, holder, inTarget, outTarget);
 	}
-	public void setTargets(View inTarget, View outTarget) {
-		setTargets(isReversed, inTarget, outTarget);
+	public void setTargets(View holder, View inTarget, View outTarget) {
+		setTargets(isReversed, holder, inTarget, outTarget);
 	}
 	
 	public AnimatorSet getSet(AnimatorListener _listener) {
@@ -92,7 +91,12 @@ public abstract class Transition {
 		if (_listener != null) {
 			set.addListener(_listener);
 		}
-		set.playTogether(inAnimator, outAnimator);
+		if (inAnimator !=null && outAnimator !=null)
+				set.playTogether(inAnimator, outAnimator);
+		else if (inAnimator !=null)
+			set.playTogether(inAnimator);
+		else if (outAnimator !=null)
+			set.playTogether(outAnimator);
 		return set;
 	}
 	
@@ -101,7 +105,12 @@ public abstract class Transition {
 		if (_listener != null) {
 			set.addListener(_listener);
 		}
-		set.playTogether(inInversedAnimator, outInversedAnimator);
+		if (inInversedAnimator !=null && outInversedAnimator !=null)
+			set.playTogether(inInversedAnimator, outInversedAnimator);
+		else if (inInversedAnimator !=null)
+			set.playTogether(inInversedAnimator);
+		else if (outInversedAnimator !=null)
+			set.playTogether(outInversedAnimator);
 		return set;
 	}
 	public int getType(){
