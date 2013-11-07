@@ -652,7 +652,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         }
         if (_pullViewWrapper == nil) {
             _pullViewWrapper = [[UIView alloc] init];
-            _pullViewWrapper.backgroundColor = [UIColor lightGrayColor];
+            _pullViewWrapper.backgroundColor = [UIColor clearColor];
             [_tableView addSubview:_pullViewWrapper];
         }
         CGSize refSize = _tableView.bounds.size;
