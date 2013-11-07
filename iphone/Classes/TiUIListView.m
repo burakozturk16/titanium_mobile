@@ -12,6 +12,7 @@
 #import "TiUIListItemProxy.h"
 #import "TiUILabelProxy.h"
 #import "TiUISearchBarProxy.h"
+#import "ImageLoader.h"
 #ifdef USE_TI_UIREFRESHCONTROL
 #import "TiUIRefreshControlProxy.h"
 #endif
@@ -1571,19 +1572,39 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 #pragma mark - ScrollView Delegate
 
+- (NSMutableDictionary *) eventObjectForScrollView: (UIScrollView *) scrollView
+{
+	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
+			[TiUtils pointToDictionary:scrollView.contentOffset],@"contentOffset",
+			[TiUtils sizeToDictionary:scrollView.contentSize], @"contentSize",
+			[TiUtils sizeToDictionary:_tableView.bounds.size], @"size",
+			nil];
+}
+
+- (void)fireScrollEvent:(UIScrollView *)scrollView {
+	if ([self.proxy _hasListeners:@"scroll"])
+	{
+        NSArray* visibles = [_tableView indexPathsForVisibleRows];
+        NSMutableDictionary* event = [self eventObjectForScrollView:scrollView];
+        [event setObject:NUMINT(((NSIndexPath*)[visibles objectAtIndex:0]).row) forKey:@"firstVisibleItem"];
+        [event setObject:NUMINT([visibles count]) forKey:@"visibleItemCount"];
+		[self.proxy fireEvent:@"scroll" withObject:event];
+	}
+}
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    //Events - pull (maybe scroll later)
-    if (![self.proxy _hasListeners:@"pull"]) {
-        return;
+    if (scrollView.isDragging || scrollView.isDecelerating)
+	{
+        [self fireScrollEvent:scrollView];
     }
-    
     if ( (_pullViewProxy != nil) && ([scrollView isTracking]) ) {
         if ( (scrollView.contentOffset.y < pullThreshhold) && (pullActive == NO) ) {
             pullActive = YES;
-            [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
         } else if ( (scrollView.contentOffset.y > pullThreshhold) && (pullActive == YES) ) {
             pullActive = NO;
+        }
+        if (scrollView.contentOffset.y <= 0 && [self.proxy _hasListeners:@"pull"]) {
             [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
         }
     }
@@ -1592,29 +1613,55 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    //Events - None (maybe dragstart later)
+	// suspend image loader while we're scrolling to improve performance
+	[[ImageLoader sharedLoader] suspend];
+    if([self.proxy _hasListeners:@"dragstart"])
+	{
+        [self.proxy fireEvent:@"dragstart" withObject:nil];
+    }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    //Events - pullend (maybe dragend later)
-    if (![self.proxy _hasListeners:@"pullend"]) {
-        return;
-    }
+    if (decelerate==NO)
+	{
+		// resume image loader when we're done scrolling
+		[[ImageLoader sharedLoader] resume];
+	}
+	if ([self.proxy _hasListeners:@"dragend"])
+	{
+		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
+	}
+    
+    
     if ( (_pullViewProxy != nil) && (pullActive == YES) ) {
         pullActive = NO;
-        [self.proxy fireEvent:@"pullend" withObject:nil withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+        if ([self.proxy _hasListeners:@"pullend"]) {
+            [self.proxy fireEvent:@"pullend" withObject:nil withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+        }
     }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    //Events - none (maybe scrollend later)
+	// resume image loader when we're done scrolling
+	[[ImageLoader sharedLoader] resume];
+	if ([self.proxy _hasListeners:@"scrollend"])
+	{
+		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView]];
+	}
+}
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+{
+	// suspend image loader while we're scrolling to improve performance
+	[[ImageLoader sharedLoader] suspend];
+	return YES;
 }
 
 - (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
 {
-    //Events none (maybe scroll later)
+    [self fireScrollEvent:scrollView];
 }
 
 #pragma mark Overloaded view handling
