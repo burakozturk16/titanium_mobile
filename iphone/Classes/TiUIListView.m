@@ -1519,13 +1519,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
     
-    id heightValue = [self valueWithKey:@"height" atIndexPath:realIndexPath];
+    id heightValue = [self valueWithKey:@"rowHeight" atIndexPath:realIndexPath];
     TiDimension height = _rowHeight;
     if (heightValue != nil) {
         height = [TiUtils dimensionValue:heightValue];
     }
     if (TiDimensionIsDip(height)) {
-        return height.value;
+        return [self tableView:tableView rowHeight:height.value];
     }
     
     else if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height))
@@ -1541,12 +1541,12 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
                 [cellProxy setDataItem:item];
-                return [cellProxy minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height;
+                return [self tableView:tableView rowHeight:[cellProxy minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height];
             }
         }
     }
     else if (TiDimensionIsPercent(height)) {
-        return TiDimensionCalculateValue(height, tableView.bounds.size.height);
+        return [self tableView:tableView rowHeight:TiDimensionCalculateValue(height, tableView.bounds.size.height)];
     }
     return 44;
 }
