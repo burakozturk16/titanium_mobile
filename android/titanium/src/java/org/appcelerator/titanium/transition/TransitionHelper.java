@@ -128,7 +128,7 @@ public class TransitionHelper {
 		if (style != -1  && (defaultTransition == null || substyle != defaultTransition.subType.ordinal())) {
 			result = TransitionHelper.transitionForType(style, substyle, duration);
 		}
-		else if (result != null) {
+		if (result != null) {
 			result.setDuration(duration);
 			result.setReversed(reverse);
 		}
