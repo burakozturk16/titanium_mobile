@@ -860,6 +860,9 @@
 		D5C8C9A817EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9A917EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
 		D5C8C9AA17EF5E6D00F54C19 /* TiUITransitionStyleProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */; };
+		D5C92DA7182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
+		D5C92DA8182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
+		D5C92DA9182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
 		D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
@@ -2339,6 +2342,8 @@
 		D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIViewController+ADTransitionController.m"; path = "../Classes/ADTransitionController/UIViewController+ADTransitionController.m"; sourceTree = "<group>"; };
 		D5C8C9A617EF5E6D00F54C19 /* TiUITransitionStyleProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUITransitionStyleProxy.h; sourceTree = "<group>"; };
 		D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUITransitionStyleProxy.m; sourceTree = "<group>"; };
+		D5C92DA5182AA88F0072D117 /* TouchDelegate_Views.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchDelegate_Views.h; sourceTree = "<group>"; };
+		D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchDelegate_Views.m; sourceTree = "<group>"; };
 		D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
 		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
@@ -3036,6 +3041,7 @@
 		24CA8C14111164040084E2DE /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				D5C92DA4182AA8680072D117 /* UIViewsTouchDelegate */,
 				D56E6691180BF07B00F1B737 /* transitions */,
 				24CA8A9A111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.m */,
 				24CA8A9B111161FD0084E2DE /* TiUIActivityIndicatorStyleProxy.h */,
@@ -4457,6 +4463,15 @@
 			name = ADTransitionController;
 			sourceTree = "<group>";
 		};
+		D5C92DA4182AA8680072D117 /* UIViewsTouchDelegate */ = {
+			isa = PBXGroup;
+			children = (
+				D5C92DA5182AA88F0072D117 /* TouchDelegate_Views.h */,
+				D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */,
+			);
+			name = UIViewsTouchDelegate;
+			sourceTree = "<group>";
+		};
 		D5E7977317B61ED200F1D088 /* Shape */ = {
 			isa = PBXGroup;
 			children = (
@@ -5116,6 +5131,7 @@
 				D51F03CA18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
 				D5E7978A17B622D200F1D088 /* TiShapeView.m in Sources */,
 				D51697F217FFF63300B4FDB8 /* ImageModule.m in Sources */,
+				D5C92DA7182AA88F0072D117 /* TouchDelegate_Views.m in Sources */,
 				D5F1EFF617CB3316008A11D3 /* TiShapeRectProxy.m in Sources */,
 				D5F1EFFB17CB3325008A11D3 /* TiShapeRoundedRectProxy.m in Sources */,
 			);
@@ -5458,6 +5474,7 @@
 				502A68E716EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				502A68EC16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				D5C92DA8182AA88F0072D117 /* TouchDelegate_Views.m in Sources */,
 				D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908160168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
 				D56915CD168F2E7400C3F89F /* TiUILabel.m in Sources */,
@@ -5834,6 +5851,7 @@
 				502A68E816EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				502A68ED16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				D5C92DA9182AA88F0072D117 /* TouchDelegate_Views.m in Sources */,
 				84C3870417417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908161168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,

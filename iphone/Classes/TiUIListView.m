@@ -30,7 +30,7 @@
 static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point);
 
 @implementation TiUIListView {
-    UITableView *_tableView;
+    TDUITableView *_tableView;
     NSDictionary *_templates;
     NSMutableDictionary* _templatesSizeProxies;
     id _defaultItemTemplate;
@@ -158,7 +158,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     [self setHeaderFooter:_headerViewProxy isHeader:YES];
 }
 
-- (UITableView *)tableView
+- (TDUITableView *)tableView
 {
     if (_tableView == nil) {
         UITableViewStyle style = UITableViewStylePlain;
@@ -166,11 +166,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:style];
         }
 
-        _tableView = [[UITableView alloc] initWithFrame:self.bounds style:style];
+        _tableView = [[TDUITableView alloc] initWithFrame:self.bounds style:style];
         _tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         _tableView.delegate = self;
         _tableView.dataSource = self;
 
+        _tableView.touchDelegate = self;
+        
         if (TiDimensionIsDip(_rowHeight)) {
             [_tableView setRowHeight:_rowHeight.value];
         }

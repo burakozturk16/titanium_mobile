@@ -422,7 +422,7 @@
 	[table setOpaque:![[table backgroundColor] isEqual:[UIColor clearColor]]];
 }
 
--(UITableView*)tableView
+-(TDUITableView*)tableView
 {
 	if (tableview==nil)
 	{
@@ -435,11 +435,12 @@
 			NSLog(@"[WARN] No style object!");
 		}
 #endif
-		tableview = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
+		tableview = [[TDUITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
 		tableview.delegate = self;
 		tableview.dataSource = self;
 		tableview.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
 		
+		tableview.touchDelegate = self;
 		
 		if (TiDimensionIsDip(rowHeight))
 		{

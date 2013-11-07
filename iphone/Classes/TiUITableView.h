@@ -43,7 +43,7 @@
 
 @interface TiUITableView : TiUIView<UISearchDisplayDelegate,UIScrollViewDelegate,UITableViewDelegate,UITableViewDataSource,UISearchBarDelegate,TiScrolling,TiProxyObserver> {
 @protected
-	UITableView *tableview;
+	TDUITableView *tableview;
 @private
 	BOOL moving;
 	BOOL editing;
