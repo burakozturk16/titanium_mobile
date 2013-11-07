@@ -487,6 +487,18 @@
     }, NO);
 }
 
+-(void)showPullView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(showPullView:) withObject:args createIfNeeded:NO waitUntilDone:NO];
+}
+
+-(void)closePullView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(closePullView:) withObject:args createIfNeeded:NO waitUntilDone:NO];
+}
+
 #pragma mark - Marker Support
 - (void)setMarker:(id)args;
 {

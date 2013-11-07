@@ -346,6 +346,22 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     }
 }
 
+-(void)closePullView:(NSNumber*)anim
+{
+    BOOL animated = YES;
+	if (anim != nil)
+		animated = [anim boolValue];
+	[_tableView setContentOffset:CGPointMake(0,0) animated:animated];
+}
+
+-(void)showPullView:(NSNumber*)anim
+{
+    BOOL animated = YES;
+	if (anim != nil)
+		animated = [anim boolValue];
+	[_tableView setContentOffset:CGPointMake(0,pullThreshhold) animated:animated];
+}
+
 #pragma mark - Helper Methods
 
 -(id)valueWithKey:(NSString*)key atIndexPath:(NSIndexPath*)indexPath
