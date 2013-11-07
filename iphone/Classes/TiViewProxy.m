@@ -2822,7 +2822,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 {
-    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height) || TiDimensionIsAutoFill([child layoutProperties]->height);
+    BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
+    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height) || TiDimensionIsAutoFill([child layoutProperties]->height) || (followsFillHBehavior && TiDimensionIsUndefined([child layoutProperties]->height));
     //    CGFloat desiredHeight = 0;
     __block CGSize autoSize;
     __block BOOL autoSizeComputed = FALSE;
@@ -2831,7 +2832,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     
     if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
     {
-        BOOL followsFillBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
         bounds.origin.y = verticalLayoutBoundary;
         CGFloat boundingValue = bounds.size.height-verticalLayoutBoundary;
         if (boundingValue < 0) {
@@ -2875,7 +2875,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
         else if (TiDimensionIsAuto(constraint) )
         {
-            if (followsFillBehavior) {
+            if (followsFillHBehavior) {
                 //FILL behavior
                 bounds.size.height = boundingValue;
                 verticalLayoutBoundary += bounds.size.height;
@@ -2903,7 +2903,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 bounds.size.height = height + offsetV;
                 verticalLayoutBoundary += bounds.size.height;
             }
-            else if (followsFillBehavior) {
+            else if (followsFillHBehavior) {
                 //FILL behavior
                 bounds.size.height = boundingValue + offsetV;
                 verticalLayoutBoundary += bounds.size.height;
