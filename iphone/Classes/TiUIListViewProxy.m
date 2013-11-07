@@ -133,6 +133,7 @@
 			removeHead = YES;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
+        CGPoint offset = [tableView contentOffset];
 		if (block != nil) {
 			if (begin) {
 				[tableView beginUpdates];
@@ -142,6 +143,7 @@
 			Block_release(block);
 		} else {
 			[tableView endUpdates];
+            [tableView setContentOffset:offset animated:NO];
 			return;
 		}
 	}
