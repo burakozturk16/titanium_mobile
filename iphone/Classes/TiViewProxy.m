@@ -695,7 +695,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         }, YES);
         [rect setRect:viewRect];
         
-        id defaultUnit = [[NSUserDefaults standardUserDefaults] objectForKey:@"ti.ui.defaultunit"];
+        id defaultUnit = [[TiApp tiAppProperties] objectForKey:@"ti.ui.defaultunit"];
         if ([defaultUnit isKindOfClass:[NSString class]]) {
             [rect convertToUnit:defaultUnit];
         }
