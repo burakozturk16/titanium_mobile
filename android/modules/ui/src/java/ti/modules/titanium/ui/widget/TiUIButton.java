@@ -16,11 +16,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
-import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Rect;
 import android.graphics.Color;
