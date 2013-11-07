@@ -319,23 +319,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			case MSG_GETRECT: {
 				AsyncResult result = (AsyncResult) msg.obj;
-				KrollDict d = null;
-				d = new KrollDict();
+				KrollDict d = new KrollDict();
 				if (view != null) {
 					View v = view.getOuterView();
 					if (v != null) {
-						TiDimension nativeWidth = new TiDimension(v.getWidth(), TiDimension.TYPE_WIDTH);
-						TiDimension nativeHeight = new TiDimension(v.getHeight(), TiDimension.TYPE_HEIGHT);
-						TiDimension nativeLeft = new TiDimension(v.getLeft(), TiDimension.TYPE_LEFT);
-						TiDimension nativeTop = new TiDimension(v.getTop(), TiDimension.TYPE_TOP);
-
-						// TiDimension needs a view to grab the window manager, so we'll just use the decorview of the current window
-						View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
-
-						d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
-						d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
-						d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
-						d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
+						d = TiUIHelper.getViewRectDict(v);
 					}
 				}
 				if (!d.containsKey(TiC.PROPERTY_WIDTH)) {
