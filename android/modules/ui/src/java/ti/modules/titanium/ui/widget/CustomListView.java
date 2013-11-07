@@ -2,14 +2,14 @@ package ti.modules.titanium.ui.widget;
 
 import org.appcelerator.titanium.util.TiConvert;
 
+import yaochangwei.pulltorefreshlistview.widget.RefreshableListView;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
-import android.widget.ListView;
 
 
-public class CustomListView extends ListView {
+public class CustomListView extends RefreshableListView {
 	private int mPosition;
 	private boolean mScrollingEnabled = true;
 	 

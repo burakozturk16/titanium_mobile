@@ -410,6 +410,16 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PULL = "pull";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_PULL_END = "pullend";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_REGION_CHANGED = "regionchanged";
 
 	/**
@@ -1937,6 +1947,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PROVIDER = "provider";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PULL_VIEW = "pullView";
+	
 	/**
 	 * @module.api
 	 */

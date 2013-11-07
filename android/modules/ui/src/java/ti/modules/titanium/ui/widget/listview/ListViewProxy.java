@@ -54,6 +54,8 @@ public class ListViewProxy extends TiViewProxy {
 	private static final int MSG_REPLACE_SECTION_AT = MSG_FIRST_ID + 404;
 	private static final int MSG_SCROLL_TO_TOP = MSG_FIRST_ID + 405;
 	private static final int MSG_SCROLL_TO_BOTTOM = MSG_FIRST_ID + 406;
+	private static final int MSG_CLOSE_PULL_VIEW = MSG_FIRST_ID + 407;
+	private static final int MSG_SHOW_PULL_VIEW = MSG_FIRST_ID + 408;
 
 
 	//indicate if user attempts to add/modify/delete sections before TiListView is created 
@@ -246,6 +248,14 @@ public class ListViewProxy extends TiViewProxy {
 				handleReplaceSectionAt(index, section);
 				return true;
 			}
+			case MSG_SHOW_PULL_VIEW: {
+				handleShowPullView(msg.obj);
+				return true;
+			}
+			case MSG_CLOSE_PULL_VIEW: {
+				handleClosePullView(msg.obj);
+				return true;
+			}
 			default:
 				return super.handleMessage(msg);
 		}
@@ -378,5 +388,47 @@ public class ListViewProxy extends TiViewProxy {
 	public String getApiName()
 	{
 		return "Ti.UI.ListView";
+	}
+	
+	public void handleShowPullView(Object obj) {
+		Boolean animated = true;
+		if (obj != null) {
+			animated = TiConvert.toBoolean(obj);
+		}
+		TiUIView listView = peekView();
+		if (listView != null) {
+			((TiListView) listView).showPullView(animated);
+		}
+	}
+	
+	public void handleClosePullView(Object obj) {
+		Boolean animated = true;
+		if (obj != null) {
+			animated = TiConvert.toBoolean(obj);
+		}
+		TiUIView listView = peekView();
+		if (listView != null) {
+			((TiListView) listView).closePullView(animated);
+		}
+	}
+	
+	@Kroll.method()
+	public void showPullView(@Kroll.argument(optional = true) Object obj) {
+		if (TiApplication.isUIThread()) {
+			handleShowPullView(obj);
+		} else {
+			Handler handler = getMainHandler();
+			handler.sendMessage(handler.obtainMessage(MSG_SHOW_PULL_VIEW, obj));
+		}
+	}
+	
+	@Kroll.method()
+	public void closePullView(@Kroll.argument(optional = true) Object obj) {
+		if (TiApplication.isUIThread()) {
+			handleClosePullView(obj);
+		} else {
+			Handler handler = getMainHandler();
+			handler.sendMessage(handler.obtainMessage(MSG_CLOSE_PULL_VIEW, obj));
+		}
 	}
 }
