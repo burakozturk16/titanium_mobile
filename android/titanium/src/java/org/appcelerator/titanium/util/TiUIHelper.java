@@ -1236,4 +1236,20 @@ public class TiUIHelper
 		removeViewFromSuperView(view);
 		parent.addView(view, index, params);
 	}
+	
+	public static KrollDict getViewRectDict(View view) {
+		TiDimension nativeWidth = new TiDimension(view.getWidth(), TiDimension.TYPE_WIDTH);
+		TiDimension nativeHeight = new TiDimension(view.getHeight(), TiDimension.TYPE_HEIGHT);
+		TiDimension nativeLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
+		TiDimension nativeTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
+
+		// TiDimension needs a view to grab the window manager, so we'll just use the decorview of the current window
+		View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
+		KrollDict d = new KrollDict();
+		d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
+		return d;
+	}
 }
