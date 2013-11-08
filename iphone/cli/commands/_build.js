@@ -957,18 +957,20 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 		}
 	}
 
-	// determine if we're going to be minifying javascript
-	var compileJSProp = cli.tiapp.properties['ti.compilejs'];
-	if (cli.argv['skip-js-minify']) {
-		if (this.compileJS) {
-			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', '--skip-js-minify'.cyan));
+	if (cli.argv.target != 'dist-appstore') {
+		// determine if we're going to be minifying javascript
+		var compileJSProp = cli.tiapp.properties['ti.compilejs'];
+		if (cli.argv['skip-js-minify']) {
+			if (this.compileJS) {
+				logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', '--skip-js-minify'.cyan));
+			}
+			this.compileJS = this.encryptJS = this.minifyJS = false;
+		} else if (compileJSProp) {
+			if (this.compileJS && !compileJSProp.value) {
+				logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', 'ti.compilejs'.cyan));
+			}
+			this.encryptJS = this.minifyJS = !!compileJSProp.value;
 		}
-		this.compileJS = this.encryptJS = this.minifyJS = false;
-	} else if (compileJSProp) {
-		if (this.compileJS && !compileJSProp.value) {
-			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', 'ti.compilejs'.cyan));
-		}
-		this.encryptJS = this.minifyJS = !!compileJSProp.value;
 	}
 
 	// if in the prepare phase and doing a device/dist build...
