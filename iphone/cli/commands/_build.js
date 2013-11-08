@@ -789,10 +789,6 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 			this.compileJSS = false;
 	}
 
-	if (cli.argv['skip-js-minify']) {
-		this.minifyJS = false;
-	}
-
 	// at this point we've validated everything except underscores in the app id
 	if (!config.get('ios.skipAppIdValidation')) {
 		if (!/^([a-zA-Z_]{1}[a-zA-Z0-9_-]*(\.[a-zA-Z0-9_-]*)*)$/.test(cli.tiapp.id)) {
@@ -970,9 +966,9 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 		this.compileJS = this.encryptJS = this.minifyJS = false;
 	} else if (compileJSProp) {
 		if (this.compileJS && !compileJSProp.value) {
-			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', 'ti.android.loadfromsdcard'.cyan));
+			logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', 'ti.compilejs'.cyan));
 		}
-		this.compileJS = this.encryptJS = this.minifyJS = !!compileJSProp.value;
+		this.encryptJS = this.minifyJS = !!compileJSProp.value;
 	}
 
 	// if in the prepare phase and doing a device/dist build...
