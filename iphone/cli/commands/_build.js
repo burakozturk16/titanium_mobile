@@ -1407,13 +1407,6 @@ iOSBuilder.prototype.loginfo = function loginfo(next) {
 		this.logger.info(__('Profiler disabled'));
 	}
 
-	var ios = this.tiapp.ios;
-	// if installing a non-production build on device, add a timestamp to the version
-	if (this.target != 'simulator' && this.deployType != 'production' && !(ios && ios.plist && ios.plist.CFBundleVersion)) {
-		this.tiapp.version = appc.version.format(this.tiapp.version || 1, 2, 3) + '.' + (new Date).getTime();
-		this.logger.info(__('Setting non-production device build version to %s', this.tiapp.version));
-	}
-
 	next();
 };
 
