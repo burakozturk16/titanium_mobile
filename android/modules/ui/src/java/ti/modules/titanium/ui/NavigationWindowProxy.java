@@ -9,9 +9,13 @@ package ti.modules.titanium.ui;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollPropertyChange;
+import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -56,7 +60,7 @@ import android.view.ViewGroup;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent
+public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent, KrollProxyListener
 {
 	private static final String TAG = "NavigationWindowProxy";
 
@@ -66,12 +70,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 100;
 
 
-	ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
-	HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
-
+	private ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
+	private HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
+	private HashMap defaultTransition = kDefaultTransition;
+	
 	public NavigationWindowProxy()
 	{
 		super();
+		setModelListener(this, false);
 	}
 
 
@@ -369,6 +375,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		return popWindow(proxy, arg);
 	}
 	
+	
 	static HashMap kDefaultTransition = new HashMap<String, Object>(){{
 	       put(TiC.PROPERTY_STYLE, Integer.valueOf(TransitionStyleModule.SWIPE)); 
 	       put(TiC.PROPERTY_SUBSTYLE,  Integer.valueOf(TransitionStyleModule.RIGHT_TO_LEFT));}};
@@ -406,7 +413,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
 		if (!isFirst && animated) {
-			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), kDefaultTransition, null);
+			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), defaultTransition, null);
 		}
 		if (!isFirst && hasListeners("openWindow")) {
 			KrollDict options = new KrollDict();
@@ -636,4 +643,48 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		}
 		return super.realUpdateOrientationModes();
 	}
+
+
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue,
+			KrollProxy proxy) {
+		if (key.equals(TiC.PROPERTY_TRANSITION)) {
+			if (newValue instanceof HashMap) {
+				defaultTransition = (HashMap) newValue;
+			}
+			else {
+				defaultTransition = kDefaultTransition;
+			}
+		}
+	}
+
+
+	@Override
+	public void processProperties(KrollDict properties) {
+		if (properties.containsKey(TiC.PROPERTY_TRANSITION)) {
+			Object value = properties.get(TiC.PROPERTY_TRANSITION);
+			if (value instanceof HashMap) {
+				defaultTransition = (HashMap) value;
+			}
+			else {
+				defaultTransition = kDefaultTransition;
+			}
+		}
+	}
+
+
+	@Override
+	public void propertiesChanged(List<KrollPropertyChange> changes,
+			KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	@Override
+	public void listenerAdded(String type, int count, KrollProxy proxy) {}
+
+
+	@Override
+	public void listenerRemoved(String type, int count, KrollProxy proxy) {}
 }
