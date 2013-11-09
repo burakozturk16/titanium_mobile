@@ -27,7 +27,8 @@
 {
     CGFloat animationDuration;
     TiSVGImage* _svg;
-    NSTimeInterval _animationPlayingTime;
+    BOOL animationPaused;
+    CGFloat stepDuration;
 }
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
@@ -45,6 +46,7 @@ DEFINE_EXCEPTIONS
         localLoadSync = NO;
         scaleType = UIViewContentModeScaleAspectFit;
         animationDuration = 0.5;
+        animationPaused=  YES;
     }
     return self;
 }
@@ -626,33 +628,63 @@ DEFINE_EXCEPTIONS
 
 -(void)pauseImageViewAnimation
 {
-	CALayer* layer = [self imageView].layer;
-    CFTimeInterval pausedTime = [layer convertTime:CACurrentMediaTime() fromLayer:nil];
-    layer.speed = 0.0;
-    layer.timeOffset = pausedTime;
+    animationPaused = YES;
 }
 
 -(void)resumeImageViewAnimation
 {
-	CALayer* layer = [self imageView].layer;
-    CFTimeInterval pausedTime = [layer timeOffset];
-    layer.speed = 1.0;
-    layer.timeOffset = 0.0;
-    layer.beginTime = 0.0;
-    CFTimeInterval timeSincePause = [layer convertTime:CACurrentMediaTime() fromLayer:nil] - pausedTime;
-    layer.beginTime = timeSincePause;
+    [self resumeAnimation];
 }
 
 -(void)pauseOrResumeImageViewAnimation
 {
-	CALayer* layer = [self imageView].layer;
-    CFTimeInterval pausedTime = [layer timeOffset];
-    if (layer.speed == 1.0) {
-        [self pauseImageViewAnimation];
-    }
-    else {
+    if (animationPaused) {
         [self resumeImageViewAnimation];
     }
+    else {
+        [self pauseImageViewAnimation];
+    }
+}
+
+-(void) startAnimation {
+    if (!animationPaused) {
+        index = 0;
+        return;
+    }
+    animationPaused = NO;
+    index = 0;
+    stepDuration = animationDuration / [imageView.animationImages count];
+    [self stepThroughImages];
+    
+}
+
+-(void) resumeAnimation {
+    if (animationPaused) {
+        animationPaused = NO;
+        [self stepThroughImages];
+    }
+}
+
+- (void) stepThroughImages {
+    
+    imageView.image = [imageView.animationImages objectAtIndex: index];
+    
+    if (index == [imageView.animationImages count] - 1) {
+        index = 0;
+    } else {
+        index++;
+    }
+    
+    if (!animationPaused) {
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(stepDuration * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+           if (!animationPaused) [self stepThroughImages];
+        });
+    }
+}
+
+-(void) stopAnimation {
+    animationPaused = YES;
 }
 
 #pragma mark Public APIs
@@ -665,9 +697,10 @@ DEFINE_EXCEPTIONS
     [self stopTimerWithEvent:@"stop"];
 	ready = NO;
 	index = -1;
-    if (imageview.animationImages != nil) {
-        [imageview stopAnimating];
-        [imageView setImage:[[imageView animationImages] objectAtIndex:0]];
+    if ([imageview animationImages] != nil) {
+        [self stopAnimation];
+        [imageview setImage:[[imageview animationImages] objectAtIndex:0]];
+        
         index = 0;
     }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
@@ -677,9 +710,10 @@ DEFINE_EXCEPTIONS
 {
 	stopped = NO;
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
-	if ([self imageView].animationImages != nil) {
+	UIImageView* imageview = [self imageView];
+	if ([imageview animationImages] != nil) {
 		[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
-        [[self imageView] startAnimating];
+        [self startAnimation];
         return;
     }
 	if (iterations<0)
@@ -718,12 +752,7 @@ DEFINE_EXCEPTIONS
 -(void)playpause {
     UIImageView* imageview = [self imageView];
     if (imageview.animationImages != nil) {
-        if ([imageview isAnimating]) {
-            [self pauseOrResumeImageViewAnimation];
-        }
-        else {
-            [self start];
-        }
+        [self pauseOrResumeImageViewAnimation];
     }
 }
 
@@ -863,11 +892,6 @@ DEFINE_EXCEPTIONS
 	}
 }
 
--(void)setAnimationDuration_:(id)duration
-{
-    animationDuration = [TiUtils floatValue:duration]/1000;
-}
-
 -(void)setDuration_:(id)duration
 {
     float dur = [TiUtils floatValue:duration];
@@ -878,7 +902,7 @@ DEFINE_EXCEPTIONS
     
     [self updateTimer];
     dur =  MAX(IMAGEVIEW_MIN_INTERVAL,dur);
-    [self imageView].animationDuration = dur/1000;
+    animationDuration = [TiUtils floatValue:duration]/1000;
 }
 
 -(void)setRepeatCount_:(id)count
@@ -914,7 +938,7 @@ DEFINE_EXCEPTIONS
     autoHeight = lheight;
     [self imageView].animationImages = uiImages;
     if ([TiUtils boolValue:[[self proxy] valueForKey:@"animating"]]) {
-        [[self imageView] startAnimating];
+        [self startAnimation];
     }
 }
 
