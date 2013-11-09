@@ -27,6 +27,7 @@
 {
     CGFloat animationDuration;
     TiSVGImage* _svg;
+    NSTimeInterval _animationPlayingTime;
 }
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
@@ -623,14 +624,52 @@ DEFINE_EXCEPTIONS
     return imageToUse;
 }
 
+-(void)pauseImageViewAnimation
+{
+	CALayer* layer = [self imageView].layer;
+    CFTimeInterval pausedTime = [layer convertTime:CACurrentMediaTime() fromLayer:nil];
+    layer.speed = 0.0;
+    layer.timeOffset = pausedTime;
+}
+
+-(void)resumeImageViewAnimation
+{
+	CALayer* layer = [self imageView].layer;
+    CFTimeInterval pausedTime = [layer timeOffset];
+    layer.speed = 1.0;
+    layer.timeOffset = 0.0;
+    layer.beginTime = 0.0;
+    CFTimeInterval timeSincePause = [layer convertTime:CACurrentMediaTime() fromLayer:nil] - pausedTime;
+    layer.beginTime = timeSincePause;
+}
+
+-(void)pauseOrResumeImageViewAnimation
+{
+	CALayer* layer = [self imageView].layer;
+    CFTimeInterval pausedTime = [layer timeOffset];
+    if (layer.speed == 1.0) {
+        [self pauseImageViewAnimation];
+    }
+    else {
+        [self resumeImageViewAnimation];
+    }
+}
+
 #pragma mark Public APIs
 
 -(void)stop
 {
+	UIImageView* imageview = [self imageView];
+    
 	stopped = YES;
     [self stopTimerWithEvent:@"stop"];
 	ready = NO;
 	index = -1;
+    if (imageview.animationImages != nil) {
+        [imageview stopAnimating];
+        [imageView setImage:[[imageView animationImages] objectAtIndex:0]];
+        index = 0;
+    }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
 }
 
@@ -638,7 +677,11 @@ DEFINE_EXCEPTIONS
 {
 	stopped = NO;
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
-	
+	if ([self imageView].animationImages != nil) {
+		[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
+        [[self imageView] startAnimating];
+        return;
+    }
 	if (iterations<0)
 	{
 		iterations = 0;
@@ -672,11 +715,28 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+-(void)playpause {
+    UIImageView* imageview = [self imageView];
+    if (imageview.animationImages != nil) {
+        if ([imageview isAnimating]) {
+            [self pauseOrResumeImageViewAnimation];
+        }
+        else {
+            [self start];
+        }
+    }
+}
+
 -(void)pause
 {
 	stopped = YES;
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+    UIImageView* imageview = [self imageView];
+    if (imageview.animationImages != nil) {
+        [self pauseImageViewAnimation];
+        return;
+    }
     [self stopTimerWithEvent:@"pause"];
 }
 
@@ -685,6 +745,10 @@ DEFINE_EXCEPTIONS
 	stopped = NO;
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
+    if ([self imageView].animationImages != nil) {
+        [self resumeImageViewAnimation];
+        return;
+    }
     [self startTimerWithEvent:@"resume"];
 }
 
@@ -813,18 +877,46 @@ DEFINE_EXCEPTIONS
     [self.proxy replaceValue:NUMINT(dur) forKey:@"duration" notification:NO];
     
     [self updateTimer];
+    dur =  MAX(IMAGEVIEW_MIN_INTERVAL,dur);
+    [self imageView].animationDuration = dur/1000;
 }
 
 -(void)setRepeatCount_:(id)count
 {
 	repeatCount = [TiUtils intValue:count];
+    [self imageView].animationRepeatCount = [TiUtils intValue:count];
 }
 
 -(void)setReverse_:(id)value
 {
 	reverse = [TiUtils boolValue:value];
+	UIImageView *imageview = [self imageView];
+    if (imageview.animationImages != nil) {
+        imageview.animationImages = [[imageview.animationImages reverseObjectEnumerator] allObjects];
+    }
 }
 
+-(void)setAnimatedImages_:(id)args
+{
+	ENSURE_TYPE_OR_NIL(args,NSArray);
+    NSMutableArray* uiImages = [[NSMutableArray alloc] init];
+    NSEnumerator *enumerator = reverse?[args reverseObjectEnumerator]:[args objectEnumerator];
+    id anObject;
+    CGFloat lwidth = 0;
+    CGFloat lheight = 0;
+    while (anObject = [enumerator nextObject]) {
+        UIImage* image = [self loadImage:anObject];
+        lwidth = MAX(lwidth, image.size.width);
+        lheight = MAX(lheight, image.size.height);
+        [uiImages addObject:image];
+    }
+    autoWidth = lwidth;
+    autoHeight = lheight;
+    [self imageView].animationImages = uiImages;
+    if ([TiUtils boolValue:[[self proxy] valueForKey:@"animating"]]) {
+        [[self imageView] startAnimating];
+    }
+}
 
 -(void)setImageMask_:(id)arg
 {

@@ -36,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync"]] retain];
+		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"animatedImages"]] retain];
 	}
 	return imageKeySequence;
 }
@@ -77,10 +77,16 @@ static NSArray* imageKeySequence;
 
 -(void)start:(id)args
 {
-    TiThreadPerformOnMainThread(^{
-        TiUIImageView *iv = (TiUIImageView*)[self view];
-        [iv start];
-    }, NO);
+    if ([self viewAttached])
+	{
+		TiThreadPerformOnMainThread(^{
+            TiUIImageView *iv = (TiUIImageView*)[self view];
+            [iv start];
+        }, NO);
+	}
+    else {
+        [self replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
+    }
 }
 
 -(void)stop:(id)args
@@ -92,8 +98,10 @@ static NSArray* imageKeySequence;
 	[destroyLock lock];
 	if ([self viewAttached])
 	{
-		TiUIImageView *iv= (TiUIImageView*)[self view];
-		[iv stop];
+		TiThreadPerformOnMainThread(^{
+            TiUIImageView *iv= (TiUIImageView*)[self view];
+            [iv stop];
+        }, NO);
 	}
 	[destroyLock unlock];
 }
@@ -111,6 +119,14 @@ static NSArray* imageKeySequence;
     TiThreadPerformOnMainThread(^{
         TiUIImageView *iv = (TiUIImageView*)[self view];
         [iv resume];
+    }, NO);
+}
+
+-(void)pauseOrResume:(id)args
+{
+    TiThreadPerformOnMainThread(^{
+        TiUIImageView *iv = (TiUIImageView*)[self view];
+        [iv playpause];
     }, NO);
 }
 
