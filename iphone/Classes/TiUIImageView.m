@@ -90,10 +90,12 @@ DEFINE_EXCEPTIONS
         float ratio = autoWidth/autoHeight;
         float viewratio = size.width/size.height;
         if(viewratio > ratio) {
-            result.width = (size.height*autoWidth/autoHeight);
+            result.height = MIN(size.height, autoHeight);
+            result.width = (result.height*autoWidth/autoHeight);
         }
         else {
-            result.height = (size.width*autoHeight/autoWidth);
+            result.width = MIN(size.width, autoWidth);
+            result.height = (result.width*autoHeight/autoWidth);
         }
     }
     return result;
