@@ -18,6 +18,8 @@
 #import "UIImage+Resize.h"
 #import "TiUIImageViewProxy.h"
 #import "TiSVGImage.h"
+#import "TiTransitionHelper.h"
+#import "TiTransition.h"
 
 #define IMAGEVIEW_DEBUG 0
 
@@ -30,6 +32,7 @@
     BOOL animationPaused;
     CGFloat stepDuration;
 }
+@property(nonatomic,retain) NSDictionary *transition;
 -(void)startTimerWithEvent:(NSString *)eventName;
 -(void)stopTimerWithEvent:(NSString *)eventName;
 @end
@@ -46,6 +49,7 @@ DEFINE_EXCEPTIONS
         localLoadSync = NO;
         scaleType = UIViewContentModeScaleAspectFit;
         animationDuration = 0.5;
+        self.transition = nil;
         animationPaused=  YES;
     }
     return self;
@@ -63,6 +67,7 @@ DEFINE_EXCEPTIONS
 	RELEASE_TO_NIL(previous);
 	RELEASE_TO_NIL(imageView);
 	RELEASE_TO_NIL(_svg);
+	RELEASE_TO_NIL(_transition);
 	[super dealloc];
 }
 
@@ -303,7 +308,6 @@ DEFINE_EXCEPTIONS
         imageView.backgroundColor = [UIColor clearColor];
 		[imageView setContentMode:[self contentModeForImageView]];
 		[self addSubview:imageView];
-//        [self sendSubviewToBack:imageView];
 	}
 	return imageView;
 }
@@ -313,59 +317,62 @@ DEFINE_EXCEPTIONS
 	return [self imageView];
 }
 
--(void)setURLImageOnUIThread:(id)image
+- (id) cloneView:(id)source {
+    NSData *archivedViewData = [NSKeyedArchiver archivedDataWithRootObject: source];
+    id clone = [NSKeyedUnarchiver unarchiveObjectWithData:archivedViewData];
+    return clone;
+}
+
+-(void) transitionToImage:(id)image
 {
-	ENSURE_UI_THREAD(setURLImageOnUIThread,image);
+    ENSURE_UI_THREAD(transitionToImage,image);
 	if (self.proxy==nil)
 	{
 		// this can happen after receiving an async callback for loading the image
 		// but after we've detached our view.  In which case, we need to just ignore this
 		return;
 	}
-	UIImageView *iv = [self imageView];
-	iv.image = [self convertToUIImage:image];
-	if (placeholderLoading)
-	{
-		iv.alpha = 0;
-		
-		[(TiViewProxy *)[self proxy] contentsWillChange];
-		
-        if (animationDuration > 0) {
-            // do a nice fade in animation to replace the new incoming image
-            // with our placeholder
-            [UIView beginAnimations:nil context:nil];
-            [UIView setAnimationDuration:animationDuration];
-            [UIView setAnimationDelegate:self];
-            [UIView setAnimationDidStopSelector:@selector(animationCompleted:finished:context:)];
-            
-            for (UIView *view in [self subviews])
-            {
-                if (view!=iv && ![view isKindOfClass:[TiUIView class]])
-                {	
-                    [view setAlpha:0];
-                }
-            }
-            
-            iv.alpha = 1;
-            
-            [UIView commitAnimations];
-        }
-        else {
-            iv.alpha = 1;
-            for (UIView *view in [self subviews])
-            {
-                if (view!=iv && ![view isKindOfClass:[TiUIView class]])
-                {
-                    [view removeFromSuperview];
-                }
-            }
-        }
-		
-		
-		placeholderLoading = NO;
-		[self fireLoadEventWithState:@"image"];
+    TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
+    [(TiViewProxy *)[self proxy] contentsWillChange];
+    if (transition != nil) {
+        UIImageView *iv = [self imageView];
+        UIImageView *newView = [self cloneView:iv];
+        newView.image = [self convertToUIImage:image];
+        [TiTransitionHelper transitionfromView:iv toView:newView insideView:self withTransition:transition completionBlock:^{
+            placeholderLoading = NO;
+            [self fireLoadEventWithState:@"image"];
+        }];
+        imageView = [newView retain];
 	}
+    else {
+        [[self imageView] setImage:image];
+    }
 }
+
+//-(void)setURLImageOnUIThread:(id)image
+//{
+//	ENSURE_UI_THREAD(setURLImageOnUIThread,image);
+//	if (self.proxy==nil)
+//	{
+//		// this can happen after receiving an async callback for loading the image
+//		// but after we've detached our view.  In which case, we need to just ignore this
+//		return;
+//	}
+//    TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
+//    [(TiViewProxy *)[self proxy] contentsWillChange];
+//    if (transition != nil) {
+//        UIImageView *iv = [self imageView];
+//        UIImageView *newView = [self cloneView:iv];
+//        newView.image = [self convertToUIImage:image];
+//        [TiTransitionHelper transitionfromView:iv toView:newView insideView:self withTransition:transition completionBlock:^{
+//            [iv removeFromSuperview];
+//            [iv release];
+//            placeholderLoading = NO;
+//            [self fireLoadEventWithState:@"image"];
+//        }];
+//        imageView = newView;
+//	}
+//}
 
 -(void)loadImageInBackground:(NSNumber*)pos
 {
@@ -455,10 +462,10 @@ DEFINE_EXCEPTIONS
 			[view removeFromSuperview];
 		}
 	}
-	if (imageView!=nil)
-	{
-		imageView.image = nil;
-	}
+//	if (imageView!=nil)
+//	{
+//		imageView.image = nil;
+//	}
 }
 
 -(void)cancelPendingImageLoads
@@ -528,8 +535,7 @@ DEFINE_EXCEPTIONS
                 UIImage *imageToUse = [self rotatedImage:image];
                 autoWidth = imageToUse.size.width;
                 autoHeight = imageToUse.size.height;
-                [self imageView].image = imageToUse;
-                [self fireLoadEventWithState:@"image"];
+                [self transitionToImage:imageToUse];
             }
             else {
                 [self loadDefaultImage:imageSize];
@@ -539,7 +545,7 @@ DEFINE_EXCEPTIONS
         
 		if (image==nil)
 		{
-            [self loadDefaultImage:imageSize];
+//            [self loadDefaultImage:imageSize];
 			placeholderLoading = YES;
 			[(TiUIImageViewProxy *)[self proxy] startImageLoad:url_];
 			return;
@@ -556,8 +562,7 @@ DEFINE_EXCEPTIONS
 				autoWidth = autoWidth/2;
 				autoHeight = autoHeight/2;
 			}
-			[self imageView].image = imageToUse;
-			[self fireLoadEventWithState:@"image"];
+            [self transitionToImage:imageToUse];
 		}
 	}
 }
@@ -843,7 +848,7 @@ DEFINE_EXCEPTIONS
 		return;
 	}
 	
-	[imageview setImage:image];
+    [self transitionToImage:image];
     if (TiDimensionIsAuto(width) || TiDimensionIsAutoSize(height))
         [(TiViewProxy*)[self proxy] contentsWillChange]; // Have to resize the proxy view to fit new subview size, if necessary
 	
@@ -963,13 +968,19 @@ DEFINE_EXCEPTIONS
     [imageview.layer setNeedsDisplay];
 }
 
+-(void)setTransition_:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
+    self.transition = arg;
+}
+
 
 #pragma mark ImageLoader delegates
 
 -(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
     TiThreadPerformOnMainThread(^{
-        [self setURLImageOnUIThread:image];
+        [self transitionToImage:[self convertToUIImage:image]];
     }, NO);
 }
 
