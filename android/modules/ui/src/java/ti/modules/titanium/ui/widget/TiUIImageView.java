@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -25,6 +26,8 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.transition.Transition;
+import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiDownloadListener;
 import org.appcelerator.titanium.util.TiDownloadManager;
@@ -89,6 +92,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	// This handles the memory cache of images.
 	private TiImageLruCache mMemoryCache = TiImageLruCache.getInstance();
+	
+	private HashMap transitionDict = null;
 
 	public TiUIImageView(final TiViewProxy proxy)
 	{
@@ -282,7 +287,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	{
 		TiImageView view = getView();
 		if (view != null) {
-			view.setImageBitmap(bitmap);
+			Transition transition = TransitionHelper.transitionFromObject(transitionDict, null, null);
+			view.setImageBitmapWithTransition(bitmap, transition);
 			boolean widthDefined = view.getWidthDefined();
 			boolean heightDefined = view.getHeightDefined();
 			if ((!widthDefined || !heightDefined)) {
@@ -299,7 +305,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	{
 		TiImageView view = getView();
 		if (view != null) {
-			view.setImageDrawable(drawable);
+			Transition transition = TransitionHelper.transitionFromObject(transitionDict, null, null);
+			view.setImageDrawableWithTransition(drawable, transition);
 			boolean widthDefined = view.getWidthDefined();
 			boolean heightDefined = view.getHeightDefined();
 			if ((!widthDefined || !heightDefined)) {
@@ -879,13 +886,21 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		if (d.containsKey(TiC.PROPERTY_DEFAULT_IMAGE)) {
 			setDefaultImageSource(d.get(TiC.PROPERTY_DEFAULT_IMAGE));
 		}
-		
+		if(d.containsKey(TiC.PROPERTY_TRANSITION)) {
+			Object value = d.get(TiC.PROPERTY_TRANSITION);
+			if (value instanceof HashMap) {
+				transitionDict = (HashMap) value;
+			}
+			else {
+				transitionDict = null;
+			}
+		}
 		if(d.containsKey(TiC.PROPERTY_ANIMATION_DURATION)) {
-			view.setAnimationDuration(TiConvert.toInt(d, TiC.PROPERTY_ANIMATION_DURATION));
+//			view.setAnimationDuration(TiConvert.toInt(d, TiC.PROPERTY_ANIMATION_DURATION));
 		}
 		if(d.containsKey(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
 			localLoadSync = TiConvert.toBoolean(d, TiC.PROPERTY_LOCAL_LOAD_SYNC, localLoadSync);
-			view.setAnimateTransition(!localLoadSync);
+//			view.setAnimateTransition(!localLoadSync);
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_SCALE_TYPE)) {
@@ -948,10 +963,9 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		if (key.equals(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(newValue));
 		} else if(key.equals(TiC.PROPERTY_ANIMATION_DURATION)) {
-			view.setAnimationDuration( TiConvert.toInt(newValue));
+//			view.setAnimationDuration( TiConvert.toInt(newValue));
 		} else if(key.equals(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
 			localLoadSync = TiConvert.toBoolean(newValue);
-			view.setAnimateTransition(!localLoadSync);
 		} else if(key.equals(TiC.PROPERTY_SCALE_TYPE)) {
 			setWantedScaleType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_IMAGE_MASK)) {
@@ -969,7 +983,13 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 					setImages();
 				}
 			}
-			
+		} else if (key.equals(TiC.PROPERTY_TRANSITION)) {
+			if (newValue instanceof HashMap) {
+				transitionDict = (HashMap) newValue;
+			}
+			else {
+				transitionDict = null;
+			}
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 			if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_LEFT) || key.equals(TiC.PROPERTY_RIGHT)) {
