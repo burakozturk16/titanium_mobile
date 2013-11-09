@@ -3465,6 +3465,15 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 [self layoutChildren:NO];
                 LayoutConstraint *contraints = [view2Proxy layoutProperties];
                 ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+                
+                id<TiEvaluator> context = self.executionContext;
+                if (context == nil) {
+                    context = self.pageContext;
+                }
+                [context.krollContext invokeBlockOnThread:^{
+                    [self rememberProxy:view2Proxy];
+                    [view2Proxy forgetSelf];
+                }];
             }
             if (view1Proxy != nil) {
                 view1 = [view1Proxy getOrCreateView];
