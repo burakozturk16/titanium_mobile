@@ -11,6 +11,11 @@
 #import "TiApp.h"
 #import "TiTransition.h"
 
+@interface TiUINavigationWindowProxy()
+@property(nonatomic,retain) NSDictionary *defaultTransition;
+
+@end
+
 @implementation TiUINavigationWindowProxy
 
 -(void)_destroy
@@ -18,6 +23,7 @@
     RELEASE_TO_NIL(rootWindow);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
+    RELEASE_TO_NIL(_defaultTransition);
     [super _destroy];
 }
 
@@ -27,6 +33,7 @@
 	RELEASE_TO_NIL(rootWindow);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
+    RELEASE_TO_NIL(_defaultTransition);
 	[super dealloc];
 }
 
@@ -34,8 +41,19 @@
 {
 	if ((self = [super init]))
 	{
+        self.defaultTransition = [self platformDefaultTransition];
 	}
 	return self;
+}
+
+-(NSDictionary*)platformDefaultTransition
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+    }
+    else {
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
+    }
 }
 
 -(void)_initWithProperties:(NSDictionary *)properties
@@ -315,6 +333,19 @@
     }
 }
 
+#pragma mark - Public API
+
+-(void)setTransition:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
+    if(arg != nil) {
+        self.defaultTransition = arg;
+    }
+    else {
+        self.defaultTransition = [self platformDefaultTransition];
+    }
+}
+
 #pragma mark - Private API
 
 -(void)setFrame:(CGRect)bounds
@@ -342,16 +373,6 @@
         default:
             return pushTransition;
             break;
-    }
-}
-
--(NSDictionary*)defaultTransition
-{
-    if ([TiUtils isIOS7OrGreater]) {
-        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
-    }
-    else {
-        return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
     }
 }
 
