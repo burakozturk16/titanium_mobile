@@ -48,6 +48,14 @@
 #import "ADSlideTransition.h"
 #import "ADModernPushTransition.h"
 
+@interface TransitionView : UIView
+@end
+@implementation TransitionView
++ (Class)layerClass {
+    return [CATransformLayer class];
+}
+@end
+
 @implementation TiTransitionHelper
 
 
@@ -211,6 +219,46 @@ static NSDictionary* typeMap = nil;
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container
 {
     return [self transitionFromArg:arg defaultArg:nil defaultTransition:nil containerView:container];
+}
+
++ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
+{
+    ADTransition* adTransition = transition.adTransition ;
+    
+    BOOL needsTransformFix = [adTransition isKindOfClass:[ADTransformTransition class]] && ![holder.layer isKindOfClass:[CATransformLayer class]];
+    UIView* workingView = holder;
+    
+    if (needsTransformFix) {
+        workingView = [[TransitionView alloc] initWithFrame: holder.bounds];
+        [holder addSubview:workingView];
+        if (viewOut) {
+            [workingView addSubview:viewOut];
+        }
+    }
+    if (viewIn) {
+        [workingView addSubview:viewIn];
+    }
+    
+    adTransition.type = ADTransitionTypePush;
+    [transition prepareViewHolder:holder];
+    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
+    
+    [CATransaction setCompletionBlock:^{
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        [viewOut removeFromSuperview];
+        if (needsTransformFix) {
+            if (viewIn) {
+                [holder addSubview:viewIn];
+            }
+            [workingView removeFromSuperview];
+            [workingView release];
+        }
+        if (block != nil) {
+            block();
+        }
+    }];
+    
+    [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];
 }
 
 @end
