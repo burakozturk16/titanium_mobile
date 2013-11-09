@@ -1829,22 +1829,13 @@ DEFINE_EXCEPTIONS
     [viewOut animationStarted];
     [viewIn animationStarted];
     
-    if (viewIn) [self addSubview:viewIn];
-    ADTransition* adTransition = transition.adTransition;
-    [transition prepareViewHolder:self];
-    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:self];
-    
-    [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];
-        [viewOut removeFromSuperview];
+    [TiTransitionHelper transitionfromView:viewOut toView:viewIn insideView:self withTransition:transition completionBlock:^{
         [viewOut animationCompleted];
         [viewIn animationCompleted];
         if (block != nil) {
             block();
         }
     }];
-    
-    [adTransition startTransitionFromView:viewOut toView:viewIn inside:self];
 }
 
 - (void)blurBackground:(id)args
