@@ -373,6 +373,15 @@
 //	[self setAttributedTextViewContent];
 //}
 
+-(void)setText_:(id)value
+{
+    needsSetText = YES;
+}
+
+-(void)setHtml_:(id)value
+{
+    needsSetText = YES;
+}
 
 -(void)setHighlightedColor_:(id)color
 {
