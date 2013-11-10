@@ -70,7 +70,6 @@ static NSArray* imageKeySequence;
     [self replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"reverse" notification:NO];
-    [self replaceValue:NUMBOOL(YES) forKey:@"stopped" notification:YES];
     [self replaceValue:NUMBOOL(YES) forKey:@"autorotate" notification:NO];
     [self replaceValue:NUMFLOAT(DEFAULT_IMAGEVIEW_INTERVAL) forKey:@"duration" notification:NO];
 }
