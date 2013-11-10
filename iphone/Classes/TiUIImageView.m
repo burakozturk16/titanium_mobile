@@ -54,7 +54,6 @@
     CGFloat animationDuration;
     TiSVGImage* _svg;
     BOOL animationPaused;
-    CGFloat stepDuration;
     BOOL autoreverse;
     BOOL usingNewMethod;
 }
@@ -79,6 +78,7 @@ DEFINE_EXCEPTIONS
         animationPaused=  YES;
         autoreverse = NO;
         usingNewMethod = NO;
+        stopped = YES;
     }
     return self;
 }
@@ -674,14 +674,9 @@ DEFINE_EXCEPTIONS
 
 
 -(void) startAnimation {
-    if (!animationPaused) {
-        animationPaused = YES;
-    }
     [self setUsedImages];
-    index = 0;
-    stepDuration = animationDuration / [usedImages count];
-    animationPaused = NO;
-    [self stepThroughImages];
+    index = reverse?[usedImages count]-1:0;
+    [self resumeAnimation];
     
 }
 
@@ -708,7 +703,7 @@ DEFINE_EXCEPTIONS
     }
     
     if (!animationPaused) {
-        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(stepDuration * NSEC_PER_SEC));
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(animationDuration * NSEC_PER_SEC));
         dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
            if (!animationPaused) [self stepThroughImages];
         });
@@ -736,10 +731,11 @@ DEFINE_EXCEPTIONS
 	index = -1;
     if (usingNewMethod) {
         [self stopAnimation];
-        [[self imageView] setImage:[usedImages objectAtIndex:0]];
-        index = 0;
+        index = reverse?[usedImages count]-1:0;
+        [[self imageView] setImage:[usedImages objectAtIndex:index]];
     }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+    [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
 }
 
 -(void)start
