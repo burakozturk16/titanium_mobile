@@ -71,12 +71,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	private AtomicBoolean animating = new AtomicBoolean(false);
 	private AtomicBoolean isLoading = new AtomicBoolean(false);
 	private AtomicBoolean isStopping = new AtomicBoolean(false);
+	private TiAnimationDrawable animDrawable = null;
 	private boolean reverse = false;
 	private boolean paused = false;
 	private boolean localLoadSync = false;
 	private boolean firedLoad;
 	private ImageViewProxy imageViewProxy;
-	private int currentDuration;
+	private int duration;
+	private int repeatCount = INFINITE;
 
 	private ArrayList<TiDrawableReference> imageSources;
 	private TiDrawableReference defaultImageSource;
@@ -89,6 +91,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	private static final int START = 10002;
 	private static final int STOP = 10003;
 	private static final int SET_DRAWABLE = 10004;
+	private static final int RESUME = 10005;
+	private static final int PAUSE = 10006;
 
 	// This handles the memory cache of images.
 	private TiImageLruCache mMemoryCache = TiImageLruCache.getInstance();
@@ -226,7 +230,12 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		case STOP:
 			handleStop();
 			return true;
-			
+//		case PAUSE:
+//			handlePause();
+//			return true;
+		case RESUME:
+			handleResume();
+			return true;	
 		default: return false;
 		
 		}
@@ -281,6 +290,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		} else {
 			handleSetDrawable(drawable);
 		}
+	}
+	
+	private Drawable getDrawable()
+	{
+		TiImageView view = getView();
+		if (view!= null)
+			return view.getImageDrawable();
+		else  return null;
 	}
 
 	private void handleSetImage(final Bitmap bitmap)
@@ -346,7 +363,6 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 		private boolean isRepeating()
 		{
-			int repeatCount = getRepeatCount();
 			if (repeatCount <= INFINITE) {
 				return true;
 			}
@@ -445,7 +461,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 							b = null;
 						}
 						BitmapWithIndex bIndex = new BitmapWithIndex(b,j);
-						while (waitTime < getDuration() * imageSources.size()) {
+						while (waitTime < duration * imageSources.size()) {
 							try {
 								if (!bitmapQueue.offer(bIndex)) {
 									if (isStopping.get()) {
@@ -485,6 +501,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			fireError("Missing Images", null);
 			return;
 		}
+		animDrawable = null;
 
 		if (loader == null) {
 			paused = false;
@@ -497,30 +514,53 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		}
 
 	}
-
-	public double getDuration()
+	
+	private void setAnimatedImages()
 	{
-		if (proxy.getProperty(TiC.PROPERTY_DURATION) != null) {
-			double duration = TiConvert.toDouble(proxy.getProperty(TiC.PROPERTY_DURATION));
-			if (duration < MIN_DURATION) {
-				return MIN_DURATION;
-			} else {
-				return duration;
+		if (imageSources == null || imageSources.size() == 0) {
+			handleSetDrawable(null);
+			fireError("Missing Images", null);
+			return;
+		}
+		animDrawable = new TiAnimationDrawable();
+		animDrawable.setDuration(duration);
+		animDrawable.setReverse(reverse);
+		animDrawable.setAutoreverse(autoreverse);
+		for (int i = 0; i < imageSources.size(); i++) {
+			TiDrawableReference imageref = imageSources.get(i);
+			// Check if the image is cached in memory
+			int hash = imageref.hashCode();
+			Bitmap bitmap = mMemoryCache.get(hash);
+			if (bitmap != null) {
+				if (!bitmap.isRecycled()) {
+					animDrawable.addFrame(new BitmapDrawable(proxy.getActivity().getResources(), bitmap));
+					continue;
+				} else { // If the cached image has been recycled, remove it from the cache.
+					mMemoryCache.remove(hash);
+				}
+			}
+			if (!imageref.isNetworkUrl()) {
+				Drawable drawable = null;
+				try {
+					drawable = imageref.getDrawable();
+				} catch (FileNotFoundException e) {
+					Log.e(TAG, "Could not find image for url " + imageref.getUrl(), e);
+				}
+				if (drawable != null) {
+					if (mMemoryCache.get(hash) == null && drawable instanceof BitmapDrawable) {
+						mMemoryCache.put(hash, ((BitmapDrawable) drawable).getBitmap());
+					}
+					animDrawable.addFrame(drawable);
+				}
+				else {
+					Log.e(TAG, "Could not find image for url " + imageref.getUrl());
+				}
 			}
 		}
-		proxy.setProperty(TiC.PROPERTY_DURATION, DEFAULT_DURATION);
-		
-		return DEFAULT_DURATION;
+		currentIndex = reverse?animDrawable.getNumberOfFrames()-1:0;
+		animDrawable.selectDrawable(currentIndex);
+		setDrawable(animDrawable);
 	}
-
-	public int getRepeatCount()
-	{
-		if (proxy.hasProperty(TiC.PROPERTY_REPEAT_COUNT)) {
-			return TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_REPEAT_COUNT));
-		}
-		return INFINITE;
-	}
-	
 	
 	public boolean fireImageEvent(String eventName, KrollDict data) {
 		return fireEvent(eventName, data, false);
@@ -580,6 +620,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			fireImageEvent(TiC.EVENT_ERROR, data);
 		}
 	}
+	private int currentIndex = 0;
+	private boolean autoreverse = false;
 
 	private class Animator extends TimerTask
 	{
@@ -603,6 +645,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 						wait();
 					}
 				}
+				
 
 				BitmapWithIndex b = loader.getBitmapQueue().take();
 				Log.d(TAG, "set image: " + b.index, Log.DEBUG_MODE);
@@ -614,7 +657,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				// one frame is left out when resumed (TIMOB-10207).
 				// To avoid this, we force the thread to wait for one period on resume.
 				if (waitOnResume) {
-					Thread.sleep(currentDuration);
+					Thread.sleep(duration);
 					waitOnResume = false;
 				}
 			} catch (InterruptedException e) {
@@ -625,6 +668,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	public void start()
 	{
+		currentIndex = (animDrawable != null)?(reverse?animDrawable.getNumberOfFrames()-1:0):0;
 		if (!TiApplication.isUIThread()) {
 			Message message = mainHandler.obtainMessage(START);
 			message.sendToTarget();
@@ -635,15 +679,19 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	public void handleStart()
 	{
+		if (animDrawable != null) {
+			animDrawable.start();
+			return;
+		}
 		if (animator == null) {
 			timer = new Timer();
-
+			
 			if (loader == null) {
 				loader = new Loader();
 				loaderThread = new Thread(loader);
 				Log.d(TAG, "STARTING LOADER THREAD " + loaderThread + " for " + this, Log.DEBUG_MODE);
 			}
-
+			
 			animator = new Animator(loader);
 			if (!animating.get() && !loaderThread.isAlive()) {
 				isStopping.set(false);
@@ -651,11 +699,9 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 					loaderThread.start();
 			}
 
-			currentDuration = (int) getDuration();
-
 			animating.set(true);
 			fireStart();
-			timer.schedule(animator, currentDuration, currentDuration);
+			timer.schedule(animator, duration, duration);
 		} else {
 			resume();
 		}
@@ -664,12 +710,23 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	public void pause() 
 	{
 		paused = true;
+		if (animDrawable != null) {
+			animDrawable.pause();
+			return;
+		}
 	}
 
-	public void resume()
+
+	public void handleResume()
 	{
-		paused = false;
-		
+		if (animDrawable != null) {
+			animDrawable.resume();
+			return;
+		}
+		if (animator == null) {
+			handleStart();
+			return;
+		}
 		if (animator != null) {
 			synchronized (animator) {
 				animator.notify();
@@ -680,6 +737,17 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			synchronized (loader) {
 				loader.notify();
 			}
+		}
+	}
+
+	public void resume()
+	{
+		paused = false;
+		if (!TiApplication.isUIThread()) {
+			Message message = mainHandler.obtainMessage(RESUME);
+			message.sendToTarget();		
+		} else {
+			handleResume();
 		}
 	}
 
@@ -694,9 +762,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	}
 	public void handleStop()
 	{
+		if (animDrawable != null) {
+			animDrawable.stop();
+			return;
+		}
 		if (timer != null) {
 			timer.cancel();
 		}
+
 		animating.set(false);
 		isStopping.set(true);
 
@@ -871,6 +944,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		if (view == null) {
 			return;
 		}
+		
 		super.processProperties(d);
 
 		view.setWidthDefined(!(layoutParams.autoSizeWidth() && (layoutParams.optionLeft == null || layoutParams.optionRight == null)));
@@ -880,6 +954,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			setImageSource(d.get(TiC.PROPERTY_IMAGES));
 			setImages();
 		}
+		
 		if (d.containsKey(TiC.PROPERTY_ENABLE_ZOOM_CONTROLS)) {
 			view.setEnableZoomControls(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLE_ZOOM_CONTROLS, true));
 		}
@@ -895,8 +970,20 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				transitionDict = null;
 			}
 		}
-		if(d.containsKey(TiC.PROPERTY_ANIMATION_DURATION)) {
-//			view.setAnimationDuration(TiConvert.toInt(d, TiC.PROPERTY_ANIMATION_DURATION));
+		if(d.containsKey(TiC.PROPERTY_DURATION)) {
+			duration = TiConvert.toInt(d.get(TiC.PROPERTY_DURATION), DEFAULT_DURATION);
+			if (duration < MIN_DURATION) {
+				duration = MIN_DURATION;
+			}
+		}
+		if(d.containsKey(TiC.PROPERTY_REVERSE)) {
+			reverse = TiConvert.toBoolean(d.get(TiC.PROPERTY_DURATION), false);
+		}
+		if(d.containsKey(TiC.PROPERTY_AUTOREVERSE)) {
+			autoreverse = TiConvert.toBoolean(d.get(TiC.PROPERTY_AUTOREVERSE), false);
+		}
+		if(d.containsKey(TiC.PROPERTY_REPEAT_COUNT)) {
+			repeatCount = TiConvert.toInt(d.get(TiC.PROPERTY_REPEAT_COUNT), INFINITE);
 		}
 		if(d.containsKey(TiC.PROPERTY_LOCAL_LOAD_SYNC)) {
 			localLoadSync = TiConvert.toBoolean(d, TiC.PROPERTY_LOCAL_LOAD_SYNC, localLoadSync);
@@ -918,6 +1005,8 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 			if (changeImage) {
+				view.setImageBitmap(null);
+				view.setImageDrawable(null);
 				// Check for orientation and decodeRetries only if an image is specified
 				Object autoRotate = d.get(TiC.PROPERTY_AUTOROTATE);
 				if (autoRotate != null && TiConvert.toBoolean(autoRotate)) {
@@ -939,7 +1028,10 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			}
 		}
 		
-
+		if (d.containsKey(TiC.PROPERTY_ANIMATED_IMAGES)) {
+			setImageSource(d.get(TiC.PROPERTY_ANIMATED_IMAGES));
+			setAnimatedImages();
+		}
 		
 		if (d.containsKey(TiC.PROPERTY_IMAGE_MASK)) {
 			setImageMask(d.get(TiC.PROPERTY_IMAGE_MASK));
@@ -971,7 +1063,10 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		} else if (key.equals(TiC.PROPERTY_IMAGE_MASK)) {
 			setImageMask(newValue);
 		} else if (key.equals(TiC.PROPERTY_IMAGE)) {
-			if ((oldValue == null && newValue != null) || (oldValue != null && !oldValue.equals(newValue))) {
+			if (oldValue != null || newValue != null) {
+				if (animator != null) {
+					stop();
+				}
 				setImageSource(newValue);
 				firedLoad = false;
 				setImageInternal();
@@ -990,6 +1085,26 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			else {
 				transitionDict = null;
 			}
+		} else if(key.equals(TiC.PROPERTY_DURATION)) {
+			duration = TiConvert.toInt(newValue, DEFAULT_DURATION);
+			if (duration < MIN_DURATION) {
+				duration = MIN_DURATION;
+			}
+			if (animDrawable != null) {
+				animDrawable.setDuration(duration);
+			}
+		} else if(key.equals(TiC.PROPERTY_REVERSE)) {
+			reverse = TiConvert.toBoolean(newValue, false);
+			if (animDrawable != null) {
+				animDrawable.setReverse(reverse);
+			}
+		} else if(key.equals(TiC.PROPERTY_AUTOREVERSE)) {
+			autoreverse = TiConvert.toBoolean(newValue, false);
+			if (animDrawable != null) {
+				animDrawable.setAutoreverse(autoreverse);
+			}
+		} else if(key.equals(TiC.PROPERTY_REPEAT_COUNT)) {
+				repeatCount = TiConvert.toInt(newValue, INFINITE);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 			if (key.equals(TiC.PROPERTY_WIDTH) || key.equals(TiC.PROPERTY_LEFT) || key.equals(TiC.PROPERTY_RIGHT)) {
@@ -1055,11 +1170,6 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	public boolean isReverse()
 	{
 		return reverse;
-	}
-
-	public void setReverse(boolean reverse)
-	{
-		this.reverse = reverse;
 	}
 
 	public TiBlob toBlob()

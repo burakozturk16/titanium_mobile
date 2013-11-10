@@ -10,6 +10,7 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUIImageView;
@@ -27,6 +28,9 @@ import android.app.Activity;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_LOCAL_LOAD_SYNC,
 	TiC.PROPERTY_ANIMATION_DURATION,
+	TiC.PROPERTY_ANIMATED_IMAGES,
+	TiC.PROPERTY_AUTOREVERSE,
+	TiC.PROPERTY_REVERSE,
 	TiC.PROPERTY_SCALE_TYPE
 })
 public class ImageViewProxy extends ViewProxy
@@ -48,53 +52,53 @@ public class ImageViewProxy extends ViewProxy
 	}
 
 	private TiUIImageView getImageView() {
-		return (TiUIImageView) getOrCreateView();
+		return (TiUIImageView)view;
 	}
 	
 	@Kroll.method
 	public void start() {
-		getImageView().start();
+		setProperty("animating", true);
+		setProperty("paused", false);
+		if (view != null) {
+			((TiUIImageView)view).start();
+		}
 	}
 	
 	@Kroll.method
 	public void stop() {
-		getImageView().stop();
+		setProperty("animating", false);
+		setProperty("paused", false);
+		if (view != null) {
+			((TiUIImageView)view).stop();
+		}
 	}
 	
 	@Kroll.method
 	public void pause() {
-		getImageView().pause();
+		setProperty("paused", true);
+		if (view != null) {
+			((TiUIImageView)view).pause();
+		}
 	}
 	
 	@Kroll.method
 	public void resume() {
-		getImageView().resume();
+		setProperty("paused", false);
+		if (view != null) {
+			((TiUIImageView)view).resume();
+		}
 	}
 	
-	@Kroll.getProperty @Kroll.method
-	public boolean getAnimating() {
-		return getImageView().isAnimating();
-	}
-	
-	@Kroll.getProperty @Kroll.method
-	public boolean getPaused() 
-	{
-		return getImageView().isPaused();
-	}
-	
-	@Kroll.getProperty @Kroll.method
-	public boolean getReverse() {
-		return getImageView().isReverse();
-	}
-	
-	@Kroll.setProperty(runOnUiThread=true) @Kroll.method(runOnUiThread=true)
-	public void setReverse(boolean reverse) {
-		getImageView().setReverse(reverse);
+	@Kroll.method
+	public void pauseOrResume() {
+		boolean paused = TiConvert.toBoolean(getProperty("paused"), true);
+		if (paused) resume();
+		else pause();
 	}
 	
 	@Kroll.method
 	public TiBlob toBlob() {
-		return getImageView().toBlob();
+		return ((TiUIImageView)getOrCreateView()).toBlob();
 	}
 
 	@Override

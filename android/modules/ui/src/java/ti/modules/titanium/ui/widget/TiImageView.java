@@ -26,6 +26,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.TransitionDrawable;
@@ -299,12 +300,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	}
 
 	public Drawable getImageDrawable() {
-		Drawable drawable = imageView.getDrawable();
-		if (drawable instanceof TransitionDrawable) {
-			TransitionDrawable td = (TransitionDrawable) drawable;
-			return td.getDrawable(td.getNumberOfLayers() - 1);
-		}
-		return drawable;
+		return imageView.getDrawable();
 	}
 	
 	/**
@@ -583,14 +579,20 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private float getImageRatio(){
 		float ratio = 0;
 		Drawable drawable = getImageDrawable();
+		if (drawable instanceof TiAnimationDrawable) {
+			TiAnimationDrawable animDrawable = (TiAnimationDrawable)drawable;
+			if (animDrawable.getNumberOfFrames() >0) {
+				drawable = animDrawable.getFrame(0);
+			}
+		}
 		if (drawable instanceof BitmapDrawable) {
 			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
 			if (bitmap != null && bitmap.getHeight() > 0)
-				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
+				return (float)bitmap.getWidth() /  (float)bitmap.getHeight();
 		}
-		else if (drawable instanceof SVGDrawable) {
-			SVGDrawable svg = (SVGDrawable)drawable;
-			ratio = (float)svg.getIntrinsicWidth() /  (float)svg.getIntrinsicHeight();
+		float height = drawable.getIntrinsicHeight();
+		if (height > 0) {
+			ratio = (float)drawable.getIntrinsicWidth() /  (float)drawable.getIntrinsicHeight(); 
 		}
 		return ratio;
 	}

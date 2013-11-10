@@ -665,6 +665,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_ANIMATED_IMAGES = "animatedImages";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_ANIMATION_DURATION = "animationDuration";
 	
 	/**
