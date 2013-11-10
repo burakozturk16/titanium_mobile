@@ -16,30 +16,7 @@
 //
 
 @interface TiUIImageView : TiUIView <ImageLoaderDelegate>
-{
-@private
-	NSMutableArray *images;
-	NSTimer *timer;
-	NSTimeInterval interval;
-	NSInteger repeatCount;
-	NSInteger index;
-	NSInteger iterations;
-	UIView *previous;
-	UIView *container;
-	BOOL ready;
-	BOOL stopped;
-	BOOL reverse;
-	BOOL placeholderLoading;
-	TiDimension width;
-	TiDimension height;
-	CGFloat autoHeight;
-	CGFloat autoWidth;
-	NSInteger loadCount;
-	NSInteger readyCount;
-	NSInteger loadTotal;
-	UIImageView * imageView;
-    UIViewContentMode scaleType;
-	BOOL localLoadSync;
+{	
 }
 
 -(void)start;

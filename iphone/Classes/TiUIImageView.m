@@ -27,10 +27,36 @@
 
 @interface TiUIImageView()
 {
+    NSMutableArray *images;
+    NSArray *usedImages;
+	NSTimer *timer;
+	NSTimeInterval interval;
+	NSInteger repeatCount;
+	NSInteger index;
+	NSInteger iterations;
+	UIView *previous;
+	UIView *container;
+	BOOL ready;
+	BOOL stopped;
+	BOOL reverse;
+	BOOL placeholderLoading;
+	TiDimension width;
+	TiDimension height;
+	CGFloat autoHeight;
+	CGFloat autoWidth;
+	NSInteger loadCount;
+	NSInteger readyCount;
+	NSInteger loadTotal;
+	UIImageView * imageView;
+    UIViewContentMode scaleType;
+	BOOL localLoadSync;
+    
     CGFloat animationDuration;
     TiSVGImage* _svg;
     BOOL animationPaused;
     CGFloat stepDuration;
+    BOOL autoreverse;
+    BOOL usingNewMethod;
 }
 @property(nonatomic,retain) NSDictionary *transition;
 -(void)startTimerWithEvent:(NSString *)eventName;
@@ -51,6 +77,8 @@ DEFINE_EXCEPTIONS
         animationDuration = 0.5;
         self.transition = nil;
         animationPaused=  YES;
+        autoreverse = NO;
+        usingNewMethod = NO;
     }
     return self;
 }
@@ -68,6 +96,7 @@ DEFINE_EXCEPTIONS
 	RELEASE_TO_NIL(imageView);
 	RELEASE_TO_NIL(_svg);
 	RELEASE_TO_NIL(_transition);
+	RELEASE_TO_NIL(usedImages);
 	[super dealloc];
 }
 
@@ -643,24 +672,15 @@ DEFINE_EXCEPTIONS
     [self resumeAnimation];
 }
 
--(void)pauseOrResumeImageViewAnimation
-{
-    if (animationPaused) {
-        [self resumeImageViewAnimation];
-    }
-    else {
-        [self pauseImageViewAnimation];
-    }
-}
 
 -(void) startAnimation {
     if (!animationPaused) {
-        index = 0;
-        return;
+        animationPaused = YES;
     }
-    animationPaused = NO;
+    [self setUsedImages];
     index = 0;
-    stepDuration = animationDuration / [imageView.animationImages count];
+    stepDuration = animationDuration / [usedImages count];
+    animationPaused = NO;
     [self stepThroughImages];
     
 }
@@ -674,9 +694,14 @@ DEFINE_EXCEPTIONS
 
 - (void) stepThroughImages {
     
-    imageView.image = [imageView.animationImages objectAtIndex: index];
+    [self imageView].image = [usedImages objectAtIndex: index];
     
-    if (index == [imageView.animationImages count] - 1) {
+    if (index == [usedImages count] - 1) {
+        if (autoreverse) {
+            NSArray* inversedImages = [[usedImages reverseObjectEnumerator] allObjects];
+            RELEASE_TO_NIL(usedImages)
+            usedImages = [inversedImages retain];
+        }
         index = 0;
     } else {
         index++;
@@ -690,6 +715,13 @@ DEFINE_EXCEPTIONS
     }
 }
 
+
+-(void)setAnimatedImageAtIndex:(int)i
+{
+    index = i;
+    [self imageView].image = [usedImages objectAtIndex: index];
+}
+
 -(void) stopAnimation {
     animationPaused = YES;
 }
@@ -698,16 +730,13 @@ DEFINE_EXCEPTIONS
 
 -(void)stop
 {
-	UIImageView* imageview = [self imageView];
-    
 	stopped = YES;
     [self stopTimerWithEvent:@"stop"];
 	ready = NO;
 	index = -1;
-    if ([imageview animationImages] != nil) {
+    if (usingNewMethod) {
         [self stopAnimation];
-        [imageview setImage:[[imageview animationImages] objectAtIndex:0]];
-        
+        [[self imageView] setImage:[usedImages objectAtIndex:0]];
         index = 0;
     }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
@@ -717,8 +746,7 @@ DEFINE_EXCEPTIONS
 {
 	stopped = NO;
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
-	UIImageView* imageview = [self imageView];
-	if ([imageview animationImages] != nil) {
+    if (usingNewMethod) {
 		[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
         [self startAnimation];
         return;
@@ -757,9 +785,15 @@ DEFINE_EXCEPTIONS
 }
 
 -(void)playpause {
-    UIImageView* imageview = [self imageView];
-    if (imageview.animationImages != nil) {
-        [self pauseOrResumeImageViewAnimation];
+    if (usingNewMethod) {
+        [self.proxy replaceValue:NUMBOOL(!animationPaused) forKey:@"paused" notification:NO];
+        [self.proxy replaceValue:NUMBOOL(animationPaused) forKey:@"animating" notification:NO];
+        if (animationPaused) {
+            [self resumeImageViewAnimation];
+        }
+        else {
+            [self pauseImageViewAnimation];
+        }
     }
 }
 
@@ -768,8 +802,7 @@ DEFINE_EXCEPTIONS
 	stopped = YES;
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
-    UIImageView* imageview = [self imageView];
-    if (imageview.animationImages != nil) {
+    if (usingNewMethod) {
         [self pauseImageViewAnimation];
         return;
     }
@@ -781,7 +814,7 @@ DEFINE_EXCEPTIONS
 	stopped = NO;
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
-    if ([self imageView].animationImages != nil) {
+    if (usingNewMethod) {
         [self resumeImageViewAnimation];
         return;
     }
@@ -823,6 +856,7 @@ DEFINE_EXCEPTIONS
 	
 	[self removeAllImagesFromContainer];
 	[self cancelPendingImageLoads];
+    [self stopAnimation];
 	
 	if (arg==nil || arg==[imageview image] || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
 	{
@@ -863,6 +897,7 @@ DEFINE_EXCEPTIONS
 -(void)setImages_:(id)args
 {
 	BOOL running = (timer!=nil);
+    usingNewMethod = NO;
 	
 	[self stop];
 	
@@ -918,34 +953,56 @@ DEFINE_EXCEPTIONS
     [self imageView].animationRepeatCount = [TiUtils intValue:count];
 }
 
+-(void)setUsedImages
+{
+    RELEASE_TO_NIL(usedImages);
+    usedImages = [reverse?[[images reverseObjectEnumerator] allObjects]:images retain];
+}
+
 -(void)setReverse_:(id)value
 {
-	reverse = [TiUtils boolValue:value];
-	UIImageView *imageview = [self imageView];
-    if (imageview.animationImages != nil) {
-        imageview.animationImages = [[imageview.animationImages reverseObjectEnumerator] allObjects];
+	BOOL newValue = [TiUtils boolValue:value def:reverse];
+    if (newValue == reverse) return;
+    reverse = newValue;
+    if (!animationPaused) {
+        [self startAnimation];
+    }
+    else {
+        [self setUsedImages];
+        index = [usedImages count] - index;
     }
 }
+
+-(void)setAutoreverse_:(id)value
+{
+	autoreverse = [TiUtils boolValue:value];
+}
+
 
 -(void)setAnimatedImages_:(id)args
 {
 	ENSURE_TYPE_OR_NIL(args,NSArray);
-    NSMutableArray* uiImages = [[NSMutableArray alloc] init];
-    NSEnumerator *enumerator = reverse?[args reverseObjectEnumerator]:[args objectEnumerator];
+    animationPaused = YES;
+    usingNewMethod = YES;
+    images = [[NSMutableArray alloc] initWithCapacity:[args count]];
     id anObject;
     CGFloat lwidth = 0;
     CGFloat lheight = 0;
+    NSEnumerator *enumerator = [args objectEnumerator];
     while (anObject = [enumerator nextObject]) {
         UIImage* image = [self loadImage:anObject];
         lwidth = MAX(lwidth, image.size.width);
         lheight = MAX(lheight, image.size.height);
-        [uiImages addObject:image];
+        [images addObject:image];
     }
     autoWidth = lwidth;
     autoHeight = lheight;
-    [self imageView].animationImages = uiImages;
     if ([TiUtils boolValue:[[self proxy] valueForKey:@"animating"]]) {
         [self startAnimation];
+    }
+    else {
+        [self setUsedImages];
+        [self setAnimatedImageAtIndex:0];
     }
 }
 
