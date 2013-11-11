@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
-import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.util.TiViewHelper;
 
 import android.view.View;
