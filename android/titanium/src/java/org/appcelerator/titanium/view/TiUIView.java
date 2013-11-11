@@ -24,7 +24,6 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.AffineTransform.DecomposedType;
-import org.appcelerator.titanium.util.TiImageHelper.FilterType;
 import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
 import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
@@ -1501,10 +1500,7 @@ public abstract class TiUIView
 	}
 	
 	public float getOpacity() {
-//		return ViewHelper.getAlpha(getOuterView());
-		if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
-			return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
-		return 1;
+		return ViewHelper.getAlpha(getRootView());
 	}
 
 

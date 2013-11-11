@@ -19,13 +19,9 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiLaunchActivity;
 import org.appcelerator.titanium.util.TiUIHelper;
 
-import com.nineoldandroids.view.ViewHelper;
-
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
