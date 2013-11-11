@@ -809,7 +809,10 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
         if (jsonData==nil) {
             jsonData = [NSData dataWithContentsOfFile:tiAppPropertiesPath];
         }
-        if (jsonData==nil) return nil;
+        if (jsonData==nil) {
+            props = [[NSDictionary alloc] init];
+            return props;
+        }
         NSError *error = nil;
         props = [[NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error] retain];
         if(error != nil) {
