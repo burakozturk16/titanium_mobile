@@ -31,6 +31,7 @@ import android.app.Activity;
 	TiC.PROPERTY_ANIMATED_IMAGES,
 	TiC.PROPERTY_AUTOREVERSE,
 	TiC.PROPERTY_REVERSE,
+	TiC.PROPERTY_TRANSITION,
 	TiC.PROPERTY_SCALE_TYPE
 })
 public class ImageViewProxy extends ViewProxy
@@ -91,9 +92,15 @@ public class ImageViewProxy extends ViewProxy
 	
 	@Kroll.method
 	public void pauseOrResume() {
+		boolean animating = TiConvert.toBoolean(getProperty("animating"), false);
 		boolean paused = TiConvert.toBoolean(getProperty("paused"), true);
-		if (paused) resume();
-		else pause();
+		if (!animating) {
+			start();
+		}
+		else {
+			if (paused) resume();
+			else pause();
+		}
 	}
 	
 	@Kroll.method
