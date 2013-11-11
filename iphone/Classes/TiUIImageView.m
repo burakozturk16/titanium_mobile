@@ -109,36 +109,43 @@ DEFINE_EXCEPTIONS
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     CGSize result = size;
-    float factor = [TiUtils isRetinaDisplay]?autoScale/2:1;
     if (CGSizeEqualToSize(size, CGSizeZero)) {
         result = CGSizeMake(autoWidth, autoHeight);
-        result.width *= factor;
-        result.height *= factor;
     }
     else if(size.width == 0 && autoHeight>0) {
         result.width = (size.height*autoWidth/autoHeight);
-        result.width *= factor;
     }
     else if(size.height == 0 && autoWidth > 0) {
         result.height = (size.width*autoHeight/autoWidth);
-        result.height *= factor;
     }
     else if(autoHeight == 0 || autoWidth == 0) {
         result = container.bounds.size;
     }
     else {
-        float ratio = autoWidth/autoHeight;
-        float viewratio = size.width/size.height;
-        if(viewratio > ratio) {
-            result.height = MIN(size.height, autoHeight);
-            result.width = (result.height*autoWidth/autoHeight);
+        BOOL autoSizeWidth = [(TiViewProxy*)self.proxy widthIsAutoSize];
+        BOOL autoSizeHeight = [(TiViewProxy*)self.proxy heightIsAutoSize];
+        if (!autoSizeWidth && ! autoSizeHeight) {
+            result = size;
+        }
+        else if(autoSizeWidth && autoSizeHeight) {
+            float ratio = autoWidth/autoHeight;
+            float viewratio = size.width/size.height;
+            if(viewratio > ratio) {
+                result.height = MIN(size.height, autoHeight);
+                result.width = (result.height*autoWidth/autoHeight);
+            }
+            else {
+                result.width = MIN(size.width, autoWidth);
+                result.height = (result.width*autoHeight/autoWidth);
+            }        }
+        else if(autoSizeHeight) {
+            result.width = size.width;
+            result.height = result.width*autoHeight/autoWidth;
         }
         else {
-            result.width = MIN(size.width, autoWidth);
-            result.height = (result.width*autoHeight/autoWidth);
+            result.height = size.height;
+            result.width = (result.height*autoWidth/autoHeight);
         }
-        result.width *= factor;
-        result.height *= factor;
     }
     return result;
 }
@@ -370,9 +377,7 @@ DEFINE_EXCEPTIONS
 -(void) transitionToImage:(UIImage*)image
 {
     ENSURE_UI_THREAD(transitionToImage,image);
-    autoWidth = image.size.width;
-    autoHeight = image.size.height;
-    autoScale = image.scale;
+    [self updateAutoSizeFromImage:image];
 	if (self.proxy==nil)
 	{
 		// this can happen after receiving an async callback for loading the image
@@ -396,30 +401,32 @@ DEFINE_EXCEPTIONS
     }
 }
 
-//-(void)setURLImageOnUIThread:(id)image
-//{
-//	ENSURE_UI_THREAD(setURLImageOnUIThread,image);
-//	if (self.proxy==nil)
-//	{
-//		// this can happen after receiving an async callback for loading the image
-//		// but after we've detached our view.  In which case, we need to just ignore this
-//		return;
-//	}
-//    TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
-//    [(TiViewProxy *)[self proxy] contentsWillChange];
-//    if (transition != nil) {
-//        UIImageView *iv = [self imageView];
-//        UIImageView *newView = [self cloneView:iv];
-//        newView.image = [self convertToUIImage:image];
-//        [TiTransitionHelper transitionfromView:iv toView:newView insideView:self withTransition:transition completionBlock:^{
-//            [iv removeFromSuperview];
-//            [iv release];
-//            placeholderLoading = NO;
-//            [self fireLoadEventWithState:@"image"];
-//        }];
-//        imageView = newView;
-//	}
-//}
+-(void)updateAutoSizeFromImage:(id)image
+{
+    UIImage* imageToUse = nil;
+    if ([image isKindOfClass:[UIImage class]]) {
+        imageToUse = [self rotatedImage:image];
+    }
+    else if([image isKindOfClass:[TiSVGImage class]]) {
+        autoHeight = _svg.size.height;
+        autoWidth = _svg.size.width;
+        return;
+    }
+    else {
+        autoHeight = autoWidth = 0;
+        return;
+    }
+    float factor = 1.0f;
+    float screenScale = [UIScreen mainScreen].scale;
+    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"] def:[TiUtils isRetinaDisplay]])
+    {
+        factor /= screenScale;
+    }
+    int realWidth = imageToUse.size.width * factor;
+    int realHeight = imageToUse.size.height * factor;
+    autoWidth = realWidth;
+    autoHeight = realHeight;
+}
 
 -(void)loadImageInBackground:(NSNumber*)pos
 {
@@ -438,13 +445,7 @@ DEFINE_EXCEPTIONS
 
     UIImage *imageToUse = [self rotatedImage:theimage];
     
-    if (autoWidth < imageToUse.size.width) {
-        autoWidth = imageToUse.size.width;
-    }
-    
-    if (autoHeight < imageToUse.size.height) {
-        autoHeight = imageToUse.size.height;
-    }
+    [self updateAutoSizeFromImage:imageToUse];
     
 	TiThreadPerformOnMainThread(^{
 		UIView *view = [[container subviews] objectAtIndex:position];
@@ -541,9 +542,8 @@ DEFINE_EXCEPTIONS
         
         UIImage *imageToUse = [self rotatedImage:poster];
         
+        [self updateAutoSizeFromImage:imageToUse];
         // TODO: Use the full image size here?  Auto width/height is going to be changed once the image is loaded.
-        autoWidth = imageToUse.size.width;
-        autoHeight = imageToUse.size.height;
         [self imageView].image = imageToUse;
     }
 }
@@ -580,8 +580,6 @@ DEFINE_EXCEPTIONS
         
             if (image != nil) {
                 UIImage *imageToUse = [self rotatedImage:image];
-                autoWidth = imageToUse.size.width;
-                autoHeight = imageToUse.size.height;
                 [self transitionToImage:imageToUse];
             }
             else {
@@ -602,13 +600,6 @@ DEFINE_EXCEPTIONS
 		{
 			UIImage *imageToUse = [self rotatedImage:image];
 			[(TiUIImageViewProxy*)[self proxy] setImageURL:url_];
-            
-			autoWidth = imageToUse.size.width;
-			autoHeight = imageToUse.size.height;
-			if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]]) {
-				autoWidth = autoWidth/2;
-				autoHeight = autoHeight/2;
-			}
             [self transitionToImage:imageToUse];
 		}
 	}
@@ -654,26 +645,15 @@ DEFINE_EXCEPTIONS
     
 	if ([image isKindOfClass:[UIImage class]]) {
         imageToUse = [self rotatedImage:image];
-        autoHeight = imageToUse.size.height;
-        autoWidth = imageToUse.size.width;
     }
     else if([image isKindOfClass:[TiSVGImage class]]) {
-        autoHeight = _svg.size.height;
-        autoWidth = _svg.size.width;
         // NOTE: Loading from URL means we can't pre-determine any % value.
 		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
 									  TiDimensionCalculateValue(height,0.0));
         imageToUse = [_svg imageForSize:_imagesize] ;
     }
-    else {
-        autoHeight = autoWidth = 0;
-    }
     
-    //Setting hires to true causes image to de displayed at 50%
-    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]]) {
-        autoWidth = autoWidth/2;
-        autoHeight = autoHeight/2;
-    }
+    [self updateAutoSizeFromImage:imageToUse];
 
     return imageToUse;
 }

@@ -633,6 +633,8 @@ enum
 -(void)configurationStart:(BOOL)recursive;
 -(void)configurationSet;
 -(void)configurationSet:(BOOL)recursive;
+-(BOOL) widthIsAutoSize;
+-(BOOL) heightIsAutoSize;
 @end
 
 
