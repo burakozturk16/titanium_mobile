@@ -87,5 +87,6 @@ public class TiViewHelper {
 		ViewHelper.setRotation(view, 0.0f);
 		ViewHelper.setRotationX(view, 0.0f);
 		ViewHelper.setRotationY(view, 0.0f);
+		ViewHelper.setAlpha(view, 1.0f);
 	}
 }
