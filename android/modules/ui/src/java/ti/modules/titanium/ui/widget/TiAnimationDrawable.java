@@ -59,6 +59,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         if (!isRunning()) {
         	resetCurrFrame();
         	actualReverse = reverse;
+            paused = false;
             run();
         }
         else {
@@ -88,7 +89,10 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
     }
 
     public void resume() {
-        if (isRunning() && paused) {
+    	if (!isRunning()) {
+    		start();
+    	}
+    	else if (paused) {
             paused = false;
             run();
         }
