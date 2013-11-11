@@ -2855,7 +2855,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         CGFloat offsetH = TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width)
         + TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width);
         
-        TiDimension constraint = [child layoutProperties]->height;
+        TiDimension constraint = [child layoutProperties]->width;
         
         if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
         {
