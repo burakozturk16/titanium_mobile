@@ -1,5 +1,11 @@
 package ti.modules.titanium.ui.widget;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
@@ -14,10 +20,12 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
     private boolean reverse = false;
     private boolean paused = false;
 	private boolean actualReverse = false;
-	private int duration = 50;
+//	private int duration = 50;
+	List<Integer> durations;
 
     public TiAnimationDrawable() {
         super();
+        durations = new ArrayList<Integer>();
         mAnimationState = (DrawableContainerState) new LevelListDrawable().getConstantState();
        setConstantState(mAnimationState);
     }
@@ -142,14 +150,6 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
     public Drawable getFrame(int index) {
         return mAnimationState.getChildren()[index];
     }
-
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
-    }
     
     /**
      * Add a frame to the animation
@@ -157,7 +157,9 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
      * @param frame The frame to add
      * @param duration How long in milliseconds the frame should appear
      */
-    public void addFrame(Drawable frame) {
+    public void addFrame(Drawable frame, int duration) {
+    	durations.add((Integer)duration);
+
         mAnimationState.addChild(frame);
         if (mCurFrame < 0) {
             setFrame(0, true, false);
@@ -228,7 +230,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         if (animate) {
             // Unscheduling may have clobbered this value; restore it to record that we're animating
             mCurFrame = frame;
-            scheduleSelf(this, SystemClock.uptimeMillis() + duration);
+            scheduleSelf(this, SystemClock.uptimeMillis() + durations.get(frame));
         }
     }
 
@@ -240,5 +242,13 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         }
         return this;
     }
+
+	public void setDuration(int duration) {
+		durations.clear();
+		for (int i = 0; i < getNumberOfFrames(); i++) {
+			durations.add(duration);
+		}
+		
+	}
 }
 
