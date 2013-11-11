@@ -323,6 +323,9 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	{
 		if (drawable != animDrawable) {
 			currentImage = drawable;
+			if (animDrawable != null) {
+				animDrawable.stop();
+			}
 		}
 		TiImageView view = getView();
 		if (view != null) {
