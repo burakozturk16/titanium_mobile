@@ -22,6 +22,7 @@ import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
+import org.appcelerator.titanium.util.TiViewHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
@@ -90,6 +91,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		public ViewGroup.LayoutParams getLayoutParams();
 		public void updatePageTransformer();
 		public View getChildAt(int i);
+		public void resetTransformations();
 	}
 	
 	private class HViewPager extends ViewPager implements IViewPager{
@@ -125,18 +127,30 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		public void updatePageTransformer() {
 			if (transition != null) {
 				setPageTransformer(!TransitionHelper.isPushSubType(transition.subType), new PageTransformer() {
-				
-				@Override
-				public void transformPage(View page, float position) {
-					if (transition != null) {
-						transition.transformView(page, position, true);
+					
+					@Override
+					public void transformPage(View page, float position) {
+						if (transition != null) {
+							transition.transformView(page, position, true);
+						}
 					}
-				}
-			});
+				});
+				for (int i = 0; i < getChildCount(); i++) {
+		            final View child = getChildAt(i);
+		            TiViewHelper.resetValues(child);
+		            transition.transformView(child, i - mCurIndex, true);
+		        }
 			}
 			else {
 				setPageTransformer(false, null);
 			}
+		}
+		@Override
+		public void resetTransformations() {
+			for (int i = 0; i < getChildCount(); i++) {
+	            final View child = getChildAt(i);
+	            TiViewHelper.resetValues(child);
+	        }
 		}
 	}
 	private class VViewPager extends VerticalViewPager implements IViewPager{
@@ -171,19 +185,32 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		@Override
 		public void updatePageTransformer() {
 			if (transition != null) {
-			setPageTransformer(!TransitionHelper.isPushSubType(transition.subType), new VerticalViewPager.PageTransformer() {
+				setPageTransformer(!TransitionHelper.isPushSubType(transition.subType), new VerticalViewPager.PageTransformer() {
 				
-				@Override
-				public void transformPage(View page, float position) {
-					if (transition != null) {
-						transition.transformView(page, position, true);
+					@Override
+					public void transformPage(View page, float position) {
+						if (transition != null) {
+							transition.transformView(page, position, true);
+							Log.w(TAG, "transformView " + position);
+						}
 					}
-				}
-			});
+				});
+				for (int i = 0; i < getChildCount(); i++) {
+		            final View child = getChildAt(i);
+		            TiViewHelper.resetValues(child);
+		            transition.transformView(child, i - mCurIndex, true);
+		        }
 			}
 			else {
 				setPageTransformer(false, null);
 			}
+		}
+		@Override
+		public void resetTransformations() {
+			for (int i = 0; i < getChildCount(); i++) {
+	            final View child = getChildAt(i);
+	            TiViewHelper.resetValues(child);
+	        }
 		}
 	}
 	
@@ -299,6 +326,10 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	@Override
 	public void onPageScrolled(int positionRoundedDown, float positionOffset, int positionOffsetPixels)
 	{
+		if (hardwaredDisabled) {
+			hardwaredDisabled = false;
+			enableHWAcceleration(nativeView);
+		}
 		isValidScroll = true;
 		int oldIndex = mCurIndex;
 
@@ -549,6 +580,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		} else if (TiC.PROPERTY_TRANSITION.equals(key)){
 			transition = TransitionHelper.transitionFromObject((HashMap) newValue, null, null);
 			mPager.updatePageTransformer();
+			nativeView.invalidate();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
