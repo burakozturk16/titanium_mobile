@@ -35,7 +35,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         boolean changed = super.setVisible(visible, restart);
         if (visible) {
             if (changed || restart) {
-                setFrame(0, true, true);
+                setFrame(0, true, false);
             }
         } else {
             unscheduleSelf(this);
