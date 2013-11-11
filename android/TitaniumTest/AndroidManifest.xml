@@ -14,7 +14,7 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS"/>
 		<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-			android:theme="@style/Theme.Titanium"
+			android:theme="@style/Theme.Titanium.Translucent"
 		android:debuggable="true" android:allowBackup="false"
 		android:hardwareAccelerated="true">
 
