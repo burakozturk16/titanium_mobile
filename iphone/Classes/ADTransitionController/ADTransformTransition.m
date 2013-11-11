@@ -55,6 +55,7 @@
 }
 
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
+    [super startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
     viewIn.layer.transform = self.inLayerTransform;
     viewOut.layer.transform = self.outLayerTransform;
     

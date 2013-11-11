@@ -75,6 +75,7 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     for (CALayer * layer in layers) {
         if (![layer isKindOfClass:[NSNull class]]) {
             layer.shouldRasterize = YES;
+            [layer setDoubleSided:NO];
             layer.rasterizationScale = [UIScreen mainScreen].scale;
         }
     }
@@ -89,9 +90,6 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 }
 
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    [[viewIn layer] setDoubleSided:NO];
-    [[viewOut layer] setDoubleSided:NO];
-    
     [self _setupLayers:@[viewIn?[viewIn layer]:[NSNull null], viewOut?[viewOut layer]:[NSNull null]]];
 }
 
@@ -100,7 +98,8 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 }
 
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    NSAssert(FALSE, @"Unhandled ADTransition subclass!");
+    [viewIn.layer removeAnimationForKey:kAdKey];
+    [viewOut.layer removeAnimationForKey:kAdKey];
 }
 
 - (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {

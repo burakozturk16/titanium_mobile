@@ -10,6 +10,7 @@
 
 #import <Foundation/Foundation.h>
 #import <QuartzCore/CoreAnimation.h>
+#define kAdKey @"adAnimation"
 
 extern NSString * ADTransitionAnimationKey;
 extern NSString * ADTransitionAnimationInValue;
