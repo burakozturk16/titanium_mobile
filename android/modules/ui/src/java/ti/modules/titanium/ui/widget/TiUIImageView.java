@@ -1228,25 +1228,25 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		return null;
 	}
 
-	@Override
-	protected void setOpacity(View view, float opacity)
-	{
-		TiImageView iview = getView();
-		if (iview != null) {
-			iview.setColorFilter(TiUIHelper.createColorFilterForOpacity(opacity));
-		}
-		super.setOpacity(view, opacity);
-	}
+//	@Override
+//	public void setOpacity(float opacity)
+//	{
+//		TiImageView iview = getView();
+//		if (iview != null) {
+//			iview.setColorFilter(TiUIHelper.createColorFilterForOpacity(opacity));
+//		}
+//		super.setOpacity(opacity);
+//	}
 
-	@Override
-	public void clearOpacity(View view)
-	{
-		super.clearOpacity(view);
-		TiImageView iview = getView();
-		if (iview != null) {
-			iview.setColorFilter(null);
-		}
-	}
+//	@Override
+//	public void clearOpacity(View view)
+//	{
+//		super.clearOpacity(view);
+//		TiImageView iview = getView();
+//		if (iview != null) {
+//			iview.setColorFilter(null);
+//		}
+//	}
 
 	@Override
 	public void release()

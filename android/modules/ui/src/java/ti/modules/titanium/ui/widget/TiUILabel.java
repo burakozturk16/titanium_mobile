@@ -960,23 +960,4 @@ public class TiUILabel extends TiUINonViewGroupView
 	public void setClickable(boolean clickable) {
 		tv.setClickable(clickable);
 	}
-
-	@Override
-	protected void setOpacity(View view, float opacity)
-	{
-		if (view != null && view instanceof TextView) {
-			TiUIHelper.setPaintOpacity(((TextView) view).getPaint(), opacity);
-		}
-		super.setOpacity(view, opacity);
-	}
-
-	@Override
-	public void clearOpacity(View view)
-	{
-		super.clearOpacity(view);
-		if (view != null && view instanceof TextView) {
-			((TextView) view).getPaint().setColorFilter(null);
-		}
-	}
-	
 }

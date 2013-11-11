@@ -1487,56 +1487,26 @@ public abstract class TiUIView
 			Log.w(TAG, "Ignoring invalid value for opacity: " + opacity);
 			return;
 		}
+		View view = getRootView();
+		View parentForChildren = getParentViewForChild();
+		ViewHelper.setAlpha(view, opacity);
+		if (parentForChildren != view) {
+			ViewHelper.setAlpha(parentForChildren, opacity);
+		}
 		if (borderView != null) {
 			borderView.setBorderAlpha(Math.round(opacity * 255));
 			borderView.postInvalidate();
 		}
-		View view = getRootView();
-		if (view != null) {
-			if (HONEYCOMB_OR_GREATER) {
-				setAlpha(view, opacity);
-			} else {
-				setOpacity(view, opacity);
-			}
-			view.postInvalidate();
-		}
+
 	}
 	
 	public float getOpacity() {
+//		return ViewHelper.getAlpha(getOuterView());
 		if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
 			return TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY));
 		return 1;
 	}
 
-	/**
-	 * Sets the view's alpha (Honeycomb or later).
-	 * @param view The native view object
-	 * @param alpha The new alpha value
-	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	protected void setAlpha(View view, float alpha)
-	{
-		view.setAlpha(alpha);
-	}
-
-	/**
-	 * Sets the view's opacity (pre-Honeycomb).
-	 * @param view the view object.
-	 * @param opacity the opacity to set.
-	 */
-	protected void setOpacity(View view, float opacity)
-	{
-		if (view != null) {
-			TiUIHelper.setDrawableOpacity(view.getBackground(), opacity);
-			if (opacity == 1) {
-				clearOpacity(view);
-			}
-		}
-		if (nativeView instanceof TiCompositeLayout) {
-			TiCompositeLayout layout = (TiCompositeLayout) nativeView;
-			layout.setAlphaCompat(opacity);
-		}
-	}
 
 	public void clearOpacity(View view)
 	{
