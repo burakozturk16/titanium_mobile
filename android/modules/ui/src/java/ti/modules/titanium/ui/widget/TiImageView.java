@@ -26,10 +26,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -70,8 +68,6 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 
 	private Boolean readyToLayout = false;
 	private Boolean configured = false;
-	private boolean animateTransition = true;
-	private int  animationDuration = 500;
 	private Drawable  queuedDrawable = null;
 	private Bitmap  queuedBitmap = null;
 	private Transition  queuedTransition = null;
@@ -86,6 +82,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private int orientation;
 	
 	private WeakReference<TiViewProxy> proxy;
+
+	private ImageView oldImageView = null;
 
 	public TiImageView(Context context) {
 		super(context);
@@ -153,7 +151,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				super.setImageDrawable(svg);
 			}
 		};
-		addView(imageView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		addView(imageView, getImageLayoutParams());
 		setEnableScale(true);
 
 		gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()
@@ -354,26 +352,34 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		}
 	}
 	
+	private ViewGroup.LayoutParams getImageLayoutParams() {
+		ViewGroup.LayoutParams params  = new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+		return params;
+	}
+	
 	/**
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void transitionToImageView(ImageView newImageView, Transition transition) {
 		inTransition = true;
-		final ImageView oldImageView = imageView;
+		oldImageView = imageView;
 		imageView = newImageView;
 		newImageView.setVisibility(View.GONE);
-		TiUIHelper.addView(this, newImageView, (oldImageView != null)?oldImageView.getLayoutParams():new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)); //make sure it s removed from its parent
+		
+		TiUIHelper.addView(this, newImageView, (oldImageView != null)?oldImageView.getLayoutParams():getImageLayoutParams());
 		transition.setTargets(this, newImageView, oldImageView);
 
 		AnimatorSet set = transition.getSet(new AnimatorListener() {
 			public void onAnimationEnd(Animator arg0) {	
 					removeView(oldImageView);
+					oldImageView = null;
 					onTransitionEnd();
 			}
 
 			public void onAnimationCancel(Animator arg0) {
 					removeView(oldImageView);
+					oldImageView = null;
 					onTransitionEnd();
 			}
 
@@ -661,8 +667,15 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		int parentTop = 0;
 		int parentBottom = bottom - top;
 
-		// imageView.layout(parentLeft, parentTop, imageView.getMeasuredWidth(), imageView.getMeasuredHeight());
 		imageView.layout(parentLeft, parentTop, parentRight, parentBottom);
+		if (oldImageView != null) {
+			//make sure the old image view remains in place
+			int centerX = (parentRight - parentLeft)/2;
+			int centerY = (parentBottom - parentTop)/2;
+			int w = oldImageView.getWidth()/2;
+			int h = oldImageView.getHeight()/2;
+			oldImageView.layout(centerX-w, centerY-h, centerX+w, centerY+h);
+		}
 		if (enableZoomControls && zoomControls.getVisibility() == View.VISIBLE) {
 			int zoomWidth = zoomControls.getMeasuredWidth();
 			int zoomHeight = zoomControls.getMeasuredHeight();
@@ -683,6 +696,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		updateScaleTypeForImageView(imageView);
 		if (readyToLayout) requestLayout();
 	}
+	
 	private void updateScaleTypeForImageView(ImageView view)
 	{
 		if (orientation > 0 || enableZoomControls) {
