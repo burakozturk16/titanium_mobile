@@ -84,19 +84,25 @@ public class TiBorderWrapperView extends MaskableView
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
 		updateBorderPath();
 	}
-
+	
+	@Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int parentLeft = 0;
+		int parentRight = r - l;
+		int parentTop = 0;
+		int parentBottom = b - t;
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            child.layout(parentLeft, parentTop, parentRight, parentBottom);
+        }
+    }
+	
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
 		drawBorder(canvas);
  	 	super.onDraw(canvas);
  		clipCanvas(canvas);
-	}
-	
-	@Override
-	protected void dispatchDraw(Canvas canvas)
-	{
- 	 	super.dispatchDraw(canvas);
 	}
 
 	private void updateBorderPath()
