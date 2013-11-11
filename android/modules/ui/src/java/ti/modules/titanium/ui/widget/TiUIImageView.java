@@ -276,16 +276,12 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	private void setImage(final Bitmap bitmap)
 	{
-//		if (!TiApplication.isUIThread()) {
-//			TiMessenger.sendBlockingMainMessage(mainHandler.obtainMessage(SET_IMAGE), bitmap);
-//		} else {
-//			handleSetImage(bitmap);
-//		}
 		setDrawable((bitmap!=null)?new BitmapDrawable(proxy.getActivity().getResources(), bitmap):null);
 	}
 	
 	private void setDrawable(final Drawable drawable)
 	{
+		if (getDrawable() == drawable) return;
 		if (!TiApplication.isUIThread()) {
 			TiMessenger.sendBlockingMainMessage(mainHandler.obtainMessage(SET_DRAWABLE), drawable);
 		} else {
