@@ -27,8 +27,11 @@
 
 @interface TiUIImageView()
 {
-    NSMutableArray *images;
-    NSArray *usedImages;
+    TiAnimatedImage* _animatedImage;
+    NSMutableArray *_images;
+    UIImage* _currentImage;
+    id _currentImageSource;
+    
 	NSTimer *timer;
 	NSTimeInterval interval;
 	NSInteger repeatCount;
@@ -44,6 +47,7 @@
 	TiDimension height;
 	CGFloat autoHeight;
 	CGFloat autoWidth;
+	CGFloat autoScale;
 	NSInteger loadCount;
 	NSInteger readyCount;
 	NSInteger loadTotal;
@@ -79,6 +83,7 @@ DEFINE_EXCEPTIONS
         autoreverse = NO;
         usingNewMethod = NO;
         stopped = YES;
+        autoScale = 1;
     }
     return self;
 }
@@ -90,27 +95,33 @@ DEFINE_EXCEPTIONS
 		[timer invalidate];
 	}
 	RELEASE_TO_NIL(timer);
-	RELEASE_TO_NIL(images);
+	RELEASE_TO_NIL(_images);
 	RELEASE_TO_NIL(container);
 	RELEASE_TO_NIL(previous);
 	RELEASE_TO_NIL(imageView);
 	RELEASE_TO_NIL(_svg);
 	RELEASE_TO_NIL(_transition);
-	RELEASE_TO_NIL(usedImages);
+	RELEASE_TO_NIL(_animatedImage);
+	RELEASE_TO_NIL(_currentImage);
 	[super dealloc];
 }
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     CGSize result = size;
+    float factor = [TiUtils isRetinaDisplay]?autoScale/2:1;
     if (CGSizeEqualToSize(size, CGSizeZero)) {
         result = CGSizeMake(autoWidth, autoHeight);
+        result.width *= factor;
+        result.height *= factor;
     }
     else if(size.width == 0 && autoHeight>0) {
         result.width = (size.height*autoWidth/autoHeight);
+        result.width *= factor;
     }
     else if(size.height == 0 && autoWidth > 0) {
         result.height = (size.width*autoHeight/autoWidth);
+        result.height *= factor;
     }
     else if(autoHeight == 0 || autoWidth == 0) {
         result = container.bounds.size;
@@ -126,6 +137,8 @@ DEFINE_EXCEPTIONS
             result.width = MIN(size.width, autoWidth);
             result.height = (result.width*autoHeight/autoWidth);
         }
+        result.width *= factor;
+        result.height *= factor;
     }
     return result;
 }
@@ -160,7 +173,7 @@ DEFINE_EXCEPTIONS
 		return;
 	}
 	
-	// don't let the placeholder stomp on our new images
+	// don't let the placeholder stomp on our new _images
 	placeholderLoading = NO;
 	
 	NSInteger position = index % loadTotal;
@@ -226,7 +239,7 @@ DEFINE_EXCEPTIONS
 	[view release];
 	[spinner release];
 	
-	[images addObject:img];
+	[_images addObject:img];
 	[[OperationQueue sharedQueue] queue:@selector(loadImageInBackground:) target:self arg:[NSNumber numberWithInt:index_] after:nil on:nil ui:NO];
 }
 
@@ -354,9 +367,12 @@ DEFINE_EXCEPTIONS
     return clone;
 }
 
--(void) transitionToImage:(id)image
+-(void) transitionToImage:(UIImage*)image
 {
     ENSURE_UI_THREAD(transitionToImage,image);
+    autoWidth = image.size.width;
+    autoHeight = image.size.height;
+    autoScale = image.scale;
 	if (self.proxy==nil)
 	{
 		// this can happen after receiving an async callback for loading the image
@@ -364,7 +380,7 @@ DEFINE_EXCEPTIONS
 		return;
 	}
     TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
-    [(TiViewProxy *)[self proxy] contentsWillChange];
+    [(TiViewProxy*)[self proxy] contentsWillChange];
     if (transition != nil) {
         UIImageView *iv = [self imageView];
         UIImageView *newView = [self cloneView:iv];
@@ -408,7 +424,7 @@ DEFINE_EXCEPTIONS
 -(void)loadImageInBackground:(NSNumber*)pos
 {
 	int position = [TiUtils intValue:pos];
-	NSURL *theurl = [TiUtils toURL:[images objectAtIndex:position] proxy:self.proxy];
+	NSURL *theurl = [TiUtils toURL:[_images objectAtIndex:position] proxy:self.proxy];
 	UIImage *theimage = [[ImageLoader sharedLoader] loadImmediateImage:theurl];
 	if (theimage==nil)
 	{
@@ -463,7 +479,7 @@ DEFINE_EXCEPTIONS
 		loadCount++;
 		if (loadCount==loadTotal)
 		{
-			[self fireLoadEventWithState:@"images"];
+			[self fireLoadEventWithState:@"_images"];
 		}
 		
 		if (ready)
@@ -485,7 +501,7 @@ DEFINE_EXCEPTIONS
 
 -(void)removeAllImagesFromContainer
 {
-	// remove any existing images
+	// remove any existing _images
 	if (container!=nil)
 	{
 		for (UIView *view in [container subviews])
@@ -506,7 +522,7 @@ DEFINE_EXCEPTIONS
 	placeholderLoading = NO;
 }
 
--(void)loadDefaultImage:(CGSize)imageSize
+-(void)loadDefaultImage:(CGSize)_imagesize
 {
     // use a placeholder image - which the dev can specify with the
     // defaultImage property or we'll provide the MCTS stock one
@@ -515,13 +531,13 @@ DEFINE_EXCEPTIONS
     
     if ((defURL == nil) && ![TiUtils boolValue:[self.proxy valueForKey:@"preventDefaultImage"] def:NO])
     {	//This is a special case, because it IS built into the bundle despite being in the simulator.
-        NSString * filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"modules/ui/images/photoDefault.png"];
+        NSString * filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"modules/ui/_images/photoDefault.png"];
         defURL = [NSURL fileURLWithPath:filePath];
     }
     
     if (defURL!=nil)
     {
-        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:defURL withSize:imageSize];
+        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:defURL withSize:_imagesize];
         
         UIImage *imageToUse = [self rotatedImage:poster];
         
@@ -543,13 +559,13 @@ DEFINE_EXCEPTIONS
 		NSURL *url_ = [TiUtils toURL:[img absoluteString] proxy:self.proxy];
         
         // NOTE: Loading from URL means we can't pre-determine any % value.
-		CGSize imageSize = CGSizeMake(TiDimensionCalculateValue(width, 0.0), 
+		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0), 
 									  TiDimensionCalculateValue(height,0.0));
         
 		if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
 		{
-			imageSize.width *= 2;
-			imageSize.height *= 2;
+			_imagesize.width *= 2;
+			_imagesize.height *= 2;
 		}
         UIImage *image = nil;
         if (localLoadSync)
@@ -569,14 +585,14 @@ DEFINE_EXCEPTIONS
                 [self transitionToImage:imageToUse];
             }
             else {
-                [self loadDefaultImage:imageSize];
+                [self loadDefaultImage:_imagesize];
             }
             return;
         }
         
 		if (image==nil)
 		{
-//            [self loadDefaultImage:imageSize];
+//            [self loadDefaultImage:_imagesize];
 			placeholderLoading = YES;
 			[(TiUIImageViewProxy *)[self proxy] startImageLoad:url_];
 			return;
@@ -604,7 +620,7 @@ DEFINE_EXCEPTIONS
 	if (container==nil)
 	{
 		// we use a separate container view so we can both have an image
-		// and a set of images
+		// and a set of _images
 		container = [[UIView alloc] initWithFrame:self.bounds];
 		container.userInteractionEnabled = NO;
 		[self addSubview:container];
@@ -645,9 +661,9 @@ DEFINE_EXCEPTIONS
         autoHeight = _svg.size.height;
         autoWidth = _svg.size.width;
         // NOTE: Loading from URL means we can't pre-determine any % value.
-		CGSize imageSize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
 									  TiDimensionCalculateValue(height,0.0));
-        imageToUse = [_svg imageForSize:imageSize] ;
+        imageToUse = [_svg imageForSize:_imagesize] ;
     }
     else {
         autoHeight = autoWidth = 0;
@@ -661,67 +677,23 @@ DEFINE_EXCEPTIONS
 
     return imageToUse;
 }
-
--(void)pauseImageViewAnimation
-{
-    animationPaused = YES;
-}
-
--(void)resumeImageViewAnimation
-{
-    [self resumeAnimation];
-}
-
-
--(void) startAnimation {
-    [self setUsedImages];
-    index = reverse?[usedImages count]-1:0;
-    [self resumeAnimation];
-    
-}
-
--(void) resumeAnimation {
-    if (animationPaused) {
-        animationPaused = NO;
-        [self stepThroughImages];
-    }
-}
-
-- (void) stepThroughImages {
-    
-    [self imageView].image = [usedImages objectAtIndex: index];
-    
-    if (index == [usedImages count] - 1) {
-        if (autoreverse) {
-            NSArray* inversedImages = [[usedImages reverseObjectEnumerator] allObjects];
-            RELEASE_TO_NIL(usedImages)
-            usedImages = [inversedImages retain];
-        }
-        index = 0;
-    } else {
-        index++;
-    }
-    
-    if (!animationPaused) {
-        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(animationDuration * NSEC_PER_SEC));
-        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
-           if (!animationPaused) [self stepThroughImages];
-        });
-    }
-}
-
-
--(void)setAnimatedImageAtIndex:(int)i
-{
-    index = i;
-    [self imageView].image = [usedImages objectAtIndex: index];
-}
-
--(void) stopAnimation {
-    animationPaused = YES;
-}
-
 #pragma mark Public APIs
+
+-(void)animatedImage:(TiAnimatedImage*)animatedImage changedToImage:(UIImage*)image
+{
+    if (animatedImage.stopped){
+        [self transitionToImage:_currentImage];
+    }
+    else {
+        BOOL wasShowingCurrentImage = [self imageView].image == _currentImage;
+        if (!animatedImage.paused && !wasShowingCurrentImage) {
+            [[self imageView] setImage:image];
+        }
+        else {
+            [self transitionToImage:image];
+        }
+    }
+}
 
 -(void)stop
 {
@@ -729,10 +701,8 @@ DEFINE_EXCEPTIONS
     [self stopTimerWithEvent:@"stop"];
 	ready = NO;
 	index = -1;
-    if (usingNewMethod) {
-        [self stopAnimation];
-        index = reverse?[usedImages count]-1:0;
-        [[self imageView] setImage:[usedImages objectAtIndex:index]];
+    if (_animatedImage) {
+        [_animatedImage stop];
     }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
@@ -742,9 +712,9 @@ DEFINE_EXCEPTIONS
 {
 	stopped = NO;
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
-    if (usingNewMethod) {
+    if (_animatedImage) {
 		[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
-        [self startAnimation];
+        [_animatedImage start];
         return;
     }
 	if (iterations<0)
@@ -765,7 +735,7 @@ DEFINE_EXCEPTIONS
 	}
 	
 	
-	// refuse to start animation if you don't have any images
+	// refuse to start animation if you don't have any _images
 	if (loadTotal > 0)
 	{
 		ready = YES;
@@ -781,14 +751,15 @@ DEFINE_EXCEPTIONS
 }
 
 -(void)playpause {
-    if (usingNewMethod) {
-        [self.proxy replaceValue:NUMBOOL(!animationPaused) forKey:@"paused" notification:NO];
-        [self.proxy replaceValue:NUMBOOL(animationPaused) forKey:@"animating" notification:NO];
-        if (animationPaused) {
-            [self resumeImageViewAnimation];
+    if (_animatedImage) {
+        BOOL paused = [_animatedImage paused];
+        [self.proxy replaceValue:NUMBOOL(!paused) forKey:@"paused" notification:NO];
+        [self.proxy replaceValue:NUMBOOL(paused) forKey:@"animating" notification:NO];
+        if (_animatedImage.paused) {
+            [_animatedImage resume];
         }
         else {
-            [self pauseImageViewAnimation];
+            [_animatedImage pause];
         }
     }
 }
@@ -798,8 +769,8 @@ DEFINE_EXCEPTIONS
 	stopped = YES;
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
-    if (usingNewMethod) {
-        [self pauseImageViewAnimation];
+    if (_animatedImage) {
+        [_animatedImage pause];
         return;
     }
     [self stopTimerWithEvent:@"pause"];
@@ -810,12 +781,23 @@ DEFINE_EXCEPTIONS
 	stopped = NO;
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
 	[self.proxy replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
-    if (usingNewMethod) {
-        [self resumeImageViewAnimation];
+    if (_animatedImage) {
+        [_animatedImage resume];
         return;
     }
     [self startTimerWithEvent:@"resume"];
 }
+
+-(void)setAnimatedImageAtIndex:(int)i
+{
+    if (_animatedImage) {
+        [self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+        [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
+        [_animatedImage setAnimatedImageAtIndex:i];
+        return;
+    }
+}
+
 
 -(void)setWidth_:(id)width_
 {
@@ -846,15 +828,19 @@ DEFINE_EXCEPTIONS
 
 -(void)setImage_:(id)arg
 {
-	id currentImage = [self.proxy valueForUndefinedKey:@"image"];
-	
-	id imageview = [self imageView];
-	
+
+    if (_currentImageSource == arg) return;
+    _currentImageSource = arg;
+    
 	[self removeAllImagesFromContainer];
 	[self cancelPendingImageLoads];
-    [self stopAnimation];
-	
-	if (arg==nil || arg==[imageview image] || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
+    if (_animatedImage) {
+        [_animatedImage stop];
+    }
+	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+    [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
+    
+	if (arg==nil || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
 	{
 		return;
 	}
@@ -879,13 +865,12 @@ DEFINE_EXCEPTIONS
         [self loadUrl:imageURL];
 		return;
 	}
-	
-    [self transitionToImage:image];
-    if (TiDimensionIsAuto(width) || TiDimensionIsAutoSize(height))
-        [(TiViewProxy*)[self proxy] contentsWillChange]; // Have to resize the proxy view to fit new subview size, if necessary
-	
-	if (currentImage!=image)
+	[self transitionToImage:image];
+
+	if (_currentImage!=image)
 	{
+        RELEASE_TO_NIL(_currentImage);
+        _currentImage = [image retain];
 		[self fireLoadEventWithState:@"image"];
 	}
 }
@@ -902,16 +887,16 @@ DEFINE_EXCEPTIONS
 		[imageView setImage:nil];
 	}
 	
-	// remove any existing images
+	// remove any existing _images
 	[self removeAllImagesFromContainer];
 	
-	RELEASE_TO_NIL(images);
+	RELEASE_TO_NIL(_images);
 	ENSURE_TYPE_OR_NIL(args,NSArray);
     
 	if (args!=nil)
 	{
 		[self container];
-		images = [[NSMutableArray alloc] initWithCapacity:[args count]];
+		_images = [[NSMutableArray alloc] initWithCapacity:[args count]];
 		loadTotal = [args count];
 		for (size_t c = 0; c < [args count]; c++)
 		{
@@ -939,8 +924,6 @@ DEFINE_EXCEPTIONS
     [self.proxy replaceValue:NUMINT(dur) forKey:@"duration" notification:NO];
     
     [self updateTimer];
-    dur =  MAX(IMAGEVIEW_MIN_INTERVAL,dur);
-    animationDuration = [TiUtils floatValue:duration]/1000;
 }
 
 -(void)setRepeatCount_:(id)count
@@ -949,56 +932,47 @@ DEFINE_EXCEPTIONS
     [self imageView].animationRepeatCount = [TiUtils intValue:count];
 }
 
--(void)setUsedImages
-{
-    RELEASE_TO_NIL(usedImages);
-    usedImages = [reverse?[[images reverseObjectEnumerator] allObjects]:images retain];
-}
 
 -(void)setReverse_:(id)value
 {
-	BOOL newValue = [TiUtils boolValue:value def:reverse];
-    if (newValue == reverse) return;
-    reverse = newValue;
-    if (!animationPaused) {
-        [self startAnimation];
-    }
-    else {
-        [self setUsedImages];
-        index = [usedImages count] - index;
+	reverse = [TiUtils boolValue:value def:reverse];
+    if (_animatedImage) {
+        _animatedImage.reverse = reverse;
     }
 }
 
 -(void)setAutoreverse_:(id)value
 {
 	autoreverse = [TiUtils boolValue:value];
+    if (_animatedImage) {
+        _animatedImage.autoreverse = autoreverse;
+    }
 }
-
 
 -(void)setAnimatedImages_:(id)args
 {
 	ENSURE_TYPE_OR_NIL(args,NSArray);
-    animationPaused = YES;
-    usingNewMethod = YES;
-    images = [[NSMutableArray alloc] initWithCapacity:[args count]];
+    if (args == nil) {
+        RELEASE_TO_NIL(_animatedImage);
+        [self transitionToImage:_currentImage];
+        return;
+    }
+    
+    NSMutableArray* images = [[NSMutableArray alloc] initWithCapacity:[args count]];
+    NSMutableArray* durations = [[NSMutableArray alloc] initWithCapacity:[args count]];
     id anObject;
-    CGFloat lwidth = 0;
-    CGFloat lheight = 0;
     NSEnumerator *enumerator = [args objectEnumerator];
     while (anObject = [enumerator nextObject]) {
-        UIImage* image = [self loadImage:anObject];
-        lwidth = MAX(lwidth, image.size.width);
-        lheight = MAX(lheight, image.size.height);
-        [images addObject:image];
+        [images addObject:[self loadImage:anObject]];
+        [durations addObject:NUMFLOAT(interval)];
     }
-    autoWidth = lwidth;
-    autoHeight = lheight;
+    _animatedImage = [[TiAnimatedImage alloc] initWithImages:images andDurations:durations];
+    _animatedImage.reverse = reverse;
+    _animatedImage.autoreverse = autoreverse;
+    _animatedImage.delegate = self;
+    [_animatedImage reset];
     if ([TiUtils boolValue:[[self proxy] valueForKey:@"animating"]]) {
-        [self startAnimation];
-    }
-    else {
-        [self setUsedImages];
-        [self setAnimatedImageAtIndex:0];
+        [_animatedImage resume];
     }
 }
 
@@ -1035,6 +1009,8 @@ DEFINE_EXCEPTIONS
 -(void)imageLoadSuccess:(ImageLoaderRequest*)request image:(id)image
 {
     TiThreadPerformOnMainThread(^{
+        RELEASE_TO_NIL(_currentImage);
+        _currentImage = [image retain];
         [self transitionToImage:[self convertToUIImage:image]];
     }, NO);
 }

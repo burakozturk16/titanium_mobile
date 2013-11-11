@@ -902,6 +902,9 @@
 		D5F1EFFB17CB3325008A11D3 /* TiShapeRoundedRectProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5F1EFFA17CB3325008A11D3 /* TiShapeRoundedRectProxy.m */; };
 		D5F1EFFC17CB3325008A11D3 /* TiShapeRoundedRectProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5F1EFFA17CB3325008A11D3 /* TiShapeRoundedRectProxy.m */; };
 		D5F1EFFD17CB3325008A11D3 /* TiShapeRoundedRectProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5F1EFFA17CB3325008A11D3 /* TiShapeRoundedRectProxy.m */; };
+		D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
+		D5FD09DD1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
+		D5FD09DE1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
 		D5FF95BA1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FF95B91600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m */; };
 		D5FF95BB1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FF95B91600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m */; };
 		D5FF95BC1600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FF95B91600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m */; };
@@ -2370,6 +2373,8 @@
 		D5F1EFF517CB3316008A11D3 /* TiShapeRectProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeRectProxy.m; sourceTree = "<group>"; };
 		D5F1EFF917CB3325008A11D3 /* TiShapeRoundedRectProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeRoundedRectProxy.h; sourceTree = "<group>"; };
 		D5F1EFFA17CB3325008A11D3 /* TiShapeRoundedRectProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeRoundedRectProxy.m; sourceTree = "<group>"; };
+		D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAnimatedImage.h; sourceTree = "<group>"; };
+		D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAnimatedImage.m; sourceTree = "<group>"; };
 		D5FF95B81600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiNetworkPersistentHTTPClientProxy.h; sourceTree = "<group>"; };
 		D5FF95B91600765D005C3D35 /* TiNetworkPersistentHTTPClientProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiNetworkPersistentHTTPClientProxy.m; sourceTree = "<group>"; };
 		D930111C16DA9D61002E25C2 /* TiCalendarRecurrenceRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiCalendarRecurrenceRule.h; sourceTree = "<group>"; };
@@ -2984,6 +2989,8 @@
 				502A68EA16F0428500661EF6 /* TiViewTemplate.m */,
 				D51F03D71808411F005B4EE2 /* TiImageHelper.h */,
 				D51F03D81808411F005B4EE2 /* TiImageHelper.m */,
+				D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */,
+				D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -4966,6 +4973,7 @@
 				248133A7115761DE00E3A9BA /* TiNetworkBonjourBrowserProxy.m in Sources */,
 				248133A8115761DE00E3A9BA /* TiNetworkBonjourServiceProxy.m in Sources */,
 				843FA58417BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */,
+				D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */,
 				248133A9115761DE00E3A9BA /* TiNetworkTCPSocketProxy.m in Sources */,
 				24813714115A852800E3A9BA /* TiDOMTextNodeProxy.m in Sources */,
 				2412F467115C296300454E5B /* TiMediaVideoPlayer.m in Sources */,
@@ -5419,6 +5427,7 @@
 				DAA4B2B5134E75AC00AB6011 /* CodecModule.m in Sources */,
 				DA2556451353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
 				DAE541E413577BEC00A65123 /* TiDataStream.m in Sources */,
+				D5FD09DD1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */,
 				B415067A136745E20084074A /* TiFilesystemFileStreamProxy.m in Sources */,
 				ABD472F513BB73BF00502912 /* KrollCoverage.m in Sources */,
 				DADD76EA13CCF4FF00CD03AC /* MGSplitView.m in Sources */,
@@ -5796,6 +5805,7 @@
 				DAA4B2B6134E75AC00AB6011 /* CodecModule.m in Sources */,
 				DA2556461353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
 				DAE541E513577BEC00A65123 /* TiDataStream.m in Sources */,
+				D5FD09DE1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */,
 				B415067D136745FE0084074A /* TiFilesystemFileStreamProxy.m in Sources */,
 				ABD472F613BB73BF00502912 /* KrollCoverage.m in Sources */,
 				DADD76EB13CCF4FF00CD03AC /* MGSplitView.m in Sources */,

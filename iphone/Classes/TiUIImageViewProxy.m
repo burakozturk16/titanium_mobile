@@ -25,7 +25,7 @@
     NSSet *common = [TiViewProxy transferableProperties];
     return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
                                               @"scaleType",@"localLoadSync",@"images",
-                                              @"duration", @"repeatCount", @"reverse", nil]];
+                                              @"duration", @"repeatCount", @"reverse",@"animatedImages", nil]];
 }
 
 static NSArray* imageKeySequence;
@@ -36,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"animatedImages"]] retain];
+		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"image",@"animatedImages"]] retain];
 	}
 	return imageKeySequence;
 }

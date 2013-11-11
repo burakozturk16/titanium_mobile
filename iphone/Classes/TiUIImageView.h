@@ -8,6 +8,7 @@
 
 #import "TiUIView.h"
 #import "ImageLoader.h"
+#import "TiAnimatedImage.h"
 
 //
 // this is a re-implementation (sort of) of the UIImageView object used for
@@ -15,7 +16,7 @@
 // problemmatic and we try and solve it here.
 //
 
-@interface TiUIImageView : TiUIView <ImageLoaderDelegate>
+@interface TiUIImageView : TiUIView <ImageLoaderDelegate, AnimatedImageDelegate>
 {	
 }
 
