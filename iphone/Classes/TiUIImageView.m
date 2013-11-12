@@ -398,6 +398,7 @@ DEFINE_EXCEPTIONS
 	}
     else {
         [[self imageView] setImage:image];
+        [self fireLoadEventWithState:@"image"];
     }
 }
 
