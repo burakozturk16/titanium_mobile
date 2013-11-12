@@ -1019,6 +1019,10 @@ function pullToRefresh() {
 	}
 
 	function pullendListener(e) {
+		if (e.active == false) {
+			resetPullHeader();
+			return;
+		}
 		eventStatus.text = 'EVENT pullend FIRED.';
 
 		if (refreshCount == 0) {
