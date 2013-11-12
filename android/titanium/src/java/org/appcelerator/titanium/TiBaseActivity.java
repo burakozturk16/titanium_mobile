@@ -40,7 +40,6 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -52,7 +51,8 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v4.app.FragmentActivity;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.ActionBar;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -64,7 +64,7 @@ import android.view.WindowManager;
  * The base class for all non tab Titanium activities. To learn more about Activities, see the
  * <a href="http://developer.android.com/reference/android/app/Activity.html">Android Activity documentation</a>.
  */
-public abstract class TiBaseActivity extends FragmentActivity 
+public abstract class TiBaseActivity extends ActionBarActivity 
 	implements TiActivitySupport/*, ITiWindowHandler*/
 {
 	private static final String TAG = "TiBaseActivity";
@@ -267,15 +267,16 @@ public abstract class TiBaseActivity extends FragmentActivity
 		}
 		if (newNavBarHidden != this.navBarHidden) {
 			this.navBarHidden = newNavBarHidden;
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				ActionBar actionBar = getActionBar();
-				if (actionBar != null) {
-					if (this.navBarHidden) actionBar.hide();
-					else actionBar.show();
-				}
+			ActionBar actionBar = getSupportActionBar();
+			if (actionBar != null) {
+				if (this.navBarHidden) actionBar.hide();
+				else actionBar.show();
 			}
 			
 		}
+		
+		
+		
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
@@ -286,6 +287,20 @@ public abstract class TiBaseActivity extends FragmentActivity
 		}
 		else {
 			activityDict = new KrollDict(); //to make sure we update actionbar
+		}
+		
+		if (this.window.hasProperty(TiC.PROPERTY_BAR_COLOR)) {
+			KrollDict actionBarDict = null;
+			if (activityDict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
+				actionBarDict = activityDict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+			}
+			else {
+				actionBarDict = new KrollDict(); //to make sure we go into processProperties
+			}
+			if (!actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+				actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, this.window.getProperty(TiC.PROPERTY_BAR_COLOR));
+			}
+			activityDict.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
 		}
 		getActivityProxy().setProperties(activityDict);
 	}
@@ -430,11 +445,17 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 			if (!newTitle.equals(oldTitle)) {
 				final String fnewTitle = newTitle;
-				runOnUiThread(new Runnable(){
-					public void run() {
-						setTitle(fnewTitle);
-					}
-				});
+				final ActionBar actionBar = getSupportActionBar();
+				if (actionBar != null) {
+					actionBar.setTitle(fnewTitle);
+				}
+				else {
+					runOnUiThread(new Runnable(){
+						public void run() {
+							setTitle(fnewTitle);
+						}
+					});
+				}
 			}
 		}
 	}
@@ -466,20 +487,16 @@ public abstract class TiBaseActivity extends FragmentActivity
 		}
 	}
 
-	protected void setNavBarHidden(boolean hidden)
+	protected void setNavBarHidden(final boolean hidden)
 	{
-		if (!hidden) {
-			if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-				// Do not enable these features on Honeycomb or later since it will break the action bar.
-				this.requestWindowFeature(Window.FEATURE_LEFT_ICON);
-				this.requestWindowFeature(Window.FEATURE_RIGHT_ICON);
+		final ActionBar actionBar = getSupportActionBar();
+		if (actionBar != null) {
+			if (hidden) {
+				actionBar.hide();
 			}
-
-			this.requestWindowFeature(Window.FEATURE_PROGRESS);
-			this.requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
-
-		} else {
-			this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+			else {
+				actionBar.show();
+			}
 		}
 	}
 	
@@ -493,8 +510,9 @@ public abstract class TiBaseActivity extends FragmentActivity
 		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
 		
+//	    getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
 		setFullscreen(fullscreen);
-		setNavBarHidden(navBarHidden);
+		setNavBarHidden(navBarHidden);	
 
 		if (modal) {
 			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
@@ -841,6 +859,13 @@ public abstract class TiBaseActivity extends FragmentActivity
 
 		return handled;
 	}
+	
+	private ActionBarProxy getActionBarProxy(){
+		if (activityProxy != null) {
+			return activityProxy.getActionBar();
+		}
+		return null;
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
@@ -878,18 +903,16 @@ public abstract class TiBaseActivity extends FragmentActivity
 					}
 				}
 				
-				if (activityProxy != null) {
-					ActionBarProxy actionBarProxy = activityProxy.getActionBar();
-					if (actionBarProxy != null) {
-						KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
-							.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
-						if (onHomeIconItemSelected != null) {
-							KrollDict event = new KrollDict();
-							event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
-							event.put(TiC.EVENT_PROPERTY_WINDOW, window);
-							onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
-							return true;
-						}
+				ActionBarProxy actionBarProxy = getActionBarProxy();
+				if (actionBarProxy != null) {
+					KrollFunction onHomeIconItemSelected = (KrollFunction) actionBarProxy
+						.getProperty(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED);
+					if (onHomeIconItemSelected != null) {
+						KrollDict event = new KrollDict();
+						event.put(TiC.EVENT_PROPERTY_SOURCE, actionBarProxy);
+						event.put(TiC.EVENT_PROPERTY_WINDOW, window);
+						onHomeIconItemSelected.call(activityProxy.getKrollObject(), new Object[] { event });
+						return true;
 					}
 				}
 				
