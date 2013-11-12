@@ -19,6 +19,7 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.view.View;
 import android.view.ViewParent;
 
 /**
@@ -38,6 +39,7 @@ public class TiBorderWrapperView extends MaskableView
 	private Path innerPath;
 	private Path borderPath;
 	private Paint paint;
+	private boolean clipChildren = true;
 	
 	
 
@@ -51,6 +53,7 @@ public class TiBorderWrapperView extends MaskableView
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
+		if (!this.clipChildren) return;
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
@@ -64,6 +67,12 @@ public class TiBorderWrapperView extends MaskableView
 	}
 	
 	@Override
+    public void setClipChildren(boolean clipChildren) {
+		this.clipChildren = clipChildren;
+		super.setClipChildren(clipChildren);
+    }
+	
+	@Override
     public ViewParent invalidateChildInParent(final int[] location,final Rect dirty) {
 		ViewParent result = super.invalidateChildInParent(location,dirty);
         return result;
@@ -75,7 +84,19 @@ public class TiBorderWrapperView extends MaskableView
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
 		updateBorderPath();
 	}
-
+	
+	@Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        int parentLeft = 0;
+		int parentRight = r - l;
+		int parentTop = 0;
+		int parentBottom = b - t;
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            child.layout(parentLeft, parentTop, parentRight, parentBottom);
+        }
+    }
+	
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
@@ -166,5 +187,14 @@ public class TiBorderWrapperView extends MaskableView
 		this.alpha = alpha;
 		postInvalidate();
 	}
+	
+	@Override
+	public void dispatchSetPressed(boolean pressed) {
+		int count = getChildCount();
+		for (int i = 0; i < count; i++) {
+            final View child = getChildAt(i);
+            child.setPressed(pressed);
+        }
+	};
 
 }

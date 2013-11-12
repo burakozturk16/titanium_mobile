@@ -410,6 +410,16 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PULL = "pull";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_PULL_END = "pullend";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_REGION_CHANGED = "regionchanged";
 
 	/**
@@ -655,6 +665,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_ANIMATED_IMAGES = "animatedImages";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_ANIMATION_DURATION = "animationDuration";
 	
 	/**
@@ -803,6 +818,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BAR_COLOR = "barColor";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BAR_ICON = "barIcon";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BAR_IMAGE = "barImage";
 
 	/**
 	 * @module.api
@@ -1113,6 +1138,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_DIRECTION = "direction";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISABLED_COLOR = "disabledColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISPATCH_PRESSED = "dispatchPressed";
 
 	/**
 	 * @module.api
@@ -1557,6 +1592,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_LOCATION = "location";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_LOGO = "logo";
 
 	/**
 	 * @module.api
@@ -1912,6 +1952,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_PROVIDER = "provider";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PULL_VIEW = "pullView";
+	
 	/**
 	 * @module.api
 	 */

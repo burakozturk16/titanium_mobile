@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.titanium.test" android:versionCode="1" android:versionName="1">
-	<uses-sdk android:minSdkVersion="8" android:targetSdkVersion="17"/>
+	<uses-sdk android:minSdkVersion="11" android:targetSdkVersion="16"/>
 
 	<!-- TI_MANIFEST -->
 	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
@@ -14,7 +14,7 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS"/>
 		<application 
 		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-			android:theme="@style/AppTheme"
+			android:theme="@style/Theme.Titanium.Translucent"
 		android:debuggable="true" android:allowBackup="false"
 		android:hardwareAccelerated="true">
 
@@ -29,7 +29,9 @@
 
 		<activity android:name=".TitaniumtestActivity"
 			android:label="TitaniumTest"
+			android:theme="@style/Theme.Titanium.SplashScreen"
 			android:configChanges="keyboardHidden|orientation|screenSize">
+
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 				<category android:name="android.intent.category.LAUNCHER" />
@@ -39,14 +41,10 @@
 		<!-- TI_ACTIVITIES -->
 
 		<activity android:name="org.appcelerator.titanium.TiActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
-		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
+			android:configChanges="keyboardHidden|orientation|screenSize" />
+		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@style/Theme.Titanium.Translucent"/>
 		<activity android:name="org.appcelerator.titanium.TiModalActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"
-			android:theme="@style/AppTheme" />
+			android:configChanges="keyboardHidden|orientation|screenSize"/>
 		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
 			android:configChanges="keyboardHidden|orientation|screenSize" />
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />

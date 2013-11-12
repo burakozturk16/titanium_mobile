@@ -16,16 +16,14 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.FreeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiDrawableReference;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
-import org.appcelerator.titanium.view.TiUIView;
 
 import android.graphics.Rect;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.content.res.ColorStateList;
@@ -58,8 +56,28 @@ public class TiUIButton extends TiUINonViewGroupView
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUIButton.this);
 			}
+
+			@Override
+			public void setPressed(boolean pressed) {
+				super.setPressed(pressed);
+				if (dispatchPressed == true && childrenHolder != null) {
+					int count = childrenHolder.getChildCount();
+					for (int i = 0; i < count; i++) {
+			            final View child = childrenHolder.getChildAt(i);
+			            child.setPressed(pressed);
+			        }
+				}
+			}
+
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+
 		};
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
@@ -67,13 +85,23 @@ public class TiUIButton extends TiUINonViewGroupView
 		setNativeView(btn);
 	}
 	
-	private void setTextColors(int color, int selectedColor) {
+	private void setTextColors(int color, int selectedColor, int disabledColor) {
+		
+		int[][] states = new int[][] {
+			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
+			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
+			TiUIHelper.BACKGROUND_FOCUSED_STATE,  // pressed
+			TiUIHelper.BACKGROUND_CHECKED_STATE,  // pressed
+			new int [] {android.R.attr.state_pressed},  // pressed
+			new int [] {android.R.attr.state_focused},  // pressed
+			new int [] {}
+		};
+
 		ColorStateList colorStateList = new ColorStateList(
-			new int[][] {	new int [] {android.R.attr.state_pressed},
-							new int [] {android.R.attr.state_focused},
-							new int [] {}},
-			new int[] {selectedColor, selectedColor, color}
+			states,
+			new int[] {disabledColor, selectedColor, selectedColor, selectedColor, selectedColor, selectedColor, color}
 		);
+
 		((Button) getNativeView()).setTextColor(colorStateList);
 	}
 
@@ -124,10 +152,12 @@ public class TiUIButton extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_TITLE)) {
 			btn.setText(d.getString(TiC.PROPERTY_TITLE));
 		}
-		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+		
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
 			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			setTextColors(color, selectedColor);
+			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		}
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, d.getKrollDict(TiC.PROPERTY_FONT));
@@ -198,15 +228,12 @@ public class TiUIButton extends TiUINonViewGroupView
 		Button btn = (Button) getNativeView();
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			btn.setText((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			int color = TiConvert.toColor(TiConvert.toString(newValue));
-			int selectedColor = proxy.getProperties().optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			setTextColors(color, selectedColor);
-		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
-			btn.setTextColor(TiConvert.toColor(TiConvert.toString(newValue)));
-			int selectedColor = TiConvert.toColor(TiConvert.toString(newValue));
-			int color = proxy.getProperties().optColor(TiC.PROPERTY_COLOR, selectedColor);
-			setTextColors(color, selectedColor);
+		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			KrollDict properties = proxy.getProperties();
+			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
@@ -269,54 +296,5 @@ public class TiUIButton extends TiUINonViewGroupView
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
-	}
-
-	public void setOpacityForButton(float opacity)
-	{
-		if (opacity < 0 || opacity > 1) {
-			Log.w(TAG, "Ignoring invalid value for opacity: " + opacity);
-			return;
-		}
-		View view = getNativeView();
-		if (view != null) {
-			TiUIHelper.setPaintOpacity(((Button) view).getPaint(), opacity);
-			Drawable[] drawables = ((Button) view).getCompoundDrawables();
-			if (drawables != null) {
-				for (int i = 0; i < drawables.length; i++) {
-					TiUIHelper.setDrawableOpacity(drawables[i], opacity);
-				}
-			}
-		}
-	}
-
-	public void clearOpacityForButton()
-	{
-		View view = getNativeView();
-		if (view != null) {
-			((Button) view).getPaint().setColorFilter(null);
-			Drawable[] drawables = ((Button) view).getCompoundDrawables();
-			if (drawables != null) {
-				for (int i = 0; i < drawables.length; i++) {
-					Drawable d = drawables[i];
-					if (d != null) {
-						d.clearColorFilter();
-					}
-				}
-			}
-		}
-	}
-
-	@Override
-	protected void setOpacity(View view, float opacity)
-	{
-		setOpacityForButton(opacity);
-		super.setOpacity(view, opacity);
-	}
-
-	@Override
-	public void clearOpacity(View view)
-	{
-		clearOpacityForButton();
-		super.clearOpacity(view);
 	}
 }

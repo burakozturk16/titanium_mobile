@@ -28,7 +28,6 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PixelFormat;
@@ -38,7 +37,6 @@ import android.os.Message;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
 
-@SuppressLint("ValidFragment")
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_ACTIVITY,
@@ -48,7 +46,7 @@ import android.view.Window;
 public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 {
 	private static final String TAG = "WindowProxy";
-	private static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
+	protected static final String PROPERTY_POST_WINDOW_CREATED = "postWindowCreated";
 	private static final String PROPERTY_LOAD_URL = "loadUrl";
 
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
@@ -56,9 +54,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
-	public boolean firstLayout = true;
+	protected boolean firstLayout = true;
 
-	private WeakReference<TiBaseActivity> windowActivity;
+	protected WeakReference<TiBaseActivity> windowActivity;
 
 	// This flag is just for a temporary use. We won't need it after the lightweight window
 	// is completely removed.
@@ -84,7 +82,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			super(proxy);
 			layoutParams.autoFillsHeight = true;
 			layoutParams.autoFillsWidth = true;
-			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), proxy) {
+			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), this) {
 				@Override
 				protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 				{
@@ -292,8 +290,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			win.setLayout(w, h);
 		}
 
-		activity.getActivityProxy().getDecorView().add(this);
-		activity.addWindowToStack(this);
+		
 
 		// Need to handle the cached activity proxy properties and url window in the JS side.
 		callPropertySync(PROPERTY_POST_WINDOW_CREATED, null);
@@ -302,13 +299,21 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	public void onWindowActivityCreated()
 	{
-		// Fire the open event after setContentView() because getActionBar() need to be called
-		// after setContentView(). (TIMOB-14914)
-
+		
 		opened = true;
 		opening = false;
-		// fireEvent(TiC.EVENT_OPEN, null);
+		
+		if (parent == null) {
+			TiBaseActivity activity = windowActivity.get();
+			// Fire the open event after setContentView() because getActionBar() need to be called
+			// after setContentView(). (TIMOB-14914)
+			activity.getActivityProxy().getDecorView().add(this);
+			activity.addWindowToStack(this);
+		}
+		
+		
 		handlePostOpen();
+		
 
 		super.onWindowActivityCreated();
 	}

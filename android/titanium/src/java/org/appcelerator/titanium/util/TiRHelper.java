@@ -56,7 +56,7 @@ public class TiRHelper {
 	}
 	
 
-	protected static int getResource(String prefix, String path) throws ResourceNotFoundException {
+	public static int getResource(String prefix, String path) throws ResourceNotFoundException {
 		Integer i = valCache.get(path);
 		if (i != null) return i;
 		

@@ -51,20 +51,21 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
+
 import android.view.KeyEvent;
-import android.view.Menu;
-import android.view.MenuItem;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuInflater;
+import com.actionbarsherlock.view.MenuItem;
 import android.view.View;
-import android.view.Window;
 import android.view.WindowManager;
 
 /**
  * The base class for all non tab Titanium activities. To learn more about Activities, see the
  * <a href="http://developer.android.com/reference/android/app/Activity.html">Android Activity documentation</a>.
  */
-public abstract class TiBaseActivity extends ActionBarActivity 
+public abstract class TiBaseActivity extends SherlockFragmentActivity
 	implements TiActivitySupport/*, ITiWindowHandler*/
 {
 	private static final String TAG = "TiBaseActivity";
@@ -73,6 +74,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 
 	private boolean onDestroyFired = false;
 	private int originalOrientationMode = -1;
+	private boolean inForeground = false; // Indicates whether this activity is in foreground or not.
 	private TiWeakList<OnLifecycleEvent> lifecycleListeners = new TiWeakList<OnLifecycleEvent>();
 	private TiWeakList<OnWindowFocusChangedEvent> windowFocusChangedListeners = new TiWeakList<OnWindowFocusChangedEvent>();
 	protected TiWeakList<interceptOnBackPressedEvent> interceptOnBackPressedListeners = new TiWeakList<interceptOnBackPressedEvent>();
@@ -245,6 +247,29 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		return this.window;
 	}
 
+	private KrollDict updatePropertiesFromWindow(KrollDict properties, KrollDict windowProperties)
+	{
+		KrollDict actionBarDict = null;
+		if (properties.containsKey(TiC.PROPERTY_ACTION_BAR)) {
+			actionBarDict = properties.getKrollDict(TiC.PROPERTY_ACTION_BAR);
+		}
+		else {
+			actionBarDict = new KrollDict(); //to make sure we go into processProperties
+		}
+		
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_COLOR) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, windowProperties.get(TiC.PROPERTY_BAR_COLOR));
+		}
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_IMAGE) && !actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			actionBarDict.put(TiC.PROPERTY_BACKGROUND_IMAGE, windowProperties.get(TiC.PROPERTY_BAR_IMAGE));
+		}
+		if (windowProperties.containsKey(TiC.PROPERTY_BAR_ICON) && !actionBarDict.containsKey(TiC.PROPERTY_ICON)) {
+			actionBarDict.put(TiC.PROPERTY_ICON, windowProperties.get(TiC.PROPERTY_BAR_ICON));
+		}
+		properties.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
+		return properties;
+	}
+
 	/**
 	 * Sets the window proxy.
 	 * @param proxy
@@ -276,7 +301,6 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		}
 		
 		
-		
 		if (hasSoftInputMode && softInputMode != this.softInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
 			getWindow().setSoftInputMode(softInputMode);  
@@ -288,20 +312,8 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		else {
 			activityDict = new KrollDict(); //to make sure we update actionbar
 		}
-		
-		if (this.window.hasProperty(TiC.PROPERTY_BAR_COLOR)) {
-			KrollDict actionBarDict = null;
-			if (activityDict.containsKey(TiC.PROPERTY_ACTION_BAR)) {
-				actionBarDict = activityDict.getKrollDict(TiC.PROPERTY_ACTION_BAR);
-			}
-			else {
-				actionBarDict = new KrollDict(); //to make sure we go into processProperties
-			}
-			if (!actionBarDict.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
-				actionBarDict.put(TiC.PROPERTY_BACKGROUND_COLOR, this.window.getProperty(TiC.PROPERTY_BAR_COLOR));
-			}
-			activityDict.put(TiC.PROPERTY_ACTION_BAR, actionBarDict);
-		}
+		updatePropertiesFromWindow(activityDict, this.window.getProperties());
+
 		getActivityProxy().setProperties(activityDict);
 	}
 
@@ -313,7 +325,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	public void setLayoutProxy(TiViewProxy proxy)
 	{
 		if (layout instanceof TiCompositeLayout) {
-			((TiCompositeLayout) layout).setProxy(proxy);
+			((TiCompositeLayout) layout).setView(proxy.peekView());
 		}
 	}
 
@@ -543,6 +555,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	{
 		Log.d(TAG, "Activity " + this + " onCreate", Log.DEBUG_MODE);
 
+		inForeground = true;
 		TiApplication tiApp = getTiApp();
 
 		if (tiApp.isRestartPending()) {
@@ -625,13 +638,22 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		originalOrientationMode = getRequestedOrientation();
 
 		if (window != null) {
-			window.onWindowActivityCreated();
+			if (window.getWindowManager() != null)
+				window.getWindowManager().onWindowActivityCreated();
+			else {
+				window.onWindowActivityCreated();
+			}
 		}
 	}
 
 	public int getOriginalOrientationMode()
 	{
 		return originalOrientationMode;
+	}
+
+	public boolean isInForeground()
+	{
+		return inForeground;
 	}
 
 	protected void sendMessage(final int msgId)
@@ -866,7 +888,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		}
 		return null;
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
@@ -1030,11 +1052,20 @@ public abstract class TiBaseActivity extends ActionBarActivity
 			boolean persistent = p.getPersistent();
 			//if the activity is pausing but not finishing, clean up dialogs only if
 			//they are non-persistent
+			
 			if (finish || !persistent) {
 				if (dialog != null && dialog.isShowing()) {
+					if (dialog.getCurrentFocus() != null) {
+						TiUIHelper.hideSoftKeyboard(dialog.getCurrentFocus());
+					}
 					dialog.dismiss();
 				}
 				dialogs.remove(p);
+			}
+			else {
+				if (dialog != null && dialog.getCurrentFocus() != null) {
+					TiUIHelper.hideSoftKeyboard(dialog.getCurrentFocus());
+				}
 			}
 		}
 	}
@@ -1062,6 +1093,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	 */
 	protected void onPause() 
 	{
+		inForeground = false;
 		super.onPause();
 		isResumed = false;
 
@@ -1082,14 +1114,10 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	
 		TiApplication.updateActivityTransitionState(true);
 		tiApp.setCurrentActivity(this, null);
-		TiUIHelper.showSoftKeyboard(getWindow().getDecorView(), false);
+		TiUIHelper.hideSoftKeyboard(getWindow().getDecorView());
 
-		if (this.isFinishing()) {
-			releaseDialogs(true);
-		} else {
-			//release non-persistent dialogs when activity hides
-			releaseDialogs(false);
-		}
+		//release non-persistent dialogs
+		releaseDialogs(this.isFinishing());
 
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
@@ -1120,6 +1148,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	 */
 	protected void onResume()
 	{
+		inForeground = true;
 		super.onResume();
 		if (isFinishing()) {
 			return;
@@ -1165,7 +1194,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 		isResumed = true;
 
 		// Checkpoint for ti.start event
-		String deployType = tiApp.getSystemProperties().getString("ti.deploytype", "unknown");
+		String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
 		tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppStartEvent(tiApp, deployType));
 	}
 	
@@ -1183,6 +1212,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	 */
 	protected void onStart()
 	{
+		inForeground = true;
 		super.onStart();
 		if (isFinishing()) {
 			return;
@@ -1241,6 +1271,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	 */
 	protected void onStop()
 	{
+		inForeground = false;
 		super.onStop();
 
 		Log.d(TAG, "Activity " + this + " onStop", Log.DEBUG_MODE);
@@ -1276,6 +1307,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	 */
 	protected void onRestart()
 	{
+		inForeground = true;
 		super.onRestart();
 
 		Log.d(TAG, "Activity " + this + " onRestart", Log.DEBUG_MODE);
@@ -1335,6 +1367,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	{
 		Log.d(TAG, "Activity " + this + " onDestroy", Log.DEBUG_MODE);
 
+		inForeground = false;
 		TiApplication tiApp = getTiApp();
 		//Clean up dialogs when activity is destroyed. 
 		releaseDialogs(true);
@@ -1454,7 +1487,7 @@ public abstract class TiBaseActivity extends ActionBarActivity
 	protected boolean shouldFinishRootActivity()
 	{
 		if (window != null)
-			return TiConvert.toBoolean(window.getProperties(), TiC.PROPERTY_EXIT_ON_CLOSE, false);
+			return window.shouldExitOnClose();
 		return false;
 	}
 

@@ -9,6 +9,7 @@
 #import "TiGradient.h"
 #import "LayoutConstraint.h"
 #import "TiSelectableBackgroundLayer.h"
+#import "TouchDelegate_Views.h"
 
 @class TiTransition;
 //By declaring a scrollView protocol, TiUITextWidget can access 
@@ -45,7 +46,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Base class for all Titanium views.
  @see TiViewProxy
  */
-@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing>
+@interface TiUIView : UIView<TiProxyDelegate,LayoutAutosizing, TouchDelegate>
 {
 @protected
     BOOL configurationSet;
@@ -59,7 +60,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 		
 	id transformMatrix;
 	BOOL childrenInitialized;
-	BOOL touchEnabled;
 
 	unsigned int animationDelayGuard;
 	unsigned int animationDelayGuardForLayout;
@@ -289,6 +289,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 - (void)blurBackground:(id)args;
 -(UIControlState)realStateForState:(UIControlState)state;
 -(BOOL) enabledForBgState;
+-(void)touchSetHighlighted:(BOOL)highlighted;
 
 @end
 

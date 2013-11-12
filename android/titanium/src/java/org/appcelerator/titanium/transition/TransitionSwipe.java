@@ -1,9 +1,8 @@
 package org.appcelerator.titanium.transition;
 
 import org.appcelerator.titanium.animation.TranslationProperty;
-import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
+import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.util.TiViewHelper;
-import org.appcelerator.titanium.view.FreeLayout;
 
 import android.view.View;
 
@@ -17,16 +16,18 @@ public class TransitionSwipe extends Transition {
 	public int getType(){
 		return TransitionHelper.Types.kTransitionSwipe.ordinal();
 	}
-	protected void prepareAnimators() {
-		float dest = 1;
+	protected void prepareAnimators(View inTarget, View outTarget) {
+		float dest = rect.width();
 		
 		String translateProp = "x";
+		if (TransitionHelper.isVerticalSubType(subType)) {
+			dest = rect.height();
+			translateProp = "y";
+		}
 		if (!TransitionHelper.isPushSubType(subType)) {
 			dest = -dest;
 		}
-		if (TransitionHelper.isVerticalSubType(subType)) {
-			translateProp = "y";
-		}
+		
 
 		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp), dest, 0.0f);
 		inAnimator.setDuration(duration);
@@ -35,21 +36,24 @@ public class TransitionSwipe extends Transition {
 		outAnimator.setDuration(duration);
 	}
 
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
-		float dest = 1.0f;
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
+		if (inTarget == null) return;
+		float dest = rect.width();
+		float multiplier = 1.0f;
 		if (reversed) {
-			dest = -dest;
+			multiplier = -multiplier;
 		}
 		if (!TransitionHelper.isPushSubType(subType)) {
-			dest = -dest;
+			multiplier = -multiplier;
 		}
 		
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setTranslationFloatY(inTarget, dest);
+			dest = rect.height();
+			ViewHelper.setTranslationY(inTarget, dest*multiplier);
 		}
 		else {
-			TiViewHelper.setTranslationFloatX(inTarget, dest);
+			ViewHelper.setTranslationX(inTarget, dest*multiplier);
 		}
 	}
 }

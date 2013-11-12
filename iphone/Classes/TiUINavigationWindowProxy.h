@@ -17,6 +17,7 @@
     TiWindowProxy *rootWindow;
     TiWindowProxy *current;
     BOOL transitionIsAnimating;
+    BOOL transitionWithGesture;
 }
 
 //Private API

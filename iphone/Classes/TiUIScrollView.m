@@ -188,6 +188,13 @@
 	}
 	CGSize newContentSize = [self bounds].size;
 	CGFloat scale = [scrollView zoomScale];
+    
+    CGSize autoSize;
+
+    if (TiDimensionIsAuto(contentWidth) || TiDimensionIsAutoSize(contentWidth) || TiDimensionIsUndefined(contentWidth) ||
+        TiDimensionIsAuto(contentHeight) || TiDimensionIsAutoSize(contentHeight) || TiDimensionIsUndefined(contentHeight)) {
+        autoSize = [(TiViewProxy *)[self proxy] autoSizeForSize:[self bounds].size];
+    }
 
 	switch (contentWidth.type)
 	{
@@ -200,7 +207,7 @@
         case TiDimensionTypeAutoSize:
 		case TiDimensionTypeAuto: // TODO: This may break the layout spec for content "auto"
 		{
-			newContentSize.width = MAX(newContentSize.width,[(TiViewProxy *)[self proxy] autoWidthForSize:[self bounds].size]);
+			newContentSize.width = MAX(newContentSize.width,autoSize.width);
 			break;
 		}
         case TiDimensionTypeAutoFill: // Assume that "fill" means "fill scrollview bounds"; not in spec
@@ -220,7 +227,7 @@
         case TiDimensionTypeAutoSize:
 		case TiDimensionTypeAuto: // TODO: This may break the layout spec for content "auto"            
 		{
-			minimumContentHeight=[(TiViewProxy *)[self proxy] autoHeightForSize:[self bounds].size];
+			minimumContentHeight = autoSize.height;
 			break;
 		}
         case TiDimensionTypeAutoFill: // Assume that "fill" means "fill scrollview bounds"; not in spec           

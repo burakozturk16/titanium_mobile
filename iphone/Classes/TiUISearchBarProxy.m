@@ -87,7 +87,7 @@
     return TiDimensionAutoSize;
 }
 
-USE_VIEW_FOR_CONTENT_HEIGHT
+USE_VIEW_FOR_CONTENT_SIZE
 @end
 
 #endif

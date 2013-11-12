@@ -61,6 +61,7 @@
 -(void)shutdownUi:(id)arg;
 - (void) updateStatusBar;
 #endif
+- (UIImage*)defaultImageForOrientation:(UIDeviceOrientation) orientation resultingOrientation:(UIDeviceOrientation *)imageOrientation idiom:(UIUserInterfaceIdiom*) imageIdiom;
 
 
 @end

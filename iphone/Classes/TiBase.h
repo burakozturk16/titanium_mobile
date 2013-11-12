@@ -170,7 +170,8 @@ out = nil; \
 } \
 else if ([args isKindOfClass:[NSArray class]]) { \
 if ([args count]>index) {\
-out = [args objectAtIndex:index]; \
+id obj = [args objectAtIndex:index];\
+out = (obj==[NSNull null])?nil:obj;\
 }\
 else { \
 out = nil; \

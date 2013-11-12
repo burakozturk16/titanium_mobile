@@ -25,7 +25,7 @@
     NSSet *common = [TiViewProxy transferableProperties];
     return [common setByAddingObjectsFromSet:[NSSet setWithObjects:@"image",
                                               @"scaleType",@"localLoadSync",@"images",
-                                              @"duration", @"repeatCount", @"reverse", nil]];
+                                              @"duration", @"repeatCount", @"reverse",@"animatedImages", nil]];
 }
 
 static NSArray* imageKeySequence;
@@ -36,7 +36,7 @@ static NSArray* imageKeySequence;
 {
 	if (imageKeySequence == nil)
 	{
-		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync"]] retain];
+		imageKeySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"width",@"height",@"scaleType",@"localLoadSync",  @"duration", @"repeatCount", @"reverse",@"image",@"animatedImages"]] retain];
 	}
 	return imageKeySequence;
 }
@@ -70,17 +70,22 @@ static NSArray* imageKeySequence;
     [self replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     [self replaceValue:NUMBOOL(NO) forKey:@"reverse" notification:NO];
-    [self replaceValue:NUMBOOL(YES) forKey:@"stopped" notification:YES];
     [self replaceValue:NUMBOOL(YES) forKey:@"autorotate" notification:NO];
     [self replaceValue:NUMFLOAT(DEFAULT_IMAGEVIEW_INTERVAL) forKey:@"duration" notification:NO];
 }
 
 -(void)start:(id)args
 {
-    TiThreadPerformOnMainThread(^{
-        TiUIImageView *iv = (TiUIImageView*)[self view];
-        [iv start];
-    }, NO);
+    if ([self viewAttached])
+	{
+		TiThreadPerformOnMainThread(^{
+            TiUIImageView *iv = (TiUIImageView*)[self view];
+            [iv start];
+        }, NO);
+	}
+    else {
+        [self replaceValue:NUMBOOL(YES) forKey:@"animating" notification:NO];
+    }
 }
 
 -(void)stop:(id)args
@@ -92,8 +97,10 @@ static NSArray* imageKeySequence;
 	[destroyLock lock];
 	if ([self viewAttached])
 	{
-		TiUIImageView *iv= (TiUIImageView*)[self view];
-		[iv stop];
+		TiThreadPerformOnMainThread(^{
+            TiUIImageView *iv= (TiUIImageView*)[self view];
+            [iv stop];
+        }, NO);
 	}
 	[destroyLock unlock];
 }
@@ -111,6 +118,14 @@ static NSArray* imageKeySequence;
     TiThreadPerformOnMainThread(^{
         TiUIImageView *iv = (TiUIImageView*)[self view];
         [iv resume];
+    }, NO);
+}
+
+-(void)pauseOrResume:(id)args
+{
+    TiThreadPerformOnMainThread(^{
+        TiUIImageView *iv = (TiUIImageView*)[self view];
+        [iv playpause];
     }, NO);
 }
 
@@ -179,14 +194,7 @@ static NSArray* imageKeySequence;
 	
 }
 
-USE_VIEW_FOR_CONTENT_WIDTH
-
-USE_VIEW_FOR_CONTENT_HEIGHT
-
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
-{
-    return [[self view] contentWidthForWidth:suggestedWidth withHeight:calculatedHeight];
-}
+USE_VIEW_FOR_CONTENT_SIZE
 
 #pragma mark Handling ImageLoader
 

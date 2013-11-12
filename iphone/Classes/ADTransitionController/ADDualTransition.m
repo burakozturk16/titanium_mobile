@@ -7,7 +7,6 @@
 //
 
 #import "ADDualTransition.h"
-#define kAdKey @"adAnimation"
 
 @implementation ADDualTransition
 @synthesize inAnimation = _inAnimation;
@@ -17,12 +16,14 @@
     if (self = [self init]) {
         _inAnimation = [inAnimation retain];
         _outAnimation = [outAnimation retain];
+        _duration = _inAnimation.duration;
         [self finishInit];
     }
     return self;
 }
 
 - (id)initWithDuration:(CFTimeInterval)duration {
+    _duration = duration;
     return nil;
 }
 
@@ -61,8 +62,7 @@
 }
 
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    [viewIn.layer removeAnimationForKey:kAdKey];
-    [viewOut.layer removeAnimationForKey:kAdKey];
+    [super startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
     [viewIn.layer addAnimation:self.inAnimation forKey:kAdKey];
     [viewOut.layer addAnimation:self.outAnimation forKey:kAdKey];
 }

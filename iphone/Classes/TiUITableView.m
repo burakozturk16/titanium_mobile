@@ -422,7 +422,7 @@
 	[table setOpaque:![[table backgroundColor] isEqual:[UIColor clearColor]]];
 }
 
--(UITableView*)tableView
+-(TDUITableView*)tableView
 {
 	if (tableview==nil)
 	{
@@ -435,11 +435,12 @@
 			NSLog(@"[WARN] No style object!");
 		}
 #endif
-		tableview = [[UITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
+		tableview = [[TDUITableView alloc] initWithFrame:CGRectMake(0, 0, [self bounds].size.width, [self bounds].size.height) style:style];
 		tableview.delegate = self;
 		tableview.dataSource = self;
 		tableview.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
 		
+		tableview.touchDelegate = self;
 		
 		if (TiDimensionIsDip(rowHeight))
 		{
@@ -1153,6 +1154,79 @@
     }
 }
 
+
+-(void)recognizedTap:(UITapGestureRecognizer*)recognizer
+{
+    BOOL viaSearch = [searchController isActive];
+    UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+    CGPoint point = [recognizer locationInView:theTableView];
+    CGPoint pointInView = [recognizer locationInView:self];
+    NSIndexPath* indexPath = nil;
+    
+    if (viaSearch) {
+        NSIndexPath* index = [theTableView indexPathForRowAtPoint:point];
+        if (index != nil) {
+            indexPath = [self indexPathFromSearchIndex:[index row]];
+        }
+    } else {
+        indexPath = [theTableView indexPathForRowAtPoint:point];
+    }
+    
+    NSMutableDictionary *event = [[TiUtils pointToDictionary:pointInView] mutableCopy];
+    [event setObject:NUMBOOL(NO) forKey:@"detail"];
+    [event setObject:NUMBOOL(viaSearch) forKey:@"search"];
+    
+    if (indexPath != nil) {
+        //We have index path. Let us fill out section and row information. Also since the
+        int sectionIdx = [indexPath section];
+        NSArray * sections = [(TiUITableViewProxy *)[self proxy] internalSections];
+        TiUITableViewSectionProxy *section = [self sectionForIndex:sectionIdx];
+        
+        int rowIndex = [indexPath row];
+        int dataIndex = 0;
+        int c = 0;
+        TiUITableViewRowProxy *row = [section rowAtIndex:rowIndex];
+        
+        // unfortunately, we have to scan to determine our row index
+        for (TiUITableViewSectionProxy *section in sections) {
+            if (c == sectionIdx) {
+                dataIndex += rowIndex;
+                break;
+            }
+            dataIndex += [section rowCount];
+            c++;
+        }
+        [event setObject:section forKey:@"section"];
+        [event setObject:row forKey:@"row"];
+        [event setObject:row forKey:@"rowData"];
+        [event setObject:NUMINT(dataIndex) forKey:@"index"];
+    }
+
+
+    if ([recognizer numberOfTouchesRequired] == 2) {
+        if ([[self proxy] _hasListeners:@"twofingertap"]) {
+            [[self proxy] fireEvent:@"twofingertap" withObject:event];
+        }
+    }
+    else if ([recognizer numberOfTapsRequired] == 2) {
+        //Because double-tap suppresses touchStart and double-click, we must do this:
+        if ([[self proxy] _hasListeners:@"touchstart"]) {
+            [[self proxy] fireEvent:@"touchstart" withObject:event propagate:YES];
+        }
+        if ([[self proxy] _hasListeners:@"dblclick"]) {
+            [[self proxy] fireEvent:@"dblclick" withObject:event propagate:YES];
+        }
+        if ([[self proxy] _hasListeners:@"doubletap"]) {
+            [[self proxy] fireEvent:@"doubletap" withObject:event];
+        }
+    }
+    else {
+        if ([[self proxy] _hasListeners:@"singletap"]) {
+            [[self proxy] fireEvent:@"singletap" withObject:event];
+        }
+    }
+}
+
 -(void)longPressGesture:(UILongPressGestureRecognizer *)recognizer
 {
     if([[self proxy] _hasListeners:@"longpress"] && [recognizer state] == UIGestureRecognizerStateBegan)
@@ -1375,7 +1449,7 @@
 }
 
 
--(CGFloat)contentHeightForWidth:(CGFloat)suggestedWidth
+-(CGSize)contentSizeForSize:(CGSize)size
 {
     CGFloat height = 0.0;
     NSUInteger sectionCount = [self numberOfSectionsInTableView:tableview];
@@ -1389,7 +1463,7 @@
         }
     }
     
-    return height;
+    return CGSizeMake(size.width, height);
 }
 
 #pragma mark Searchbar-related IBActions
@@ -1875,7 +1949,7 @@
 	moveable = [TiUtils boolValue:args];
 }
 
--(void)setScrollable_:(id)args
+-(void)setScrollingEnabled_:(id)args
 {
 	UITableView *table = [self tableView];
 	[table setScrollEnabled:[TiUtils boolValue:args]];
@@ -2434,7 +2508,7 @@ return result;	\
 				size += viewLayout->height.value;
 				break;
 			case TiDimensionTypeAuto:
-				size += [viewProxy autoHeightForSize:[tableview bounds].size];
+				size += [viewProxy autoSizeForSize:[tableview bounds].size].height;
 				break;
 			default:
 				size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -2483,7 +2557,7 @@ return result;	\
 				size += viewLayout->height.value;
 				break;
 			case TiDimensionTypeAuto:
-				size += [viewProxy autoHeightForSize:[tableview bounds].size];
+				size += [viewProxy autoSizeForSize:[tableview bounds].size].height;
 				break;
 			default:
 				size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -2597,10 +2671,11 @@ return result;	\
 		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
 	}
     
+    //This section of code now moved to [TiUITextWidgetView updateKeyboardStatus]
     // Update keyboard status to insure that any fields actively being edited remain in view
-    if ([[[TiApp app] controller] keyboardVisible]) {
-        [[[TiApp app] controller] performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
-    }
+    //if ([[[TiApp app] controller] keyboardVisible]) {
+    //    [[[TiApp app] controller] performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
+    //}
 }
 
 

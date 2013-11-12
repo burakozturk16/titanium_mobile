@@ -156,17 +156,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 	}
 #endif
 }
-//To load application Defaults 
-- (void) loadUserDefaults
-{
-	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-	NSDictionary *appDefaults = [ApplicationDefaults copyDefaults];
-	if(appDefaults != nil)
-	{
-		[defaults registerDefaults:appDefaults];
-	}
-	[appDefaults release];
-}
 
 - (void) launchToUrl
 {
@@ -287,9 +276,46 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 {
 	[TiExceptionHandler defaultExceptionHandler];
 	[self initController];
-	[self loadUserDefaults];
     [self launchToUrl];
 	[self boot];
+}
+
+-(UIImageView*)splashScreenImage
+{
+    if(splashScreenImage == nil) {
+        splashScreenImage = [[UIImageView alloc] init];
+        [splashScreenImage setBackgroundColor:[UIColor yellowColor]];
+        [splashScreenImage setAutoresizingMask:UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth];
+        [splashScreenImage setContentMode:UIViewContentModeScaleToFill];
+        
+        UIDeviceOrientation imageOrientation;
+        UIUserInterfaceIdiom imageIdiom;
+        
+        UIImage * defaultImage = [controller defaultImageForOrientation:
+                                  (UIDeviceOrientation)[[UIApplication sharedApplication] statusBarOrientation]
+                                                   resultingOrientation:&imageOrientation idiom:&imageIdiom];
+        if([TiUtils isIPad]) {
+            CGAffineTransform transform;
+            switch ([[UIApplication sharedApplication] statusBarOrientation]) {
+                case UIInterfaceOrientationPortraitUpsideDown:
+                    transform = CGAffineTransformMakeRotation(M_PI);
+                    break;
+                case UIInterfaceOrientationLandscapeLeft:
+                    transform = CGAffineTransformMakeRotation(-M_PI_2);
+                    break;
+                case UIInterfaceOrientationLandscapeRight:
+                    transform = CGAffineTransformMakeRotation(M_PI_2);
+                    break;
+                default:
+                    transform = CGAffineTransformIdentity;
+                    break;
+            }
+            [splashScreenImage setTransform:transform];
+        }
+        [splashScreenImage setImage: defaultImage];
+        [splashScreenImage setFrame:[[UIScreen mainScreen] bounds]];
+    }
+    return splashScreenImage;
 }
 
 - (void)generateNotification:(NSDictionary*)dict
@@ -357,7 +383,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 		[self generateNotification:notification];
 	}
     [self launchToUrl];
-	[self loadUserDefaults];
 	[self boot];
 	
 	return YES;
@@ -443,6 +468,9 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 -(void)applicationWillResignActive:(UIApplication *)application
 {
+    if([self forceSplashAsSnapshot]) {
+        [window addSubview:[self splashScreenImage]];
+    }
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiSuspendNotification object:self];
 	
 	// suspend any image loading
@@ -457,6 +485,10 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
+    if(splashScreenImage != nil) {
+        [[self splashScreenImage] removeFromSuperview];
+        RELEASE_TO_NIL(splashScreenImage);
+    }
 	// NOTE: Have to fire a separate but non-'resume' event here because there is SOME information
 	// (like new URL) that is not passed through as part of the normal foregrounding process.
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiResumedNotification object:self];
@@ -635,6 +667,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 	RELEASE_TO_NIL(userAgent);
 	RELEASE_TO_NIL(remoteDeviceUUID);
 	RELEASE_TO_NIL(remoteNotification);
+	RELEASE_TO_NIL(splashScreenImage);
     if ([self debugMode]) {
         TiDebuggerStop();
     }
@@ -767,5 +800,26 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 	return [[event copy] autorelease];
 }
 
++(NSDictionary *)tiAppProperties
+{
+    static NSDictionary* props;
+    if(props == nil) {
+        NSString *tiAppPropertiesPath = [[TiHost resourcePath] stringByAppendingPathComponent:@"_app_props_.json"];
+        NSData *jsonData = [TiUtils loadAppResource: [NSURL fileURLWithPath:tiAppPropertiesPath]];
+        if (jsonData==nil) {
+            jsonData = [NSData dataWithContentsOfFile:tiAppPropertiesPath];
+        }
+        if (jsonData==nil) {
+            props = [[NSDictionary alloc] init];
+            return props;
+        }
+        NSError *error = nil;
+        props = [[NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error] retain];
+        if(error != nil) {
+            DebugLog(@"[ERROR] Could not load tiapp.xml properties, error was %@", [error localizedDescription]);
+        }
+    }
+    return props;
+}
 
 @end

@@ -85,10 +85,13 @@
         fadeView.backgroundColor = [UIColor blackColor];
     }
     if (self.isReversed) {
-        fadeView.frame = viewIn.bounds;
-        [viewIn addSubview:fadeView];
+        if (viewIn) {
+            fadeView.frame = viewIn.bounds;
+            [viewIn addSubview:fadeView];
+        }
+        
     }
-    else {
+    else if (viewOut){
         fadeView.frame = viewOut.bounds;
         [viewOut addSubview:fadeView];
     }

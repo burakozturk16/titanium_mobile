@@ -37,18 +37,10 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 	return [self adview];
 }
 
--(CGFloat)contentHeightForWidth:(CGFloat)value
+-(CGSize)contentSizeForSize:(CGSize)size
 {
 	ADBannerView *view = [self adview];
-	CGSize size = [ADBannerView sizeFromBannerContentSizeIdentifier:view.currentContentSizeIdentifier];
-	return size.height;
-}
-
--(CGFloat)contentWidthForWidth:(CGFloat)value
-{
-	ADBannerView *view = [self adview];
-	CGSize size = [ADBannerView sizeFromBannerContentSizeIdentifier:view.currentContentSizeIdentifier];
-	return size.width;
+    return [ADBannerView sizeFromBannerContentSizeIdentifier:view.currentContentSizeIdentifier];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds

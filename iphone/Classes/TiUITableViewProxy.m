@@ -46,7 +46,7 @@ NSArray * tableKeySequence;
                                               @"footerTitle", @"footerView", nil]];
 }
 
-USE_VIEW_FOR_CONTENT_HEIGHT
+USE_VIEW_FOR_CONTENT_SIZE
 
 #pragma mark Internal
 

@@ -12,8 +12,7 @@
 
 @implementation TiUIProgressBarProxy
 
-USE_VIEW_FOR_CONTENT_WIDTH
-USE_VIEW_FOR_CONTENT_HEIGHT
+USE_VIEW_FOR_CONTENT_SIZE
 
 +(NSSet*)transferableProperties
 {

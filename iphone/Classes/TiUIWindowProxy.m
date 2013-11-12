@@ -286,7 +286,7 @@
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
-    [self willChangeSize];
+    [self layoutChildrenIfNeeded];
 }
 
 - (void)viewWillAppear:(BOOL)animated;    // Called when the view is about to made visible. Default does nothing
@@ -559,6 +559,47 @@
 	else 
 	{
 		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxy properties:properties] autorelease] forKey:@"rightNavButton" notification:NO];
+	}
+}
+
+-(void)setRightNavButtons:(id)proxies withObject:(id)properties
+{
+	ENSURE_UI_THREAD_WITH_OBJ(setRightNavButtons,proxies,properties);
+    if (properties == nil) {
+        properties = [self valueForKey:@"rightNavSettings"];
+    }
+    else {
+        [self setValue:properties forKey:@"rightNavSettings"];
+    }
+	
+    id navController = [self navControllerForController:controller];
+	if (controller!=nil && navController != nil)
+	{
+		ENSURE_TYPE_OR_NIL(proxies,NSArray);
+		[self replaceValue:proxies forKey:@"rightNavButtons" notification:NO];
+        NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
+        for (id item in currentButtons) {
+            if ([item respondsToSelector:@selector(proxy)])
+			{
+				TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+				[p removeBarButtonView];
+			}
+        }
+        if (proxies != nil) {
+            NSMutableArray* buttons = [NSMutableArray arrayWithCapacity:[proxies count]];
+            for (TiViewProxy* p in proxies) {
+                [buttons addObject:[p barButtonItem]];
+            }
+            BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
+            [controller.navigationItem setRightBarButtonItems:buttons animated:animated];
+        }
+        else {
+            controller.navigationItem.rightBarButtonItems = nil;
+        }
+	}
+	else
+	{
+		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxies properties:properties] autorelease] forKey:@"rightNavButtons" notification:NO];
 	}
 }
 
@@ -946,6 +987,7 @@ else{\
     SETPROP(@"tabBarHidden",setTabBarHidden);
     SETPROPOBJ(@"leftNavButton",setLeftNavButton);
     SETPROPOBJ(@"rightNavButton",setRightNavButton);
+    SETPROPOBJ(@"rightNavButtons",setRightNavButtons);
     SETPROPOBJ(@"toolbar",setToolbar);
     [self updateBarImage];
     [self refreshBackButton];

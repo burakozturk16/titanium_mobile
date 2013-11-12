@@ -16,6 +16,7 @@
 }
 @property(nonatomic,readonly)	ADTransition* adTransition;
 @property(nonatomic,assign)	NWTransition type;
+@property(nonatomic,assign)	float duration;
 @property(nonatomic,readonly)	ADTransitionOrientation orientation;
 
 - (id)initWithADTransition:(ADTransition*)transition;

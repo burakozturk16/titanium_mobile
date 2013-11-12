@@ -12,6 +12,7 @@
 #import "TiUIListItemProxy.h"
 #import "TiUILabelProxy.h"
 #import "TiUISearchBarProxy.h"
+#import "ImageLoader.h"
 #ifdef USE_TI_UIREFRESHCONTROL
 #import "TiUIRefreshControlProxy.h"
 #endif
@@ -30,7 +31,7 @@
 static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point);
 
 @implementation TiUIListView {
-    UITableView *_tableView;
+    TDUITableView *_tableView;
     NSDictionary *_templates;
     NSMutableDictionary* _templatesSizeProxies;
     id _defaultItemTemplate;
@@ -158,7 +159,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     [self setHeaderFooter:_headerViewProxy isHeader:YES];
 }
 
-- (UITableView *)tableView
+- (TDUITableView *)tableView
 {
     if (_tableView == nil) {
         UITableViewStyle style = UITableViewStylePlain;
@@ -166,11 +167,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:style];
         }
 
-        _tableView = [[UITableView alloc] initWithFrame:self.bounds style:style];
+        _tableView = [[TDUITableView alloc] initWithFrame:self.bounds style:style];
         _tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         _tableView.delegate = self;
         _tableView.dataSource = self;
 
+        _tableView.touchDelegate = self;
+        
         if (TiDimensionIsDip(_rowHeight)) {
             [_tableView setRowHeight:_rowHeight.value];
         }
@@ -346,6 +349,22 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     }
 }
 
+-(void)closePullView:(NSNumber*)anim
+{
+    BOOL animated = YES;
+	if (anim != nil)
+		animated = [anim boolValue];
+	[_tableView setContentOffset:CGPointMake(0,0) animated:animated];
+}
+
+-(void)showPullView:(NSNumber*)anim
+{
+    BOOL animated = YES;
+	if (anim != nil)
+		animated = [anim boolValue];
+	[_tableView setContentOffset:CGPointMake(0,pullThreshhold) animated:animated];
+}
+
 #pragma mark - Helper Methods
 
 -(id)valueWithKey:(NSString*)key atIndexPath:(NSIndexPath*)indexPath
@@ -493,7 +512,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     pruneSections = [TiUtils boolValue:args def:NO];
 }
 
--(void)setCanScroll_:(id)args
+-(void)setScrollingEnabled_:(id)args
 {
     UITableView *table = [self tableView];
     [table setScrollEnabled:[TiUtils boolValue:args def:YES]];
@@ -634,7 +653,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         }
         if (_pullViewWrapper == nil) {
             _pullViewWrapper = [[UIView alloc] init];
-            _pullViewWrapper.backgroundColor = [UIColor lightGrayColor];
+            _pullViewWrapper.backgroundColor = [UIColor clearColor];
             [_tableView addSubview:_pullViewWrapper];
         }
         CGSize refSize = _tableView.bounds.size;
@@ -1357,7 +1376,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoHeightForSize:[self.tableView bounds].size];
+                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -1417,7 +1436,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoHeightForSize:[self.tableView bounds].size];
+                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -1501,13 +1520,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
     
-    id heightValue = [self valueWithKey:@"height" atIndexPath:realIndexPath];
+    id heightValue = [self valueWithKey:@"rowHeight" atIndexPath:realIndexPath];
     TiDimension height = _rowHeight;
     if (heightValue != nil) {
         height = [TiUtils dimensionValue:heightValue];
     }
     if (TiDimensionIsDip(height)) {
-        return height.value;
+        return [self tableView:tableView rowHeight:height.value];
     }
     
     else if (TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height))
@@ -1523,12 +1542,12 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
                 [cellProxy setDataItem:item];
-                return [cellProxy minimumParentHeightForSize:CGSizeMake(width, INT_MAX)];
+                return [self tableView:tableView rowHeight:[cellProxy minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height];
             }
         }
     }
     else if (TiDimensionIsPercent(height)) {
-        return TiDimensionCalculateValue(height, tableView.bounds.size.height);
+        return [self tableView:tableView rowHeight:TiDimensionCalculateValue(height, tableView.bounds.size.height)];
     }
     return 44;
 }
@@ -1553,19 +1572,39 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 #pragma mark - ScrollView Delegate
 
+- (NSMutableDictionary *) eventObjectForScrollView: (UIScrollView *) scrollView
+{
+	return [NSMutableDictionary dictionaryWithObjectsAndKeys:
+			[TiUtils pointToDictionary:scrollView.contentOffset],@"contentOffset",
+			[TiUtils sizeToDictionary:scrollView.contentSize], @"contentSize",
+			[TiUtils sizeToDictionary:_tableView.bounds.size], @"size",
+			nil];
+}
+
+- (void)fireScrollEvent:(UIScrollView *)scrollView {
+	if ([self.proxy _hasListeners:@"scroll"])
+	{
+        NSArray* visibles = [_tableView indexPathsForVisibleRows];
+        NSMutableDictionary* event = [self eventObjectForScrollView:scrollView];
+        [event setObject:NUMINT(((NSIndexPath*)[visibles objectAtIndex:0]).row) forKey:@"firstVisibleItem"];
+        [event setObject:NUMINT([visibles count]) forKey:@"visibleItemCount"];
+		[self.proxy fireEvent:@"scroll" withObject:event];
+	}
+}
+
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-    //Events - pull (maybe scroll later)
-    if (![self.proxy _hasListeners:@"pull"]) {
-        return;
+    if (scrollView.isDragging || scrollView.isDecelerating)
+	{
+        [self fireScrollEvent:scrollView];
     }
-    
     if ( (_pullViewProxy != nil) && ([scrollView isTracking]) ) {
         if ( (scrollView.contentOffset.y < pullThreshhold) && (pullActive == NO) ) {
             pullActive = YES;
-            [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
         } else if ( (scrollView.contentOffset.y > pullThreshhold) && (pullActive == YES) ) {
             pullActive = NO;
+        }
+        if (scrollView.contentOffset.y <= 0 && [self.proxy _hasListeners:@"pull"]) {
             [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
         }
     }
@@ -1574,29 +1613,55 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-    //Events - None (maybe dragstart later)
+	// suspend image loader while we're scrolling to improve performance
+	[[ImageLoader sharedLoader] suspend];
+    if([self.proxy _hasListeners:@"dragstart"])
+	{
+        [self.proxy fireEvent:@"dragstart" withObject:nil];
+    }
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    //Events - pullend (maybe dragend later)
-    if (![self.proxy _hasListeners:@"pullend"]) {
-        return;
-    }
+    if (decelerate==NO)
+	{
+		// resume image loader when we're done scrolling
+		[[ImageLoader sharedLoader] resume];
+	}
+	if ([self.proxy _hasListeners:@"dragend"])
+	{
+		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
+	}
+    
+    
     if ( (_pullViewProxy != nil) && (pullActive == YES) ) {
         pullActive = NO;
-        [self.proxy fireEvent:@"pullend" withObject:nil withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+        if ([self.proxy _hasListeners:@"pullend"]) {
+            [self.proxy fireEvent:@"pullend" withObject:nil withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+        }
     }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    //Events - none (maybe scrollend later)
+	// resume image loader when we're done scrolling
+	[[ImageLoader sharedLoader] resume];
+	if ([self.proxy _hasListeners:@"scrollend"])
+	{
+		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView]];
+	}
+}
+
+- (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+{
+	// suspend image loader while we're scrolling to improve performance
+	[[ImageLoader sharedLoader] suspend];
+	return YES;
 }
 
 - (void)scrollViewDidScrollToTop:(UIScrollView *)scrollView
 {
-    //Events none (maybe scroll later)
+    [self fireScrollEvent:scrollView];
 }
 
 #pragma mark Overloaded view handling

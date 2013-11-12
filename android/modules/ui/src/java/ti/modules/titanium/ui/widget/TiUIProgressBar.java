@@ -35,7 +35,7 @@ public class TiUIProgressBar extends TiUIView {
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				TiUIHelper.firePostLayoutEvent(proxy);
+				TiUIHelper.firePostLayoutEvent(TiUIProgressBar.this);
 			}
 		};
 		view.setOrientation(LinearLayout.VERTICAL);

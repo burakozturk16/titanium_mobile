@@ -112,13 +112,8 @@ DEFINE_EXCEPTIONS
             }
             //Sanity check. If the view bounds are zero set the bounds to auto dimensions
             CGRect bounds = [[proxy_ view] bounds];
-            if (bounds.size.width == 0) {
-                CGFloat desiredWidth = [proxy_ autoWidthForSize:CGSizeMake(1000, 1000)];
-                bounds.size.width = desiredWidth;                        
-            }
-            if (bounds.size.height == 0) {
-                CGFloat desiredHeight = [proxy_ autoHeightForSize:CGSizeMake(bounds.size.width, 1000)];
-                bounds.size.height = desiredHeight;
+            if (bounds.size.width == 0 || bounds.size.height == 0) {
+                bounds.size = [proxy_ autoSizeForSize:CGSizeMake(1000, 1000)];
             }
             [[proxy_ view] setBounds:bounds];
         }
@@ -131,20 +126,12 @@ DEFINE_EXCEPTIONS
             self = [super initWithTitle:[self title:proxy_] style:[self style:proxy_] target:self action:@selector(clicked:)];
         }
     }
-    proxy = proxy_; // Don't retain
-
-    self.width = [TiUtils floatValue:[proxy_ valueForKey:@"width"] def:0.0];
-    //A width of 0 is treated as Auto by the iPhone OS, so this is safe.
-    // we need to listen manually to proxy change events if we want to be
-    // able to change them dynamically
-    proxy.modelDelegate = self;
 	
-    // we need to manually check for this property on init
-    id enabled = [proxy valueForKey:@"enabled"];
-    if (enabled!=nil)
-    {
-        [self performSelector:@selector(setEnabled_:) withObject:enabled];
-    }
+    proxy = proxy_; // Don't retain
+    proxy.modelDelegate = self;
+    
+    id<NSFastEnumeration> values = [proxy allKeys];
+    [self readProxyValuesWithKeys:values];
 	
     return self;
 }
@@ -160,6 +147,94 @@ DEFINE_EXCEPTIONS
 -(void)setTitle_:(id)obj
 {
 	[super setTitle:[TiUtils stringValue:obj]];
+}
+
+-(void)setFont_:(id)font
+{
+    if (font!=nil)
+	{
+		WebFont *f = [TiUtils fontValue:font def:nil];
+        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+        [dict setObject:[f font] forKey:UITextAttributeFont];
+        [super setTitleTextAttributes:dict forState:UIControlStateNormal];
+	}
+}
+
+-(void)setColor_:(id)color
+{
+	if (color!=nil)
+	{
+		TiColor *c = [TiUtils colorValue:color];
+        UIColor* color = (c!=nil)?[c _color]:nil;
+        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+        [dict setObject:color forKey:UITextAttributeTextColor];
+        [super setTitleTextAttributes:dict forState:UIControlStateNormal];
+	}
+}
+
+-(void)setHighlightedColor_:(id)color
+{
+	if (color!=nil)
+	{
+        TiColor *c = [TiUtils colorValue:color];
+        UIColor* color = (c!=nil)?[c _color]:nil;
+        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
+        [dict setObject:color forKey:UITextAttributeTextColor];
+        [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
+	}
+}
+
+-(void)setSelectedColor_:(id)color
+{
+	if (color!=nil)
+	{
+        TiColor *c = [TiUtils colorValue:color];
+        UIColor* color = (c!=nil)?[c _color]:nil;
+        
+        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
+        [dict setObject:color forKey:UITextAttributeTextColor];
+        [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
+        dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateSelected]];
+        [dict setObject:color forKey:UITextAttributeTextColor];
+        [super setTitleTextAttributes:dict forState:UIControlStateSelected];
+	}
+}
+
+-(void)setDisabledColor_:(id)color
+{
+	if (color!=nil)
+	{
+        TiColor *c = [TiUtils colorValue:color];
+        UIColor* color = (c!=nil)?[c _color]:nil;
+        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateDisabled]];
+        [dict setObject:color forKey:UITextAttributeTextColor];
+        [super setTitleTextAttributes:dict forState:UIControlStateDisabled];
+	}
+}
+
+
+-(void)setShadowColor_:(id)color
+{
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+	if (color==nil)
+	{
+        [dict setObject:nil forKey:UITextAttributeTextShadowColor];
+	}
+	else
+	{
+        color = [TiUtils colorValue:color];
+        [dict setObject:color forKey:UITextAttributeTextShadowColor];
+	}
+    [super setTitleTextAttributes:dict forState:UIControlStateNormal];
+}
+
+-(void)setShadowOffset_:(id)value
+{
+	CGPoint p = [TiUtils pointValue:value];
+	CGSize size = {p.x,p.y};
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+    [dict setObject:[NSValue valueWithCGSize:size] forKey:UITextAttributeTextShadowOffset];
+    [super setTitleTextAttributes:dict forState:UIControlStateNormal];
 }
 
 -(void)setImage_:(id)obj
@@ -208,31 +283,16 @@ DEFINE_EXCEPTIONS
 	}
 }
 
+-(void)readProxyValuesWithKeys:(id<NSFastEnumeration>)keys
+{
+	DoProxyDelegateReadValuesWithKeysFromProxy(self, keys, proxy);
+}
+
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
 	// Take into account whether or not we're a custom view
 	id changeView = (self.customView != nil) ? (id)self.customView : (id)self;
-	
-	if ([key isEqualToString:@"title"])
-	{
-		TiThreadPerformOnMainThread(^{[changeView setTitle_:newValue];}, NO);
-		return;
-	}
-	if ([key isEqualToString:@"image"])
-	{
-		TiThreadPerformOnMainThread(^{[changeView setImage_:newValue];}, NO);
-		return;
-	}
-	if ([key isEqualToString:@"width"])
-	{
-		TiThreadPerformOnMainThread(^{[changeView setWidth_:newValue];}, NO);
-		return;
-	}
-	if ([key isEqualToString:@"enabled"])
-	{
-		TiThreadPerformOnMainThread(^{[self	setEnabled_:newValue];}, NO);
-		return;
-	}
+	DoProxyDelegateChangedValuesWithProxy(changeView, key, oldValue, newValue, proxy_);
 }
 
 @end

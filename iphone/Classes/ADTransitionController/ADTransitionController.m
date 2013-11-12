@@ -197,6 +197,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     CGFloat navigationBarHeight = _navigationBar.hidden?0:_navigationBar.frame.size.height;
     CGFloat toolbarHeight = _toolbar.hidden?0:_toolbar.frame.size.height;
     for (UIView* view in inView.subviews) {
+        //the UITableViewCell test is for tableviewcell inside scrollview
         if ([view isKindOfClass:[UIScrollView class]])
         {
             UIScrollView* scrollview = (UIScrollView*)view;
@@ -222,6 +223,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
                 scrollview.contentInset = scrollview.scrollIndicatorInsets = inset;
                 scrollview.contentOffset = CGPointMake(0,-inset.top);
             }
+            continue;
         }
         [self adjustScrollViewInsetsForView:view topCrop:topCrop bottomCrop:bottomCrop topView:topView];
     }
@@ -297,6 +299,10 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     [self addChildViewController:viewController];
     [viewController beginAppearanceTransition:YES animated:animated];
+    
+    if ([self.delegate respondsToSelector:@selector(transitionController:willPushViewController:transition:)]) {
+        [self.delegate transitionController:self willPushViewController:viewController transition:transition];
+    }
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:viewController animated:animated];
     }
@@ -353,6 +359,10 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     UIViewController * inViewController = _viewControllers[([_viewControllers count] - 2)];
     [inViewController beginAppearanceTransition:YES animated:animated];
+    
+    if ([self.delegate respondsToSelector:@selector(transitionController:willPopToViewController:transition:)]) {
+        [self.delegate transitionController:self willPopToViewController:inViewController transition:transition];
+    }
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:inViewController animated:animated];
     }
@@ -601,6 +611,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    [self.viewControllers.lastObject willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
     [self updateLayout];
     [self updateLayoutForController:self.viewControllers.lastObject];
 }
@@ -622,6 +633,9 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 -(UIStatusBarStyle)preferredStatusBarStyle{
     return [self.viewControllers.lastObject preferredStatusBarStyle];
+}
+-(UIGestureRecognizer*) getInteractivePopGestureRecognizer {
+    return nil;
 }
 
 @end

@@ -20,6 +20,7 @@
 #import "TiTransitionSlide.h"
 #import "TiTransitionSwipe.h"
 #import "TiTransitionSwipeFade.h"
+#import "TiTransitionSwipeDualFade.h"
 #import "TiTransitionCarousel.h"
 #import "TiTransitionFlip.h"
 #import "TiTransitionFade.h"
@@ -28,7 +29,66 @@
 
 #import "TiTransition.h"
 
+#import "ADCarrouselTransition.h"
+#import "ADCubeTransition.h"
+#import "ADCrossTransition.h"
+#import "ADFadeTransition.h"
+#import "ADFlipTransition.h"
+#import "ADSwapTransition.h"
+#import "ADGhostTransition.h"
+#import "ADBackFadeTransition.h"
+#import "ADZoomTransition.h"
+#import "ADSwipeTransition.h"
+#import "ADSwipeFadeTransition.h"
+#import "ADSwipeDualFadeTransition.h"
+#import "ADScaleTransition.h"
+#import "ADGlueTransition.h"
+#import "ADPushRotateTransition.h"
+#import "ADFoldTransition.h"
+#import "ADSlideTransition.h"
+#import "ADModernPushTransition.h"
+
+@interface TransitionView : UIView
+@end
+@implementation TransitionView
++ (Class)layerClass {
+    return [CATransformLayer class];
+}
+@end
+
 @implementation TiTransitionHelper
+
+
+static NSDictionary* typeMap = nil;
++(NSDictionary*)typeMap
+{
+    if (typeMap == nil) {
+        typeMap = [@{NSStringFromClass([ADCrossTransition class]): NUMINT(NWTransitionCross),
+                    NSStringFromClass([ADCarrouselTransition class]): NUMINT(NWTransitionCarousel),
+                    NSStringFromClass([ADCubeTransition class]): NUMINT(NWTransitionCube),
+                    NSStringFromClass([ADFadeTransition class]): NUMINT(NWTransitionFade),
+                    NSStringFromClass([ADFlipTransition class]): NUMINT(NWTransitionFlip),
+                    NSStringFromClass([ADSwapTransition class]): NUMINT(NWTransitionSwap),
+                    NSStringFromClass([ADGhostTransition class]): NUMINT(NWTransitionGhost),
+                    NSStringFromClass([ADBackFadeTransition class]): NUMINT(NWTransitionBackFade),
+                    NSStringFromClass([ADZoomTransition class]): NUMINT(NWTransitionZoom),
+                    NSStringFromClass([ADSwipeTransition class]): NUMINT(NWTransitionSwipe),
+                    NSStringFromClass([ADSwipeFadeTransition class]): NUMINT(NWTransitionSwipeFade),
+                    NSStringFromClass([ADSwipeDualFadeTransition class]): NUMINT(NWTransitionSwipeDualFade),
+                    NSStringFromClass([ADScaleTransition class]): NUMINT(NWTransitionScale),
+                    NSStringFromClass([ADGlueTransition class]): NUMINT(NWTransitionGlue),
+                    NSStringFromClass([ADPushRotateTransition class]): NUMINT(NWTransitionPushRotate),
+                    NSStringFromClass([ADFoldTransition class]): NUMINT(NWTransitionFold),
+                    NSStringFromClass([ADSlideTransition class]): NUMINT(NWTransitionSlide),
+                    NSStringFromClass([ADModernPushTransition class]): NUMINT(NWTransitionModernPush)} retain];
+    }
+    return typeMap;
+}
+
++(NSNumber*)tiTransitionTypeForADTransition:(ADTransition*)transition
+{
+    return [[self typeMap] objectForKey:NSStringFromClass([transition class])];
+}
 
 +(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options
 {
@@ -39,6 +99,9 @@
             break;
         case NWTransitionSwipeFade:
             result = [[TiTransitionSwipeFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            break;
+        case NWTransitionSwipeDualFade:
+            result = [[TiTransitionSwipeDualFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
         case NWTransitionCube:
         {
@@ -102,6 +165,7 @@
     }
     if (result != nil) {
         result.type = type;
+        result.duration = duration;
     }
     return result;
 }
@@ -131,10 +195,12 @@
     TiTransition* result = transition;
     if (arg != nil || defaultArg != nil) {
         float duration = [TiUtils floatValue:@"duration" properties:arg def:[TiUtils floatValue:@"duration" properties:defaultArg def:300]]/1000;
+        BOOL reversed =  [TiUtils boolValue:@"reverse" properties:arg def:(transition && [transition.adTransition isReversed])];
+        
         ADTransitionOrientation subtype = [TiUtils intValue:@"substyle" properties:arg def:transition?transition.orientation:[TiUtils intValue:@"substyle" properties:defaultArg def:ADTransitionRightToLeft]];
-        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"type" properties:defaultArg def:-1]];
+        NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:-1]];
         result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg];
-        if (result && transition && [transition.adTransition isReversed])
+        if (result && reversed)
         {
             [result reverseADTransition];
         }
@@ -153,6 +219,46 @@
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container
 {
     return [self transitionFromArg:arg defaultArg:nil defaultTransition:nil containerView:container];
+}
+
++ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
+{
+    ADTransition* adTransition = transition.adTransition ;
+    
+    BOOL needsTransformFix = [adTransition isKindOfClass:[ADTransformTransition class]] && ![holder.layer isKindOfClass:[CATransformLayer class]];
+    UIView* workingView = holder;
+    
+    if (needsTransformFix) {
+        workingView = [[TransitionView alloc] initWithFrame: holder.bounds];
+        [holder addSubview:workingView];
+        if (viewOut) {
+            [workingView addSubview:viewOut];
+        }
+    }
+    if (viewIn) {
+        [workingView addSubview:viewIn];
+    }
+    
+    adTransition.type = ADTransitionTypePush;
+    [transition prepareViewHolder:holder];
+    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
+    
+    [CATransaction setCompletionBlock:^{
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        [viewOut removeFromSuperview];
+        if (needsTransformFix) {
+            if (viewIn) {
+                [holder addSubview:viewIn];
+            }
+            [workingView removeFromSuperview];
+            [workingView release];
+        }
+        if (block != nil) {
+            block();
+        }
+    }];
+    
+    [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];
 }
 
 @end

@@ -25,6 +25,7 @@ import ti.modules.titanium.ui.widget.tableview.TableViewModel;
 import ti.modules.titanium.ui.widget.tableview.TiTableView;
 import ti.modules.titanium.ui.widget.tableview.TiTableView.OnItemClickedListener;
 import ti.modules.titanium.ui.widget.tableview.TiTableView.OnItemLongClickedListener;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.Build;
 import android.view.Gravity;
@@ -32,6 +33,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 
+@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 public class TiUITableView extends TiUIView
 	implements OnItemClickedListener, OnItemLongClickedListener, OnLifecycleEvent
 {
@@ -120,7 +122,7 @@ public class TiUITableView extends TiUIView
 		return tableView;
 	}
 
-	public ListView getListView()
+	public CustomListView getListView()
 	{
 		return tableView.getListView();
 	}
@@ -218,6 +220,10 @@ public class TiUITableView extends TiUIView
 			tableView.setSeparatorStyle(TiConvert.toInt(d, TiC.PROPERTY_SEPARATOR_STYLE));
 		}
 		
+		if (d.containsKey(TiC.PROPERTY_SCROLLING_ENABLED)) {
+			getListView().setScrollingEnabled(d.get(TiC.PROPERTY_SCROLLING_ENABLED));
+		}
+		
 		boolean filterCaseInsensitive = true;
 		if (d.containsKey(TiC.PROPERTY_FILTER_CASE_INSENSITIVE)) {
 			filterCaseInsensitive = TiConvert.toBoolean(d, TiC.PROPERTY_FILTER_CASE_INSENSITIVE);
@@ -277,10 +283,10 @@ public class TiUITableView extends TiUIView
 				tableView.setOnItemLongClickListener(null);
 			}
 
-		}
-
-		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
+		} else if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			tableView.setSeparatorColor(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_SCROLLING_ENABLED)) {
+			getListView().setScrollingEnabled(newValue);
 		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
 			tableView.setSeparatorStyle(TiConvert.toInt(newValue));
 		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)){

@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.appcelerator.titanium.animation.AlphaProperty;
 import org.appcelerator.titanium.animation.ScaleProperty;
-import org.appcelerator.titanium.animation.TranslationProperty;
+import org.appcelerator.titanium.animation.TranslationRelativeProperty;
 import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiViewHelper;
 import org.appcelerator.titanium.view.FreeLayout;
@@ -26,7 +26,7 @@ public class TransitionScale extends Transition {
 	public int getType(){
 		return TransitionHelper.Types.kTransitionScale.ordinal();
 	}
-	protected void prepareAnimators() {
+	protected void prepareAnimators(View inTarget, View outTarget) {
 		float dest = 1;		
 		String translateProp = "x";
 		if (!TransitionHelper.isPushSubType(subType)) {
@@ -36,7 +36,7 @@ public class TransitionScale extends Transition {
 			translateProp = "y";
 		}
 			inAnimator = ObjectAnimator
-					.ofFloat(null, new TranslationProperty(translateProp), dest, 0.0f);
+					.ofFloat(null, new TranslationRelativeProperty(translateProp), dest, 0.0f);
 			inAnimator.setDuration(duration);
 
 			List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
@@ -47,23 +47,25 @@ public class TransitionScale extends Transition {
 			outAnimator.setDuration(duration);
 	}
 
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
 		if (reversed) {
-			ViewHelper.setAlpha(inTarget, alpha);
-			TiViewHelper.setScale(inTarget, scale);
-			outTarget.bringToFront();
+			if (inTarget != null) {
+				ViewHelper.setAlpha(inTarget, alpha);
+				TiViewHelper.setScale(inTarget, scale);
+			}
+			if (outTarget != null) outTarget.bringToFront();
 		}
-		else {
+		else if (inTarget != null) {
 			float dest = 1.0f;
 			if (!TransitionHelper.isPushSubType(subType)) {
 				dest = -dest;
 			}
 			if (TransitionHelper.isVerticalSubType(subType)) {
-				TiViewHelper.setTranslationFloatY(inTarget, dest);
+				TiViewHelper.setTranslationRelativeY(inTarget, dest);
 			}
 			else {
-				TiViewHelper.setTranslationFloatX(inTarget, dest);
+				TiViewHelper.setTranslationRelativeX(inTarget, dest);
 			}
 		}
 		

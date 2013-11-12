@@ -83,6 +83,10 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 		[self contentsWillChange];
 		[self fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
 	}
+    TiThreadPerformOnMainThread(^{
+        //Make sure the text widget is in view when editing.
+        [(TiUITextWidget*)[self view] updateKeyboardStatus];
+    }, NO);
 }
 
 #pragma mark Toolbar
@@ -156,7 +160,7 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     //
     // - Any property setter which potentially takes an array of proxies MUST ALWAYS have its
     // content evaluated to protect them. This is INCREDIBLY CRITICAL and almost certainly a major
-    // source of memory bugs in Titanium iOS!!!
+    // source of memory bugs in MCTS iOS!!!
     //
     // - Any property setter which is active on the main thread only MAY NOT protect their object
     // correctly or in time (see the comment in -[KrollObject noteKeylessKrollObject:]).
@@ -275,8 +279,9 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     }
     TiThreadPerformOnMainThread(^{[(TiUITextWidget*)[self view] setSelectionFrom:arg to:property];}, NO);
 }
-USE_VIEW_FOR_CONTENT_HEIGHT
-USE_VIEW_FOR_CONTENT_WIDTH
+//USE_VIEW_FOR_CONTENT_HEIGHT
+//USE_VIEW_FOR_CONTENT_WIDTH
+USE_VIEW_FOR_CONTENT_SIZE
 
 
 @end

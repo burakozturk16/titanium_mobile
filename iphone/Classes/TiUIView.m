@@ -157,6 +157,8 @@ NSArray* listenerArray = nil;
     TiSelectableBackgroundLayer* _bgLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
+    BOOL _touchEnabled;
+    BOOL _dispatchPressed;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -261,6 +263,8 @@ DEFINE_EXCEPTIONS
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
+    _touchEnabled = YES;
+    _dispatchPressed = NO;
     animateBgdTransition = NO;
 }
 
@@ -342,7 +346,7 @@ DEFINE_EXCEPTIONS
 	
 	[self updateTouchHandling];
 	 
-	self.backgroundColor = [UIColor clearColor]; 
+	super.backgroundColor = [UIColor clearColor];
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
@@ -588,7 +592,11 @@ DEFINE_EXCEPTIONS
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
     [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateDisabled];
 }
-
+-(void)setBackgroundColor:(UIColor*)color
+{
+    // this trick is to prevent tableviewcell from changing our color. When we want
+    // to actually change our color, lets call super!
+}
 -(void) setBackgroundColor_:(id)color
 {
     UIColor* uicolor;
@@ -848,13 +856,23 @@ DEFINE_EXCEPTIONS
 
 -(void)setTouchEnabled_:(id)arg
 {
+	_touchEnabled = [TiUtils boolValue:arg def:_touchEnabled];
+}
+
+-(void)setEnabled_:(id)arg
+{
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
     [self setBgState:[self realStateForState:UIControlStateNormal]];
     changedInteraction = YES;
 }
 
+-(void)setDispatchPressed_:(id)arg
+{
+	_dispatchPressed = [TiUtils boolValue:arg def:_dispatchPressed];
+}
+
 -(BOOL) touchEnabled {
-	return touchEnabled;
+	return _touchEnabled;
 }
 
 -(void)setTouchPassThrough_:(id)arg
@@ -1430,16 +1448,20 @@ DEFINE_EXCEPTIONS
 	return handlesTouches;
 }
 
-- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event 
+-(UIView*)viewForHitTest
+{
+    return self;
+}
+
+- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
 {
 	BOOL hasTouchListeners = [self hasTouchableListener];
-
 	UIView *hitView = [super hitTest:point withEvent:event];
 	// if we don't have any touch listeners, see if interaction should
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((hasTouchListeners == NO && [self interactionEnabled]==NO) && hitView == self)
+	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)) && hitView == [self viewForHitTest])
 	{
 		return nil;
 	}
@@ -1449,19 +1471,13 @@ DEFINE_EXCEPTIONS
     // The touch never reaches the button, because the touchDelegate is as deep as the touch goes.
     
     /*
-	// delegate to our touch delegate if we're hit but it's not for us
-	if (hasTouchListeners==NO && touchDelegate!=nil)
-	{
-		return touchDelegate;
-	}
+     // delegate to our touch delegate if we're hit but it's not for us
+     if (hasTouchListeners==NO && touchDelegate!=nil)
+     {
+     return touchDelegate;
+     }
      */
-	
-	if (touchPassThrough)
-	{
-		if (hitView != self) 
-			return hitView;
-		return nil;
-	}
+    
 	return hitView;
 }
 
@@ -1500,12 +1516,17 @@ DEFINE_EXCEPTIONS
     [super touchesBegan:touches withEvent:event];
 }
 
+-(void)touchSetHighlighted:(BOOL)highlighted
+{
+    [self setHighlighted:highlighted];
+}
+
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     
     UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:UIControlStateSelected]];
+        [self touchSetHighlighted:YES];
     }
 	
 	if ([self interactionEnabled])
@@ -1536,7 +1557,7 @@ DEFINE_EXCEPTIONS
     BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                     localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:!outside?UIControlStateSelected:UIControlStateNormal]];
+        [self touchSetHighlighted:!outside];
     }
 	if ([self interactionEnabled])
 	{
@@ -1559,7 +1580,7 @@ DEFINE_EXCEPTIONS
 - (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if (_shouldHandleSelection) {
-        [self setBgState:[self realStateForState:UIControlStateNormal]];
+        [self touchSetHighlighted:NO];
     }
 	if ([self interactionEnabled])
 	{
@@ -1607,6 +1628,9 @@ DEFINE_EXCEPTIONS
 
 - (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
+    if (_shouldHandleSelection) {
+        [self touchSetHighlighted:NO];
+    }
 	if ([self interactionEnabled])
 	{
 		UITouch *touch = [touches anyObject];
@@ -1759,22 +1783,43 @@ DEFINE_EXCEPTIONS
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
-    [self setBgState:[self realStateForState:UIControlStateHighlighted]];
+    [self setBgState:[self realStateForState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal]];
+    if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
-		if ([thisView respondsToSelector:@selector(setHighlighted:)])
-		{
+        if ([thisView.subviews count] > 0) {
+            id firstChild = [thisView.subviews objectAtIndex:0];
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:)])
+            {
+                [firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
+            }
+            else {
+                [(id)thisView setHighlighted:isHiglighted];
+            }
+        }
+        else {
 			[(id)thisView setHighlighted:isHiglighted];
 		}
 	}
 }
+
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:[self realStateForState:UIControlStateSelected]];
+    [self setBgState:[self realStateForState:isSelected?UIControlStateSelected:UIControlStateNormal]];
+    if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
-		if ([thisView respondsToSelector:@selector(setSelected:)])
-		{
+        if ([thisView.subviews count] > 0) {
+            id firstChild = [thisView.subviews objectAtIndex:0];
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:)])
+            {
+                [firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
+            }
+            else {
+                [(id)thisView setSelected:isSelected];
+            }
+        }
+        else {
 			[(id)thisView setSelected:isSelected];
 		}
 	}
@@ -1784,21 +1829,13 @@ DEFINE_EXCEPTIONS
     [viewOut animationStarted];
     [viewIn animationStarted];
     
-    [self addSubview:viewIn];
-    ADTransition* adTransition = transition.adTransition;
-    [transition prepareViewHolder:self];
-    [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:self];
-    
-    [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:self];        [viewOut removeFromSuperview];
+    [TiTransitionHelper transitionfromView:viewOut toView:viewIn insideView:self withTransition:transition completionBlock:^{
         [viewOut animationCompleted];
         [viewIn animationCompleted];
         if (block != nil) {
             block();
         }
     }];
-    
-    [adTransition startTransitionFromView:viewOut toView:viewIn inside:self];
 }
 
 - (void)blurBackground:(id)args

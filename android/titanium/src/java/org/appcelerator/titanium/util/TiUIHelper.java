@@ -51,7 +51,6 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -464,7 +463,12 @@ public class TiUIHelper
 			} else {
 				Typeface loadedTf = null;
 				if (context != null) {
-					loadedTf = loadTypeface(context, fontFamily);
+					try {
+						loadedTf = loadTypeface(context, fontFamily);
+					} catch (Exception e) {
+						loadedTf = null;
+				Log.e(TAG, "Unable to load font " + fontFamily + ": " + e.getMessage());
+					}
 				}
 				if (loadedTf == null) {
 					Log.w(TAG, "Unsupported font: '" + fontFamily
@@ -619,6 +623,7 @@ public class TiUIHelper
 		android.R.attr.state_enabled,
 		android.R.attr.state_pressed
 	};
+
 	public static final int[] BACKGROUND_CHECKED_STATE = {
 		android.R.attr.state_window_focused,
 		android.R.attr.state_enabled,
@@ -1110,6 +1115,15 @@ public class TiUIHelper
 	}
 	
 	/**
+	 * hides the soft keyboard.
+	 * @param view the current focused view.
+	 */
+	public static void hideSoftKeyboard(View view) 
+	{
+		showSoftKeyboard(view, false);
+	}
+	
+	/**
 	 * Shows/hides the soft keyboard.
 	 * @param view the current focused view.
 	 * @param show whether to show soft keyboard.
@@ -1175,10 +1189,10 @@ public class TiUIHelper
 		}
 	}
 
-	public static void firePostLayoutEvent(TiViewProxy proxy)
+	public static void firePostLayoutEvent(TiUIView view)
 	{
-		if (proxy != null && proxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
-			proxy.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
+		if (view != null && view.getProxy() != null && view.getProxy().hasListeners(TiC.EVENT_POST_LAYOUT)) {
+			view.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
 		}
 	}
 
@@ -1221,5 +1235,21 @@ public class TiUIHelper
 	public static void addView(ViewGroup parent, View view, int index, ViewGroup.LayoutParams params) {
 		removeViewFromSuperView(view);
 		parent.addView(view, index, params);
+	}
+	
+	public static KrollDict getViewRectDict(View view) {
+		TiDimension nativeWidth = new TiDimension(view.getWidth(), TiDimension.TYPE_WIDTH);
+		TiDimension nativeHeight = new TiDimension(view.getHeight(), TiDimension.TYPE_HEIGHT);
+		TiDimension nativeLeft = new TiDimension(view.getLeft(), TiDimension.TYPE_LEFT);
+		TiDimension nativeTop = new TiDimension(view.getTop(), TiDimension.TYPE_TOP);
+
+		// TiDimension needs a view to grab the window manager, so we'll just use the decorview of the current window
+		View decorView = TiApplication.getAppCurrentActivity().getWindow().getDecorView();
+		KrollDict d = new KrollDict();
+		d.put(TiC.PROPERTY_WIDTH, nativeWidth.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_HEIGHT, nativeHeight.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
+		d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
+		return d;
 	}
 }

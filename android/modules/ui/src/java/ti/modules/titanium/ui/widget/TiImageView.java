@@ -10,9 +10,13 @@ import java.lang.ref.WeakReference;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.MaskableView;
 
+import com.nineoldandroids.animation.Animator;
+import com.nineoldandroids.animation.AnimatorSet;
+import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.trevorpage.tpsvg.SVGDrawable;
 
 import android.content.Context;
@@ -24,7 +28,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -65,8 +68,10 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 
 	private Boolean readyToLayout = false;
 	private Boolean configured = false;
-	private boolean animateTransition = true;
-	private int  animationDuration = 500;
+	private Drawable  queuedDrawable = null;
+	private Bitmap  queuedBitmap = null;
+	private Transition  queuedTransition = null;
+	private boolean  inTransition = false;
 	
 	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
 	
@@ -77,6 +82,8 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private int orientation;
 	
 	private WeakReference<TiViewProxy> proxy;
+
+	private ImageView oldImageView = null;
 
 	public TiImageView(Context context) {
 		super(context);
@@ -144,7 +151,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 				super.setImageDrawable(svg);
 			}
 		};
-		addView(imageView, new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		addView(imageView, getImageLayoutParams());
 		setEnableScale(true);
 
 		gestureDetector = new GestureDetector(getContext(), new GestureDetector.SimpleOnGestureListener()
@@ -210,6 +217,63 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		super.setOnClickListener(this);
 	}
 	
+	private ImageView cloneImageView(){
+		ImageView newImageView = new ImageView(getContext()) {
+			@Override
+			protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+				Drawable drawable  = imageView.getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    imageView.setImageDrawable(null); 
+			    int vWidth = w - getPaddingLeft() - getPaddingRight();
+			    int vHeight = h - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    imageView.setImageDrawable(drawable);
+			}
+			
+			@Override
+			public void setScaleType (ScaleType scaleType) {
+				super.setScaleType(scaleType);
+			    Drawable drawable  = getDrawable(); 
+				
+			    if (!(drawable instanceof SVGDrawable)) {
+			        return;
+			    } 
+			    setImageDrawable(null); 
+			    ((SVGDrawable)drawable).setScaleType(scaleType);
+			    int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+			    int vHeight = getHeight() - getPaddingTop() - getPaddingBottom();
+			    ((SVGDrawable)drawable).adjustToParentSize(vWidth, vHeight);
+			    setImageDrawable(drawable);
+			} 
+			
+			@Override
+			public void setImageDrawable(Drawable drawable) {
+				if (!(drawable instanceof SVGDrawable)) {
+					super.setImageDrawable(drawable);
+					return;
+				}
+				if (getDrawable() == drawable) {
+					return;
+				}
+				SVGDrawable svg = (SVGDrawable) drawable;
+				svg.setScaleType(getScaleType());
+				int vWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+				int vHeight = getHeight() - getPaddingTop()
+						- getPaddingBottom();
+				svg.adjustToParentSize(vWidth, vHeight);
+				super.setImageDrawable(svg);
+			}
+		};
+		if(imageView != null) {
+			newImageView.setImageMatrix(imageView.getImageMatrix());
+			updateScaleTypeForImageView(newImageView);
+		}
+		return newImageView;
+	}
+	
 	/**
 	 * Constructs a new TiImageView object.
 	 * @param context the associated context.
@@ -234,51 +298,35 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	}
 
 	public Drawable getImageDrawable() {
-		Drawable drawable = imageView.getDrawable();
-		if (drawable instanceof TransitionDrawable) {
-			TransitionDrawable td = (TransitionDrawable) drawable;
-			return td.getDrawable(td.getNumberOfLayers() - 1);
-		}
-		return drawable;
+		return imageView.getDrawable();
 	}
 	
-	public void setAnimateTransition(boolean value)
-	{
-		this.animateTransition = value;
-	}
-	
-	public void setAnimationDuration(int value)
-	{
-		this.animationDuration = value;
-	}
-	
-	public void setImageDrawableWithFade(final ImageView imageView,
-			final Drawable drawable) {
-		Drawable currentDrawable = getImageDrawable();
-		if (currentDrawable != null) {
-			Drawable[] arrayDrawable = new Drawable[2];
-			arrayDrawable[0] = currentDrawable;
-			arrayDrawable[1] = drawable;
-			TransitionDrawable transitionDrawable = new TransitionDrawable(arrayDrawable);
-			transitionDrawable.setCrossFadeEnabled(true);
-			imageView.setImageDrawable(transitionDrawable);
-			transitionDrawable.startTransition(animationDuration);
-			
-		} else {
-			imageView.setImageDrawable(drawable);
-		}
-	}
 	/**
 	 * Sets a Bitmap as the content of imageView
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void setImageBitmap(Bitmap bitmap) {
-//		if (animateTransition && animationDuration > 0) {
-//			setImageDrawableWithFade(imageView, new BitmapDrawable(getContext().getResources(), bitmap));
-//		}
-//		else {
 			imageView.setImageBitmap(bitmap);
-//		}
+	}
+	
+	/**
+	 * Sets a Bitmap as the content of imageView
+	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
+	 */
+	public void setImageBitmapWithTransition(Bitmap bitmap, Transition transition) {
+		if (transition == null) {
+			setImageBitmap(bitmap);
+		}
+		else {
+			if (inTransition) {
+				queuedTransition = transition;
+				queuedBitmap = bitmap;
+				return;
+			}
+			ImageView newImageView = cloneImageView();
+			newImageView.setImageBitmap(bitmap);
+			transitionToImageView(newImageView, transition);
+		}
 	}
 	
 	/**
@@ -287,6 +335,82 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 */
 	public void setImageDrawable(Drawable drawable) {
 		imageView.setImageDrawable(drawable);
+	}
+	
+	
+	private void onTransitionEnd() {
+		inTransition = false;
+		if (queuedBitmap != null) {
+			setImageBitmapWithTransition(queuedBitmap, queuedTransition);
+			queuedTransition = null;
+			queuedBitmap = null;
+		}
+		else if (queuedDrawable != null) {
+			setImageDrawableWithTransition(queuedDrawable, queuedTransition);
+			queuedTransition = null;
+			queuedDrawable = null;
+		}
+	}
+	
+	private ViewGroup.LayoutParams getImageLayoutParams() {
+		ViewGroup.LayoutParams params  = new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+		return params;
+	}
+	
+	/**
+	 * Sets a Bitmap as the content of imageView
+	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
+	 */
+	public void transitionToImageView(ImageView newImageView, Transition transition) {
+		inTransition = true;
+		oldImageView = imageView;
+		imageView = newImageView;
+		newImageView.setVisibility(View.GONE);
+		
+		TiUIHelper.addView(this, newImageView, (oldImageView != null)?oldImageView.getLayoutParams():getImageLayoutParams());
+		transition.setTargets(this, newImageView, oldImageView);
+
+		AnimatorSet set = transition.getSet(new AnimatorListener() {
+			public void onAnimationEnd(Animator arg0) {	
+					removeView(oldImageView);
+					oldImageView = null;
+					onTransitionEnd();
+			}
+
+			public void onAnimationCancel(Animator arg0) {
+					removeView(oldImageView);
+					oldImageView = null;
+					onTransitionEnd();
+			}
+
+			public void onAnimationRepeat(Animator arg0) {
+			}
+
+			public void onAnimationStart(Animator arg0) {
+			}
+		});
+		set.start();
+		newImageView.setVisibility(View.VISIBLE);
+	}
+	
+	/**
+	 * Sets a Bitmap as the content of imageView
+	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
+	 */
+	public void setImageDrawableWithTransition(Drawable drawable, Transition transition) {
+		if (transition == null) {
+			setImageDrawable(drawable);
+		}
+		else {
+			if (inTransition) {
+				queuedTransition = transition;
+				queuedDrawable = drawable;
+				return;
+			}
+			ImageView newImageView = cloneImageView();
+			newImageView.setImageDrawable(drawable);
+			transitionToImageView(newImageView, transition);
+		}
 	}
 
 	public void setOnClickListener(OnClickListener clickListener)
@@ -461,14 +585,20 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private float getImageRatio(){
 		float ratio = 0;
 		Drawable drawable = getImageDrawable();
+		if (drawable instanceof TiAnimationDrawable) {
+			TiAnimationDrawable animDrawable = (TiAnimationDrawable)drawable;
+			if (animDrawable.getNumberOfFrames() >0) {
+				drawable = animDrawable.getFrame(0);
+			}
+		}
 		if (drawable instanceof BitmapDrawable) {
 			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
 			if (bitmap != null && bitmap.getHeight() > 0)
-				ratio = (float)bitmap.getWidth() /  (float)bitmap.getHeight();
+				return (float)bitmap.getWidth() /  (float)bitmap.getHeight();
 		}
-		else if (drawable instanceof SVGDrawable) {
-			SVGDrawable svg = (SVGDrawable)drawable;
-			ratio = (float)svg.getIntrinsicWidth() /  (float)svg.getIntrinsicHeight();
+		float height = drawable.getIntrinsicHeight();
+		if (height > 0) {
+			ratio = (float)drawable.getIntrinsicWidth() /  (float)drawable.getIntrinsicHeight(); 
 		}
 		return ratio;
 	}
@@ -537,16 +667,20 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		int parentTop = 0;
 		int parentBottom = bottom - top;
 
-		// imageView.layout(parentLeft, parentTop, imageView.getMeasuredWidth(), imageView.getMeasuredHeight());
 		imageView.layout(parentLeft, parentTop, parentRight, parentBottom);
+		if (oldImageView != null) {
+			//make sure the old image view remains in place
+			int centerX = (parentRight - parentLeft)/2;
+			int centerY = (parentBottom - parentTop)/2;
+			int w = oldImageView.getWidth()/2;
+			int h = oldImageView.getHeight()/2;
+			oldImageView.layout(centerX-w, centerY-h, centerX+w, centerY+h);
+		}
 		if (enableZoomControls && zoomControls.getVisibility() == View.VISIBLE) {
 			int zoomWidth = zoomControls.getMeasuredWidth();
 			int zoomHeight = zoomControls.getMeasuredHeight();
 			zoomControls.layout(parentRight - zoomWidth, parentBottom - zoomHeight, parentRight, parentBottom);
 		}
-		
-		TiViewProxy viewProxy = (proxy == null ? null : proxy.get());
-		TiUIHelper.firePostLayoutEvent(viewProxy);
 	}
 
 	public void setColorFilter(ColorFilter filter)
@@ -559,23 +693,28 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private void updateScaleType()
 	{
 		if (!configured) return;
+		updateScaleTypeForImageView(imageView);
+		if (readyToLayout) requestLayout();
+	}
+	
+	private void updateScaleTypeForImageView(ImageView view)
+	{
 		if (orientation > 0 || enableZoomControls) {
-			imageView.setScaleType(ScaleType.MATRIX);
-			imageView.setAdjustViewBounds(false);
+			view.setScaleType(ScaleType.MATRIX);
+			view.setAdjustViewBounds(false);
 		} else {
 			if (viewWidthDefined && viewHeightDefined) {
-				imageView.setAdjustViewBounds(false);
-				imageView.setScaleType(wantedScaleType);
+				view.setAdjustViewBounds(false);
+				view.setScaleType(wantedScaleType);
 			}
 			else if(!enableScale) {
-				imageView.setAdjustViewBounds(false);
-				imageView.setScaleType(ScaleType.CENTER);
+				view.setAdjustViewBounds(false);
+				view.setScaleType(ScaleType.CENTER);
 			} else {
-				imageView.setAdjustViewBounds(true);
-				imageView.setScaleType(ScaleType.FIT_CENTER);
+				view.setAdjustViewBounds(true);
+				view.setScaleType(ScaleType.FIT_CENTER);
 			}
 		}
-		if (readyToLayout) requestLayout();
 	}
 	
 	public void setWantedScaleType(ScaleType type) {

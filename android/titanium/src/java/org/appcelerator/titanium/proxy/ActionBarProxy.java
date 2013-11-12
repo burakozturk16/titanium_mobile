@@ -15,31 +15,33 @@ import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
+import org.appcelerator.titanium.util.TiRHelper;
+import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
 
 import android.annotation.SuppressLint;
-import android.app.ActionBar;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockActivity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
 import android.util.TypedValue;
 
+@SuppressLint("InlinedApi")
 @Kroll.proxy(propertyAccessors = {
 		TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED,
 		TiC.PROPERTY_DISPLAY_HOME_AS_UP,
 		TiC.PROPERTY_ICON
 })
 
-@SuppressLint("NewApi")
 public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 {
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
@@ -70,30 +72,22 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	private Drawable themeBackgroundDrawable;
 	private Drawable themeIconDrawable;
 
-	public ActionBarProxy(Activity activity)
+	public ActionBarProxy(TiBaseActivity activity)
 	{
 		super();
-		actionBar = activity.getActionBar();
-//		themeBackgroundDrawable = getActionBarBackground(activity);
+		actionBar = activity.getSupportActionBar();
 		themeIconDrawable = getActionBarIcon(activity);
+		themeBackgroundDrawable = getActionBarBackground(activity);
 		setModelListener(this, false);
 		
-        int[] android_styleable_ActionBar = {android.R.attr.background};
-		TypedValue outValue = new TypedValue();
-		activity.getTheme().resolveAttribute(android.R.attr.actionBarStyle, outValue, true);
-
-		// Now get action bar style values...
-		TypedArray abStyle = activity.getTheme().obtainStyledAttributes(outValue.resourceId,
-		    android_styleable_ActionBar);
-		// background is the first attr in the array above so it's index is 0.
-		themeBackgroundDrawable = abStyle.getDrawable(0);
 	}
 	
-	protected static TypedArray obtainStyledAttrsFromThemeAttr(Context context, int themeAttr,
-            int[] styleAttrs) {
+	protected static TypedArray obtainStyledAttrsFromThemeAttr(Context context,
+            int[] styleAttrs) throws ResourceNotFoundException {
         // Need to get resource id of style pointed to from the theme attr
         TypedValue outValue = new TypedValue();
-        context.getTheme().resolveAttribute(themeAttr, outValue, true);
+    	int resourceId = TiRHelper.getResource("com.actionbarsherlock.R$", "attr.actionBarStyle");
+       context.getTheme().resolveAttribute(resourceId, outValue, true);
         final int styleResId =  outValue.resourceId;
 
         // Now return the values (from styleAttrs) from the style
@@ -102,37 +96,21 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	
 	protected Drawable getActionBarBackground(Context context) {
         int[] android_styleable_ActionBar = {android.R.attr.background};
-
-        // Now get the action bar style values...
-        TypedArray abStyle = obtainStyledAttrsFromThemeAttr(context, android.R.attr.actionBarStyle,
-                android_styleable_ActionBar);
-//        try {
+        TypedArray abStyle = null;
+        
+        try {
+        	abStyle = obtainStyledAttrsFromThemeAttr(context, android_styleable_ActionBar);
             // background is the first attr in the array above so it's index is 0.
             return abStyle.getDrawable(0);
-//        } finally {
-//            abStyle.recycle();
-//        }
+        } catch (ResourceNotFoundException e) {
+			return null;
+		} finally {
+            if (abStyle != null) abStyle.recycle();
+        }
     }
-	
-	protected Drawable getActionBarIcon(Context context) {
-        int[] android_styleable_ActionBar = {android.R.attr.icon};
 
-        // Now get the action bar style values...
-        TypedArray abStyle = obtainStyledAttrsFromThemeAttr(context, android.R.attr.actionBarStyle,
-                android_styleable_ActionBar);
-//        try {
-        	int count = abStyle.getIndexCount();
-        	if (count > 0) {
-	            return abStyle.getDrawable(0);
-        	}
-        	return context.getApplicationInfo().loadIcon(context.getPackageManager()); 
-//        } finally {
-//            abStyle.recycle();
-//        }
-    }
-	
-	protected int getActionBarSize(Context context) {
-        int[] attrs = {android.R.attr.actionBarSize};
+    protected int getActionBarSize(Context context) {
+        int[] attrs = {	android.R.attr.actionBarSize};
         TypedArray values = context.getTheme().obtainStyledAttributes(attrs);
         try {
             return values.getDimensionPixelSize(0, 0);
@@ -140,22 +118,28 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
             values.recycle();
         }
     }
+	
 
-    protected int getActionBarTitleStyle(Context context) {
-        int[] android_styleable_ActionBar = {android.R.attr.titleTextStyle};
+	protected Drawable getActionBarIcon(Context context) {
+        int[] android_styleable_ActionBar = {android.R.attr.icon};
 
         // Now get the action bar style values...
-        TypedArray abStyle = obtainStyledAttrsFromThemeAttr(context, android.R.attr.actionBarStyle,
-                android_styleable_ActionBar);
+        TypedArray abStyle = null;
         try {
-            // titleTextStyle is the first attr in the array above so it's index is 0.
-            return abStyle.getResourceId(0, 0);
-        } finally {
-            abStyle.recycle();
+        	abStyle = obtainStyledAttrsFromThemeAttr(context, android_styleable_ActionBar);
+       	int count = abStyle.getIndexCount();
+        	if (count > 0) {
+	            return abStyle.getDrawable(0);
+        	}
+        	return context.getApplicationInfo().loadIcon(context.getPackageManager()); 
+        } catch (ResourceNotFoundException e) {
+			return null;
+		} finally {
+            if (abStyle != null) abStyle.recycle();
         }
     }
 
-//	@Kroll.method @Kroll.setProperty
+	@Kroll.method @Kroll.setProperty
 	private void setDisplayHomeAsUp(boolean showHomeAsUp)
 	{
 		if(TiApplication.isUIThread()) {
@@ -179,7 +163,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundImage(String url)
 	{
 		if (TiApplication.isUIThread()) {
@@ -191,7 +174,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundColor(int color)
 	{
 		if (TiApplication.isUIThread()) {
@@ -201,7 +183,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public void setBackgroundGradient(KrollDict gradient)
 	{
 		if (TiApplication.isUIThread()) {
@@ -211,7 +192,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setTitle(String title)
 	{
 		if (TiApplication.isUIThread()) {
@@ -223,7 +203,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.getProperty
 	public String getTitle()
 	{
 		if (actionBar == null) {
@@ -232,7 +211,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		return (String) actionBar.getTitle();
 	}
 
-	@Kroll.method @Kroll.getProperty
 	public int getNavigationMode()
 	{
 		if (actionBar == null) {
@@ -261,21 +239,17 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setLogo(String url)
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
-			if (TiApplication.isUIThread()) {
-				handleSetLogo(url);
-			} else {
-				Message message = getMainHandler().obtainMessage(MSG_SET_LOGO, url);
-				message.getData().putString(LOGO, url);
-				message.sendToTarget();
-			}
+		if (TiApplication.isUIThread()) {
+			handleSetLogo(url);
+		} else {
+			Message message = getMainHandler().obtainMessage(MSG_SET_LOGO, url);
+			message.getData().putString(LOGO, url);
+			message.sendToTarget();
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setIcon(Object value)
 	{
 		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
@@ -352,7 +326,6 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 			Log.w(TAG, "ActionBar is not enabled");
 			return;
 		}
-
 		actionBar.setBackgroundDrawable(new ColorDrawable(color));
 	}
 	
@@ -369,7 +342,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	
 	private void activateHomeButton(boolean value)
 	{
-		if (actionBar == null || Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
+		if (actionBar == null) {
 			Log.w(TAG, "ActionBar is not enabled");
 			return;
 		}
@@ -489,6 +462,9 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		if (properties.containsKey(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			setBackgroundGradient(properties.getKrollDict(TiC.PROPERTY_BACKGROUND_GRADIENT));
 		}
+		if (properties.containsKey(TiC.PROPERTY_LOGO)) {
+			setLogo(properties.getString(TiC.PROPERTY_LOGO));
+		}
 		Object obj= properties.get(TiC.PROPERTY_ICON);
 		if (obj != null) {
 			if (obj instanceof String) {
@@ -509,6 +485,35 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	
 	public void propertyChanged(String key, Object oldValue, Object newValue,
 			KrollProxy proxy) {		
+		if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			setBackgroundColor(TiConvert.toColor((String) newValue));
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+			setBackgroundImage(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+				setBackgroundGradient((KrollDict)newValue);
+		} else if (key.equals(TiC.PROPERTY_LOGO)) {
+			setLogo(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_DISPLAY_HOME_AS_UP)) {
+			setDisplayHomeAsUp(TiConvert.toBoolean(newValue, false));
+		} else if (key.equals(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED)) {
+			activateHomeButton((newValue != null));
+		} else if (key.equals(TiC.PROPERTY_ICON)) {
+			if (newValue != null) {
+				if (newValue instanceof String) {
+					setIcon((String)newValue);
+				}
+				else if (newValue instanceof Number){
+					setIcon(TiConvert.toInt(newValue));
+				}
+			}
+			else {
+				if (TiApplication.isUIThread()) {
+					actionBar.setIcon(themeIconDrawable);
+				} else {
+					getMainHandler().obtainMessage(MSG_RESET_ICON).sendToTarget();
+				}
+			}
+		}
 	}
 
 	public void propertiesChanged(List<KrollPropertyChange> changes,

@@ -31,6 +31,10 @@
 	return self;
 }
 
+-(UIView*)viewForHitTest
+{
+    return [self textWidgetView];
+}
 
 -(void)setAttributedString_:(id)arg
 {
@@ -240,6 +244,15 @@
         DebugLog(@"TextWidget does not conform with UITextInput protocol. Ignore");
     }
 }
+
+#pragma mark - Titanium Internal Use Only
+-(void)updateKeyboardStatus
+{
+    if ( ([[[TiApp app] controller] keyboardVisible]) && ([[[TiApp app] controller] keyboardFocusedProxy] == [self proxy]) ) {
+        [[[TiApp app] controller] performSelector:@selector(handleNewKeyboardStatus) withObject:nil afterDelay:0.0];
+    }
+}
+
 @end
 
 #endif

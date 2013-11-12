@@ -36,6 +36,9 @@ public class TiUISpinnerColumn extends TiUIView implements WheelView.OnItemSelec
 	public TiUISpinnerColumn(TiViewProxy proxy)
 	{
 		super(proxy);
+		if (proxy instanceof PickerColumnProxy && ((PickerColumnProxy)proxy).getCreateIfMissing()) {
+			layoutParams.autoFillsWidth = true;
+		}
 		refreshNativeView();
 		preselectRow();
 		((WheelView)nativeView).setItemSelectedListener(this);

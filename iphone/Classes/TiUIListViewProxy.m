@@ -133,6 +133,7 @@
 			removeHead = YES;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
+        CGPoint offset = [tableView contentOffset];
 		if (block != nil) {
 			if (begin) {
 				[tableView beginUpdates];
@@ -142,6 +143,7 @@
 			Block_release(block);
 		} else {
 			[tableView endUpdates];
+            [tableView setContentOffset:offset animated:NO];
 			return;
 		}
 	}
@@ -483,6 +485,18 @@
     TiThreadPerformOnMainThread(^{
         [self.listView setContentInsets_:arg1 withObject:arg2];
     }, NO);
+}
+
+-(void)showPullView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(showPullView:) withObject:args createIfNeeded:NO waitUntilDone:NO];
+}
+
+-(void)closePullView:(id)args
+{
+    ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
+	[self makeViewPerformSelector:@selector(closePullView:) withObject:args createIfNeeded:NO waitUntilDone:NO];
 }
 
 #pragma mark - Marker Support

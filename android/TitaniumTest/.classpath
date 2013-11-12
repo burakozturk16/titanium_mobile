@@ -3,7 +3,7 @@
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-network"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
 	<classpathentry exported="true" kind="lib" path="/kroll-common/bin/kroll-common.jar"/>

@@ -35,6 +35,11 @@
 	return YES;
 }
 
+-(UIView*)viewForHitTest
+{
+    return button;
+}
+
 - (void)controlAction:(id)sender forEvent:(UIEvent *)event
 {
     UITouch *touch = [[event allTouches] anyObject];
@@ -323,6 +328,25 @@
 	}
 }
 
+-(void)setDisabledColor_:(id)color
+{
+	if (color!=nil)
+	{
+		TiColor *selColor = [TiUtils colorValue:color];
+		UIButton *b = [self button];
+		if (selColor!=nil)
+		{
+            UIColor* uicolor = [selColor _color];
+			[b setTitleColor:uicolor forState:UIControlStateDisabled];
+		}
+		else if (b.buttonType==UIButtonTypeCustom)
+		{
+            UIColor* uicolor = [UIColor whiteColor];
+			[b setTitleColor:uicolor forState:UIControlStateDisabled];
+		}
+	}
+}
+
 -(void)setTextAlign_:(id)alignment
 {
     UIButton *b = [self button];
@@ -397,15 +421,15 @@
     [button setNeedsLayout];
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)value
+-(CGSize)contentSizeForSize:(CGSize)value
 {
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].width + [self button].titleEdgeInsets.left + [self button].titleEdgeInsets.right;
+    CGSize result = [[self button] sizeThatFits:value];
+    result.width += [self button].titleEdgeInsets.left + [self button].titleEdgeInsets.right;
+    result.height += [self button].titleEdgeInsets.top + [self button].titleEdgeInsets.bottom;
+
+    return result;
 }
 
--(CGFloat)contentHeightForWidth:(CGFloat)value
-{
-	return [[self button] sizeThatFits:CGSizeMake(value, 0)].height + [self button].titleEdgeInsets.top + [self button].titleEdgeInsets.bottom;
-}
 
 @end
 

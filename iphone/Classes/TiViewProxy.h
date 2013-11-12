@@ -626,6 +626,15 @@ enum
 - (void)unarchiveFakeFromTemplate:(id)viewTemplate;
 + (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
+/**
+ Performs view's configuration procedure.
+ */
+-(void)configurationStart;
+-(void)configurationStart:(BOOL)recursive;
+-(void)configurationSet;
+-(void)configurationSet:(BOOL)recursive;
+-(BOOL) widthIsAutoSize;
+-(BOOL) heightIsAutoSize;
 @end
 
 
@@ -637,8 +646,7 @@ enum
 
 #define USE_VIEW_FOR_VERIFY_WIDTH	USE_VIEW_FOR_METHOD(CGFloat,verifyWidth,CGFloat)
 #define USE_VIEW_FOR_VERIFY_HEIGHT	USE_VIEW_FOR_METHOD(CGFloat,verifyHeight,CGFloat)
-#define USE_VIEW_FOR_CONTENT_WIDTH	USE_VIEW_FOR_METHOD(CGFloat,contentWidthForWidth,CGFloat)
-#define USE_VIEW_FOR_CONTENT_HEIGHT	USE_VIEW_FOR_METHOD(CGFloat,contentHeightForWidth,CGFloat)
+#define USE_VIEW_FOR_CONTENT_SIZE	USE_VIEW_FOR_METHOD(CGSize,contentSizeForSize,CGSize)
 
 #define DECLARE_VIEW_CLASS_FOR_NEWVIEW(viewClass)	\
 -(TiUIView*)newView	\

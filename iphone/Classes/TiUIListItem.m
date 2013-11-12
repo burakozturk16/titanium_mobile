@@ -367,7 +367,6 @@ static NSArray* handledKeys;
 {
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
-    [_viewHolder configurationSet];
 }
 
 -(void)setAccessoryType_:(id)newValue
@@ -408,6 +407,14 @@ static NSArray* handledKeys;
 -(void)setSubtitle_:(id)newValue
 {
     self.detailTextLabel.text = [newValue description];
+}
+
+- (void)layoutSubviews
+{
+    [super layoutSubviews];
+    if (_templateStyle == TiUIListItemTemplateStyleCustom) {
+        [_proxy layoutChildren:NO];
+    }
 }
 @end
 

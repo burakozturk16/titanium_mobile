@@ -32,8 +32,7 @@ NSArray* tabbedKeySequence;
 	return [result autorelease];
 }
 
-USE_VIEW_FOR_CONTENT_WIDTH
-USE_VIEW_FOR_CONTENT_HEIGHT
+USE_VIEW_FOR_CONTENT_SIZE
 
 
 -(TiDimension)defaultAutoWidthBehavior:(id)unused

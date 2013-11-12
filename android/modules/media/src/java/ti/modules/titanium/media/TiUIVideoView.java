@@ -63,7 +63,7 @@ public class TiUIVideoView extends TiUIView
 	private void initView()
 	{
 		if (nativeView == null) {
-			TiCompositeLayout layout = new TiCompositeLayout(videoView.getContext(), proxy);
+			TiCompositeLayout layout = new TiCompositeLayout(videoView.getContext(), this);
 			layout.addView(videoView, new TiCompositeLayout.LayoutParams());
 			setNativeView(layout);
 		}

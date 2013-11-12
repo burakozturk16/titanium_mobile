@@ -241,14 +241,9 @@
 	}
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-	return [[self segmentedControl] sizeThatFits:CGSizeZero].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width
-{
-	return [[self segmentedControl] sizeThatFits:CGSizeZero].height;
+    return [[self segmentedControl] sizeThatFits:CGSizeZero];
 }
 
 @end

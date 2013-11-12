@@ -13,8 +13,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.MenuItemProxy;
 import org.appcelerator.titanium.proxy.MenuProxy;
 
-import android.view.Menu;
-import android.view.MenuItem;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 
 public class TiMenuSupport
 {

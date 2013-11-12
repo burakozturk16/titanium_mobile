@@ -14,6 +14,7 @@
 
 @property(nonatomic,readonly) NSNumber *SWIPE;
 @property(nonatomic,readonly) NSNumber *SWIPE_FADE;
+@property(nonatomic,readonly) NSNumber *SWIPE_DUAL_FADE;
 @property(nonatomic,readonly) NSNumber *CUBE;
 @property(nonatomic,readonly) NSNumber *CAROUSEL;
 @property(nonatomic,readonly) NSNumber *CROSS;

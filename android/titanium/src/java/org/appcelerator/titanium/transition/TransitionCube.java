@@ -4,11 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.appcelerator.titanium.animation.RotationProperty;
-import org.appcelerator.titanium.animation.ScaleProperty;
 import org.appcelerator.titanium.animation.TranslationProperty;
 import org.appcelerator.titanium.util.TiViewHelper;
 
-import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 
@@ -32,24 +30,25 @@ public class TransitionCube extends Transition {
 		return TransitionHelper.Types.kTransitionCube.ordinal();
 	}
 	
-	protected void prepareAnimators() {
-		float destTranslation = translation;
+	protected void prepareAnimators(View inTarget, View outTarget) {
+		float destTranslation = rect.width();
 		float destAngle = angle;
 		
 		String rotateProp = "y";
 		String translateProp = "x";
+		if (TransitionHelper.isVerticalSubType(subType)) {
+			destTranslation = rect.height();
+			translateProp = "y";
+			rotateProp = "x";
+		}
 		if (!TransitionHelper.isPushSubType(subType)) {
 			destTranslation = -destTranslation;
 			destAngle = -destAngle;
 		}
-		if (TransitionHelper.isVerticalSubType(subType)) {
-			translateProp = "y";
-			rotateProp = "x";
-		}
+		
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTranslation, 0.0f));
-//		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), scale, 1.0f));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), destTranslation*translation, 0.0f));
 		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), destAngle, 0.0f));
 		inAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
 				propertiesList.toArray(new PropertyValuesHolder[0]));
@@ -57,8 +56,7 @@ public class TransitionCube extends Transition {
 		inAnimator.setDuration(duration);
 
 		propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0, -destTranslation));
-//		propertiesList.add(PropertyValuesHolder.ofFloat(new ScaleProperty(), 1, scale));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp), 0, -destTranslation*translation));
 		propertiesList.add(PropertyValuesHolder.ofFloat(new RotationProperty(rotateProp), 0,
 				-destAngle));
 		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
@@ -67,10 +65,10 @@ public class TransitionCube extends Transition {
 		outAnimator.setDuration(duration);
 	};
 
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
 		
-		float destTranslation = translation;
+		float destTranslation = rect.width();
 		float destAngle = angle;
 		if (reversed) {
 			destTranslation = -destTranslation;
@@ -78,16 +76,22 @@ public class TransitionCube extends Transition {
 		}
 		
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setPivotFloat(outTarget, 0.5f, reversed?0.f:1.0f);
-			TiViewHelper.setPivotFloat(inTarget, 0.5f, reversed?1.0f:0.0f);
+			destTranslation = rect.height();
+			if (outTarget != null) TiViewHelper.setPivotFloat(outTarget, 0.5f, reversed?0.f:1.0f);
+			if (inTarget != null) {
+				TiViewHelper.setPivotFloat(inTarget, 0.5f, reversed?1.0f:0.0f);
+				ViewHelper.setTranslationY(inTarget, destTranslation*translation);
+				ViewHelper.setRotationX(inTarget, destAngle);
+			}
 		}
 		else {
-			TiViewHelper.setPivotFloat(outTarget, reversed?0.f:1.0f, 0.5f);
-			TiViewHelper.setPivotFloat(inTarget, reversed?1.0f:0.0f, 0.5f);
+			if (outTarget != null) TiViewHelper.setPivotFloat(outTarget, reversed?0.f:1.0f, 0.5f);
+			if (inTarget != null) {
+				TiViewHelper.setPivotFloat(inTarget, reversed?1.0f:0.0f, 0.5f);
+				ViewHelper.setTranslationX(inTarget, destTranslation*translation);
+				ViewHelper.setRotationY(inTarget, destAngle);
+			}
 		}
-//		TiViewHelper.setScale(inTarget, scale, scale);
-		TiViewHelper.setTranslationFloatX(inTarget, destTranslation);
-		ViewHelper.setRotationY(inTarget, destAngle);
 	}
 	
 	@Override
@@ -110,12 +114,12 @@ public class TransitionCube extends Transition {
 		ViewHelper.setAlpha(view, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			TiViewHelper.setPivotFloat(view, 0.5f, out?1.0f:0.0f);
-			if (!adjustScroll) TiViewHelper.setTranslationFloatY(view, position * multiplier);
+			if (!adjustScroll) TiViewHelper.setTranslationRelativeY(view, position * multiplier);
 			ViewHelper.setRotationX(view, rot);
 		}
 		else {
 			TiViewHelper.setPivotFloat(view, out?1.0f:0.0f, 0.5f);
-			if (!adjustScroll) TiViewHelper.setTranslationFloatX(view, position * multiplier);
+			if (!adjustScroll) TiViewHelper.setTranslationRelativeX(view, position * multiplier);
 			ViewHelper.setRotationY(view, rot);
 		}
 	}

@@ -34,6 +34,7 @@ import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.common.TiDeployData;
 import org.appcelerator.kroll.common.TiFastDev;
 import org.appcelerator.kroll.common.TiMessenger;
+import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.kroll.util.TiTempFileHelper;
 import org.appcelerator.titanium.analytics.TiAnalyticsEvent;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
@@ -45,6 +46,8 @@ import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import ti.modules.titanium.TitaniumModule;
 import android.annotation.SuppressLint;
@@ -72,7 +75,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	private static final long TIME_SEPARATION_ANALYTICS = 1000;
 	private static final int MSG_SEND_ANALYTICS = 100;
 	private static final long SEND_ANALYTICS_DELAY = 30000; // Time analytics send request sits in queue before starting service.
-	private static final String PROPERTY_DEPLOY_TYPE = "ti.deploytype";
 	private static final String PROPERTY_THREAD_STACK_SIZE = "ti.android.threadstacksize";
 	private static final String PROPERTY_COMPILE_JS = "ti.android.compilejs";
 	private static final String PROPERTY_ENABLE_COVERAGE = "ti.android.enablecoverage";
@@ -106,7 +108,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	private TiWeakList<KrollProxy> appEventProxies = new TiWeakList<KrollProxy>();
 	private WeakReference<TiRootActivity> rootActivity;
 	private TiProperties appProperties;
-	private TiProperties systemProperties;
 	private WeakReference<Activity> currentActivity;
 	private String density;
 	private boolean needsStartEvent;
@@ -167,6 +168,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		analyticsHandler = new Handler(this);
 		needsEnrollEvent = false; // test is after DB is available
 		needsStartEvent = true;
+
 		loadBuildProperties();
 
 		mainThreadId = Looper.getMainLooper().getThread().getId();
@@ -246,6 +248,19 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		return false;
 	}
 
+	/**
+	 * Check whether the current activity is in foreground or not.
+	 * @return true if the current activity is in foreground; false otherwise.
+	 * @module.api
+	 */
+	public static boolean isCurrentActivityInForeground()
+	{
+		Activity currentActivity = getAppCurrentActivity();
+		if (currentActivity instanceof TiBaseActivity) {
+			return ((TiBaseActivity)currentActivity).isInForeground();
+		}
+		return false;
+	}
 	
 	/**
 	 * This is a convenience method to avoid having to check TiApplication.getInstance() is not null every 
@@ -350,6 +365,18 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		}
 	}
 
+	private void loadAppProperties() {
+		// Load the JSON file:
+		String appPropertiesString = KrollAssetHelper.readAsset("Resources/_app_props_.json");
+		if (appPropertiesString != null) {
+			try {
+				TiProperties.setSystemProperties(new JSONObject(appPropertiesString));
+			} catch (JSONException e) {
+				Log.e(TAG, "Unable to load app properties.");
+			}
+		}
+	}
+
 	@Override
 	public void onCreate()
 	{
@@ -366,6 +393,8 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			}
 		});
 
+		appProperties = new TiProperties(getApplicationContext(), APPLICATION_PREFERENCES_NAME, false);
+
 		baseUrl = TiC.URL_ANDROID_ASSET_RESOURCES;
 
 		File fullPath = new File(baseUrl, getStartFilename("app.js"));
@@ -373,12 +402,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 		proxyMap = new HashMap<String, SoftReference<KrollProxy>>(5);
 
-		appProperties = new TiProperties(getApplicationContext(), APPLICATION_PREFERENCES_NAME, false);
-		systemProperties = new TiProperties(getApplicationContext(), SYSTEM_UNIT, true);
-
-		if (getDeployType().equals(DEPLOY_TYPE_DEVELOPMENT)) {
-			deployData = new TiDeployData(this);
-		}
 		tempFileHelper = new TiTempFileHelper(this);
 	}
 
@@ -411,12 +434,16 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public void postAppInfo()
 	{
+		deployData = new TiDeployData(this);
+
 		TiPlatformHelper.initialize();
 		TiFastDev.initFastDev(this);
 	}
 
 	public void postOnCreate()
 	{
+		loadAppProperties();
+
 		KrollRuntime runtime = KrollRuntime.getInstance();
 		if (runtime != null) {
 			Log.i(TAG, "Titanium Javascript runtime: " + runtime.getRuntimeName());
@@ -425,8 +452,8 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			Log.w(TAG, "Titanium Javascript runtime: unknown");
 		}
 
-		TiConfig.DEBUG = TiConfig.LOGD = systemProperties.getBool("ti.android.debug", false);
-		USE_LEGACY_WINDOW = systemProperties.getBool(PROPERTY_USE_LEGACY_WINDOW, false);
+		TiConfig.DEBUG = TiConfig.LOGD = appProperties.getBool("ti.android.debug", false);
+		USE_LEGACY_WINDOW = appProperties.getBool(PROPERTY_USE_LEGACY_WINDOW, false);
 
 		startExternalStorageMonitor();
 		
@@ -477,7 +504,8 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			needsEnrollEvent = analyticsModel.needsEnrollEvent();
 
 			if (needsEnrollEvent()) {
-				String deployType = systemProperties.getString("ti.deploytype", "unknown");
+				//FIXME: Find some other way to set the deploytype?
+				String deployType = appProperties.getString("ti.deploytype", "unknown");
 				postAnalyticsEvent(TiAnalyticsEventFactory.createAppEnrollEvent(this,deployType));
 			}
 
@@ -579,9 +607,14 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		return appProperties;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public TiProperties getSystemProperties()
 	{
-		return systemProperties;
+		// This should actually be removed, but we are changing it to 'appProperties' instead so we don't break module
+		// developers who use this.
+		return appProperties;
 	}
 
 	public ITiAppInfo getAppInfo()
@@ -720,7 +753,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public String getDeployType()
 	{
-		return getSystemProperties().getString(PROPERTY_DEPLOY_TYPE, DEPLOY_TYPE_DEVELOPMENT);
+		return getAppInfo().getDeployType();
 	}
 
 	/**
@@ -744,7 +777,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	public String getDefaultUnit()
 	{
 		if (defaultUnit == null) {
-			defaultUnit = getSystemProperties().getString(PROPERTY_DEFAULT_UNIT, SYSTEM_UNIT);
+			defaultUnit = getAppProperties().getString(PROPERTY_DEFAULT_UNIT, SYSTEM_UNIT);
 			// Check to make sure default unit is valid, otherwise use system
 			Pattern unitPattern = Pattern.compile("system|px|dp|dip|mm|cm|in");
 			Matcher m = unitPattern.matcher(defaultUnit);
@@ -757,12 +790,12 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public int getThreadStackSize()
 	{
-		return getSystemProperties().getInt(PROPERTY_THREAD_STACK_SIZE, DEFAULT_THREAD_STACK_SIZE);
+		return getAppProperties().getInt(PROPERTY_THREAD_STACK_SIZE, DEFAULT_THREAD_STACK_SIZE);
 	}
 
 	public boolean forceCompileJS()
 	{
-		return getSystemProperties().getBool(PROPERTY_COMPILE_JS, false);
+		return getAppProperties().getBool(PROPERTY_COMPILE_JS, false);
 	}
 
 	public TiDeployData getDeployData()
@@ -782,14 +815,14 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		if (!development) {
 			return false;
 		}
-		return getSystemProperties().getBool(TiApplication.PROPERTY_FASTDEV, development);
+		return getAppProperties().getBool(TiApplication.PROPERTY_FASTDEV, development);
 	}
 
 	public boolean isCoverageEnabled()
 	{
 		if (!getDeployType().equals(TiApplication.DEPLOY_TYPE_PRODUCTION))
 		{
-			return getSystemProperties().getBool(TiApplication.PROPERTY_ENABLE_COVERAGE, false);
+			return getAppProperties().getBool(TiApplication.PROPERTY_ENABLE_COVERAGE, false);
 		}
 		return false;
 	}

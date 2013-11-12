@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -30,6 +30,7 @@ import android.text.method.NumberKeyListener;
 import android.text.method.PasswordTransformationMethod;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
@@ -38,6 +39,7 @@ import android.widget.LinearLayout;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
+import android.content.res.ColorStateList;
 
 public class TiUIText extends TiUIView
 	implements TextWatcher, OnEditorActionListener, OnFocusChangeListener
@@ -72,6 +74,7 @@ public class TiUIText extends TiUIView
 	private static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
 	private static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
 
+	private int defaultColor;
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
@@ -130,7 +133,14 @@ public class TiUIText extends TiUIView
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 		{
 			super.onLayout(changed, left, top, right, bottom);
-			TiUIHelper.firePostLayoutEvent(proxy);
+			TiUIHelper.firePostLayoutEvent(TiUIText.this);
+		}
+
+		@Override
+		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough == true)
+				return false;
+			return super.dispatchTouchEvent(event);
 		}
 	}
 
@@ -277,9 +287,9 @@ public class TiUIText extends TiUIView
 			if (this.getVisibility() == View.INVISIBLE) return;
 			if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
 					&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
-				TiUIHelper.showSoftKeyboard(editText, false);
 				editText.clearFocus();
 				this.requestFocus();
+				TiUIHelper.hideSoftKeyboard(editText);
 			}
 			else {
 				editText.requestFocus();
@@ -289,9 +299,9 @@ public class TiUIText extends TiUIView
 
 		public void blur() {
 			if (editText.hasFocus()) {
-				TiUIHelper.showSoftKeyboard(editText, false);
 				editText.clearFocus();
 				this.requestFocus();
+				TiUIHelper.hideSoftKeyboard(editText);
 			}
 
 		}
@@ -322,8 +332,29 @@ public class TiUIText extends TiUIView
 		} else {
 			realtv.setGravity(Gravity.TOP | Gravity.LEFT);
 		}
-
+		defaultColor = realtv.getCurrentTextColor();
 		setNativeView(tv);
+	}
+
+
+	private void setTextColors(int color, int selectedColor, int disabledColor) {
+		
+		int[][] states = new int[][] {
+			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
+			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
+			TiUIHelper.BACKGROUND_FOCUSED_STATE,  // pressed
+			TiUIHelper.BACKGROUND_CHECKED_STATE,  // pressed
+			new int [] {android.R.attr.state_pressed},  // pressed
+			new int [] {android.R.attr.state_focused},  // pressed
+			new int [] {}
+		};
+
+		ColorStateList colorStateList = new ColorStateList(
+			states,
+			new int[] {disabledColor, selectedColor, selectedColor, selectedColor, selectedColor, selectedColor, color}
+		);
+
+		realtv.setTextColor(colorStateList);
 	}
 
 	@Override
@@ -334,11 +365,11 @@ public class TiUIText extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
 			realtv.setEnabled(d.optBoolean(TiC.PROPERTY_ENABLED, true));
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_MAX_LENGTH) && field) {
 			maxLength = TiConvert.toInt(d.get(TiC.PROPERTY_MAX_LENGTH), -1);
 		}
-		
+
 		// Disable change event temporarily as we are setting the default value
 		disableChangeEvent = true;
 		if (d.containsKey(TiC.PROPERTY_VALUE)) {
@@ -348,14 +379,17 @@ public class TiUIText extends TiUIView
 		}
 		disableChangeEvent = false;
 		
-		if (d.containsKey(TiC.PROPERTY_COLOR)) {
-			realtv.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
+		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
 			realtv.setHint(d.getString(TiC.PROPERTY_HINT_TEXT));
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_ELLIPSIZE)) {
 			if (TiConvert.toBoolean(d, TiC.PROPERTY_ELLIPSIZE)) {
 				realtv.setEllipsize(TruncateAt.END);
@@ -363,11 +397,11 @@ public class TiUIText extends TiUIView
 				realtv.setEllipsize(null);
 			}
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			String textAlign = null;
 			String verticalAlign = null;
@@ -379,17 +413,17 @@ public class TiUIText extends TiUIView
 			}
 			handleTextAlign(textAlign, verticalAlign);
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
 			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
 		}
-		
-		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT) || d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION) || d.containsKey(TiC.PROPERTY_EDITABLE)) {
+
+		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT)
+			|| d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)
+			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
-		} else if (!field) {
-			realtv.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);
 		}
-		
+
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
 			TiUIHelper.linkifyIfEnabled(realtv, d.get(TiC.PROPERTY_AUTO_LINK));
 		}
@@ -429,8 +463,12 @@ public class TiUIText extends TiUIView
 				realtv.setText(truncateText);
 				realtv.setSelection(cursor);
 			}
-		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			realtv.setTextColor(TiConvert.toColor((String) newValue));
+		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			KrollDict properties = proxy.getProperties();
+			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
+			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
+			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
+			setTextColors(color, selectedColor, disabledColor);
 		} else if (key.equals(TiC.PROPERTY_HINT_TEXT)) {
 			realtv.setHint((String) newValue);
 		} else if (key.equals(TiC.PROPERTY_ELLIPSIZE)) {
@@ -453,11 +491,17 @@ public class TiUIText extends TiUIView
 				verticalAlign = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VERTICAL_ALIGN));
 			}
 			handleTextAlign(textAlign, verticalAlign);
-		} else if (key.equals(TiC.PROPERTY_KEYBOARD_TYPE) || (key.equals(TiC.PROPERTY_AUTOCORRECT) || key.equals(TiC.PROPERTY_AUTOCAPITALIZATION) || key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
+		} else if (key.equals(TiC.PROPERTY_KEYBOARD_TYPE)
+			|| (key.equals(TiC.PROPERTY_AUTOCORRECT) || key.equals(TiC.PROPERTY_AUTOCAPITALIZATION)
+				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
 			KrollDict d = proxy.getProperties();
 			handleKeyboard(d);
 		} else if (key.equals(TiC.PROPERTY_RETURN_KEY_TYPE)) {
+			// Update the keyboard as well when changing the return key type. This is to account for the scenario when
+			// autocapitalization is enabled during creation and return key type is dynamically changed.
+			KrollDict d = proxy.getProperties();
 			handleReturnKeyType(TiConvert.toInt(newValue));
+			handleKeyboard(d);
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(realtv, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)){
@@ -598,7 +642,7 @@ public class TiUIText extends TiUIView
 				actionId == EditorInfo.IME_ACTION_DONE ) {
 			Log.d(TAG, "onEditorAction for textview with text " + v.getText(), Log.DEBUG_MODE);
 			tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-			proxy.fireEvent("return", data);
+			fireEvent("return", data);
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
@@ -728,7 +772,7 @@ public class TiUIText extends TiUIView
 			textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
 			// Sometimes password transformation does not work properly when the input type is set after the transformation method.
 			// This issue has been filed at http://code.google.com/p/android/issues/detail?id=7092
-			realtv.setInputType(textTypeAndClass);
+			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
 			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.
@@ -737,7 +781,7 @@ public class TiUIText extends TiUIView
 			}
 
 		} else {
-			realtv.setInputType(textTypeAndClass);
+			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
 			if (realtv.getTransformationMethod() instanceof PasswordTransformationMethod) {
 				realtv.setTransformationMethod(null);
 			}

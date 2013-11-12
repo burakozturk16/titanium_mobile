@@ -24,45 +24,49 @@ public class TransitionSwipeFade extends Transition {
 		return TransitionHelper.Types.kTransitionSwipeFade.ordinal();
 	}
 	
-	protected void prepareAnimators() {
-		float outdest = destTrans;
-		float indest = 1;
-		if (!TransitionHelper.isPushSubType(subType)) {
-			indest = -indest;
-			outdest = -outdest;
-		}
+	protected void prepareAnimators(View inTarget, View outTarget) {
+		float outdestFactor = destTrans;
+		float dest = rect.width();
 		String translateProp = "x";
 		if (TransitionHelper.isVerticalSubType(subType)) {
 			translateProp = "y";
-		}
-		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp),indest, 0.0f);
-		inAnimator.setDuration(duration);
-
-		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
-		propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, alpha));
-		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),0, -outdest));
-		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
-				propertiesList.toArray(new PropertyValuesHolder[0]));
-		outAnimator.setDuration(duration);
-	}
-
-	public void setTargets(boolean reversed, View inTarget, View outTarget) {
-		super.setTargets(reversed, inTarget, outTarget);
-		float dest = 1.0f;
-		if (reversed) {
-			dest = -destTrans;
-			ViewHelper.setAlpha(inTarget, alpha);
-			outTarget.bringToFront();
+			dest = rect.height();
 		}
 		if (!TransitionHelper.isPushSubType(subType)) {
 			dest = -dest;
 		}
 		
+		inAnimator = ObjectAnimator.ofFloat(null, new TranslationProperty(translateProp),dest, 0.0f);
+		inAnimator.setDuration(duration);
+
+		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+		propertiesList.add(PropertyValuesHolder.ofFloat(new AlphaProperty(), 1, alpha));
+		propertiesList.add(PropertyValuesHolder.ofFloat(new TranslationProperty(translateProp),0, -dest*outdestFactor));
+		outAnimator = ObjectAnimator.ofPropertyValuesHolder(null,
+				propertiesList.toArray(new PropertyValuesHolder[0]));
+		outAnimator.setDuration(duration);
+	}
+
+	public void setTargets(boolean reversed, View holder, View inTarget, View outTarget) {
+		super.setTargets(reversed, holder, inTarget, outTarget);
+		float dest = rect.width();
+		float destFactor = 1.0f;
+		if (reversed) {
+			destFactor = -destTrans;
+			if (inTarget != null) ViewHelper.setAlpha(inTarget, alpha);
+			if (outTarget != null) outTarget.bringToFront();
+		}
+		if (inTarget == null) return;
+		if (!TransitionHelper.isPushSubType(subType)) {
+			destFactor = -destFactor;
+		}
+		
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setTranslationFloatY(inTarget, dest);
+			dest = rect.height();
+			TiViewHelper.setTranslationRelativeY(inTarget, dest*destFactor);
 		}
 		else {
-			TiViewHelper.setTranslationFloatX(inTarget, dest);
+			TiViewHelper.setTranslationRelativeX(inTarget, dest*destFactor);
 		}
 	}
 	
@@ -83,10 +87,10 @@ public class TransitionSwipeFade extends Transition {
 
 		ViewHelper.setAlpha(view, alpha);
 		if (TransitionHelper.isVerticalSubType(subType)) {
-			TiViewHelper.setTranslationFloatY(view, dest);
+			TiViewHelper.setTranslationRelativeY(view, dest);
 		}
 		else {
-			TiViewHelper.setTranslationFloatX(view, dest);
+			TiViewHelper.setTranslationRelativeX(view, dest);
 		}
 	}
 }

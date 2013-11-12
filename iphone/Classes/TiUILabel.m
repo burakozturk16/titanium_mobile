@@ -35,30 +35,33 @@
     [super dealloc];
 }
 
-- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth
+-(UIView*)viewForHitTest
 {
-    CGSize maxSize = CGSizeMake(suggestedWidth<=0 ? 480 : suggestedWidth, 10000);
+    return label;
+}
+
+- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
+{
+    CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
     maxSize.width -= textPadding.origin.x + textPadding.size.width;
-    CGFloat textWidth = [[self label] sizeThatFits:maxSize].width;
-    textWidth = MIN(textWidth,  maxSize.width);
-    CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,textWidth, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
     
-    textRect.size.height -= 2*textRect.origin.y;
-    textRect.origin.y = 0;
-    textRect.size.width += textPadding.origin.x + textPadding.size.width;
-    textRect.size.height += textPadding.origin.y + textPadding.size.height;
-
-    return textRect.size;
+    CGSize result = [[self label] sizeThatFits:maxSize];
+    result.width = MIN(result.width,  maxSize.width);
+    result.height = MIN(result.height,  size.height);
+    if (label.numberOfLines > 0 || label.attributedText != nil) {
+        CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,result.width, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
+        
+        textRect.size.height -= 2*textRect.origin.y;
+        result =textRect.size;
+    }
+    result.width += textPadding.origin.x + textPadding.size.width;
+    result.height += textPadding.origin.y + textPadding.size.height;
+    return result;
 }
 
--(CGFloat)contentWidthForWidth:(CGFloat)suggestedWidth withHeight:(CGFloat)calculatedHeight
+-(CGSize)contentSizeForSize:(CGSize)size
 {
-    return [self suggestedFrameSizeToFitEntireStringConstraintedToWidth:suggestedWidth].width;
-}
-
--(CGFloat)contentHeightForWidth:(CGFloat)width
-{
-    return [self suggestedFrameSizeToFitEntireStringConstraintedToWidth:width].height;
+    return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
 }
 
 -(void)padLabel
@@ -71,15 +74,11 @@
                                    , initialLabelFrame.origin.y + textPadding.origin.y
                                    , initialLabelFrame.size.width - textPadding.origin.x - textPadding.size.width
                                    , initialLabelFrame.size.height - textPadding.origin.y - textPadding.size.height);
-    
-//    if(CGRectEqualToRect (label.frame, initFrame)); return;
     [label setFrame:initFrame];
-    
     if ([self backgroundLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
     {
         [self updateBackgroundImageFrameWithPadding];
     }
-	[(TiViewProxy *)[self proxy] contentsWillChange];
 	return;
 }
 
@@ -109,8 +108,8 @@
     if (needsUpdateBackgroundImageFrame)
         [self updateBackgroundImageFrameWithPadding];
     
-//    if (needsSetText)
-    [self setAttributedTextViewContent];
+    if (needsSetText)
+        [self setAttributedTextViewContent];
 }
 
 -(TTTAttributedLabel*)label
@@ -313,12 +312,7 @@
     }
     
     id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
-//    if ([attr isKindOfClass:[NSAttributedString class]])
-//        [[self label] setText:attr];
-//    else
     [[self label] setText:attr];
-    
-    
 }
 
 -(void)setHighlighted:(BOOL)newValue
@@ -379,8 +373,23 @@
 //	[self setAttributedTextViewContent];
 //}
 
+-(void)setText_:(id)value
+{
+    needsSetText = YES;
+}
+
+-(void)setHtml_:(id)value
+{
+    needsSetText = YES;
+}
 
 -(void)setHighlightedColor_:(id)color
+{
+	UIColor * newColor = [[TiUtils colorValue:color] _color];
+	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
+}
+
+-(void)setSelectedColor_:(id)color
 {
 	UIColor * newColor = [[TiUtils colorValue:color] _color];
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];

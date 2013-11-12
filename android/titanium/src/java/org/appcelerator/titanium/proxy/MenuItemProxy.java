@@ -6,7 +6,12 @@
  */
 package org.appcelerator.titanium.proxy;
 
+import java.util.List;
+
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -17,18 +22,18 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
+import org.appcelerator.titanium.view.TiUIView;
 
-import android.annotation.SuppressLint;
+import com.actionbarsherlock.view.MenuItem;
+import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
+
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.os.Message;
-import android.view.MenuItem;
-import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
+import android.view.ViewGroup;
 
-@SuppressLint("NewApi")
 @Kroll.proxy
-public class MenuItemProxy extends KrollProxy
+public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 {
 	private static final String TAG = "MenuItem";
 
@@ -73,10 +78,9 @@ public class MenuItemProxy extends KrollProxy
 	protected MenuItemProxy(MenuItem item)
 	{
 		this.item = item;
+		setModelListener(this, false);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			item.setOnActionExpandListener(new ActionExpandListener());
-		}
+		item.setOnActionExpandListener(new ActionExpandListener());
 	}
 
 	@Override
@@ -261,7 +265,6 @@ public class MenuItemProxy extends KrollProxy
 		return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_VISIBLE));
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setCheckable(boolean checkable) {
 		if (TiApplication.isUIThread()) {
 			item.setCheckable(checkable);
@@ -281,7 +284,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_CHECKED), checked);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setEnabled(boolean enabled) {
 		if (TiApplication.isUIThread()) {
 			item.setEnabled(enabled);
@@ -313,7 +315,6 @@ public class MenuItemProxy extends KrollProxy
 		}
 		return this;
 	}
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setIcon(Object icon) 
 	{
 		if (TiApplication.isUIThread()) {
@@ -323,7 +324,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_ICON), icon);	
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setTitle(String title) {
 		if (TiApplication.isUIThread()) {
 			item.setTitle(title);
@@ -333,7 +333,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_TITLE), title);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setTitleCondensed(String title) {
 		if (TiApplication.isUIThread()) {
 			item.setTitleCondensed(title);
@@ -343,7 +342,6 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_TITLE_CONDENSED), title);
 	}
 	
-	@Kroll.method @Kroll.setProperty
 	public MenuItemProxy setVisible(boolean visible) {
 		if (TiApplication.isUIThread()) {
 			item.setVisible(visible);
@@ -353,86 +351,135 @@ public class MenuItemProxy extends KrollProxy
 		return (MenuItemProxy) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SET_VISIBLE), visible);
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setActionView(Object view)
 	{
 		if (view instanceof TiViewProxy) {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				final View v = ((TiViewProxy) view).getOrCreateView().getNativeView();
-				TiMessenger.postOnMain(new Runnable() {
-					public void run() {
-						item.setActionView(v);
-					}
-				});
-
-			} else {
-				Log.i(TAG, "Action bar is not available on this device. Ignoring actionView property.", Log.DEBUG_MODE);
-			}
+			final View v = ((TiViewProxy) view).getOrCreateView().getOuterView();
+			TiMessenger.postOnMain(new Runnable() {
+				public void run() {
+					item.setActionView(v);
+				}
+			});
 		} else {
 			Log.w(TAG, "Invalid type for actionView", Log.DEBUG_MODE);
 		}
 	}
 
-	@Kroll.method @Kroll.setProperty
 	public void setShowAsAction(final int flag) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.setShowAsAction(flag);
-				}
-			});
-
-		} else {
-			Log.i(TAG, "Action bar unsupported by this device. Ignoring showAsAction property.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.setShowAsAction(flag);
+			}
+		});
 	}
 
 	@Kroll.method
 	public void collapseActionView() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.collapseActionView();
-				}
-			});
-
-		} else {
-			Log.i(TAG, "This device does not support collapsing action views. No operation performed.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.collapseActionView();
+			}
+		});
 	}
 
 	@Kroll.method
 	public void expandActionView() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			TiMessenger.postOnMain(new Runnable() {
-				public void run() {
-					item.expandActionView();
-				}
-			});
-
-		} else {
-			Log.i(TAG, "This device does not support expanding action views. No operation performed.", Log.DEBUG_MODE);
-		}
+		TiMessenger.postOnMain(new Runnable() {
+			public void run() {
+				item.expandActionView();
+			}
+		});
 	}
 
 	@Kroll.method @Kroll.getProperty
 	public boolean isActionViewExpanded() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
-			if (TiApplication.isUIThread()) {
-				return item.isActionViewExpanded();
-			}
-
-			return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ACTION_VIEW_EXPANDED));
+		if (TiApplication.isUIThread()) {
+			return item.isActionViewExpanded();
 		}
 
-		// If this system does not support expandable action views, we will
-		// always return false since the menu item can never "expand".
-		return false;
+		return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ACTION_VIEW_EXPANDED));
 	}
 
 	@Override
 	public String getApiName()
 	{
 		return "Ti.Android.MenuItem";
+	}
+
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue,
+			KrollProxy proxy) {
+		if (key.equals(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_CHECKABLE)) {
+			setCheckable(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_CHECKED)) {
+			setChecked(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_ENABLED)) {
+			setEnabled(TiConvert.toBoolean(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_ICON)) {
+			setIcon(newValue);
+		}
+		else if (key.equals(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_TITLE_CONDENSED)) {
+			setTitleCondensed(TiConvert.toString(newValue));
+		}
+		else if (key.equals(TiC.PROPERTY_VISIBLE)) {
+			setVisible(TiConvert.toBoolean(newValue));
+		}
+	}
+
+	@Override
+	public void processProperties(KrollDict d) {
+		// TODO Auto-generated method stub
+		if (d.containsKey(TiC.PROPERTY_ACTION_VIEW)) {
+			setActionView(d.get(TiC.PROPERTY_ACTION_VIEW));
+		}
+		if (d.containsKey(TiC.PROPERTY_CHECKABLE)) {
+			setCheckable(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKABLE));
+		}
+		if (d.containsKey(TiC.PROPERTY_CHECKED)) {
+			setChecked(TiConvert.toBoolean(d, TiC.PROPERTY_CHECKED));
+		}
+		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
+			setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED));
+		}
+		if (d.containsKey(TiC.PROPERTY_ICON)) {
+			setIcon(d.get(TiC.PROPERTY_ICON));
+		}
+		if (d.containsKey(TiC.PROPERTY_SHOW_AS_ACTION)) {
+			setShowAsAction(TiConvert.toInt(d, TiC.PROPERTY_SHOW_AS_ACTION));
+		}
+		if (d.containsKey(TiC.PROPERTY_TITLE_CONDENSED)) {
+			setTitleCondensed(TiConvert.toString(d, TiC.PROPERTY_TITLE_CONDENSED));
+		}
+		if (d.containsKey(TiC.PROPERTY_VISIBLE)) {
+			setVisible(TiConvert.toBoolean(d, TiC.PROPERTY_VISIBLE));
+		}
+	}
+
+	@Override
+	public void propertiesChanged(List<KrollPropertyChange> changes,
+			KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerAdded(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void listenerRemoved(String type, int count, KrollProxy proxy) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -185,6 +185,7 @@ static NSDictionary* listViewKeysToReplace;
 
 - (void)setDataItem:(NSDictionary *)dataItem
 {
+    [self configurationStart:YES];
 	[_resetKeys addObjectsFromArray:[_currentValues allKeys]];
 	id propertiesValue = [dataItem objectForKey:@"properties"];
     NSMutableDictionary* properties = [NSMutableDictionary dictionaryWithDictionary:propertiesValue];
@@ -228,16 +229,18 @@ static NSDictionary* listViewKeysToReplace;
     NSDictionary* listViewProps = [_listViewProxy allProperties];
     for (NSString* key in [self keysToGetFromListView]) {
         if ([listViewProps objectForKey:key]) {
+            id value = [listViewProps objectForKey:key];
             NSString* realKey = key;
             if ([[self listViewKeysToReplace] objectForKey:realKey]) {
                 realKey = [[self listViewKeysToReplace] objectForKey:realKey];
             }
-            if(![properties objectForKey:realKey])
-                [properties setObject:[listViewProps objectForKey:key] forKey:realKey];
+            if ([self shouldUpdateValue:value forKeyPath:realKey]) {
+                    [properties setObject:value forKey:realKey];
+            }
         }
     }
     
-    if (_listItem != nil) {
+    if ([properties count] > 0 && _listItem != nil) {
         [self setValuesForKeysWithDictionary:properties];
     }
     
@@ -250,6 +253,7 @@ static NSDictionary* listViewKeysToReplace;
 	}];
     [_resetKeys removeAllObjects];
     enumeratingResetKeys = NO;
+    [self configurationSet:YES];
 }
 
 - (id)valueForUndefinedKey:(NSString *)key

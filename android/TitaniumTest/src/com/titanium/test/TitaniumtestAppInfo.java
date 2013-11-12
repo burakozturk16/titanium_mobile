@@ -71,4 +71,9 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
 	public boolean isNavBarHidden() {
 		return false;
 	}
+
+	@Override
+	public String getDeployType() {		//  Auto-generated method stub
+		return "development";
+	}
 }

@@ -11,6 +11,11 @@
 #import "TiApp.h"
 #import "TiTransition.h"
 
+@interface TiUINavigationWindowProxy()
+@property(nonatomic,retain) NSDictionary *defaultTransition;
+
+@end
+
 @implementation TiUINavigationWindowProxy
 
 -(void)_destroy
@@ -18,6 +23,7 @@
     RELEASE_TO_NIL(rootWindow);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
+    RELEASE_TO_NIL(_defaultTransition);
     [super _destroy];
 }
 
@@ -27,6 +33,7 @@
 	RELEASE_TO_NIL(rootWindow);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
+    RELEASE_TO_NIL(_defaultTransition);
 	[super dealloc];
 }
 
@@ -34,8 +41,19 @@
 {
 	if ((self = [super init]))
 	{
+        self.defaultTransition = [self platformDefaultTransition];
 	}
 	return self;
+}
+
+-(NSDictionary*)platformDefaultTransition
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+    }
+    else {
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
+    }
 }
 
 -(void)_initWithProperties:(NSDictionary *)properties
@@ -46,6 +64,26 @@
 -(NSString*)apiName
 {
     return @"Ti.UI.iOS.NavigationWindow";
+}
+
+
+-(void)popGestureStateHandler:(UIGestureRecognizer *)recognizer
+{
+    UIGestureRecognizerState curState = recognizer.state;
+    
+    switch (curState) {
+        case UIGestureRecognizerStateBegan:
+            transitionWithGesture = YES;
+            break;
+        case UIGestureRecognizerStateEnded:
+        case UIGestureRecognizerStateCancelled:
+        case UIGestureRecognizerStateFailed:
+            transitionWithGesture = NO;
+            break;
+        default:
+            break;
+    }
+    
 }
 
 #pragma mark - TiOrientationController
@@ -88,6 +126,8 @@
         [rootWindow setTab:(TiViewProxy<TiTab> *)self];
         [rootWindow setParentOrientationController:self];
         [rootWindow open:nil];
+        [rootWindow windowWillOpen];
+        [rootWindow windowDidOpen];
     }
     return [rootWindow hostingController];
 }
@@ -99,6 +139,9 @@
         navController.delegate = self;
         [TiUtils configureController:navController withObject:self];
         navController.navigationBar.translucent = YES;
+        if ([TiUtils isIOS7OrGreater]) {
+            [navController.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
+        }
     }
     return navController;
 }
@@ -108,9 +151,12 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
     
-    if (window == rootWindow) {
-        [rootWindow windowWillOpen];
-        [rootWindow windowDidOpen];
+    if (window == current) return;
+
+    if ((window == rootWindow && ![rootWindow opening]) || [self controllerForWindow:window] != nil) {
+        TiThreadPerformOnMainThread(^{
+            [self popOnUIThread:args];
+        }, YES);
         return;
     }
     [window setIsManaged:YES];
@@ -140,10 +186,37 @@
         DebugLog(@"[ERROR] Can not close root window of the navWindow. Close this window instead");
         return;
     }
+    UIViewController* winController = [self controllerForWindow:window];
+    if (winController != nil) {
+        TiWindowProxy *realWindow = rootWindow;
+        int index = [[navController viewControllers] indexOfObject:winController];
+        if (index > 0) {
+            realWindow = (TiWindowProxy *)[[[navController viewControllers] objectAtIndex:(index-1)] proxy];
+            TiThreadPerformOnMainThread(^{
+                [self popOnUIThread:([args count] > 1) ? @[realWindow,[args objectAtIndex:1]] : @[realWindow]];
+            }, YES);
+        }
+    }
     TiThreadPerformOnMainThread(^{
         [self popOnUIThread:args];
     }, YES);
 }
+
+-(void)closeCurrentWindow:(NSArray*)args
+{
+    TiThreadPerformOnMainThread(^{
+        [self popOnUIThread:([args count] > 0) ? @[current,[args objectAtIndex:0]] : @[current]];
+    }, YES);
+}
+
+
+-(void)closeAllWindows:(NSArray*)args
+{
+    TiThreadPerformOnMainThread(^{
+        [self popOnUIThread:args];
+    }, YES);
+}
+
 
 -(id)stackSize
 {
@@ -177,7 +250,9 @@
 
 - (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-	transitionIsAnimating = YES;
+    if (!transitionWithGesture) {
+        transitionIsAnimating = YES;
+    }
     if (current != nil) {
         UIViewController *curController = [current hostingController];
         NSArray* curStack = [navController viewControllers];
@@ -210,6 +285,7 @@
 - (void)transitionController:(ADTransitionController *)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
     transitionIsAnimating = NO;
+    transitionWithGesture = NO;
     if (current != nil) {
         UIViewController* oldController = [current hostingController];
         
@@ -225,6 +301,48 @@
     [self childOrientationControllerChangedFlags:current];
     if (focussed) {
         [current gainFocus];
+    }
+}
+
+
+-(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
+{
+    if (!transition) return     ;
+    return @{@"duration": NUMINT([transition getDuration]*1000),
+             @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
+             @"substyle": NUMINT(transition.orientation),
+             @"reverse": NUMBOOL(transition.isReversed)};
+}
+
+- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    if ([self _hasListeners:@"openWindow"]) {
+		[self fireEvent:@"openWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
+                                                   @"transition":[self propsDictFromTransition:transition],
+                                                   @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
+                                                   @"animated": NUMBOOL(transition != nil)}];
+    }
+}
+- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    if ([self _hasListeners:@"closeWindow"]) {
+		[self fireEvent:@"closeWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
+                                                    @"transition":[self propsDictFromTransition:transition],
+                                                    @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
+                                                    @"animated": NUMBOOL(transition != nil)}];
+    }
+}
+
+#pragma mark - Public API
+
+-(void)setTransition:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
+    if(arg != nil) {
+        self.defaultTransition = arg;
+    }
+    else {
+        self.defaultTransition = [self platformDefaultTransition];
     }
 }
 
@@ -258,19 +376,9 @@
     }
 }
 
--(NSDictionary*)defaultTransition
-{
-    if ([TiUtils isIOS7OrGreater]) {
-        return @{ @"type" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
-    }
-    else {
-        return @{ @"type" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
-    }
-}
-
 -(void)pushOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating)
+	if (transitionIsAnimating || transitionWithGesture)
 	{
 		[self performSelector:_cmd withObject:args afterDelay:0.1];
 		return;
@@ -278,41 +386,69 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-    [window windowWillOpen];
+    TiTransition* transition = nil;
     if (animated) {
-        TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
-        [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
     }
-    else {
-        [navController pushViewController:[window hostingController] withTransition:nil];
-    }
+    
+    [window windowWillOpen];
+    
+    [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
 }
 
 -(void)popOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating)
+	if (transitionIsAnimating || transitionWithGesture)
 	{
 		[self performSelector:_cmd withObject:args afterDelay:0.1];
 		return;
 	}
-	TiWindowProxy *window = [args objectAtIndex:0];
-    
-    if (window == current) {
-        NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
-        int defaultDuration = [TiUtils isIOS7OrGreater]?150:300;
-        BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
-        if (animated) {
-            TiTransition* transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
-            [navController popViewControllerWithTransition:transition.adTransition];
-        }
-        else {
-            [navController popViewControllerWithTransition:nil];
-        }
+    int propsIndex = 0;
+    TiWindowProxy *window;
+    if ([[args objectAtIndex:0] isKindOfClass:[TiWindowProxy class]]) {
+        window = [args objectAtIndex:0];
+        propsIndex = 1;
     }
     else {
-        [self closeWindow:window animated:NO];
+        window = rootWindow;
     }
     
+    NSDictionary* props = ([args count] > propsIndex)?[args objectAtIndex:propsIndex]:nil;
+    BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
+    TiTransition* transition = nil;
+    if (animated) {
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
+    }
+    
+    if (window == current) {
+        [navController popViewControllerWithTransition:transition.adTransition];
+    }
+    else {
+        if (window == rootWindow) {
+            [navController popToRootViewControllerWithTransition:transition.adTransition];
+        }
+        else {
+            UIViewController* winController = [self controllerForWindow:window];
+            if (winController) {
+                [navController popToViewController:winController withTransition:transition.adTransition];
+            }
+        }
+        
+    }
+    
+}
+
+-(UIViewController*) controllerForWindow:(TiWindowProxy*)window
+{
+    if (navController != nil) {
+        for (TiViewController* viewController in [navController viewControllers]) {
+            TiWindowProxy* win = (TiWindowProxy *)[viewController proxy];
+            if (win == window) {
+                return viewController;
+            }
+        }
+    }
+    return nil;
 }
 
 - (void)closeWindow:(TiWindowProxy*)window animated:(BOOL)animated
@@ -334,6 +470,7 @@
     RELEASE_TO_NIL_AUTORELEASE(window);
     RELEASE_TO_NIL(windowController);
 }
+
 
 -(void) cleanNavStack
 {
