@@ -537,7 +537,7 @@
 	[focusedToolbar setBounds:focusedToolbarBounds];
     
     CGFloat keyboardHeight = endingFrame.origin.y;
-    if(focusedToolbar != nil){
+    if(focusedToolbar != nil && focusedToolbar != leavingAccessoryView){
         keyboardHeight -= focusedToolbarBounds.size.height;
     }
     

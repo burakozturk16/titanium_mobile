@@ -88,4 +88,10 @@ public class ListItemProxy extends TiViewProxy
 			listProxy = null;
 		}
 	}
+
+	@Override
+	public String getApiName()
+	{
+		return "Ti.UI.ListItem";
+	}
 }

@@ -848,14 +848,29 @@
                 minCacheSize = cacheSize;
             }
         }
+        pageChanged = YES;
         cacheSize = minCacheSize;
-		[pageControl setCurrentPage:nextPage];
-		currentPage = nextPage;
-		[self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
-        [self manageCache:currentPage];
+        [pageControl setCurrentPage:nextPage];
+        currentPage = nextPage;
+        [self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
         cacheSize = curCacheSize;
     }
     [self didScroll];
+}
+
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+{
+    if (pageChanged) {
+        [self manageCache:currentPage];
+    }
+}
+
+- (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
+{
+    //Since we are now managing cache at end of scroll, ensure quick scroll is disabled to avoid blank screens.
+    if (pageChanged) {
+        [scrollview setUserInteractionEnabled:!decelerate];
+    }
 }
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
@@ -894,6 +909,8 @@
 	currentPage = lastPage = pageNum;
 	[pageControl setCurrentPage:currentPage];
 	[self manageCache:currentPage];
+	pageChanged = NO;
+	[scrollview setUserInteractionEnabled:YES];
     [self didScroll];
 }
 

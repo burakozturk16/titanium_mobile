@@ -324,6 +324,11 @@ static NSDictionary* listViewKeysToReplace;
     }
 }
 
+-(BOOL)canHaveControllerParent
+{
+	return NO;
+}
+
 #pragma mark - TiViewEventOverrideDelegate
 
 - (NSDictionary *)overrideEventObject:(NSDictionary *)eventObject forEvent:(NSString *)eventType fromViewProxy:(TiViewProxy *)viewProxy

@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -22,6 +22,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Html;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -66,11 +67,12 @@ public class TiUILabel extends TiUINonViewGroupView
 
 	private int defaultColor;
 	private boolean wordWrap = true;
+	private boolean ellipsize;
+	private float shadowRadius = 0f;
+	private float shadowX = 0f;
+	private float shadowY = 0f;
+	private int shadowColor = Color.TRANSPARENT;
 
-	private int shadowColor;
-	private int shadowDx;
-	private int shadowDy;
-	private float shadowRadius;
 	private Rect textPadding;
 	private String ELLIPSIZE_CHAR = "…";
 	
@@ -602,10 +604,6 @@ public class TiUILabel extends TiUINonViewGroupView
 		super(proxy);
 		Log.d(TAG, "Creating a text label", Log.DEBUG_MODE);
 		tv = new EllipsizingTextView(getProxy().getActivity());
-		shadowColor = 0;
-		shadowRadius = 1;
-		shadowDx = 0;
-		shadowDy = 0;
 		textPadding = new Rect();
 		tv.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
 		// tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
@@ -649,6 +647,8 @@ public class TiUILabel extends TiUINonViewGroupView
 		// Clear any text style left over here if view is recycled
 //		TiUIHelper.styleText(tv, null, null, null);
 		
+		boolean needShadow = false;
+
 		// Only accept one, prefer text to title.
 		if (d.containsKey(TiC.PROPERTY_HTML)) {
 			String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
@@ -735,19 +735,25 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
-			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
+			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
+			if (value instanceof HashMap) {
+				needShadow = true;
+				HashMap dict = (HashMap) value;
+				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
+				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+			}
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(d, TiC.PROPERTY_SHADOW_RADIUS);
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+			needShadow = true;
+			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), 0);
 		}
-		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
-			KrollDict value = d.getKrollDict(TiC.PROPERTY_SHADOW_OFFSET);
-			shadowDx = value.getInt(TiC.PROPERTY_X);
-			shadowDy = value.getInt(TiC.PROPERTY_Y);
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
+		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
+			needShadow = true;
+			shadowColor = TiConvert.toColor(d, TiC.PROPERTY_SHADOW_COLOR);
+		}
+		if (needShadow) {
+			tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		}
 		// This needs to be the last operation.
 		TiUIHelper.linkifyIfEnabled(tv, d.get(TiC.PROPERTY_AUTO_LINK));
@@ -836,17 +842,19 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
 			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
-			shadowColor = TiConvert.toColor((String) newValue);
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(newValue);
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
-			shadowDx = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_X));
-			shadowDy = TiConvert.toInt(((HashMap) newValue).get(TiC.PROPERTY_Y));
-			tv.setShadowLayer(shadowRadius, shadowDx, shadowDy, shadowColor);
-			tv.requestLayout();
+			if (newValue instanceof HashMap) {
+				HashMap dict = (HashMap) newValue;
+				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
+				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+			}
+		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
+			shadowRadius = TiConvert.toFloat(newValue, 0);
+			tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
+			shadowColor = TiConvert.toColor(TiConvert.toString(newValue));
+			tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
