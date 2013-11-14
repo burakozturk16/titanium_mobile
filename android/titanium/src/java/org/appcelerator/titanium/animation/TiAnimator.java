@@ -247,6 +247,7 @@ public class TiAnimator
 	
 	public void restartFromBeginning(){
 		applyResetProperties();
+		proxy.afterAnimationReset();
 	}
 
 //	protected void addAnimation(AnimationSet animationSet, Animation animation)

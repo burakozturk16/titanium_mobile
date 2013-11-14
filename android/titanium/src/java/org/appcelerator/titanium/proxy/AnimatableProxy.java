@@ -195,4 +195,9 @@ public class AnimatableProxy extends KrollProxy {
 			runningAnimations.clear();
 		}
 	}
+	
+	public void afterAnimationReset()
+	{
+		
+	}
 }
