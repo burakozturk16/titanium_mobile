@@ -234,10 +234,11 @@ public class TiAnimator
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String)pairs.getKey();
 			if (!animationProperties.contains(key)) {
-				resetProps.put(key, pairs.getValue());
+				resetProps.put(key, proxy.getProperty(key));
 			}
 		}
-		proxy.applyPropertiesInternal(resetProps, true);
+		//we must wait for it so that the first call to get current animation property value is correct
+		proxy.applyPropertiesInternal(resetProps, true, true);
 	}
 
 	public void setCallback(KrollFunction callback)
