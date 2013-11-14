@@ -743,10 +743,6 @@ public abstract class TiUIView
 		
 		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		
-		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
-			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
-		}
-		
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_COLOR));		
