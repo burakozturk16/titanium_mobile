@@ -32,7 +32,6 @@ import com.nineoldandroids.animation.TypeEvaluator;
 import com.nineoldandroids.animation.ValueAnimator;
 import com.nineoldandroids.animation.ValueAnimator.AnimatorUpdateListener;
 
-import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.BitmapShader;
@@ -678,49 +677,75 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		return linePaint;
 	}
 	
-	protected void createAnimForColor(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, int defaultValue) {
-		if(animOptions.containsKey(prop)) {
+	protected void createAnimForColor(String prop, KrollDict animOptions,
+			KrollDict properties, List<PropertyValuesHolder> list,
+			List<PropertyValuesHolder> listReverse, int defaultValue) {
+		if (animOptions.containsKey(prop)) {
 			int inValue = properties.optColor(prop, defaultValue);
 			int outValue = animOptions.optColor(prop, inValue);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
-			 anim.setEvaluator(new ArgbEvaluator());
+			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop,
+					outValue);
+			anim.setEvaluator(new ArgbEvaluator());
 			list.add(anim);
+			if (listReverse != null) {
+				anim = PropertyValuesHolder.ofInt(prop, inValue);
+				anim.setEvaluator(new ArgbEvaluator());
+				listReverse.add(anim);
+			}
 		}
 	}
 	
-	protected void createAnimForInt(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, int defaultValue) {
-		if(animOptions.containsKey(prop)) {
+	protected void createAnimForInt(String prop, KrollDict animOptions,
+			KrollDict properties, List<PropertyValuesHolder> list,
+			List<PropertyValuesHolder> listReverse, int defaultValue) {
+		if (animOptions.containsKey(prop)) {
 			int inValue = properties.optInt(prop, defaultValue);
 			int outValue = animOptions.optInt(prop, inValue);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
-			list.add(anim);
+			list.add(PropertyValuesHolder.ofInt(prop, outValue));
+			if (listReverse != null) {
+				listReverse.add(PropertyValuesHolder.ofInt(prop, inValue));
+			}
 		}
 	}
-	
-	protected void createAnimForRawInt(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, String defaultValue) {
-		if(animOptions.containsKey(prop)) {
-			int inValue = (int) Utils.getRawSize(properties, prop, defaultValue, context);
+
+	protected void createAnimForRawInt(String prop, KrollDict animOptions,
+			KrollDict properties, List<PropertyValuesHolder> list,
+			List<PropertyValuesHolder> listReverse, String defaultValue) {
+		if (animOptions.containsKey(prop)) {
+			int inValue = (int) Utils.getRawSize(properties, prop,
+					defaultValue, context);
 			int outValue = (int) Utils.getRawSize(animOptions, prop, context);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofInt(prop, inValue, outValue);
-			list.add(anim);
+			list.add(PropertyValuesHolder.ofInt(prop, outValue));
+			if (listReverse != null) {
+				listReverse.add(PropertyValuesHolder.ofInt(prop, inValue));
+			}
 		}
 	}
-	
-	protected void createAnimForFloat(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, float defaultValue) {
-		if(animOptions.containsKey(prop)) {
+
+	protected void createAnimForFloat(String prop, KrollDict animOptions,
+			KrollDict properties, List<PropertyValuesHolder> list,
+			List<PropertyValuesHolder> listReverse, float defaultValue) {
+		if (animOptions.containsKey(prop)) {
 			float inValue = properties.optFloat(prop, defaultValue);
 			float outValue = animOptions.optFloat(prop, inValue);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofFloat(prop, inValue, outValue);
-			list.add(anim);
+			list.add(PropertyValuesHolder.ofFloat(prop, outValue));
+			if (listReverse != null) {
+				listReverse.add(PropertyValuesHolder.ofFloat(prop, inValue));
+			}
 		}
 	}
-	
-	protected void createAnimForRawFloat(String prop, KrollDict animOptions, KrollDict properties, List<PropertyValuesHolder> list, String defaultValue) {
-		if(animOptions.containsKey(prop)) {
-			float inValue =  Utils.getRawSize(properties, prop, defaultValue, context);
-			float outValue =  Utils.getRawSize(animOptions, prop, context);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofFloat(prop, inValue, outValue);
-			list.add(anim);
+
+	protected void createAnimForRawFloat(String prop, KrollDict animOptions,
+			KrollDict properties, List<PropertyValuesHolder> list,
+			List<PropertyValuesHolder> listReverse, String defaultValue) {
+		if (animOptions.containsKey(prop)) {
+			float inValue = Utils.getRawSize(properties, prop, defaultValue,
+					context);
+			float outValue = Utils.getRawSize(animOptions, prop, context);
+			list.add(PropertyValuesHolder.ofFloat(prop, outValue));
+			if (listReverse != null) {
+				listReverse.add(PropertyValuesHolder.ofFloat(prop, inValue));
+			}
 		}
 	}
 	
@@ -746,41 +771,74 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 
 	}
 	
-	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
-//		KrollDict properties = getProperties();
+	protected void preparePropertiesSet(TiAnimatorSet tiSet,
+			List<PropertyValuesHolder> propertiesList,
+			List<PropertyValuesHolder> propertiesListReverse,
+			KrollDict animOptions) {
+		// KrollDict properties = getProperties();
+		boolean needsReverse = propertiesListReverse != null;
 		Boolean animatingCenter = animOptions.containsKey(TiC.PROPERTY_CENTER);
-		Boolean animatingRadius = animOptions.containsKey(ShapeModule.PROPERTY_RADIUS);
+		Boolean animatingRadius = animOptions
+				.containsKey(ShapeModule.PROPERTY_RADIUS);
 		if (animatingCenter || animatingRadius) {
 			int width = parentBounds.width();
 			int height = parentBounds.height();
 			Point currentRadius = computeRadius(this.radius, width, height);
-			Point animRadius = computeRadius(animatingRadius?animOptions.get(ShapeModule.PROPERTY_RADIUS):this.radius, width, height);
-			Point currentCenter = computePoint(this.center, anchor, width, height, currentRadius);
-			Point animCenter = computePoint(animatingCenter?new TiPoint((HashMap) animOptions.get(TiC.PROPERTY_CENTER)):this.center, anchor, width, height, animRadius);
+			Point animRadius = computeRadius(
+					animatingRadius ? animOptions.get(ShapeModule.PROPERTY_RADIUS)
+							: this.radius, width, height);
+			Point currentCenter = computePoint(this.center, anchor, width,
+					height, currentRadius);
+			Point animCenter = computePoint(animatingCenter ? new TiPoint(
+					(HashMap) animOptions.get(TiC.PROPERTY_CENTER))
+					: this.center, anchor, width, height, animRadius);
+			PointEvaluator evaluator = new PointEvaluator();
 			if (animatingRadius) {
-				PropertyValuesHolder anim = PropertyValuesHolder.ofObject("pathableRadius", new PointEvaluator(), currentRadius, animRadius);
-				propertiesList.add(anim);
+				propertiesList.add(PropertyValuesHolder.ofObject(
+						"pathableRadius", evaluator,
+						animRadius));
+				if (needsReverse) {
+					propertiesListReverse.add(PropertyValuesHolder.ofObject(
+							"pathableRadius", evaluator, currentRadius));
+				}
 			}
 			if (animatingCenter) {
-				PropertyValuesHolder anim = PropertyValuesHolder.ofObject("pathableCenter", new PointEvaluator(), currentCenter, animCenter);
-				propertiesList.add(anim);
+				propertiesList.add(PropertyValuesHolder.ofObject(
+						"pathableCenter", evaluator, animCenter));
+				if (needsReverse) {
+					propertiesListReverse.add(PropertyValuesHolder.ofObject(
+							"pathableCenter", evaluator, currentCenter));
+				}
 			}
-			
+
 		}
-		
-		createAnimForRawFloat(ShapeModule.PROPERTY_LINE_WIDTH, animOptions, properties, propertiesList, "1.0");
-		createAnimForFloat(ShapeModule.PROPERTY_LINE_OPACITY, animOptions, properties, propertiesList, 1.0f);
-		createAnimForColor(ShapeModule.PROPERTY_LINE_COLOR, animOptions, properties, propertiesList, Color.TRANSPARENT);
-		createAnimForFloat(ShapeModule.PROPERTY_FILL_OPACITY, animOptions, properties, propertiesList, 1.0f);
-		createAnimForColor(ShapeModule.PROPERTY_FILL_COLOR, animOptions, properties, propertiesList, Color.TRANSPARENT);
-		
-		if(animOptions.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			Ti2DMatrix matrix = (Ti2DMatrix) animOptions.get(TiC.PROPERTY_TRANSFORM);
-			if (matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
-			{
-				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+
+		createAnimForRawFloat(ShapeModule.PROPERTY_LINE_WIDTH, animOptions,
+				properties, propertiesList, propertiesListReverse, "1.0");
+		createAnimForFloat(ShapeModule.PROPERTY_LINE_OPACITY, animOptions,
+				properties, propertiesList, propertiesListReverse, 1.0f);
+		createAnimForColor(ShapeModule.PROPERTY_LINE_COLOR, animOptions,
+				properties, propertiesList, propertiesListReverse, Color.TRANSPARENT);
+		createAnimForFloat(ShapeModule.PROPERTY_FILL_OPACITY, animOptions,
+				properties, propertiesList, propertiesListReverse, 1.0f);
+		createAnimForColor(ShapeModule.PROPERTY_FILL_COLOR, animOptions,
+				properties, propertiesList, propertiesListReverse, Color.TRANSPARENT);
+
+		if (animOptions.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			Ti2DMatrix matrix = (Ti2DMatrix) animOptions
+					.get(TiC.PROPERTY_TRANSFORM);
+			if (matrix.getClass().getSuperclass().equals(Ti2DMatrix.class)) {
+				matrix = new Ti2DMatrix(matrix); // case of _2DMatrixProxy
 			}
-			propertiesList.add(PropertyValuesHolder.ofObject("animated2DMatrix", new Ti2DMatrixEvaluator(this), matrix));
+			Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(this);
+			propertiesList.add(PropertyValuesHolder.ofObject(
+					"animated2DMatrix", evaluator, matrix));
+			if (needsReverse) {
+				matrix = (Ti2DMatrix) animOptions
+						.get(TiC.PROPERTY_TRANSFORM);
+				propertiesListReverse.add(PropertyValuesHolder.ofObject(
+						"animated2DMatrix", evaluator, this.transform));
+			}
 		}
 	}
 	
@@ -789,19 +847,30 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		super.prepareAnimatorSet(tiSet, list, reverseList, options);
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
+		List<PropertyValuesHolder> propertiesListReverse = (reverseList!=null)?new ArrayList<PropertyValuesHolder>():null;
 		KrollDict animOptions = new KrollDict(options);
-		preparePropertiesSet(tiSet, propertiesList, animOptions);
+		preparePropertiesSet(tiSet, propertiesList, propertiesListReverse, animOptions);
+		
 		ObjectAnimator anim = ObjectAnimator.ofPropertyValuesHolder(this,propertiesList.toArray(new PropertyValuesHolder[0]));
 		anim.addUpdateListener(new AnimatorUpdateListener(){
-
 			@Override
 			public void onAnimationUpdate(ValueAnimator animation) {
 				redraw();
 			}
-			
 		});
 		anim.setInterpolator(new LinearInterpolator());
 		list.add(anim);
+		if (reverseList != null) {
+			anim = ObjectAnimator.ofPropertyValuesHolder(this,propertiesListReverse.toArray(new PropertyValuesHolder[0]));
+			anim.addUpdateListener(new AnimatorUpdateListener(){
+				@Override
+				public void onAnimationUpdate(ValueAnimator animation) {
+					redraw();
+				}
+			});
+			anim.setInterpolator(new LinearInterpolator());
+			reverseList.add(anim);
+		}
 	}
 
 	// Start Utility Methods
@@ -1104,7 +1173,12 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			this.anchor = AnchorPosition.values()[TiConvert.toInt(newValue)];
 		}
 		else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
-			this.transform = (Ti2DMatrix)newValue;
+			if (newValue.getClass().getSuperclass().equals(Ti2DMatrix.class)) {
+				this.transform = new Ti2DMatrix((Ti2DMatrix)newValue); // case of _2DMatrixProxy
+			}
+			else {
+				this.transform = (Ti2DMatrix)newValue;
+			}
 			this.matrix = null;
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_INVERSED)) {
@@ -1203,6 +1277,20 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	public void animationFinished(TiAnimator animation) {
 		super.animationFinished(animation);
 		redraw();
+	}
+
+	public void afterAnimationReset()
+	{
+		super.afterAnimationReset();
+		update();
+	}
+	
+	public void recursiveCancelAllAnimations() {
+		cancelAllAnimations();
+		for (int i = 0; i < mShapes.size(); i++) {
+			ShapeProxy shapeProxy = mShapes.get(i);
+			shapeProxy.recursiveCancelAllAnimations();
+		}
 	}
 	
 	@Override

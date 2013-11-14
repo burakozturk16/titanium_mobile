@@ -55,17 +55,22 @@ public class PieSliceProxy extends ArcProxy{
 	}
 	
 	@Override
-	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
-		super.preparePropertiesSet(tiSet, propertiesList, animOptions);
+	protected void preparePropertiesSet(TiAnimatorSet tiSet,
+			List<PropertyValuesHolder> propertiesList,
+			List<PropertyValuesHolder> propertiesListReverse,
+			KrollDict animOptions) {
+		super.preparePropertiesSet(tiSet, propertiesList, propertiesListReverse, animOptions);
 		
 		if (animOptions.containsKey(ShapeModule.PROPERTY_INNERRADIUS)) {
 			int width = parentBounds.width();
 			int height = parentBounds.height();
 			Point currentRadius = computeRadius(this.innerRadius, width, height);
 			Point animRadius = computeRadius(animOptions.get(ShapeModule.PROPERTY_INNERRADIUS), width, height);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofObject("innereRadius", new PointEvaluator(), currentRadius, animRadius);
-			propertiesList.add(anim);
-			
+			PointEvaluator evaluator = new PointEvaluator();
+			propertiesList.add(PropertyValuesHolder.ofObject("innereRadius", evaluator, animRadius));
+			if (propertiesListReverse != null) {
+				propertiesListReverse.add(PropertyValuesHolder.ofObject("innereRadius", evaluator, currentRadius));
+			}
 		}
 	}
 	

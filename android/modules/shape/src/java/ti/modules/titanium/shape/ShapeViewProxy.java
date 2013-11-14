@@ -143,6 +143,10 @@ public class ShapeViewProxy extends TiViewProxy {
 		public void release() {
 			super.release();
 			nativeView = null;
+			for (int i = 0; i < mShapes.size(); i++) {
+				ShapeProxy shapeProxy = mShapes.get(i);
+				shapeProxy.recursiveCancelAllAnimations();
+			}
 		}
 
 		public void redrawNativeView() {
@@ -209,7 +213,10 @@ public class ShapeViewProxy extends TiViewProxy {
 		    }
 		}
 	}
-
+	
+	
+	
+	
 	// Handle creation options
 	@Override
 	public void handleCreationDict(KrollDict options) {
@@ -247,6 +254,7 @@ public class ShapeViewProxy extends TiViewProxy {
 	private void removeShape(ShapeProxy proxy) {
 		if (!mShapes.contains(proxy))
 			return;
+		proxy.cancelAllAnimations();
 		mShapes.remove(proxy);
 		proxy.setShapeViewProxy(null);
 		redraw();

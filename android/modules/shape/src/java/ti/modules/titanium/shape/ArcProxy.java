@@ -51,11 +51,14 @@ public class ArcProxy extends ShapeProxy{
 	}
 	
 	@Override
-	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
-		super.preparePropertiesSet(tiSet, propertiesList, animOptions);
+	protected void preparePropertiesSet(TiAnimatorSet tiSet,
+			List<PropertyValuesHolder> propertiesList,
+			List<PropertyValuesHolder> propertiesListReverse,
+			KrollDict animOptions) {
+		super.preparePropertiesSet(tiSet, propertiesList, propertiesListReverse, animOptions);
 		
-		createAnimForFloat(ShapeModule.PROPERTY_SWEEPANGLE, animOptions, properties, propertiesList, 0.0f);
-		createAnimForFloat(ShapeModule.PROPERTY_STARTANGLE, animOptions, properties, propertiesList, 0.0f);
+		createAnimForFloat(ShapeModule.PROPERTY_SWEEPANGLE, animOptions, properties, propertiesList, propertiesListReverse, 0.0f);
+		createAnimForFloat(ShapeModule.PROPERTY_STARTANGLE, animOptions, properties, propertiesList, propertiesListReverse, 0.0f);
 	}
 	
 	public void setStartAngle(float value) {

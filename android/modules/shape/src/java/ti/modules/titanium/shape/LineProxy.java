@@ -141,8 +141,11 @@ public class LineProxy extends ArcProxy{
 	}
 	
 	@Override
-	protected void preparePropertiesSet(TiAnimatorSet tiSet, List<PropertyValuesHolder> propertiesList, KrollDict animOptions) {
-		super.preparePropertiesSet(tiSet, propertiesList, animOptions);
+	protected void preparePropertiesSet(TiAnimatorSet tiSet,
+			List<PropertyValuesHolder> propertiesList,
+			List<PropertyValuesHolder> propertiesListReverse,
+			KrollDict animOptions) {
+		super.preparePropertiesSet(tiSet, propertiesList, propertiesListReverse, animOptions);
 		
 		if (animOptions.containsKey(ShapeModule.PROPERTY_POINTS)) {
 			
@@ -150,9 +153,11 @@ public class LineProxy extends ArcProxy{
 			int height = parentBounds.height();
 			
 			ArrayList<BezierPoint> realPoints = getRealPointsFromObject((Object[]) animOptions.get(ShapeModule.PROPERTY_POINTS), width, height);
-			PropertyValuesHolder anim = PropertyValuesHolder.ofObject("points", new BezierPointsEvaluator(), getPoints(), realPoints);
-			propertiesList.add(anim);
-			
+			BezierPointsEvaluator evaluator =  new BezierPointsEvaluator();
+			propertiesList.add(PropertyValuesHolder.ofObject("points", evaluator, realPoints));
+			if (propertiesListReverse != null) {
+				propertiesListReverse.add(PropertyValuesHolder.ofObject("points", evaluator, getPoints()));
+			}
 		}
 	}
 	
