@@ -45,6 +45,7 @@ exports.bootstrap = function(Titanium) {
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createTabGroup"});
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createTab"});
 	Titanium.invocationAPIs.push({namespace: "UI", api: "createSlideMenu"});
+	Titanium.invocationAPIs.push({namespace: "UI", api: "createNavigationWindow"});
 
 	function iPhoneConstant(name) {
 		Titanium.API.error("!!!");
