@@ -675,7 +675,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
-	public void applyPropertiesInternal(Object arg, boolean force)
+	public void applyPropertiesInternal(Object arg, boolean force, boolean wait)
 	{
 		if (!(arg instanceof HashMap)) {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
@@ -701,8 +701,14 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				modelListener.processProperties(changedProps);
 			}
 			else {
-				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
-				message.sendToTarget();
+				if (wait) {
+					TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES), changedProps);
+				}
+				else {
+					Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
+					message.sendToTarget();
+				}
+				
 			}
 
 		}
@@ -710,11 +716,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 //			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
 //		}
 	}
+	
+	public void applyPropertiesInternal(Object arg, boolean force)
+	{
+		applyPropertiesInternal(arg, force, false);
+	}
 
 	@Kroll.method
 	public void applyProperties(Object arg)
 	{
-		applyPropertiesInternal(arg, false);
+		applyPropertiesInternal(arg, false, false);
 	}
 
 	/**
@@ -1171,7 +1182,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 			case MSG_MODEL_APPLY_PROPERTIES: {
 				if (modelListener != null) {
-					modelListener.processProperties((KrollDict)msg.obj);
+					if (msg.obj instanceof AsyncResult) {
+						AsyncResult result = (AsyncResult) msg.obj;
+						modelListener.processProperties((KrollDict)result.getArg());
+						result.setResult(null);
+						return true;
+						
+					}
+					else {
+						modelListener.processProperties((KrollDict)msg.obj);
+					}
 				}
 				return true;
 			}
