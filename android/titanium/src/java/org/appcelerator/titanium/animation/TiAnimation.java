@@ -4,11 +4,10 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-package org.appcelerator.titanium.view;
+package org.appcelerator.titanium.animation;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.titanium.animation.TiAnimator;
 
 @Kroll.proxy
 public class TiAnimation extends KrollProxy {
@@ -33,6 +32,12 @@ public class TiAnimation extends KrollProxy {
 	public void cancel() {
 		if (animator != null)
 			animator.cancel();
+	}
+	
+	@Kroll.method
+	public void cancelWithoutResetting() {
+		if (animator != null)
+			animator.cancelWithoutResetting();
 	}
 
 }

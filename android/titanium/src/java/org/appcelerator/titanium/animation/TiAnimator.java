@@ -18,7 +18,6 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiAnimation;
 
 import android.os.Build;
 import android.os.Looper;
