@@ -1814,12 +1814,11 @@ public abstract class TiUIView
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
 			show();
-			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "opacity",
-					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
-			list.add(anim);
+			list.add(ObjectAnimator.ofFloat(this, "opacity",
+					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY, 1.0f)));
 			if (needsReverse) {
 				listReverse.add(ObjectAnimator.ofFloat(this, "opacity",
-						TiConvert.toFloat(properties, TiC.PROPERTY_OPACITY)));
+						TiConvert.toFloat(properties, TiC.PROPERTY_OPACITY, 1.0f)));
 			}
 		}
 
