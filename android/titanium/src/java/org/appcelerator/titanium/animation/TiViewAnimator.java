@@ -4,13 +4,16 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-package org.appcelerator.titanium.util;
+package org.appcelerator.titanium.animation;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.Ti2DMatrix;
 import android.annotation.SuppressLint;
 import android.view.View;
@@ -39,8 +42,23 @@ public class TiViewAnimator extends TiAnimatorSet
 		super();
 	}
 	
+	static List<String> kAnimationResetProperties = Arrays.asList(
+			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
+			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
+			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+			TiC.PROPERTY_WIDTH, TiC.PROPERTY_HEIGHT,
+			TiC.PROPERTY_LEFT, TiC.PROPERTY_RIGHT,
+			TiC.PROPERTY_TOP,
+			TiC.PROPERTY_BOTTOM);
 	
-	private void cleanupView() {
+	@Override
+	protected List<String> animationResetProperties() {
+		return kAnimationResetProperties;
+	}
+	
+	
+	public void cleanupView() {
 //		if (view != null) {
 //			view.clearAnimation();
 //		}
@@ -54,6 +72,21 @@ public class TiViewAnimator extends TiAnimatorSet
 		super.handleCancel();
 		cleanupView();
 	}
+	
+	@Override
+	public void cancelWithoutResetting(){
+		super.cancelWithoutResetting();
+//		cleanupView();
+	}
+	
+	@Override
+	public void restartFromBeginning(){
+		super.restartFromBeginning();
+		if (viewProxy != null && viewProxy.peekView() != null) {
+			viewProxy.peekView().resetAnimatedParams();
+		}
+	}
+	
 	
 	@Override
 	protected void handleFinish() {
@@ -96,55 +129,6 @@ public class TiViewAnimator extends TiAnimatorSet
 				Log.e(TAG, "Invalid argument type for anchorPoint property. Ignoring");
 			}
 		}
-
-//		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
-//			tdm = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-//		}
-//	
-//		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
-//			toOpacity = TiConvert.toDouble(options, TiC.PROPERTY_OPACITY);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_TOP)) {
-//			top = TiConvert.toString(options, TiC.PROPERTY_TOP);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_BOTTOM)) {
-//			bottom = TiConvert.toString(options, TiC.PROPERTY_BOTTOM);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_LEFT)) {
-//			left = TiConvert.toString(options, TiC.PROPERTY_LEFT);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_RIGHT)) {
-//			right = TiConvert.toString(options, TiC.PROPERTY_RIGHT);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_CENTER)) {
-//			Object centerPoint = options.get(TiC.PROPERTY_CENTER);
-//			if (centerPoint instanceof HashMap) {
-//				HashMap center = (HashMap) centerPoint;
-//				centerX = TiConvert.toString(center, TiC.PROPERTY_X);
-//				centerY = TiConvert.toString(center, TiC.PROPERTY_Y);
-//
-//			} else {
-//				Log.e(TAG, "Invalid argument type for center property. Ignoring");
-//			}
-//		}
-
-//		if (options.containsKey(TiC.PROPERTY_WIDTH)) {
-//			width = TiConvert.toString(options, TiC.PROPERTY_WIDTH);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_HEIGHT)) {
-//			height = TiConvert.toString(options, TiC.PROPERTY_HEIGHT);
-//		}
-//
-//		if (options.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
-//			backgroundColor = TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR);
-//		}
-
 		this.options = options;
 	}
 	
@@ -154,5 +138,4 @@ public class TiViewAnimator extends TiAnimatorSet
 		handleFinish();
 		this.viewProxy = null;
 	}
-
 }

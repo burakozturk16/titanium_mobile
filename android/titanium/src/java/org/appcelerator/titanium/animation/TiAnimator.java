@@ -4,7 +4,7 @@
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
-package org.appcelerator.titanium.util;
+package org.appcelerator.titanium.animation;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,6 +17,7 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiAnimation;
 
 import android.os.Build;
@@ -32,7 +33,8 @@ public class TiAnimator
 	public Double duration = null;
 	public int repeat = 1;
 	public Boolean autoreverse = false;
-	public Boolean restartFromBeginning = true;
+	public Boolean restartFromBeginning = false;
+	public Boolean cancelRunningAnimations = false;
 	protected boolean animating;
 
 	public TiAnimation animationProxy;
@@ -113,6 +115,14 @@ public class TiAnimator
 		if (options.containsKey(TiC.PROPERTY_AUTOREVERSE)) {
 			autoreverse = TiConvert.toBoolean(options, TiC.PROPERTY_AUTOREVERSE);
 		}
+		
+		if (options.containsKey(TiC.PROPERTY_RESTART_FROM_BEGINNING)) {
+			restartFromBeginning = TiConvert.toBoolean(options, TiC.PROPERTY_RESTART_FROM_BEGINNING);
+		}
+		
+		if (options.containsKey(TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS)) {
+			cancelRunningAnimations = TiConvert.toBoolean(options, TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS);
+		}
 
 		this.options = options;
 	}
@@ -121,12 +131,21 @@ public class TiAnimator
 		return animating;
 	}
 	
+	static List<String> kAnimationProperties = Arrays.asList(
+			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
+			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
+			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS);
+
+	protected List<String> animationProperties() {
+		return kAnimationProperties;
+	}
 	
-	protected List<String> animationProperties(){
-		return Arrays.asList(TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY, TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT);
+	protected List<String> animationResetProperties() {
+		return kAnimationProperties;
 	}
 
-	protected void resetAnimationProperties()
+	public void resetAnimationProperties()
 	{
 		if (this.options == null || proxy == null) {
 			return;
@@ -201,10 +220,34 @@ public class TiAnimator
 		}
 		proxy.applyPropertiesInternal(resetProps, true);
 	}
+	
+	protected void applyResetProperties()
+	{
+		HashMap options = getOptions();
+		if (options == null || proxy == null) {
+			return;
+		}
+
+		Iterator it = options.entrySet().iterator();
+		List<String>animationProperties = animationResetProperties();	
+		KrollDict resetProps = new KrollDict();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry)it.next();
+			String key = (String)pairs.getKey();
+			if (!animationProperties.contains(key)) {
+				resetProps.put(key, pairs.getValue());
+			}
+		}
+		proxy.applyPropertiesInternal(resetProps, true);
+	}
 
 	public void setCallback(KrollFunction callback)
 	{
 		this.callback = callback;
+	}
+	
+	public void restartFromBeginning(){
+		applyResetProperties();
 	}
 
 //	protected void addAnimation(AnimationSet animationSet, Animation animation)

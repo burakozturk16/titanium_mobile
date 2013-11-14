@@ -8,7 +8,7 @@ package org.appcelerator.titanium.view;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.titanium.util.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimator;
 
 @Kroll.proxy
 public class TiAnimation extends KrollProxy {

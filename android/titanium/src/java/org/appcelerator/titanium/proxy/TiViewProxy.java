@@ -25,13 +25,13 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.animation.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
+import org.appcelerator.titanium.animation.TiViewAnimator;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
-import org.appcelerator.titanium.util.TiAnimator;
-import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
@@ -884,10 +884,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	@Override
-	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, List<Animator> listReverse,
 			HashMap options) {
 		if (view != null) {
-			view.prepareAnimatorSet(tiSet, list, options);
+			view.prepareAnimatorSet(tiSet, list, listReverse, options);
 		}
 	}
 	
@@ -918,32 +918,26 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
-		TiAnimator pendingAnimation = null;
-		synchronized (pendingAnimationLock) {
-			if (pendingAnimations.size() == 0) {
-				return;
-			}
-			pendingAnimation = pendingAnimations.remove(0);
-		}
 		
 		View view = getOuterView();
 		if (view == null) {
+			TiAnimator pendingAnimation = null;
+			synchronized (pendingAnimationLock) {
+				if (pendingAnimations.size() == 0) {
+					return;
+				}
+				pendingAnimation = pendingAnimations.remove(0);
+			}
+			
 			pendingAnimation.applyOptions();
 			((TiViewAnimator) pendingAnimation).simulateFinish(this);
-			pendingAnimation = null;
 			return;
 		}
 		else if (view.getWidth() == 0 && view.getHeight() == 0) {
 			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
 			return;
 		}
-		
-		
-		pendingAnimation.applyOptions();
-		((TiAnimatorSet) pendingAnimation).setProxy(this);
-		
-		prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
-		((TiAnimatorSet) pendingAnimation).set().start();
+		super.handlePendingAnimation();
 	}
 
 	protected void handleQueuedAnimate()

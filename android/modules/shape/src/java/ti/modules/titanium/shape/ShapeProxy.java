@@ -16,10 +16,10 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiPoint;
+import org.appcelerator.titanium.animation.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
 import org.appcelerator.titanium.util.AffineTransform;
-import org.appcelerator.titanium.util.TiAnimator;
-import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.Ti2DMatrix;
@@ -785,8 +785,8 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	}
 	
 	@Override
-	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, HashMap options) {
-		super.prepareAnimatorSet(tiSet, list, options);
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, List<Animator> reverseList, HashMap options) {
+		super.prepareAnimatorSet(tiSet, list, reverseList, options);
 		
 		List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 		KrollDict animOptions = new KrollDict(options);
@@ -809,7 +809,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	@Override
 	protected void finalize() throws Throwable {
 		super.finalize();
-	}
+	} 
 	
 	protected boolean handleTouchEvent(String eventName, Object data, boolean bubbles, int x, int y) {
 		if (context != null) {

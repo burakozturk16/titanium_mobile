@@ -6,7 +6,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.util.TiAnimatorSet;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
 
 import com.nineoldandroids.animation.PropertyValuesHolder;
 
