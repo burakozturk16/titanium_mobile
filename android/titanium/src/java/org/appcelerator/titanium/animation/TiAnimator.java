@@ -133,7 +133,7 @@ public class TiAnimator
 	static List<String> kAnimationProperties = Arrays.asList(
 			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
 			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
-			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+			TiC.PROPERTY_RESTART_FROM_BEGINNING,
 			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS);
 
 	protected List<String> animationProperties() {
