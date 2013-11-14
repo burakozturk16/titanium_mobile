@@ -54,12 +54,12 @@ public class AnimatableProxy extends KrollProxy {
 				}
 				runningAnimations.clear();
 			}
-			else {
+			else if (pendingAnimation.animationProxy != null){
 				for (int i = 0; i < runningAnimations.size(); i++) {
 					TiAnimator anim = runningAnimations.get(i);
 					if (anim.animationProxy == pendingAnimation.animationProxy) {
-						runningAnimations.get(i).cancelWithoutResetting();
-						runningAnimations.remove(i);
+						anim.cancelWithoutResetting();
+						runningAnimations.remove(anim);
 						break;
 					}
 				}
