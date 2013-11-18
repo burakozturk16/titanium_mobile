@@ -51,6 +51,7 @@ public class TiAnimator
 			proxy.animationFinished(this);
 		}
 		resetAnimationProperties();
+		proxy.afterAnimationReset();
 	};
 	
 	public void cancel(){
@@ -160,7 +161,7 @@ public class TiAnimator
 				resetProps.put(key, proxy.getProperty(key));
 			}
 		}
-		proxy.applyPropertiesInternal(resetProps, true);
+		proxy.applyPropertiesInternal(resetProps, true, true);
 	}
 	
 	protected void handleFinish()
