@@ -16,6 +16,10 @@
 #import "TiUIView.h"
 #import "TiTransition.h"
 #import "TiApp.h"
+#import "TiViewAnimation+Friend.h"
+#import "TiViewAnimationStep.h"
+#import "TiTransitionAnimation+Friend.h"
+#import "TiTransitionAnimationStep.h"
 
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
@@ -26,6 +30,7 @@
 {
     BOOL needsContentChange;
     BOOL allowContentChange;
+	unsigned int animationDelayGuard;
 }
 @end
 
@@ -463,6 +468,8 @@ static NSSet* transferableProps = nil;
     }, NO);
 }
 
+#pragma Animations
+
 -(id)animationDelegate
 {
     if (parent)
@@ -470,36 +477,88 @@ static NSSet* transferableProps = nil;
     return nil;
 }
 
--(void)animate:(id)arg
+-(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
 {
-	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
     if (![self view]) {
-        pendingAnimation = [newAnimation retain];
         return;
     }
-	[self rememberProxy:newAnimation];
-	TiThreadPerformOnMainThread(^{
-		if ([view superview]==nil)
+    if ([self viewReady]==NO &&  ![pendingAnimation isTransitionAnimation])
+	{
+		DebugLog(@"[DEBUG] Ti.UI.View.animate() called before view %@ was ready: Will re-attempt", self);
+		if (animationDelayGuard++ > 5)
+		{
+			DebugLog(@"[DEBUG] Animation guard triggered, exceeded timeout to perform animation.");
+            animationDelayGuard = 0;
+			return;
+		}
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self performSelector:@selector(handlePendingAnimation:) withObject:pendingAnimation afterDelay:0.01];
+        });
+		return;
+	}
+	animationDelayGuard = 0;
+    [super handlePendingAnimation:pendingAnimation];
+}
+
+-(void)aboutToBeAnimated
+{
+    if ([view superview]==nil)
 		{
 			VerboseLog(@"Entering animation without a superview Parent is %@, props are %@",parent,dynprops);
 			[parent childWillResize:self];
+            [self windowWillOpen]; // we need to manually attach the window if you're animating
 		}
-		[self windowWillOpen]; // we need to manually attach the window if you're animating
-		[parent layoutChildrenIfNeeded];
-		[[self view] animate:newAnimation];
+		[parent layoutChildren:NO];
+}
+
+-(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
+{
+    TiHLSAnimationStep* step;
+    if (animation.isTransitionAnimation) {
+        TiTransitionAnimation * hlsAnimation = [TiTransitionAnimation animation];
+        hlsAnimation.animatedProxy = self;
+        hlsAnimation.animationProxy = animation;
+        hlsAnimation.transition = animation.transition;
+        hlsAnimation.transitionViewProxy = animation.view;
+        step = [TiTransitionAnimationStep animationStep];
+        step.duration = [animation getAnimationDuration];
+        [(TiTransitionAnimationStep*)step addTransitionAnimation:hlsAnimation insideHolder:[self getOrCreateView]];
+    }
+    else {
+        TiViewAnimation * hlsAnimation = [TiViewAnimation animation];
+        hlsAnimation.animatedProxy = self;
+        hlsAnimation.tiViewProxy = self;
+        hlsAnimation.animationProxy = animation;
+        step = [TiViewAnimationStep animationStep];
+        step.duration = [animation getAnimationDuration];
+        [(TiViewAnimationStep*)step addViewAnimation:hlsAnimation forView:self.view];
+    }
+    
+    return [HLSAnimation animationWithAnimationStep:step];
+}
+
+-(void)playAnimation:(HLSAnimation*)animation withRepeatCount:(NSUInteger)repeatCount afterDelay:(double)delay
+{
+    TiThreadPerformOnMainThread(^{
+        [self aboutToBeAnimated];
+        [animation playWithRepeatCount:repeatCount afterDelay:delay];
 	}, NO);
 }
 
--(void)setAnimation:(id)arg
-{	//We don't actually store the animation this way.
-	//Because the setter doesn't have the argument array, we will be passing a nonarray to animate:
-	//In this RARE case, this is okay, because TiAnimation animationFromArg handles with or without array.
-	[self animate:arg];
+//override
+-(void)animationDidComplete:(TiAnimation *)animation
+{
+	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
+	[self willEnqueue];
+    [super animationDidComplete:animation];
 }
 
--(void)cancelAllAnimations:(id)arg
+-(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation
 {
-	[[self view] cancelAllAnimations];
+    TiThreadPerformOnMainThread(^{
+        [super resetProxyPropertiesForAnimation:animation];
+		[self reposition];
+    }, YES);
 }
 
 #define CHECK_LAYOUT_UPDATE(layoutName,value) \
@@ -1335,11 +1394,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 			[self relayout];
 		}
 		viewInitialized = YES;
-        if (pendingAnimation != nil) {
-            TiAnimation* animation = [pendingAnimation autorelease];
-            pendingAnimation = nil;
-            [self animate:animation];
-        }
+        [self handlePendingAnimation];
 	}
 
 	CGRect bounds = [view bounds];
@@ -1646,6 +1701,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         defaultReadyToCreateView = NO;
         hidden = NO;
         [self resetDefaultValues];
+//        _runningViewAnimations = [[NSMutableArray alloc] init];
 	}
 	return self;
 }
@@ -1742,9 +1798,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(pendingAnimation);
 	RELEASE_TO_NIL(pendingAdds);
 	RELEASE_TO_NIL(destroyLock);
+//	RELEASE_TO_NIL(_runningViewAnimations);
 	pthread_rwlock_destroy(&childrenLock);
 	
 	//Dealing with children is in _destroy, which is called by super dealloc.
@@ -1809,6 +1865,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	if (view!=nil)
 	{
 		[self viewWillDetach];
+        [self cancelAllAnimations:nil];
 		[view removeFromSuperview];
 		view.proxy = nil;
         view.touchDelegate = nil;
@@ -1911,15 +1968,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		[self detachView];
 	}*/
 	[super didReceiveMemoryWarning:notification];
-}
-
--(void)animationCompleted:(TiAnimation*)animation
-{
-	[self forgetProxy:animation];
-	[[self view] animationCompleted];
-	//Let us add ourselves to the queue to cleanup layout
-	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
-	[self willEnqueue];
 }
 
 -(void)makeViewPerformSelector:(SEL)selector withObject:(id)object createIfNeeded:(BOOL)create waitUntilDone:(BOOL)wait
@@ -2349,8 +2397,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 }
 
 
--(void)refreshView:(TiUIView *)transferView withinAnimation:(TiAnimation*)animation
+-(void)refreshView:(TiUIView *)transferView withinAnimation:(TiViewAnimationStep*)animation
 {
+    [transferView setRunningAnimation:animation];
 	WARN_IF_BACKGROUND_THREAD_OBJ;
 	OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags);
 	
@@ -2362,12 +2411,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	
 	if(hidden)
 	{
-        //This code messes with tableview magic
-//		VerboseLog(@"Removing from superview");
-//		if([self viewAttached])
-//		{
-////			[[self view] removeFromSuperview];
-//		}
 		return;
 	}
 
@@ -2447,7 +2490,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	{
 		[parent insertSubview:view forProxy:self];
 	}
-
+    [transferView setRunningAnimation:nil];
 }
 
 -(void)refreshPosition
@@ -2607,7 +2650,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     [self childWillResize:child withinAnimation:nil];
 }
 
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiViewAnimationStep*)animation
 {
     if (animation != nil) {
         [self refreshView:nil withinAnimation:animation];
@@ -2639,7 +2682,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     [self repositionWithinAnimation:nil];
 }
 
--(void)repositionWithinAnimation:(TiAnimation*)animation
+-(void)repositionWithinAnimation:(TiViewAnimationStep*)animation
 {
 	IGNORE_IF_NOT_OPENED
 	
@@ -2653,8 +2696,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	{	//NOTE: This will cause problems with ScrollableView, or is a new wrapper needed?
 		[self willChangeSize];
 		[self willChangePosition];
-	
-		[self refreshView:nil withinAnimation:animation];
+        [view setRunningAnimation:animation];
+        [parent childWillResize:self withinAnimation:animation];
+        [view setRunningAnimation:nil];
 	}
 	else 
 	{

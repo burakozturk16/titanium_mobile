@@ -14,7 +14,7 @@
 @class TiUITableViewSectionProxy;
 @class TiUITableViewRowContainer;
 
-@interface TiUITableViewRowProxy : TiViewProxy <TiAnimationDelegate, TiProxyDelegate>
+@interface TiUITableViewRowProxy : TiViewProxy <TiProxyDelegate>
 {
 @private
 	NSString *tableClass;

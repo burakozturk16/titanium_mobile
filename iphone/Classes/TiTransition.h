@@ -8,9 +8,10 @@
 
 #import "ADTransition.h"
 #import "TiTransitionHelper.h"
+#import "TiAnimation.h"
 
 #define kPerspective -1000
-@interface TiTransition: NSObject
+@interface TiTransition: TiAnimation
 {
     ADTransition* _adTransition;
 }

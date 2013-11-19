@@ -23,6 +23,7 @@
 #import "TiSVGImage.h"
 #import "TiImageHelper.h"
 #import "TiTransition.h"
+#import "TiViewAnimationStep.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -175,7 +176,7 @@ DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition, runningAnimation;
 
 #pragma mark Internal Methods
 
@@ -198,7 +199,6 @@ DEFINE_EXCEPTIONS
     [childViews release];
     [transferLock release];
 	[transformMatrix release];
-	[animation release];
 	[_bgLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
@@ -460,12 +460,13 @@ DEFINE_EXCEPTIONS
 {
     //TIMOB-11197, TC-1264
     [CATransaction begin];
-    if (!animating) {
+    if (runningAnimation == nil) {
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     }
     else {
-        [CATransaction setAnimationDuration:[animation animationDuration]];
-        [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
+//        TiAnimation* anim = (TiViewAnimation*)[_runningAnimation animation];
+        [CATransaction setAnimationDuration:[runningAnimation duration]];
+        [CATransaction setAnimationTimingFunction:[TiAnimation timingFunctionForCurve:[runningAnimation curve]]];
     }
     
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
@@ -954,64 +955,15 @@ DEFINE_EXCEPTIONS
 
 -(void)cancelAllAnimations
 {
-    if (animation != nil) {
-        [animation cancel:nil];
-        RELEASE_TO_NIL(animation);
-    }
     [CATransaction begin];
 	[[self layer] removeAllAnimations];
     [[self backgroundLayer] removeAllAnimations];
 	[CATransaction commit];
 }
 
--(void)animate:(TiAnimation *)newAnimation
-{
-	RELEASE_TO_NIL(animation);
-	
-	if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy viewReady]==NO)
-	{
-		DebugLog(@"[DEBUG] Ti.View.animate() called before view %@ was ready: Will re-attempt", self);
-		if (animationDelayGuard++ > 5)
-		{
-			DebugLog(@"[DEBUG] Animation guard triggered, exceeded timeout to perform animation.");
-            animationDelayGuard = 0;
-			return;
-		}
-		[self performSelector:@selector(animate:) withObject:newAnimation afterDelay:0.01];
-		return;
-	}
-	
-	animationDelayGuard = 0;
-    BOOL resetState = NO;
-    if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy willBeRelaying]) {
-        DeveloperLog(@"RESETTING STATE");
-        resetState = YES;
-    }
-    
-    animationDelayGuardForLayout = 0;    
-
-    if (newAnimation != nil) {
-        RELEASE_TO_NIL(animation);
-        animation = [newAnimation retain];
-        animation.resetState = resetState;
-        [animation animate:self];
-    }
-    else {
-        DebugLog(@"[WARN] Ti.View.animate() (view %@) could not make animation from: %@", self, newAnimation);
-    }
-}
--(void)animationStarted
-{
-    animating = YES;
-}
--(void)animationCompleted
-{
-	animating = NO;
-}
-
 -(BOOL)animating
 {
-	return animating;
+	return [(TiAnimatableProxy*)self.proxy animating];
 }
 
 #pragma mark Property Change Support
@@ -1826,12 +1778,12 @@ DEFINE_EXCEPTIONS
 }
 
 - (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
-    [viewOut animationStarted];
-    [viewIn animationStarted];
+    [(TiAnimatableProxy*)viewOut.proxy addRunningAnimation:transition];
+    [(TiAnimatableProxy*)viewIn.proxy addRunningAnimation:transition];
     
     [TiTransitionHelper transitionfromView:viewOut toView:viewIn insideView:self withTransition:transition completionBlock:^{
-        [viewOut animationCompleted];
-        [viewIn animationCompleted];
+        [(TiAnimatableProxy*)viewOut.proxy removeRunningAnimation:transition];
+        [(TiAnimatableProxy*)viewIn.proxy removeRunningAnimation:transition];
         if (block != nil) {
             block();
         }

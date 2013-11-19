@@ -12,7 +12,7 @@
 #import "TiUIiOSTransitionAnimationProxy.h"
 #endif
 
-@interface TiWindowProxy : TiViewProxy<TiWindowProtocol, TiAnimationDelegate> {
+@interface TiWindowProxy : TiViewProxy<TiWindowProtocol, HLSAnimationDelegate> {
 @protected
     TiViewController* controller;
     id<TiOrientationController> parentController;

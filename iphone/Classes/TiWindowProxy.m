@@ -9,6 +9,8 @@
 #import "TiUIWindow.h"
 #import "TiApp.h"
 #import "TiErrorController.h"
+#import "TiTransitionAnimation+Friend.h"
+#import "TiTransitionAnimationStep.h"
 
 @interface TiWindowProxy(Private)
 -(void)openOnUIThread:(id)args;
@@ -524,8 +526,7 @@
                 [self attachViewToTopContainerController];
             }
             if (openAnimation != nil) {
-                [openAnimation setDelegate:self];
-                [openAnimation animate:self];
+                [self animate:openAnimation];
             } else {
                 [self windowDidOpen];
             }
@@ -550,7 +551,7 @@
         } else {
             if (closeAnimation != nil) {
                 [closeAnimation setDelegate:self];
-                [closeAnimation animate:self];
+                [self animate:closeAnimation];
             } else {
                 [self windowDidClose];
             }
@@ -641,47 +642,32 @@
 
 
 #pragma mark - TiAnimation Delegate Methods
--(BOOL)animationShouldTransition:(TiAnimation *)sender
+
+-(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
 {
-    BOOL isOpenAnimation = NO;
-    UIView* hostingView = nil;
-    if (sender == openAnimation) {
-        hostingView = [[[[TiApp app] controller] topContainerController] view];
-        isOpenAnimation = YES;
-    } else {
-        hostingView = [[self view] superview];
+    if (animation.isTransitionAnimation && (animation == openAnimation || animation == closeAnimation)) {
+        
+        TiTransitionAnimation * hlsAnimation = [TiTransitionAnimation animation];
+        UIView* hostingView = nil;
+        if (animation == openAnimation) {
+            hostingView = [[[[TiApp app] controller] topContainerController] view];
+            hlsAnimation.openTransition = YES;
+        } else {
+            hostingView = [[self getOrCreateView] superview];
+            hlsAnimation.closeTransition = YES;
+        }
+        hlsAnimation.animatedProxy = self;
+        hlsAnimation.animationProxy = animation;
+        hlsAnimation.transition = animation.transition;
+        hlsAnimation.transitionViewProxy = self;
+        TiTransitionAnimationStep* step = [TiTransitionAnimationStep animationStep];
+        step.duration = [animation getAnimationDuration];
+        [step addTransitionAnimation:hlsAnimation insideHolder:hostingView];
+        return [HLSAnimation animationWithAnimationStep:step];
     }
-    
-    void (^animation)(void) = ^{
-        if (isOpenAnimation) {
-            RELEASE_TO_NIL(animatedOver);
-            NSArray* subviews = [hostingView subviews];
-            if ([subviews count] > 0) {
-                animatedOver = [[subviews lastObject] retain];
-            }
-            if (animatedOver != nil) {
-                [animatedOver removeFromSuperview];
-            }
-            [hostingView addSubview:[self view]];
-        }
-        else
-        {
-            [[self view] removeFromSuperview];
-        }
-    };
-
-    [UIView transitionWithView:hostingView
-                      duration:[(TiAnimation*)sender animationDuration]
-                       options:[[(TiAnimation*)sender transition] intValue]
-                    animations:animation
-                    completion:^(BOOL finished) {
-                        [sender animationCompleted:[NSString stringWithFormat:@"%@",hostingView]
-                                          finished:[NSNumber numberWithBool:finished]
-                                           context:sender];
-                    }
-     ];
-
-    return NO;
+    else {
+        return [super animationForAnimation:animation];
+    }
 }
 
 -(void)animationDidComplete:(TiAnimation *)sender
@@ -702,7 +688,7 @@
             }
         }
         [self windowDidOpen];
-    } else {
+    } else if (sender == closeAnimation) {
         [self windowDidClose];
     }
 }

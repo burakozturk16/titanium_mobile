@@ -911,7 +911,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 
 -(void)repositionWithinAnimation:(TiAnimation*)animation
 {
-	[self triggerUpdateIfHeightChanged];
+//	[self triggerUpdateIfHeightChanged];
 }
 
 -(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation

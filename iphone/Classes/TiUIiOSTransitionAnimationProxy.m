@@ -62,7 +62,7 @@
         _transitionTo = nil;
         return;
     }
-    [_transitionTo setDelegate:self];
+    _transitionTo.delegate = self;
     [_transitionTo retain];
     [self rememberProxy:_transitionTo];
 }
@@ -76,7 +76,7 @@
         _transitionFrom = nil;
         return;
     }
-    [_transitionFrom setDelegate:self];
+    _transitionFrom.delegate = self;
     [_transitionFrom retain];
     [self rememberProxy:_transitionFrom];
 }
@@ -125,6 +125,15 @@
 
     _transitionContext = [transitionContext retain];
     
+//    if (toProxy) {
+//        TiUIView* view = [toProxy getOrCreateView];
+//        [toProxy windowWillOpen];
+//        [toProxy windowDidOpen];
+//        [toProxy layoutChildren:NO];
+//        LayoutConstraint *contraints = [toProxy layoutProperties];
+//        ApplyConstraintToViewWithBounds(contraints, view, toViewController.view.bounds);
+//    }
+    
     [fromProxy setParentVisible:YES];
     [toProxy setParentVisible:YES];
     
@@ -135,10 +144,10 @@
     [container addSubview:[toViewController view]];
     
     if(_transitionFrom != nil && fromProxy != nil) {
-        [fromProxy animate: _transitionFrom];
+        [fromProxy handleAnimation: _transitionFrom witDelegate:self];
     }
     if (_transitionTo != nil && toProxy != nil) {
-        [toProxy animate: _transitionTo];
+        [toProxy handleAnimation: _transitionTo witDelegate:self];
     }
     
     if(_endedFrom && _endedTo)
@@ -151,9 +160,11 @@
 {
     if(animation == _transitionFrom) {
         _endedFrom = YES;
+        [animation.animatedProxy animationDidComplete:animation];
     }
     if(animation == _transitionTo) {
         _endedTo = YES;
+        [animation.animatedProxy animationDidComplete:animation];
     }
     if(_endedTo && _endedFrom) {
         [_transitionContext completeTransition:YES];
@@ -167,8 +178,8 @@
     }
     if(_duration == nil) {
         return MAX(
-                   [TiUtils floatValue:[_transitionTo duration] def:0],
-                   [TiUtils floatValue:[_transitionFrom duration] def:0]
+                   [_transitionTo getAnimationDuration],
+                   [_transitionFrom getAnimationDuration]
                 ) / 1000;
     }
     return [TiUtils floatValue:_duration def:0] / 1000;

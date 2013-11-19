@@ -656,12 +656,27 @@
 		D51F03D91808411F005B4EE2 /* TiImageHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D51F03D81808411F005B4EE2 /* TiImageHelper.m */; };
 		D51F03DA1808411F005B4EE2 /* TiImageHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D51F03D81808411F005B4EE2 /* TiImageHelper.m */; };
 		D51F03DB1808411F005B4EE2 /* TiImageHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D51F03D81808411F005B4EE2 /* TiImageHelper.m */; };
+		D5216934183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216933183A10AC00FBB24B /* CAAnimation+Blocks.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5216935183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216933183A10AC00FBB24B /* CAAnimation+Blocks.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5216936183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216933183A10AC00FBB24B /* CAAnimation+Blocks.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D521693C183A598500FBB24B /* TiTransitionAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216938183A598500FBB24B /* TiTransitionAnimation.m */; };
+		D521693D183A598500FBB24B /* TiTransitionAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216938183A598500FBB24B /* TiTransitionAnimation.m */; };
+		D521693E183A598500FBB24B /* TiTransitionAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5216938183A598500FBB24B /* TiTransitionAnimation.m */; };
+		D521693F183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */; };
+		D5216940183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */; };
+		D5216941183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */; };
 		D522FE0D16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
 		D522FE0E16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
 		D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */; };
+		D525399F183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */; };
+		D52539A0183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */; };
+		D52539A1183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */; };
 		D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
 		D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
 		D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */; };
+		D52A8E73183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
+		D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
+		D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -702,6 +717,24 @@
 		D54C7D2118115D7D00F592A9 /* TiTransitionModernPush.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */; };
 		D54C7D2218115D7D00F592A9 /* TiTransitionModernPush.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */; };
 		D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D557957E1837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
+		D557957F1837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
+		D55795801837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
+		D55795811837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957D1837BF6C0057DD41 /* TiViewAnimationStep.m */; };
+		D55795821837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957D1837BF6C0057DD41 /* TiViewAnimationStep.m */; };
+		D55795831837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957D1837BF6C0057DD41 /* TiViewAnimationStep.m */; };
+		D55795881837C1680057DD41 /* TiHLSAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795871837C1680057DD41 /* TiHLSAnimation.m */; };
+		D55795891837C1680057DD41 /* TiHLSAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795871837C1680057DD41 /* TiHLSAnimation.m */; };
+		D557958A1837C1680057DD41 /* TiHLSAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795871837C1680057DD41 /* TiHLSAnimation.m */; };
+		D5579591183937B20057DD41 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557958D183937B20057DD41 /* TiShapeAnimation.m */; };
+		D5579592183937B20057DD41 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557958D183937B20057DD41 /* TiShapeAnimation.m */; };
+		D5579593183937B20057DD41 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557958D183937B20057DD41 /* TiShapeAnimation.m */; };
+		D5579594183937B20057DD41 /* TiShapeAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D5579590183937B20057DD41 /* TiShapeAnimationStep.m */; };
+		D5579595183937B20057DD41 /* TiShapeAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D5579590183937B20057DD41 /* TiShapeAnimationStep.m */; };
+		D5579596183937B20057DD41 /* TiShapeAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D5579590183937B20057DD41 /* TiShapeAnimationStep.m */; };
+		D55795991839398C0057DD41 /* TiHLSAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795981839398C0057DD41 /* TiHLSAnimationStep.m */; };
+		D557959A1839398C0057DD41 /* TiHLSAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795981839398C0057DD41 /* TiHLSAnimationStep.m */; };
+		D557959B1839398C0057DD41 /* TiHLSAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D55795981839398C0057DD41 /* TiHLSAnimationStep.m */; };
 		D5691304168F0F4200C3F89F /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D56915AC168F16FB00C3F89F /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D56915C3168F192B00C3F89F /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -863,9 +896,6 @@
 		D5C92DA7182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
 		D5C92DA8182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
 		D5C92DA9182AA88F0072D117 /* TouchDelegate_Views.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */; };
-		D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
-		D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
-		D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */; };
 		D5CD8CB017CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
 		D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */; };
@@ -2145,10 +2175,43 @@
 		D51F03D31808297E005B4EE2 /* TiUISlideMenuVisualState.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUISlideMenuVisualState.m; sourceTree = "<group>"; };
 		D51F03D71808411F005B4EE2 /* TiImageHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiImageHelper.h; sourceTree = "<group>"; };
 		D51F03D81808411F005B4EE2 /* TiImageHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiImageHelper.m; sourceTree = "<group>"; };
+		D5216932183A10AC00FBB24B /* CAAnimation+Blocks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CAAnimation+Blocks.h"; sourceTree = "<group>"; };
+		D5216933183A10AC00FBB24B /* CAAnimation+Blocks.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "CAAnimation+Blocks.m"; sourceTree = "<group>"; };
+		D5216937183A598500FBB24B /* TiTransitionAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiTransitionAnimation.h; path = Animation/TiTransitionAnimation.h; sourceTree = "<group>"; };
+		D5216938183A598500FBB24B /* TiTransitionAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiTransitionAnimation.m; path = Animation/TiTransitionAnimation.m; sourceTree = "<group>"; };
+		D5216939183A598500FBB24B /* TiTransitionAnimation+Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiTransitionAnimation+Friend.h"; path = "Animation/TiTransitionAnimation+Friend.h"; sourceTree = "<group>"; };
+		D521693A183A598500FBB24B /* TiTransitionAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiTransitionAnimationStep.h; path = Animation/TiTransitionAnimationStep.h; sourceTree = "<group>"; };
+		D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiTransitionAnimationStep.m; path = Animation/TiTransitionAnimationStep.m; sourceTree = "<group>"; };
 		D522FE0B16D2AC8D008C6CC4 /* JRSwizzle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JRSwizzle.h; path = ../Classes/JRSwizzle/JRSwizzle.h; sourceTree = "<group>"; };
 		D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = JRSwizzle.m; path = ../Classes/JRSwizzle/JRSwizzle.m; sourceTree = "<group>"; };
+		D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libCoconutKitAnimation.a; path = ../libexternals/libCoconutKitAnimation.a; sourceTree = "<group>"; };
+		D52539A2183A87A0006FF1BB /* CALayer+HLSExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CALayer+HLSExtensions.h"; path = "../Classes/CoconutKitAnimation/CALayer+HLSExtensions.h"; sourceTree = "<group>"; };
+		D52539A3183A87A0006FF1BB /* CAMediaTimingFunction+HLSExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "CAMediaTimingFunction+HLSExtensions.h"; path = "../Classes/CoconutKitAnimation/CAMediaTimingFunction+HLSExtensions.h"; sourceTree = "<group>"; };
+		D52539A4183A87A0006FF1BB /* HLSAnimation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSAnimation.h; path = ../Classes/CoconutKitAnimation/HLSAnimation.h; sourceTree = "<group>"; };
+		D52539A5183A87A0006FF1BB /* HLSAnimationStep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSAnimationStep.h; path = ../Classes/CoconutKitAnimation/HLSAnimationStep.h; sourceTree = "<group>"; };
+		D52539A6183A87A0006FF1BB /* HLSAnimationStep+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HLSAnimationStep+Friend.h"; path = "../Classes/CoconutKitAnimation/HLSAnimationStep+Friend.h"; sourceTree = "<group>"; };
+		D52539A7183A87A0006FF1BB /* HLSAnimationStep+Protected.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HLSAnimationStep+Protected.h"; path = "../Classes/CoconutKitAnimation/HLSAnimationStep+Protected.h"; sourceTree = "<group>"; };
+		D52539A8183A87A0006FF1BB /* HLSAssert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSAssert.h; path = ../Classes/CoconutKitAnimation/HLSAssert.h; sourceTree = "<group>"; };
+		D52539A9183A87A0006FF1BB /* HLSConverters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSConverters.h; path = ../Classes/CoconutKitAnimation/HLSConverters.h; sourceTree = "<group>"; };
+		D52539AA183A87A0006FF1BB /* HLSFloat.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSFloat.h; path = ../Classes/CoconutKitAnimation/HLSFloat.h; sourceTree = "<group>"; };
+		D52539AB183A87A0006FF1BB /* HLSLayerAnimation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSLayerAnimation.h; path = ../Classes/CoconutKitAnimation/HLSLayerAnimation.h; sourceTree = "<group>"; };
+		D52539AC183A87A0006FF1BB /* HLSLayerAnimation+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HLSLayerAnimation+Friend.h"; path = "../Classes/CoconutKitAnimation/HLSLayerAnimation+Friend.h"; sourceTree = "<group>"; };
+		D52539AD183A87A0006FF1BB /* HLSLayerAnimationStep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSLayerAnimationStep.h; path = ../Classes/CoconutKitAnimation/HLSLayerAnimationStep.h; sourceTree = "<group>"; };
+		D52539AE183A87A0006FF1BB /* HLSLogger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSLogger.h; path = ../Classes/CoconutKitAnimation/HLSLogger.h; sourceTree = "<group>"; };
+		D52539AF183A87A0006FF1BB /* HLSObjectAnimation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSObjectAnimation.h; path = ../Classes/CoconutKitAnimation/HLSObjectAnimation.h; sourceTree = "<group>"; };
+		D52539B0183A87A0006FF1BB /* HLSObjectAnimation+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HLSObjectAnimation+Friend.h"; path = "../Classes/CoconutKitAnimation/HLSObjectAnimation+Friend.h"; sourceTree = "<group>"; };
+		D52539B1183A87A0006FF1BB /* HLSUserInterfaceLock.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSUserInterfaceLock.h; path = ../Classes/CoconutKitAnimation/HLSUserInterfaceLock.h; sourceTree = "<group>"; };
+		D52539B2183A87A0006FF1BB /* HLSVector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSVector.h; path = ../Classes/CoconutKitAnimation/HLSVector.h; sourceTree = "<group>"; };
+		D52539B3183A87A0006FF1BB /* HLSViewAnimation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSViewAnimation.h; path = ../Classes/CoconutKitAnimation/HLSViewAnimation.h; sourceTree = "<group>"; };
+		D52539B4183A87A0006FF1BB /* HLSViewAnimation+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "HLSViewAnimation+Friend.h"; path = "../Classes/CoconutKitAnimation/HLSViewAnimation+Friend.h"; sourceTree = "<group>"; };
+		D52539B5183A87A0006FF1BB /* HLSViewAnimationStep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSViewAnimationStep.h; path = ../Classes/CoconutKitAnimation/HLSViewAnimationStep.h; sourceTree = "<group>"; };
+		D52539B6183A87A0006FF1BB /* HLSZeroingWeakRef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = HLSZeroingWeakRef.h; path = ../Classes/CoconutKitAnimation/HLSZeroingWeakRef.h; sourceTree = "<group>"; };
+		D52539B7183A87A0006FF1BB /* NSArray+HLSExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSArray+HLSExtensions.h"; path = "../Classes/CoconutKitAnimation/NSArray+HLSExtensions.h"; sourceTree = "<group>"; };
+		D52539B8183A87A0006FF1BB /* NSString+HLSExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "NSString+HLSExtensions.h"; path = "../Classes/CoconutKitAnimation/NSString+HLSExtensions.h"; sourceTree = "<group>"; };
 		D526016A179DB3EA00FE5723 /* TiSelectableBackgroundLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSelectableBackgroundLayer.h; sourceTree = "<group>"; };
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
+		D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAnimatableProxy.h; sourceTree = "<group>"; };
+		D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAnimatableProxy.m; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
 		D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSlide.m; sourceTree = "<group>"; };
 		D54C7CF21811570B00F592A9 /* TiTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransition.m; sourceTree = "<group>"; };
@@ -2170,6 +2233,21 @@
 		D54C7D1A18115C5200F592A9 /* TiTransitionSwap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwap.m; sourceTree = "<group>"; };
 		D54C7D1E18115D7D00F592A9 /* TiTransitionModernPush.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionModernPush.h; sourceTree = "<group>"; };
 		D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionModernPush.m; sourceTree = "<group>"; };
+		D55795791837BF6C0057DD41 /* TiViewAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiViewAnimation.h; path = Animation/TiViewAnimation.h; sourceTree = "<group>"; };
+		D557957A1837BF6C0057DD41 /* TiViewAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiViewAnimation.m; path = Animation/TiViewAnimation.m; sourceTree = "<group>"; };
+		D557957B1837BF6C0057DD41 /* TiViewAnimation+Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiViewAnimation+Friend.h"; path = "Animation/TiViewAnimation+Friend.h"; sourceTree = "<group>"; };
+		D557957C1837BF6C0057DD41 /* TiViewAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiViewAnimationStep.h; path = Animation/TiViewAnimationStep.h; sourceTree = "<group>"; };
+		D557957D1837BF6C0057DD41 /* TiViewAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiViewAnimationStep.m; path = Animation/TiViewAnimationStep.m; sourceTree = "<group>"; };
+		D55795861837C1680057DD41 /* TiHLSAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSAnimation.h; path = Animation/TiHLSAnimation.h; sourceTree = "<group>"; };
+		D55795871837C1680057DD41 /* TiHLSAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSAnimation.m; path = Animation/TiHLSAnimation.m; sourceTree = "<group>"; };
+		D557958B1837C4330057DD41 /* TiHLSAnimation+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "TiHLSAnimation+Friend.h"; path = "Animation/TiHLSAnimation+Friend.h"; sourceTree = "<group>"; };
+		D557958C183937B20057DD41 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
+		D557958D183937B20057DD41 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
+		D557958E183937B20057DD41 /* TiShapeAnimation+Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TiShapeAnimation+Friend.h"; sourceTree = "<group>"; };
+		D557958F183937B20057DD41 /* TiShapeAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimationStep.h; sourceTree = "<group>"; };
+		D5579590183937B20057DD41 /* TiShapeAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimationStep.m; sourceTree = "<group>"; };
+		D55795971839398C0057DD41 /* TiHLSAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSAnimationStep.h; path = Animation/TiHLSAnimationStep.h; sourceTree = "<group>"; };
+		D55795981839398C0057DD41 /* TiHLSAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSAnimationStep.m; path = Animation/TiHLSAnimationStep.m; sourceTree = "<group>"; };
 		D5691303168F0F4200C3F89F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		D56915AB168F16FA00C3F89F /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		D56915C2168F192B00C3F89F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -2347,8 +2425,6 @@
 		D5C8C9A717EF5E6D00F54C19 /* TiUITransitionStyleProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUITransitionStyleProxy.m; sourceTree = "<group>"; };
 		D5C92DA5182AA88F0072D117 /* TouchDelegate_Views.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchDelegate_Views.h; sourceTree = "<group>"; };
 		D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchDelegate_Views.m; sourceTree = "<group>"; };
-		D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapeAnimation.h; sourceTree = "<group>"; };
-		D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapeAnimation.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
 		D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapePieSliceProxy.m; sourceTree = "<group>"; };
 		D5DC32F6180EED41006CCEBD /* TiTransitionCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionCube.h; sourceTree = "<group>"; };
@@ -2463,6 +2539,7 @@
 				24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */,
 				24CA8C86111167B60084E2DE /* OpenGLES.framework in Frameworks */,
 				D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */,
+				D525399F183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */,
 				24CA8C88111167B60084E2DE /* QuartzCore.framework in Frameworks */,
 				24CA8C8A111167B60084E2DE /* SystemConfiguration.framework in Frameworks */,
 				24CA8C8E111167B60084E2DE /* libsqlite3.dylib in Frameworks */,
@@ -2515,6 +2592,7 @@
 				24D8E4A9119B9D8A00F8CAA6 /* MediaPlayer.framework in Frameworks */,
 				24D8E4AA119B9D8A00F8CAA6 /* AVFoundation.framework in Frameworks */,
 				24D8E4AB119B9D8A00F8CAA6 /* libxml2.dylib in Frameworks */,
+				D52539A0183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */,
 				24D8E4AC119B9D8A00F8CAA6 /* StoreKit.framework in Frameworks */,
 				242E8E3211BA39FE0046A0D0 /* libTiCore.a in Frameworks */,
 				24D5C75A11E6364F00F097E2 /* libtiverify.a in Frameworks */,
@@ -2559,6 +2637,7 @@
 				DABB37B112E8CB280026A6EA /* AudioToolbox.framework in Frameworks */,
 				DABB37B212E8CB280026A6EA /* MediaPlayer.framework in Frameworks */,
 				DABB37B312E8CB280026A6EA /* AVFoundation.framework in Frameworks */,
+				D52539A1183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */,
 				DABB37B412E8CB280026A6EA /* libxml2.dylib in Frameworks */,
 				DABB37B512E8CB280026A6EA /* StoreKit.framework in Frameworks */,
 				DABB37B612E8CB280026A6EA /* libTiCore.a in Frameworks */,
@@ -2661,6 +2740,7 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D55795071837BEF90057DD41 /* CoconutKitAnimation */,
 				D5B6C6DD1811249F00A2612A /* DT */,
 				D51F03AD1807E4E9005B4EE2 /* MMDrawerController */,
 				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
@@ -2836,6 +2916,7 @@
 		24CA8A09111161D60084E2DE /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D55795781837BF3C0057DD41 /* Animation */,
 				D51697EF17FFF61D00B4FDB8 /* Image */,
 				D5E7977317B61ED200F1D088 /* Shape */,
 				D93DAA4C16CBF8A000AD64C9 /* Calendar */,
@@ -2868,6 +2949,8 @@
 		24CA8A0A111161DC0084E2DE /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				D5216932183A10AC00FBB24B /* CAAnimation+Blocks.h */,
+				D5216933183A10AC00FBB24B /* CAAnimation+Blocks.m */,
 				2B353A7F15901D41008FBD84 /* Ti3DMatrix.h */,
 				2B353A8015901D41008FBD84 /* Ti3DMatrix.m */,
 				24CA8A10111161FD0084E2DE /* WebFont.m */,
@@ -2956,8 +3039,6 @@
 				24CA8AC7111161FD0084E2DE /* TiHost.h */,
 				24CA8AE2111161FE0084E2DE /* TiBase.m */,
 				24CA8AE3111161FE0084E2DE /* TiBase.h */,
-				24CA8AE6111161FE0084E2DE /* TiAnimation.m */,
-				24CA8AE7111161FE0084E2DE /* TiAnimation.h */,
 				24CA8AE8111161FE0084E2DE /* TiAction.m */,
 				24CA8AE9111161FE0084E2DE /* TiAction.h */,
 				24CA8B3B111161FE0084E2DE /* Bridge.m */,
@@ -3736,6 +3817,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */,
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
 				D5C2866317FC18C0005B2628 /* libGPUImage.a */,
 				D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */,
@@ -4093,6 +4175,62 @@
 				D522FE0C16D2AC8D008C6CC4 /* JRSwizzle.m */,
 			);
 			name = JRSwizzle;
+			sourceTree = "<group>";
+		};
+		D55795071837BEF90057DD41 /* CoconutKitAnimation */ = {
+			isa = PBXGroup;
+			children = (
+				D52539A2183A87A0006FF1BB /* CALayer+HLSExtensions.h */,
+				D52539A3183A87A0006FF1BB /* CAMediaTimingFunction+HLSExtensions.h */,
+				D52539A4183A87A0006FF1BB /* HLSAnimation.h */,
+				D52539A5183A87A0006FF1BB /* HLSAnimationStep.h */,
+				D52539A6183A87A0006FF1BB /* HLSAnimationStep+Friend.h */,
+				D52539A7183A87A0006FF1BB /* HLSAnimationStep+Protected.h */,
+				D52539A8183A87A0006FF1BB /* HLSAssert.h */,
+				D52539A9183A87A0006FF1BB /* HLSConverters.h */,
+				D52539AA183A87A0006FF1BB /* HLSFloat.h */,
+				D52539AB183A87A0006FF1BB /* HLSLayerAnimation.h */,
+				D52539AC183A87A0006FF1BB /* HLSLayerAnimation+Friend.h */,
+				D52539AD183A87A0006FF1BB /* HLSLayerAnimationStep.h */,
+				D52539AE183A87A0006FF1BB /* HLSLogger.h */,
+				D52539AF183A87A0006FF1BB /* HLSObjectAnimation.h */,
+				D52539B0183A87A0006FF1BB /* HLSObjectAnimation+Friend.h */,
+				D52539B1183A87A0006FF1BB /* HLSUserInterfaceLock.h */,
+				D52539B2183A87A0006FF1BB /* HLSVector.h */,
+				D52539B3183A87A0006FF1BB /* HLSViewAnimation.h */,
+				D52539B4183A87A0006FF1BB /* HLSViewAnimation+Friend.h */,
+				D52539B5183A87A0006FF1BB /* HLSViewAnimationStep.h */,
+				D52539B6183A87A0006FF1BB /* HLSZeroingWeakRef.h */,
+				D52539B7183A87A0006FF1BB /* NSArray+HLSExtensions.h */,
+				D52539B8183A87A0006FF1BB /* NSString+HLSExtensions.h */,
+			);
+			name = CoconutKitAnimation;
+			sourceTree = "<group>";
+		};
+		D55795781837BF3C0057DD41 /* Animation */ = {
+			isa = PBXGroup;
+			children = (
+				24CA8AE7111161FE0084E2DE /* TiAnimation.h */,
+				24CA8AE6111161FE0084E2DE /* TiAnimation.m */,
+				D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */,
+				D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */,
+				D55795791837BF6C0057DD41 /* TiViewAnimation.h */,
+				D557957A1837BF6C0057DD41 /* TiViewAnimation.m */,
+				D557957B1837BF6C0057DD41 /* TiViewAnimation+Friend.h */,
+				D557957C1837BF6C0057DD41 /* TiViewAnimationStep.h */,
+				D557957D1837BF6C0057DD41 /* TiViewAnimationStep.m */,
+				D55795971839398C0057DD41 /* TiHLSAnimationStep.h */,
+				D55795981839398C0057DD41 /* TiHLSAnimationStep.m */,
+				D557958B1837C4330057DD41 /* TiHLSAnimation+Friend.h */,
+				D55795861837C1680057DD41 /* TiHLSAnimation.h */,
+				D55795871837C1680057DD41 /* TiHLSAnimation.m */,
+				D5216937183A598500FBB24B /* TiTransitionAnimation.h */,
+				D5216938183A598500FBB24B /* TiTransitionAnimation.m */,
+				D5216939183A598500FBB24B /* TiTransitionAnimation+Friend.h */,
+				D521693A183A598500FBB24B /* TiTransitionAnimationStep.h */,
+				D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */,
+			);
+			name = Animation;
 			sourceTree = "<group>";
 		};
 		D56915D2168F536700C3F89F /* TTTAttributedLabel */ = {
@@ -4482,6 +4620,11 @@
 		D5E7977317B61ED200F1D088 /* Shape */ = {
 			isa = PBXGroup;
 			children = (
+				D557958C183937B20057DD41 /* TiShapeAnimation.h */,
+				D557958D183937B20057DD41 /* TiShapeAnimation.m */,
+				D557958E183937B20057DD41 /* TiShapeAnimation+Friend.h */,
+				D5579590183937B20057DD41 /* TiShapeAnimationStep.m */,
+				D557958F183937B20057DD41 /* TiShapeAnimationStep.h */,
 				D5E7977417B61EFC00F1D088 /* ShapeModule.h */,
 				D5E7977517B61EFC00F1D088 /* ShapeModule.m */,
 				D5E7977917B61F4600F1D088 /* ShapeProxy.h */,
@@ -4490,8 +4633,6 @@
 				D5E7978417B6226B00F1D088 /* TiShapeViewProxy.m */,
 				D5E7978817B622D200F1D088 /* TiShapeView.h */,
 				D5E7978917B622D200F1D088 /* TiShapeView.m */,
-				D5CA659F17C534D3006CAEF9 /* TiShapeAnimation.h */,
-				D5CA65A017C534D3006CAEF9 /* TiShapeAnimation.m */,
 				D5E9F82117C8CC480084384C /* TiShapeCircleProxy.h */,
 				D5E9F82217C8CC480084384C /* TiShapeCircleProxy.m */,
 				D5E9F82617C8CC8A0084384C /* ShapeCustomProxy.h */,
@@ -4774,6 +4915,7 @@
 				243ECCB71126986F00639DF4 /* TiFile.m in Sources */,
 				24F5ACF9111F7B8A005C9199 /* TiMapPinAnnotationView.m in Sources */,
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
+				D5216934183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */,
 				24CA895B111161050084E2DE /* AFItemView.m in Sources */,
 				24CA895C111161050084E2DE /* AFOpenFlowView.m in Sources */,
 				24CA895D111161050084E2DE /* AFUIImageReflection.m in Sources */,
@@ -4787,6 +4929,7 @@
 				84A00FF517FB675E00D4BF94 /* TiSnapBehavior.m in Sources */,
 				243ECCBE112698AA00639DF4 /* TiUITextWidgetProxy.m in Sources */,
 				243ECCAA1126981C00639DF4 /* TiUITableViewSectionProxy.m in Sources */,
+				D557957E1837BF6C0057DD41 /* TiViewAnimation.m in Sources */,
 				243ECCAB1126981C00639DF4 /* TiUIiPhoneTableViewStyleProxy.m in Sources */,
 				243ECCAC1126981C00639DF4 /* TiUITableViewSeparatorStyleProxy.m in Sources */,
 				24CA8967111161050084E2DE /* Reachability.m in Sources */,
@@ -4794,6 +4937,7 @@
 				24CA8969111161050084E2DE /* Base64Transcoder.c in Sources */,
 				D54C7D0718115BFA00F592A9 /* TiTransitionCross.m in Sources */,
 				243ECCB91126989700639DF4 /* TiUITextWidget.m in Sources */,
+				D521693C183A598500FBB24B /* TiTransitionAnimation.m in Sources */,
 				24CA897D111161050084E2DE /* PlausibleDatabase.m in Sources */,
 				24CA897E111161050084E2DE /* PLSqliteDatabase.m in Sources */,
 				24CA897F111161050084E2DE /* PLSqlitePreparedStatement.m in Sources */,
@@ -4866,6 +5010,7 @@
 				24CA8BA5111161FE0084E2DE /* TiUICanvasViewProxy.m in Sources */,
 				24CA8BA6111161FE0084E2DE /* TiUICanvasView.m in Sources */,
 				24CA8BA7111161FE0084E2DE /* TiUIButtonProxy.m in Sources */,
+				D52A8E73183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
 				24CA8BA8111161FE0084E2DE /* TiUIButtonBarProxy.m in Sources */,
 				24CA8BA9111161FE0084E2DE /* TiUIButtonBar.m in Sources */,
 				24CA8BAA111161FE0084E2DE /* TiUIButton.m in Sources */,
@@ -4912,6 +5057,7 @@
 				24CA8BD1111161FE0084E2DE /* TiAnimation.m in Sources */,
 				24CA8BD2111161FE0084E2DE /* TiAction.m in Sources */,
 				24CA8BD4111161FE0084E2DE /* Ti2DMatrix.m in Sources */,
+				D5579594183937B20057DD41 /* TiShapeAnimationStep.m in Sources */,
 				24CA8BD9111161FE0084E2DE /* TiPlatformDisplayCaps.m in Sources */,
 				24CA8BDA111161FE0084E2DE /* PlatformModule.m in Sources */,
 				84A00FFF17FB833000D4BF94 /* TiPushBehavior.m in Sources */,
@@ -4964,6 +5110,7 @@
 				24A1E992112E1363003DA834 /* TiUIPickerColumnProxy.m in Sources */,
 				24A1EAF6112F4C02003DA834 /* UIImage+Alpha.m in Sources */,
 				24A1EAF7112F4C02003DA834 /* UIImage+Resize.m in Sources */,
+				D521693F183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */,
 				24A1EAF8112F4C02003DA834 /* UIImage+RoundedCorner.m in Sources */,
 				245B3C3D11375A6600CE7530 /* UtilsModule.m in Sources */,
 				245B45641139B41800CE7530 /* TiUIiPhoneTableViewCellSelectionStyleProxy.m in Sources */,
@@ -4974,6 +5121,7 @@
 				248133A8115761DE00E3A9BA /* TiNetworkBonjourServiceProxy.m in Sources */,
 				843FA58417BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */,
 				D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */,
+				D55795881837C1680057DD41 /* TiHLSAnimation.m in Sources */,
 				248133A9115761DE00E3A9BA /* TiNetworkTCPSocketProxy.m in Sources */,
 				24813714115A852800E3A9BA /* TiDOMTextNodeProxy.m in Sources */,
 				2412F467115C296300454E5B /* TiMediaVideoPlayer.m in Sources */,
@@ -5036,6 +5184,7 @@
 				24ADC634129A1ED60014DB75 /* TiAppiOSLocalNotificationProxy.m in Sources */,
 				84A0100E17FCA9A700D4BF94 /* TiViewAttachBehavior.m in Sources */,
 				84A00FF017FB39A100D4BF94 /* TiAnimatorProxy.m in Sources */,
+				D55795811837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				D51F03CF18080923005B4EE2 /* MMDrawerVisualState.m in Sources */,
 				DA2B35C2134514FE00056705 /* TiNetworkSocketTCPProxy.m in Sources */,
 				DABF3ECF134D210400836137 /* TiBuffer.m in Sources */,
@@ -5089,6 +5238,7 @@
 				D93DAA5016CBF8CB00AD64C9 /* CalendarModule.m in Sources */,
 				D51F03D41808297E005B4EE2 /* TiUISlideMenuVisualState.m in Sources */,
 				D93DAA5516CBF8E500AD64C9 /* TiCalendarCalendar.m in Sources */,
+				D5579591183937B20057DD41 /* TiShapeAnimation.m in Sources */,
 				D93DAA5A16CBF8FB00AD64C9 /* TiCalendarAlert.m in Sources */,
 				B6C5206118035AF3002471C6 /* TiUIiOSAttributedStringProxy.m in Sources */,
 				D54C7CEF1811565A00F592A9 /* TiTransitionSlide.m in Sources */,
@@ -5099,6 +5249,7 @@
 				502A68DA16EEAA7500661EF6 /* TiUIListItem.m in Sources */,
 				502A68DD16EEAA7500661EF6 /* TiUIListItemProxy.m in Sources */,
 				502A68E016EEAA7500661EF6 /* TiUIListSectionProxy.m in Sources */,
+				D55795991839398C0057DD41 /* TiHLSAnimationStep.m in Sources */,
 				502A68E316EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E616EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				502A68EB16F0428500661EF6 /* TiViewTemplate.m in Sources */,
@@ -5133,7 +5284,6 @@
 				D5C8C97F17EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D5C8C99D17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D5B891EE17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D5CA65A117C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98517EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D526016C179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				D51F03CA18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
@@ -5256,8 +5406,10 @@
 				24D8E422119B9D8A00F8CAA6 /* TiUIAlertDialogProxy.m in Sources */,
 				24D8E423119B9D8A00F8CAA6 /* TiUIActivityIndicatorStyleProxy.m in Sources */,
 				24D8E424119B9D8A00F8CAA6 /* TiUIActivityIndicatorProxy.m in Sources */,
+				D5579595183937B20057DD41 /* TiShapeAnimationStep.m in Sources */,
 				24D8E425119B9D8A00F8CAA6 /* TiUIActivityIndicator.m in Sources */,
 				24D8E426119B9D8A00F8CAA6 /* TiRect.m in Sources */,
+				D5216940183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */,
 				24D8E428119B9D8A00F8CAA6 /* TiProxy.m in Sources */,
 				24D8E429119B9D8A00F8CAA6 /* TiPoint.m in Sources */,
 				24D8E42A119B9D8A00F8CAA6 /* TiNetworkHTTPClientResultProxy.m in Sources */,
@@ -5269,6 +5421,7 @@
 				D5C8C98317EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				24D8E42F119B9D8A00F8CAA6 /* TiMediaAudioPlayerProxy.m in Sources */,
 				24D8E430119B9D8A00F8CAA6 /* TiMapViewProxy.m in Sources */,
+				D55795821837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				24D8E431119B9D8A00F8CAA6 /* TiMapView.m in Sources */,
 				D54C7D0D18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				24D8E432119B9D8A00F8CAA6 /* TiMapAnnotationProxy.m in Sources */,
@@ -5322,6 +5475,7 @@
 				24D8E45B119B9D8A00F8CAA6 /* TiUIScrollableView.m in Sources */,
 				D5E9F83317C906E20084384C /* TiShapeArcProxy.m in Sources */,
 				24D8E45C119B9D8A00F8CAA6 /* TiUIScrollViewProxy.m in Sources */,
+				D557959A1839398C0057DD41 /* TiHLSAnimationStep.m in Sources */,
 				24D8E45D119B9D8A00F8CAA6 /* TiUIScrollView.m in Sources */,
 				24D8E45E119B9D8A00F8CAA6 /* TiUIWebView.m in Sources */,
 				24D8E45F119B9D8A00F8CAA6 /* TiDOMDocumentProxy.m in Sources */,
@@ -5422,7 +5576,9 @@
 				D5E7978617B6226B00F1D088 /* TiShapeViewProxy.m in Sources */,
 				DA2B35C3134514FE00056705 /* TiNetworkSocketTCPProxy.m in Sources */,
 				DABF3ED0134D210400836137 /* TiBuffer.m in Sources */,
+				D557957F1837BF6C0057DD41 /* TiViewAnimation.m in Sources */,
 				DABF3ED8134D2CA100836137 /* StreamModule.m in Sources */,
+				D521693D183A598500FBB24B /* TiTransitionAnimation.m in Sources */,
 				DABF3EDD134D2E4400836137 /* TiStreamProxy.m in Sources */,
 				DAA4B2B5134E75AC00AB6011 /* CodecModule.m in Sources */,
 				DA2556451353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
@@ -5436,15 +5592,18 @@
 				EF03EFF713E3665100BD4FF7 /* ASIDataDecompressor.m in Sources */,
 				2B94603813F0A2AE000C5BEA /* TiUIiOSCoverFlowView.m in Sources */,
 				2B94603913F0A2AE000C5BEA /* TiUIiOSCoverFlowViewProxy.m in Sources */,
+				D55795891837C1680057DD41 /* TiHLSAnimation.m in Sources */,
 				1DCC543013FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
 				1D19459713FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459C13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
 				D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				EF0ADCFB143F9ABF00977386 /* NSData+Additions.m in Sources */,
+				D5579592183937B20057DD41 /* TiShapeAnimation.m in Sources */,
 				EF0ADD1B143FA0CD00977386 /* GeolocationModule.m in Sources */,
 				EF0ADD20143FA0E200977386 /* AnalyticsModule.m in Sources */,
 				2B1F65781431031E006C5D37 /* ApplicationDefaults.m in Sources */,
 				848C2595145F37A300E1B0F1 /* TiDOMCDATANodeProxy.m in Sources */,
+				D5216935183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */,
 				D5C8C97A17EF45C900F54C19 /* ADFlipTransition.m in Sources */,
 				848C259B145F3FE200E1B0F1 /* TiDOMCommentProxy.m in Sources */,
 				848C25A0145F46C300E1B0F1 /* TiDOMPIProxy.m in Sources */,
@@ -5494,6 +5653,7 @@
 				D599484D16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */,
+				D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
 				D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D5CD8CB117CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
 				D51E059A17DB1AC000DCF3E2 /* UIBezierPath+Additions.m in Sources */,
@@ -5511,7 +5671,6 @@
 				D5C8C98017EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D5C8C99E17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D5B891EF17CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D5CA65A217C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98617EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D526016D179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				84C3870317417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
@@ -5634,8 +5793,10 @@
 				DABB36FD12E8CB280026A6EA /* TiUIAlertDialogProxy.m in Sources */,
 				DABB36FE12E8CB280026A6EA /* TiUIActivityIndicatorStyleProxy.m in Sources */,
 				DABB36FF12E8CB280026A6EA /* TiUIActivityIndicatorProxy.m in Sources */,
+				D5579596183937B20057DD41 /* TiShapeAnimationStep.m in Sources */,
 				DABB370012E8CB280026A6EA /* TiUIActivityIndicator.m in Sources */,
 				DABB370112E8CB280026A6EA /* TiRect.m in Sources */,
+				D5216941183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */,
 				DABB370312E8CB280026A6EA /* TiProxy.m in Sources */,
 				DABB370412E8CB280026A6EA /* TiPoint.m in Sources */,
 				DABB370512E8CB280026A6EA /* TiNetworkHTTPClientResultProxy.m in Sources */,
@@ -5647,6 +5808,7 @@
 				D5C8C98417EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				DABB370A12E8CB280026A6EA /* TiMediaAudioPlayerProxy.m in Sources */,
 				DABB370B12E8CB280026A6EA /* TiMapViewProxy.m in Sources */,
+				D55795831837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				DABB370C12E8CB280026A6EA /* TiMapView.m in Sources */,
 				D54C7D0E18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				DABB370D12E8CB280026A6EA /* TiMapAnnotationProxy.m in Sources */,
@@ -5700,6 +5862,7 @@
 				DABB373312E8CB280026A6EA /* TiUIScrollableView.m in Sources */,
 				D5E9F83417C906E20084384C /* TiShapeArcProxy.m in Sources */,
 				DABB373412E8CB280026A6EA /* TiUIScrollViewProxy.m in Sources */,
+				D557959B1839398C0057DD41 /* TiHLSAnimationStep.m in Sources */,
 				DABB373512E8CB280026A6EA /* TiUIScrollView.m in Sources */,
 				DABB373612E8CB280026A6EA /* TiUIWebView.m in Sources */,
 				DABB373712E8CB280026A6EA /* TiDOMDocumentProxy.m in Sources */,
@@ -5800,7 +5963,9 @@
 				D5E7978717B6226B00F1D088 /* TiShapeViewProxy.m in Sources */,
 				DA2B35C4134514FE00056705 /* TiNetworkSocketTCPProxy.m in Sources */,
 				DABF3ED1134D210400836137 /* TiBuffer.m in Sources */,
+				D55795801837BF6C0057DD41 /* TiViewAnimation.m in Sources */,
 				DABF3ED9134D2CA100836137 /* StreamModule.m in Sources */,
+				D521693E183A598500FBB24B /* TiTransitionAnimation.m in Sources */,
 				DABF3EDE134D2E4400836137 /* TiStreamProxy.m in Sources */,
 				DAA4B2B6134E75AC00AB6011 /* CodecModule.m in Sources */,
 				DA2556461353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
@@ -5814,15 +5979,18 @@
 				EF03EFF813E3665100BD4FF7 /* ASIDataDecompressor.m in Sources */,
 				2B94603A13F0A2AE000C5BEA /* TiUIiOSCoverFlowView.m in Sources */,
 				2B94603B13F0A2AE000C5BEA /* TiUIiOSCoverFlowViewProxy.m in Sources */,
+				D557958A1837C1680057DD41 /* TiHLSAnimation.m in Sources */,
 				1DCC543113FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
 				1D19459813FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459D13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
 				D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				EF0ADCFC143F9ABF00977386 /* NSData+Additions.m in Sources */,
+				D5579593183937B20057DD41 /* TiShapeAnimation.m in Sources */,
 				EF0ADD1C143FA0CD00977386 /* GeolocationModule.m in Sources */,
 				EF0ADD21143FA0E200977386 /* AnalyticsModule.m in Sources */,
 				2B1F65791431031E006C5D37 /* ApplicationDefaults.m in Sources */,
 				848C2596145F37A300E1B0F1 /* TiDOMCDATANodeProxy.m in Sources */,
+				D5216936183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */,
 				D5C8C97B17EF45C900F54C19 /* ADFlipTransition.m in Sources */,
 				848C259C145F3FE200E1B0F1 /* TiDOMCommentProxy.m in Sources */,
 				848C25A1145F46C300E1B0F1 /* TiDOMPIProxy.m in Sources */,
@@ -5872,6 +6040,7 @@
 				D599484916DE7C080080836F /* TiUISlideMenuProxy.m in Sources */,
 				D599484E16DE7CA10080836F /* TiUISlideMenu.m in Sources */,
 				D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */,
+				D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
 				D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D5CD8CB217CB96ED0011D17F /* TiShapePieSliceProxy.m in Sources */,
@@ -5890,7 +6059,6 @@
 				D5C8C98117EF45C900F54C19 /* ADGhostTransition.m in Sources */,
 				D5C8C99F17EF45C900F54C19 /* ADTransitionController.m in Sources */,
 				D5B891F017CB4EF900B9C8CF /* TiShapeEllipseProxy.m in Sources */,
-				D5CA65A317C534D3006CAEF9 /* TiShapeAnimation.m in Sources */,
 				D5C8C98717EF45C900F54C19 /* ADPushRotateTransition.m in Sources */,
 				D526016E179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m in Sources */,
 				D51F03CC18080504005B4EE2 /* TiUIBlendModeProxy.m in Sources */,
