@@ -18,7 +18,6 @@ exports.init = function (logger, config, cli) {
 	cli.on('build.post.compile', {
 		priority: 10000,
 		post: function (builder, finished) {
-			if (builder.target != 'dist-playstore') return finished();
 
 			var dest = builder.apkFile,
 				outputDir = builder.outputDir;
