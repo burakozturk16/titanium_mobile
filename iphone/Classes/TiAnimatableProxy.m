@@ -113,9 +113,13 @@
         pthread_rwlock_unlock(&pendingLock);
         return;
     }
-    TiAnimation* anim = [_pendingAnimations objectAtIndex:0];
+    
+    NSArray* pending = [[NSArray alloc] initWithArray:_pendingAnimations];
+    [_pendingAnimations removeAllObjects];
 	pthread_rwlock_unlock(&pendingLock);
-    [self handlePendingAnimation:anim];
+    for (TiAnimation* anim in pending) {
+        [self handlePendingAnimation:anim];
+    }
 }
 
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
@@ -175,8 +179,10 @@
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
     [self rememberProxy:newAnimation];
+	pthread_rwlock_rdlock(&pendingLock);
     [_pendingAnimations addObject:newAnimation];
-    [self handlePendingAnimation:newAnimation];
+	pthread_rwlock_unlock(&pendingLock);
+    [self handlePendingAnimation];
 }
 
 -(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation

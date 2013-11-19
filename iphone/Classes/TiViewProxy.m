@@ -477,11 +477,16 @@ static NSSet* transferableProps = nil;
     return nil;
 }
 
--(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
+-(void)handlePendingAnimation
 {
     if (![self view]) {
         return;
     }
+    [super handlePendingAnimation];
+}
+
+-(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
+{
     if ([self viewReady]==NO &&  ![pendingAnimation isTransitionAnimation])
 	{
 		DebugLog(@"[DEBUG] Ti.UI.View.animate() called before view %@ was ready: Will re-attempt", self);
