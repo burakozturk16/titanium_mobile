@@ -1575,10 +1575,10 @@ AndroidBuilder.prototype.initialize = function initialize(next) {
 	var loadFromSDCardProp = this.tiapp.properties['ti.android.loadfromsdcard'];
 	this.loadFromSDCard = loadFromSDCardProp && loadFromSDCardProp.value === true;
 
-	if (cli.argv.target != 'dist-appstore') {
+	if (argv.target != 'dist-appstore') {
 		// determine if we're going to be minifying javascript
-		var compileJSProp = cli.tiapp.properties['ti.compilejs'];
-		if (cli.argv['skip-js-minify']) {
+		var compileJSProp = this.tiapp.properties['ti.compilejs'];
+		if (argv['skip-js-minify']) {
 			if (this.compileJS) {
 				logger.debug(__('JavaScript files were going to be minified, but %s is forcing them to not be minified', '--skip-js-minify'.cyan));
 			}
@@ -1595,11 +1595,6 @@ AndroidBuilder.prototype.initialize = function initialize(next) {
 	if (includeAllTiModulesProp !== undefined) {
 		this.includeAllTiModules = includeAllTiModulesProp.value;
 	}
-
-	this.externalLibraries = [{
-		javaClass:'com.actionbarsherlock',
-		resPath:path.join(this.platformPath, 'externals/actionbarsherlock/res')
-	}];
 
 	// directories
 	this.buildAssetsDir             = path.join(this.buildDir, 'assets');
