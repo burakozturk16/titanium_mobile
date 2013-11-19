@@ -244,12 +244,10 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 	{
 		[result addObject:NUMINT(3)];
 	}
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_5_0
-	if ([TiUtils isIOS5OrGreater] && (types & UIRemoteNotificationTypeNewsstandContentAvailability)!=0)
+	if ((types & UIRemoteNotificationTypeNewsstandContentAvailability)!=0)
 	{
 		[result addObject:NUMINT(4)];
 	}
-#endif
 	return result;
 }
 
@@ -292,16 +290,11 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 					ourNotifications |= UIRemoteNotificationTypeSound;
 					break;
 				}
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_5_0
-        case 4: // NOTIFICATION_TYPE_NEWSSTAND
-        {
-          if([TiUtils isIOS5OrGreater])
-          {
-            ourNotifications |= UIRemoteNotificationTypeNewsstandContentAvailability;
-          }
-          break;
-        }
-#endif
+				case 4: // NOTIFICATION_TYPE_NEWSSTAND
+				{
+					ourNotifications |= UIRemoteNotificationTypeNewsstandContentAvailability;
+					break;
+				}
 			}
 		}
 	}

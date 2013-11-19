@@ -33,7 +33,6 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 @implementation TiUIListView {
     TDUITableView *_tableView;
     NSDictionary *_templates;
-    NSMutableDictionary* _templatesSizeProxies;
     id _defaultItemTemplate;
 
     TiDimension _rowHeight;
@@ -71,6 +70,8 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     BOOL keepSectionsInSearch;
     NSMutableArray* _searchResults;
     UIEdgeInsets _defaultSeparatorInsets;
+    
+    NSMutableDictionary* _measureProxies;
 }
 
 - (id)init
@@ -90,7 +91,6 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     _tableView.dataSource = nil;
     RELEASE_TO_NIL(_tableView);
     RELEASE_TO_NIL(_templates);
-    RELEASE_TO_NIL(_templatesSizeProxies);
     RELEASE_TO_NIL(_defaultItemTemplate);
     RELEASE_TO_NIL(_searchResults);
     RELEASE_TO_NIL(_pullViewWrapper);
@@ -106,6 +106,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     RELEASE_TO_NIL(sectionIndices);
     RELEASE_TO_NIL(filteredTitles);
     RELEASE_TO_NIL(filteredIndices);
+    RELEASE_TO_NIL(_measureProxies);
 #ifdef USE_TI_UIREFRESHCONTROL
     RELEASE_TO_NIL(_refreshControlProxy);
 #endif
@@ -205,6 +206,13 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     if (![searchController isActive]) {
         [searchViewProxy ensureSearchBarHeirarchy];
+        if (_searchWrapper != nil) {
+            CGFloat rowWidth = [self computeRowWidth:_tableView];
+            if (rowWidth > 0) {
+                CGFloat right = _tableView.bounds.size.width - rowWidth;
+                [_searchWrapper layoutProperties]->right = TiDimensionDip(right);
+            }
+        }
     }
     [super frameSizeChanged:frame bounds:bounds];
     
@@ -276,7 +284,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 {
     ENSURE_TYPE_OR_NIL(args,NSDictionary);
 	NSMutableDictionary *templates = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
-	NSMutableDictionary *templatesSizeProxies = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
+	NSMutableDictionary *measureProxies = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
 	[(NSDictionary *)args enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
 		TiViewTemplate *template = [TiViewTemplate templateFromViewTemplate:obj];
 		if (template != nil) {
@@ -290,7 +298,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
             [cellProxy unarchiveFakeFromTemplate:template];
             [cellProxy bindings];
-            [templatesSizeProxies setObject:cellProxy forKey:key];
+            [measureProxies setObject:cellProxy forKey:key];
             [cellProxy release];
 		}
 	}];
@@ -299,9 +307,9 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 	_templates = [templates copy];
 	[templates release];
     
-    [_templatesSizeProxies release];
-	_templatesSizeProxies = [templatesSizeProxies copy];
-	[templatesSizeProxies release];
+    [_measureProxies release];
+	_measureProxies = [measureProxies copy];
+	[measureProxies release];
     
 	if (_tableView != nil) {
 		[_tableView reloadData];
@@ -366,6 +374,38 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 }
 
 #pragma mark - Helper Methods
+
+-(CGFloat)computeRowWidth:(UITableView*)tableView
+{
+    if (tableView == nil) {
+        return 0;
+    }
+    CGFloat rowWidth = tableView.bounds.size.width;
+    
+    // Apple does not provide a good way to get information about the index sidebar size
+    // in the event that it exists - it silently resizes row content which is "flexible width"
+    // but this is not useful for us. This is a problem when we have Ti.UI.SIZE/FILL behavior
+    // on row contents, which rely on the height of the row to be accurately precomputed.
+    //
+    // The following is unreliable since it uses a private API name, but one which has existed
+    // since iOS 3.0. The alternative is to grab a specific subview of the tableview itself,
+    // which is more fragile.
+    if ((sectionTitles == nil) || (tableView != _tableView) ) {
+        return rowWidth;
+    }
+    NSArray* subviews = [tableView subviews];
+    if ([subviews count] > 0) {
+        // Obfuscate private class name
+        Class indexview = NSClassFromString([@"UITableView" stringByAppendingString:@"Index"]);
+        for (UIView* view in subviews) {
+            if ([view isKindOfClass:indexview]) {
+                rowWidth -= [view frame].size.width;
+            }
+        }
+    }
+    
+    return floorf(rowWidth);
+}
 
 -(id)valueWithKey:(NSString*)key atIndexPath:(NSIndexPath*)indexPath
 {
@@ -1537,7 +1577,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         if (templateId == nil) {
             templateId = _defaultItemTemplate;
         }
-        TiUIListItemProxy *cellProxy = [_templatesSizeProxies objectForKey:templateId];
+        TiUIListItemProxy *cellProxy = [_measureProxies objectForKey:templateId];
         if (cellProxy != nil) {
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
@@ -1735,6 +1775,14 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
 
 #pragma mark - UISearchBarDelegate Methods
+- (BOOL)searchBarShouldBeginEditing:(UISearchBar *)searchBar
+{
+    if (_searchWrapper != nil) {
+        [_searchWrapper layoutProperties]->right = TiDimensionDip(0);
+        [_searchWrapper refreshView:nil];
+    }
+}
+
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
 {
     searchString = (searchBar.text == nil) ? @"" : searchBar.text;
@@ -1783,6 +1831,14 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     }
     //IOS7 DP3. TableView seems to be adding the searchView to
     //tableView. Bug on IOS7?
+    if (_searchWrapper != nil) {
+        CGFloat rowWidth = floorf([self computeRowWidth:_tableView]);
+        if (rowWidth > 0) {
+            CGFloat right = _tableView.bounds.size.width - rowWidth;
+            [_searchWrapper layoutProperties]->right = TiDimensionDip(right);
+            [_searchWrapper refreshView:nil];
+        }
+    }
     [searchViewProxy ensureSearchBarHeirarchy];
     [_tableView reloadData];
 }
