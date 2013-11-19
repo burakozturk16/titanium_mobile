@@ -9,10 +9,11 @@
 #import "ShapeProxy.h"
 #import "TiShapeViewProxy.h"
 #import "TiUtils.h"
-#import "TiShapeAnimation.h"
 #import "Ti2DMatrix.h"
 #import "TiUIHelper.h"
 #import "UIBezierPath+Additions.h"
+#import "TiShapeAnimation+Friend.h"
+#import "TiShapeAnimationStep.h"
 
 @interface ShapeProxy()
 {
@@ -23,7 +24,6 @@
     CAShapeLayer* _strokeLayer;
     CAShapeLayer* _fillLayer;
     BOOL _configurationSet;
-    TiShapeAnimation* pendingAnimation_;
     Ti2DMatrix* _transform;
     CGAffineTransform _realTransform;
     NSArray* _operations;
@@ -113,6 +113,12 @@ parentBounds = _parentBounds;
     
 }
 
+-(void)_configure
+{
+    [self replaceValue:@"50%" forKey:@"radius" notification:NO];
+    [super _configure];
+}
+
 - (void)setShapeViewProxy:(TiShapeViewProxy*) proxy {
     _shapeViewProxy = proxy;
     
@@ -155,15 +161,10 @@ parentBounds = _parentBounds;
 
 - (void) dealloc
 {
-    for (TiProxy* proxy in mShapes) {
-        [self forgetProxy:proxy];
-    }
-    
     RELEASE_TO_NIL(mShapes);
     RELEASE_TO_NIL(_transform);
     RELEASE_TO_NIL(_operations);
     RELEASE_TO_NIL(path);
-    RELEASE_TO_NIL(pendingAnimation_);
     RELEASE_TO_NIL(_fillLayer);
     RELEASE_TO_NIL(_strokeLayer);
     [_layer release]; // idont get this yet :s
@@ -426,7 +427,7 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     }
 }
 
--(void)updatePath:(UIBezierPath*)path_ forAnimation:(TiShapeAnimation*)animation
+-(void)updatePath:(UIBezierPath*)path_ forAnimation:(TiAnimation*)animation
 {
     if (type >= 0 && type < ShapeOperationNb) {
         NSMutableDictionary* animProps = [NSMutableDictionary dictionaryWithDictionary:[animation allProperties]];
@@ -512,10 +513,8 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     if (CGSizeEqualToSize(bounds.size,CGSizeZero)) return;
     [self updateRect:bounds];
     
-    if (pendingAnimation_ != nil) {
-        [self animate:pendingAnimation_];
-        RELEASE_TO_NIL(pendingAnimation_);
-    }
+    [self handlePendingAnimation];
+
 //    [CATransaction commit];
 }
 
@@ -789,82 +788,98 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
     }
 }
 
--(CGPathRef)pathForAnimation:(TiShapeAnimation*)animation
+-(CGPathRef)pathForAnimation:(TiAnimation*)animation
 {
     UIBezierPath* animationPath = [UIBezierPath bezierPath];
     [self updatePath:animationPath forAnimation:animation];
     return animationPath.CGPath;
 }
 
--(void)cancelAllAnimations:(id)arg
+-(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation
 {
-	[CATransaction begin];
-    if (_strokeLayer) {
-        [_strokeLayer removeAllAnimations];
-    }
-    if (_fillLayer) {
-        [_fillLayer removeAllAnimations];
-    }
-    [_layer removeAllAnimations];
-	[CATransaction commit];
+    TiThreadPerformOnMainThread(^{
+        [super resetProxyPropertiesForAnimation:animation];
+		[self update];
+    }, YES);
 }
 
--(void)animate:(id)arg
+
+-(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
 {
-	TiShapeAnimation * newAnimation = [TiShapeAnimation animationFromArg:arg context:[self executionContext] create:NO];
-	[self rememberProxy:newAnimation];
-    if ([self.shapeViewProxy view])
-        [self handleAnimation:newAnimation];
-    else {
-        pendingAnimation_ = [newAnimation retain];
+    if (![self.shapeViewProxy view]) {
+        return;
     }
+    [super handlePendingAnimation:pendingAnimation];
 }
 
--(void)animationDidComplete:(TiShapeAnimation*)animation
+-(void)aboutToBeAnimated
 {
-	[self forgetProxy:animation];
 }
 
--(void)handleAnimation:(TiShapeAnimation*)animation
+-(BOOL)handlesAutoReverse
 {
-	ENSURE_UI_THREAD(handleAnimation,animation)
-    CGFloat duration = animation.duration/1000;
-    BOOL autoreverse = animation.autoreverse;
-    BOOL restartFromBeginning = animation.restartFromBeginning;
-    int repeat = [animation getRepeatCount];
+    return YES;
+}
+
+-(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
+{
+    TiShapeAnimation * shapeAnimation = [TiShapeAnimation animation];
+    shapeAnimation.autoreverse = animation.autoreverse;
+    shapeAnimation.restartFromBeginning = animation.restartFromBeginning;
+    shapeAnimation.animatedProxy = self;
+    shapeAnimation.animationProxy = animation;
+    TiShapeAnimationStep *step = [TiShapeAnimationStep animationStep];
+    step.duration = [animation getAnimationDuration];
+    [step addShapeAnimation:shapeAnimation forShape:self];
+    return [HLSAnimation animationWithAnimationStep:step];;
+}
+
+-(void)playAnimation:(HLSAnimation*)animation withRepeatCount:(NSUInteger)repeatCount afterDelay:(double)delay
+{
+    TiThreadPerformOnMainThread(^{
+        [self aboutToBeAnimated];
+        [animation playWithRepeatCount:repeatCount afterDelay:delay];
+	}, YES);
+}
+
+-(NSMutableArray*)strokeAnimationsForShapeAnimation:(TiShapeAnimation*)animation
+{
+    BOOL restartFromBeginning = animation.animationProxy.restartFromBeginning;
     NSMutableArray* strokeAnimations = [ NSMutableArray array];
-    NSMutableArray* fillAnimations = [ NSMutableArray array];
-    CABasicAnimation* animSkeleton = [[CABasicAnimation alloc] init];
     
-//    if (restartFromBeginning) {
-//        [self cancelAllAnimations:nil];
-//    }
-
-    animation.animatedProxy = self;
-    CGPathRef path_ = [self pathForAnimation:animation];
+    
+    CGPathRef path_ = [self pathForAnimation:animation.animationProxy];
     if (path_ != nil) {
-        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
+        CABasicAnimation *caAnim = [self animation];
         caAnim.keyPath = @"path";
         caAnim.toValue = (id)path_;
-        if (restartFromBeginning) caAnim.fromValue = (id)(_strokeLayer?_strokeLayer.path:_fillLayer.path);
+        if (restartFromBeginning) caAnim.fromValue = (id)_strokeLayer.path;
         
         [strokeAnimations addObject:caAnim];
-        [fillAnimations addObject:caAnim];
-//        CFRelease(path_);
+    }
+    
+    if ([animation valueForKey:@"lineColor"]) {
+        UIColor* color = [[TiUtils colorValue:[animation valueForKey:@"lineColor"]] _color];
+        if (color == nil) color = [UIColor clearColor];
+        CABasicAnimation *caAnim = [self animation];
+        caAnim.keyPath = @"strokeColor";
+        caAnim.toValue = (id)color.CGColor;
+        if (restartFromBeginning) caAnim.fromValue = (id)[_strokeLayer strokeColor];
+        [strokeAnimations addObject:caAnim];
     }
     
     if ([animation valueForKey:@"lineDash"]) {
         NSDictionary* lineDash = [animation valueForKey:@"lineDash"];
         if ([lineDash objectForKey:@"pattern"]) {
-            CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
+            CABasicAnimation *caAnim = [self animation];
             caAnim.keyPath = @"lineDashPattern";
             caAnim.toValue = [lineDash objectForKey:@"pattern"];
             if (restartFromBeginning) caAnim.fromValue = (id)[_strokeLayer lineDashPattern];
-
+            
             [strokeAnimations addObject:caAnim];
         }
         if ([lineDash objectForKey:@"phase"]) {
-            CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
+            CABasicAnimation *caAnim = [self animation];
             caAnim.keyPath = @"lineDashPhase";
             caAnim.toValue = [lineDash objectForKey:@"phase"];
             if (restartFromBeginning) caAnim.fromValue = (id)[NSNumber numberWithFloat:[_strokeLayer lineDashPhase]];
@@ -872,54 +887,53 @@ CGPathRef CGPathCreateRoundRect( const CGRect r, const CGFloat cornerRadius )
         }
     }
     if ([animation valueForKey:@"lineJoin"]) {
-        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
+        CABasicAnimation *caAnim = [self animation];
         caAnim.keyPath = @"lineJoin";
         caAnim.toValue = [animation valueForKey:@"lineJoin"];
         if (restartFromBeginning) caAnim.fromValue = (id)[NSNumber numberWithInt:[_strokeLayer lineJoin]];
         [strokeAnimations addObject:caAnim];
     }
+    return strokeAnimations;
+}
+
+-(CABasicAnimation*) animation
+{
+    CABasicAnimation *anim = [CABasicAnimation animation];
+    anim.fillMode = kCAFillModeBoth;
+    return anim;
+}
+
+
+-(NSMutableArray*)fillAnimationsForShapeAnimation:(TiShapeAnimation*)animation
+{
+    BOOL restartFromBeginning = animation.animationProxy.restartFromBeginning;
+    NSMutableArray* fillAnimations = [ NSMutableArray array];
     
-    if ([animation valueForKey:@"lineColor"]) {
-        UIColor* color = [[TiUtils colorValue:[animation valueForKey:@"lineColor"]] _color];
-        if (color == nil) color = [UIColor clearColor];
-        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
-        caAnim.keyPath = @"strokeColor";
-        caAnim.toValue = (id)color.CGColor;
-        if (restartFromBeginning) caAnim.fromValue = (id)[_strokeLayer strokeColor];
-        [strokeAnimations addObject:caAnim];
+    CGPathRef path_ = [self pathForAnimation:animation.animationProxy];
+    if (path_ != nil) {
+        CABasicAnimation *caAnim = [self animation];
+        caAnim.keyPath = @"path";
+        caAnim.toValue = (id)path_;
+        if (restartFromBeginning) caAnim.fromValue = (id)_fillLayer.path;
+        
+        [fillAnimations addObject:caAnim];
     }
+    
+    
+    
+   
     if ([animation valueForKey:@"fillColor"]) {
         UIColor* color = [[TiUtils colorValue:[animation valueForKey:@"fillColor"]] _color];
         if (color == nil) color = [UIColor clearColor];
-        CABasicAnimation *caAnim = [[animSkeleton copy] autorelease];
+        CABasicAnimation *caAnim = [self animation];
         caAnim.keyPath = @"fillColor";
         caAnim.toValue = (id)color.CGColor;
         if (restartFromBeginning) caAnim.fromValue = (id)[_fillLayer fillColor];
         [fillAnimations addObject:caAnim];
     }
-    
-    if (_strokeLayer) {
-        CAAnimationGroup *group = [CAAnimationGroup animation];
-        group.animations = strokeAnimations;
-        group.delegate = animation;
-        group.duration = duration;
-        group.autoreverses = autoreverse;
-        group.repeatCount = repeat;
-        group.fillMode = kCAFillModeForwards;
-        [_strokeLayer addAnimation:group forKey:nil];
-    }
-    if (_fillLayer) {
-        CAAnimationGroup *group = [CAAnimationGroup animation];
-        group.animations = fillAnimations;
-        group.delegate = animation;
-        group.duration = duration;
-        group.autoreverses = autoreverse;
-        group.repeatCount = repeat;
-        group.fillMode = kCAFillModeForwards;
-        [_fillLayer addAnimation:group forKey:nil];
-    }
-    [animSkeleton release];
+    return fillAnimations;
 }
+
 
 -(BOOL)_hasListeners:(NSString *)type_
 {

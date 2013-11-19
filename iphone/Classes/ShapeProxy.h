@@ -7,8 +7,8 @@
 //
 
 #import "TiProxy.h"
-#import "TiShapeAnimation.h"
 #import "TiGradient.h"
+#import "TiAnimatableProxy.h"
 
 enum
 {
@@ -36,9 +36,9 @@ enum
 } ShapeOperation;
 
 @class TiShapeViewProxy;
-@class TiShapeAnimation;
+@class TiAnimation;
 @class Ti2DMatrix;
-@interface ShapeProxy : TiProxy<TiAnimatableProxy>
+@interface ShapeProxy : TiAnimatableProxy
 {
     CGRect _parentBounds;
     CGRect _currentBounds;
@@ -66,7 +66,6 @@ enum
 +(ShapeProxy*)shapeFromArg:(id)args context:(id<TiEvaluator>)context;
 -(CGRect) computeRect:(CGPoint)center radius:(CGSize)radius;
 -(void)updateRect:(CGRect) parentBounds;
--(void)animationDidComplete:(TiShapeAnimation*)animation;
 -(void)update;
 -(CGAffineTransform)getRealTransform:(CGRect)bounds parentSize:(CGSize)parentSize;
 -(CGAffineTransform)prepareTransform:(Ti2DMatrix*)matrix bounds:(CGRect)bounds parentSize:(CGSize)parentSize;

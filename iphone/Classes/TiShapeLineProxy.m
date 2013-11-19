@@ -154,7 +154,7 @@ static NSArray *animationKeys;
 	[self replaceValue:points forKey:@"points" notification:YES];
 }
 
--(void)animationDidComplete:(TiShapeAnimation*)animation
+-(void)animationDidComplete:(TiAnimation*)animation
 {
 	[super animationDidComplete:animation];
     if (animation.autoreverse) {
@@ -164,7 +164,7 @@ static NSArray *animationKeys;
 }
 
 
--(void)prepareAnimation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
+-(void)prepareAnimation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
     
     [super prepareAnimation:animation holder:animations animProps:animProps];
     BOOL restartFromBeginning = animation.restartFromBeginning;

@@ -55,11 +55,11 @@ MAKE_SYSTEM_PROP(OP_ARC,ShapeOpArc);
 		ENSURE_TYPE_OR_NIL(callback,KrollCallback);
 		if ([properties isKindOfClass:[NSDictionary class]])
 		{
-			TiShapeAnimation *a = [[[TiAnimation alloc] initWithDictionary:properties context:[self pageContext] callback:callback] autorelease];
+			TiAnimation *a = [[[TiAnimation alloc] initWithDictionary:properties context:[self pageContext] callback:callback] autorelease];
 			return a;
 		}
 	}
-	return [[[TiShapeAnimation alloc] _initWithPageContext:[self executionContext]] autorelease];
+	return [[[TiAnimation alloc] _initWithPageContext:[self executionContext]] autorelease];
 }
 #endif
 

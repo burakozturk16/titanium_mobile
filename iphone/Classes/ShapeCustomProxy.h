@@ -10,7 +10,7 @@
 #import "TiUIHelper.h"
 
 
-@class TiGradient;
+@class TiGradient, TiShapeAnimation;
 @interface ShapeCustomProxy : ShapeProxy
 {
     TiPoint* _center;
@@ -20,9 +20,11 @@
 @property(nonatomic,assign) int anchor;
 @property(nonatomic,assign) BOOL clockwise;
 
--(void)prepareAnimation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps;
+-(void)prepareAnimation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps;
 -(void)setLayerValue:(id)value forKey:(NSString*)key;
 -(CABasicAnimation*) animation;
 -(CABasicAnimation *)animationForKeyPath:(NSString*)keyPath_ value:(id)value_ restartFromBeginning:(BOOL)restartFromBeginning_;
--(CABasicAnimation *)addAnimationForKeyPath:(NSString*)keyPath_ restartFromBeginning:(BOOL)restartFromBeginning_ animation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps;
+-(CABasicAnimation *)addAnimationForKeyPath:(NSString*)keyPath_ restartFromBeginning:(BOOL)restartFromBeginning_ animation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps;
+-(CALayer*)getLayer;
+-(NSMutableArray*)animationsForShapeAnimation:(TiShapeAnimation*)animation;
 @end

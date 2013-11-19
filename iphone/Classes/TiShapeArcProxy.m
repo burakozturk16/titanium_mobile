@@ -67,7 +67,7 @@ static NSArray *animationKeys;
     return [CustomArcShapeLayer class];
 }
 
--(void)prepareAnimation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
+-(void)prepareAnimation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
     
     [super prepareAnimation:animation holder:animations animProps:animProps];
     BOOL restartFromBeginning = animation.restartFromBeginning;

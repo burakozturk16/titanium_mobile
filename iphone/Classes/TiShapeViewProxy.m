@@ -30,7 +30,7 @@
 
 -(NSArray*)shapes
 {
-    return [[mShapes copy] autorelease];
+    return [NSArray arrayWithArray:mShapes];
 }
 
 -(void)detachView
@@ -104,7 +104,7 @@ static NSArray *supportedEvents;
 
 -(BOOL)animating
 {
-    return [self viewAttached] && [[self view] animating];
+    return [self viewAttached] && [super animating];
 }
 
 -(void)remove:(id)child

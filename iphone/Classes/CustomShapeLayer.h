@@ -77,4 +77,5 @@ static NSString * const kAnimShapeTransform = @"shapeTransform";
 -(void) setDashPattern:(NSArray *)dashPattern;
 +(NSArray *)animationKeys;
 -(CGRect)getBoundingBox;
+-(void)updateFromPresentation;
 @end

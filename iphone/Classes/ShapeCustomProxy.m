@@ -10,7 +10,7 @@
 #import "CustomShapeLayer.h"
 #import "TiShapeViewProxy.h"
 #import "ImageLoader.h"
-
+#import "TiShapeAnimation+Friend.h"
 
 
 @implementation ShapeCustomProxy
@@ -75,6 +75,11 @@
     ((CustomShapeLayer*)self.layer).proxy = nil;
     RELEASE_TO_NIL(_center)
 	[super dealloc];
+}
+
+-(CALayer*)getLayer
+{
+    return _layer;
 }
 
 
@@ -300,18 +305,18 @@
 {
     CABasicAnimation *caAnim = [self animation];
     caAnim.keyPath = keyPath_;
-    caAnim.toValue = value_;
+    caAnim.toValue = [value_ isKindOfClass:[NSNull class]]?[_layer valueForKeyPath:keyPath_]:value_;
     if (restartFromBeginning_) caAnim.fromValue = [_layer valueForKeyPath:keyPath_];
     return caAnim;
 }
 
--(CABasicAnimation *)addAnimationForKeyPath:(NSString*)keyPath_ restartFromBeginning:(BOOL)restartFromBeginning_ animation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps
+-(CABasicAnimation *)addAnimationForKeyPath:(NSString*)keyPath_ restartFromBeginning:(BOOL)restartFromBeginning_ animation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps
 {
     if ([animation valueForKey:keyPath_]) {
         [animations addObject:[self animationForKeyPath:keyPath_ value:[animProps objectForKey:keyPath_] restartFromBeginning:restartFromBeginning_]];
     }
 }
--(void)prepareAnimation:(TiShapeAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
+-(void)prepareAnimation:(TiAnimation*)animation holder:(NSMutableArray*)animations animProps:(NSDictionary*)animProps {
  
     BOOL restartFromBeginning = animation.restartFromBeginning;
     if ([animation valueForKey:kAnimLineColor]) {
@@ -356,40 +361,11 @@
     return anim;
 }
 
--(void)handleAnimation:(TiShapeAnimation*)animation
+-(NSMutableArray*)animationsForShapeAnimation:(TiShapeAnimation*)animation
 {
-	ENSURE_UI_THREAD(handleAnimation,animation)
-    
     NSMutableArray* animations = [ NSMutableArray array];
-    animation.animatedProxy = self;
-    CGFloat duration = [animation getDuration];
-    BOOL autoreverse = animation.autoreverse;
-    BOOL restartFromBeginning = animation.restartFromBeginning;
-    float repeat = [animation getRepeatCount];
-    
-//    if (restartFromBeginning) {
-//        [self cancelAllAnimations:nil];
-//    }
-    
-    NSMutableDictionary* animProps = [NSMutableDictionary dictionaryWithDictionary:[animation allProperties]];
-    [[self allProperties] enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
-        if (![animProps valueForKey:key]) {
-            [animProps setObject:[self valueForKey:key] forKey:key];
-        }
-    }];
-    
-    [self prepareAnimation:animation holder:animations animProps:animProps];
-    
-    if ([animations count] > 0) {
-        CAAnimationGroup *group = [CAAnimationGroup animation];
-        group.animations = animations;
-        group.delegate = animation;
-        group.duration = duration;
-        group.autoreverses = autoreverse;
-        group.repeatCount = repeat;
-        group.fillMode = kCAFillModeBoth;
-        [_layer addAnimation:group forKey:nil];
-    }
+    [self prepareAnimation:animation.animationProxy holder:animations animProps:[animation animationProperties]];
+    return animations;
 }
 
 @end
