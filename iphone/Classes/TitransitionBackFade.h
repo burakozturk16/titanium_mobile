@@ -1,6 +1,6 @@
-#import "TiTransition.h"
+#import "TiTransitionPerspective.h"
 
-@interface TitransitionBackFade : TiTransition
+@interface TitransitionBackFade : TiTransitionPerspective
 - (id)initWithDuration:(CFTimeInterval)duration;
 
 @end

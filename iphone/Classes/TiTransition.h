@@ -29,4 +29,5 @@
 -(BOOL)isTransitionVertical;
 -(BOOL)isTransitionPush;
 -(void)reverseADTransition;
+-(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 @end

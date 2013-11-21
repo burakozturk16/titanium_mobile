@@ -159,8 +159,14 @@ static NSDictionary* typeMap = nil;
             return [[TiTransitionGhost alloc] initWithDuration:duration];
             break;
         case NWTransitionZoom:
-            result = [[TiTransitionZoom alloc] initWithDuration:duration];
+        {
+            CGFloat scale = 2.0f;
+            if ([options objectForKey:@"scale"]) {
+                scale = [TiUtils floatValue:@"scale" properties:options];
+            }
+            result = [[TiTransitionZoom alloc] initWithScale:scale forDuration:duration];
             break;
+        }
         case NWTransitionScale:
             result = [[TiTransitionScale alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
@@ -287,6 +293,7 @@ static NSDictionary* typeMap = nil;
     }
     [CATransaction setCompletionBlock:^{
         [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        [transition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
         completionBlock();
     }];
     

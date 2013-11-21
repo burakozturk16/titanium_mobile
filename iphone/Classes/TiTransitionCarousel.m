@@ -53,13 +53,6 @@
 
 }
 
--(void)prepareViewHolder:(UIView*)holder
-{
-    CATransform3D sublayerTransform = CATransform3DIdentity;
-    sublayerTransform.m34 = 1.0 / kPerspective;
-    holder.layer.sublayerTransform = sublayerTransform;
-}
-
 -(BOOL)needsReverseDrawOrder
 {
     return [self isTransitionPush];
