@@ -504,9 +504,6 @@
 		843FA58417BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 843FA58317BD4DFF0064E061 /* TiUINavigationWindow.m */; };
 		843FA58517BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 843FA58317BD4DFF0064E061 /* TiUINavigationWindow.m */; };
 		843FA58617BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 843FA58317BD4DFF0064E061 /* TiUINavigationWindow.m */; };
-		841CCAD11807395C00C8DB76 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841CCAD01807395C00C8DB76 /* CoreText.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		841CCAD21807396E00C8DB76 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841CCAD01807395C00C8DB76 /* CoreText.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		841CCAD31807397800C8DB76 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 841CCAD01807395C00C8DB76 /* CoreText.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		844E1F7E14883A3700F5424C /* TiDOMValidator.m in Sources */ = {isa = PBXBuildFile; fileRef = 844E1F7D14883A3700F5424C /* TiDOMValidator.m */; };
 		844E1F7F14883A3700F5424C /* TiDOMValidator.m in Sources */ = {isa = PBXBuildFile; fileRef = 844E1F7D14883A3700F5424C /* TiDOMValidator.m */; };
 		844E1F8014883A3700F5424C /* TiDOMValidator.m in Sources */ = {isa = PBXBuildFile; fileRef = 844E1F7D14883A3700F5424C /* TiDOMValidator.m */; };
@@ -764,6 +761,9 @@
 		D585BC8917E630CD0062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
 		D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
 		D585BC8B17E630DA0062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
+		D58791EA183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
+		D58791EB183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
+		D58791EC183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
 		D58DCBCD17FEF0F50011FE0E /* TiSVGImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */; };
 		D58DCBCE17FEF0F50011FE0E /* TiSVGImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */; };
 		D58DCBCF17FEF0F50011FE0E /* TiSVGImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */; };
@@ -1757,7 +1757,6 @@
 		5081CEF715F8100E00C881D8 /* TiExceptionHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiExceptionHandler.m; sourceTree = "<group>"; };
 		843FA58217BD4DFF0064E061 /* TiUINavigationWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUINavigationWindow.h; sourceTree = "<group>"; };
 		843FA58317BD4DFF0064E061 /* TiUINavigationWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUINavigationWindow.m; sourceTree = "<group>"; };
-		841CCAD01807395C00C8DB76 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		844E1F7C14883A3700F5424C /* TiDOMValidator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiDOMValidator.h; sourceTree = "<group>"; };
 		844E1F7D14883A3700F5424C /* TiDOMValidator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiDOMValidator.m; sourceTree = "<group>"; };
 		8484E39F17A8279500C24B02 /* TiRootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiRootViewController.h; sourceTree = "<group>"; };
@@ -2233,6 +2232,8 @@
 		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		D58791E8183E790F007F5BF1 /* TiTransitionPerspective.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionPerspective.h; sourceTree = "<group>"; };
+		D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionPerspective.m; sourceTree = "<group>"; };
 		D58DCBCB17FEF0F50011FE0E /* TiSVGImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSVGImage.h; sourceTree = "<group>"; };
 		D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSVGImage.m; sourceTree = "<group>"; };
 		D58DCBD017FF193D0011FE0E /* TiTransitionHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionHelper.h; sourceTree = "<group>"; };
@@ -4204,6 +4205,8 @@
 				D54C7D1A18115C5200F592A9 /* TiTransitionSwap.m */,
 				D54C7D1E18115D7D00F592A9 /* TiTransitionModernPush.h */,
 				D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */,
+				D58791E8183E790F007F5BF1 /* TiTransitionPerspective.h */,
+				D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */,
 			);
 			name = transitions;
 			sourceTree = "<group>";
@@ -5030,6 +5033,7 @@
 				B6A0A2B1180DF4DA00E3FAA6 /* TiUIiOSTransitionAnimationProxy.m in Sources */,
 				24C012921140D31C00A94CE2 /* TiUIMaskedImage.m in Sources */,
 				248133A7115761DE00E3A9BA /* TiNetworkBonjourBrowserProxy.m in Sources */,
+				D58791EA183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */,
 				248133A8115761DE00E3A9BA /* TiNetworkBonjourServiceProxy.m in Sources */,
 				843FA58417BD4DFF0064E061 /* TiUINavigationWindow.m in Sources */,
 				D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */,
@@ -5333,6 +5337,7 @@
 				D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				24D8E434119B9D8A00F8CAA6 /* TiFilesystemFileProxy.m in Sources */,
 				D54C7D1218115C1800F592A9 /* TiTransitionGlue.m in Sources */,
+				D58791EB183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */,
 				D5C8C97717EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				24D8E437119B9D8A00F8CAA6 /* TiDimension.m in Sources */,
 				24D8E438119B9D8A00F8CAA6 /* TiDatabaseResultSetProxy.m in Sources */,
@@ -5711,6 +5716,7 @@
 				D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				DABB370F12E8CB280026A6EA /* TiFilesystemFileProxy.m in Sources */,
 				D54C7D1318115C1800F592A9 /* TiTransitionGlue.m in Sources */,
+				D58791EC183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */,
 				D5C8C97817EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				DABB371012E8CB280026A6EA /* TiDimension.m in Sources */,
 				DABB371112E8CB280026A6EA /* TiDatabaseResultSetProxy.m in Sources */,
