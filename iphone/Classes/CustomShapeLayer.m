@@ -104,9 +104,9 @@ static NSArray *animationKeys;
 + (NSArray *)animationKeys
 {
     if (!animationKeys)
-        animationKeys = [[NSArray arrayWithObjects:@"lineColor",@"lineCap",@"lineJoin",@"lineOpacity"
+        animationKeys = [@[@"lineColor",@"lineCap",@"lineJoin",@"lineOpacity"
                          ,@"fillColor",@"fillOpacity", @"lineWidth"
-                         , @"center", @"dashPattern", @"dashPhase", @"radius", @"center",@"lineShadowColor",@"fillShadowColor",@"lineShadowOffset",@"fillShadowOffset",@"lineShadowRadius",@"fillShadowRadius", @"shapeTransform",nil] retain];
+                         , @"center", @"dashPattern", @"dashPhase", @"radius", @"center",@"lineShadowColor",@"fillShadowColor",@"lineShadowOffset",@"fillShadowOffset",@"lineShadowRadius",@"fillShadowRadius", @"shapeTransform"] retain];
     
     return animationKeys;
 }
