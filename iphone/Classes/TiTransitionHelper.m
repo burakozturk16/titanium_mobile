@@ -48,6 +48,29 @@
 #import "ADSlideTransition.h"
 #import "ADModernPushTransition.h"
 
+@interface UIView (FindUIViewController)
+- (UIViewController *) firstAvailableUIViewController;
+- (id) traverseResponderChainForUIViewController;
+@end
+
+@implementation UIView (FindUIViewController)
+- (UIViewController *) firstAvailableUIViewController {
+    // convenience function for casting and to "mask" the recursive function
+    return (UIViewController *)[self traverseResponderChainForUIViewController];
+}
+
+- (id) traverseResponderChainForUIViewController {
+    id nextResponder = [self nextResponder];
+    if ([nextResponder isKindOfClass:[UIViewController class]]) {
+        return nextResponder;
+    } else if ([nextResponder isKindOfClass:[UIView class]]) {
+        return [nextResponder traverseResponderChainForUIViewController];
+    } else {
+        return nil;
+    }
+}
+@end
+
 @interface TransitionView : UIView
 @end
 @implementation TransitionView
@@ -243,8 +266,7 @@ static NSDictionary* typeMap = nil;
     [transition prepareViewHolder:holder];
     [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
     
-    [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+    void (^completionBlock)(void) = ^void(void) {
         [viewOut removeFromSuperview];
         if (needsTransformFix) {
             if (viewIn) {
@@ -256,6 +278,16 @@ static NSDictionary* typeMap = nil;
         if (block != nil) {
             block();
         }
+    };
+    
+    UIViewController * holderController = [holder firstAvailableUIViewController];
+    if ([holderController.view isHidden]) {
+        completionBlock();
+        return;
+    }
+    [CATransaction setCompletionBlock:^{
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        completionBlock();
     }];
     
     [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];
