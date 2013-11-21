@@ -14,14 +14,7 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 
 @implementation ApplicationRouting
 
-+ (NSData*) resolveAppAsset:(NSString*)path;
-{
-	<%- bytes %>
-
-	NSNumber *index = [map objectForKey:path];
-	if (index == nil) { return nil; }
-	return filterDataInRange([NSData dataWithBytesNoCopy:data length:sizeof(data) freeWhenDone:NO], ranges[index.integerValue]);
-}
+<%- bytes %>
 
 + (NSData*) resolveAppAsset:(NSString*)path
 {
