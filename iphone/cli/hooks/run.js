@@ -37,12 +37,18 @@ exports.init = function (logger, config, cli) {
 
 			parallel([
 				function (next) {
-					logger.debug(__('Terminating all iOS simulators'));
-					exec('/usr/bin/killall ios-sim', setTimeout(next, 250));
+					if (config.get('ios.restartSimulator', true)) {
+						logger.debug(__('Terminating all iOS simulators'));
+						exec('/usr/bin/killall ios-sim', setTimeout(next, 250));
+					}
+					else next();
 				},
 
 				function (next) {
-					exec('/usr/bin/killall "iPhone Simulator"', setTimeout(next, 250));
+					if (config.get('ios.restartSimulator', true)) {
+						exec('/usr/bin/killall "iPhone Simulator"', setTimeout(next, 250));
+					}
+					else next();
 				},
 
 				function (next) {
@@ -75,6 +81,9 @@ exports.init = function (logger, config, cli) {
 					simStarted = false,
 					simEnv = path.join(build.xcodeEnv.path, 'Platforms', 'iPhoneSimulator.platform', 'Developer', 'Library', 'PrivateFrameworks') +
 							':' + afs.resolvePath(build.xcodeEnv.path, '..', 'OtherFrameworks');
+				if (config.get('ios.restartSimulator', true) == false) {
+					cmd.push('--exit');
+				}
 
 				if (cli.argv.retina) {
 					cmd.push('--retina');
