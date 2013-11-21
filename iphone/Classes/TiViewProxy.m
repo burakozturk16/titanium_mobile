@@ -3620,4 +3620,18 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
     [self configurationSet:NO];
 }
+
+-(BOOL)containsView:(id)args
+{
+    ENSURE_SINGLE_ARG(args, TiViewProxy);
+    if (args == self)return YES;
+    if ([self viewAttached]) {
+        NSArray* subproxies = [self children];
+        for (TiViewProxy * thisChildProxy in subproxies)
+        {
+            if ([thisChildProxy containsView:args]) return YES;
+        }
+    }
+    return NO;
+}
 @end

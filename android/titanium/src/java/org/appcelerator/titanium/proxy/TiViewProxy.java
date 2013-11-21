@@ -1512,4 +1512,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		} 
 	}
+
+	@Kroll.method
+	public boolean containsView(TiViewProxy proxy)
+	{
+		if (proxy == this)return true;
+		for (TiViewProxy child:getChildren()) { 
+			if (child.containsView(proxy)) return true;
+		}
+		return false;
+	}
 }
