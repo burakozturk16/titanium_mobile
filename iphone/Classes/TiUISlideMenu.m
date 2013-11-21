@@ -35,11 +35,8 @@
 
 -(UIViewController *) controllerForViewProxy:(TiViewProxy * )proxy withFrame:(CGRect)frame
 {
-    [proxy getOrCreateView];
     proxy.sandboxBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
-    [proxy windowWillOpen];
-    [proxy layoutChildren:NO];
-    [proxy windowDidOpen];
+    
     UIViewController* controller;
         if([proxy respondsToSelector:@selector(hostingController)])
     {
@@ -47,7 +44,10 @@
     }
     else {
         controller =  [[[TiViewController alloc] initWithViewProxy:proxy] autorelease];
-    }    
+    }
+    [proxy windowWillOpen];
+    [proxy layoutChildren:NO];
+    [proxy windowDidOpen];
     return controller;
 }
 
