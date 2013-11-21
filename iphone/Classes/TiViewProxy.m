@@ -2385,12 +2385,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 -(void)determineSandboxBounds
 {
     UIView * ourSuperview = [[self view] superview];
-    if(ourSuperview == nil)
-    {
-        //TODO: Should we even be relaying out? I guess so.
-        sandboxBounds = CGRectZero;
-    }
-    else
+    if(ourSuperview != nil)
     {
         sandboxBounds = [ourSuperview bounds];
     }
