@@ -107,6 +107,9 @@ TI_INLINE BOOL TiDimensionDidCalculateValue(TiDimension dimension,CGFloat boundi
 		case TiDimensionTypePercent:
 			*result = dimension.value * boundingValue;
 			return YES;
+        case TiDimensionTypeAutoFill:
+			*result = boundingValue;
+			return YES;
 		default: {
 			break;
 		}
@@ -166,6 +169,8 @@ TI_INLINE CGFloat TiDimensionCalculateRatio(TiDimension dimension,CGFloat boundi
 			return dimension.value;
 		case TiDimensionTypeDip:
 			return dimension.value / boundingValue;
+        case TiDimensionTypeAutoFill:
+			return 1.0f;
 		default: {
 			break;
 		}
