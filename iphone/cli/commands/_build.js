@@ -1078,7 +1078,7 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 			moduleSearchPaths = moduleSearchPaths.concat(config.paths.modules);
 		}
 
-		appc.timodule.find(cli.tiapp.modules, ['ios', 'iphone'], this.deployType, this.titaniumSdkVersion, moduleSearchPaths, logger, function (modules) {
+		appc.timodule.find(cli.tiapp.modules, ['ios', 'iphone'], this.deployType, this.titaniumSdkVersion, moduleSearchPaths, config, logger, function (modules) {
 			if (modules.missing.length) {
 				logger.error(__('Could not find all required Titanium Modules:'))
 				modules.missing.forEach(function (m) {
