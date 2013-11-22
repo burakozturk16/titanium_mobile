@@ -21,7 +21,7 @@ exports.init = function (logger, config, cli) {
 	cli.addHook('build.post.compile', {
 		priority: 8000,
 		post: function (builder, finished) {
-			if (cli.argv.target != 'device' || cli.argv.target != 'dist-adhoc') return finished();
+			if (cli.argv.target != 'device' && cli.argv.target != 'dist-adhoc') return finished();
 
 			async.parallel([
 				function (next) {
