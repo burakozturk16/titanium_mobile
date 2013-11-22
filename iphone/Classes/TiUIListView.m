@@ -74,6 +74,22 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     NSMutableDictionary* _measureProxies;
 }
 
+static NSDictionary* replaceKeysForRow;
+-(NSDictionary *)replaceKeysForRow
+{
+	if (replaceKeysForRow == nil)
+	{
+		replaceKeysForRow = [@{@"rowHeight":@"height"} retain];
+	}
+	return replaceKeysForRow;
+}
+
+-(NSString*)replacedKeyForKey:(NSString*)key
+{
+    NSString* result = [[self replaceKeysForRow] objectForKey:key];
+    return result?result:key;
+}
+
 - (id)init
 {
     self = [super init];
@@ -412,7 +428,8 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     NSDictionary *item = [[self.listViewProxy sectionForIndex:indexPath.section] itemAtIndex:indexPath.row];
     id propertiesValue = [item objectForKey:@"properties"];
     NSDictionary *properties = ([propertiesValue isKindOfClass:[NSDictionary class]]) ? propertiesValue : nil;
-    id theValue = [properties objectForKey:key];
+    NSString* replaceKey = [self replacedKeyForKey:key];
+    id theValue = [properties objectForKey:replaceKey];
     if (theValue == nil) {
         id templateId = [item objectForKey:@"template"];
         if (templateId == nil) {
@@ -420,7 +437,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
         }
         if (![templateId isKindOfClass:[NSNumber class]]) {
             TiViewTemplate *template = [_templates objectForKey:templateId];
-            theValue = [template.properties objectForKey:key];
+            theValue = [template.properties objectForKey:replaceKey];
         }
         if (theValue == nil) {
             theValue = [self.proxy valueForKey:key];
@@ -429,6 +446,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     
     return theValue;
 }
+
 
 -(void)buildResultsForSearchText
 {
@@ -1586,7 +1604,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
             }
         }
     }
-    else if (TiDimensionIsPercent(height)) {
+    else if (TiDimensionIsPercent(height) || TiDimensionIsAutoFill(height)) {
         return [self tableView:tableView rowHeight:TiDimensionCalculateValue(height, tableView.bounds.size.height)];
     }
     return 44;
