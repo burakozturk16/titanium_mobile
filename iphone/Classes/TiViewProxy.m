@@ -144,9 +144,9 @@ static NSSet* transferableProps = nil;
 	return ((copy != nil) ? copy : [NSMutableArray array]);
 }
 
--(void)setVisible:(NSNumber *)newVisible withObject:(id)args
+-(void)setVisible:(NSNumber *)newVisible
 {
-	[self setHidden:![TiUtils boolValue:newVisible def:YES] withArgs:args];
+	[self setHidden:![TiUtils boolValue:newVisible def:YES] withArgs:nil];
 	[self replaceValue:newVisible forKey:@"visible" notification:YES];
 }
 
