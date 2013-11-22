@@ -95,7 +95,7 @@ typedef struct LayoutConstraint {
 
 TI_INLINE BOOL TiLayoutFlagsHasHorizontalWrap(LayoutConstraint *constraint)
 {
-	return constraint->layoutFlags.horizontalWrap;
+	return constraint && constraint->layoutFlags.horizontalWrap;
 }
 
 @class TiUIView;
