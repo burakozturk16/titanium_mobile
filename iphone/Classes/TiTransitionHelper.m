@@ -263,6 +263,7 @@ static NSDictionary* typeMap = nil;
         if (viewOut) {
             [workingView addSubview:viewOut];
         }
+        [workingView release];
     }
     if (viewIn) {
         [workingView addSubview:viewIn];
@@ -279,7 +280,6 @@ static NSDictionary* typeMap = nil;
                 [holder addSubview:viewIn];
             }
             [workingView removeFromSuperview];
-            [workingView release];
         }
         if (block != nil) {
             block();
