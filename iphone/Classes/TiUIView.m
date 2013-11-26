@@ -1411,7 +1411,7 @@ DEFINE_EXCEPTIONS
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)) && hitView == [self viewForHitTest])
+	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)))
 	{
 		return nil;
 	}
