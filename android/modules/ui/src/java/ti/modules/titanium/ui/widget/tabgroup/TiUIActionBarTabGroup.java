@@ -7,6 +7,7 @@
 package ti.modules.titanium.ui.widget.tabgroup;
 
 import org.appcelerator.titanium.TiBaseActivity;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.TiC;
@@ -39,6 +40,8 @@ import android.widget.FrameLayout;
 public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabListener, OnLifecycleEvent {
 	private ActionBar actionBar;
 	private boolean activityPaused = false;
+	// Default value is true. Set it to false if the tab is selected using the selectTab() method.
+	private boolean tabClicked = true;
 
 	// The tab to be selected once the activity resumes.
 	private Tab selectedTabOnResume;
@@ -104,6 +107,7 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 			return;
 		}
 
+		tabClicked = false;
 		if (activityPaused) {
 			// Action bar does not allow tab selection if the activity is paused.
 			// Postpone the tab selection until the activity resumes.
@@ -145,6 +149,12 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 
 		TabProxy tabProxy = (TabProxy) tabView.getProxy();
 		((TabGroupProxy) proxy).onTabSelected(tabProxy);
+		if (tabClicked) {
+			tabProxy.fireEvent(TiC.EVENT_CLICK, null);
+		} else {
+			tabClicked = true;
+		}
+
 	}
 
 	@Override
