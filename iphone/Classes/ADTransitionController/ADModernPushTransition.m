@@ -32,7 +32,7 @@
     const CGFloat viewHeight = sourceRect.size.height;
 
     CABasicAnimation * inSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
-    inSwipeAnimation.timingFunction = [CAMediaTimingFunction easeInOutCirc];
+    inSwipeAnimation.timingFunction = [CAMediaTimingFunction easeOutExpo];
     inSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     switch (orientation) {
         case ADTransitionRightToLeft:
@@ -76,6 +76,12 @@
     return self;
 }
 
+- (ADTransition *)reverseTransition {
+    ADDualTransition *reverse = (ADDualTransition*)[super reverseTransition];
+    reverse.outAnimation.timingFunction = [CAMediaTimingFunction functionWithName:kCAAnimationLinear];
+    reverse.outAnimation.duration = reverse.outAnimation.duration/2;
+    return reverse;
+}
 
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer
 {

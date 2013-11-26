@@ -49,7 +49,7 @@
 -(NSDictionary*)platformDefaultTransition
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @550 };
     }
     else {
         return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
