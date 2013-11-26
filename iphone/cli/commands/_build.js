@@ -764,6 +764,35 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 iOSBuilder.prototype.validate = function (logger, config, cli) {
 	this.target = cli.argv.target;
 
+	// check if this is the Xcode pre-compile phase
+	if (cli.argv.xcode) {
+		if (process.env.TITANIUM_CLI_XCODEBUILD) {
+			// readBuildManifest();
+			// // we are being built from the CLI, so we must have a valid buildManifest.json
+			// 	// first mix everything in
+			// appc.util.mix(cli.argv, this.buildManifest);
+			// // next translate specific keys that may differ
+			// cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : (this.buildManifest.target != 'simulator' ? this.buildManifest.target : 'device');
+			// cli.argv['deploy-type'] = this.buildManifest.deployType;
+			// cli.argv['output-dir'] = this.buildManifest.outputDir;
+			// cli.argv['developer-name'] = this.buildManifest.developerName;
+			// cli.argv['distribution-name'] = this.buildManifest.distributionName;
+			// cli.argv['skip-js-minify'] = this.buildManifest.skipJSMinification;
+			// cli.argv['force-copy'] = this.buildManifest.forceCopy;
+			// cli.argv['force-copy-all'] = this.buildManifest.forceCopyAll;
+		} else {
+			// we are being build from Xcode
+			cli.argv.target = process.env.CURRENT_ARCH === 'i386' ? 'simulator' : 'device';
+			cli.argv['deploy-type'] = process.env.CURRENT_ARCH === 'i386' ? 'development' : 'test';
+			cli.argv['developer-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Developer\: /, '');
+			cli.argv['distribution-name'] = process.env.CODE_SIGN_IDENTITY.replace(/^iPhone Distribution\: /, '');
+			
+		}
+		cli.argv['skip-js-minify'] = true; // never minify Xcode builds
+		cli.argv['force-copy']     = true; // if building from xcode, we'll force files to be copied instead of symlinked
+		cli.argv['force-copy-all'] = false; // we don't want to copy the big libTiCore.a file around by default
+	}
+
 	if (cli.argv.xcode) {
 		this.deployType = cli.argv['deploy-type'] || this.deployTypes[this.target];
 	} else {
@@ -927,13 +956,6 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 		// this should never happen
 		logger.error(__('Unable to find suitable Xcode install that supports iOS SDK %s', cli.argv['ios-version']) + '\n');
 		process.exit(1);
-	}
-
-	// check if we are running from Xcode
-	if (cli.argv.xcode) {
-		cli.argv['skip-js-minify'] = true; // never minify Xcode builds
-		cli.argv['force-copy']     = true; // if building from xcode, we'll force files to be copied instead of symlinked
-		cli.argv['force-copy-all'] = false; // we don't want to copy the big libTiCore.a file around by default
 	}
 
 	if (cli.argv.target != 'dist-appstore') {
@@ -1330,6 +1352,10 @@ iOSBuilder.prototype.initialize = function initialize(next) {
 	this.imagesOptimizedFile = path.join(this.buildDir, 'images_optimized');
 	fs.existsSync(this.imagesOptimizedFile) && fs.unlinkSync(this.imagesOptimizedFile);
 
+	if (argv.xcode) {
+		this.infoPlist = new appc.plist(this.buildDir + '/Info.plist');
+	}
+	
 	next();
 };
 
@@ -2411,6 +2437,19 @@ iOSBuilder.prototype.copyTitaniumLibraries = function copyTitaniumLibraries(next
 	dest = path.join(dir, 'libti_ios_profiler.a');
 	fs.existsSync(dest) || afs.copyFileSync(path.join(this.titaniumIosSdkPath, 'libti_ios_profiler.a'), dest, { logger: this.logger.debug });
 
+
+	var src = path.join(this.titaniumIosSdkPath, 'libexternals');
+	dest = path.join(this.buildDir, 'libexternals');
+	var files = [];
+	if (fs.statSync(src).isDirectory()) {
+		files = fs.readdirSync(src);
+	}
+	var logger = this.logger;
+	files.map(function (filename) {
+		var from = path.join(src, filename),
+			to = path.join(dest, filename);
+		fs.existsSync(to) || afs.copyFileSync(from, to, { logger: logger.debug });
+	});
 	next();
 };
 
