@@ -65,6 +65,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 @synthesize pendingCompletionHandlers;
 @synthesize backgroundTransferCompletionHandlers;
 @synthesize localNotification;
+@synthesize appBooted = _appBooted;
 
 +(void)initialize
 {
@@ -269,7 +270,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 	{
 		DebugLog(@"[DEBUG] Application booted in %f ms", ([NSDate timeIntervalSinceReferenceDate]-started) * 1000);
 		fflush(stderr);
-        appBooted = YES;
+        _appBooted = YES;
 		if (localNotification != nil) {
 			[[NSNotificationCenter defaultCenter] postNotificationName:kTiLocalNotification object:localNotification userInfo:nil];
 		}
@@ -445,7 +446,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     if (!shouldContinue) {
         return;
     }
-    if (appBooted ) {
+    if (_appBooted ) {
         [[NSNotificationCenter defaultCenter] postNotificationName:notificationName object:self userInfo:userInfo];
     } else {
         //Try again in 2 sec. TODO: should we reduce this value ?

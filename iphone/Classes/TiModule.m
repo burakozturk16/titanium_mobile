@@ -33,6 +33,7 @@
 	if (classNameLookup != NULL)
 	{
 		CFRelease(classNameLookup);
+        classNameLookup = NULL;
 	}
 	RELEASE_TO_NIL(moduleName);
 	RELEASE_TO_NIL(moduleAssets);

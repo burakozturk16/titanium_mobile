@@ -22,11 +22,11 @@
 
 - (void) dealloc
 {
-	[_bufferImage release];
-	[gradient release];
-	[color release];
-	[image release];
-	[svg release];
+    RELEASE_TO_NIL(_bufferImage)
+    RELEASE_TO_NIL(gradient)
+    RELEASE_TO_NIL(color)
+    RELEASE_TO_NIL(image)
+    RELEASE_TO_NIL(svg)
 	[super dealloc];
 }
 

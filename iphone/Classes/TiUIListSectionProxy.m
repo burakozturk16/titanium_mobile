@@ -36,9 +36,9 @@
 - (void)dealloc
 {
 	_delegate = nil;
-	[_items release];
-	[_headerTitle release];
-	[_footerTitle release];
+    RELEASE_TO_NIL(_items)
+    RELEASE_TO_NIL(_headerTitle)
+    RELEASE_TO_NIL(_footerTitle)
 	[super dealloc];
 }
 

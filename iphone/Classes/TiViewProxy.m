@@ -915,7 +915,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     KrollCallback *callback = nil;
     float scale = 1.0f;
     
-    NSObject *obj = nil;
+    id obj = nil;
     if( [args count] > 0) {
         obj = [args objectAtIndex:0];
         
@@ -3508,6 +3508,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	{
 		[[self view] becomeFirstResponder];
 	}
+}
+
+- (BOOL)focused:(id)unused
+{
+    return [self focused];
 }
 
 -(BOOL)focused

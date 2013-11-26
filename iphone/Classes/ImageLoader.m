@@ -325,7 +325,7 @@
 
 -(NSString*)description
 {
-    return [NSString stringWithFormat:@"<ImageCache:%x> %@[%@]",self,remoteURL,localPath];
+    return [NSString stringWithFormat:@"<ImageCache:%p> %@[%@]",self,remoteURL,localPath];
 }
 
 +(NSString*)cachePathForURL:(NSURL *)url
@@ -478,7 +478,7 @@
 
 -(NSString*)description
 {
-    return [NSString stringWithFormat:@"<SVGImageCache:%x> %@[%@]",self,remoteURL,localPath];
+    return [NSString stringWithFormat:@"<SVGImageCache:%p> %@[%@]",self,remoteURL,localPath];
 }
 
 +(NSString*)cachePathForURL:(NSURL *)url

@@ -200,7 +200,7 @@
     [super willChangeSize];
 }
 
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiViewAnimationStep*)animation
 {
 	BOOL hasChild = [[self children] containsObject:child];
 

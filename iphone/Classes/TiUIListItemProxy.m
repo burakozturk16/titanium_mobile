@@ -104,11 +104,11 @@ static NSDictionary* listViewKeysToReplace;
 {
     _listItem = nil;
     _parentForBubbling = nil;
-    [_initialValues release];
-	[_currentValues release];
-	[_resetKeys release];
-	[_indexPath release];
-	[_bindings release];
+    RELEASE_TO_NIL(_initialValues)
+    RELEASE_TO_NIL(_currentValues)
+    RELEASE_TO_NIL(_resetKeys)
+    RELEASE_TO_NIL(_indexPath)
+    RELEASE_TO_NIL(_bindings)
 	[super dealloc];
 }
 

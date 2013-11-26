@@ -23,7 +23,7 @@
 
 - (void) dealloc
 {
-	[gradient release];
+	RELEASE_TO_NIL(gradient)
 	[super dealloc];
 }
 
@@ -120,9 +120,10 @@
 	if (colorValues != NULL)
 	{
 		CFRelease(colorValues);
+        colorValues = NULL;
 	}
-	[endPoint release];
-	[startPoint release];
+    RELEASE_TO_NIL(endPoint)
+    RELEASE_TO_NIL(startPoint)
 	[self clearCache];
 	free(colorOffsets);
 	[super dealloc];

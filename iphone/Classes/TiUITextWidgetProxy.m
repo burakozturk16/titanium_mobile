@@ -12,8 +12,8 @@
 #import "TiUtils.h"
 
 @implementation TiUITextWidgetProxy
-@synthesize suppressFocusEvents;
 DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
+@synthesize suppressFocusEvents = _suppressFocusEvents;
 
 +(NSSet*)transferableProperties
 {

@@ -627,6 +627,11 @@ enum
 -(void)configurationSet:(BOOL)recursive;
 -(BOOL) widthIsAutoSize;
 -(BOOL) heightIsAutoSize;
+
+- (void)focus:(id)args;
+- (void)blur:(id)args;
+- (BOOL)focused:(id)unused;
+
 @end
 
 

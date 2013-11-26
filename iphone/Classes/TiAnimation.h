@@ -92,6 +92,7 @@
 -(void)cancel:(id)args;
 
 +(TiAnimation*)animationFromArg:(id)args context:(id<TiEvaluator>)context create:(BOOL)yn;
+-(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context_ callback:(KrollCallback*)callback_;
 -(BOOL)isTransitionAnimation;
 -(NSTimeInterval)getAnimationDuration;
 -(NSUInteger) repeatCount;

@@ -114,7 +114,7 @@
 //	InsetScrollViewForKeyboard(tableview,keyboardTop,minimumContentRect.size.height + minimumContentRect.origin.y);
 }
 
--(UITableView*)tableView
+-(TDUITableView*)tableView
 {
     tableview = [super tableView];
     self.layer.transform = CATransform3DRotate(CATransform3DIdentity,-1.57079633,0,0,1);

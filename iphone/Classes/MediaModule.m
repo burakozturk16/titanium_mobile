@@ -1064,7 +1064,7 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
     KrollCallback *callback = nil;
     float scale = 1.0f;
     
-    NSObject *obj = nil;
+    id obj = nil;
     if( [args count] > 0) {
         obj = [args objectAtIndex:0];
         
