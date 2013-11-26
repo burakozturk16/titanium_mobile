@@ -1719,7 +1719,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)_configure
 {
-//    [self replaceValue:NUMBOOL(YES) forKey:@"visible" notification:YES];
+    [self replaceValue:NUMBOOL(YES) forKey:@"visible" notification:NO];
+    [self replaceValue:NUMBOOL(FALSE) forKey:@"opaque" notification:NO];
+    [self replaceValue:NUMFLOAT(1.0f) forKey:@"opacity" notification:NO];
 }
 
 -(void)_initWithProperties:(NSDictionary*)properties
