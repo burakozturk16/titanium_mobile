@@ -545,10 +545,11 @@
                 BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
                 [controller.navigationItem setRightBarButtonItem:[proxy barButtonItem] animated:animated];
             }
-			else 
-			{
-				controller.navigationItem.rightBarButtonItem = nil;
-			}
+            else if (item != nil){ //we had button before so we must clean them
+                NSArray *buttons = controller.navigationItem.rightBarButtonItems;
+                controller.navigationItem.rightBarButtonItem = nil;
+                controller.navigationItem.rightBarButtonItems = buttons;
+            }
 		}
 		else
 		{
@@ -593,8 +594,10 @@
             BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
             [controller.navigationItem setRightBarButtonItems:buttons animated:animated];
         }
-        else {
+        else if (currentButtons != nil){ //we had buttons before so we must clean them
+            UIBarButtonItem *item = controller.navigationItem.rightBarButtonItem;
             controller.navigationItem.rightBarButtonItems = nil;
+            controller.navigationItem.rightBarButtonItem = item;
         }
 	}
 	else
@@ -1015,12 +1018,22 @@ else{\
         TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
         [p removeBarButtonView];
     }
-
+    controller.navigationItem.leftBarButtonItem = nil;
     item = controller.navigationItem.rightBarButtonItem;
     if ([item respondsToSelector:@selector(proxy)]) {
         TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
         [p removeBarButtonView];
     }
+    controller.navigationItem.rightBarButtonItem = nil;
+    NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
+    for (id item in currentButtons) {
+        if ([item respondsToSelector:@selector(proxy)])
+        {
+            TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+            [p removeBarButtonView];
+        }
+    }
+    controller.navigationItem.rightBarButtonItems = nil;
     if (barImageView != nil) {
         [barImageView removeFromSuperview];
     }
