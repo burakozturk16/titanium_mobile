@@ -106,11 +106,16 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 ///--------------------------------------------
 
 /**
- A bitmask of `NSTextCheckingType` which are used to automatically detect links in the label text.
- 
- @warning You must specify `dataDetectorTypes` before setting the `text`, with either `setText:` or `setText:afterInheritingLabelAttributesAndConfiguringWithBlock:`.
+ @deprecated Use `enabledTextCheckingTypes` property instead.
  */
-@property (nonatomic, assign) NSTextCheckingTypes dataDetectorTypes;
+@property (nonatomic, assign) NSTextCheckingTypes dataDetectorTypes DEPRECATED_ATTRIBUTE;
+
+/**
+ A bitmask of `NSTextCheckingType` which are used to automatically detect links in the label text.
+
+ @warning You must specify `enabledTextCheckingTypes` before setting the `text`, with either `setText:` or `setText:afterInheritingLabelAttributesAndConfiguringWithBlock:`.
+ */
+@property (nonatomic, assign) NSTextCheckingTypes enabledTextCheckingTypes;
 
 /**
  An array of `NSTextCheckingResult` objects for links detected or manually added to the label text.
@@ -190,12 +195,25 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  */
 @property (nonatomic, assign) TTTAttributedLabelVerticalAlignment verticalAlignment;
 
+///--------------------------------------------
+/// @name Accessing Truncation Token Appearance
+///--------------------------------------------
+
 /**
  The truncation token that appears at the end of the truncated line. `nil` by default.
 
  @discussion When truncation is enabled for the label, by setting `lineBreakMode` to either `UILineBreakModeHeadTruncation`, `UILineBreakModeTailTruncation`, or `UILineBreakModeMiddleTruncation`, the token used to terminate the truncated line will be `truncationTokenString` if defined, otherwise the Unicode Character 'HORIZONTAL ELLIPSIS' (U+2026).
  */
 @property (nonatomic, strong) NSString *truncationTokenString;
+
+/**
+ The attributes to apply to the truncation token at the end of a truncated line. If unspecified, attributes will be inherited from the preceding character.
+ */
+@property (nonatomic, strong) NSDictionary *truncationTokenStringAttributes;
+
+@property (nonatomic, strong) NSString *strokeColorAttributeProperty;
+@property (nonatomic, strong) NSString *strokeWidthAttributeProperty;
+@property (nonatomic, strong) NSString *cornerRadiusAttributeProperty;
 
 ///----------------------------------
 /// @name Setting the Text Attributes
@@ -321,10 +339,6 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 /// @name Responding to Link Selection
 ///-----------------------------------
 @optional
-- (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
-- (void)processTouchesMoved:(NSSet *)touches withEvent:(UIEvent *)event;
-- (void)processTouchesEnded:(NSSet *)touches withEvent:(UIEvent *)event;
-- (void)processTouchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event;
 /**
  Tells the delegate that the user did select a link to a URL.
  
