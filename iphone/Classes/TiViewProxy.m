@@ -31,6 +31,8 @@
     BOOL needsContentChange;
     BOOL allowContentChange;
 	unsigned int animationDelayGuard;
+    BOOL _transitioning;
+    id _pendingTransition;
 }
 @end
 
@@ -1712,6 +1714,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         defaultReadyToCreateView = NO;
         hidden = NO;
         [self resetDefaultValues];
+        _transitioning = NO;
 //        _runningViewAnimations = [[NSMutableArray alloc] init];
 	}
 	return self;
@@ -3528,9 +3531,26 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	return result;
 }
 
+
+-(void)handlePendingTransition
+{
+    if (_pendingTransition) {
+        id args = _pendingTransition;
+        _pendingTransition = nil;
+        [self transitionViews:args];
+        RELEASE_TO_NIL(args);
+    }
+}
+
 -(void)transitionViews:(id)args
 {
+    
 	ENSURE_UI_THREAD_1_ARG(args)
+    if (_transitioning) {
+        _pendingTransition = [args retain];
+        return;
+    }
+    _transitioning = YES;
     if ([args count] > 1) {
         TiViewProxy *view1Proxy = nil;
         TiViewProxy *view2Proxy = nil;
@@ -3544,6 +3564,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 {
                     pthread_rwlock_unlock(&childrenLock);
                     if (view2Proxy)[self add:view2Proxy];
+                    _transitioning = NO;
+                    [self handlePendingTransition];
                     return;
                 }
             }
@@ -3582,14 +3604,19 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             [[self view] transitionfromView:view1 toView:view2 withTransition:transition completionBlock:^{
                 if (view1Proxy) [self remove:view1Proxy];
                 if (view2Proxy) [self add:view2Proxy];
+                _transitioning = NO;
+                [self handlePendingTransition];
             }];
         }
         else {
             if (view1Proxy) [self remove:view1Proxy];
             if (view2Proxy)[self add:view2Proxy];
+            _transitioning = NO;
+            [self handlePendingTransition];
         }
 	}
 }
+
 
 -(void)blurBackground:(id)args
 {
