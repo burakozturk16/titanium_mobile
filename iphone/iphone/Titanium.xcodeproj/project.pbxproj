@@ -2383,6 +2383,7 @@
 		D5C92DA6182AA88F0072D117 /* TouchDelegate_Views.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchDelegate_Views.m; sourceTree = "<group>"; };
 		D5CD8CAE17CB96ED0011D17F /* TiShapePieSliceProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiShapePieSliceProxy.h; sourceTree = "<group>"; };
 		D5CD8CAF17CB96ED0011D17F /* TiShapePieSliceProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiShapePieSliceProxy.m; sourceTree = "<group>"; };
+		D5D545241845F873009539C9 /* DTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedLabel.h; path = ../Classes/DTCoreText/DTAttributedLabel.h; sourceTree = "<group>"; };
 		D5DC32F6180EED41006CCEBD /* TiTransitionCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionCube.h; sourceTree = "<group>"; };
 		D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionCube.m; sourceTree = "<group>"; };
 		D5E7977417B61EFC00F1D088 /* ShapeModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ShapeModule.h; sourceTree = "<group>"; };
@@ -4396,6 +4397,7 @@
 		D5B6C6DD1811249F00A2612A /* DT */ = {
 			isa = PBXGroup;
 			children = (
+				D5D545241845F873009539C9 /* DTAttributedLabel.h */,
 				D5B6C71C181124B300A2612A /* DTExtendedFileAttributes.h */,
 				D5B6C71D181124B300A2612A /* DTFoundation.h */,
 				D5B6C71E181124B300A2612A /* DTHTMLParser.h */,
