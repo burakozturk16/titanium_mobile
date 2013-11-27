@@ -102,7 +102,7 @@ DEFINE_EXCEPTIONS
         id image = [proxy_ valueForKey:@"image"];
         id background = [proxy_ valueForKey:@"backgroundImage"];
         if (background != nil) {
-            self = [super initWithCustomView:[proxy_ view]];
+            self = [super initWithCustomView:[proxy_ getOrCreateView]];
             self.target = self;
             self.action = @selector(clicked:);
 
