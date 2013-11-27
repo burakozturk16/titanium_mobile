@@ -2556,7 +2556,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
 	pthread_rwlock_unlock(&childrenLock);
     if ([[ourView subviews] indexOfObject:childView] != NSNotFound) return;
-    if (result == 0) {
+    if (result == 0 || result  >= [[ourView subviews] count]) {
         [ourView addSubview:childView];
     }
     else {
