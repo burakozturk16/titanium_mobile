@@ -2091,14 +2091,17 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	action;	\
 }
 
+
 -(void)willEnqueue
 {
+    if (!allowContentChange) return;
 	SET_AND_PERFORM(TiRefreshViewEnqueued,return);
 	[TiLayoutQueue addViewProxy:self];
 }
 
 -(void)willEnqueueIfVisible
 {
+    if (!allowContentChange) return;
 	if(parentVisible && !hidden)
 	{
 		[self willEnqueue];
@@ -2108,6 +2111,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willChangeSize
 {
+    if (!allowContentChange) return;
 	SET_AND_PERFORM(TiRefreshViewSize,return);
 
 	if (!TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle))
@@ -2129,6 +2133,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willChangePosition
 {
+    if (!allowContentChange) return;
 	SET_AND_PERFORM(TiRefreshViewPosition,return);
 
 	if(TiDimensionIsUndefined(layoutProperties.width) || 
@@ -2142,6 +2147,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willChangeZIndex
 {
+    if (!allowContentChange) return;
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
 	//Nothing cascades from here.
 	[self willEnqueueIfVisible];
@@ -2178,6 +2184,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willChangeLayout
 {
+    if (!allowContentChange) return;
 	SET_AND_PERFORM(TiRefreshViewChildrenPosition,return);
 
 	[self willEnqueueIfVisible];
