@@ -186,7 +186,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 	NSString *filePath = [[NSBundle mainBundle] pathForResource:@"debugger" ofType:@"plist"];
     if (filePath != nil) {
-        NSMutableDictionary *params = [NSMutableDictionary dictionaryWithContentsOfFile:filePath];
+        NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithContentsOfFile:filePath];
         NSString *host = [params objectForKey:@"host"];
         NSInteger port = [[params objectForKey:@"port"] integerValue];
         NSString *airkey = [params objectForKey:@"airkey"];
@@ -213,8 +213,8 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 			[params release];
 			return;
 		}
-		[params release];
 #endif
+		[params release];
     }
 	filePath = [[NSBundle mainBundle] pathForResource:@"profiler" ofType:@"plist"];
 	if (!self.debugMode && filePath != nil) {
@@ -245,8 +245,8 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 			[params release];
 			return;
 		}
-		[params release];
 #endif
+		[params release];
     }
 	[self appBoot];
 }
