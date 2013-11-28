@@ -1264,7 +1264,7 @@ AndroidBuilder.prototype.validate = function validate(logger, config, cli) {
 		cli.env.os.sdkPaths.forEach(addSearchPath);
 		Array.isArray(customModulePaths) && customModulePaths.forEach(addSearchPath);
 
-		appc.timodule.find(cli.tiapp.modules, 'android', this.deployType, this.titaniumSdkVersion, moduleSearchPaths, logger, function (modules) {
+		appc.timodule.find(cli.tiapp.modules, 'android', this.deployType, this.titaniumSdkVersion, moduleSearchPaths, config, logger, function (modules) {
 			if (modules.missing.length) {
 				logger.error(__('Could not find all required Titanium Modules:'))
 				modules.missing.forEach(function (m) {
