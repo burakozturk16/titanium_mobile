@@ -400,12 +400,15 @@
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		TiUIView *leftview = [vp view];
-		[[self textWidgetView] setLeftView:leftview];
+		[[self textWidgetView] setLeftView:[vp getOrCreateView]];
 	}
 	else
 	{
-		//TODO:
+		UIView* leftView = [[self textWidgetView] rightView];
+        if ([leftView isKindOfClass:[TiUIView class]]){
+            [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
+            [[self textWidgetView] setLeftView:nil];
+        }
 	}
 }
 
@@ -414,16 +417,33 @@
 	[[self textWidgetView] setLeftViewMode:[TiUtils intValue:value]];
 }
 
+-(void)updateBounds:(CGRect)newBounds
+{
+    [super updateBounds:newBounds];
+    UIView* rightView = [[self textWidgetView] rightView];
+    if ([rightView isKindOfClass:[TiUIView class]]){
+        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)rightView) proxy]) withParent:self];
+    }
+    UIView* leftView = [[self textWidgetView] rightView];
+    if ([leftView isKindOfClass:[TiUIView class]]){
+        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)leftView) proxy]) withParent:self];
+    }
+}
+
 -(void)setRightButton_:(id)value
 {
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		[[self textWidgetView] setRightView:[vp view]];
+		[[self textWidgetView] setRightView:[vp getOrCreateView]];
 	}
 	else
 	{
-		//TODO:
+        UIView* rightView = [[self textWidgetView] rightView];
+        if ([rightView isKindOfClass:[TiUIView class]]){
+            [((TiViewProxy*)[((TiUIView*)rightView) proxy]) detachView];
+            [[self textWidgetView] setRightView:nil];
+        }
 	}
 }
 
