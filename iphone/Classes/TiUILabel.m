@@ -116,13 +116,14 @@
 {
 	if (label==nil)
 	{
-        label = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
+        label = [[TDTTTAttributedLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
         label.layer.shadowRadius = 0; //for backward compatibility
         label.layer.shadowOffset = CGSizeZero;
 		label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        label.touchDelegate = self;
         label.strokeColorAttributeProperty = DTBackgroundStrokeColorAttribute;
         label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
         label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;

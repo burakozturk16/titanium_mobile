@@ -1,4 +1,4 @@
-
+#import "TTTAttributedLabel.h"
 @protocol TouchDelegate <NSObject>
 @optional
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event;
@@ -8,6 +8,12 @@
 
 @end
 @interface TDUITableView : UITableView
+
+@property (nonatomic, unsafe_unretained) id <TouchDelegate> touchDelegate;
+
+@end
+
+@interface TDTTTAttributedLabel : TTTAttributedLabel
 
 @property (nonatomic, unsafe_unretained) id <TouchDelegate> touchDelegate;
 

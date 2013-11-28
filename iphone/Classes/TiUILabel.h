@@ -12,7 +12,7 @@
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
-	TTTAttributedLabel *label;
+	TDTTTAttributedLabel *label;
     CGRect padding;
     CGRect textPadding;
     CGRect initialLabelFrame;
@@ -25,7 +25,7 @@
 
 -(void)setAttributedTextViewContent;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
--(TTTAttributedLabel*)label;
+-(TDTTTAttributedLabel*)label;
 @end
 
 
