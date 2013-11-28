@@ -46,6 +46,14 @@
     maxSize.width -= textPadding.origin.x + textPadding.size.width;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
+    result.width = MIN(result.width,  maxSize.width);
+    result.height = MIN(result.height,  size.height);
+    if (label.numberOfLines > 0 || label.attributedText != nil) {
+        CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,result.width, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
+        
+        textRect.size.height -= 2*textRect.origin.y;
+        result =textRect.size;
+    }
     result.width += textPadding.origin.x + textPadding.size.width;
     result.height += textPadding.origin.y + textPadding.size.height;
     return result;
