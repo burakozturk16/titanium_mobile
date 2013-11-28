@@ -1593,7 +1593,7 @@ static NSDictionary* replaceKeysForRow;
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
                 [cellProxy setDataItem:item];
-                return [self tableView:tableView rowHeight:[cellProxy minimumParentSizeForSize:CGSizeMake(width, INT_MAX)].height];
+                return [self tableView:tableView rowHeight:[cellProxy minimumParentSizeForSize:CGSizeMake(width, 0)].height];
             }
         }
     }
