@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
@@ -37,7 +36,6 @@ import ti.modules.titanium.ui.widget.CustomListView;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
-import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnHeaderViewChangedListener;
 import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnPullListener;
 import android.app.Activity;
 import android.content.Context;
@@ -794,6 +792,8 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			refreshItems();
 		} else if (key.equals(TiC.PROPERTY_SCROLLING_ENABLED)) {
 			listView.setScrollingEnabled(newValue);
+		} else if (key.equals(TiC.PROPERTY_PULL_VIEW)) {
+			listView.setHeaderPullView(setPullView(newValue));
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
