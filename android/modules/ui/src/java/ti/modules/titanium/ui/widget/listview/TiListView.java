@@ -260,13 +260,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
+				setMinHeightForBaseItem(itemContent);
 				section.populateViews(data, itemContent, template, sectionItemIndex, sectionIndex, content);
 			} else {
 				content = inflater.inflate(listItemId, null);
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
 				setMinHeightForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
-				params.optionHeight = new TiDimension(MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
 				section.generateCellContent(sectionIndex, data, template, itemContent, sectionItemIndex, content);
