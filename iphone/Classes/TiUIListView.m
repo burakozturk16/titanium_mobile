@@ -1556,13 +1556,6 @@ static NSDictionary* replaceKeysForRow;
 
 -(CGFloat)tableView:(UITableView *)tableView rowHeight:(CGFloat)height
 {
-	if (TiDimensionIsDip(_rowHeight))
-	{
-		if (_rowHeight.value > height)
-		{
-			height = _rowHeight.value;
-		}
-	}
 	if (TiDimensionIsDip(_minRowHeight))
 	{
 		height = MAX(_minRowHeight.value,height);
