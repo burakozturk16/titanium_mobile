@@ -159,8 +159,10 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             //If it comes here it has to follow SIZE behavior
             if ([autoSizer respondsToSelector:@selector(autoSizeForSize:)])
             {
-                autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
-                autoSizeComputed = YES;
+                if (autoSizeComputed == NO) {
+                    autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
+                    autoSizeComputed = YES;
+                }
                 CGFloat desiredWidth = autoSize.width;
                 width = width < desiredWidth?width:desiredWidth;
             }
@@ -170,12 +172,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             }
         }
     }
-    
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
-    {
-        width = [autoSizer verifyWidth:width];
-    }
+
     
     if (needsHeightAutoCompute) {
         BOOL autoFill = NO;
@@ -208,6 +205,13 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
                 *resultResizing |= UIViewAutoresizingFlexibleHeight;
             }
         }
+    }
+    
+    
+    //Should we always do this or only for auto
+    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
+    {
+        width = [autoSizer verifyWidth:width];
     }
     
     //Should we always do this or only for auto
