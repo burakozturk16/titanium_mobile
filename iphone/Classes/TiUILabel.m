@@ -14,6 +14,7 @@
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
 #import "TiUIiOSAttributedStringProxy.h"
 #endif
+#import "DTCoreText.h"
 
 @implementation TiUILabel
 
