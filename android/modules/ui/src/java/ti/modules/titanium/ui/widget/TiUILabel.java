@@ -14,6 +14,8 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiHtml;
+import org.appcelerator.titanium.util.TiTypefaceSpan;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
 
@@ -76,38 +78,6 @@ public class TiUILabel extends TiUINonViewGroupView
 	private String ELLIPSIZE_CHAR = "…";
 	
 	private TextView tv;
-	
-	public class CustomTypefaceSpan extends TypefaceSpan {
-        private final Typeface newType;
-        private final String fontFamily;
-
-        public CustomTypefaceSpan(String family, Typeface type) {
-            super(family);
-        	this.fontFamily = family;
-            newType = type;
-        }
-        
-        public CustomTypefaceSpan(String family) {
-            super(family);
-            this.fontFamily = family;
-            newType = null;
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            applyCustomTypeFace(ds, newType);
-        }
-
-        @Override
-        public void updateMeasureState(TextPaint paint) {
-            applyCustomTypeFace(paint, newType);
-        }
-
-        private void applyCustomTypeFace(Paint paint, Typeface tf) {
-    		tf = TiUIHelper.toTypeface(tv.getContext(), fontFamily);
-            paint.setTypeface(tf);
-        }
-    }
 
 	public class EllipsizingTextView extends TextView {
 
@@ -412,6 +382,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			int length = ELLIPSIZE_CHAR.length();
 			if (where == TruncateAt.START || where == TruncateAt.END){
 				newText = TextUtils.ellipsize(newText, getPaint(), width, where);
+				if (newText.length() == 0) return newText;
 				String textStr = newText.toString();
 				if (where == TruncateAt.START && !textStr.startsWith(ELLIPSIZE_CHAR)) {
 					newText = TextUtils.concat(ELLIPSIZE_CHAR, newText.subSequence(length, textStr.length()));
@@ -424,6 +395,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				CharSequence newTextLeft = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.END);
 				CharSequence newTextRight = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.START);
 				String textLeftStr = newTextLeft.toString();
+				if (textLeftStr.length() == 0) return newText;
 				if (!textLeftStr.endsWith(ELLIPSIZE_CHAR)) {
 					newTextLeft = TextUtils.concat(ELLIPSIZE_CHAR, newTextLeft.subSequence(length, textLeftStr.length()));
 				}
@@ -484,8 +456,8 @@ public class TiUILabel extends TiUINonViewGroupView
 			else if (span instanceof TypefaceSpan){
 				return new TypefaceSpan(((TypefaceSpan)span).getFamily());
 			}
-			else if (span instanceof CustomTypefaceSpan){
-				return new CustomTypefaceSpan(((TypefaceSpan)span).getFamily());
+			else if (span instanceof TiTypefaceSpan){
+				return new TiTypefaceSpan(((TypefaceSpan)span).getFamily());
 			}
 			else if (span instanceof ImageSpan){
 				return new ImageSpan(((ImageSpan)span).getDrawable());
@@ -697,20 +669,7 @@ public class TiUILabel extends TiUINonViewGroupView
 
 	private Spanned fromHtml(String str)
 	{
-		SpannableStringBuilder htmlText = new SpannableStringBuilder(Html.fromHtml(str));
-		Object[] spans = htmlText.getSpans(0, htmlText.length(), Object.class);
-		for (int j = 0; j < spans.length; j++) {
-			Object span = spans[j];
-			if (span instanceof TypefaceSpan){
-				String family = ((TypefaceSpan)span).getFamily();
-				CustomTypefaceSpan newSpan = new CustomTypefaceSpan(family);
-				int flags = htmlText.getSpanFlags(span);
-				int start = htmlText.getSpanStart(span);
-				int end = htmlText.getSpanEnd(span);
-				htmlText.setSpan(newSpan, start, end, flags);
-			}
-		}
-		
+		SpannableStringBuilder htmlText = new SpannableStringBuilder(TiHtml.fromHtml(str));
 		return htmlText;
 	}
 	
