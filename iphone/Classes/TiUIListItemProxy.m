@@ -240,7 +240,7 @@ static NSDictionary* listViewKeysToReplace;
         }
     }
     
-    if ([properties count] > 0 && _listItem != nil) {
+    if ([properties count] > 0) {
         [self setValuesForKeysWithDictionary:properties];
     }
     
