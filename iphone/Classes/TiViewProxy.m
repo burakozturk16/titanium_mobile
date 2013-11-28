@@ -3287,6 +3287,15 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	[child layoutChildren:optimize];
 }
 
+-(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView
+{
+    CGRect bounds = [self computeChildSandbox:child withBounds:[parentView bounds]];
+    [child setSandboxBounds:bounds];
+    [child relayout];
+	// tell our children to also layout
+	[child layoutChildren:NO];
+}
+
 -(void)layoutChildren:(BOOL)optimize
 {
 	IGNORE_IF_NOT_OPENED

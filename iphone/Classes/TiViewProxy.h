@@ -631,6 +631,7 @@ enum
 - (void)focus:(id)args;
 - (void)blur:(id)args;
 - (BOOL)focused:(id)unused;
+-(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
 
 @end
 
