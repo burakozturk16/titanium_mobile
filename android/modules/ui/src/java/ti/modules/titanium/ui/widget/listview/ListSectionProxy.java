@@ -646,7 +646,7 @@ public class ListSectionProxy extends ViewProxy{
 		//Get item proxy
 		TiViewProxy itemProxy = template.getRootItem().getViewProxy();
 		//Create corresponding TiUIView for item proxy
-		TiListItem item = new TiListItem(itemProxy, (TiCompositeLayout.LayoutParams)itemContent.getLayoutParams(), itemContent, item_layout);		
+		TiListItem item = new TiListItem(itemProxy, itemContent, item_layout);		
 		//Connect native view with TiUIView so we can get it from recycled view.
 		itemContent.setTag(item);
 	

@@ -13,7 +13,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
@@ -28,9 +27,11 @@ public class TiListItem extends TiUIView {
 		super(proxy);
 	}
 
-	public TiListItem(TiViewProxy proxy, LayoutParams p, View v, View item_layout) {
+	public TiListItem(TiViewProxy proxy, View v, View item_layout) {
 		super(proxy);
-		layoutParams = p;
+//		layoutParams = p;
+		layoutParams.autoFillsHeight = true;
+		layoutParams.autoFillsWidth = true;
 		listItemLayout = item_layout;
 		setNativeView(v);
 		registerForTouch(v);
