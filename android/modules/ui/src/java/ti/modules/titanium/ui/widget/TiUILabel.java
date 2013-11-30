@@ -67,7 +67,7 @@ public class TiUILabel extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUILabel";
 
-	private int defaultColor;
+	private int defaultColor, selectedColor, color, disabledColor;
 	private boolean wordWrap = true;
 	private float shadowRadius = 0f;
 	private float shadowX = 0f;
@@ -662,7 +662,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		tv.setFocusable(false);
 		tv.setSingleLine(false);
 		TiUIHelper.styleText(tv, null);
-		defaultColor = tv.getCurrentTextColor();
+		color = disabledColor = selectedColor = defaultColor = tv.getCurrentTextColor();
 		setNativeView(tv);
 
 	}
@@ -673,8 +673,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		return htmlText;
 	}
 	
-	private void setTextColors(int color, int selectedColor, int disabledColor) {
-		
+	private void updateTextColors() {
 		int[][] states = new int[][] {
 			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
 			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
@@ -723,11 +722,21 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_TITLE)), TextView.BufferType.SPANNABLE);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
-			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		boolean needsColors = false;
+		if(d.containsKey(TiC.PROPERTY_COLOR)) {
+			needsColors = true;
+			color = d.optColor(TiC.PROPERTY_COLOR, this.color);
+		}
+		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+			needsColors = true;
+			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, this.selectedColor);
+		}
+		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			needsColors = true;
+			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+		}
+		if (needsColors) {
+			updateTextColors();
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
@@ -837,12 +846,15 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(text);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
-			KrollDict properties = proxy.getProperties();
-			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		} else if (key.equals(TiC.PROPERTY_COLOR)) {
+			this.color = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
+			this.selectedColor = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			this.disabledColor = TiConvert.toColor(newValue);
+			updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			tv.setHighlightColor(TiConvert.toColor((String) newValue));
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
