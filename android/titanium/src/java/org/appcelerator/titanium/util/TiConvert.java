@@ -144,6 +144,12 @@ public class TiConvert
 	{
 		return TiColorHelper.parseColor(value);
 	}
+	public static int toColor(Object value)
+	{
+		if (value instanceof String)
+			return TiColorHelper.parseColor((String)value);
+		return TiColorHelper.parseColor(toString(value));
+	}
 
 	/**
 	 * This is a wrapper method. 
