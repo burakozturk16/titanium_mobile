@@ -2596,7 +2596,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             sizeCache.size = SizeConstraintViewWithSizeAddingResizing(&layoutProperties,self, referenceSize, &autoresizeCache);
         }
        
-		positionCache = PositionConstraintGivenSizeBoundsAddingResizing(&layoutProperties, self, sizeCache.size,
+		positionCache = PositionConstraintGivenSizeBoundsAddingResizing(&layoutProperties, [parent layoutProperties], self, sizeCache.size,
 		[[view layer] anchorPoint], referenceSize, sandboxBounds.size, &autoresizeCache);
 
 		positionCache.x += sizeCache.origin.x + sandboxBounds.origin.x;

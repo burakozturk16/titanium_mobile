@@ -236,7 +236,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
 
 
 
-CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing)
+CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing)
 {
     BOOL flexibleSize = *resultResizing & UIViewAutoresizingFlexibleWidth;
     
@@ -340,7 +340,11 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         }
         if (marginSuggestions < 1)
         {
-            centerY = sandboxSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
+            //without this a view is not centered vertically within horizontal layout. Normal?
+            if (parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle)) {
+                centerY = referenceSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
+            }
+            else centerY = sandboxSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
         }
         else
         {
@@ -364,7 +368,7 @@ void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * s
 	resultBounds.origin = CGPointZero;
 	resultBounds.size = SizeConstraintViewWithSizeAddingResizing(constraint,(TiViewProxy *)[subView proxy], viewBounds.size, &resultMask);
 	
-	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, (TiViewProxy *)[subView proxy], resultBounds.size,
+	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, nil, (TiViewProxy *)[subView proxy], resultBounds.size,
 			[[subView layer] anchorPoint], viewBounds.size, viewBounds.size, &resultMask);
 	
 	resultCenter.x += resultBounds.origin.x + viewBounds.origin.x;

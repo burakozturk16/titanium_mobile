@@ -103,5 +103,5 @@ TI_INLINE BOOL TiLayoutFlagsHasHorizontalWrap(LayoutConstraint *constraint)
 void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * subView, CGRect viewBounds);
 CGFloat WidthFromConstraintGivenWidth(LayoutConstraint * constraint,CGFloat viewWidth);
 CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, NSObject<LayoutAutosizing> * autoSizer, CGSize referenceSize, UIViewAutoresizing * resultResizing);
-CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing);
+CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing);
 BOOL IsLayoutUndefined(LayoutConstraint *constraint);
