@@ -78,6 +78,11 @@ public class TiCompositeLayout extends FreeLayout implements
 	private static final int HAS_SIZE_FILL_CONFLICT = 1;
 	private static final int NO_SIZE_FILL_CONFLICT = 2;
 	private static final boolean dispatchAlpha = (Build.VERSION.SDK_INT < 11);
+	
+	private TiDimension mMaxWidth = null;
+	private TiDimension mMaxHeight = null;
+	private TiDimension mMinWidth = null;
+	private TiDimension mMinHeight = null;
 
 	// We need these two constructors for backwards compatibility with modules
 
@@ -376,31 +381,53 @@ public class TiCompositeLayout extends FreeLayout implements
 		// account for padding
 		maxWidth += getPaddingLeft() + getPaddingRight();
 		maxHeight += getPaddingTop() + getPaddingBottom();
-
-		// Account for border
-		// int padding = Math.round(borderHelper.calculatePadding());
-		// maxWidth += padding;
-		// maxHeight += padding;
-
-		// check minimums
-		maxWidth = Math.max(maxWidth, getSuggestedMinimumWidth());
-		maxHeight = Math.max(maxHeight, getSuggestedMinimumHeight());
 		
 		ViewGroup.LayoutParams params = getLayoutParams();
-		if (params instanceof LayoutParams) {
+		LayoutParams tiParams = (params instanceof LayoutParams)?(LayoutParams)params:null;
+		if (tiParams != null) {
 			//if we are fill we need to fill ….
-			LayoutParams p = (LayoutParams)params;
-			if (p.optionWidth == null && p.autoFillsWidth) {
+			if (tiParams.optionWidth == null && tiParams.autoFillsWidth) {
 				maxWidth = w;
 			}
-			if (p.optionHeight == null && p.autoFillsHeight) {
+			if (tiParams.optionHeight == null && tiParams.autoFillsHeight) {
 				maxHeight = h;
 			}
 			
 		}
 		
+		// check minimums
+		maxWidth = Math.max(maxWidth, getSuggestedMinimumWidth());
+		maxHeight = Math.max(maxHeight, getSuggestedMinimumHeight());
+		
+		
 		int measuredWidth = getMeasuredWidth(maxWidth, widthMeasureSpec);
 		int measuredHeight = getMeasuredHeight(maxHeight, heightMeasureSpec);
+		
+		if (mMaxWidth != null) {
+			measuredWidth = Math.min(measuredWidth, mMaxWidth.getAsPixels(getContext(), w, h));
+			widthMeasureSpec = MeasureSpec.makeMeasureSpec(measuredWidth, MeasureSpec.EXACTLY);
+		}
+		if (mMaxWidth != null || mMinWidth != null) {
+			int minMeasuredWidth = measuredWidth;
+			if (mMinWidth != null) minMeasuredWidth = Math.max(minMeasuredWidth, mMinWidth.getAsPixels(getContext(), w, h));
+			if (mMaxWidth != null) minMeasuredWidth = Math.min(minMeasuredWidth, mMaxWidth.getAsPixels(getContext(), w, h));
+			if (minMeasuredWidth != measuredHeight) {
+				heightMeasureSpec = MeasureSpec.makeMeasureSpec(minMeasuredWidth, MeasureSpec.EXACTLY);
+				measuredHeight = getMeasuredHeight(minMeasuredWidth, widthMeasureSpec);
+			}
+		}
+
+		if (mMaxHeight != null || mMinHeight != null) {
+			int minMeasuredHeight = measuredHeight;
+			if (mMinHeight != null) minMeasuredHeight = Math.max(minMeasuredHeight, mMinHeight.getAsPixels(getContext(), w, h));
+			if (mMaxHeight != null) minMeasuredHeight = Math.min(minMeasuredHeight, mMaxHeight.getAsPixels(getContext(), w, h));
+			if (minMeasuredHeight != measuredHeight) {
+				heightMeasureSpec = MeasureSpec.makeMeasureSpec(minMeasuredHeight, MeasureSpec.EXACTLY);
+				measuredHeight = getMeasuredHeight(minMeasuredHeight, heightMeasureSpec);
+			}
+		}
+
+
 		setMeasuredDimension(measuredWidth, measuredHeight);
 	}
 
@@ -1214,5 +1241,21 @@ public class TiCompositeLayout extends FreeLayout implements
 			value = false;
 		}
 		needsSort = value;
+	}
+	
+	public void setMinWidth(TiDimension value) {
+		mMinWidth = value;
+	}
+	
+	public void setMinHeight(TiDimension value) {
+		mMinHeight = value;
+	}
+	
+	public void setMaxWidth(TiDimension value) {
+		mMaxWidth = value;
+	}
+	
+	public void setMaxHeight(TiDimension value) {
+		mMaxHeight = value;
 	}
 }
