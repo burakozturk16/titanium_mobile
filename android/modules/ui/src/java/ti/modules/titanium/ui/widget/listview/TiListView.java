@@ -258,12 +258,12 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
-				setMinHeightForBaseItem(itemContent);
+				setBoundsForBaseItem(itemContent);
 				section.populateViews(data, itemContent, template, sectionItemIndex, sectionIndex, content);
 			} else {
 				content = inflater.inflate(listItemId, null);
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
-				setMinHeightForBaseItem(itemContent);
+				setBoundsForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
@@ -273,12 +273,19 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 		}
 		
-		private void setMinHeightForBaseItem(TiBaseListViewItem item)  {
+		private void setBoundsForBaseItem(TiBaseListViewItem item)  {
+			//here the parent cant be null as we inflated
+			TiBaseListViewItemHolder holder = (TiBaseListViewItemHolder) item.getParent();
+			holder.setListViewHeight(listView.getMeasuredHeight());
 			String minRowHeight = MIN_ROW_HEIGHT;
 			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
 				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
 			}
-			item.setMinimumHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT).getAsPixels(listView));
+			item.setMinHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT));
+			if (proxy == null) return;
+			if (proxy.hasProperty(TiC.PROPERTY_MAX_ROW_HEIGHT)) {
+				item.setMaxHeight(TiConvert.toTiDimension(proxy.getProperty(TiC.PROPERTY_MAX_ROW_HEIGHT), TiDimension.TYPE_HEIGHT));
+			}
 		}
 		
 		@Override

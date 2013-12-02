@@ -20,7 +20,6 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 
 	private HashMap<String, ViewItem> viewsMap;
 	private ViewItem viewItem;
-	private int minHeight;
 	public TiBaseListViewItem(Context context) {
 		super(context);
 		viewsMap = new HashMap<String, ViewItem>();
@@ -29,9 +28,6 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	public TiBaseListViewItem(Context context, AttributeSet set) {
 		super(context, set);
 		setId(TiListView.listContentId);
-//		TiDimension heightDimension = new TiDimension(TiListView.MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
-//		minHeight = heightDimension.getAsPixels(this);
-//		setMinimumHeight(minHeight);
 		viewsMap = new HashMap<String, ViewItem>();
 		viewItem = new ViewItem(null, new KrollDict());
 	}
@@ -43,12 +39,7 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	public ViewItem getViewItem() {
 		return viewItem;
 	}
-	
-	public void setMinimumHeight(int value) {
-		minHeight = value;
-		super.setMinimumHeight(minHeight);
-	}
-	
+
 	public void bindView(String binding, ViewItem view) {
 		viewsMap.put(binding, view);
 	}
@@ -60,14 +51,5 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 		}
 		return null;
 	}
-	
-	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		int h = MeasureSpec.getSize(heightMeasureSpec);
-		int hMode = MeasureSpec.getMode(heightMeasureSpec);
-		if (h < minHeight && hMode == MeasureSpec.EXACTLY) {
-			h = minHeight;
-		}
-		super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(h, hMode));
-	}
-	
+
 }
