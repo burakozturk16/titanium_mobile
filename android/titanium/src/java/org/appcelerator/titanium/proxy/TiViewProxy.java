@@ -35,7 +35,6 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
 
-
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
@@ -43,6 +42,7 @@ import com.nineoldandroids.animation.Animator.AnimatorListener;
 import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -350,9 +350,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 						DisplayMetrics dm = new DisplayMetrics();
 						TiApplication.getAppCurrentActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-						int topOffset = dm.heightPixels - decorView.getMeasuredHeight();
-						position[1] -= topOffset; //we remove statusbar height 
+						
+						Rect rect = new Rect();
+						decorView.getWindowVisibleDisplayFrame(rect);
+				        int statusHeight = rect.top;
+				        
+						position[1] -= statusHeight; //we remove statusbar height 
 
 						d.put(TiC.PROPERTY_WIDTH, v.getMeasuredWidth());
 						d.put(TiC.PROPERTY_HEIGHT, v.getMeasuredHeight());
