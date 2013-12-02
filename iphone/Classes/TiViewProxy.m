@@ -701,7 +701,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     return [rect autorelease];
 }
 
--(TiRect*)rect
+-(id)rect
 {
     TiRect *rect = [[TiRect alloc] init];
 	if ([self viewAttached]) {
@@ -730,10 +730,12 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     else {
         [rect setRect:CGRectZero];
     }
-    return [rect autorelease];
+    NSDictionary* result = [rect toJSON];
+    [rect release];
+    return result;
 }
 
--(TiRect*)absoluteRect
+-(id)absoluteRect
 {
     TiRect *rect = [[TiRect alloc] init];
 	if ([self viewAttached]) {
@@ -769,7 +771,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     else {
         [rect setRect:CGRectZero];
     }
-    return [rect autorelease];
+    NSDictionary* result = [rect toJSON];
+    [rect release];
+    return result;
 }
 
 -(id)zIndex

@@ -112,4 +112,17 @@
     }
 }
 
+-(id)description
+{
+	return NSStringFromCGRect(rect);
+}
+
+-(id)toJSON
+{
+	// this is called in the case you try and use JSON.stringify and an object is a proxy
+	// since you can't serialize a proxy as JSON, just return null
+	return @{@"x":NUMFLOAT(rect.origin.x), @"y":NUMFLOAT(rect.origin.y),
+             @"width":NUMFLOAT(rect.size.width), @"height":NUMFLOAT(rect.size.height)};
+}
+
 @end
