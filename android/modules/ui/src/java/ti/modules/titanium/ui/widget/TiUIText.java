@@ -591,20 +591,6 @@ public class TiUIText extends TiUIView
 	}
 
 	@Override
-	public void blur()
-	{
-		if (tv != null) {
-			tv.blur();
-		}
-	}
-	
-	@Override
-	public void focus()
-	{
-		tv.focus();
-	}
-
-	@Override
 	public void onFocusChange(View v, boolean hasFocus)
 	{
 		tv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
