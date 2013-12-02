@@ -18,7 +18,7 @@ import ti.modules.titanium.ui.widget.picker.TiUISpinnerRow;
 import android.app.Activity;
 
 @Kroll.proxy(creatableInModule=UIModule.class)
-public class PickerRowProxy extends TiViewProxy
+public class PickerRowProxy extends ViewProxy
 {
 	private static final String TAG = "PickerRowProxy";
 	private String title = "[PickerRow]";

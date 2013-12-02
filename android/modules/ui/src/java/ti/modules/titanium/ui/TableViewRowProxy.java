@@ -42,7 +42,7 @@ propertyAccessors = {
 	TiC.PROPERTY_HEADER,
 	TiC.PROPERTY_FOOTER
 })
-public class TableViewRowProxy extends TiViewProxy
+public class TableViewRowProxy extends ViewProxy
 {
 	private static final String TAG = "TableViewRowProxy";
 

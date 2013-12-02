@@ -12,7 +12,6 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
@@ -21,7 +20,7 @@ import android.app.Activity;
 	TiC.PROPERTY_HEADER_TITLE,
 	TiC.PROPERTY_FOOTER_TITLE
 })
-public class TableViewSectionProxy extends TiViewProxy
+public class TableViewSectionProxy extends ViewProxy
 {
 	private static final String TAG = "TableViewSectionProxy";
 	protected ArrayList<TableViewRowProxy> rows = new ArrayList<TableViewRowProxy>();

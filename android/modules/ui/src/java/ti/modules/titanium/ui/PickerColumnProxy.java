@@ -26,7 +26,7 @@ import android.os.Message;
 import android.util.Log;
 
 @Kroll.proxy(creatableInModule=UIModule.class)
-public class PickerColumnProxy extends TiViewProxy implements PickerRowListener
+public class PickerColumnProxy extends ViewProxy implements PickerRowListener
 {
 	private static final String TAG = "PickerColumnProxy";
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;

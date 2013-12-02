@@ -9,7 +9,6 @@ package ti.modules.titanium.ui;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.android.AndroidModule;
@@ -31,7 +30,7 @@ propertyAccessors = {
 	TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE,
 	TiC.PROPERTY_BACKGROUND_CHECKED_GRADIENT
 })
-public class SwitchProxy extends TiViewProxy
+public class SwitchProxy extends ViewProxy
 {
 	public SwitchProxy()
 	{

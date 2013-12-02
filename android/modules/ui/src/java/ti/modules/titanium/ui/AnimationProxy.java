@@ -8,7 +8,6 @@ package ti.modules.titanium.ui;
 
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.animation.TiAnimation;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={

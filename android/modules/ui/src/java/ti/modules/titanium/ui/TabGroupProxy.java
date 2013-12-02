@@ -23,14 +23,10 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.TiBlob;
 
 import ti.modules.titanium.ui.widget.tabgroup.TiUIAbstractTabGroup;
 import ti.modules.titanium.ui.widget.tabgroup.TiUIActionBarTabGroup;
-import ti.modules.titanium.ui.widget.tabgroup.TiUITabHostGroup;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Message;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={

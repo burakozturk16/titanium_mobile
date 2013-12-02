@@ -38,22 +38,33 @@ public class ViewProxy extends TiViewProxy
 		view.getLayoutParams().autoFillsWidth = true;
 		return view;
 	}
-	
-	@Override
-	public void add(Object args, @Kroll.argument(optional = true) Object index)
-	{
-		TiViewProxy child = null;
-		if (args instanceof TiViewProxy)
-			child = (TiViewProxy) args;
-		else if (args instanceof HashMap) {
-			child = (ViewProxy) KrollProxy.createProxy(ViewProxy.class, null, new Object[] { args }, null);
-		}
-		super.add(child, index);
-	}
 
 	@Override
 	public String getApiName()
 	{
 		return "Ti.UI.View";
+	}
+	
+	@Override
+	public void add(Object args, @Kroll.argument(optional = true) Object index)
+	{
+		if (args instanceof Object[]) {
+			int i = -1; // no index by default
+			if (index instanceof Number) {
+				i = ((Number)index).intValue();
+			}
+			int arrayIndex = i;
+			for (Object obj : (Object[])args) {
+				add(obj, Integer.valueOf(arrayIndex));
+				if (arrayIndex != -1) arrayIndex ++;
+			}
+			return;
+		}
+		else if (args instanceof HashMap) {
+			super.add((ViewProxy) KrollProxy.createProxy(ViewProxy.class, null, new Object[] { args }, null), index);
+		}
+		else {
+			super.add(args, index);
+		}
 	}
 }

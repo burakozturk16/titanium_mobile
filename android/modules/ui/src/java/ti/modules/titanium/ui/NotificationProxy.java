@@ -16,7 +16,7 @@ import ti.modules.titanium.ui.widget.TiUINotification;
 import android.app.Activity;
 
 @Kroll.proxy(creatableInModule=UIModule.class)
-public class NotificationProxy extends TiViewProxy
+public class NotificationProxy extends ViewProxy
 {
 	public NotificationProxy()
 	{

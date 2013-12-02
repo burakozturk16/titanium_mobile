@@ -9,7 +9,6 @@ package ti.modules.titanium.ui;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUISlider;
@@ -21,7 +20,7 @@ import android.app.Activity;
 	"leftTrackImage","rightTrackImage",
 	TiC.PROPERTY_VALUE
 })
-public class SliderProxy extends TiViewProxy
+public class SliderProxy extends ViewProxy
 {
 	public SliderProxy()
 	{
