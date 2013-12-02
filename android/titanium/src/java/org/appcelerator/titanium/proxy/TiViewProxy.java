@@ -955,11 +955,18 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	protected void handleBlur()
+	protected boolean handleBlur()
 	{
 		if (view != null) {
-			view.blur();
+			if (!view.blur()) {
+				if (children != null) {
+					for (TiViewProxy child : children) {
+						if (child.handleBlur()) return true;
+					}
+				}
+			} else return true;
 		}
+		return false;
 	}
 
 	@Kroll.method

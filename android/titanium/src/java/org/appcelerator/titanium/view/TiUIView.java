@@ -921,7 +921,7 @@ public abstract class TiUIView
 	/**
 	 * Blurs the view.
 	 */
-	public void blur()
+	public boolean blur()
 	{
 		if (nativeView != null && nativeView.hasFocus()) {
 			nativeView.clearFocus();
@@ -934,7 +934,9 @@ public abstract class TiUIView
 
 				}
 			});
+			return true;
 		}
+		return false;
 	}
 
 	public void release()
