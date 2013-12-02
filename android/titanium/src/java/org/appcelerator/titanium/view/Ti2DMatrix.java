@@ -231,8 +231,8 @@ public class Ti2DMatrix extends KrollProxy {
 	
 	public AffineTransform getAffineTransform(Context context, int width, int height, int parentWidth, int parentHeight, boolean decaleFromCenter) {
 		if (transform != null) return transform;
-		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return null;
 		AffineTransform result = new AffineTransform();
+		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return result;
 		for (Operation op : operations) {
 			if (op != null) {
 				op.apply(context, width, height, parentWidth, parentHeight, result, decaleFromCenter);
