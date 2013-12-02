@@ -1,5 +1,4 @@
 var Shape = Ti.Shape;
-Ti.include('akylas.animation.js');
 var isiOS7 = false;
 var isAndroid = Ti.Platform.osname == "android";
 var isApple = Ti.Platform.osname === 'ipad' || Ti.Platform.osname === 'iphone';
@@ -10,7 +9,7 @@ var backColor = 'white';
 var textColor = 'black';
 var navGroup;
 var openWinArgs;
-var html = 'La <font color="red">musique</font> électronique <b>est un type de <big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+var html = '<span style="background-color:green;border-color:black;border-radius:20px">  SUCCESS   </span>  <font color="red">musique</font> électronique <b>est un type de <big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
 if (isAndroid) {
 	backColor = 'black';
 	textColor = 'gray';
@@ -37,9 +36,9 @@ var initWindowArgs = {
 };
 if (isiOS7) {
 	initWindowArgs = merge_options(initWindowArgs, {
-		autoAdjustScrollViewInsets: true,
-		extendEdges: [Ti.UI.EXTEND_EDGE_ALL],
-		translucent: true
+		// autoAdjustScrollViewInsets: true,
+		// extendEdges: [Ti.UI.EXTEND_EDGE_ALL],
+		// translucent: false
 	});
 }
 
@@ -620,9 +619,8 @@ function layout1Ex() {
 	var view = Ti.UI.createView({
 		backgroundColor: 'green',
 		width: 200,
-		height: Ti.UI.FILL,
-		layout: 'horizontal',
-		horizontalWrap: false
+		height: Ti.UI.SIZE,
+		layout: 'horizontal'
 	});
 	var view1 = Ti.UI.createView({
 		backgroundColor: 'red',
@@ -2538,6 +2536,7 @@ function htmlLabelEx() {
 	}));
 	scrollView.add(Ti.UI.createLabel({
 		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_HEAD,
+		truncationString:'_ _',
 		bottom: 20,
 		html: html
 	}));
@@ -3896,7 +3895,7 @@ function listViewLayout() {
 	var template = {
 		properties: {
 			layout: 'horizontal',
-			height: 60
+			backgroundColor:'orange'
 		},
 		childTemplates: [{
 			type: 'Ti.UI.Button',
@@ -3904,6 +3903,7 @@ function listViewLayout() {
 			properties: {
 				width: 40,
 				height: 40,
+				backgroundColor: 'purple',
 				left: 4,
 				right: 4,
 				font: {
@@ -3934,6 +3934,7 @@ function listViewLayout() {
 					bindId: 'tlabel',
 					properties: {
 						top: 2,
+						backgroundColor: 'gray',
 						ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
 						font: {
 							fontSize: 14
@@ -4035,6 +4036,7 @@ function listViewLayout() {
 		'processing'
 	];
 	var listView = createListView({
+		minRowHeight:40,
 		templates: {
 			'template': template
 		},
@@ -4043,6 +4045,9 @@ function listViewLayout() {
 	var items = [];
 	for (var i = 0; i < 100; i++) {
 		items.push({
+			properties: {
+				height:Ti.UI.SIZE
+			},
 			tlabel: {
 				text: names[Math.floor(Math.random() * names.length)]
 			},
@@ -4171,6 +4176,7 @@ function opacityTest() {
 		bubbleParent: false,
 		backgroundColor: 'gray',
 		touchPassThrough: false,
+		dispatchPressed:true,
 		backgroundSelectedGradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
@@ -4186,7 +4192,7 @@ function opacityTest() {
 		title: 'test buutton'
 	});
 	button.add(Ti.UI.createView({
-		enabled: false,
+		enabled: true,
 		backgroundColor: 'purple',
 		backgroundSelectedColor: 'white',
 		left: 10,
@@ -4498,11 +4504,13 @@ listview.sections = [{
 	items: [{
 		properties: {
 			title: 'Transform',
+			height:Ti.UI.FILL,
 			backgroundColor: color
 		},
 		callback: transformExs
 	}, {
 		properties: {
+			height:200,
 			title: 'SlideMenu'
 		},
 		callback: slideMenuEx
@@ -4609,3 +4617,15 @@ mainWin.addEventListener('closeWindow', function(e) {
 	Ti.API.info(e)
 });
 mainWin.open();
+
+var ak = require('akylas.commonjs');
+ak.load(this, { modules:[ 'ti', 'moment', 'animation'], additions:[] });
+ak.ti.loadRjss('$variables'); //load variables
+ak.ti.loadCreatorsFromDir('ui');
+// /RJSS loading
+ak.ti.loadRjssFromDir('rjss');
+
+function textFieldTest() {
+	(new DataPlanAlert()).showMe();
+}
+textFieldTest();
