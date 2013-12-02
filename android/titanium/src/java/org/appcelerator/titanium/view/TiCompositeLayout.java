@@ -385,7 +385,20 @@ public class TiCompositeLayout extends FreeLayout implements
 		// check minimums
 		maxWidth = Math.max(maxWidth, getSuggestedMinimumWidth());
 		maxHeight = Math.max(maxHeight, getSuggestedMinimumHeight());
-
+		
+		ViewGroup.LayoutParams params = getLayoutParams();
+		if (params instanceof LayoutParams) {
+			//if we are fill we need to fill ….
+			LayoutParams p = (LayoutParams)params;
+			if (p.optionWidth == null && p.autoFillsWidth) {
+				maxWidth = w;
+			}
+			if (p.optionHeight == null && p.autoFillsHeight) {
+				maxHeight = h;
+			}
+			
+		}
+		
 		int measuredWidth = getMeasuredWidth(maxWidth, widthMeasureSpec);
 		int measuredHeight = getMeasuredHeight(maxHeight, heightMeasureSpec);
 		setMeasuredDimension(measuredWidth, measuredHeight);
@@ -452,6 +465,8 @@ public class TiCompositeLayout extends FreeLayout implements
 				childDimension);
 
 		child.measure(widthSpec, heightSpec);
+		int wid = child.getMeasuredWidth();
+		int hei = child.getMeasuredHeight();
 		
 		if (p instanceof AnimationLayoutParams) {
 			float fraction = ((AnimationLayoutParams) p).animationFraction;
@@ -736,7 +751,6 @@ public class TiCompositeLayout extends FreeLayout implements
 						MeasureSpec.EXACTLY);
 				child.measure(newWidthSpec, newHeightSpec);
 			}
-
 			child.layout(horizontal[0], vertical[0], horizontal[1], vertical[1]);
 			currentHeight += newHeight;
 	
