@@ -701,14 +701,16 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (args instanceof TiViewProxy)
 			child = (TiViewProxy) args;
 		
-		int i = -1; // no index by default
-		if (index instanceof Number) {
-			i = ((Number)index).intValue();
-		}
 		if (child == null) {
 			Log.e(TAG, "Add called with a null child");
 			return;
 		}
+
+		int i = -1; // no index by default
+		if (index instanceof Number) {
+			i = ((Number)index).intValue();
+		}
+		
 
 		if (children == null) {
 			children = new ArrayList<TiViewProxy>();
