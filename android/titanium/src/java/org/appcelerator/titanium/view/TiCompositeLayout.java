@@ -72,12 +72,9 @@ public class TiCompositeLayout extends FreeLayout implements
 	private int horizontalLayoutLastIndexBeforeWrap = 0;
 	private int horiztonalLayoutPreviousRight = 0;
 
-	private float alpha = 1.0f;
-
 	private WeakReference<TiUIView> view;
 	private static final int HAS_SIZE_FILL_CONFLICT = 1;
 	private static final int NO_SIZE_FILL_CONFLICT = 2;
-	private static final boolean dispatchAlpha = (Build.VERSION.SDK_INT < 11);
 	
 	private TiDimension mMaxWidth = null;
 	private TiDimension mMaxHeight = null;
