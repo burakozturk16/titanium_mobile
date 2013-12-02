@@ -6,7 +6,7 @@
     android:focusableInTouchMode="false"
     android:orientation="horizontal" >
 
-    <org.appcelerator.titanium.view.TiCompositeLayout
+    <ti.modules.titanium.ui.widget.listview.TiBaseListViewItemHolder
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:focusable="false"
@@ -14,10 +14,10 @@
 
         <ti.modules.titanium.ui.widget.listview.TiBaseListViewItem
             android:id="@+id/titanium_ui_list_item_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"  />
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"  />
 
-    </org.appcelerator.titanium.view.TiCompositeLayout>
+    </ti.modules.titanium.ui.widget.listview.TiBaseListViewItemHolder>
 
     <ImageView
         android:id="@+id/titanium_ui_list_item_accessoryType"
