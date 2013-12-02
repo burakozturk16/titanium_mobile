@@ -3091,18 +3091,20 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			}
         }
         
+        if (!childIsFixedHeight)
+        {
+            computeAutoSize();
+            bounds.size.height = autoSize.height + offsetV;
+        }
+        else {
+            bounds.size.height += offsetV;
+        }
+        
         if (horizontalWrap && (desiredWidth > boundingWidth)) {
             if (horizontalLayoutBoundary == 0.0) {
                 //This is start of row
                 bounds.origin.x = horizontalLayoutBoundary;
                 bounds.origin.y = verticalLayoutBoundary;
-                if (!childIsFixedHeight)
-                {
-                    //TIMOB-11998. minimumParentHeightForSize:CGSize will limit width anyways. Pass bounding width here
-                    //desiredHeight = [child minimumParentHeightForSize:CGSizeMake(desiredWidth,boundingHeight)];
-                    computeAutoSize();
-                    bounds.size.height = autoSize.height + offsetH;
-                }
                 verticalLayoutBoundary += bounds.size.height;
                 horizontalLayoutRowHeight = 0.0;
             }
@@ -3119,44 +3121,21 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 
                 if (!recalculateWidth) {
                     if (desiredWidth < boundingWidth) {
-                        if (!childIsFixedHeight)
-                        {
-                            //TIMOB-11998. minimumParentHeightForSize:CGSize will limit width anyways. Pass bounding width here
-                            //desiredHeight = [child minimumParentHeightForSize:CGSizeMake(desiredWidth,boundingHeight)];
-                            
-                            computeAutoSize();
-                            bounds.size.height = autoSize.height;
-                        }
                         horizontalLayoutBoundary += desiredWidth;
                         bounds.size.width = desiredWidth;
                         horizontalLayoutRowHeight = bounds.size.height;
                     }
                     else {
-                        //Will take up whole row
-                        if (!childIsFixedHeight)
-                        {
-                            computeAutoSize();
-                            bounds.size.height = autoSize.height;
-                        }
                         verticalLayoutBoundary += bounds.size.height;
                     }
                 }
                 else if (followsFillBehavior) {
-                    //Will take up whole row
-                    if (!childIsFixedHeight)
-                    {
-                        computeAutoSize();
-                        bounds.size.height = autoSize.height;
-                    }
+
                     verticalLayoutBoundary += bounds.size.height;
                 }
                 else {
                     computeAutoSize();
                     desiredWidth = autoSize.width + offsetH;
-                    if (!childIsFixedHeight)
-                    {
-                        bounds.size.height = autoSize.height;
-                    }
                     if (desiredWidth < boundingWidth) {
                         
                         bounds.size.width = desiredWidth;
@@ -3172,11 +3151,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
         else {
             //If it fits update the horizontal layout row height
-            if (!childIsFixedHeight)
-            {
-                computeAutoSize();
-                bounds.size.height = autoSize.height;
-            }
             bounds.origin.x = horizontalLayoutBoundary;
             bounds.origin.y = verticalLayoutBoundary;
             
