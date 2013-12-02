@@ -481,7 +481,7 @@ static NSSet* transferableProps = nil;
 
 -(void)handlePendingAnimation
 {
-    if (![self view]) {
+    if (!view) { //dont use [self view] as we also handlePendingAnimation inside (thread lock!)
         return;
     }
     [super handlePendingAnimation];
