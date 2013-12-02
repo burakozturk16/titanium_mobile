@@ -14,6 +14,7 @@ public class TiC
 
 {
 	public static final int API_LEVEL_HONEYCOMB = 11;
+	public static final int API_LEVEL_HONEYCOMB_MR1 = 12;
 	public static final int API_LEVEL_ICE_CREAM_SANDWICH = 14;
 	public static final int API_LEVEL_JELLY_BEAN = 16;
 	public static final String ERROR_PROPERTY_CODE = "code";
