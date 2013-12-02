@@ -1215,7 +1215,7 @@ public abstract class TiUIView
 	public void registerForTouch()
 	{
 		if (allowRegisterForTouch()) {
-			registerForTouch(getNativeView());
+			registerForTouch(getTouchView());
 		}
 	}
 
@@ -1546,7 +1546,7 @@ public abstract class TiUIView
 		return TiBlob.blobFromImage(bitmap);
 	}
 
-	private View getTouchView()
+	protected View getTouchView()
 	{
 		if (nativeView != null) {
 			return nativeView;
