@@ -256,7 +256,7 @@ public class KrollAPIUpdater
 	}
 	
 	private void generateAPIJavaMap(String moduleDir) {
-		String destDir = moduleDir + "/src/java/org/appcelerator/kroll/common";
+		String destDir = moduleDir + "/generated/java/org/appcelerator/kroll/common";
 		// System.err.println("this.proxies: " + this.proxies.toString());
 		Configuration fmConfig = new Configuration();
 		fmConfig.setObjectWrapper(new DefaultObjectWrapper());

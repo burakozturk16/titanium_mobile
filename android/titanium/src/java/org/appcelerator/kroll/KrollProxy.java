@@ -66,7 +66,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_CALL_PROPERTY_SYNC = KrollObject.MSG_LAST_ID + 110;
 	protected static final int MSG_MODEL_APPLY_PROPERTIES = KrollObject.MSG_LAST_ID + 111;
 	protected static final int MSG_UPDATE_KROLL_PROPERTIES = KrollObject.MSG_LAST_ID + 112;
-	protected static final int MSG_LAST_ID = MSG_MODEL_APPLY_PROPERTIES;
+	protected static final int MSG_LAST_ID = MSG_UPDATE_KROLL_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
 
