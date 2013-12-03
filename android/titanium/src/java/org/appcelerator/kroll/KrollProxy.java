@@ -896,9 +896,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	public boolean doFireEvent(String event, Object data)
 	{
-//		if (!hierarchyHasListener(event)) {
-//			return false;
-//		}
+		if (!hierarchyHasListener(event)) {
+			return false;
+		}
 
 		boolean bubbles = false;
 		boolean reportSuccess = false;
