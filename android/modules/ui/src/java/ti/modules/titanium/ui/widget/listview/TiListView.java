@@ -276,7 +276,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		private void setBoundsForBaseItem(TiBaseListViewItem item)  {
 			//here the parent cant be null as we inflated
 			TiBaseListViewItemHolder holder = (TiBaseListViewItemHolder) item.getParent();
-			holder.setListViewHeight(listView.getMeasuredHeight());
+			holder.setListView(listView);
 			String minRowHeight = MIN_ROW_HEIGHT;
 			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
 				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
