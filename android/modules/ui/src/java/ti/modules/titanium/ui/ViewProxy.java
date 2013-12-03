@@ -10,29 +10,28 @@ import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.APIMap;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiViewProxy;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiView;
 import android.app.Activity;
 
-@Kroll.proxy(creatableInModule=UIModule.class)
-public class ViewProxy extends TiViewProxy
-{
-	public ViewProxy()
-	{
+@Kroll.proxy(creatableInModule = UIModule.class)
+public class ViewProxy extends TiViewProxy {
+	public ViewProxy() {
 		super();
 	}
 
-	public ViewProxy(TiContext tiContext)
-	{
+	public ViewProxy(TiContext tiContext) {
 		this();
 	}
 
 	@Override
-	public TiUIView createView(Activity activity)
-	{
+	public TiUIView createView(Activity activity) {
 		TiUIView view = new TiView(this);
 		view.getLayoutParams().autoFillsHeight = true;
 		view.getLayoutParams().autoFillsWidth = true;
@@ -40,8 +39,7 @@ public class ViewProxy extends TiViewProxy
 	}
 
 	@Override
-	public String getApiName()
-	{
+	public String getApiName() {
 		return "Ti.UI.View";
 	}
 
@@ -50,13 +48,15 @@ public class ViewProxy extends TiViewProxy
 			KrollProxy rootProxy) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				getApiName());
-		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES))?template_.get(TiC.PROPERTY_PROPERTIES):template_;
+		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
+				.get(TiC.PROPERTY_PROPERTIES) : template_;
 		try {
 			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
 					.forName(APIMap.getProxyClass(type));
 			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
 					new Object[] { properties }, null);
-			if (proxy == null) return null;
+			if (proxy == null)
+				return null;
 			proxy.updateKrollObjectProperties();
 			if (rootProxy != null
 					&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
@@ -65,17 +65,19 @@ public class ViewProxy extends TiViewProxy
 						proxy);
 			}
 			if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
-				Object childProperties = template_.get(TiC.PROPERTY_CHILD_TEMPLATES);
+				Object childProperties = template_
+						.get(TiC.PROPERTY_CHILD_TEMPLATES);
 				if (childProperties instanceof Object[]) {
 					Object[] propertiesArray = (Object[]) childProperties;
 					for (int i = 0; i < propertiesArray.length; i++) {
 						Object childDict = propertiesArray[i];
 						if (childDict instanceof TiViewProxy) {
-							proxy.add((TiViewProxy)childDict);
-						}
-						else {
-							TiViewProxy childProxy = createViewFromTemplate((HashMap) childDict, rootProxy);
-							if (childProxy != null) proxy.add(childProxy);
+							proxy.add((TiViewProxy) childDict);
+						} else {
+							TiViewProxy childProxy = createViewFromTemplate(
+									(HashMap) childDict, rootProxy);
+							if (childProxy != null)
+								proxy.add(childProxy);
 						}
 					}
 				}
@@ -102,8 +104,10 @@ public class ViewProxy extends TiViewProxy
 			}
 			return;
 		} else if (args instanceof HashMap) {
-			TiViewProxy childProxy = createViewFromTemplate((HashMap) args, this);
-			if (childProxy != null) add(childProxy);
+			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
+					this);
+			if (childProxy != null)
+				add(childProxy);
 		} else {
 			super.add(args, index);
 		}
