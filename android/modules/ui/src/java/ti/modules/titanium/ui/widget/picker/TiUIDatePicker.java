@@ -63,31 +63,41 @@ public class TiUIDatePicker extends TiUIView
         DatePicker picker = (DatePicker) getNativeView();
 
         if (d.containsKey("value")) {
-        	calendar.setTime((Date) d.get("value"));
-            valueExistsInProxy = true;
+        	Object date = d.get("value");
+        	if (date != null) {
+        		calendar.setTime((Date) date);
+        		valueExistsInProxy = true;
+        	}
         }   
         if (d.containsKey("minDate")) {
-        	Calendar minDateCalendar = Calendar.getInstance();
-        	minDateCalendar.setTime((Date) d.get("minDate"));
-        	minDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        	minDateCalendar.set(Calendar.MINUTE, 0);
-        	minDateCalendar.set(Calendar.SECOND, 0);
-        	minDateCalendar.set(Calendar.MILLISECOND, 0);
-
-        	this.minDate = minDateCalendar.getTime();
+        	Object date = d.get("minDate");
+        	if (date != null) {
+	        	Calendar minDateCalendar = Calendar.getInstance();
+	        	minDateCalendar.setTime((Date) date);
+	        	minDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
+	        	minDateCalendar.set(Calendar.MINUTE, 0);
+	        	minDateCalendar.set(Calendar.SECOND, 0);
+	        	minDateCalendar.set(Calendar.MILLISECOND, 0);
+	
+	        	this.minDate = minDateCalendar.getTime();
+        	}
         }
         if (d.containsKey(TiC.PROPERTY_CALENDAR_VIEW_SHOWN)) {
         	setCalendarView(TiConvert.toBoolean(d, TiC.PROPERTY_CALENDAR_VIEW_SHOWN));
         }
         if (d.containsKey("maxDate")) {
-        	Calendar maxDateCalendar = Calendar.getInstance();
-        	maxDateCalendar.setTime((Date) d.get("maxDate"));
-        	maxDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
-        	maxDateCalendar.set(Calendar.MINUTE, 0);
-        	maxDateCalendar.set(Calendar.SECOND, 0);
-        	maxDateCalendar.set(Calendar.MILLISECOND, 0);
+        	Object date = d.get("maxDate");
+        	if (date != null) {
+        		Calendar maxDateCalendar = Calendar.getInstance();
+            	maxDateCalendar.setTime((Date) date);
+            	maxDateCalendar.set(Calendar.HOUR_OF_DAY, 0);
+            	maxDateCalendar.set(Calendar.MINUTE, 0);
+            	maxDateCalendar.set(Calendar.SECOND, 0);
+            	maxDateCalendar.set(Calendar.MILLISECOND, 0);
 
-        	this.maxDate = maxDateCalendar.getTime();
+            	this.maxDate = maxDateCalendar.getTime();
+        	}
+        	
         }
         if (d.containsKey("minuteInterval")) {
             int mi = d.getInt("minuteInterval");
