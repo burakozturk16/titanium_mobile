@@ -549,6 +549,7 @@ Common ant tasks and macros for building Android-based Titanium modules and proj
 			<arg value="${toString:kroll.apt.path}"/>
 			<arg value="org.appcelerator.kroll.annotations.generator.KrollAPIUpdater"/>
 			<arg value="${dist.dir}"/>
+			<arg value="${kroll.common.project.dir}"/>
 
 			<fileset dir="${dist.json.dir}" includes="**/*.json"/>
 		</apply>

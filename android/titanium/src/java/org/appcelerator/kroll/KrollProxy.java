@@ -11,6 +11,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,6 +65,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_CALL_PROPERTY_ASYNC = KrollObject.MSG_LAST_ID + 109;
 	protected static final int MSG_CALL_PROPERTY_SYNC = KrollObject.MSG_LAST_ID + 110;
 	protected static final int MSG_MODEL_APPLY_PROPERTIES = KrollObject.MSG_LAST_ID + 111;
+	protected static final int MSG_UPDATE_KROLL_PROPERTIES = KrollObject.MSG_LAST_ID + 112;
 	protected static final int MSG_LAST_ID = MSG_MODEL_APPLY_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
@@ -606,6 +608,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
+	public void updateKrollObjectProperties()
+	{
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			doUpdateKrollObjectProperties();
+
+		} else {
+			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES);
+			message.sendToTarget();
+		}
+	}
 	
 	/**
 	 * This sets the named property as well as updating the actual JS object.
@@ -765,6 +777,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		getKrollObject().setProperty(name, value);
 	}
+	
+
+	private void doUpdateKrollObjectProperties()
+	{
+		getKrollObject().updateNativeProperties(getProperties());
+	}
 
 	@Kroll.getProperty @Kroll.method
 	public boolean getBubbleParent()
@@ -878,9 +896,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	public boolean doFireEvent(String event, Object data)
 	{
-		if (!hierarchyHasListener(event)) {
-			return false;
-		}
+//		if (!hierarchyHasListener(event)) {
+//			return false;
+//		}
 
 		boolean bubbles = false;
 		boolean reportSuccess = false;
@@ -1241,6 +1259,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				getKrollObject().callProperty(propertyName, args);
 				asyncResult.setResult(null);
 
+				return true;
+			}
+			case MSG_UPDATE_KROLL_PROPERTIES: {
+				doUpdateKrollObjectProperties();
 				return true;
 			}
 		}
