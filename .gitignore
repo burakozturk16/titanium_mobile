@@ -26,5 +26,3 @@ anvil/driver/node_modules/*
 */gen
 */bin
 *.sublime-workspace
-
-/android/runtime/common/src/java/org/appcelerator/kroll/common/APIMap.java
