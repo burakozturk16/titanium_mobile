@@ -48,7 +48,7 @@
     
     CGSize result = [[self label] sizeThatFits:maxSize];
     result.width = MIN(result.width,  maxSize.width);
-    result.height = MIN(result.height,  size.height);
+    if (size.height > 0) result.height = MIN(result.height,  size.height);
     if (label.numberOfLines > 0 || label.attributedText != nil) {
         CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,result.width, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
         
