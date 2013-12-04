@@ -4401,63 +4401,54 @@ function imageViewAnimationTest() {
 		viewMask: '/images/body-mask.png'
 	});
 	win.add(image1);
-	var bthHolder = Ti.UI.createView({
+	var btnHolder = Ti.UI.createView({
 		left: 0,
 		layout: 'vertical',
 		height: Ti.UI.SIZE,
 		width: Ti.UI.SIZE,
 		backgroundColor: 'green'
 	});
-	var btn = Ti.UI.createButton({
-		title: 'start'
+	btnHolder.add([
+		{type:'Ti.UI.Button', left:0, bid:0,title: 'start'},
+		{type:'Ti.UI.Button', right:0, bid:1,title: 'pause'},
+		{type:'Ti.UI.Button', left:0, bid:2,title: 'resume'},
+		{type:'Ti.UI.Button', right:0, bid:3,title: 'playpause'},
+		{type:'Ti.UI.Button', left:0, bid:4,title: 'stop'},
+		{type:'Ti.UI.Button', right:0, bid:5,title: 'reverse'},
+		{type:'Ti.UI.Button', left:0, bid:6,title: 'autoreverse'},
+		{type:'Ti.UI.Button', right:0, bid:7,title: 'transition'}
+	]);
+	btnHolder.addEventListener('singletap', function(e) {
+		info(stringify(e));
+		switch (e.source.bid) {
+			case 0:
+				image1.start();
+				break;
+			case 1:
+				image1.pause();
+				break;
+			case 2:
+				image1.resume();
+				break;
+			case 3:
+				image1.pauseOrResume();
+				break;
+			case 4:
+				image1.stop();
+				break;
+			case 5:
+				image1.reverse = !image1.reverse;
+				break;
+			case 6:
+				image1.autoreverse = !image1.autoreverse;
+				break;
+			case 7:
+				choseTransition(image1, 'transition');
+				break;
+
+		}
 	});
-	btn.addEventListener('singletap', function() {
-		image1.start();
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'pause'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.pause();
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'resume'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.resume();
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'playpause'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.pauseOrResume();
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'stop'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.stop();
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'reverse'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.reverse = !image1.reverse;
-	});
-	bthHolder.add(btn);
-	btn = Ti.UI.createButton({
-		title: 'autoreverse'
-	});
-	btn.addEventListener('singletap', function() {
-		image1.autoreverse = !image1.autoreverse;
-	});
-	bthHolder.add(btn);
-	win.add(bthHolder);
+	win.add(btnHolder);
 	openWin(win);
 }
 
