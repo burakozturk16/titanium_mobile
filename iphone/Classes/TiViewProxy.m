@@ -2752,7 +2752,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     }
     return NO;
 }
-
 -(NSArray*)measureChildren:(NSArray*)childArray
 {
     if ([childArray count] == 0) {
@@ -2762,16 +2761,18 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     BOOL horizontal =  TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle);
     BOOL vertical =  TiLayoutRuleIsVertical(layoutProperties.layoutStyle);
 	BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+	BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
     NSMutableArray * measuredBounds = [NSMutableArray arrayWithCapacity:[childArray count]];
     NSUInteger i, count = [childArray count];
 	int maxHeight = 0;
     
+    NSMutableArray * widthFillChildren = horizontal?[NSMutableArray array]:nil;
+    NSMutableArray * heightFillChildren = (vertical || horizontalWrap)?[NSMutableArray array]:nil;
     CGFloat widthNonFill = 0;
     CGFloat heightNonFill = 0;
-    int nbWidthAutoFill = 0;
-    int nbHeightAutoFill = 0;
+    
     //First measure the sandbox bounds
-    for (id child in childArray) 
+    for (id child in childArray)
     {
         TiRect * childRect = [[TiRect alloc] init];
         CGRect childBounds = CGRectZero;
@@ -2788,7 +2789,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 				maxHeight = MAX(maxHeight, bounds.size.height);
                 if ([child wantsToFillHorizontalLayout])
                 {
-                    nbWidthAutoFill += 1;
+                    [widthFillChildren addObject:child];
                 }
                 else{
                     widthNonFill += bounds.size.width;
@@ -2798,7 +2799,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             if (vertical) {
                 if ([child wantsToFillVerticalLayout])
                 {
-                    nbHeightAutoFill += 1;
+                    [heightFillChildren addObject:child];
                 }
                 else{
                     heightNonFill += bounds.size.height;
@@ -2814,27 +2815,41 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         [measuredBounds addObject:childRect];
         [childRect release];
     }
-    
     //If it is a horizontal layout ensure that all the children in a row have the
     //same height for the sandbox
+    
+    int nbWidthAutoFill = [widthFillChildren count];
+    if (nbWidthAutoFill > 0) {
+        UIView * ourView = [self parentViewForChild:[childArray objectAtIndex:0]];
+        if (ourView != nil)
+        {
+            CGRect bounds = [ourView bounds];
+            for (id child in widthFillChildren) {
+                int index = [childArray indexOfObject:child];
+                [(TiRect*)[measuredBounds objectAtIndex:index] setWidth:[NSNumber numberWithFloat:((bounds.size.width - widthNonFill) / nbWidthAutoFill)]];
+            }
+        }
+    }
+    
+    int nbHeightAutoFill = [heightFillChildren count];
+    if (nbHeightAutoFill > 0) {
+        UIView * ourView = [self parentViewForChild:[childArray objectAtIndex:0]];
+        if (ourView != nil)
+        {
+            CGRect bounds = [ourView bounds];
+            for (id child in heightFillChildren) {
+                int index = [childArray indexOfObject:child];
+                [(TiRect*)[measuredBounds objectAtIndex:index] setHeight:[NSNumber numberWithFloat:((bounds.size.height - heightNonFill) / nbHeightAutoFill)]];
+            }
+        }
+    }
 	if (horizontalNoWrap)
 	{
         int currentLeft = 0;
-		for (i=0; i<count; i++) 
+		for (i=0; i<count; i++)
 		{
-            id child = [childArray objectAtIndex:i];
-            UIView * ourView = [self parentViewForChild:child];
-            if (ourView != nil)
-            {
-                if (TiDimensionIsAutoFill([child layoutProperties]->width))
-                {
-                    CGRect bounds = [ourView bounds];
-                    [(TiRect*)[measuredBounds objectAtIndex:i] setWidth:[NSNumber numberWithInt:(([ourView bounds].size.width - widthNonFill) / nbWidthAutoFill)]];
-
-                }
-                [(TiRect*)[measuredBounds objectAtIndex:i] setX:[NSNumber numberWithInt:currentLeft]];
-                currentLeft += [[(TiRect*)[measuredBounds objectAtIndex:i] width] integerValue];
-            }
+            [(TiRect*)[measuredBounds objectAtIndex:i] setX:[NSNumber numberWithInt:currentLeft]];
+            currentLeft += [[(TiRect*)[measuredBounds objectAtIndex:i] width] integerValue];
 			[(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
 		}
 	}
@@ -2843,42 +2858,31 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         int currentTop = 0;
 		for (i=0; i<count; i++)
 		{
-            id child = [childArray objectAtIndex:i];
-            UIView * ourView = [self parentViewForChild:child];
-            if (ourView != nil)
-            {
-                if (TiDimensionIsAutoFill([child layoutProperties]->height))
-                {
-                    CGRect bounds = [ourView bounds];
-                    [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:((bounds.size.height - heightNonFill) / nbHeightAutoFill)]];
-                    
-                }
-                [(TiRect*)[measuredBounds objectAtIndex:i] setY:[NSNumber numberWithInt:currentTop]];
-                currentTop += [[(TiRect*)[measuredBounds objectAtIndex:i] height] integerValue];
-            }
+            [(TiRect*)[measuredBounds objectAtIndex:i] setY:[NSNumber numberWithInt:currentTop]];
+            currentTop += [[(TiRect*)[measuredBounds objectAtIndex:i] height] integerValue];
 		}
     }
 	else if(horizontal && (count > 1) )
     {
         int startIndex,endIndex, currentTop;
         startIndex = endIndex = maxHeight = currentTop = -1;
-        for (i=0; i<count; i++) 
+        for (i=0; i<count; i++)
         {
             CGRect childSandbox = (CGRect)[(TiRect*)[measuredBounds objectAtIndex:i] rect];
-            if (startIndex == -1) 
+            if (startIndex == -1)
             {
                 //FIRST ELEMENT
                 startIndex = i;
                 maxHeight = childSandbox.size.height;
                 currentTop = childSandbox.origin.y;
             }
-            else 
+            else
             {
-                if (childSandbox.origin.y != currentTop) 
+                if (childSandbox.origin.y != currentTop)
                 {
                     //MOVED TO NEXT ROW
                     endIndex = i;
-                    for (int j=startIndex; j<endIndex; j++) 
+                    for (int j=startIndex; j<endIndex; j++)
                     {
                         [(TiRect*)[measuredBounds objectAtIndex:j] setHeight:[NSNumber numberWithInt:maxHeight]];
                     }
@@ -2897,7 +2901,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         if (endIndex == -1)
         {
             //LAST ROW
-            for (i=startIndex; i<count; i++) 
+            for (i=startIndex; i<count; i++)
             {
                 [(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
             }
