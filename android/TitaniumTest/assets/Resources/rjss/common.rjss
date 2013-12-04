@@ -158,18 +158,6 @@ ViewWithHeader {
     visible:true
 }
 
-#disconnectedAlert {
-    cancel : 0,
-    buttonNames : ['Cancel', 'Connect'],
-    message : 'The VPN is currently not active, do you want to activate it?',
-    title : 'Disconnected'
-}
-
-#welcomeAlert {
-    buttonNames : ['Later', 'Yes'],
-    message : 'Setup your data plan?',
-    title : 'Welcome To Datasquasher'
-}
 
 .WebView {
     top:0,bottom:0, left:0,right:0,
@@ -203,5 +191,5 @@ ViewWithHeader {
     bottom: 0,
     layout: 'vertical',
     height: Ti.UI.SIZE,
-    backgroundColor: '#eeffffff'
+    backgroundColor: '#ee000000'
 }

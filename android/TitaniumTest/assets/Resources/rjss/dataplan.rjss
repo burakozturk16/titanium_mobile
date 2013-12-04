@@ -6,7 +6,7 @@
 
 #cellularPlanAlert {
     buttonNames : ['Cancel', 'Save'],
-    title : 'My Cellular Plan'
+    title : 'Test Alert',
 }
 
 .DataPlanAlertView {
@@ -58,7 +58,7 @@ DataPlanView {
 
 
 #dpTypeDesc {
-    text: 'Select Plan Type:'
+    text: 'Another text:'
 }
 
 #dpExpTF {
@@ -81,26 +81,26 @@ DataPlanView {
 
 #dpContractButton {
 	width:Ti.UI.FILL,
-	title:'Contract/Post Paid'
+	title:'Button2'
 }
 
 #dpPayButton {
 	width:Ti.UI.FILL,
-	title:'Pay As You Go/Pre Paid'
+	title:'Button1'
 }
 
 #dpExpDesc {
-	text: 'Days Until Expiration:'
+	text: 'Test'
 }
 
 #dpStartDesc {
-	text: 'Starting Date:'
+	text: 'Test1'
 }
 
 #dpSizeDesc {
-	text: 'Select Plan Size:'
+	text: 'Test2'
 }
 
 #dpViewDesc {
-	text: 'View In:'
+	text: 'Test3'
 }

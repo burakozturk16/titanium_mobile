@@ -84,14 +84,14 @@ ak.ti.constructors.createDataPlanView = function(_args) {
 	});
 	self.add([
 		new Label({rclass:'DPInfoLabel', rid:'dpTypeDesc'}),
-		createButtonPicker(['Contract/Post Paid', 'Pay As You Go/Pre Paid'], 'type'),
+		createButtonPicker(['Button1', 'Button2'], 'type'),
 		new Label({rclass:'DPInfoLabel', rid:'dpExpDesc'}),
 		expTF,
 		new Label({rclass:'DPInfoLabel', rid:'dpStartDesc'}),
 		startTF,
 		new Label({rclass:'DPInfoLabel', rid:'dpSizeDesc'}),
 		sizeTF,
-		createButtonPicker(['MB', 'GB'], 'view'),
+		createButtonPicker(['Button1', 'Button2'], 'view'),
 		new View({height:15})]);
 	return self;
 };
