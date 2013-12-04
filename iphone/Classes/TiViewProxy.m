@@ -2589,6 +2589,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
         UIView *parentView = [parent parentViewForChild:self];
         CGSize referenceSize = (parentView != nil) ? parentView.bounds.size : sandboxBounds.size;
+        if (CGSizeEqualToSize(referenceSize, CGSizeZero)) {
+            repositioning = NO;
+            return;
+        }
         if (parent != nil && (!TiLayoutRuleIsAbsolute([parent layoutProperties]->layoutStyle)) ) {
             sizeCache.size = SizeConstraintViewWithSizeAddingResizing(&layoutProperties,self, sandboxBounds.size, &autoresizeCache);
         }
