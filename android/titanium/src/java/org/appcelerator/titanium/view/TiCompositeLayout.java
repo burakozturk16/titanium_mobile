@@ -245,6 +245,40 @@ public class TiCompositeLayout extends FreeLayout implements
 		padding += getLayoutOptionAsPixels(params.optionBottom, TiDimension.TYPE_BOTTOM, params, parent);
 		return padding;
 	}
+	
+	private boolean viewShouldFillHorizontalLayout(View view, LayoutParams params)
+	{
+		if (params.sizeOrFillWidthEnabled == false) return false;
+		if (params.autoFillsWidth) return true;
+		if (view instanceof ViewGroup) {
+			ViewGroup viewGroup = (ViewGroup)view;
+	        for (int i=0; i<viewGroup.getChildCount(); i++) {
+	            View child = viewGroup.getChildAt(i);
+	        	ViewGroup.LayoutParams childParams = child.getLayoutParams();
+	        	if (childParams instanceof LayoutParams && viewShouldFillHorizontalLayout(child, (LayoutParams) childParams)) {
+	        		return true;
+	        	}
+	        }
+		}
+		return false;
+	}
+	
+	private boolean viewShouldFillVerticalLayout(View view, LayoutParams params)
+	{
+		if (params.sizeOrFillHeightEnabled == false) return false;
+		if (params.autoFillsHeight) return true;
+		if (view instanceof ViewGroup) {
+			ViewGroup viewGroup = (ViewGroup)view;
+	        for (int i=0; i<viewGroup.getChildCount(); i++) {
+	            View child = viewGroup.getChildAt(i);
+	        	ViewGroup.LayoutParams childParams = child.getLayoutParams();
+	        	if (childParams instanceof LayoutParams && viewShouldFillVerticalLayout(child, (LayoutParams) childParams)) {
+	        		return true;
+	        	}
+	        }
+		}
+		return false;
+	}
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -269,6 +303,10 @@ public class TiCompositeLayout extends FreeLayout implements
 		List<View> autoFillWidthViews = new ArrayList<View>();
 		List<View> autoFillHeightViews = new ArrayList<View>();
 
+		boolean horizontal = isHorizontalArrangement();
+		boolean horizontalNoWrap = horizontal && !enableHorizontalWrap;
+		boolean horizontalWrap = horizontal && enableHorizontalWrap;
+		boolean vertical = isVerticalArrangement();
 		for (int i = 0; i < childCount; i++) {
 			View child = getChildAt(i);
 			if (child.getVisibility() == View.INVISIBLE
@@ -277,15 +315,12 @@ public class TiCompositeLayout extends FreeLayout implements
 			}
 			TiCompositeLayout.LayoutParams params = (TiCompositeLayout.LayoutParams) child
 					.getLayoutParams();
-
 			Boolean needsProcessing = true;
-			if (isHorizontalArrangement() && !enableHorizontalWrap
-					&& params.sizeOrFillWidthEnabled && params.autoFillsWidth) {
+			if (horizontalNoWrap && viewShouldFillHorizontalLayout(child, params)) {
 				autoFillWidthViews.add(child);
 				needsProcessing = false;
 			}
-			if ((isVerticalArrangement() || (isHorizontalArrangement() && enableHorizontalWrap))
-					&& params.sizeOrFillHeightEnabled && params.autoFillsHeight) {
+			if ((vertical || horizontalWrap) && viewShouldFillVerticalLayout(child, params)) {
 				autoFillHeightViews.add(child);
 				needsProcessing = false;
 			}
@@ -300,7 +335,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			int childWidth = child.getMeasuredWidth() + widthPadding;
 			int childHeight = child.getMeasuredHeight() + heightPadding;
 
-			if (isHorizontalArrangement()) {
+			if (horizontal) {
 				if (enableHorizontalWrap) {
 
 					if ((horizontalRowWidth + childWidth) > w) {
@@ -325,7 +360,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			} else {
 				maxWidth = Math.max(maxWidth, childWidth);
 
-				if (isVerticalArrangement()) {
+				if (vertical) {
 					maxHeight += childHeight;
 				} else {
 					maxHeight = Math.max(maxHeight, childHeight);
@@ -371,7 +406,7 @@ public class TiCompositeLayout extends FreeLayout implements
 		}
 
 		// Add height for last row in horizontal layout
-		if (isHorizontalArrangement()) {
+		if (horizontal) {
 			maxHeight += horizontalRowHeight;
 		}
 
