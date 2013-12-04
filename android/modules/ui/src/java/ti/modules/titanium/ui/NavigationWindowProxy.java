@@ -256,12 +256,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("closeWindow", options);
 		}
+		
+		if (!opened || opening) {
+			handleWindowClosed(toRemove);
+			return true;
+		}
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
 		if (viewToRemoveFrom != null) {
 			final View viewToRemove = toRemove.getOuterView();
-			final View viewToFocus = winToFocus.getOuterView();
+			final View viewToFocus = winToFocus.getOrCreateView().getOuterView();
 			viewToFocus.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
 			if (transition != null && animated) {
@@ -327,18 +332,22 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Override
 	public void onWindowActivityCreated()
 	{
+		if (windows.size() == 0) {
+			WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
+			handlePush(proxy, true, null);
+		}
+		
 		if (opened == true) { 
-			
-			if (windows.size() == 0) {
-				WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
-				handlePush(proxy, true, null);
-			}
 			((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
 			updateHomeButton(getCurrentWindow());
 			super.onWindowActivityCreated();
 			return;
 		}
 		else {
+			TiBaseActivity activity = (TiBaseActivity) getActivity();
+			for (TiWindowProxy window : windows) {
+				window.setActivity(activity);
+			}
 			opened = true; //because handlePush needs this
 			opening = false;
 			updateHomeButton(getCurrentWindow());
@@ -348,7 +357,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
 				proxy.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
 			}
-			handlePush(proxy, true, null);
+			handlePush(getCurrentWindow(), true, null);
 		}
 	}
 	
@@ -393,13 +402,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void handlePush(final TiWindowProxy proxy, boolean isFirst, Object arg) 
 	{
-		if (!opened || opening) {
-			pushing = false;
-			return;
-		}
-
 		int index = windows.indexOf(proxy);
-		if (index >=0 ){
+		if (index >=0 && !isFirst){
 			poping = false;
 			popUpToWindow(proxy, arg);
 			return;
@@ -422,6 +426,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put(TiC.PROPERTY_ANIMATED, animated);
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("openWindow", options);
+		}
+		if (!opened || opening) {
+			addWindow(proxy, transition);
+			pushing = false;
+			return;
 		}
 		TiBaseActivity activity = (TiBaseActivity) getActivity();
 		if (viewToAddTo != null) {
@@ -460,16 +469,19 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
    			viewToAdd.setVisibility(View.VISIBLE);			
 		}
 		addWindow(proxy, transition);
-		
-		
-		proxy.onWindowActivityCreated();
-		activity.setWindowProxy((TiWindowProxy) proxy);
-		updateHomeButton(proxy);
+		if (activity != null) {
+			proxy.onWindowActivityCreated();
+			activity.setWindowProxy((TiWindowProxy) proxy);
+			updateHomeButton(proxy);
+		}
 	}
 	
 	@Kroll.method
 	public void openWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
+		if (windows.size() == 0) {
+			handlePush((WindowProxy)getProperty(TiC.PROPERTY_WINDOW), true, null);
+		}
 		if (pushing || poping) return;
 		pushing = true;
 		if (TiApplication.isUIThread()) {
