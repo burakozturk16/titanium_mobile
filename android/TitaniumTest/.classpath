@@ -6,7 +6,6 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
-	<classpathentry exported="true" kind="lib" path="/kroll-common/bin/kroll-common.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-ui/bin/titanium-ui.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-network/bin/titanium-network.jar"/>
