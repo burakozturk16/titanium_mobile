@@ -10,6 +10,21 @@
 
 @implementation TiRect
 
+-(id)init
+{
+	if (self = [super init])
+	{
+		rect = CGRectZero;
+	}
+	return self;
+}
+
++(TiRect*)rect
+{
+    return [[[TiRect alloc] init] autorelease];
+}
+
+
 -(void)setRect:(CGRect)rect_
 {
 	rect = rect_;

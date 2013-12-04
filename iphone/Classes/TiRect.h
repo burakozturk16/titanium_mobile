@@ -51,4 +51,6 @@
  */
 -(void)convertToUnit:(NSString*)unit;
 -(id)toJSON;
+
++(TiRect*)rect;
 @end
