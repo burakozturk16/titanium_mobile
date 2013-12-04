@@ -1367,7 +1367,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 #endif		
 		// on open we need to create a new view
 		[self viewWillAttach];
-		view = [[self newView] retain];
+		view = [self newView];
         
 		view.proxy = self;
 		view.layer.transform = CATransform3DIdentity;
@@ -1843,6 +1843,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(TiUIView*)newView
 {
+    TiUIView* newview = nil;
 	NSString * proxyName = NSStringFromClass([self class]);
 	if ([proxyName hasSuffix:@"Proxy"]) 
 	{
@@ -1851,14 +1852,14 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		viewClass = NSClassFromString(className);
 		if (viewClass != nil)
 		{
-			return [[[viewClass alloc] init] autorelease];
+			return [[viewClass alloc] init];
 		}
 	}
 	else
 	{
 		DeveloperLog(@"[WARN] No TiView for Proxy: %@, couldn't find class: %@",self,proxyName);
 	}
-	return [[[TiUIView alloc] initWithFrame:[TiUtils appFrame]] autorelease];
+    return [[TiUIView alloc] initWithFrame:[TiUtils appFrame]];
 }
 
 

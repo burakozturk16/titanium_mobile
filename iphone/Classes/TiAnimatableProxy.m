@@ -120,6 +120,7 @@
     for (TiAnimation* anim in pending) {
         [self handlePendingAnimation:anim];
     }
+    [pending release];
 }
 
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation

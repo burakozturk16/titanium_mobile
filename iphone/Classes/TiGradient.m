@@ -278,8 +278,10 @@
     cacheSize = bounds.size;
     
     if (type == TiGradientTypeSweep) {
-        cachedImage = [[UIImage imageWithCGImage:[self newSweepImageGradientInRect:bounds]] retain];
-        return;
+        CGImageRef imgRef = [self newSweepImageGradientInRect:bounds];
+        cachedImage = [[UIImage imageWithCGImage:imgRef] retain];
+        CGImageRelease(imgRef);
+       return;
     }
     CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
 	CGContextRef cacheContext = CGBitmapContextCreate(nil, cacheSize.width, cacheSize.height, 8, cacheSize.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
@@ -341,6 +343,7 @@
 	}
     CGImageRef imgRef = CGBitmapContextCreateImage(cacheContext);
     cachedImage = [[UIImage imageWithCGImage:imgRef] retain];
+    CGImageRelease(imgRef);
 	CGContextRelease(cacheContext);
 }
 

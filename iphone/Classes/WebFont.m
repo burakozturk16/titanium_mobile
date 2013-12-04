@@ -54,8 +54,8 @@
                 if ([[UIFont familyNames] containsObject:family]) {
                     NSArray* fontNames = [[UIFont fontNamesForFamilyName:family] sortedArrayUsingSelector:@selector(compare:)];
                     NSString* foundFontName = nil;
-                    NSMutableArray* primaryMatches = [[NSMutableArray alloc] init];
                     if (isBoldWeight || isSemiboldWeight || isItalicStyle) {
+                        NSMutableArray* primaryMatches = [[NSMutableArray alloc] init];
                         NSString* primaryStyle = nil;
                         NSString* secondaryStyle = nil;
                         BOOL hasSecondaryStyle = NO;
@@ -111,7 +111,6 @@
                         }
                         
                     } else {
-                        
                         for (NSString* name in fontNames) {
                             if ( ([name rangeOfString:@"Bold"].location == NSNotFound) && ([name rangeOfString:@"Italic"].location == NSNotFound)
                                 && ([name rangeOfString:@"Oblique"].location == NSNotFound) && ([name rangeOfString:@"Heavy"].location == NSNotFound)) {

@@ -29,7 +29,7 @@ NSArray* tabbedKeySequence;
 {
 	TiUIButtonBar * result = [[TiUIButtonBar alloc] init];
 	[result setTabbedBar:NO];
-	return [result autorelease];
+	return result;
 }
 
 USE_VIEW_FOR_CONTENT_SIZE

@@ -417,7 +417,7 @@
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
-        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] autorelease] containerView:self.view];
     }
     
     if (window == current) {

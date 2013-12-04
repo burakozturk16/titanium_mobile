@@ -14,7 +14,7 @@
 @synthesize orientation;
 -(id)init
 {
-    if ([super init]) {
+    if (self = [super init]) {
         
     }
     return self;
@@ -27,7 +27,7 @@
 }
 - (id)initWithADTransition:(ADTransition*)transition
 {
-    if ([super init]) {
+    if (self = [super init]) {
         _adTransition = [transition retain];
     }
     return self;

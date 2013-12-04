@@ -140,7 +140,6 @@ static NSDictionary* typeMap = nil;
             if ([options objectForKey:@"faces"]) {
                 ((TiTransitionCarousel*)result).faceNb = [TiUtils intValue:@"faces" properties:options];
             }
-            return result;
             break;
         }
         case NWTransitionCross:
@@ -156,7 +155,7 @@ static NSDictionary* typeMap = nil;
             result = [[TitransitionBackFade alloc] initWithDuration:duration];
             break;
         case NWTransitionGhost:
-            return [[TiTransitionGhost alloc] initWithDuration:duration];
+            result = [[TiTransitionGhost alloc] initWithDuration:duration];
             break;
         case NWTransitionZoom:
         {
@@ -174,7 +173,7 @@ static NSDictionary* typeMap = nil;
             result = [[TiTransitionGlue alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
         case NWTransitionPushRotate:
-            return [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:view.frame];
+            result = [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:view.frame];
             break;
         case NWTransitionFold:
             result = [[TiTransitionFold alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
@@ -196,7 +195,7 @@ static NSDictionary* typeMap = nil;
         result.type = type;
         result.duration = duration;
     }
-    return result;
+    return [result autorelease];
 }
 
 +(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view

@@ -80,7 +80,7 @@ const CFOptionFlags writeStreamEventFlags =
     [remoteSocketDictionary removeObjectForKey:remoteSocketObject];
 }
 
--(CFDataRef)createAddressData
+-(CFDataRef)newAddressData
 {
     struct sockaddr_in address;
     
@@ -461,7 +461,7 @@ const CFOptionFlags writeStreamEventFlags =
                     location:CODELOCATION];
     }
     
-    CFDataRef addressData = (CFDataRef)[self createAddressData];
+    CFDataRef addressData = (CFDataRef)[self newAddressData];
     
 	int reuseOn = 1;
 	setsockopt(CFSocketGetNative(socket), SOL_SOCKET, SO_REUSEADDR, &reuseOn, sizeof(reuseOn));
@@ -476,6 +476,7 @@ const CFOptionFlags writeStreamEventFlags =
             socket = NULL;
     
             CFRelease(addressData);
+            addressData = nil;
             
             [self throwException:[NSString stringWithFormat:@"Failed to listen on %@:%d: %d", hostName, port, errno]
                        subreason:nil
@@ -484,7 +485,7 @@ const CFOptionFlags writeStreamEventFlags =
 		}
 	}
     
-    CFRelease(addressData);
+    if (addressData != nil) CFRelease(addressData);
     
     socketRunLoop = CFSocketCreateRunLoopSource(kCFAllocatorDefault,
                                                                    socket,
@@ -512,7 +513,7 @@ const CFOptionFlags writeStreamEventFlags =
     signature.protocolFamily = PF_INET;
     signature.socketType = SOCK_STREAM;
     signature.protocol = IPPROTO_TCP;
-    signature.address = [self createAddressData]; // Follows create rule; clean up later
+    signature.address = [self newAddressData]; // Follows create rule; clean up later
     
     
     CFReadStreamRef inputStream;

@@ -106,6 +106,7 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
                                                                             eventObject:event
                                                                              thisObject:self];
                     [[callback context] enqueue:invocationEvent];
+                    [invocationEvent release];
                     [blob release];
                 }, NO);
                 return nil;
@@ -120,10 +121,10 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
 -(id)getFilteredViewToImage:(id)args
 {
     ENSURE_TYPE(args, NSArray)
-    TiViewProxy *viewProxy;
-    NSNumber *filterType;
+    TiViewProxy *viewProxy = nil;
+    NSNumber *filterType = nil;
     float scale = 1.0f;
-    NSDictionary *options;
+    NSDictionary *options = nil;
 	ENSURE_ARG_AT_INDEX(viewProxy, args, 0, TiViewProxy);
 	ENSURE_ARG_AT_INDEX(filterType, args, 1, NSNumber);
     ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 2, NSDictionary);
@@ -142,6 +143,7 @@ MAKE_SYSTEM_PROP(FILTER_GAUSSIAN_BLUR,0);
                                                                             eventObject:event
                                                                              thisObject:self];
                     [[callback context] enqueue:invocationEvent];
+                    [invocationEvent release];
                     [blob release];
                 }, NO);
                 return nil;

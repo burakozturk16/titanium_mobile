@@ -124,13 +124,14 @@ void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName
     // Initialize a variable argument list.
     va_start (ap, format);
     
-    NSString *message = [[[NSString alloc] initWithFormat:format arguments:ap] autorelease];
     // End using variable argument list.
     va_end (ap);
     NSString *fileName = [[NSString stringWithUTF8String:file] lastPathComponent];
-    
+    NSString *message = nil;
 #if DEBUG
     message = [[NSString alloc] initWithFormat:@"%@ [%@:%d:%s]", message, fileName, lineNumber, functionName];
+#else
+    message = [[NSString alloc] initWithFormat:format arguments:ap];
 #endif
     if ([[TiApp app] debugMode]) {
         TiDebuggerLogMessage(OUT, message);
@@ -157,7 +158,7 @@ void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName
 #pragma pop
         }
     }
-//    [message release];
+    [message release];
 }
 
 

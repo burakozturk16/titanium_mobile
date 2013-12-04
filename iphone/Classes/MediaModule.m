@@ -1572,6 +1572,7 @@ MAKE_SYSTEM_PROP(VIDEO_FINISH_REASON_USER_EXITED,MPMovieFinishReasonUserExited);
                                                                         eventObject:[TiUtils dictionaryWithCode:(granted ? 0 : 1) message:nil]
                                                                          thisObject:self];
                 [[callback context] enqueue:invocationEvent];
+                [invocationEvent release];
             }];
         }, NO);
     } else {

@@ -953,6 +953,8 @@ DEFINE_EXCEPTIONS
         [durations addObject:NUMFLOAT(interval)];
     }
     _animatedImage = [[TiAnimatedImage alloc] initWithImages:images andDurations:durations];
+    [durations release];
+    [images release];
     _animatedImage.reverse = reverse;
     _animatedImage.autoreverse = autoreverse;
     _animatedImage.delegate = self;

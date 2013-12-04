@@ -82,7 +82,7 @@ DEFINE_EXCEPTIONS
 				activityDelegate = [[TiUIView alloc] initWithFrame:button.frame];
 				[activityDelegate addSubview:button];
 				activityDelegate.proxy = (TiViewProxy*)proxy_;
-				button = activityDelegate;
+				button = [activityDelegate autorelease];
 			}
 			self = [super initWithCustomView:button];
 			self.target = self;
