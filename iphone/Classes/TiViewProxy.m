@@ -3392,7 +3392,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			[context registerProxy:proxy];
 			[proxy rememberSelf];
 		}];
-		[proxy unarchiveFromTemplate:viewTemplate withEvents:(BOOL)withEvents];
+		[proxy unarchiveFromTemplate:viewTemplate withEvents:withEvents];
 		return proxy;
 	}
 	return nil;

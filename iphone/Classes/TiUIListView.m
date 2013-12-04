@@ -312,7 +312,7 @@ static NSDictionary* replaceKeysForRow;
                 context = self.listViewProxy.pageContext;
             }
             TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
-            [cellProxy unarchiveFakeFromTemplate:template];
+            [cellProxy unarchiveFromTemplate:template withEvents:NO];
             [cellProxy bindings];
             [measureProxies setObject:cellProxy forKey:key];
             [cellProxy release];
@@ -1305,7 +1305,7 @@ static NSDictionary* replaceKeysForRow;
             cell = [[TiUIListItem alloc] initWithProxy:cellProxy position:position grouped:grouped reuseIdentifier:cellIdentifier];
             id template = [_templates objectForKey:templateId];
             if (template != nil) {
-                [cellProxy unarchiveFromTemplate:template];
+                [cellProxy unarchiveFromTemplate:template withEvents:YES];
             }
         }
         [cellProxy release];

@@ -141,16 +141,10 @@ static NSDictionary* listViewKeysToReplace;
 //    }
 }
 
-- (void)unarchiveFromTemplate:(id)viewTemplate
+- (void)unarchiveFromTemplate:(id)viewTemplate withEvents:(BOOL)withEvents
 {
-	[super unarchiveFromTemplate:viewTemplate];
-	SetEventOverrideDelegateRecursive(self.children, self);
-    unarchived = YES;
-}
-
-- (void)unarchiveFakeFromTemplate:(id)viewTemplate
-{
-	[super unarchiveFakeFromTemplate:viewTemplate];
+	[super unarchiveFromTemplate:viewTemplate withEvents:withEvents];
+	if (withEvents) SetEventOverrideDelegateRecursive(self.children, self);
     unarchived = YES;
 }
 

@@ -614,9 +614,9 @@ enum
 
 - (void)prepareForReuse;
 
-- (void)unarchiveFromTemplate:(id)viewTemplate;
-- (void)unarchiveFakeFromTemplate:(id)viewTemplate;
-+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
+
+//+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 /**
  Performs view's configuration procedure.
