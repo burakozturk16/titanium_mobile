@@ -1157,10 +1157,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
             result.height = size.height;
         }
     }
-    else
-    {
-        result.height = size.height;
-    }
     return result;
 }
 
