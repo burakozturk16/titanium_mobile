@@ -2731,17 +2731,40 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 }
 
+-(BOOL)wantsToFillVerticalLayout
+{
+    if (TiDimensionIsAutoFill(layoutProperties.height)) return YES;
+    if (TiDimensionIsDip(layoutProperties.height) || TiDimensionIsPercent(layoutProperties.height))return NO;
+    NSArray* subproxies = [self visibleChildren];
+    for (TiViewProxy* child in subproxies) {
+        if ([child wantsToFillVerticalLayout]) return YES;
+    }
+    return NO;
+}
+
+-(BOOL)wantsToFillHorizontalLayout
+{
+    if (TiDimensionIsAutoFill(layoutProperties.width)) return YES;
+    if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width))return NO;
+    NSArray* subproxies = [self visibleChildren];
+    for (TiViewProxy* child in subproxies) {
+        if ([child wantsToFillHorizontalLayout]) return YES;
+    }
+    return NO;
+}
+
 -(NSArray*)measureChildren:(NSArray*)childArray
 {
     if ([childArray count] == 0) {
         return nil;
     }
     
-	BOOL horizontalNoWrap = TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle) && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+    BOOL horizontal =  TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle);
+    BOOL vertical =  TiLayoutRuleIsVertical(layoutProperties.layoutStyle);
+	BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
     NSMutableArray * measuredBounds = [NSMutableArray arrayWithCapacity:[childArray count]];
     NSUInteger i, count = [childArray count];
 	int maxHeight = 0;
-    
     
     CGFloat widthNonFill = 0;
     CGFloat heightNonFill = 0;
@@ -2763,28 +2786,24 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
             if (horizontalNoWrap) {
 				maxHeight = MAX(maxHeight, bounds.size.height);
+                if ([child wantsToFillHorizontalLayout])
+                {
+                    nbWidthAutoFill += 1;
+                }
+                else{
+                    widthNonFill += bounds.size.width;
+                }
 			}
             
-            TiDimension constraint = [child layoutProperties]->width;
-            if (TiDimensionIsAutoSize(constraint) ||
-                !TiDimensionIsAutoFill(constraint))
-            {
-                widthNonFill += bounds.size.width;
-            }
-            else{
-                nbWidthAutoFill += 1;
-            }
-            
-            constraint = [child layoutProperties]->height;
-            if (TiDimensionIsAutoSize(constraint) ||
-                !TiDimensionIsAutoFill(constraint))
-            {
-                heightNonFill += bounds.size.height;
-            }
-            else{
-                nbHeightAutoFill += 1;
-            }
-
+            if (vertical) {
+                if ([child wantsToFillVerticalLayout])
+                {
+                    nbHeightAutoFill += 1;
+                }
+                else{
+                    heightNonFill += bounds.size.height;
+                }
+			}
             
             childBounds.origin.x = bounds.origin.x;
             childBounds.origin.y = bounds.origin.y;
@@ -2819,7 +2838,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			[(TiRect*)[measuredBounds objectAtIndex:i] setHeight:[NSNumber numberWithInt:maxHeight]];
 		}
 	}
-    else if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle) && (count > 1) )
+    else if(vertical && (count > 1) )
     {
         int currentTop = 0;
 		for (i=0; i<count; i++)
@@ -2839,7 +2858,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             }
 		}
     }
-	else if(TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle) && (count > 1) )
+	else if(horizontal && (count > 1) )
     {
         int startIndex,endIndex, currentTop;
         startIndex = endIndex = maxHeight = currentTop = -1;
@@ -3324,7 +3343,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 #pragma mark - View Templates
 
-- (void)unarchiveFromTemplate:(id)viewTemplate_
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents
 {
 	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
 	if (viewTemplate == nil) {
@@ -3337,7 +3356,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
 	
 	[self _initWithProperties:viewTemplate.properties];
-	if ([viewTemplate.events count] > 0) {
+	if (withEvents && [viewTemplate.events count] > 0) {
 		[context.krollContext invokeBlockOnThread:^{
 			[viewTemplate.events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *listeners, BOOL *stop) {
 				[listeners enumerateObjectsUsingBlock:^(KrollWrapper *wrapper, NSUInteger idx, BOOL *stop) {
@@ -3348,33 +3367,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
 	
 	[viewTemplate.childTemplates enumerateObjectsUsingBlock:^(TiViewTemplate *childTemplate, NSUInteger idx, BOOL *stop) {
-		TiViewProxy *child = [[self class] unarchiveFromTemplate:childTemplate inContext:context];
-		if (child != nil) {
-			[context.krollContext invokeBlockOnThread:^{
-				[self rememberProxy:child];
-				[child forgetSelf];
-			}];
-			[self add:child];
-		}
-	}];
-}
-
-- (void)unarchiveFakeFromTemplate:(id)viewTemplate_
-{
-	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
-	if (viewTemplate == nil) {
-		return;
-	}
-	
-	id<TiEvaluator> context = self.executionContext;
-	if (context == nil) {
-		context = self.pageContext;
-	}
-	
-	[self _initWithProperties:viewTemplate.properties];
-	
-	[viewTemplate.childTemplates enumerateObjectsUsingBlock:^(TiViewTemplate *childTemplate, NSUInteger idx, BOOL *stop) {
-		TiViewProxy *child = [[self class] unarchiveFakeFromTemplate:childTemplate inContext:context];
+		TiViewProxy *child = [[self class] unarchiveFromTemplate:childTemplate inContext:context withEvents:withEvents];
 		if (child != nil) {
 			[context.krollContext invokeBlockOnThread:^{
 				[self rememberProxy:child];
@@ -3386,7 +3379,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 }
 
 // Returns protected proxy, caller should do forgetSelf.
-+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate_ inContext:(id<TiEvaluator>)context
++ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate_ inContext:(id<TiEvaluator>)context withEvents:(BOOL)withEvents
 {
 	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
 	if (viewTemplate == nil) {
@@ -3399,27 +3392,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			[context registerProxy:proxy];
 			[proxy rememberSelf];
 		}];
-		[proxy unarchiveFromTemplate:viewTemplate];
-		return proxy;
-	}
-	return nil;
-}
-
-// Returns protected proxy, caller should do forgetSelf.
-+ (TiViewProxy *)unarchiveFakeFromTemplate:(id)viewTemplate_ inContext:(id<TiEvaluator>)context
-{
-	TiViewTemplate *viewTemplate = [TiViewTemplate templateFromViewTemplate:viewTemplate_];
-	if (viewTemplate == nil) {
-		return;
-	}
-	
-	if (viewTemplate.type != nil) {
-		TiViewProxy *proxy = [[self class] createProxy:viewTemplate.type withProperties:nil inContext:context];
-		[context.krollContext invokeBlockOnThread:^{
-			[context registerProxy:proxy];
-			[proxy rememberSelf];
-		}];
-		[proxy unarchiveFakeFromTemplate:viewTemplate];
+		[proxy unarchiveFromTemplate:viewTemplate withEvents:(BOOL)withEvents];
 		return proxy;
 	}
 	return nil;
