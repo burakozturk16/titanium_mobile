@@ -4369,7 +4369,7 @@ function imageViewTransitionTest() {
 	});
 	win.add(image1);
 	image1.addEventListener('click', function() {
-		image1.image = "animation/win_5.png";
+		image1.image = "animation/win_" + Math.floor(Math.random() * 16 + 1) + ".png";
 	});
 	var button = Ti.UI.createButton({
 		bottom: 0,
