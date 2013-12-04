@@ -72,10 +72,10 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             break;
         case TiDimensionTypePercent:
             if (ignorePercent) {
-                width = TiDimensionCalculateValue(dimension, parentSize.width);
+                width = roundf(TiDimensionCalculateValue(dimension, parentSize.width));
             }
             else {
-                width = TiDimensionCalculateValue(dimension, referenceSize.width);
+                width = roundf(TiDimensionCalculateValue(dimension, referenceSize.width));
             }
             break;
         case TiDimensionTypeUndefined:
@@ -119,10 +119,10 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             break;
         case TiDimensionTypePercent:
             if (ignorePercent) {
-                height = TiDimensionCalculateValue(dimension, parentSize.height);
+                height = roundf(TiDimensionCalculateValue(dimension, parentSize.height));
             }
             else {
-                height = TiDimensionCalculateValue(dimension, referenceSize.height);
+                height = roundf(TiDimensionCalculateValue(dimension, referenceSize.height));
             }
             break;
         case TiDimensionTypeUndefined:
