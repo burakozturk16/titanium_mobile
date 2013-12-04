@@ -63,17 +63,19 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
 		*resultResizing &= ~(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
 	}
     
-    switch (constraint->width.type)
+    TiDimension dimension = constraint->width;
+    
+    switch (dimension.type)
     {
         case TiDimensionTypeDip:
-            width = TiDimensionCalculateValue(constraint->width, referenceSize.width);
+            width = TiDimensionCalculateValue(dimension, referenceSize.width);
             break;
         case TiDimensionTypePercent:
             if (ignorePercent) {
-                width = TiDimensionCalculateValue(constraint->width, parentSize.width);
+                width = TiDimensionCalculateValue(dimension, parentSize.width);
             }
             else {
-                width = TiDimensionCalculateValue(constraint->width, referenceSize.width);
+                width = TiDimensionCalculateValue(dimension, referenceSize.width);
             }
             break;
         case TiDimensionTypeUndefined:
@@ -89,28 +91,38 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
                 width = 2 * ( referenceSize.width - TiDimensionCalculateValue(constraint->right, referenceSize.width) - TiDimensionCalculateValue(constraint->centerX, referenceSize.width));
                 break;
             }
-        case TiDimensionTypeAuto:
         case TiDimensionTypeAutoSize:
+        {
+            needsWidthAutoCompute = YES;
+            width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
+            break;
+        }
+        case TiDimensionTypeAuto:
+        {
+            needsWidthAutoCompute =  !TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil]);
+            width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
+            break;
+        }
         case TiDimensionTypeAutoFill:
         {
             width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
-            needsWidthAutoCompute = YES;
             break;
         }
     }
     
     
-    switch (constraint->height.type)
+    dimension = constraint->height;
+    switch (dimension.type)
     {
         case TiDimensionTypeDip:
-            height = TiDimensionCalculateValue(constraint->height, referenceSize.height);
+            height = TiDimensionCalculateValue(dimension, referenceSize.height);
             break;
         case TiDimensionTypePercent:
             if (ignorePercent) {
-                height = TiDimensionCalculateValue(constraint->height, parentSize.height);
+                height = TiDimensionCalculateValue(dimension, parentSize.height);
             }
             else {
-                height = TiDimensionCalculateValue(constraint->height, referenceSize.height);
+                height = TiDimensionCalculateValue(dimension, referenceSize.height);
             }
             break;
         case TiDimensionTypeUndefined:
@@ -126,12 +138,21 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
                 height = 2 * ( referenceSize.height - TiDimensionCalculateValue(constraint->centerY, referenceSize.height) - TiDimensionCalculateValue(constraint->bottom, referenceSize.height) );
                 break;
             }
-        case TiDimensionTypeAuto:
         case TiDimensionTypeAutoSize:
+        {
+            needsHeightAutoCompute = YES;
+            height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
+			break;
+        }
+        case TiDimensionTypeAuto:
+        {
+            needsHeightAutoCompute =  !TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil]);
+            height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
+			break;
+        }
         case TiDimensionTypeAutoFill:
         {
             height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
-            needsHeightAutoCompute = YES;
 			break;
         }
     }
@@ -354,6 +375,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     
     return CGPointMake(centerX, centerY);
 }
+
 
 void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * subView, CGRect viewBounds)
 {

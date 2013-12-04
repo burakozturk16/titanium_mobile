@@ -2890,12 +2890,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
     BOOL followsFillWBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
     BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
-    BOOL childIsFixedHeight = TiDimensionIsPercent([child layoutProperties]->height) || TiDimensionIsDip([child layoutProperties]->height) || TiDimensionIsAutoFill([child layoutProperties]->height) || (followsFillHBehavior && TiDimensionIsUndefined([child layoutProperties]->height));
-    //    CGFloat desiredHeight = 0;
     __block CGSize autoSize;
     __block BOOL autoSizeComputed = FALSE;
     __block CGFloat boundingWidth = bounds.size.width-horizontalLayoutBoundary;
-    __block CGFloat boundingHeight = bounds.size.height-verticalLayoutBoundary;;
+    __block CGFloat boundingHeight = bounds.size.height-verticalLayoutBoundary;
     if (boundingHeight < 0) {
         boundingHeight = 0;
     }
@@ -2906,131 +2904,103 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
     };
     
-    if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
-    {
-        bounds.origin.y = verticalLayoutBoundary;
-        
-        
-        //Ensure that autoHeightForSize is called with the lowest limiting bound
-        //        CGFloat desiredWidth = MIN([child minimumParentWidthForSize:bounds.size],bounds.size.width);
-        
+    CGFloat (^computeHeight)() = ^() {
         //TOP + BOTTOM
         CGFloat offsetV = TiDimensionCalculateValue([child layoutProperties]->top, bounds.size.height)
         + TiDimensionCalculateValue([child layoutProperties]->bottom, bounds.size.height);
+        TiDimension constraint = [child layoutProperties]->height;
+        switch (constraint.type)
+        {
+            case TiDimensionTypePercent:
+            case TiDimensionTypeDip:
+            {
+                return  TiDimensionCalculateValue(constraint, bounds.size.height) + offsetV;
+            }
+            case TiDimensionTypeAutoFill:
+            {
+                return boundingHeight;
+            }
+            case TiDimensionTypeUndefined:
+            {
+                if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->centerY) ) {
+                    CGFloat height = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->top, boundingHeight) );
+                    return height + offsetV;
+                }
+                else if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
+                    return boundingHeight;
+                }
+                else if (!TiDimensionIsUndefined([child layoutProperties]->centerY) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
+                    CGFloat height = 2 * ( boundingHeight - TiDimensionCalculateValue([child layoutProperties]->bottom, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight));
+                    return height + offsetV;
+                }
+            }
+            case TiDimensionTypeAuto:
+            {
+                if (followsFillHBehavior) {
+                    //FILL behavior
+                    return boundingHeight;
+                }
+            }
+            default:
+            case TiDimensionTypeAutoSize:
+            {
+                computeAutoSize();
+                return autoSize.height; //offset is already in autoSize
+            }
+        }
+    };
+    
+    if(TiLayoutRuleIsVertical(layoutProperties.layoutStyle))
+    {
+        bounds.origin.y = verticalLayoutBoundary;
         //LEFT + RIGHT
         CGFloat offsetH = TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width)
         + TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width);
         
         TiDimension constraint = [child layoutProperties]->width;
-        
-        if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
+        switch (constraint.type)
         {
-            bounds.size.width =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
-        }
-        else if (TiDimensionIsAutoFill(constraint))
-        {
-        }
-        else if (TiDimensionIsAutoSize(constraint))
-        {
-            computeAutoSize();
-            bounds.size.width = autoSize.width + offsetH;
-        }
-        else if (TiDimensionIsAuto(constraint) )
-        {
-            if (followsFillWBehavior) {
-                //FILL behavior
+            case TiDimensionTypePercent:
+            case TiDimensionTypeDip:
+            {
+                bounds.size.width =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
+                break;
             }
-            else {
-                //SIZE behavior
-                computeAutoSize();
-                bounds.size.width = autoSize.width + offsetH;
+            case TiDimensionTypeAutoFill:
+            {
+                bounds.size.width = boundingWidth;
+                break;
             }
-        }
-        else if (TiDimensionIsUndefined(constraint))
-        {
-            if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
-                CGFloat width = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width) );
-                bounds.size.width = width + offsetH;
-            }
-            else if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                if (!followsFillWBehavior) {
-                    //SIZE behavior
-                    computeAutoSize();
+            case TiDimensionTypeUndefined:
+            {
+                if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
+                    CGFloat width = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width) );
+                    bounds.size.width = width + offsetH;
+                }
+                else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
+                    CGFloat w   = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width));
                     bounds.size.width = autoSize.width + offsetH;
+                    break;
                 }
             }
-            else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                CGFloat w   = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width));
-                bounds.size.width = autoSize.width + offsetH;
+            case TiDimensionTypeAuto:
+            {
+                if (followsFillWBehavior) {
+                    bounds.size.width = boundingWidth;
+                    break;
+                }
             }
-            else {
-                //SIZE behavior
+            default:
+            case TiDimensionTypeAutoSize:
+            {
                 computeAutoSize();
-                bounds.size.width = autoSize.width + offsetH;
+                bounds.size.width = autoSize.width; //offset is already in autoSize
+                break;
             }
         }
         
-        constraint = [child layoutProperties]->height;
-        
-        if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
-        {
-            bounds.size.height =  TiDimensionCalculateValue(constraint, bounds.size.height) + offsetV;
-            verticalLayoutBoundary += bounds.size.height;
-        }
-        else if (TiDimensionIsAutoFill(constraint))
-        {
-            //Fill up the remaining
-            bounds.size.height = boundingHeight;
-            verticalLayoutBoundary += bounds.size.height;
-        }
-        else if (TiDimensionIsAutoSize(constraint))
-        {
-            computeAutoSize();
-            bounds.size.height = autoSize.height + offsetV;
-            verticalLayoutBoundary += bounds.size.height;
-        }
-        else if (TiDimensionIsAuto(constraint) )
-        {
-            if (followsFillHBehavior) {
-                //FILL behavior
-                bounds.size.height = boundingHeight;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-            else {
-                //SIZE behavior
-                computeAutoSize();
-                bounds.size.height = autoSize.height + offsetV;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-        }
-        else if (TiDimensionIsUndefined(constraint))
-        {
-            if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->centerY) ) {
-                CGFloat height = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->top, boundingHeight) );
-                bounds.size.height = height + offsetV;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-            else if (!TiDimensionIsUndefined([child layoutProperties]->top) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
-                bounds.size.height = boundingHeight;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-            else if (!TiDimensionIsUndefined([child layoutProperties]->centerY) && !TiDimensionIsUndefined([child layoutProperties]->bottom) ) {
-                CGFloat height = 2 * ( boundingHeight - TiDimensionCalculateValue([child layoutProperties]->bottom, boundingHeight) - TiDimensionCalculateValue([child layoutProperties]->centerY, boundingHeight));
-                bounds.size.height = height + offsetV;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-            else if (followsFillHBehavior) {
-                //FILL behavior
-                bounds.size.height = boundingHeight + offsetV;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-            else {
-                //SIZE behavior
-                computeAutoSize();
-                bounds.size.height = autoSize.height + offsetV;
-                verticalLayoutBoundary += bounds.size.height;
-            }
-        }
+        bounds.size.height = computeHeight();
+        verticalLayoutBoundary += bounds.size.height;
     }
     else if(TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle))
     {
@@ -3053,7 +3023,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         
         if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
         {
-            desiredWidth =  bounds.size.width + offsetH;
+            desiredWidth =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
             isPercent = TiDimensionIsPercent(constraint);
         }
         else if (TiDimensionIsUndefined(constraint))
@@ -3067,7 +3037,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 followsFillBehavior = YES;
                 autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
                 autoSizeComputed = YES;
-                desiredWidth = autoSize.width + offsetH;
+                desiredWidth = autoSize.width;
             }
             else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
 				desiredWidth = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
@@ -3076,29 +3046,21 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             else {
                 recalculateWidth = YES;
                 computeAutoSize();
-                desiredWidth = autoSize.width + offsetH;
+                desiredWidth = autoSize.width;
             }
+        }
+        else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillWBehavior)){
+            followsFillBehavior = YES;
         }
         else {
             //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
             recalculateWidth = YES;
             computeAutoSize();
-            desiredWidth = autoSize.width + offsetH;
-            if (TiDimensionIsAutoSize(constraint)) {
-                followsFillBehavior = NO;
-            } else if(TiDimensionIsAutoFill(constraint)) {
-				followsFillBehavior = YES;
-			}
+            desiredWidth = autoSize.width;
+            followsFillBehavior = NO;
         }
         
-        if (!childIsFixedHeight)
-        {
-            computeAutoSize();
-            bounds.size.height = autoSize.height + offsetV;
-        }
-        else {
-            bounds.size.height += offsetV;
-        }
+        bounds.size.height = computeHeight();
         
         if (horizontalWrap && (desiredWidth > boundingWidth)) {
             if (horizontalLayoutBoundary == 0.0) {
