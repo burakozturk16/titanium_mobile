@@ -1114,6 +1114,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 
 +(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view
 {
+    if (touch == nil) return [NSDictionary dictionary];
     CGPoint localPoint = [touch locationInView:view];
     CGPoint globalPoint = [touch locationInView:nil];
     NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:
