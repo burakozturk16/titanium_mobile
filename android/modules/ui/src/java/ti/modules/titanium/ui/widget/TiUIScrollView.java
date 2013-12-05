@@ -7,7 +7,6 @@
 package ti.modules.titanium.ui.widget;
 
 import java.util.HashMap;
-import java.util.List;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -17,10 +16,7 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiUIView;
-
-import us.gorges.TwoDScrollView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -30,8 +26,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
-import android.widget.ScrollView;
 
 @SuppressLint("NewApi")
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -163,7 +157,7 @@ public class TiUIScrollView extends TiUIView
 	}
 
 	// same code, different super-classes
-	private class TiScrollView extends TwoDScrollView
+	private class TiScrollView extends DualScrollView
 	{
 		private TiScrollViewLayout layout;
 
