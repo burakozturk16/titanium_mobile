@@ -265,9 +265,16 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     
     CGFloat centerX = 0.0f;
     
+    BOOL horizontal = parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle);
+    BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(parentConstraint);
+    BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(parentConstraint);
+    BOOL vertical = parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle);
+    
     BOOL ignoreMargins = NO;
     BOOL isSizeUndefined = TiDimensionIsUndefined(constraint->width);
     
+    CGSize parentSize = sandboxSize;
+    if (!horizontal) parentSize = referenceSize;
     CGFloat frameLeft = 0.0;
     if (!flexibleSize) {
         if (TiDimensionIsUndefined(constraint->width)) {
@@ -299,7 +306,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
             if(TiDimensionDidCalculateValue(constraint->right, referenceSize.width, &frameRight))
             {
                 marginSuggestions++;
-                frameLeft += sandboxSize.width - viewSize.width - frameRight;
+                frameLeft += parentSize.width - viewSize.width - frameRight;
             }
             else if (!flexibleSize)
             {
@@ -308,7 +315,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         }
         if (marginSuggestions < 1)
         {
-            centerX = sandboxSize.width/2.0 + viewSize.width*(anchorPoint.x-0.5);
+            centerX = parentSize.width/2.0 + viewSize.width*(anchorPoint.x-0.5);
         }
         else
         {
@@ -323,6 +330,8 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     isSizeUndefined = TiDimensionIsUndefined(constraint->height);
     ignoreMargins = NO;
     CGFloat frameTop = 0.0;
+    parentSize = sandboxSize;
+    if (vertical || horizontalNoWrap) parentSize = referenceSize;
     if(!flexibleSize) {
         if (TiDimensionIsUndefined(constraint->height)) {
             ignoreMargins = TiDimensionDidCalculateValue(constraint->centerY, referenceSize.height, &centerY);
@@ -352,7 +361,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
             if(TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom))
             {
                 marginSuggestions++;
-                frameTop += sandboxSize.height - viewSize.height - frameBottom;
+                frameTop += parentSize.height - viewSize.height - frameBottom;
             }
             else if (!flexibleSize)
             {
@@ -361,11 +370,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         }
         if (marginSuggestions < 1)
         {
-            //without this a view is not centered vertically within horizontal layout. Normal?
-            if (parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle)) {
-                centerY = referenceSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
-            }
-            else centerY = sandboxSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
+            centerY = parentSize.height/2.0 + viewSize.height*(anchorPoint.y-0.5);
         }
         else
         {
