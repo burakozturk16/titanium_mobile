@@ -242,7 +242,11 @@ static NSSet* transferableProps = nil;
 		return;
 	}
     if ([arg isKindOfClass:[NSDictionary class]]) {
-        [self add:[[[TiViewProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:arg]] autorelease]];
+        id<TiEvaluator> context = self.executionContext;
+        if (context == nil) {
+            context = self.pageContext;
+        }
+        [self add:[[self class] unarchiveFromDictionary:arg inContext:context]];
         return;
     }
 	
@@ -3400,6 +3404,62 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		return proxy;
 	}
 	return nil;
+}
+
+
+- (void)unarchiveFromDictionary:(NSDictionary*)dictionary
+{
+	if (dictionary == nil) {
+		return;
+	}
+	
+	id<TiEvaluator> context = self.executionContext;
+	if (context == nil) {
+		context = self.pageContext;
+	}
+	NSDictionary* properties = [dictionary objectForKey:@"properties"];
+    if (properties == nil) properties = dictionary;
+	[self _initWithProperties:properties];
+	NSDictionary* events = [dictionary objectForKey:@"events"];
+	if ([events count] > 0) {
+		[context.krollContext invokeBlockOnThread:^{
+			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *listeners, BOOL *stop) {
+				[listeners enumerateObjectsUsingBlock:^(KrollWrapper *wrapper, NSUInteger idx, BOOL *stop) {
+					[self addEventListener:[NSArray arrayWithObjects:eventName, wrapper, nil]];
+				}];
+			}];
+		}];
+	}
+	NSArray* childTemplates = [dictionary objectForKey:@"childTemplates"];
+	
+	[childTemplates enumerateObjectsUsingBlock:^(NSDictionary *childTemplate, NSUInteger idx, BOOL *stop) {
+		TiViewProxy *child = [[self class] unarchiveFromDictionary:childTemplate inContext:context];
+		if (child != nil) {
+			[context.krollContext invokeBlockOnThread:^{
+				[self rememberProxy:child];
+				[child forgetSelf];
+			}];
+			[self add:child];
+		}
+	}];
+}
+
+// Returns protected proxy, caller should do forgetSelf.
++ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary inContext:(id<TiEvaluator>)context
+{
+	if (dictionary == nil) {
+		return nil;
+	}
+    NSString* type = [dictionary objectForKey:@"type"];
+    
+	if (type == nil) type = @"Ti.UI.View";
+    TiViewProxy *proxy = [[self class] createProxy:type withProperties:nil inContext:context];
+    [context.krollContext invokeBlockOnThread:^{
+        [context registerProxy:proxy];
+        [proxy rememberSelf];
+    }];
+    [proxy unarchiveFromDictionary:dictionary];
+    return proxy;
 }
 
 -(void)hideKeyboard:(id)arg
