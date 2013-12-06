@@ -18,6 +18,8 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
+import com.akylas.view.DualScrollView;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
