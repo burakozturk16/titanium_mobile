@@ -26,3 +26,4 @@ anvil/driver/node_modules/*
 */gen
 */bin
 *.sublime-workspace
+/android/runtime/common/generated/
