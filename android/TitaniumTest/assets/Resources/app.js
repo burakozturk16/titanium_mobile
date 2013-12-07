@@ -9,7 +9,8 @@ var backColor = 'white';
 var textColor = 'black';
 var navGroup;
 var openWinArgs;
-var html = '<span style="background-color:green;border-color:black;border-radius:20px">  SUCCESS   </span>  <font color="red">musique</font> électronique <b>est un type de <big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+var html = '  SUCCESS     <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:4px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+// html = '<span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:3px;padding-bottom:3px;line-height:2em;"> SUCCESS </span><br><span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:0px;padding-bottom:0px;line-height:1em;"> SUCCESS </span>'
 if (isAndroid) {
 	backColor = 'black';
 	textColor = 'gray';
@@ -1122,7 +1123,7 @@ function buttonAndLabelEx() {
 	});
 	var button = Ti.UI.createButton({
 		top: 0,
-		titlePadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -1190,7 +1191,7 @@ function buttonAndLabelEx() {
 		// dispatchPressed: true,
 		backgroundColor: 'gray',
 		backgroundSelectedColor: '#a46',
-		textPadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -1247,7 +1248,7 @@ function buttonAndLabelEx() {
 	});
 	win.add(label);
 	var button2 = Ti.UI.createButton({
-		titlePadding: {
+		padding: {
 			left: 80
 		},
 		bubbleParent: false,
@@ -1612,7 +1613,7 @@ function maskEx() {
 	win.add(imageView);
 	win.add(Ti.UI.createButton({
 		borderRadius: 20,
-		titlePadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -1706,7 +1707,7 @@ function scrollableEx() {
 				top: 2,
 				bottom: 2,
 				left: 45,
-				textPadding: {
+				padding: {
 					bottom: 4
 				},
 				right: 55,
@@ -2530,13 +2531,19 @@ function htmlLabelEx() {
 	});
 	scrollView.add(Ti.UI.createLabel({
 		width: Ti.UI.FILL,
+		padding: {
+			left: 20,
+			right: 20,
+			top: 20,
+			bottom: 20
+		},
 		height: Ti.UI.SIZE,
 		bottom: 20,
 		html: html
 	}));
 	scrollView.add(Ti.UI.createLabel({
 		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_HEAD,
-		truncationString:'_ _',
+		truncationString: '_ _',
 		bottom: 20,
 		html: html
 	}));
@@ -2575,6 +2582,7 @@ function htmlLabelEx() {
 		html: html
 	}));
 	win.add(scrollView);
+
 	openWin(win);
 }
 
@@ -2650,7 +2658,7 @@ function svg2Ex() {
 	var win = createWin();
 	var button = Ti.UI.createButton({
 		top: 20,
-		titlePadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -3486,7 +3494,7 @@ function slideMenuEx() {
 		leftView.add(Ti.UI.createLabel({
 			text: 'Test Movie',
 			color: backColor,
-			textPadding: {
+			padding: {
 				left: 20,
 				right: 20,
 				top: 10,
@@ -3503,7 +3511,7 @@ function slideMenuEx() {
 		rightView.add(Ti.UI.createLabel({
 			text: 'Test Movie',
 			color: backColor,
-			textPadding: {
+			padding: {
 				left: 20,
 				right: 20,
 				top: 10,
@@ -3842,7 +3850,7 @@ function test2() {
 	var view4 = Ti.UI.createLabel({
 		color: 'white',
 		text: 'test',
-		textPadding: {
+		padding: {
 			left: 4,
 			right: 4,
 			bottom: 2
@@ -3895,7 +3903,7 @@ function listViewLayout() {
 	var template = {
 		properties: {
 			layout: 'horizontal',
-			backgroundColor:'orange'
+			backgroundColor: 'orange'
 		},
 		childTemplates: [{
 			type: 'Ti.UI.Button',
@@ -3946,9 +3954,9 @@ function listViewLayout() {
 					bindId: 'plabel',
 					properties: {
 						color: 'white',
-						textPadding: {
+						padding: {
 							left: 4,
-							right: 4,
+							right: 14,
 							bottom: 2
 						},
 						shadowColor: '#55000000',
@@ -4008,6 +4016,7 @@ function listViewLayout() {
 						font: {
 							fontSize: 12
 						},
+						backgroundColor: 'green',
 						color: 'black',
 						textAlign: 'right',
 						right: 4,
@@ -4036,7 +4045,7 @@ function listViewLayout() {
 		'processing'
 	];
 	var listView = createListView({
-		minRowHeight:40,
+		minRowHeight: 40,
 		templates: {
 			'template': template
 		},
@@ -4046,7 +4055,7 @@ function listViewLayout() {
 	for (var i = 0; i < 100; i++) {
 		items.push({
 			properties: {
-				height:Ti.UI.SIZE
+				height: Ti.UI.SIZE
 			},
 			tlabel: {
 				text: names[Math.floor(Math.random() * names.length)]
@@ -4166,7 +4175,7 @@ function opacityTest() {
 
 	var button = Ti.UI.createButton({
 		top: 0,
-		titlePadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -4176,7 +4185,7 @@ function opacityTest() {
 		bubbleParent: false,
 		backgroundColor: 'gray',
 		touchPassThrough: false,
-		dispatchPressed:true,
+		dispatchPressed: true,
 		backgroundSelectedGradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
@@ -4233,7 +4242,7 @@ function opacityTest() {
 		// dispatchPressed: true,
 		backgroundColor: 'gray',
 		backgroundSelectedColor: '#a46',
-		textPadding: {
+		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
@@ -4291,7 +4300,7 @@ function opacityTest() {
 	});
 	win.add(label);
 	var button2 = Ti.UI.createButton({
-		titlePadding: {
+		padding: {
 			left: 80
 		},
 		bubbleParent: false,
@@ -4409,14 +4418,54 @@ function imageViewAnimationTest() {
 		backgroundColor: 'green'
 	});
 	btnHolder.add([
-		{type:'Ti.UI.Button', left:0, bid:0,title: 'start'},
-		{type:'Ti.UI.Button', right:0, bid:1,title: 'pause'},
-		{type:'Ti.UI.Button', left:0, bid:2,title: 'resume'},
-		{type:'Ti.UI.Button', right:0, bid:3,title: 'playpause'},
-		{type:'Ti.UI.Button', left:0, bid:4,title: 'stop'},
-		{type:'Ti.UI.Button', right:0, bid:5,title: 'reverse'},
-		{type:'Ti.UI.Button', left:0, bid:6,title: 'autoreverse'},
-		{type:'Ti.UI.Button', right:0, bid:7,title: 'transition'}
+		{
+			type: 'Ti.UI.Button',
+			left: 0,
+			bid: 0,
+			title: 'start'
+		},
+		{
+			type: 'Ti.UI.Button',
+			right: 0,
+			bid: 1,
+			title: 'pause'
+		},
+		{
+			type: 'Ti.UI.Button',
+			left: 0,
+			bid: 2,
+			title: 'resume'
+		},
+		{
+			type: 'Ti.UI.Button',
+			right: 0,
+			bid: 3,
+			title: 'playpause'
+		},
+		{
+			type: 'Ti.UI.Button',
+			left: 0,
+			bid: 4,
+			title: 'stop'
+		},
+		{
+			type: 'Ti.UI.Button',
+			right: 0,
+			bid: 5,
+			title: 'reverse'
+		},
+		{
+			type: 'Ti.UI.Button',
+			left: 0,
+			bid: 6,
+			title: 'autoreverse'
+		},
+		{
+			type: 'Ti.UI.Button',
+			right: 0,
+			bid: 7,
+			title: 'transition'
+		}
 	]);
 	btnHolder.addEventListener('singletap', function(e) {
 		info(stringify(e));
@@ -4489,19 +4538,22 @@ function antiAliasTest() {
 }
 
 var firstWindow = createWin({});
-var listview = createListView();
+var listview = createListView({
+	// minRowHeight:100,
+	// maxRowHeight:140
+});
 var color = cellColor(0);
 listview.sections = [{
 	items: [{
 		properties: {
 			title: 'Transform',
-			height:Ti.UI.FILL,
+			height: Ti.UI.FILL,
 			backgroundColor: color
 		},
 		callback: transformExs
 	}, {
 		properties: {
-			height:200,
+			height: 200,
 			title: 'SlideMenu'
 		},
 		callback: slideMenuEx
@@ -4610,7 +4662,10 @@ mainWin.addEventListener('closeWindow', function(e) {
 mainWin.open();
 var app = {};
 var ak = require('akylas.commonjs');
-ak.load(this, { modules:[ 'ti', 'moment', 'animation'], additions:[] });
+ak.load(this, {
+	modules: ['ti', 'moment', 'animation'],
+	additions: []
+});
 ak.prepareAppObject(app);
 ak.ti.loadRjss('$variables'); //load variables
 ak.ti.loadCreatorsFromDir('ui');
@@ -4620,4 +4675,61 @@ ak.ti.loadRjssFromDir('rjss');
 function textFieldTest() {
 	(new DataPlanAlert()).showMe();
 }
-textFieldTest();
+// textFieldTest();
+
+function test2() {
+	var win = createWin();
+	var holder = Ti.UI.createView({
+		width: 200,
+		height: '80%',
+		backgroundColor: 'red',
+		layout: 'vertical'
+	});
+	var view1 = Ti.UI.createView({
+		width: Ti.UI.FILL,
+		height: Ti.UI.SIZE,
+		backgroundColor: 'yellow'
+	});
+	view1.add({
+		width: Ti.UI.FILL,
+		height: Ti.UI.FILL,
+		backgroundColor: 'blue'
+	});
+	holder.add([
+		view1,
+		{
+			width: Ti.UI.FILL,
+			height: 60,
+			backgroundColor: 'orange'
+		}
+	]);
+	win.add(holder);
+	openWin(win);
+}
+
+function test3(){
+	var win = createWin();
+	var view = new View({
+		properties: {rclass:'AutoSize Horizontal'},
+		childTemplates: [{
+			type: 'Ti.UI.Label',
+			bindId: 'tlabel',
+			properties: {
+				rclass: 'FillWidth LabelTest RightLabel'
+			}
+			}, {
+			type: 'Ti.UI.Label',
+			bindId: 'sizelabel',
+			properties: {
+				rclass: 'FillWidth LabelTest LeftLabel'
+			}
+		}]
+	});
+
+	view.tlabel.html = 'Test1';
+	view.sizelabel.html = 'Test2';
+	win.add(view);
+	openWin(win);
+}
+test3();
+// htmlLabelEx();

@@ -404,30 +404,40 @@ function inject(context) {
          */
         style: function(type, args, orientation, override) {
             args = args || {};
-            orientation = redux.fn.parseOrientationString(orientation);
-            // merge defaults by id
-            if (args.rid && args.rid !== '') {
-                var rids = args.rid.split(' ');
-                for (var i = rids.length - 1; i >= 0; i--) {
-                    var rid = rids[i];
-                    if (redux.data.defaults.byID[rid])
-                        args = mergeObjects(args, redux.data.defaults.byID[rid][orientation], override);
-                };
+            type = args.type?(args.type.split('.').slice(-1)):type;
+            if (args.hasOwnProperty('properties')) {
+                args.properties = redux.fn.style(type, args.properties, orientation, override);
+            } else {
+                orientation = redux.fn.parseOrientationString(orientation);
+                // merge defaults by id
+                if (args.rid && args.rid !== '') {
+                    var rids = args.rid.split(' ');
+                    for (var i = rids.length - 1; i >= 0; i--) {
+                        var rid = rids[i];
+                        if (redux.data.defaults.byID[rid])
+                            args = mergeObjects(args, redux.data.defaults.byID[rid][orientation], override);
+                    };
+                }
+                // merge defaults by class name
+                if (args.rclass && args.rclass !== '') {
+                    var classes = args.rclass.split(' ');
+                    for (var i = classes.length - 1; i >= 0; i--) {
+                        var rclass = classes[i];
+                        if (redux.data.defaults.byRclass[rclass])
+                            args = mergeObjects(args, redux.data.defaults.byRclass[rclass][orientation], override);
+                    };
+                }
+                // merge defaults by type
+                if (type && type !== '' && redux.data.defaults.byType[type])
+                    mergeObjects(args, redux.data.defaults.byType[type][orientation], override);
             }
-            // merge defaults by class name
-            if (args.rclass && args.rclass !== '') {
-                var classes = args.rclass.split(' ');
-                for (var i = classes.length - 1; i >= 0; i--) {
-                    var rclass = classes[i];
-                    if (redux.data.defaults.byRclass[rclass])
-                        args = mergeObjects(args, redux.data.defaults.byRclass[rclass][orientation], override);
-                };
+            if (args.hasOwnProperty('childTemplates') && isArray(args.childTemplates)) {
+                var children = args.childTemplates;
+                for (var i = 0, l = children.length; i < l; i++) {
+                    children[i] = redux.fn.style(undefined, children[i], orientation, override);
+                }
             }
-            // merge defaults by type
-            if (type && type !== '' && redux.data.defaults.byType[type])
-                return mergeObjects(args, redux.data.defaults.byType[type][orientation], override);
-            else
-                return args;
+           return args;
         },
         /**
          * Applies the styles from the passed in arguments directly to the passed in object.

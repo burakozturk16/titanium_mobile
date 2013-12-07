@@ -12,12 +12,11 @@ Button {
     style:'none'
 }
 
-.HorizontalLayout {
-    layout: 'horizontal',
-    horizontalWrap:false
+.Horizontal {
+    layout: 'horizontal'
 }
 
-.VerticalLayout {
+.Vertical {
     layout: 'vertical'
 }
 
@@ -37,159 +36,15 @@ Button {
     height: Ti.UI.FILL
 }
 
-.NoBubble {
-    bubbleParent: false
-}
-.IconicView {
-    color:'white',
-    selectedColor:'gray',
-    font:{fontSize:24}
+.LabelTest {
+    left: 5,
+    right: 5
 }
 
-ImageView {
-    preventDefaultImage: true,
-    localLoadSync :true
+.RightLabel {
+    textAlign:'right'
 }
 
-.IndicatorView {
-    backgroundColor:'#00000000',
-    height: Ti.UI.FILL,
-    width: Ti.UI.FILL
-}
-
-.Indicator {
-    backgroundColor:'#dd15668F',
-    width:200,
-    height:100,
-    color:'white',
-    font: {fontSize : 20, fontWeight : 'bold'
-    },
-    message:'Loading',
-    style: Ti.UI.ActivityIndicatorStyle.BIG,
-    visible:true
-}
-
-.RowSeparator {
-    backgroundColor: '#999',
-    left:4, right:4,
-    bottom:0,
-    height:1
-}
-
-.TopSlice {
-    backgroundImage: '/images/topSlice.png', left :0,
-    right: 0, height : 2
-}
-
-.TopWhiteFade {
-    touchEnabled:false,
-    backgroundColor:'transparent',
-    backgroundGradient : {
-        type : 'linear',
-        colors : ['#F9F9F9', '#00F9F9F9'],
-        startPoint : {
-            x : 0,
-            y : 0
-        },
-        endPoint : {
-            x : 0,
-            y : "100%"
-        }
-    },
-    left :0,
-    right: 0,
-    top:0,
-    height : 25
-}
-
-.WWHHeader {
-    textAlign:'center',
-    color: 'white', font :{
-    fontSize: 12, fontWeight : 'bold'
-    },
-    backgroundColor: $defaultBgdColor,
-    height : 28,
-    top: 0,
-    bottom:$verticalDecale,
-    width:Ti.UI.FILL
-}
-
-.WWHCenterContainer {
-    backgroundColor:$containerBgdColor,
-    width: Ti.UI.FILL,
-    height: Ti.UI.FILL
-}
-
-ReflexButton {
-    left: 0, right :0,
-    height: $bottomViewHeight, bottom : 0,
-    backgroundColor:$defaultBgdColor
-}
-
-.ReflexButtonLblX {
-    color:'white',
-    font :{fontSize: 16, fontWeight:'bold'}
-}
-
-.ReflexButtonIcon {
-    left:10
-}
-
-ViewWithHeader {
-    layout: 'vertical'
-}
-
-.CABlurImage {
-    left:0,
-    top:0,
-    bottom:0,
-    right:0,
-    opacity:0.5
-}
-
-.LoadingRow {
-    height:80
-}
-.LoadingRowIndicator{
-    color:'black',
-    font :{fontSize: 18},
-    style: Ti.UI.ActivityIndicatorStyle.DARK,
-    message:'Loading...',
-    visible:true
-}
-
-
-.WebView {
-    top:0,bottom:0, left:0,right:0,
-    scalesPageToFit : true,
-    enableZoomControls:false,
-    disableBounce:true
-}
-
-.DatePickerToolbar {
-    width: Ti.UI.FILL,
-    layout:'horizontal',
-    height: 40
-}
-
-#datePickerDone {
-    text:'Done'
-}
-
-.DatePickerButton {
-    textPadding:{left:10,right:10},
-    height:Ti.UI.FILL,
-    color:'black',
-    selectedColor:'white'
-}
-
-#datePickerCancel {
-    text:'Cancel'
-}
-
-.DatePicker {
-    bottom: 0,
-    layout: 'vertical',
-    height: Ti.UI.SIZE,
-    backgroundColor: '#ee000000'
+.LeftLabel {
+    textAlign:'left'
 }
