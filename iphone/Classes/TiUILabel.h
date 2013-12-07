@@ -13,11 +13,6 @@
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
 	TDTTTAttributedLabel *label;
-    CGRect padding;
-    UIEdgeInsets textPadding;
-    CGRect initialLabelFrame;
-    BOOL needsUpdateBackgroundImageFrame;
-    BOOL needsPadLabel;
     BOOL needsSetText;
 }
 

@@ -23,9 +23,6 @@
 -(id)init
 {
     if (self = [super init]) {
-        padding = CGRectZero;
-        textPadding = UIEdgeInsetsZero;
-        initialLabelFrame = CGRectZero;
     }
     return self;
 }
@@ -44,7 +41,7 @@
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
     CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
-    maxSize.width -= textPadding.left + textPadding.right;
+    maxSize.width -= label.viewInsets.left + label.viewInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
     result.width = MIN(result.width,  maxSize.width);
@@ -55,32 +52,14 @@
         textRect.size.height -= 2*textRect.origin.y;
         result =textRect.size;
     }
-    result.width += textPadding.left+ textPadding.right;
-    result.height += textPadding.top + textPadding.bottom;
+    result.width += label.viewInsets.left+ label.viewInsets.right;
+    result.height += label.viewInsets.top + label.viewInsets.bottom;
     return result;
 }
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
-}
-
--(void)padLabel
-{
-    if (!configurationSet) {
-        needsPadLabel = YES;
-        return; // lazy init
-    }
-	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.left
-                                   , initialLabelFrame.origin.y + textPadding.top
-                                   , initialLabelFrame.size.width - textPadding.left - textPadding.right
-                                   , initialLabelFrame.size.height - textPadding.right - textPadding.bottom);
-    [label setFrame:initFrame];
-    if ([self backgroundLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
-    {
-        [self updateBackgroundImageFrameWithPadding];
-    }
-	return;
 }
 
 -(void)setCenter:(CGPoint)newCenter
@@ -90,25 +69,18 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    initialLabelFrame = bounds;
-    [self padLabel];
+    [label setFrame:bounds];
     [super frameSizeChanged:frame bounds:bounds];
 }
 
 - (void)configurationStart {
     [super configurationStart];
-    needsUpdateBackgroundImageFrame = needsPadLabel = needsSetText = NO;
+    needsSetText = NO;
 }
 
 - (void)configurationSet {
     
     [super configurationSet];
-    if (needsPadLabel)
-        [self padLabel];
-    
-    if (needsUpdateBackgroundImageFrame)
-        [self updateBackgroundImageFrameWithPadding];
-    
     if (needsSetText)
         [self setAttributedTextViewContent];
 }
@@ -431,69 +403,17 @@
     [self updateNumberLines];   
 }
 
--(void)setBackgroundImageLayerBounds:(CGRect)bounds
-{
-    if ([self backgroundLayer] != nil)
-    {
-        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
-                                            bounds.origin.y - padding.origin.y,
-                                            bounds.size.width + padding.origin.x + padding.size.width,
-                                            bounds.size.height + padding.origin.y + padding.size.height);
-        [self backgroundLayer].frame = backgroundFrame;
-    }
-}
-
--(void) updateBackgroundImageFrameWithPadding
-{
-    if (!configurationSet){
-        needsUpdateBackgroundImageFrame = YES;
-        return; // lazy init
-    }
-    [self setBackgroundImageLayerBounds:self.bounds];
-}
-
 -(void)setAttributedString_:(id)arg
 {
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
     ENSURE_SINGLE_ARG(arg, TiUIiOSAttributedStringProxy);
     [[self proxy] replaceValue:arg forKey:@"attributedString" notification:NO];
     [[self label] setAttributedText:[arg attributedString]];
-    [self padLabel];
     [(TiViewProxy *)[self proxy] contentsWillChange];
 #endif
 }
 
--(void)setBackgroundImage_:(id)url
-{
-    [super setBackgroundImage_:url];
-    //if using padding we must not mask to bounds.
-    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
-    [self updateBackgroundImageFrameWithPadding];
-}
 
--(void)setBackgroundPaddingLeft_:(id)left
-{
-    padding.origin.x = [TiUtils floatValue:left];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingRight_:(id)right
-{
-    padding.size.width = [TiUtils floatValue:right];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingTop_:(id)top
-{
-    padding.origin.y = [TiUtils floatValue:top];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingBottom_:(id)bottom
-{
-    padding.size.height = [TiUtils floatValue:bottom];
-    [self updateBackgroundImageFrameWithPadding];
-}
 
 -(void)setTextAlign_:(id)alignment
 {
@@ -528,20 +448,21 @@
 {
 	ENSURE_SINGLE_ARG(value,NSDictionary);
     NSDictionary* paddingDict = (NSDictionary*)value;
+    UIEdgeInsets inset = [self label].viewInsets;
     if ([paddingDict objectForKey:@"left"]) {
-        textPadding.left = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
+        inset.left = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
     }
     if ([paddingDict objectForKey:@"right"]) {
-        textPadding.right = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
+        inset.right = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
     }
     if ([paddingDict objectForKey:@"top"]) {
-        textPadding.top = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
+        inset.top = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
     }
     if ([paddingDict objectForKey:@"bottom"]) {
-        textPadding.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
+        inset.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
     }
-    
-    [self padLabel];
+    [self label].viewInsets = inset;
+    [(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void) updateNumberLines
