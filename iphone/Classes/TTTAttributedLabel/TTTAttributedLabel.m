@@ -801,6 +801,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
                 }
                 
                 if (strokeColor) {
+                    CGContextSetLineWidth(c, lineWidth);
                     CGContextSetStrokeColorWithColor(c, strokeColor);
                     CGContextAddPath(c, path);
                     CGContextStrokePath(c);
