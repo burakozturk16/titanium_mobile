@@ -400,8 +400,8 @@ public class TiUIHelper
 			return desc;
 		}
 		String fontSize = null;
-		if (d.containsKey("fontSize")) {
-			fontSize = TiConvert.toString(d, "fontSize");
+		if (d.containsKey("size")) {
+			fontSize = TiConvert.toString(d, "size");
 		}
 		float[] result = new float[2];
 		getSizeAndUnits(fontSize, result);
@@ -409,18 +409,18 @@ public class TiUIHelper
 		desc.size = result[1]; 
 		
 		String fontFamily = null;
-		if (d.containsKey("fontFamily")) {
-			fontFamily = TiConvert.toString(d, "fontFamily");
+		if (d.containsKey("family")) {
+			fontFamily = TiConvert.toString(d, "family");
 		}
 		desc.typeface = toTypeface(context, fontFamily);
 		
 		String fontWeight = null;
 		String fontStyle = null;
-		if (d.containsKey("fontWeight")) {
-			fontWeight = TiConvert.toString(d, "fontWeight");
+		if (d.containsKey("weight")) {
+			fontWeight = TiConvert.toString(d, "weight");
 		}
-		if (d.containsKey("fontStyle")) {
-			fontStyle = TiConvert.toString(d, "fontStyle");
+		if (d.containsKey("style")) {
+			fontStyle = TiConvert.toString(d, "style");
 		}
 		desc.style = toTypefaceStyle(fontWeight, fontStyle);
 
