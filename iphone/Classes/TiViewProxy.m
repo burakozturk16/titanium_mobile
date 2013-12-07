@@ -1166,11 +1166,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(CGSize)minimumParentSizeForSize:(CGSize)size
 {
-    return [self minimumParentSizeForSize:size parentLayout:nil];
-}
-
--(CGSize)minimumParentSizeForSize:(CGSize)size parentLayout:(LayoutConstraint *)parentConstraints
-{
     CGSize suggestedSize = size;
     BOOL followsFillWidthBehavior = TiDimensionIsAutoFill([self defaultAutoWidthBehavior:nil]);
     BOOL followsFillHeightBehavior = TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]);
@@ -1188,8 +1183,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     + TiDimensionCalculateValue(layoutProperties.bottom, suggestedSize.height);
     
     CGSize result = CGSizeMake(offsetx, offsety);
-    BOOL horizontalWrap = TiLayoutFlagsHasHorizontalWrap(parentConstraints);
-    
+
 	if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width))
 	{
 		result.width += TiDimensionCalculateValue(layoutProperties.width, suggestedSize.width);
@@ -1201,7 +1195,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         autoSize = [self autoSizeForSize:CGSizeMake(autoSize.width - offsetx, autoSize.height - offsety)];
 		result.width += autoSize.width;
 	}
-    else if (TiDimensionIsUndefined(layoutProperties.width))
+    else if (followsFillWidthBehavior && TiDimensionIsUndefined(layoutProperties.width))
     {
         if (!TiDimensionIsUndefined(layoutProperties.left) && !TiDimensionIsUndefined(layoutProperties.centerX) ) {
             result.width += 2 * ( TiDimensionCalculateValue(layoutProperties.centerX, suggestedSize.width) - TiDimensionCalculateValue(layoutProperties.left, suggestedSize.width) );
@@ -1242,15 +1236,15 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         }
 		result.height += autoSize.height;
 	}
-    else if (TiDimensionIsUndefined(layoutProperties.height))
+    else if (followsFillHeightBehavior && TiDimensionIsUndefined(layoutProperties.height))
     {
-        if (!horizontalWrap && !TiDimensionIsUndefined(layoutProperties.top) && !TiDimensionIsUndefined(layoutProperties.centerY) ) {
+        if (!TiDimensionIsUndefined(layoutProperties.top) && !TiDimensionIsUndefined(layoutProperties.centerY) ) {
             result.height += 2 * ( TiDimensionCalculateValue(layoutProperties.centerY, suggestedSize.height) - TiDimensionCalculateValue(layoutProperties.top, suggestedSize.height) );
         }
-        else if (!horizontalWrap && !TiDimensionIsUndefined(layoutProperties.top) && !TiDimensionIsUndefined(layoutProperties.bottom) ) {
+        else if (!TiDimensionIsUndefined(layoutProperties.top) && !TiDimensionIsUndefined(layoutProperties.bottom) ) {
             result.height += TiDimensionCalculateMargins(layoutProperties.top, layoutProperties.bottom, suggestedSize.height);
         }
-        else if (!horizontalWrap && !TiDimensionIsUndefined(layoutProperties.centerY) && !TiDimensionIsUndefined(layoutProperties.bottom) ) {
+        else if (!TiDimensionIsUndefined(layoutProperties.centerY) && !TiDimensionIsUndefined(layoutProperties.bottom) ) {
             result.height += 2 * ( suggestedSize.height - TiDimensionCalculateValue(layoutProperties.bottom, suggestedSize.height) - TiDimensionCalculateValue(layoutProperties.centerY, suggestedSize.height));
         }
         else {
@@ -2927,7 +2921,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     }
     void (^computeAutoSize)() = ^() {
         if (autoSizeComputed == FALSE) {
-            autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingHeight) parentLayout:&layoutProperties];
+            autoSize = [child minimumParentSizeForSize:CGSizeMake(bounds.size.width, boundingHeight)];
             autoSizeComputed = YES;
         }
     };
@@ -3054,7 +3048,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             desiredWidth =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
             isPercent = TiDimensionIsPercent(constraint);
         }
-        else if (TiDimensionIsUndefined(constraint))
+        else if (followsFillBehavior && TiDimensionIsUndefined(constraint))
         {
             if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
                 desiredWidth = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->left, boundingWidth) );
@@ -3063,9 +3057,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             else if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
                 recalculateWidth = YES;
                 followsFillBehavior = YES;
-                autoSize = [child minimumParentSizeForSize:CGSizeMake(isPercent?bounds.size.width:boundingWidth, boundingHeight)];
-                autoSizeComputed = YES;
-                desiredWidth = autoSize.width;
+                desiredWidth = bounds.size.width;
             }
             else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
 				desiredWidth = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
@@ -3079,6 +3071,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
         else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillWBehavior)){
             followsFillBehavior = YES;
+            desiredWidth = bounds.size.width;
         }
         else {
             //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
