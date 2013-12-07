@@ -58,8 +58,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                                               @"minimumFontSize", @"backgroundPaddingLeft",
                                               @"backgroundPaddingRight", @"backgroundPaddingBottom", @"backgroundPaddingTop", @"shadowOffset",
                                               @"shadowRadius", @"shadowColor",
-                                              @"textPaddingLeft", @"textPaddingRight",
-                                              @"textPaddingTop", @"textPaddingBottom",
+                                              @"padding",
                                               @"wordWrap", @"borderWidth", @"maxLines",
                                               @"ellipsize", @"multiLineEllipsize", nil]];
 }
@@ -152,8 +151,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         {
             CGSize resultSize = CGSizeZero;
             CGRect textPadding = CGRectZero;
-            if ([self valueForKey:@"textPadding"]) {
-                NSDictionary* paddingDict = (NSDictionary*)[self valueForKey:@"textPadding"];
+            if ([self valueForKey:@"padding"]) {
+                NSDictionary* paddingDict = (NSDictionary*)[self valueForKey:@"padding"];
                 if ([paddingDict objectForKey:@"left"]) {
                     textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
                 }
