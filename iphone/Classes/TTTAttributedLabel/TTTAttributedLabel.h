@@ -214,6 +214,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 @property (nonatomic, strong) NSString *strokeColorAttributeProperty;
 @property (nonatomic, strong) NSString *strokeWidthAttributeProperty;
 @property (nonatomic, strong) NSString *cornerRadiusAttributeProperty;
+@property (nonatomic, strong) NSString *paddingAttributeProperty;
 
 ///----------------------------------
 /// @name Setting the Text Attributes

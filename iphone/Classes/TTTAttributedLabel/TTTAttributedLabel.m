@@ -291,6 +291,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     NSString *_strokeColorAttributeProperty;
     NSString *_strokeWidthAttributeProperty;
     NSString *_cornerRadiusAttributeProperty;
+    NSString *_paddingAttributeProperty;
 }
 
 @dynamic text;
@@ -351,6 +352,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     self.strokeColorAttributeProperty = kTTTBackgroundStrokeColorAttributeName;
     self.strokeWidthAttributeProperty = kTTTBackgroundLineWidthAttributeName;
     self.cornerRadiusAttributeProperty = kTTTBackgroundCornerRadiusAttributeName;
+    self.paddingAttributeProperty = kTTTBackgroundFillPaddingAttributeName;
 }
 
 - (void)dealloc {
@@ -621,7 +623,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     CTFrameRef frame = CTFramesetterCreateFrame(framesetter, textRange, path, NULL);    
     
     [self drawBackground:frame inRect:rect context:c];
-    
+
     CFArrayRef lines = CTFrameGetLines(frame);
     NSInteger numberOfLines = self.numberOfLines > 0 ? MIN(self.numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
     BOOL truncateLastLine = (self.lineBreakMode == TTTLineBreakByTruncatingHead || self.lineBreakMode == TTTLineBreakByTruncatingMiddle || self.lineBreakMode == TTTLineBreakByTruncatingTail);
@@ -766,11 +768,11 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
         
         for (id glyphRun in (__bridge NSArray *)CTLineGetGlyphRuns((__bridge CTLineRef)line)) {
             NSDictionary *attributes = (__bridge NSDictionary *)CTRunGetAttributes((__bridge CTRunRef) glyphRun);
-            CGColorRef strokeColor = (__bridge CGColorRef)[attributes objectForKey:_strokeColorAttributeProperty];
+           CGColorRef strokeColor = (__bridge CGColorRef)[attributes objectForKey:_strokeColorAttributeProperty];
             CGColorRef fillColor = ((UIColor*)[attributes objectForKey:NSBackgroundColorAttributeName]).CGColor;
-            UIEdgeInsets fillPadding = [[attributes objectForKey:kTTTBackgroundFillPaddingAttributeName] UIEdgeInsetsValue];
+            UIEdgeInsets fillPadding = [[attributes objectForKey:_paddingAttributeProperty] UIEdgeInsetsValue];
             CGFloat cornerRadius = [[attributes objectForKey:_cornerRadiusAttributeProperty] floatValue];
-            CGFloat lineWidth = [self NSNumberFloat:[attributes objectForKey:_strokeWidthAttributeProperty] withDefault:1.0f];
+            CGFloat lineWidth = [self NSNumberFloat:[attributes objectForKey:_strokeWidthAttributeProperty] withDefault:0.0f];
 
             if (strokeColor || fillColor) {
                 CGRect runBounds = CGRectZero;
@@ -786,11 +788,11 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
                 runBounds.origin.y -= runDescent;
                 
                 // Don't draw higlightedLinkBackground too far to the right
-                if (CGRectGetWidth(runBounds) > CGRectGetWidth(lineBounds)) {
-                    runBounds.size.width = CGRectGetWidth(lineBounds);
-                }
+//                if (CGRectGetWidth(runBounds) > CGRectGetWidth(lineBounds)) {
+//                    runBounds.size.width = CGRectGetWidth(lineBounds);
+//                }
                 
-                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectInset(CGRectInset(runBounds, -1.0f, -3.0f), lineWidth, lineWidth) cornerRadius:cornerRadius] CGPath];
+                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(runBounds.origin.x+ lineWidth/2,runBounds.origin.y + lineWidth/2,  runBounds.size.width - lineWidth + 1.0f, runBounds.size.height + 3.0f - lineWidth) cornerRadius:cornerRadius] CGPath];
                 
                 CGContextSetLineJoin(c, kCGLineJoinRound);
                 
