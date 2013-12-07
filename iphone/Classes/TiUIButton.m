@@ -385,7 +385,7 @@
 	[[[b titleLabel] layer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
--(void)setTitlePadding_:(id)value
+-(void)setPadding_:(id)value
 {
 	ENSURE_SINGLE_ARG(value,NSDictionary);
     NSDictionary* padding = (NSDictionary*)value;
