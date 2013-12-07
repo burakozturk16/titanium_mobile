@@ -246,7 +246,7 @@ static NSSet* transferableProps = nil;
         if (context == nil) {
             context = self.pageContext;
         }
-        [self add:[[self class] unarchiveFromDictionary:arg inContext:context]];
+        [self add:[[self class] unarchiveFromDictionary:arg rootProxy:self inContext:context]];
         return;
     }
 	
@@ -1732,6 +1732,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	// Set horizontal layout wrap:true as default 
 	layoutProperties.layoutFlags.horizontalWrap = NO;
 	[self initializeProperty:@"visible" defaultValue:NUMBOOL(YES)];
+    
+    if ([properties objectForKey:@"properties"] || [properties objectForKey:@"childTemplates"]) {
+        [self unarchiveFromDictionary:properties rootProxy:self];
+        return;
+    }
 	
 	if (properties!=nil)
 	{
@@ -3400,7 +3405,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 }
 
 
-- (void)unarchiveFromDictionary:(NSDictionary*)dictionary
+- (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy
 {
 	if (dictionary == nil) {
 		return;
@@ -3413,6 +3418,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	NSDictionary* properties = [dictionary objectForKey:@"properties"];
     if (properties == nil) properties = dictionary;
 	[self _initWithProperties:properties];
+    NSString* bindId = [dictionary objectForKey:@"bindId"];
+    if (bindId) {
+        [rootProxy setValue:self forKey:bindId];
+    }
 	NSDictionary* events = [dictionary objectForKey:@"events"];
 	if ([events count] > 0) {
 		[context.krollContext invokeBlockOnThread:^{
@@ -3426,7 +3435,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	NSArray* childTemplates = [dictionary objectForKey:@"childTemplates"];
 	
 	[childTemplates enumerateObjectsUsingBlock:^(NSDictionary *childTemplate, NSUInteger idx, BOOL *stop) {
-		TiViewProxy *child = [[self class] unarchiveFromDictionary:childTemplate inContext:context];
+		TiViewProxy *child = [[self class] unarchiveFromDictionary:childTemplate rootProxy:rootProxy inContext:context];
 		if (child != nil) {
 			[context.krollContext invokeBlockOnThread:^{
 				[self rememberProxy:child];
@@ -3438,7 +3447,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 }
 
 // Returns protected proxy, caller should do forgetSelf.
-+ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary inContext:(id<TiEvaluator>)context
++ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context
 {
 	if (dictionary == nil) {
 		return nil;
@@ -3451,7 +3460,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         [context registerProxy:proxy];
         [proxy rememberSelf];
     }];
-    [proxy unarchiveFromDictionary:dictionary];
+    [proxy unarchiveFromDictionary:dictionary rootProxy:rootProxy];
     return proxy;
 }
 
