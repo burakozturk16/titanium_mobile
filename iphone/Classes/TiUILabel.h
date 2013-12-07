@@ -14,7 +14,7 @@
 @private
 	TDTTTAttributedLabel *label;
     CGRect padding;
-    CGRect textPadding;
+    UIEdgeInsets textPadding;
     CGRect initialLabelFrame;
     BOOL needsUpdateBackgroundImageFrame;
     BOOL needsPadLabel;

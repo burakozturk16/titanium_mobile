@@ -24,7 +24,7 @@
 {
     if (self = [super init]) {
         padding = CGRectZero;
-        textPadding = CGRectZero;
+        textPadding = UIEdgeInsetsZero;
         initialLabelFrame = CGRectZero;
     }
     return self;
@@ -44,7 +44,7 @@
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
     CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
-    maxSize.width -= textPadding.origin.x + textPadding.size.width;
+    maxSize.width -= textPadding.left + textPadding.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
     result.width = MIN(result.width,  maxSize.width);
@@ -55,8 +55,8 @@
         textRect.size.height -= 2*textRect.origin.y;
         result =textRect.size;
     }
-    result.width += textPadding.origin.x + textPadding.size.width;
-    result.height += textPadding.origin.y + textPadding.size.height;
+    result.width += textPadding.left+ textPadding.right;
+    result.height += textPadding.top + textPadding.bottom;
     return result;
 }
 
@@ -71,10 +71,10 @@
         needsPadLabel = YES;
         return; // lazy init
     }
-	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.origin.x
-                                   , initialLabelFrame.origin.y + textPadding.origin.y
-                                   , initialLabelFrame.size.width - textPadding.origin.x - textPadding.size.width
-                                   , initialLabelFrame.size.height - textPadding.origin.y - textPadding.size.height);
+	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.left
+                                   , initialLabelFrame.origin.y + textPadding.top
+                                   , initialLabelFrame.size.width - textPadding.left - textPadding.right
+                                   , initialLabelFrame.size.height - textPadding.right - textPadding.bottom);
     [label setFrame:initFrame];
     if ([self backgroundLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
     {
@@ -128,6 +128,7 @@
         label.strokeColorAttributeProperty = DTBackgroundStrokeColorAttribute;
         label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
         label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;
+        label.paddingAttributeProperty = DTPaddingAttribute;
         label.delegate = self;
         [self addSubview:label];
 	}
@@ -523,22 +524,23 @@
 	[[self label] setShadowOffset:size];
 }
 
--(void)setTextPadding_:(id)value
+-(void)setPadding_:(id)value
 {
 	ENSURE_SINGLE_ARG(value,NSDictionary);
     NSDictionary* paddingDict = (NSDictionary*)value;
     if ([paddingDict objectForKey:@"left"]) {
-        textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
+        textPadding.left = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
     }
     if ([paddingDict objectForKey:@"right"]) {
-        textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
+        textPadding.right = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
     }
     if ([paddingDict objectForKey:@"top"]) {
-        textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
+        textPadding.top = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
     }
     if ([paddingDict objectForKey:@"bottom"]) {
-        textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
+        textPadding.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
     }
+    
     [self padLabel];
 }
 
