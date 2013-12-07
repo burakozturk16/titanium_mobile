@@ -2398,12 +2398,12 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TEXT_PADDING = "textPadding";
+	public static final String PROPERTY_TEXT_PADDING = "padding";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TITLE_PADDING = "titlePadding";
+	public static final String PROPERTY_TITLE_PADDING = "padding";
 
 	/**
 	 * @module.api
