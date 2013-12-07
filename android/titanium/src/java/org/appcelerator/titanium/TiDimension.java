@@ -262,9 +262,17 @@ public class TiDimension
 	{
 		return (int) Math.round(getPixels(context, width, height));
 	}
+	
+	public int getAsPixels()
+	{
+		return getAsPixels(null, 0, 0);
+	}
+	
 	public int getAsPixels(View parent)
 	{
-		return getAsPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
+		if (parent != null)
+			return getAsPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
+		return getAsPixels(null, 0, 0);
 	}
 
 	public double getAsMillimeters(Context context, int width, int height)
