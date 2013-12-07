@@ -1059,7 +1059,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
             
             rect.origin.y = textRect.origin.y + yOffset;
             rect.size.height = textRect.size.height;
+        } else if (textRect.origin.y < 0) { //when text is too "big" we get a negative origin.y
+            rect.origin.y = - textRect.size.height / 2;
         }
+        rect = UIEdgeInsetsInsetRect(rect, _viewInsets);
         [super drawTextInRect:rect];
         return;
     }
