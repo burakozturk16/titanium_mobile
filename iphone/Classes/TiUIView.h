@@ -50,9 +50,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 {
 @protected
     BOOL configurationSet;
-	BOOL needsToSetBackgroundImage;
-	BOOL needsToSetBackgroundSelectedImage;
-	BOOL needsToSetBackgroundDisabledImage;
     NSMutableArray* childViews;
 @private
 	TiProxy *proxy;

@@ -160,6 +160,12 @@ NSArray* listenerArray = nil;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
     BOOL _dispatchPressed;
+    
+    BOOL needsToSetBackgroundImage;
+	BOOL needsToSetBackgroundSelectedImage;
+	BOOL needsToSetBackgroundDisabledImage;
+    BOOL needsUpdateBackgroundImageFrame;
+    UIEdgeInsets _backgroundPadding;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -266,6 +272,7 @@ DEFINE_EXCEPTIONS
     _touchEnabled = YES;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
+    _backgroundPadding = UIEdgeInsetsZero;
 }
 
 - (id) init
@@ -745,6 +752,60 @@ DEFINE_EXCEPTIONS
         _bgLayer.opacity = backgroundOpacity;
     }
 }
+
+
+//-(void)setBackgroundImageLayerBounds:(CGRect)bounds
+//{
+//    if ([self backgroundLayer] != nil)
+//    {
+//        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
+//                                            bounds.origin.y - padding.origin.y,
+//                                            bounds.size.width + padding.origin.x + padding.size.width,
+//                                            bounds.size.height + padding.origin.y + padding.size.height);
+//        [self backgroundLayer].frame = backgroundFrame;
+//    }
+//}
+
+//-(void) updateBackgroundImageFrameWithPadding
+//{
+//    if (!configurationSet){
+//        needsUpdateBackgroundImageFrame = YES;
+//        return; // lazy init
+//    }
+//    [self setBackgroundImageLayerBounds:self.bounds];
+//}
+
+//-(void)setBackgroundImage_:(id)url
+//{
+//    [super setBackgroundImage_:url];
+//    //if using padding we must not mask to bounds.
+//    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
+////    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingLeft_:(id)left
+//{
+//    padding.origin.x = [TiUtils floatValue:left];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingRight_:(id)right
+//{
+//    padding.size.width = [TiUtils floatValue:right];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingTop_:(id)top
+//{
+//    padding.origin.y = [TiUtils floatValue:top];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingBottom_:(id)bottom
+//{
+//    padding.size.height = [TiUtils floatValue:bottom];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
 
 -(void)setImageCap_:(id)arg
 {
