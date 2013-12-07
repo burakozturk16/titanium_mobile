@@ -1,5 +1,6 @@
 package org.appcelerator.titanium.util;
 
+import org.appcelerator.titanium.TiDimension;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Attributes;
 import org.jsoup.nodes.Document;
@@ -10,21 +11,29 @@ import org.jsoup.select.NodeVisitor;
 
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Paint.FontMetricsInt;
+import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RoundRectShape;
+import android.graphics.drawable.shapes.Shape;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.BackgroundColorSpan;
 import android.text.style.CharacterStyle;
-import android.text.style.DynamicDrawableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
+import android.text.style.LineHeightSpan;
 import android.text.style.ParagraphStyle;
 import android.text.style.QuoteSpan;
 import android.text.style.RelativeSizeSpan;
+import android.text.style.ReplacementSpan;
 import android.text.style.StyleSpan;
 import android.text.style.SubscriptSpan;
 import android.text.style.SuperscriptSpan;
@@ -36,7 +45,94 @@ import android.text.style.UnderlineSpan;
 public class TiHtml {
 	private static final String TAG = "TiHtml";
 	
+	public static class RoundedRectDrawable extends ShapeDrawable {
+	    private final Paint fillpaint, strokepaint;
+	    public RoundedRectDrawable(int radius, int fillColor, int strokeColor, int strokeWidth) {
+	        super(new RoundRectShape(new float[] { radius, radius, radius, radius, radius, radius, radius, radius }, 
+	        		null, null));
+	        fillpaint = new Paint(this.getPaint());
+	        fillpaint.setColor(fillColor);
+	        strokepaint = new Paint(fillpaint);
+	        strokepaint.setStyle(Paint.Style.STROKE);
+	        strokepaint.setStrokeWidth(strokeWidth);
+	        strokepaint.setColor(strokeColor);
+	    }
+	 
+	    @Override
+	    protected void onDraw(Shape shape, Canvas canvas, Paint paint) {
+	        shape.draw(canvas, fillpaint);
+	        shape.draw(canvas, strokepaint);
+	    }
+	}
+	
+	public static class CustomBackgroundSpan extends ReplacementSpan {
+		private RoundedRectDrawable mDrawable;
+		
+		int radius;
+		int fillColor;
+		int strokeColor;
+		int strokeWidth;
+		
+		public CustomBackgroundSpan(int radius, int fillColor, int strokeColor, int strokeWidth) {
+		    this.mDrawable = new RoundedRectDrawable(radius, fillColor, strokeColor, strokeWidth);
+		    this.radius = radius;
+		    this.fillColor = fillColor;
+		    this.strokeColor = strokeColor;
+		    this.strokeWidth = strokeWidth;		    
+		}
+		
+		public CustomBackgroundSpan(CustomBackgroundSpan toCopy) {
+			this(toCopy.radius, toCopy.fillColor, toCopy.strokeColor, toCopy.strokeWidth);	    
+		}
+		
+		@Override
+		public int getSize(Paint paint, CharSequence text, int start, int end, Paint.FontMetricsInt fm) {
+		    return measureText(paint, text, start, end);
+
+		}
+		
+		private int measureText(Paint paint, CharSequence text, int start, int end) {
+		    return Math.round(paint.measureText(text, start, end));
+		}
+		
+		@Override
+		public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
+		    float dx = strokeWidth / 2;
+			Rect rect = new Rect((int)(x + dx), (int)(top + dx + 2), (int)(x + measureText(paint, text, start, end) - strokeWidth/2), (int)(bottom - strokeWidth/2 + 2));
+		    this.mDrawable.setBounds(rect);
+		    canvas.save();
+//	        
+//	        int transY = bottom - this.mDrawable.getBounds().bottom;
+//	        if (mVerticalAlignment == ALIGN_BASELINE) {
+//	            transY -= paint.getFontMetricsInt().descent;
+//	        }
+//
+//	        canvas.translate(x, transY);
+		    this.mDrawable.draw(canvas);
+	        canvas.restore();
+	        canvas.drawText(text, start, end, x, y, paint);
+		}
+
+	}
+	
+//	private static class CustomLineHeightSpan implements LineHeightSpan {
+//        private final TiDimension height;
+//
+//        CustomLineHeightSpan(int height) {
+//            this.height = height;
+//        }
+//
+//        @Override
+//        public void chooseHeight(CharSequence text, int start, int end, int spanstartv, int v,
+//                FontMetricsInt fm) {
+//            fm.bottom += height;
+//            fm.descent += height;
+//        }
+//
+//    }
+	
 	// the formatting rules, implemented in a breadth-first DOM traverse
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private static class FormattingVisitor implements NodeVisitor {
         private SpannableStringBuilder mSpannableStringBuilder = new SpannableStringBuilder();
         private Html.ImageGetter mImageGetter;
@@ -71,7 +167,7 @@ public class TiHtml {
              * This knows that the last returned object from getSpans()
              * will be the most recently added.
              */
-            Object[] objs = text.getSpans(0, text.length(), kind);
+			Object[] objs = text.getSpans(0, text.length(), kind);
 
             if (objs.length == 0) {
                 return null;
@@ -253,7 +349,6 @@ public class TiHtml {
         }
         
         private void addText(String characters) {
-        	Log.d(TAG, "addText '" + characters + "'");
 //            StringBuilder sb = new StringBuilder();
 //            /*
 //             * Ignore whitespace that immediately follows other whitespace;
@@ -353,14 +448,31 @@ public class TiHtml {
         private CharacterStyle getStyleSpan(Attributes attr) {
 			if (attr.hasKey("style")) {
 				String[] items = attr.get("style").toLowerCase().trim().split(";");
+				int fillColor = Color.TRANSPARENT;
+				int strokeColor = Color.TRANSPARENT;
+				int strokeWidth = 1;
+				int radius = 0;
+				boolean needsBgdSpan = false;
 				for (String item : items) {
 					String[] values = item.split(":");
 					String key = values[0];
 					String value = values[1];
 					if (key.equals("background-color")) {
-						return new BackgroundColorSpan(TiColorHelper.parseColor(value));
+						fillColor = TiColorHelper.parseColor(value);
+						needsBgdSpan = true;
+					} else if (key.equals("border-color")) {
+						strokeColor = TiColorHelper.parseColor(value);
+						needsBgdSpan = true;
+					} else if (key.equals("border-width")) {
+						strokeWidth = TiConvert.toTiDimension(value, TiDimension.TYPE_HEIGHT).getAsPixels();
+						needsBgdSpan = true;
+					} else if (key.equals("border-radius")) {
+						radius = TiConvert.toTiDimension(value, TiDimension.TYPE_HEIGHT).getAsPixels();
+						needsBgdSpan = true;
 					}
 				}
+				if (needsBgdSpan)
+					return new CustomBackgroundSpan(radius, fillColor, strokeColor, strokeWidth);
 			}
 			// if (attr.get(key))
 			return null;

@@ -15,6 +15,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiHtml;
+import org.appcelerator.titanium.util.TiHtml.CustomBackgroundSpan;
 import org.appcelerator.titanium.util.TiTypefaceSpan;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
@@ -471,9 +472,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			else if (span instanceof MaskFilterSpan){
 				return new MaskFilterSpan(((MaskFilterSpan)span).getMaskFilter());
 			}
-			// else if (span instanceof LocaleSpan){
-			// 	return new LocaleSpan(((LocaleSpan)span).getLocale());
-			// }
+			else if (span instanceof CustomBackgroundSpan){
+				return new CustomBackgroundSpan(((CustomBackgroundSpan)span));
+			}
 			
 			return null;
 		}
