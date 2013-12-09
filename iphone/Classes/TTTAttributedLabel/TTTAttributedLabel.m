@@ -1082,7 +1082,8 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
 - (void)drawTextInRect:(CGRect)rect {
     if (_attributedText == nil) {
-        CGRect textRect = [super textRectForBounds:rect limitedToNumberOfLines:self.numberOfLines];
+        CGRect rectWithPadding = UIEdgeInsetsInsetRect(rect, _viewInsets);
+        CGRect textRect = [super textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
         if (textRect.size.height < rect.size.height) {
             CGFloat yOffset = 0.0f;
             switch (self.verticalAlignment) {
@@ -1097,13 +1098,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                     break;
             }
             
-            rect.origin.y = textRect.origin.y + yOffset;
-            rect.size.height = textRect.size.height;
-        } else if (textRect.origin.y < 0) { //when text is too "big" we get a negative origin.y
-            rect.origin.y = - textRect.size.height / 2;
+            rectWithPadding.origin.y = textRect.origin.y - yOffset;
+            rectWithPadding.size.height = textRect.size.height + _viewInsets.top + _viewInsets.bottom;
         }
-        rect = UIEdgeInsetsInsetRect(rect, _viewInsets);
-        [super drawTextInRect:rect];
+        [super drawTextInRect:rectWithPadding];
         return;
     }
         
