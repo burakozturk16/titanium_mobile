@@ -223,7 +223,7 @@ DEFINE_EXCEPTIONS
 	else
 	{
         color = [TiUtils colorValue:color];
-        [dict setObject:color forKey:UITextAttributeTextShadowColor];
+        [dict setObject:(color!=nil)?[color _color]:nil forKey:UITextAttributeTextShadowColor];
 	}
     [super setTitleTextAttributes:dict forState:UIControlStateNormal];
 }
