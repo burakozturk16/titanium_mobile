@@ -272,7 +272,8 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     
     BOOL ignoreMargins = NO;
     BOOL isSizeUndefined = TiDimensionIsUndefined(constraint->width);
-    
+    sandboxSize = [viewProxy verifySize:sandboxSize];
+    referenceSize = [viewProxy verifySize:referenceSize];
     CGSize parentSize = sandboxSize;
     if (!horizontal) parentSize = referenceSize;
     CGFloat frameLeft = 0.0;
