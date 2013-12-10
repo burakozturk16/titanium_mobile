@@ -2585,7 +2585,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)relayout
 {
-	if (!repositioning || CGSizeEqualToSize(sandboxBounds.size, CGSizeZero))
+	if (!repositioning && !CGSizeEqualToSize(sandboxBounds.size, CGSizeZero))
 	{
 		ENSURE_UI_THREAD_0_ARGS
 
@@ -3274,6 +3274,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	{
 		OSAtomicTestAndSetBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags);
 	}
+    
+    if (CGSizeEqualToSize([[self view] bounds].size, CGSizeZero)) return;
 
 //TODO: This is really expensive, but what can you do? Laying out the child needs the lock again.
 	pthread_rwlock_rdlock(&childrenLock);
