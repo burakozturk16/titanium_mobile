@@ -617,13 +617,14 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
        attributedString:(NSAttributedString *)attributedString
               textRange:(CFRange)textRange
                  inRect:(CGRect)rect
+               textRect:(CGRect)textRect
                 context:(CGContextRef)c
 {
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPathAddRect(path, NULL, rect);
+    CGPathAddRect(path, NULL, textRect);
     CTFrameRef frame = CTFramesetterCreateFrame(framesetter, textRange, path, NULL);    
     
-    [self drawBackground:frame inRect:rect context:c];
+    [self drawBackground:frame inRect:rect textRect:textRect context:c];
 
     CFArrayRef lines = CTFrameGetLines(frame);
     NSInteger numberOfLines = self.numberOfLines > 0 ? MIN(self.numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
@@ -731,7 +732,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
         }
     }
     
-    [self drawStrike:frame inRect:rect context:c];
+    [self drawStrike:frame inRect:rect textRect:textRect context:c];
         
     CFRelease(frame);
     CFRelease(path);    
@@ -747,6 +748,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 
 - (void)drawBackground:(CTFrameRef)frame
                 inRect:(CGRect)rect
+              textRect:(CGRect)textRect
                context:(CGContextRef)c
 {
     CGContextSaveGState(c);
@@ -756,10 +758,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     CTFrameGetLineOrigins(frame, CFRangeMake(0, 0), origins);
     
     // Compensate for y-offset of text rect from vertical positioning
-    CGFloat yOffset = 0.0f;
-    if (self.verticalAlignment != TTTAttributedLabelVerticalAlignmentTop) {
-        yOffset -= [self textRectForBounds:self.bounds limitedToNumberOfLines:self.numberOfLines].origin.y;
-    }
+    CGFloat yOffset = rect.origin.y - textRect.origin.y + _viewInsets.top;
     
     CFIndex lineIndex = 0;
     for (id line in lines) {
@@ -786,8 +785,8 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
                 runBounds.size.height = runAscent + runDescent + fillPadding.top + fillPadding.bottom;
                 
                 CGFloat xOffset = CTLineGetOffsetForStringIndex((__bridge CTLineRef)line, CTRunGetStringRange((__bridge CTRunRef)glyphRun).location, NULL);
-                runBounds.origin.x = origins[lineIndex].x + rect.origin.x + xOffset - fillPadding.left;
-                runBounds.origin.y = origins[lineIndex].y + rect.origin.y + yOffset - fillPadding.bottom;
+                runBounds.origin.x = origins[lineIndex].x + textRect.origin.x + xOffset - fillPadding.left;
+                runBounds.origin.y = origins[lineIndex].y + textRect.origin.y + yOffset - fillPadding.bottom;
                 runBounds.origin.y -= runDescent;
                 
                 // Don't draw higlightedLinkBackground too far to the right
@@ -795,7 +794,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 //                    runBounds.size.width = CGRectGetWidth(lineBounds);
 //                }
                 
-                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(runBounds.origin.x+ lineWidth/2,runBounds.origin.y + lineWidth/2,  runBounds.size.width - lineWidth + 1.0f, runBounds.size.height + 3.0f - lineWidth) cornerRadius:cornerRadius] CGPath];
+                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(runBounds.origin.x+ lineWidth/2,runBounds.origin.y + lineWidth/2,  runBounds.size.width - lineWidth, runBounds.size.height + 3.0f - lineWidth) cornerRadius:cornerRadius] CGPath];
                 
                 CGContextSetLineJoin(c, kCGLineJoinRound);
                 
@@ -821,6 +820,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 
 - (void)drawStrike:(CTFrameRef)frame
             inRect:(__unused CGRect)rect
+          textRect:(CGRect)textRect
            context:(CGContextRef)c
 {
     NSArray *lines = (__bridge NSArray *)CTFrameGetLines(frame);
@@ -1060,7 +1060,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     CGSize textSize = CTFramesetterSuggestFrameSizeWithConstraints([self framesetter], CFRangeMake(0, (CFIndex)[self.attributedText length]), NULL, textRect.size, NULL);
     textRect.size = CGSizeMake(CGFloat_ceil(textSize.width), CGFloat_ceil(textSize.height)); // Fix for iOS 4, CTFramesetterSuggestFrameSizeWithConstraints sometimes returns fractional sizes
     
-    if (textSize.height < textRect.size.height) {
+    if (textSize.height < bounds.size.height) {
         CGFloat yOffset = 0.0f;
         switch (self.verticalAlignment) {
             case TTTAttributedLabelVerticalAlignmentCenter:
@@ -1084,22 +1084,22 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     if (_attributedText == nil) {
         CGRect rectWithPadding = UIEdgeInsetsInsetRect(rect, _viewInsets);
         CGRect textRect = [super textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
-        if (textRect.size.height < rect.size.height) {
+        if (textRect.size.height < rectWithPadding.size.height) {
             CGFloat yOffset = 0.0f;
             switch (self.verticalAlignment) {
                 case TTTAttributedLabelVerticalAlignmentCenter:
-                    yOffset = floorf((rect.size.height - textRect.size.height) / 2.0f);
+                    yOffset = floorf((rectWithPadding.size.height - textRect.size.height) / 2.0f);
                     break;
                 case TTTAttributedLabelVerticalAlignmentBottom:
-                    yOffset = rect.size.height - textRect.size.height;
+                    yOffset = rectWithPadding.size.height - textRect.size.height;
                     break;
                 case TTTAttributedLabelVerticalAlignmentTop:
                 default:
                     break;
             }
             
-            rectWithPadding.origin.y = textRect.origin.y - yOffset;
-            rectWithPadding.size.height = textRect.size.height + _viewInsets.top + _viewInsets.bottom;
+            rectWithPadding.origin.y += yOffset;
+            rectWithPadding.size.height = textRect.size.height;
         }
         [super drawTextInRect:rectWithPadding];
         return;
@@ -1129,18 +1129,18 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         CGContextSetTextMatrix(c, CGAffineTransformIdentity);
 
         // Inverts the CTM to match iOS coordinates (otherwise text draws upside-down; Mac OS's system is different)
-        rect = UIEdgeInsetsInsetRect(rect, _viewInsets);
+        CGRect rectWithPadding = UIEdgeInsetsInsetRect(rect, _viewInsets);
         CGContextTranslateCTM(c, 0.0f, rect.size.height);
         CGContextScaleCTM(c, 1.0f, -1.0f);
         
         CFRange textRange = CFRangeMake(0, (CFIndex)[self.attributedText length]);
 
         // First, get the text rect (which takes vertical centering into account)
-        CGRect textRect = [self textRectForBounds:rect limitedToNumberOfLines:self.numberOfLines];
-        textRect.size.width = rect.size.width;
+        CGRect textRect = [self textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
+        textRect.size.width = rectWithPadding.size.width;
 
         // CoreText draws it's text aligned to the bottom, so we move the CTM here to take our vertical offsets into account
-        CGContextTranslateCTM(c, rect.origin.x, rect.size.height - textRect.origin.y - textRect.size.height);
+        CGContextTranslateCTM(c, textRect.origin.x, rect.size.height - textRect.origin.y - textRect.size.height);
 
         // Second, trace the shadow before the actual text, if we have one
         if (self.shadowColor && !self.highlighted) {
@@ -1160,9 +1160,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                 CFRelease(highlightFramesetter);
             }
             
-            [self drawFramesetter:[self highlightFramesetter] attributedString:highlightAttributedString textRange:textRange inRect:textRect context:c];
+            [self drawFramesetter:[self highlightFramesetter] attributedString:highlightAttributedString textRange:textRange inRect:textRect textRect:textRect context:c];
         } else {
-            [self drawFramesetter:[self framesetter] attributedString:self.renderedAttributedText textRange:textRange inRect:textRect context:c];
+            [self drawFramesetter:[self framesetter] attributedString:self.renderedAttributedText textRange:textRange inRect:rect textRect:textRect context:c];
         }  
         
         // If we adjusted the font size, set it back to its original size
