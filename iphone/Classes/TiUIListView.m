@@ -347,7 +347,7 @@ static NSDictionary* replaceKeysForRow;
             viewLayout->height = TiDimensionAutoSize;
         }
         
-        TiUIView* theView = [viewproxy view];
+        TiUIView* theView = [viewproxy getOrCreateView];
         if (![viewproxy viewAttached]) {
             [viewproxy windowWillOpen];
             [viewproxy willShow];
