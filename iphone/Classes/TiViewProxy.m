@@ -1190,10 +1190,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	}
 	else if (TiDimensionIsAutoFill(layoutProperties.width) || (TiDimensionIsAuto(layoutProperties.width) && followsFillWidthBehavior) )
 	{
-		recheckForFillW = YES;
-        autoComputed = YES;
-        autoSize = [self autoSizeForSize:CGSizeMake(autoSize.width - offsetx, autoSize.height - offsety)];
-		result.width += autoSize.width;
+		result.width = suggestedSize.width;
 	}
     else if (followsFillWidthBehavior && TiDimensionIsUndefined(layoutProperties.width))
     {
