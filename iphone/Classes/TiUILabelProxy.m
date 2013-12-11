@@ -197,6 +197,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 }
                 resultSize = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
             }
+            resultSize.width = roundf(resultSize.width);
+            resultSize.height = roundf(resultSize.height);
             resultSize.width += textPadding.origin.x + textPadding.size.width;
             resultSize.height += textPadding.origin.y + textPadding.size.height;
             return resultSize;
