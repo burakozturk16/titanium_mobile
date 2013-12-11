@@ -1175,25 +1175,6 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
 #pragma mark - UIView
 
-//- (CGSize)sizeThatFits:(CGSize)size {
-//    CGSize constraints = CGSizeMake(size.width, TTTFLOAT_MAX);
-//    
-//    if (self.numberOfLines == 1) {
-//        // If there is one line, the size that fits is the full width of the line
-//        constraints = CGSizeMake(TTTFLOAT_MAX, TTTFLOAT_MAX);
-//    }
-//    CGSize result = [super sizeThatFits:constraints];
-//    result.width = MIN(result.width, constraints.width);
-//    result.height = MIN(result.height, constraints.height);
-//    if (self.numberOfLines > 0 || _attributedText != nil) {
-//        CGRect textRect = [self textRectForBounds:CGRectMake(0,0,constraints.width, constraints.height) limitedToNumberOfLines:self.numberOfLines];
-//        
-//        textRect.size.height -= 2*textRect.origin.y;
-//        result =textRect.size;
-//    }
-//    return result;
-//}
-
 //- (CGSize)intrinsicContentSize {
 //    // There's an implicit width from the original UILabel implementation
 //    return [self sizeThatFits:[super intrinsicContentSize]];
