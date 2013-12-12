@@ -51,6 +51,7 @@ public class FreeLayout extends FrameLayout {
     }
 
     public static Rect preInvalidate(View view,Rect dirty) {
+    	if (dirty.isEmpty()) return dirty;
         Matrix m=getViewMatrix(view);
         if (m!=null) {
             if (dirty!=m_tempRect) {
