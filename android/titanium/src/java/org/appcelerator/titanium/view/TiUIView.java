@@ -141,6 +141,7 @@ public abstract class TiUIView
 	
 	protected boolean exclusiveTouch = false;
 	public boolean hardwareAccEnabled = true;
+	private Rect mBorderPadding;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -633,6 +634,11 @@ public abstract class TiUIView
 			setBorderRadius(TiConvert.toFloat(newValue, 0f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
+		} else if (key.equals(TiC.PROPERTY_BORDER_PADDING)) {
+			mBorderPadding = TiConvert.toPaddingRect(newValue);
+			if (borderView != null) {
+				borderView.setBorderPadding(mBorderPadding);
+			}
 		} else if (key.equals(TiC.PROPERTY_VIEW_MASK)) {
 			setViewMask(newValue);
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
@@ -740,6 +746,10 @@ public abstract class TiUIView
 		
 		registerForTouch();
 		registerForKeyPress();
+		
+		if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
+			mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
+		}
 		
 		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		
@@ -1092,6 +1102,7 @@ public abstract class TiUIView
 				borderView.setClipChildren(value);
 			}
 			
+			if(mBorderPadding != null) borderView.setBorderPadding(mBorderPadding);
 			addBorderView();
 		}
 		return borderView;
