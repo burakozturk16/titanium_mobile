@@ -18,6 +18,7 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.APIMap;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -153,8 +154,20 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Override
 	public void handleCreationDict(KrollDict options)
 	{
+		if (options == null) {
+			return;
+		}
+		if (options.containsKey(TiC.PROPERTY_PROPERTIES) || options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+			super.handleCreationDict(options.getKrollDict(TiC.PROPERTY_PROPERTIES));
+		}
+		else {
+			super.handleCreationDict(options);
+		}
+		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+			initFromTemplate(options, this);
+		}
 //		options = handleStyleOptions(options);
-		super.handleCreationDict(options);
+//		super.handleCreationDict(options);
 
 		//TODO eventManager.addOnEventChangeListener(this);
 	}
@@ -683,6 +696,59 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		setModelListener(null);
 		KrollRuntime.suggestGC();
 	}
+	
+	@SuppressWarnings("unchecked")
+	protected void initFromTemplate(HashMap template_,
+			KrollProxy rootProxy) {
+		if (rootProxy != null
+				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
+			rootProxy.setProperty(
+					TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),
+					this);
+		}
+		if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+			Object childProperties = template_
+					.get(TiC.PROPERTY_CHILD_TEMPLATES);
+			if (childProperties instanceof Object[]) {
+				Object[] propertiesArray = (Object[]) childProperties;
+				for (int i = 0; i < propertiesArray.length; i++) {
+					Object childDict = propertiesArray[i];
+					if (childDict instanceof TiViewProxy) {
+						this.add((TiViewProxy) childDict);
+					} else {
+						TiViewProxy childProxy = createViewFromTemplate(
+								(HashMap) childDict, rootProxy);
+						if (childProxy != null){
+							this.updateKrollObjectProperties();
+							this.add(childProxy);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private TiViewProxy createViewFromTemplate(HashMap template_,
+			KrollProxy rootProxy) {
+		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
+				"Ti.UI.View");
+		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
+				.get(TiC.PROPERTY_PROPERTIES) : template_;
+		try {
+			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+					.forName(APIMap.getProxyClass(type));
+			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
+					new Object[] { properties }, null);
+			if (proxy == null)
+				return null;
+			proxy.initFromTemplate(template_, rootProxy);
+			return proxy;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * Implementing classes should use this method to create and return the appropriate view.
@@ -700,42 +766,63 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
-		TiViewProxy child = null;
-		if (args instanceof TiViewProxy)
-			child = (TiViewProxy) args;
-		
-		if (child == null) {
-			Log.e(TAG, "Add called with a null child");
+		if (args instanceof Object[]) {
+			int i = -1; // no index by default
+			if (index instanceof Number) {
+				i = ((Number) index).intValue();
+			}
+			int arrayIndex = i;
+			for (Object obj : (Object[]) args) {
+				add(obj, Integer.valueOf(arrayIndex));
+				if (arrayIndex != -1)
+					arrayIndex++;
+			}
 			return;
-		}
-
-		int i = -1; // no index by default
-		if (index instanceof Number) {
-			i = ((Number)index).intValue();
-		}
-		
-
-		if (children == null) {
-			children = new ArrayList<TiViewProxy>();
-		}
-		
-		if (peekView() != null) {
-			if (TiApplication.isUIThread()) {
-				handleAdd(child, i);
+		} else if (args instanceof HashMap) {
+			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
+					this);
+			if (childProxy != null) {
+				childProxy.updateKrollObjectProperties();
+				add(childProxy);
+			}
+		} else {
+			TiViewProxy child = null;
+			if (args instanceof TiViewProxy)
+				child = (TiViewProxy) args;
+			
+			if (child == null) {
+				Log.e(TAG, "Add called with a null child");
 				return;
 			}
-
+	
+			int i = -1; // no index by default
+			if (index instanceof Number) {
+				i = ((Number)index).intValue();
+			}
 			
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
-
-		} else {
-			if (i >= 0) {
-				children.add(i, child);
+	
+			if (children == null) {
+				children = new ArrayList<TiViewProxy>();
 			}
-			else {
-				children.add(child);
+			
+			if (peekView() != null) {
+				if (TiApplication.isUIThread()) {
+					handleAdd(child, i);
+					return;
+				}
+	
+				
+				TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
+	
+			} else {
+				if (i >= 0) {
+					children.add(i, child);
+				}
+				else {
+					children.add(child);
+				}
+				child.parent = new WeakReference<TiViewProxy>(this);
 			}
-			child.parent = new WeakReference<TiViewProxy>(this);
 		}
 	}
 
