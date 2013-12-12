@@ -31,6 +31,7 @@ public class Ti2DMatrix extends KrollProxy {
 	public ArrayList<Operation> operations = new ArrayList<Operation>();
 
 	public TiPoint anchor;
+	protected boolean ownFrameCoord = false;
 
 	protected AffineTransform transform = null;
 
@@ -107,6 +108,7 @@ public class Ti2DMatrix extends KrollProxy {
 	public Ti2DMatrix(Ti2DMatrix prev) {
 		if (prev != null) {
 			handleAnchorPoint(prev.getProperties());
+			ownFrameCoord = prev.ownFrameCoord;
 			operations.addAll(prev.operations);
 		}
 	}
@@ -140,6 +142,10 @@ public class Ti2DMatrix extends KrollProxy {
 			op.scaleToX = op.scaleToY = TiConvert.toFloat(dict,
 					TiC.PROPERTY_SCALE);
 			operations.add(op);
+		}
+		
+		if (dict.containsKey(TiC.PROPERTY_OWN_FRAME_COORD)) {
+			ownFrameCoord = dict.optBoolean(TiC.PROPERTY_OWN_FRAME_COORD, ownFrameCoord);
 		}
 	}
 
@@ -231,6 +237,10 @@ public class Ti2DMatrix extends KrollProxy {
 	
 	public AffineTransform getAffineTransform(Context context, int width, int height, int parentWidth, int parentHeight, boolean decaleFromCenter) {
 		if (transform != null) return transform;
+		if (ownFrameCoord) {
+			parentWidth = width;
+			parentHeight = height;
+		}
 		AffineTransform result = new AffineTransform();
 		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return result;
 		for (Operation op : operations) {
