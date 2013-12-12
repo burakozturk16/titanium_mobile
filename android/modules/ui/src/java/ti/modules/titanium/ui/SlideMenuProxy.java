@@ -7,6 +7,7 @@ package ti.modules.titanium.ui;
 
 import java.lang.ref.WeakReference;
 
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiActivityWindow;
 import org.appcelerator.titanium.TiApplication;
@@ -473,5 +474,10 @@ public class SlideMenuProxy extends WindowProxy implements TiActivityWindow, TiW
 			}
 		}
 		return super.realUpdateOrientationModes();
+	}
+
+	@Override
+	public KrollProxy getParentForBubbling(TiWindowProxy proxy) {
+		return this;
 	}
 }
