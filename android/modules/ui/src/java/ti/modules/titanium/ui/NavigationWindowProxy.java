@@ -179,12 +179,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (size > 0 && index != -1) {
 				preAddedWindows.subList(index + 1, size).clear();
 			}
+			poping = false;
+			return true;
+		}
+		int index = windows.indexOf(winToFocus);
+		int size = windows.size();
+		if (index >= size - 1) {
+			poping = false;
 			return true;
 		}
 		TiWindowProxy toRemove = popWindow();
-		int index = windows.indexOf(winToFocus);
-		int size = windows.size();
-	
+		size = windows.size();
 		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		for (int i = index + 1; i < size; i++) {
 			TiWindowProxy window = windows.get(i);
@@ -347,7 +352,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				firstWindow.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
 			}
 			if (preAddedWindows.size() > 0 ) {
-				windows.add(firstWindow);
+				addWindow(firstWindow, null);
 				for (int i = 0; i < preAddedWindows.size() - 1; i++) {
 					windows.add(preAddedWindows.get(i));
 				}
@@ -396,7 +401,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private boolean handlePop(final TiWindowProxy proxy, Object arg) 
 	{
-		if (!opened || opening || !windows.contains(proxy)) {
+		if (!windows.contains(proxy)) {
 			poping = false;
 			return true;
 		}
@@ -429,7 +434,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	{
 		int index = windows.indexOf(proxy);
 		if (index >=0 && !isFirst){
-			poping = false;
+			pushing = false;
+			poping = true;
 			popUpToWindow(proxy, arg);
 			return;
 		}
@@ -630,6 +636,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 	@Override
 	public boolean handleClose(TiWindowProxy proxy, Object arg) {
+		if (pushing || poping) return true;
 		poping = true;
 		if (TiApplication.isUIThread()) {
 			return handlePop(proxy, arg);
@@ -641,6 +648,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			return false;
 		}
 	}
+	
+	@Override
+	public KrollProxy getParentForBubbling(TiWindowProxy winProxy) {
+		return this;
+//		return (TiViewProxy.winProxy).getParentForBubbling();
+	}
+
 
 	@Override
 	public boolean handleOpen(TiWindowProxy proxy, Object arg) {
