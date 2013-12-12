@@ -183,7 +183,13 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
     if (window == rootWindow) {
-        DebugLog(@"[ERROR] Can not close root window of the navWindow. Close this window instead");
+        DebugLog(@"[WARN] Closing the first window is like closing ourself");
+        if ([args count] > 1) {
+            args = [NSArray arrayWithObjects:[args objectAtIndex:1], nil];
+        } else {
+            args = [NSArray array];
+        }
+        [self close:args];
         return;
     }
     UIViewController* winController = [self controllerForWindow:window];
