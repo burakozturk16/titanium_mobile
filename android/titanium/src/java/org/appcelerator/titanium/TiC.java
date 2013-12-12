@@ -868,6 +868,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BORDER_PADDING = "borderPadding";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BORDER_RADIUS = "borderRadius";
 
 	/**
