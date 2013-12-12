@@ -31,6 +31,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -367,7 +368,8 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			}
 			intent.putExtra(TiC.PROPERTY_MODAL, modal);
 		}
-		if (!modal && hasProperty(TiC.PROPERTY_OPACITY)) {
+		if (modal || hasProperty(TiC.PROPERTY_OPACITY) || (hasProperty(TiC.PROPERTY_BACKGROUND_COLOR) && 
+				Color.alpha(TiConvert.toColor(getProperty(TiC.PROPERTY_BACKGROUND_COLOR))) < 255 )) {
 			intent.setClass(activity, TiTranslucentActivity.class);
 		}
 		if (hasProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT)) {
