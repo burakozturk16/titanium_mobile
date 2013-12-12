@@ -76,8 +76,8 @@ public class TiUILabel extends TiUINonViewGroupView
 	private int shadowColor = Color.TRANSPARENT;
 
 	private Rect textPadding;
-	private String ELLIPSIZE_CHAR = "…";
-	
+	private String ELLIPSIZE_CHAR = "...";
+
 	private TextView tv;
 
 	public class EllipsizingTextView extends TextView {
@@ -537,7 +537,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					Layout layout = createWorkingLayout(workingText, width);
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						if (linesCount > 2) {
+						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
 							int end2 = layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
@@ -573,7 +573,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					Layout layout = createWorkingLayout(workingText, width);
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						if (linesCount > 2) {
+						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
 							int end2 = layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
