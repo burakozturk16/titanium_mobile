@@ -726,7 +726,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		boolean needsColors = false;
 		if(d.containsKey(TiC.PROPERTY_COLOR)) {
 			needsColors = true;
-			color = d.optColor(TiC.PROPERTY_COLOR, this.color);
+			color = selectedColor = disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.color);
 		}
 		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
 			needsColors = true;
