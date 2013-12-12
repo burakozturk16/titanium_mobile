@@ -480,7 +480,10 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public KrollProxy getParentForBubbling()
 	{
 		// No events bubble up to decor view.
-		if (getParent() instanceof DecorViewProxy) {
+		if (winManager != null) {
+			return winManager.getParentForBubbling(this);
+		}
+		else if (getParent() instanceof DecorViewProxy) {
 			return null;
 		}
 		return super.getParentForBubbling();
