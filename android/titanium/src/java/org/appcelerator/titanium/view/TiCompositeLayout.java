@@ -402,6 +402,7 @@ public class TiCompositeLayout extends FreeLayout implements
 				int childHeight = child.getMeasuredHeight() + heightPadding;
 				
 				maxHeight += childHeight;
+				maxWidth = Math.max(maxWidth, childWidth);
 			}
 		}
 
@@ -553,11 +554,16 @@ public class TiCompositeLayout extends FreeLayout implements
 	// we don't need to, then return the
 	// measured width
 	private int calculateWidthFromPins(LayoutParams params, int parentLeft,
-			int parentRight, int parentWidth, int measuredWidth) {
+			int parentRight, int parentWidth, int measuredWidth, boolean canResizeFill) {
 		int width = measuredWidth;
 
 		if (params.optionWidth != null || params.sizeOrFillWidthEnabled) {
-			return width;
+			if (canResizeFill && params.sizeOrFillWidthEnabled && params.autoFillsWidth) {
+				return parentWidth - getLayoutOptionAsPixels(params.optionRight, TiDimension.TYPE_RIGHT, params, this) -
+						getLayoutOptionAsPixels(params.optionLeft, TiDimension.TYPE_LEFT , params, this);
+			}
+			else 
+				return width;
 		}
 
 		TiDimension left = params.optionLeft;
@@ -583,12 +589,17 @@ public class TiCompositeLayout extends FreeLayout implements
 	// we don't need to, then return the
 	// measured height
 	private int calculateHeightFromPins(LayoutParams params, int parentTop,
-			int parentBottom, int parentHeight, int measuredHeight) {
+			int parentBottom, int parentHeight, int measuredHeight, boolean canResizeFill) {
 		int height = measuredHeight;
 
 		// Return if we don't need undefined behavior
 		if (params.optionHeight != null || params.sizeOrFillHeightEnabled) {
-			return height;
+			if (canResizeFill && params.sizeOrFillHeightEnabled && params.autoFillsHeight) {
+				return parentHeight - getLayoutOptionAsPixels(params.optionTop, TiDimension.TYPE_TOP, params, this) -
+						getLayoutOptionAsPixels(params.optionBottom, TiDimension.TYPE_BOTTOM , params, this);
+			}
+			else 
+				return height;
 		}
 
 		TiDimension top = params.optionTop;
@@ -647,14 +658,15 @@ public class TiCompositeLayout extends FreeLayout implements
 					vertical, i);
 
 		} else {
+			boolean verticalArr = isVerticalArrangement();
 			// Try to calculate width/height from pins, and default to measured
 			// width/height. We have to do this in
 			// onLayout since we can't get the correct top, bottom, left, and
 			// right values inside constrainChild().
 			childMeasuredHeight = calculateHeightFromPins(params, top, bottom,
-					getHeight(), childMeasuredHeight);
+					getHeight(), childMeasuredHeight, !verticalArr);
 			childMeasuredWidth = calculateWidthFromPins(params, left, right,
-					getWidth(), childMeasuredWidth);
+					getWidth(), childMeasuredWidth, true);
 
 			computePosition(this, params.optionLeft, params.optionCenterX,
 					params.optionRight, childMeasuredWidth, left, right,
@@ -965,8 +977,13 @@ public class TiCompositeLayout extends FreeLayout implements
 			measuredHeight = calculateHeightFromPins(params,
 					horizontalLayoutTopBuffer, horizontalLayoutTopBuffer
 							+ horizontalLayoutLineHeight,
-					horizontalLayoutLineHeight, measuredHeight);
+					horizontalLayoutLineHeight, measuredHeight, true);
 			layoutBottom = horizontalLayoutLineHeight;
+		}
+		else {
+			measuredHeight = calculateHeightFromPins(params,
+					layoutTop, layoutBottom,
+					layoutBottom - layoutTop, measuredHeight, true);
 		}
 
 		// Get vertical position into vpos
