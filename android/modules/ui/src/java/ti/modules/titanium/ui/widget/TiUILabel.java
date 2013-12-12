@@ -784,22 +784,10 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
 		}
-
 		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
-			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TEXT_PADDING);
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
+					textPadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
@@ -895,21 +883,10 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setMaxLines(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
 			Linkify.addLinks(tv, TiConvert.toInt(newValue));
-		}  else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = (KrollDict) newValue;
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
+			textPadding = TiConvert.toPaddingRect(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
+					textPadding.bottom);
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {

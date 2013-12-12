@@ -181,19 +181,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiUIHelper.setAlignment(btn, null, verticalAlign);
 		}
 		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TITLE_PADDING);
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
+			titlePadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TITLE_PADDING);
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_IMAGE_ANCHOR)) {
@@ -256,19 +244,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiUIHelper.setAlignment(btn, null, TiConvert.toString(newValue));
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = (KrollDict) newValue;
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
+			titlePadding = TiConvert.toPaddingRect(newValue);
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {

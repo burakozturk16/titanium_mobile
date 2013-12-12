@@ -1025,6 +1025,40 @@ public class TiConvert
 		return toRect(hashMap.get(key));
 	}
 	
+	public static Rect toPaddingRect(Object value)
+	{
+		if (value instanceof Rect) {
+			return (Rect)value;
+
+		} else if (value instanceof HashMap<?,?>) {
+			KrollDict dict = new KrollDict((HashMap<String, Object>)value);
+			Rect result = new Rect();
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				result.left = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				result.right = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				result.top = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				result.bottom = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_BOTTOM);
+			}
+			return result;
+		}
+
+		return null;
+	}
+	public static Rect toPaddingRect(HashMap<String, Object> hashMap, String key)
+	{
+		return toPaddingRect(hashMap.get(key));
+	}
+	
 	/**
 	 * Converts value into Rect object and returns it.
 	 * @param value the value to convert.
