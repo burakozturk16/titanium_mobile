@@ -17,7 +17,7 @@ import android.util.StateSet;
 import android.view.View;
 
 public class TiBackgroundDrawable extends Drawable {
-	private static final int NOT_SET = -1;
+	static final int NOT_SET = -1;
 	private int alpha = NOT_SET;
 	
 	private RectF innerRect;
@@ -148,6 +148,7 @@ public class TiBackgroundDrawable extends Drawable {
 			key = mStateSets.size();
 			mStateSets.append(key, stateSet);
 			drawable = new OneStateDrawable();
+			drawable.setAlpha(this.alpha);
 			drawable.setDefaultColorDrawable(defaultColorDrawable);
 			drawables.append(key, drawable);
 		}
@@ -171,7 +172,6 @@ public class TiBackgroundDrawable extends Drawable {
 	{
 		if (drawable != null) {
 			drawable.setBounds(this.getBounds());
-			drawable.setAlpha(this.alpha);
 		}
 		getOrCreateDrawableForState(stateSet).setColorDrawable(drawable);
 		onStateChange(getState());
@@ -186,7 +186,6 @@ public class TiBackgroundDrawable extends Drawable {
 	{
 		if (drawable != null) {
 			drawable.setBounds(this.getBounds());
-			drawable.setAlpha(this.alpha);
 		}
 		getOrCreateDrawableForState(stateSet).setBitmapDrawable(drawable);
 		onStateChange(getState());
@@ -196,7 +195,6 @@ public class TiBackgroundDrawable extends Drawable {
 	{
 		if (drawable != null) {
 			drawable.setBounds(this.getBounds());
-			drawable.setAlpha(this.alpha);
 		}
 		getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
 		onStateChange(getState());
@@ -219,12 +217,7 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setImageRepeat(repeat);
 		}
 	}
-
-	// @Override
-	// public void invalidateSelf() {
-	// 	super.invalidateSelf();
-	// }
-
+	
 	public void invalidateDrawable(Drawable who) {
 		
 		int length = drawables.size();
@@ -253,7 +246,7 @@ public class TiBackgroundDrawable extends Drawable {
 		for(int i = 0; i < length; i++) {
 		   key = drawables.keyAt(i);
 		   Drawable drawable = drawables.get(key);
-			drawable.setAlpha(alpha);
+		   drawable.setAlpha(alpha);
 		}
 	}
 

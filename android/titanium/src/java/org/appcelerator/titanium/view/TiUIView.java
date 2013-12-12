@@ -1024,7 +1024,7 @@ public abstract class TiUIView
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_OPACITY))
 				alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_BACKGROUND_OPACITY));
 			
-			if (alpha < 255)
+			if (alpha < 1.0)
 				background.setAlpha(Math.round(alpha * 255));
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
 				background.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));

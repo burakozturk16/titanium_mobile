@@ -67,8 +67,6 @@ public class TiColorHelper
 			} else {
 				// Try the parser, will throw illegalArgument if it can't parse it.
 				try {
-					
-					color = Color.parseColor(lowval);
 					// In 4.3, Google introduced some new string color constants and they forgot to
 					// add the alpha bits to them! This is a temporary workaround 
 					// until they fix it. I've created a Google ticket for this:
