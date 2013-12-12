@@ -400,6 +400,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			poping = false;
 			return true;
 		}
+		if (proxy == windows.get(0)) {
+			//first window, closing it is closing ourself
+			poping = false;
+			close(arg);
+			return true;
+		}
 		return popWindow(proxy, arg);
 	}
 	
