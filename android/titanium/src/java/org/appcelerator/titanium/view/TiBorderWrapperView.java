@@ -109,6 +109,7 @@ public class TiBorderWrapperView extends MaskableView
 	{
 		Rect bounds = new Rect();
 		getDrawingRect(bounds);
+		if (bounds.isEmpty()) return;
 		
 		RectF outerRect = new RectF();
 		outerRect.set(bounds);
