@@ -1250,6 +1250,28 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	return result;
 }
 
++(UIEdgeInsets)insetValue:(id)value
+{
+    UIEdgeInsets inset = UIEdgeInsetsZero;
+    if ([value isKindOfClass:[NSDictionary class]])
+	{
+        NSDictionary* paddingDict = (NSDictionary*)value;
+        if ([paddingDict objectForKey:@"left"]) {
+            inset.left = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
+        }
+        if ([paddingDict objectForKey:@"right"]) {
+            inset.right = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
+        }
+        if ([paddingDict objectForKey:@"top"]) {
+            inset.top = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
+        }
+        if ([paddingDict objectForKey:@"bottom"]) {
+            inset.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
+        }
+    }
+    return inset;
+}
+
 +(TiScriptError*) scriptErrorValue:(id)value;
 {
 	if ((value == nil) || (value == [NSNull null])){

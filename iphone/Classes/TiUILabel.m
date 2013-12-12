@@ -440,22 +440,7 @@
 
 -(void)setPadding_:(id)value
 {
-	ENSURE_SINGLE_ARG(value,NSDictionary);
-    NSDictionary* paddingDict = (NSDictionary*)value;
-    UIEdgeInsets inset = [self label].viewInsets;
-    if ([paddingDict objectForKey:@"left"]) {
-        inset.left = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
-    }
-    if ([paddingDict objectForKey:@"right"]) {
-        inset.right = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
-    }
-    if ([paddingDict objectForKey:@"top"]) {
-        inset.top = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
-    }
-    if ([paddingDict objectForKey:@"bottom"]) {
-        inset.bottom = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
-    }
-    [self label].viewInsets = inset;
+    [self label].viewInsets = [TiUtils insetValue:value];
     [(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
