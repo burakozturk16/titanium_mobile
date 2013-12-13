@@ -395,7 +395,7 @@ public abstract class TiUIView
 	{
 		View view = getOuterView();
 		if (view != null && layoutParams.matrix != null) {
-			Matrix m = layoutParams.matrix.getMatrix(view, layoutParams.anchorX, layoutParams.anchorY);
+			Matrix m = layoutParams.matrix.getMatrix(view);
 			// Get the translation values
 			float[] values = new float[9];
 			m.getValues(values);
@@ -1923,7 +1923,7 @@ public abstract class TiUIView
 			}
 			
 			if (parentView instanceof FreeLayout) {
-				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view, layoutParams.anchorX, layoutParams.anchorY);
+				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view);
 				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix);
 				list.add(anim);
 				if (needsReverse) {
@@ -1939,7 +1939,7 @@ public abstract class TiUIView
 				}
 			}
 			else {
-				DecomposedType decompose = matrix.getAffineTransform(view, layoutParams.anchorX, layoutParams.anchorY, true).decompose();
+				DecomposedType decompose = matrix.getAffineTransform(view).decompose();
 				List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
@@ -1949,7 +1949,7 @@ public abstract class TiUIView
 				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
 				if (needsReverse) {
 					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
-					decompose = matrix.getAffineTransform(view, layoutParams.anchorX, layoutParams.anchorY, true).decompose();
+					decompose = matrix.getAffineTransform(view).decompose();
 					propertiesList = new ArrayList<PropertyValuesHolder>();
 					propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
 					propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));

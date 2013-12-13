@@ -29,7 +29,7 @@ public class Ti2DMatrixProperty extends Property<View, Ti2DMatrix> {
 			}
 		}
 		else {
-			DecomposedType decompose = value.getAffineTransform(view, 0.5f, 0.5f,true).decompose();
+			DecomposedType decompose = value.getAffineTransform(view).decompose();
 			ViewHelper.setTranslationX(view, (float) decompose.translateX);
 			ViewHelper.setTranslationY(view, (float) decompose.translateY);
 			ViewHelper.setRotation(view, (float) (decompose.angle*180/Math.PI));

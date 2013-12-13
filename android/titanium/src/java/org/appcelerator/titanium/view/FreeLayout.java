@@ -29,7 +29,7 @@ public class FreeLayout extends FrameLayout {
     	if (layoutParams instanceof LayoutParams) {
     		LayoutParams params = (LayoutParams)layoutParams;
     		if (params.matrix != null) {
-    			transformedMatrix =params.matrix.getMatrix(this, params.anchorX, params.anchorY);
+    			transformedMatrix =params.matrix.getMatrix(this);
     			float dx = params.anchorX * getWidth();
     			float dy = params.anchorY * getHeight();
     			transformedMatrix.preTranslate(-dx, -dy);
@@ -46,7 +46,7 @@ public class FreeLayout extends FrameLayout {
         if (layoutParams instanceof LayoutParams) {
     		LayoutParams params = (LayoutParams)layoutParams;
     		if (params.matrix != null) {
-    			Matrix m = params.matrix.getMatrix(view, params.anchorX, params.anchorY);
+    			Matrix m = params.matrix.getMatrix(view);
     			float dx = params.anchorX * view.getWidth();
     			float dy = params.anchorY * view.getHeight();
     			m.preTranslate(-dx, -dy);
@@ -129,6 +129,8 @@ public class FreeLayout extends FrameLayout {
         public LayoutParams(FreeLayout.LayoutParams source) {
             super(source);
             this.matrix = source.matrix;
+            this.anchorX = source.anchorX;
+            this.anchorY = source.anchorY;
         }
         public LayoutParams(FrameLayout.LayoutParams source) {
             super(source);
