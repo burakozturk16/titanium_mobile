@@ -32,7 +32,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.graphics.Paint;
 import android.graphics.Rect;
 
 import android.graphics.Typeface;
@@ -41,7 +40,6 @@ import android.text.Layout.Alignment;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
-import android.text.TextPaint;
 import android.text.TextUtils.TruncateAt;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
@@ -68,7 +66,7 @@ public class TiUILabel extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUILabel";
 
-	private int defaultColor, selectedColor, color, disabledColor;
+	private int selectedColor, color, disabledColor;
 	private boolean wordWrap = true;
 	private float shadowRadius = 0f;
 	private float shadowX = 0f;
@@ -663,7 +661,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		tv.setFocusable(false);
 		tv.setSingleLine(false);
 		TiUIHelper.styleText(tv, null);
-		color = disabledColor = selectedColor = defaultColor = tv.getCurrentTextColor();
+		color = disabledColor = selectedColor = tv.getCurrentTextColor();
 		setNativeView(tv);
 
 	}
