@@ -842,8 +842,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		child.parent = new WeakReference<TiViewProxy>(this);
 		child.setActivity(getActivity());
 		if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
-			((TiWindowProxy)child).onWindowActivityCreated();
-			child.focus();
+			TiWindowProxy childWin = (TiWindowProxy)child;
+			childWin.onWindowActivityCreated();
+			childWin.focus();
 		}
 		if (view != null) {
 			
