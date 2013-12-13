@@ -1,24 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-network"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
 	<classpathentry exported="true" kind="lib" path="/titanium-ui/bin/titanium-ui.jar"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-network/bin/titanium-network.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-android"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-android/bin/titanium-android.jar"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-shape"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-shape/bin/titanium-shape.jar"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-image"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-image/bin/titanium-image.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/NineOldAndroids"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-dist"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
