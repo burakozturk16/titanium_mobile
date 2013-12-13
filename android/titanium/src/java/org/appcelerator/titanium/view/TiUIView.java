@@ -141,7 +141,7 @@ public abstract class TiUIView
 	
 	protected boolean exclusiveTouch = false;
 	public boolean hardwareAccEnabled = true;
-	protected View mTouchDelegate;
+	protected TiTouchDelegate mTouchDelegate;
 	private Rect mBorderPadding;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
@@ -275,7 +275,7 @@ public abstract class TiUIView
 		this.parent = parent;
 	}
 	
-	public void setTouchDelegate(View delegate) {
+	public void setTouchDelegate(TiTouchDelegate delegate) {
         mTouchDelegate = delegate;
     }
 
@@ -1348,6 +1348,9 @@ public abstract class TiUIView
 
 			public boolean onTouch(View view, MotionEvent event)
 			{
+				if (mTouchDelegate != null) {
+					mTouchDelegate.onTouchEvent(event, TiUIView.this);
+				}
 				if (exclusiveTouch) {
 					ViewGroup parent =  (ViewGroup)view.getParent();
 					if(parent != null) {
@@ -1399,10 +1402,6 @@ public abstract class TiUIView
 						return true;
 					}
 					pointersDown = 0;
-				}
-				
-				if (mTouchDelegate != null) {
-					mTouchDelegate.onTouchEvent(event);
 				}
 
 				handleTouchEvent(event);

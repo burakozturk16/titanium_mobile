@@ -13,15 +13,22 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.TiTouchDelegate;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
+import ti.modules.titanium.ui.widget.TiUIButton;
+import ti.modules.titanium.ui.widget.TiUIProgressBar;
+import ti.modules.titanium.ui.widget.TiUISlider;
+import ti.modules.titanium.ui.widget.TiUISwitch;
+import ti.modules.titanium.ui.widget.TiUIText;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageView;
 
-public class TiListItem extends TiUIView {
-
+public class TiListItem extends TiUIView implements TiTouchDelegate {
+	TiUIView mClickDelegate;
 	View listItemLayout;
 	public TiListItem(TiViewProxy proxy) {
 		super(proxy);
@@ -100,7 +107,9 @@ public class TiListItem extends TiUIView {
 					d.clear();
 					d.putAll(additionalEventData);
 				}
-				listView.fireEvent(TiC.EVENT_ITEM_CLICK, data);
+				if (mClickDelegate == null) {
+					listView.fireEvent(TiC.EVENT_ITEM_CLICK, data);
+				}
 			}
 		}
 	}
@@ -110,6 +119,23 @@ public class TiListItem extends TiUIView {
 			listItemLayout = null;
 		}
 		super.release();
+	}
+	@Override
+	protected void handleTouchEvent(MotionEvent event) {
+		mClickDelegate = null;
+	}
+
+	@Override
+	public void onTouchEvent(MotionEvent event, TiUIView fromView) {
+		if (fromView instanceof TiUIButton || 
+				fromView instanceof TiUISwitch ||
+				fromView instanceof TiUISlider ||
+				fromView instanceof TiUIText) return;
+		mClickDelegate = fromView;
+		if (nativeView != null) {
+			nativeView.onTouchEvent(event);
+		}
+//		mClickDelegate = null;
 	}
 	
 }

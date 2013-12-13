@@ -22,19 +22,21 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiTouchDelegate;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.ViewProxy;
 import ti.modules.titanium.ui.widget.listview.TiListView.TiBaseAdapter;
 import ti.modules.titanium.ui.widget.listview.TiListViewTemplate.DataItem;
+import android.annotation.SuppressLint;
 import android.os.Message;
 import android.view.View;
 
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 })
 @SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressLint("DefaultLocale")
 public class ListSectionProxy extends ViewProxy{
 
 	private static final String TAG = "ListSectionProxy";
@@ -664,7 +666,6 @@ public class ListSectionProxy extends ViewProxy{
 			DataItem child = childrenItem.get(i);
 			TiViewProxy proxy = child.getViewProxy();
 			TiUIView view = proxy.createView(proxy.getActivity());
-			view.setTouchDelegate(rootItem);
 			generateChildContentViews(child, view, rootItem, false);
 			//Bind view to root.
 			
@@ -755,6 +756,7 @@ public class ListSectionProxy extends ViewProxy{
 			DataItem dataItem = template.getDataItem(binding);
 			ViewItem viewItem = views.get(binding);
 			TiUIView view = viewItem.getView();
+			view.setTouchDelegate((TiTouchDelegate)listItem);
 			//update extra event data for views
 			if (view != null) {
 				appendExtraEventData(view, itemIndex, sectionIndex, binding, itemId);
