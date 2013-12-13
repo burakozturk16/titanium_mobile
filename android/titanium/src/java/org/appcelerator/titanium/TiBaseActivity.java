@@ -190,7 +190,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			//Fire focus only if activity is not paused and the removed window was topWindow
 			if (isResumed && isTopWindow) {
 				nextWindow.onWindowFocusChange(true);
-				updateTitle(proxy);
+//				updateTitle(proxy);
 			}
 		}
 		else
