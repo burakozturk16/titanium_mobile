@@ -763,8 +763,8 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 			int height = proxy.currentBounds.height();
 			int parentWidth = proxy.parentBounds.width();
 			int parentHeight = proxy.parentBounds.height();
-			AffineTransform a = (startValue != null)?startValue.getAffineTransform(context, width, height, parentWidth, parentHeight, false):(new AffineTransform());
-			AffineTransform b = endValue.getAffineTransform(context, width, height, parentWidth, parentHeight, false);
+			AffineTransform a = (startValue != null)?startValue.getAffineTransform(context, width, height, parentWidth, parentHeight):(new AffineTransform());
+			AffineTransform b = endValue.getAffineTransform(context, width, height, parentWidth, parentHeight);
 			b.blend(a, fraction);
 			return new Ti2DMatrix(b);
 		}
