@@ -390,8 +390,17 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			}
 		});
 		listView.setOnPullListener( new OnPullListener() {
+			private boolean canUpdate = false;
 			@Override
 			public void onPull(boolean canUpdate) {
+				if (canUpdate != this.canUpdate) {
+					this.canUpdate = canUpdate;
+					if(fProxy.hasListeners(TiC.EVENT_PULL_CHANGED)) {
+						KrollDict event = dictForScrollEvent();
+						event.put("active", canUpdate);
+						fProxy.fireEvent(TiC.EVENT_PULL_CHANGED, event);
+					}
+				}
 				if(fProxy.hasListeners(TiC.EVENT_PULL)) {
 					KrollDict event = dictForScrollEvent();
 					event.put("active", canUpdate);
