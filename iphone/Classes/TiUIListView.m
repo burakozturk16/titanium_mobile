@@ -1650,10 +1650,16 @@ static NSDictionary* replaceKeysForRow;
         [self fireScrollEvent:scrollView];
     }
     if ( (_pullViewProxy != nil) && ([scrollView isTracking]) ) {
+        BOOL pullChanged = NO;
         if ( (scrollView.contentOffset.y < pullThreshhold) && (pullActive == NO) ) {
             pullActive = YES;
+            pullChanged = YES;
         } else if ( (scrollView.contentOffset.y > pullThreshhold) && (pullActive == YES) ) {
             pullActive = NO;
+            pullChanged = YES;
+        }
+        if (pullChanged && [self.proxy _hasListeners:@"pullchanged"]) {
+            [self.proxy fireEvent:@"pullchanged" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
         }
         if (scrollView.contentOffset.y <= 0 && [self.proxy _hasListeners:@"pull"]) {
             [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
