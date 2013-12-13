@@ -211,13 +211,13 @@
 {
     CGFloat leftMenuWidth = [self controller].maximumLeftDrawerWidth;
 
-    [self controller].leftDisplacement = TiDimensionCalculateValue(_leftScrollScale, leftMenuWidth);
+    [self controller].leftDisplacement = -TiDimensionCalculateValue(_leftScrollScale, leftMenuWidth);
 }
 
 -(void)updateRightDisplacement
 {
     CGFloat rightMenuWidth = [self controller].maximumRightDrawerWidth;
-    [self controller].rightDisplacement = TiDimensionCalculateValue(_rightScrollScale, rightMenuWidth);
+    [self controller].rightDisplacement = -TiDimensionCalculateValue(_rightScrollScale, rightMenuWidth);
 }
 
 -(void)setLeftViewDisplacement_:(id)args
