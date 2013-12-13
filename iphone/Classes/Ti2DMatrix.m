@@ -203,6 +203,7 @@ typedef enum
 {
 	if (self = [super init])
 	{
+        _ownFrameCoord = NO;
         _operations = [[NSMutableArray alloc] init];
         _anchor = [[TiPoint alloc] initWithObject:[NSDictionary dictionaryWithObjectsAndKeys:@"50%", @"x", @"50%", @"y", nil]];
 	}
@@ -230,6 +231,7 @@ typedef enum
 {
 	if (self = [self init])
 	{
+        _ownFrameCoord = matrix_.ownFrameCoord;
 		NSArray* otherOperations = matrix_.operations;
         for (AffineOp* op in otherOperations) {
             [_operations addObject: [[op copy] autorelease]];
@@ -272,6 +274,7 @@ typedef enum
 
 -(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize
 {
+    if (_ownFrameCoord) parentSize = size;
     CGAffineTransform result = CGAffineTransformIdentity;
     for (AffineOp* op in _operations) {
         result = [op apply:result inSize:size andParentSize:parentSize];
@@ -281,6 +284,7 @@ typedef enum
 
 -(CGAffineTransform) matrixInViewSize:(CGSize)size andParentSize:(CGSize)parentSize decale:(CGSize)decale
 {
+    if (_ownFrameCoord) parentSize = size;
     CGAffineTransform result = CGAffineTransformIdentity;
     for (AffineOp* op in _operations) {
         result = [op apply:result inSize:size andParentSize:parentSize decale:decale];

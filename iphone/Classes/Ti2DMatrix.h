@@ -18,6 +18,8 @@
  */
 -(id)initWithProperties:(NSDictionary*)dict_;
 
+@property(nonatomic,assign) BOOL ownFrameCoord;
+
 -(Ti2DMatrix*)translate:(id)args;
 -(Ti2DMatrix*)scale:(id)args;
 -(Ti2DMatrix*)rotate:(id)args;
