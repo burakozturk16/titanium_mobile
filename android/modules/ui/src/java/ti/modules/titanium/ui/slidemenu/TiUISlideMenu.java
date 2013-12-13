@@ -473,6 +473,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 		if (newProxy != null && newProxy instanceof TiViewProxy) {
 				TiBaseActivity activity = (TiBaseActivity) this.proxy.getActivity();
 				newProxy.setActivity(activity);
+				newProxy.setParent(this.proxy);
 				if (isCenterView) {
 					TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
 					params.autoFillsHeight = true;
@@ -498,6 +499,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 					((TiWindowProxy) oldProxy).setWindowManager(null);
 				}
 			}
+			oldProxy.setParent(null);
 			oldProxy.setActivity(null);
 			oldProxy.blur();
 		}
