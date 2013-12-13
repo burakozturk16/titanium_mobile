@@ -156,6 +156,7 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
+    CALayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
@@ -166,6 +167,7 @@ NSArray* listenerArray = nil;
 	BOOL needsToSetBackgroundDisabledImage;
     BOOL needsUpdateBackgroundImageFrame;
     UIEdgeInsets _backgroundPadding;
+    UIEdgeInsets _borderPadding;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -206,6 +208,7 @@ DEFINE_EXCEPTIONS
     [transferLock release];
 	[transformMatrix release];
 	[_bgLayer release];
+	[_borderLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
 	[twoFingerTapRecognizer release];
@@ -273,6 +276,7 @@ DEFINE_EXCEPTIONS
     _dispatchPressed = NO;
     animateBgdTransition = NO;
     _backgroundPadding = UIEdgeInsetsZero;
+    self.layer.borderColor = [UIColor clearColor].CGColor;
 }
 
 - (id) init
@@ -434,7 +438,10 @@ DEFINE_EXCEPTIONS
 {
     
     if (_bgLayer) {
-        _bgLayer.frame = bounds;
+        _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
+    }
+    if (_borderLayer) {
+        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
     }
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
@@ -559,7 +566,10 @@ DEFINE_EXCEPTIONS
     }
 
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
-    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    [[[self backgroundWrapperView] layer] addSublayer:_bgLayer];
+    if (_borderLayer)
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    else
     _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
     
     _bgLayer.opacity = backgroundOpacity;
@@ -567,6 +577,25 @@ DEFINE_EXCEPTIONS
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
+}
+
+
+-(CALayer*)getOrCreateBorderLayer
+{
+    if (_borderLayer != nil) {
+        return _borderLayer;
+    }
+    
+    _borderLayer = [[CALayer alloc] init];
+    if (_bgLayer)
+        [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
+    else
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    _borderLayer.frame = [[self backgroundWrapperView] layer].bounds;
+    
+    _borderLayer.opacity = backgroundOpacity;
+    _borderLayer.cornerRadius = self.layer.cornerRadius;
+    return _borderLayer;
 }
 
 -(CALayer*)backgroundLayer
@@ -807,6 +836,23 @@ DEFINE_EXCEPTIONS
 //    [self updateBackgroundImageFrameWithPadding];
 //}
 
+
+-(void)setBackgroundPadding_:(id)value
+{
+    _backgroundPadding = [TiUtils insetValue:value];
+    if (_bgLayer) {
+        _bgLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _backgroundPadding);
+    }
+}
+
+-(void)setBorderPadding_:(id)value
+{
+    _borderPadding = [TiUtils insetValue:value];
+    if (_borderLayer) {
+        _borderLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _borderPadding);
+    }
+}
+
 -(void)setImageCap_:(id)arg
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
@@ -828,7 +874,10 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderRadius_:(id)radius
 {
-	self.layer.cornerRadius = [TiUtils floatValue:radius];
+    self.layer.cornerRadius = [TiUtils floatValue:radius];
+    if (_borderLayer) {
+        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    }
     if (_bgLayer) {
         _bgLayer.cornerRadius = self.layer.cornerRadius;
     }
@@ -839,13 +888,13 @@ DEFINE_EXCEPTIONS
 -(void)setBorderColor_:(id)color
 {
 	TiColor *ticolor = [TiUtils colorValue:color];
-	self.layer.borderWidth = MAX(self.layer.borderWidth,1);
-	self.layer.borderColor = [ticolor _color].CGColor;
+	[self getOrCreateBorderLayer].borderWidth = MAX(self.layer.borderWidth,1);
+	[self getOrCreateBorderLayer].borderColor = [ticolor _color].CGColor;
 }
 
 -(void)setBorderWidth_:(id)w
 {
-	self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setAnchorPoint_:(id)point
@@ -998,9 +1047,9 @@ DEFINE_EXCEPTIONS
     }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
-//    if (_bgLayer != nil) {
-//		[[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-//	}
+    if (_borderLayer) {
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    }
 }
 
 - (void)willRemoveSubview:(UIView *)subview
