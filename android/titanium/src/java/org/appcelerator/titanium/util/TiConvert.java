@@ -283,9 +283,20 @@ public class TiConvert
 			dirty = true;
 		}
 		
-		if (withMatrix && hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
-			dirty = true;
+		if (withMatrix) {
+			if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+				layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
+				dirty = true;
+			}
+			if (hashMap.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
+				Object anchorPoint = hashMap.get(TiC.PROPERTY_ANCHOR_POINT);
+				if (anchorPoint instanceof HashMap) {
+					HashMap point = (HashMap) anchorPoint;
+					layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+					layoutParams.anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+					dirty = true;
+				}
+			}
 		}
 		
 		if (hashMap.containsKey(TiC.PROPERTY_ZINDEX)) {

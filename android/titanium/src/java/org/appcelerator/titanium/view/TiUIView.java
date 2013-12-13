@@ -395,7 +395,7 @@ public abstract class TiUIView
 	{
 		View view = getOuterView();
 		if (view != null && layoutParams.matrix != null) {
-			Matrix m = layoutParams.matrix.getMatrix(view);
+			Matrix m = layoutParams.matrix.getMatrix(view, layoutParams.anchorX, layoutParams.anchorY);
 			// Get the translation values
 			float[] values = new float[9];
 			m.getValues(values);
@@ -410,6 +410,26 @@ public abstract class TiUIView
 		View view = getOuterView();
 		if (view != null) {
 			layoutParams.matrix = timatrix;
+			view.setLayoutParams(layoutParams);
+			ViewParent viewParent = view.getParent();
+			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
+		}
+	}
+	
+	public void applyAnchorPoint(Object anchorPoint)
+	{
+		View view = getOuterView();
+		if (view != null) {
+			if (anchorPoint instanceof HashMap) {
+				HashMap point = (HashMap) anchorPoint;
+				layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+				layoutParams.anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+			}
+			else {
+				layoutParams.anchorX = layoutParams.anchorY = 0.5f;
+			}
 			view.setLayoutParams(layoutParams);
 			ViewParent viewParent = view.getParent();
 			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
@@ -653,6 +673,8 @@ public abstract class TiUIView
 				Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
 			applyTransform((Ti2DMatrix)newValue);
+		} else if (key.equals(TiC.PROPERTY_ANCHOR_POINT)) {
+			applyAnchorPoint(newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
 			if (nativeView != null) {
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
@@ -1902,7 +1924,7 @@ public abstract class TiUIView
 			}
 			
 			if (parentView instanceof FreeLayout) {
-				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view);
+				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view, layoutParams.anchorX, layoutParams.anchorY);
 				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix);
 				list.add(anim);
 				if (needsReverse) {
@@ -1918,7 +1940,7 @@ public abstract class TiUIView
 				}
 			}
 			else {
-				DecomposedType decompose = matrix.getAffineTransform(view, true).decompose();
+				DecomposedType decompose = matrix.getAffineTransform(view, layoutParams.anchorX, layoutParams.anchorY, true).decompose();
 				List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
@@ -1928,7 +1950,7 @@ public abstract class TiUIView
 				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
 				if (needsReverse) {
 					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
-					decompose = matrix.getAffineTransform(view, true).decompose();
+					decompose = matrix.getAffineTransform(view, layoutParams.anchorX, layoutParams.anchorY, true).decompose();
 					propertiesList = new ArrayList<PropertyValuesHolder>();
 					propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
 					propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));

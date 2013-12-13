@@ -26,8 +26,15 @@ public class FreeLayout extends FrameLayout {
     public Matrix getMyViewMatrix() {
     	if (transformedMatrix != null) return transformedMatrix;
     	ViewGroup.LayoutParams layoutParams=getLayoutParams();
-    	if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-    		transformedMatrix = ((LayoutParams)layoutParams).matrix.getMatrix(this);
+    	if (layoutParams instanceof LayoutParams) {
+    		LayoutParams params = (LayoutParams)layoutParams;
+    		if (params.matrix != null) {
+    			transformedMatrix =params.matrix.getMatrix(this, params.anchorX, params.anchorY);
+    			float dx = params.anchorX * getWidth();
+    			float dy = params.anchorY * getHeight();
+    			transformedMatrix.preTranslate(-dx, -dy);
+    			transformedMatrix.postTranslate(dx, dy);
+    		}
     		return transformedMatrix;
         }
     	return null;
@@ -36,11 +43,18 @@ public class FreeLayout extends FrameLayout {
     public static Matrix getViewMatrix(View view) {
     	if (view instanceof FreeLayout) return ((FreeLayout)view).getMyViewMatrix();
         ViewGroup.LayoutParams layoutParams=view.getLayoutParams();
-        if (layoutParams instanceof LayoutParams && ((LayoutParams)layoutParams).matrix != null) {
-            return ((LayoutParams)layoutParams).matrix.getMatrix(view);
-        } else {
-            return null;
+        if (layoutParams instanceof LayoutParams) {
+    		LayoutParams params = (LayoutParams)layoutParams;
+    		if (params.matrix != null) {
+    			Matrix m = params.matrix.getMatrix(view, params.anchorX, params.anchorY);
+    			float dx = params.anchorX * view.getWidth();
+    			float dy = params.anchorY * view.getHeight();
+    			m.preTranslate(-dx, -dy);
+    			m.postTranslate(dx, dy);
+    			return m;
+    		}
         }
+		return null;
     }
     
     public static void transformFrame(Rect rect,Matrix m) {
@@ -123,7 +137,8 @@ public class FreeLayout extends FrameLayout {
             super(source);
         }
 
-
+        public float anchorX = 0.5f;
+        public float anchorY = 0.5f;
         public Ti2DMatrix matrix;
     }
     
