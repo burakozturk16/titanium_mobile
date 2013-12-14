@@ -615,11 +615,24 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(window, arg));
 	}
+	
+	@Override
+	public boolean shouldExitOnClose() {
+		if (windows.size() == 1) {
+			return super.shouldExitOnClose();
+		}
+		return false;
+	}
 
 	@Override
 	public boolean interceptOnBackPressed() {
-		if (pushing || poping || ((TiBaseActivity) getActivity()).handleAndroidBackEvent()) return true;
+	if (pushing || poping) return true;
 		if (windows.size() > 1) {
+			TiWindowProxy currentWindow = getCurrentWindow();
+			if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
+				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK);
+				return true;
+			}
 			poping = true;
 			return popCurrentWindow(null);
 		}
