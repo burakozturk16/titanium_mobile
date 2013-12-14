@@ -158,7 +158,7 @@ public class TiBorderWrapperView extends MaskableView
 			if (radius - padding > 0) {
 				float innerRadii[] = new float[8];
 				Arrays.fill(innerRadii, radius - padding);
-				clipPath.addRoundRect(outerRect, innerRadii, Direction.CW);
+				clipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
 				borderPath.addRoundRect(innerRectForDrawing, innerRadii, Direction.CCW);
 			} else {
 				borderPath.addRect(innerRectForDrawing, Direction.CCW);
