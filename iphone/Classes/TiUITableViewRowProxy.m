@@ -879,6 +879,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 {
 	attaching = YES;
 	[super windowWillOpen];
+	[self setParentVisible:YES];
 	attaching = NO;
 }
 

@@ -6,9 +6,12 @@
  */
 package ti.modules.titanium.ui.widget.tabgroup;
 
+import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
@@ -54,6 +57,7 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 		// Setup the action bar for navigation tabs.
 		actionBar = activity.getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+		actionBar.setDisplayShowTitleEnabled(true);
 
 		if (proxy.hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN) && 
 			TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN))) {
@@ -79,6 +83,18 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 		// will not transform it along with the rest of the group.
 		setNativeView(tabContent);
 	}
+	
+	@Override
+	public void processProperties(KrollDict d)
+	{
+		// TODO Auto-generated method stub
+		super.processProperties(d);
+		if (d.containsKey(TiC.PROPERTY_TITLE)) {
+			actionBar.setTitle(d.getString(TiC.PROPERTY_TITLE));
+		}
+
+	}
+
 
 	@Override
 	public void addTab(TabProxy tabProxy) {
@@ -196,7 +212,9 @@ public class TiUIActionBarTabGroup extends TiUIAbstractTabGroup implements TabLi
 
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-		if (key.equals(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
+		if (key.equals(TiC.PROPERTY_TITLE)) {
+			actionBar.setTitle(TiConvert.toString(newValue));
+		} else if (key.equals(TiC.PROPERTY_TABS_BACKGROUND_COLOR)) {
 			actionBar.setBackgroundDrawable(TiConvert.toColorDrawable(newValue.toString()));
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);

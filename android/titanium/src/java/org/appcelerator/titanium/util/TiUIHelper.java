@@ -95,7 +95,8 @@ public class TiUIHelper
 	public static final int FACE_UP = 5;
 	public static final int FACE_DOWN = 6;
 	public static final int UNKNOWN = 7;
-	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
+	public static final Pattern SIZED_VALUE = Pattern.compile("([0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
+	public static final String MIME_TYPE_PNG = "image/png";
 
 	private static Method overridePendingTransition;
 	private static Map<String, String> resourceImageKeys = Collections.synchronizedMap(new HashMap<String, String>());
@@ -707,6 +708,7 @@ public class TiUIHelper
 		d.put(TiC.PROPERTY_Y, 0);
 		d.put(TiC.PROPERTY_WIDTH, width);
 		d.put(TiC.PROPERTY_HEIGHT, height);
+		d.put(TiC.PROPERTY_MIMETYPE, MIME_TYPE_PNG);
 
 		KrollDict cropRect = new KrollDict();
 		cropRect.put(TiC.PROPERTY_X, 0);
@@ -714,7 +716,7 @@ public class TiUIHelper
 		cropRect.put(TiC.PROPERTY_WIDTH, width);
 		cropRect.put(TiC.PROPERTY_HEIGHT, height);
 		d.put(TiC.PROPERTY_CROP_RECT, cropRect);
-		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromData(data, "image/png"));
+		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromData(data, MIME_TYPE_PNG));
 
 		return d;
 	}

@@ -52,7 +52,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.view.View;
 import android.view.View.MeasureSpec;
 import android.widget.ImageView.ScaleType;
 
@@ -1228,25 +1227,6 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		return null;
 	}
 
-//	@Override
-//	public void setOpacity(float opacity)
-//	{
-//		TiImageView iview = getView();
-//		if (iview != null) {
-//			iview.setColorFilter(TiUIHelper.createColorFilterForOpacity(opacity));
-//		}
-//		super.setOpacity(opacity);
-//	}
-
-//	@Override
-//	public void clearOpacity(View view)
-//	{
-//		super.clearOpacity(view);
-//		TiImageView iview = getView();
-//		if (iview != null) {
-//			iview.setColorFilter(null);
-//		}
-//	}
 
 	@Override
 	public void release()

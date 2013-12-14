@@ -20,6 +20,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextUtils.TruncateAt;
@@ -432,6 +433,7 @@ public class TiUIText extends TiUIView
 			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
 		}
+		
 
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
 			TiUIHelper.linkifyIfEnabled(realtv, d.get(TiC.PROPERTY_AUTO_LINK));
@@ -509,11 +511,7 @@ public class TiUIText extends TiUIView
 			KrollDict d = proxy.getProperties();
 			handleKeyboard(d);
 		} else if (key.equals(TiC.PROPERTY_RETURN_KEY_TYPE)) {
-			// Update the keyboard as well when changing the return key type. This is to account for the scenario when
-			// autocapitalization is enabled during creation and return key type is dynamically changed.
-			KrollDict d = proxy.getProperties();
 			handleReturnKeyType(TiConvert.toInt(newValue));
-			handleKeyboard(d);
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(realtv, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)){
@@ -554,6 +552,17 @@ public class TiUIText extends TiUIView
 	@Override
 	public void onTextChanged(CharSequence s, int start, int before, int count)
 	{
+		//Since Jelly Bean, pressing the 'return' key won't trigger onEditorAction callback
+		//http://stackoverflow.com/questions/11311790/oneditoraction-is-not-called-after-enter-key-has-been-pressed-on-jelly-bean-em
+		//So here we need to handle the 'return' key manually
+		if (Build.VERSION.SDK_INT >= 16 && before == 0 && s.length() > start && s.charAt(start) == '\n') {
+			//We use the previous value to make it consistent with pre Jelly Bean behavior (onEditorAction is called before 
+			//onTextChanged.
+			String value = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VALUE));
+			KrollDict data = new KrollDict();
+			data.put(TiC.PROPERTY_VALUE, value);
+			fireEvent(TiC.EVENT_RETURN, data);
+		}
 		/**
 		 * There is an Android bug regarding setting filter on EditText that impacts auto completion.
 		 * Therefore we can't use filters to implement "maxLength" property. Instead we manipulate
@@ -638,9 +647,7 @@ public class TiUIText extends TiUIView
 		if ((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
 				actionId == EditorInfo.IME_ACTION_NEXT || 
 				actionId == EditorInfo.IME_ACTION_DONE ) {
-			Log.d(TAG, "onEditorAction for textview with text " + v.getText(), Log.DEBUG_MODE);
-			tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-			fireEvent("return", data);
+			fireEvent(TiC.EVENT_RETURN, data);
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
@@ -714,7 +721,7 @@ public class TiUIText extends TiUIView
 		int textTypeAndClass = typeModifiers;
 		// For some reason you can't set both TYPE_CLASS_TEXT and TYPE_TEXT_FLAG_NO_SUGGESTIONS together.
 		// Also, we need TYPE_CLASS_TEXT for passwords.
-		if (autocorrect != InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS || passwordMask) {
+		if ((autocorrect != InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS || passwordMask) && type != KEYBOARD_DECIMAL_PAD) {
 			textTypeAndClass = textTypeAndClass | InputType.TYPE_CLASS_TEXT;
 		}
 		if (!field) {
@@ -727,12 +734,12 @@ public class TiUIText extends TiUIView
 				// Don't need a key listener, inputType handles that.
 				break;
 			case KEYBOARD_NUMBERS_PUNCTUATION:
-				textTypeAndClass |= InputType.TYPE_CLASS_NUMBER;
+				textTypeAndClass |= (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
 				realtv.setKeyListener(new NumberKeyListener()
 				{
 					@Override
 					public int getInputType() {
-						return InputType.TYPE_CLASS_NUMBER;
+						return InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT;
 					}
 
 					@Override
@@ -766,11 +773,12 @@ public class TiUIText extends TiUIView
 				textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
 				break;
 		}
+
 		if (passwordMask) {
 			textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
 			// Sometimes password transformation does not work properly when the input type is set after the transformation method.
 			// This issue has been filed at http://code.google.com/p/android/issues/detail?id=7092
-			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
+			realtv.setInputType(textTypeAndClass);
 			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.
@@ -779,7 +787,7 @@ public class TiUIText extends TiUIView
 			}
 
 		} else {
-			realtv.setInputType(realtv.getInputType() | textTypeAndClass);
+			realtv.setInputType(textTypeAndClass);
 			if (realtv.getTransformationMethod() instanceof PasswordTransformationMethod) {
 				realtv.setTransformationMethod(null);
 			}
@@ -803,9 +811,6 @@ public class TiUIText extends TiUIView
 
 	public void handleReturnKeyType(int type)
 	{
-		if (!field) {
-			realtv.setInputType(InputType.TYPE_TEXT_FLAG_IME_MULTI_LINE);
-		}
 		switch(type) {
 			case RETURNKEY_GO:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
@@ -841,5 +846,14 @@ public class TiUIText extends TiUIView
 				realtv.setImeOptions(EditorInfo.IME_ACTION_SEND);
 				break;
 		}
+		
+		int currentInputType = realtv.getInputType();
+		//FLAG_MULTI_LINE will display enter key, therefore disables our ime options.
+		if (!field && (currentInputType & InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0) {
+			currentInputType &= ~InputType.TYPE_TEXT_FLAG_MULTI_LINE;
+		}
+		//Set input type caches ime options, so whenever we change ime options, we must reset input type
+		realtv.setInputType(currentInputType);
 	}
+
 }

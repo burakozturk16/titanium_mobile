@@ -58,14 +58,14 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	private static final int MSG_SET_BACKGROUND_GRADIENT = MSG_FIRST_ID + 110;
 	private static final int MSG_RESET_BACKGROUND = MSG_FIRST_ID + 111;
 	private static final int MSG_RESET_ICON = MSG_FIRST_ID + 112;
-	
+	private static final int MSG_SET_SUBTITLE = MSG_FIRST_ID + 113;
+
 	private static final String SHOW_HOME_AS_UP = "showHomeAsUp";
 	private static final String BACKGROUND_IMAGE = "backgroundImage";
 	private static final String TITLE = "title";
 	private static final String LOGO = "logo";
 	private static final String ICON = "icon";
 	private static final String NAVIGATION_MODE = "navigationMode";
-
 	private static final String TAG = "ActionBarProxy";
 
 	private ActionBar actionBar;
@@ -192,6 +192,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
+	@Kroll.method @Kroll.setProperty
 	public void setTitle(String title)
 	{
 		if (TiApplication.isUIThread()) {
@@ -203,12 +204,34 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 	}
 
+	@Kroll.method @Kroll.getProperty
 	public String getTitle()
 	{
 		if (actionBar == null) {
 			return null;
 		}
 		return (String) actionBar.getTitle();
+	}
+
+	@Kroll.method @Kroll.setProperty
+	public void setSubtitle(String subTitle)
+	{
+		if (TiApplication.isUIThread()) {
+			handleSetSubTitle(subTitle);
+		} else {
+			Message message = getMainHandler().obtainMessage(MSG_SET_SUBTITLE, subTitle);
+			message.getData().putString(TiC.PROPERTY_SUBTITLE, subTitle);
+			message.sendToTarget();
+		}
+	}
+	
+	@Kroll.method @Kroll.getProperty
+	public String getSubtitle()
+	{
+		if (actionBar == null) {
+			return null;
+		}
+		return (String) actionBar.getSubtitle();
 	}
 
 	public int getNavigationMode()
@@ -282,13 +305,22 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	private void handleSetTitle(String title)
 	{
 		if (actionBar != null) {
-			actionBar.setDisplayShowTitleEnabled(true);
 			actionBar.setTitle(title);
 		} else {
 			Log.w(TAG, "ActionBar is not enabled");
 		}
 	}
 
+	private void handleSetSubTitle(String subTitle)
+	{
+		if (actionBar != null) {
+			actionBar.setDisplayShowTitleEnabled(true);
+			actionBar.setSubtitle(subTitle);
+		} else {
+			Log.w(TAG, "ActionBar is not enabled");
+		}
+	}
+	
 	private void handleShow()
 	{
 		if (actionBar != null) {
@@ -315,7 +347,10 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 		}
 
 		Drawable backgroundImage = getDrawableFromUrl(url);
+		//This is a workaround due to https://code.google.com/p/styled-action-bar/issues/detail?id=3. [TIMOB-12148]
 		if (backgroundImage != null) {
+			actionBar.setDisplayShowTitleEnabled(false);
+			actionBar.setDisplayShowTitleEnabled(true);
 			actionBar.setBackgroundDrawable(backgroundImage);
 		}
 	}
@@ -413,6 +448,10 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 			case MSG_SET_TITLE:
 				handleSetTitle(msg.getData().getString(TITLE));
 				return true;
+			case MSG_SET_SUBTITLE:
+				handleSetSubTitle(msg.getData().getString(TiC.PROPERTY_SUBTITLE));
+				return true;
+
 			case MSG_SHOW:
 				handleShow();
 				return true;

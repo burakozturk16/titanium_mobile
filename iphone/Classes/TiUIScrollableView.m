@@ -177,6 +177,8 @@
         [viewproxy windowWillOpen];
         [viewproxy windowDidOpen];
         [viewproxy layoutChildrenIfNeeded];
+    } else if (!CGRectEqualToRect([viewproxy sandboxBounds], [wrapper bounds])) {
+        [viewproxy parentSizeWillChange];
     }
 }
 
@@ -370,10 +372,7 @@
         [self depthSortViews];
     }
     
-	if (page==0 || readd)
-	{
-        [self manageCache:page];
-	}
+	[self manageCache:page];
 	
 	CGRect contentBounds;
 //	contentBounds.origin.x = viewBounds.origin.x;
