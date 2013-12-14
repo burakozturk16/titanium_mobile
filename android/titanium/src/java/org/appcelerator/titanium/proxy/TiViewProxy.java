@@ -139,6 +139,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
 	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
+	
+	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
@@ -155,17 +157,23 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Override
 	public void handleCreationDict(KrollDict options)
 	{
+		boolean needsToUpdateProps = false;
 		if (options == null) {
 			return;
 		}
 		if (options.containsKey(TiC.PROPERTY_PROPERTIES) || options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			super.handleCreationDict(options.getKrollDict(TiC.PROPERTY_PROPERTIES));
+			needsToUpdateProps = true;
 		}
 		else {
 			super.handleCreationDict(options);
 		}
 		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			initFromTemplate(options, this);
+			needsToUpdateProps = true;
+		}
+		if (needsToUpdateProps) {
+			updateKrollObjectProperties();
 		}
 //		options = handleStyleOptions(options);
 //		super.handleCreationDict(options);
@@ -698,14 +706,32 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		KrollRuntime.suggestGC();
 	}
 	
+	protected void addPropToUpdateNativeSide(String key, Object value) 
+	{
+		if (propertiesToUpdateNativeSide == null) 
+		{
+			propertiesToUpdateNativeSide = new HashMap<String, Object>();
+		}
+		propertiesToUpdateNativeSide.put(key, value);
+	}
+	
+	protected void updatePropertiesNativeSide() 
+	{
+		if (propertiesToUpdateNativeSide != null) 
+		{
+			updateKrollObjectProperties(propertiesToUpdateNativeSide);
+			propertiesToUpdateNativeSide = null;
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
-			KrollProxy rootProxy) {
+			TiViewProxy rootProxy) {
 		if (rootProxy != null
 				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
-			rootProxy.setProperty(
-					TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),
-					this);
+			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
+			rootProxy.setProperty(bindId,this);
+			rootProxy.addPropToUpdateNativeSide(bindId,this);
 		}
 		if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			Object childProperties = template_
@@ -731,7 +757,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	@SuppressWarnings("unchecked")
 	private TiViewProxy createViewFromTemplate(HashMap template_,
-			KrollProxy rootProxy) {
+			TiViewProxy rootProxy) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				"Ti.UI.View");
 		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
@@ -785,6 +811,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (childProxy != null) {
 				childProxy.updateKrollObjectProperties();
 				add(childProxy);
+				updatePropertiesNativeSide();
 			}
 		} else {
 			TiViewProxy child = null;
