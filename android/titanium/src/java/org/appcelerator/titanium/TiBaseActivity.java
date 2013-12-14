@@ -720,14 +720,14 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		getSupportHelper().onActivityResult(requestCode, resultCode, data);
 	}
 
-//	@Override
-//	public void onBackPressed()
-//	{
-//		if (!handleBackKeyPressed()){
-//			// If event is not handled by any listeners allow default behavior.
-//			super.onBackPressed();
-//		}
-//	}
+	@Override
+	public void onBackPressed()
+	{
+		if (!handleBackKeyPressed()){
+			// If event is not handled by any listeners allow default behavior.
+			super.onBackPressed();
+		}
+	}
 	
 	public boolean handleAndroidBackEvent() {
 		KrollProxy proxy = null;
@@ -738,16 +738,15 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			if (topWindow != null && topWindow.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
 				proxy = topWindow;
 			}
-			else if (window.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
-				proxy = window;
+			else {
+				proxy = window.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
 			}
 		}
 		
 		// Prevent default Android behavior for "back" press
 		// if the top window has a listener to handle the event.
 		if (proxy != null) {
-			Log.w(TAG, "proxy EVENT_ANDROID_BACK");
-			proxy.fireEvent(TiC.EVENT_ANDROID_BACK, null);
+			proxy.fireEvent(TiC.EVENT_ANDROID_BACK);
 			return true;
 		}
 		return false;

@@ -1038,6 +1038,25 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 		return hasListener;
 	}
+	
+	/**
+	 * Returns true if any view in the hierarchy has the event listener.
+	 */
+	public KrollProxy firstHierarchyListener(String event)
+	{
+		boolean hasListener = hasListeners(event);
+
+		// Checks whether the parent has the listener or not
+		if (!hasListener) {
+			KrollProxy parentProxy = getParentForBubbling();
+			if (parentProxy != null && bubbleParent) {
+				return parentProxy.firstHierarchyListener(event);
+			}
+			return null;
+		}
+
+		return this;
+	}
 
 	public boolean shouldFireChange(Object oldValue, Object newValue)
 	{
