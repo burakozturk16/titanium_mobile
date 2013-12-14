@@ -16,6 +16,8 @@ import org.appcelerator.titanium.util.TiConvert;
 
 import android.graphics.LinearGradient;
 import android.graphics.RadialGradient;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
 import android.graphics.SweepGradient;
@@ -39,6 +41,7 @@ public class TiGradientDrawable extends ShapeDrawable {
 //	private double startAngle = DEFAULT_START_ANGLE;
 	private int[] colors;
 	private float[] offsets;
+	private RectF gradientRect = null;
 
 	@SuppressWarnings("rawtypes")
 	public TiGradientDrawable(KrollDict properties) {
@@ -69,10 +72,9 @@ public class TiGradientDrawable extends ShapeDrawable {
 		if (properties.containsKey("startRadius")) {
 			startRadius = TiConvert.toTiDimension(properties, "startRadius", TiDimension.TYPE_WIDTH);
 		}
-		
-//		if (properties.containsKey("startAngle")) {
-//			startAngle = properties.optFloat("startRadius", DEFAULT_START_ANGLE) * Math.PI/180.0f;
-//		}
+		if (properties.containsKey("rect")) {
+			gradientRect = TiConvert.toRect(properties, "rect");
+		}
 
 		Object colors = properties.get("colors");
 		if (!(colors instanceof Object[])) {
@@ -125,29 +127,44 @@ public class TiGradientDrawable extends ShapeDrawable {
 			offsets = null;
 		}
 	}
+	
+	private Shader mCachedShader = null;
+	private int mCachedWidth = -1;
+	private int mCachedheight = -1;
 
 	private class GradientShaderFactory extends ShaderFactory {
 		@Override
 		public Shader resize(int width, int height) {
-//			Context context = getContext();
-			float x0 = startPoint.getX().getAsPixels(null, width, height);
-			float y0 = startPoint.getY().getAsPixels(null, width, height);
-			float x1 = endPoint.getX().getAsPixels(null, width, height);
-			float y1 = endPoint.getY().getAsPixels(null, width, height);
-
-			switch (gradientType) {
-			case LINEAR_GRADIENT:
-				return new LinearGradient(x0, y0, x1, y1, colors, offsets, TileMode.CLAMP);
-			case RADIAL_GRADIENT:
-				startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
-				float radius0 = startRadius.getAsPixels(null, width, height);
-				if (radius0 <= 0) return null; 
-				return new RadialGradient(x0, y0, radius0, colors, offsets, TileMode.CLAMP);
-			case SWEEP_GRADIENT:
-				return new SweepGradient(x0, y0, colors, offsets);
-			default:
-				throw new AssertionError("No valid gradient type set.");
+			if (gradientRect != null) {
+				width = (int) gradientRect.width();
+				height = (int) gradientRect.height();
 			}
+			
+			if (mCachedShader == null || mCachedWidth != width || mCachedheight != height) 
+			{
+				float x0 = startPoint.getX().getAsPixels(null, width, height);
+				float y0 = startPoint.getY().getAsPixels(null, width, height);
+				float x1 = endPoint.getX().getAsPixels(null, width, height);
+				float y1 = endPoint.getY().getAsPixels(null, width, height);
+	
+				switch (gradientType) {
+					case LINEAR_GRADIENT:
+						mCachedShader = new LinearGradient(x0, y0, x1, y1, colors, offsets, TileMode.REPEAT);
+						break;
+					case RADIAL_GRADIENT:
+						startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
+						float radius0 = startRadius.getAsPixels(null, width, height);
+						mCachedShader = (radius0 > 0)?(new RadialGradient(x0, y0, radius0, colors, offsets, TileMode.REPEAT)):null;
+						break;
+					case SWEEP_GRADIENT:
+						mCachedShader = new SweepGradient(x0, y0, colors, offsets);
+						break;
+					default:
+						mCachedShader = null;
+						break;
+				}
+			}
+			return mCachedShader;
 		}
 	}
 
