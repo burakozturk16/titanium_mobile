@@ -610,11 +610,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	
 	public void updateKrollObjectProperties()
 	{
+		updateKrollObjectProperties(getProperties());
+	}
+	
+	public void updateKrollObjectProperties(HashMap<String, Object>props)
+	{
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
-			doUpdateKrollObjectProperties();
+			doUpdateKrollObjectProperties(getProperties());
 
 		} else {
-			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES);
+			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, getProperties());
 			message.sendToTarget();
 		}
 	}
@@ -782,6 +787,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	private void doUpdateKrollObjectProperties()
 	{
 		getKrollObject().updateNativeProperties(getProperties());
+	}
+	
+	private void doUpdateKrollObjectProperties(HashMap<String, Object> props)
+	{
+		getKrollObject().updateNativeProperties(props);
 	}
 
 	@Kroll.getProperty @Kroll.method
@@ -1281,7 +1291,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				return true;
 			}
 			case MSG_UPDATE_KROLL_PROPERTIES: {
-				doUpdateKrollObjectProperties();
+				doUpdateKrollObjectProperties((HashMap<String, Object>) msg.obj);
 				return true;
 			}
 		}
