@@ -1116,9 +1116,6 @@ public abstract class TiUIView
 			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
 				borderView.setBorderAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
 			
-			
-			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR))
-				borderView.setColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR))));
 			if (proxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
 				boolean value = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
 				borderView.setClipChildren(value);
