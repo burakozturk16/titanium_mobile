@@ -9,6 +9,7 @@ package org.appcelerator.titanium.view;
 import java.util.Arrays;
 
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.util.TiUIHelper;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -111,8 +112,8 @@ public class TiBorderWrapperView extends MaskableView
 		canvas.save();
 		clipCanvas(canvas);
 		super.dispatchDraw(canvas);
-		canvas.restore();
 		drawBorder(canvas);
+		canvas.restore();
 	}
 	
 	private static void insetRect(RectF source, Rect inset) {
@@ -151,17 +152,17 @@ public class TiBorderWrapperView extends MaskableView
 			float outerRadii[] = new float[8];
 			Arrays.fill(outerRadii, radius);
 			clipPath.setFillType(FillType.EVEN_ODD);
-			clipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
 			borderPath = new Path();
 			borderPath.addRoundRect(outerRectForDrawing, outerRadii, Direction.CW);
 			borderPath.setFillType(FillType.EVEN_ODD);
 			if (radius - padding > 0) {
 				float innerRadii[] = new float[8];
 				Arrays.fill(innerRadii, radius - padding);
+				clipPath.addRoundRect(outerRect, innerRadii, Direction.CW);
 				borderPath.addRoundRect(innerRectForDrawing, innerRadii, Direction.CCW);
 			} else {
 				borderPath.addRect(innerRectForDrawing, Direction.CCW);
-//				clipPath.addRect(outerRect, Direction.CW);
+				clipPath.addRect(outerRect, Direction.CW);
 			}
 		} else {
 			borderPath = new Path();
@@ -187,6 +188,9 @@ public class TiBorderWrapperView extends MaskableView
 	public void setColor(int color)
 	{
 		this.color = color;
+		if (this.borderWidth == 0) {
+			this.borderWidth = TiUIHelper.getRawSize(1, null);
+		}
 		postInvalidate();
 	}
 
