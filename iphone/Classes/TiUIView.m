@@ -566,7 +566,7 @@ DEFINE_EXCEPTIONS
     }
 
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
-    [[[self backgroundWrapperView] layer] addSublayer:_bgLayer];
+    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
     if (_borderLayer)
         [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
     else
@@ -888,12 +888,14 @@ DEFINE_EXCEPTIONS
 -(void)setBorderColor_:(id)color
 {
 	TiColor *ticolor = [TiUtils colorValue:color];
-	[self getOrCreateBorderLayer].borderWidth = MAX(self.layer.borderWidth,1);
-	[self getOrCreateBorderLayer].borderColor = [ticolor _color].CGColor;
+    CALayer* bgdLayer = [self getOrCreateBorderLayer];
+	bgdLayer.borderWidth = MAX(bgdLayer.borderWidth,1);
+	bgdLayer.borderColor = [ticolor _color].CGColor;
 }
 
 -(void)setBorderWidth_:(id)w
 {
+    
 	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
@@ -1065,6 +1067,9 @@ DEFINE_EXCEPTIONS
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
     if (_borderLayer) {
         [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    }
+    if (_bgLayer != nil) {
+        [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
     }
 }
 
