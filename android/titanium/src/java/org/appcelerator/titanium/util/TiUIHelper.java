@@ -95,7 +95,7 @@ public class TiUIHelper
 	public static final int FACE_UP = 5;
 	public static final int FACE_DOWN = 6;
 	public static final int UNKNOWN = 7;
-	public static final Pattern SIZED_VALUE = Pattern.compile("([0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
+	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
 	public static final String MIME_TYPE_PNG = "image/png";
 
 	private static Method overridePendingTransition;
@@ -372,6 +372,12 @@ public class TiUIHelper
 		float[] result = new float[2];
 		getSizeAndUnits(size, result);
 		return getRawSize((int)result[0], result[1], context);
+	}
+	
+	public static float getRawSize(int size, Context context) {
+		float[] result = new float[2];
+		getSizeAndUnits(null, result);
+		return getRawSize((int)result[0], size, context);
 	}
 
 	public static float getRawSize(String size) {
