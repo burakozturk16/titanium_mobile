@@ -212,7 +212,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			return true;
 		}
 		int index = windows.indexOf(proxy);
-		if (index >=0 && windows.size() > 1){
+		if (index >=1 && windows.size() > 1){
 			int realIndex = Math.max(0, index - 1);
 			TiWindowProxy winToFocus = windows.get(realIndex);
 			return popUpToWindow(winToFocus, arg);
@@ -259,7 +259,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, TiWindowProxy winToFocus, Object arg)
 	{
-		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		Transition transition = null;
 		if (animations.containsKey(toRemove)) {
 			transition = animations.get(toRemove);
@@ -323,7 +322,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			viewToFocus.setVisibility(View.VISIBLE);
 		}
 		
-		activity.setWindowProxy(winToFocus);
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
+		if (activity != null) activity.setWindowProxy(winToFocus);
     	updateHomeButton(winToFocus);
 		winToFocus.focus();
 
