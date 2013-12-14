@@ -96,7 +96,7 @@ public class TiHtml {
 		@Override
 		public void draw(Canvas canvas, CharSequence text, int start, int end, float x, int top, int y, int bottom, Paint paint) {
 		    float dx = strokeWidth / 2;
-			Rect rect = new Rect((int)(x + dx), (int)(top + dx + 2), (int)(x + measureText(paint, text, start, end) - strokeWidth/2), (int)(bottom - strokeWidth/2 + 2));
+			Rect rect = new Rect((int)(x + dx), (int)(top + dx + 2), (int)(x + measureText(paint, text, start, end) - strokeWidth/2), (int)(bottom - strokeWidth/2));
 		    this.mDrawable.setBounds(rect);
 		    canvas.save();
 //	        
