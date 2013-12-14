@@ -21,7 +21,7 @@ public class FreeLayout extends FrameLayout {
         super(context);
         setStaticTransformationsEnabled(true);
     }
-    public Matrix transformedMatrix;
+    public Matrix transformedMatrix = null;
     
     public Matrix getMyViewMatrix() {
     	if (transformedMatrix != null) return transformedMatrix;
@@ -141,7 +141,7 @@ public class FreeLayout extends FrameLayout {
 
         public float anchorX = 0.5f;
         public float anchorY = 0.5f;
-        public Ti2DMatrix matrix;
+        public Ti2DMatrix matrix = null;
     }
     
     ///////////////////////////////////////////// implementation
