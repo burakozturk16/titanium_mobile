@@ -23,6 +23,7 @@ import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
+import org.appcelerator.titanium.view.TiBorderWrapperView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
@@ -272,10 +273,20 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			return content;
 
 		}
-		
+
 		private void setBoundsForBaseItem(TiBaseListViewItem item)  {
+			TiBaseListViewItemHolder holder;
+			ViewParent parent = item.getParent();
+			if (parent instanceof TiBaseListViewItemHolder)
+			{
+				holder = (TiBaseListViewItemHolder) parent;
+			}
+			else if (parent instanceof TiBorderWrapperView)
+			{
+				holder = (TiBaseListViewItemHolder) parent.getParent();
+			}
+			else return;
 			//here the parent cant be null as we inflated
-			TiBaseListViewItemHolder holder = (TiBaseListViewItemHolder) item.getParent();
 			holder.setListView(listView);
 			String minRowHeight = MIN_ROW_HEIGHT;
 			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
