@@ -39,6 +39,7 @@ public class TiBorderWrapperView extends MaskableView
 	private RectF clipRect;
 	private Path clipPath;
 	private Path borderPath;
+	private Path borderClipPath;
 	private Paint paint;
 	private boolean clipChildren = true;
 	private Rect mBorderPadding;
@@ -112,8 +113,8 @@ public class TiBorderWrapperView extends MaskableView
 		canvas.save();
 		clipCanvas(canvas);
 		super.dispatchDraw(canvas);
-		drawBorder(canvas);
 		canvas.restore();
+		drawBorder(canvas);
 	}
 	
 	private static void insetRect(RectF source, Rect inset) {
@@ -153,18 +154,25 @@ public class TiBorderWrapperView extends MaskableView
 			Arrays.fill(outerRadii, radius);
 			clipPath.setFillType(FillType.EVEN_ODD);
 			borderPath = new Path();
+			borderClipPath = new Path();
+			borderClipPath.setFillType(FillType.EVEN_ODD);
 			borderPath.addRoundRect(outerRectForDrawing, outerRadii, Direction.CW);
 			borderPath.setFillType(FillType.EVEN_ODD);
 			if (radius - padding > 0) {
 				float innerRadii[] = new float[8];
 				Arrays.fill(innerRadii, radius - padding);
-				clipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
+				float clipRadii[] = new float[8];
+				Arrays.fill(clipRadii, radius+1);
+				clipPath.addRoundRect(outerRect, clipRadii, Direction.CW);
+				borderClipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
 				borderPath.addRoundRect(innerRectForDrawing, innerRadii, Direction.CCW);
 			} else {
 				borderPath.addRect(innerRectForDrawing, Direction.CCW);
 				clipPath.addRect(outerRect, Direction.CW);
+				borderClipPath.addRect(outerRect, Direction.CW);
 			}
 		} else {
+			clipPath = null;
 			borderPath = new Path();
 			borderPath.addRect(outerRectForDrawing, Direction.CW);
 			borderPath.addRect(innerRectForDrawing, Direction.CCW);
@@ -176,13 +184,18 @@ public class TiBorderWrapperView extends MaskableView
 
 	private void drawBorder(Canvas canvas)
 	{
+		canvas.save();
 		if (borderWidth != 0) {
 			paint.setColor(color);
 			if (alpha > -1) {
 				paint.setAlpha(alpha);
 			}
+			if(borderClipPath != null) {
+				canvas.clipPath(borderClipPath);
+			}
 			canvas.drawPath(borderPath, paint);
 		}
+		canvas.restore();
 	}
 
 	public void setColor(int color)
