@@ -993,16 +993,12 @@ public class TiConvert
 	 */
 	public static RectF toRect(HashMap<String, Object>  map)
 	{
-		if (map.containsKey(TiC.PROPERTY_X) && map.containsKey(TiC.PROPERTY_Y) &&
-				map.containsKey(TiC.PROPERTY_WIDTH) && map.containsKey(TiC.PROPERTY_HEIGHT)) {
-			float left = toFloat(map, TiC.PROPERTY_X);
-			float top = toFloat(map, TiC.PROPERTY_Y);
-			float width = toFloat(map, TiC.PROPERTY_WIDTH);
-			float height = toFloat(map, TiC.PROPERTY_HEIGHT);
-			return new RectF(left, top, left + width, top + height);
-		}
-
-		return null;
+		KrollDict dict = new KrollDict((HashMap<String, Object>)map);
+		float left = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_X);
+		float top = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_Y);
+		float width = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_WIDTH);
+		float height = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_HEIGHT);
+		return new RectF(left, top, left + width, top + height);
 	}
 	/**
 	 * Converts value into Rect object and returns it.
