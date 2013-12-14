@@ -53,6 +53,8 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.Rect;
 import android.graphics.Shader;
 import android.os.Build;
+import android.view.View;
+import android.view.ViewParent;
 import android.view.animation.LinearInterpolator;
 
 @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -82,6 +84,8 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 	protected Object radius;
 	protected TiPoint center;
 	protected AnchorPosition anchor;
+	protected float anchorPointX = 0.5f;
+	protected float anchorPointY = 0.5f;
 	
 	private Ti2DMatrix transform;
 	private Matrix matrix;
@@ -634,20 +638,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 				
 			}
 			if (sizeChanged || needsMatrix) {
-				if (transform != null) {
-					if (transform.getAffineTransform() != null) {
-						matrix = transform.getAffineTransform().toMatrix();
-					}
-					else {
-						matrix = new Matrix();
-						matrix = transform.getMatrix(context,
-								currentBounds.width(), currentBounds.height(),
-								parentBounds.width(), parentBounds.height());
-					}
-					
-					matrix.postTranslate(currentBounds.left, currentBounds.top);
-					matrix.preTranslate(-currentBounds.left, -currentBounds.top);
-				}
+				prepareMatrix();
 			}
 		}
 		if (matrix != null) {
@@ -1083,11 +1074,43 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 	}
 	
+	private void prepareMatrix()
+	{
+		if (transform != null) {
+			if (transform.getAffineTransform() != null) {
+				matrix = transform.getAffineTransform().toMatrix();
+			}
+			else {
+				matrix = new Matrix();
+				matrix = transform.getMatrix(context,
+						currentBounds.width(), currentBounds.height(),
+						parentBounds.width(), parentBounds.height());
+			}
+			
+			float dx = currentBounds.left + currentBounds.width()*anchorPointX;
+			float dy = currentBounds.top + currentBounds.height()*anchorPointY;
+			
+			matrix.preTranslate(-dx, -dy);
+			matrix.postTranslate(dx, dy);
+		}
+	}
+	
+
+	private void applyAnchorPoint(Object anchorPoint)
+	{
+		if (anchorPoint instanceof HashMap) {
+			HashMap point = (HashMap) anchorPoint;
+			anchorPointX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+			anchorPointY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+		}
+		else {
+			anchorPointX = anchorPointY = 0.5f;
+		}
+	}
+	
 	public void setAnimated2DMatrix(Ti2DMatrix matrix) {
 		this.transform = matrix;
-		this.matrix = transform.getAffineTransform().toMatrix();
-		this.matrix.postTranslate(currentBounds.left, currentBounds.top);
-		this.matrix.preTranslate(-currentBounds.left, -currentBounds.top);
+		prepareMatrix();
 	}
 	
 	public Ti2DMatrix getAnimated2DMatrix() {
@@ -1180,6 +1203,7 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 				this.transform = (Ti2DMatrix)newValue;
 			}
 			this.matrix = null;
+			needsMatrix = true;
 		}
 		else if (key.equals(ShapeModule.PROPERTY_FILL_INVERSED)) {
 			this.fillInversed = TiConvert.toBoolean(newValue);
@@ -1190,7 +1214,10 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		else if (key.equals(ShapeModule.PROPERTY_LINE_CLIPPED)) {
 			this.lineClipped = TiConvert.toBoolean(newValue);
 		}
-		else return;
+		else if (key.equals(TiC.PROPERTY_ANCHOR_POINT)) {
+			applyAnchorPoint(newValue);
+			needsMatrix = true;
+		} else return;
 		
 		redraw();
 	}
@@ -1256,6 +1283,9 @@ public class ShapeProxy extends AnimatableProxy implements KrollProxyListener {
 		}
 		if (properties.containsKey(ShapeModule.PROPERTY_ANCHOR)) {
 			this.anchor = AnchorPosition.values()[properties.getInt(ShapeModule.PROPERTY_ANCHOR)];
+		}
+		if (properties.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
+			applyAnchorPoint(properties.get(TiC.PROPERTY_ANCHOR_POINT));
 		}
 		if (properties.containsKey(TiC.PROPERTY_TRANSFORM)) {
 			this.transform = (Ti2DMatrix)properties.get(TiC.PROPERTY_TRANSFORM);
