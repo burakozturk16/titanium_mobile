@@ -715,7 +715,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		propertiesToUpdateNativeSide.put(key, value);
 	}
 	
-	protected void updatePropertiesNativeSide() 
+	public void updatePropertiesNativeSide() 
 	{
 		if (propertiesToUpdateNativeSide != null) 
 		{
@@ -744,7 +744,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						this.add((TiViewProxy) childDict);
 					} else {
 						TiViewProxy childProxy = createViewFromTemplate(
-								(HashMap) childDict, rootProxy);
+								(HashMap) childDict, rootProxy, false);
 						if (childProxy != null){
 							childProxy.updateKrollObjectProperties();
 							this.add(childProxy);
@@ -756,8 +756,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 
 	@SuppressWarnings("unchecked")
-	private TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy) {
+	public TiViewProxy createViewFromTemplate(HashMap template_,
+			TiViewProxy rootProxy, boolean updateRootProperties) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				"Ti.UI.View");
 		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
@@ -770,6 +770,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (proxy == null)
 				return null;
 			proxy.initFromTemplate(template_, rootProxy);
+			if (updateRootProperties) {
+				rootProxy.updatePropertiesNativeSide();
+			}
 			return proxy;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -807,11 +810,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			return;
 		} else if (args instanceof HashMap) {
 			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
-					this);
+					this, true);
 			if (childProxy != null) {
 				childProxy.updateKrollObjectProperties();
 				add(childProxy);
-				updatePropertiesNativeSide();
 			}
 		} else {
 			TiViewProxy child = null;
