@@ -615,6 +615,7 @@ enum
 - (void)prepareForReuse;
 
 - (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
++ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context;
 
 //+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
