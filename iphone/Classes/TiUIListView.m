@@ -722,6 +722,7 @@ static NSDictionary* replaceKeysForRow;
         [_pullViewProxy windowWillClose];
         [_pullViewWrapper removeFromSuperview];
         [_pullViewProxy windowDidClose];
+        [self.proxy forgetProxy:_pullViewProxy];
         RELEASE_TO_NIL(_pullViewWrapper);
         RELEASE_TO_NIL(_pullViewProxy);
     } else {
