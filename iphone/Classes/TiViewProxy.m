@@ -246,7 +246,12 @@ static NSSet* transferableProps = nil;
         if (context == nil) {
             context = self.pageContext;
         }
-        [self add:[[self class] unarchiveFromDictionary:arg rootProxy:self inContext:context]];
+        TiViewProxy *child = [[self class] unarchiveFromDictionary:arg rootProxy:self inContext:context];
+        [context.krollContext invokeBlockOnThread:^{
+            [self rememberProxy:child];
+            [child forgetSelf];
+        }];
+        [self add:child];
         return;
     }
 	
