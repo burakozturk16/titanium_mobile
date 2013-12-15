@@ -1823,7 +1823,7 @@ iOSBuilder.prototype.createInfoPlist = function createInfoPlist(next) {
 		// device builds require an additional token to ensure uniquiness so that iTunes will detect an updated app to sync
 		if (this.config.get('app.skipVersionValidation') || this.tiapp.properties['ti.skipVersionValidation']) {
 			plist.CFBundleVersion = this.tiapp.version;
-		else if (this.target == 'device') {
+		} else if (this.target == 'device') {
 			plist.CFBundleVersion = (new Date).getTime();
 		} else {
 			plist.CFBundleVersion = appc.version.format(this.tiapp.version, 3, 3);
