@@ -22,19 +22,21 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiTouchDelegate;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.ViewProxy;
 import ti.modules.titanium.ui.widget.listview.TiListView.TiBaseAdapter;
 import ti.modules.titanium.ui.widget.listview.TiListViewTemplate.DataItem;
+import android.annotation.SuppressLint;
 import android.os.Message;
 import android.view.View;
 
 @Kroll.proxy(creatableInModule = UIModule.class, propertyAccessors = {
 })
 @SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressLint("DefaultLocale")
 public class ListSectionProxy extends ViewProxy{
 
 	private static final String TAG = "ListSectionProxy";
@@ -48,8 +50,8 @@ public class ListSectionProxy extends ViewProxy{
 	private String headerTitle;
 	private String footerTitle;
 	
-	private TiViewProxy headerView;
-	private TiViewProxy footerView;
+	private Object headerView;
+	private Object footerView;
 	
 	private WeakReference<TiListView> listView;
 	public TiDefaultListViewTemplate builtInTemplate;
@@ -129,16 +131,10 @@ public class ListSectionProxy extends ViewProxy{
 			footerTitle = TiConvert.toString(dict, TiC.PROPERTY_FOOTER_TITLE);
 		}
 		if (dict.containsKey(TiC.PROPERTY_HEADER_VIEW)) {
-			Object obj = dict.get(TiC.PROPERTY_HEADER_VIEW);
-			if (obj instanceof TiViewProxy) {
-				headerView = (TiViewProxy) obj;
-			}
+			headerView = dict.get(TiC.PROPERTY_HEADER_VIEW);
 		}
 		if (dict.containsKey(TiC.PROPERTY_FOOTER_VIEW)) {
-			Object obj = dict.get(TiC.PROPERTY_FOOTER_VIEW);
-			if (obj instanceof TiViewProxy) {
-				footerView = (TiViewProxy) obj;
-			}
+			footerView = dict.get(TiC.PROPERTY_FOOTER_VIEW);
 		}
 		if (dict.containsKey(TiC.PROPERTY_ITEMS)) {
 			handleSetItems(dict.get(TiC.PROPERTY_ITEMS));
@@ -158,7 +154,7 @@ public class ListSectionProxy extends ViewProxy{
 	}
 	
 	@Kroll.method @Kroll.getProperty
-	public TiViewProxy getHeaderView() {
+	public Object getHeaderView() {
 		return headerView;
 	}
 	
@@ -171,7 +167,7 @@ public class ListSectionProxy extends ViewProxy{
 	}
 	
 	@Kroll.method @Kroll.getProperty
-	public TiViewProxy getFooterView() {
+	public Object getFooterView() {
 		return footerView;
 	}
 	
@@ -222,9 +218,9 @@ public class ListSectionProxy extends ViewProxy{
 
 	public View getHeaderOrFooterView(int index) {
 		if (isHeaderView(index)) {
-			return getListView().layoutHeaderOrFooterView(headerView);
+			return getListView().layoutHeaderOrFooterView(headerView, this);
 		} else if (isFooterView(index)) {
-			return getListView().layoutHeaderOrFooterView(footerView);
+			return getListView().layoutHeaderOrFooterView(footerView, this);
 		}
 		return null;
 	}
@@ -646,7 +642,7 @@ public class ListSectionProxy extends ViewProxy{
 		//Get item proxy
 		TiViewProxy itemProxy = template.getRootItem().getViewProxy();
 		//Create corresponding TiUIView for item proxy
-		TiListItem item = new TiListItem(itemProxy, (TiCompositeLayout.LayoutParams)itemContent.getLayoutParams(), itemContent, item_layout);		
+		TiListItem item = new TiListItem(itemProxy, itemContent, item_layout);		
 		//Connect native view with TiUIView so we can get it from recycled view.
 		itemContent.setTag(item);
 	
@@ -731,10 +727,10 @@ public class ListSectionProxy extends ViewProxy{
 		
 		for (Map.Entry<String, String> entry : toPassProps.entrySet()) {
 			String inProp = entry.getKey();
-			if (listItemProperties.containsKey(inProp)) continue;
 			String outProp = entry.getValue();
-			if (templateProperties.containsKey(inProp)) {
-				listItemProperties.put(outProp, templateProperties.get(inProp));
+			if (listItemProperties.get(outProp) != null) continue;
+			if (templateProperties.containsKey(outProp)) {
+				listItemProperties.put(outProp, templateProperties.get(outProp));
 			} else if (listViewProperties.containsKey(inProp)) {
 				listItemProperties.put(outProp, listViewProperties.get(inProp));
 			}
@@ -754,6 +750,7 @@ public class ListSectionProxy extends ViewProxy{
 			DataItem dataItem = template.getDataItem(binding);
 			ViewItem viewItem = views.get(binding);
 			TiUIView view = viewItem.getView();
+			view.setTouchDelegate((TiTouchDelegate)listItem);
 			//update extra event data for views
 			if (view != null) {
 				appendExtraEventData(view, itemIndex, sectionIndex, binding, itemId);

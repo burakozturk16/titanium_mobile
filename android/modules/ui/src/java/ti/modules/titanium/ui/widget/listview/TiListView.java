@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
@@ -24,6 +23,7 @@ import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiRHelper.ResourceNotFoundException;
+import org.appcelerator.titanium.view.TiBorderWrapperView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
@@ -37,7 +37,6 @@ import ti.modules.titanium.ui.widget.CustomListView;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
-import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnHeaderViewChangedListener;
 import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnPullListener;
 import android.app.Activity;
 import android.content.Context;
@@ -260,13 +259,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
+				setBoundsForBaseItem(itemContent);
 				section.populateViews(data, itemContent, template, sectionItemIndex, sectionIndex, content);
 			} else {
 				content = inflater.inflate(listItemId, null);
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
-				setMinHeightForBaseItem(itemContent);
+				setBoundsForBaseItem(itemContent);
 				LayoutParams params = new LayoutParams();
-				params.optionHeight = new TiDimension(MIN_ROW_HEIGHT, TiDimension.TYPE_HEIGHT);
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
 				section.generateCellContent(sectionIndex, data, template, itemContent, sectionItemIndex, content);
@@ -274,13 +273,30 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			return content;
 
 		}
-		
-		private void setMinHeightForBaseItem(TiBaseListViewItem item)  {
+
+		private void setBoundsForBaseItem(TiBaseListViewItem item)  {
+			TiBaseListViewItemHolder holder;
+			ViewParent parent = item.getParent();
+			if (parent instanceof TiBaseListViewItemHolder)
+			{
+				holder = (TiBaseListViewItemHolder) parent;
+			}
+			else if (parent instanceof TiBorderWrapperView)
+			{
+				holder = (TiBaseListViewItemHolder) parent.getParent();
+			}
+			else return;
+			//here the parent cant be null as we inflated
+			holder.setListView(listView);
 			String minRowHeight = MIN_ROW_HEIGHT;
 			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
 				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
 			}
-			item.setMinimumHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT).getAsPixels(listView));
+			item.setMinHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT));
+			if (proxy == null) return;
+			if (proxy.hasProperty(TiC.PROPERTY_MAX_ROW_HEIGHT)) {
+				item.setMaxHeight(TiConvert.toTiDimension(proxy.getProperty(TiC.PROPERTY_MAX_ROW_HEIGHT), TiDimension.TYPE_HEIGHT));
+			}
 		}
 		
 		@Override
@@ -385,8 +401,17 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			}
 		});
 		listView.setOnPullListener( new OnPullListener() {
+			private boolean canUpdate = false;
 			@Override
 			public void onPull(boolean canUpdate) {
+				if (canUpdate != this.canUpdate) {
+					this.canUpdate = canUpdate;
+					if(fProxy.hasListeners(TiC.EVENT_PULL_CHANGED)) {
+						KrollDict event = dictForScrollEvent();
+						event.put("active", canUpdate);
+						fProxy.fireEvent(TiC.EVENT_PULL_CHANGED, event);
+					}
+				}
 				if(fProxy.hasListeners(TiC.EVENT_PULL)) {
 					KrollDict event = dictForScrollEvent();
 					event.put("active", canUpdate);
@@ -687,15 +712,12 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		return p;
 	}
 	private void setHeaderOrFooterView (Object viewObj, boolean isHeader) {
-		if (viewObj instanceof TiViewProxy) {
-			TiViewProxy viewProxy = (TiViewProxy)viewObj;
-			View view = layoutHeaderOrFooterView(viewProxy);
-			if (view != null) {
-				if (isHeader) {
-					headerView = view;
-				} else {
-					footerView = view;
-				}
+		View view = layoutHeaderOrFooterView(viewObj, proxy);
+		if (view != null) {
+			if (isHeader) {
+				headerView = view;
+			} else {
+				footerView = view;
 			}
 		}
 	}
@@ -704,11 +726,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		if (pullView != null) {
 			pullView.releaseViews();
 		}
-		if (viewObj instanceof TiViewProxy) {
-			pullView = (TiViewProxy)viewObj;
-			return layoutHeaderOrFooterView(pullView);
-		}
-		return null;
+		return layoutHeaderOrFooterView(viewObj, proxy);
 	}
 	
 	public void showPullView(boolean animated) {
@@ -794,6 +812,8 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			refreshItems();
 		} else if (key.equals(TiC.PROPERTY_SCROLLING_ENABLED)) {
 			listView.setScrollingEnabled(newValue);
+		} else if (key.equals(TiC.PROPERTY_PULL_VIEW)) {
+			listView.setHeaderPullView(setPullView(newValue));
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
@@ -835,7 +855,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 	}
 	
-	public View layoutHeaderOrFooterView (TiViewProxy viewProxy) {
+	public View layoutHeaderOrFooterView (Object object, TiViewProxy parent) {
+		TiViewProxy viewProxy;
+		if (object instanceof TiViewProxy) {
+			viewProxy = (TiViewProxy)object;
+		}
+		else if(object instanceof HashMap) {
+			viewProxy = proxy.createViewFromTemplate((HashMap) object, parent, true);
+		}
+		else return null;
 		TiUIView tiView = viewProxy.peekView();
 		if (tiView != null) {
 			TiViewProxy parentProxy = viewProxy.getParent();

@@ -10,6 +10,21 @@
 
 @implementation TiRect
 
+-(id)init
+{
+	if (self = [super init])
+	{
+		rect = CGRectZero;
+	}
+	return self;
+}
+
++(TiRect*)rect
+{
+    return [[[TiRect alloc] init] autorelease];
+}
+
+
 -(void)setRect:(CGRect)rect_
 {
 	rect = rect_;
@@ -110,6 +125,19 @@
         rect.size.width = convertDipToPixels(rect.size.width);
         rect.size.height = convertDipToPixels(rect.size.height);
     }
+}
+
+-(id)description
+{
+	return NSStringFromCGRect(rect);
+}
+
+-(id)toJSON
+{
+	// this is called in the case you try and use JSON.stringify and an object is a proxy
+	// since you can't serialize a proxy as JSON, just return null
+	return @{@"x":NUMFLOAT(rect.origin.x), @"y":NUMFLOAT(rect.origin.y),
+             @"width":NUMFLOAT(rect.size.width), @"height":NUMFLOAT(rect.size.height)};
 }
 
 @end

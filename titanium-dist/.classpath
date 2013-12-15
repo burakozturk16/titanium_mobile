@@ -1,5 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-accelerometer.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-analytics.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-android.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-app.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-calendar.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-contacts.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-database.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-geolocation.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-gesture.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-image.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-locale.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-map.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-network.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-platform.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-shape.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-utils.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-xml.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

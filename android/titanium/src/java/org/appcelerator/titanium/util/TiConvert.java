@@ -23,6 +23,8 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
 import org.appcelerator.titanium.view.Ti2DMatrix;
+import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -141,6 +143,12 @@ public class TiConvert
 	public static int toColor(String value)
 	{
 		return TiColorHelper.parseColor(value);
+	}
+	public static int toColor(Object value)
+	{
+		if (value instanceof String)
+			return TiColorHelper.parseColor((String)value);
+		return TiColorHelper.parseColor(toString(value));
 	}
 
 	/**
@@ -275,9 +283,20 @@ public class TiConvert
 			dirty = true;
 		}
 		
-		if (withMatrix && hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
-			dirty = true;
+		if (withMatrix) {
+			if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+				layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
+				dirty = true;
+			}
+			if (hashMap.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
+				Object anchorPoint = hashMap.get(TiC.PROPERTY_ANCHOR_POINT);
+				if (anchorPoint instanceof HashMap) {
+					HashMap point = (HashMap) anchorPoint;
+					layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+					layoutParams.anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+					dirty = true;
+				}
+			}
 		}
 		
 		if (hashMap.containsKey(TiC.PROPERTY_ZINDEX)) {
@@ -641,6 +660,21 @@ public class TiConvert
 	{
 		return toString(hashMap.get(key));
 	}
+	
+	/**
+	 * Takes a value out of a hash table then attempts to convert it using {@link #toString(Object)} for more details.
+	 * @param hashMap the hash map to search.
+	 * @param key the lookup key.
+	 * @return String or null.
+	 * @module.api
+	 */
+	public static String toString(HashMap<String, Object> hashMap, String key, String def)
+	{
+		if (hashMap != null)
+			return toString(hashMap.get(key), def);
+		return def;
+	}
+
 
 	/**
 	 * Converts an Object array into a String array.
@@ -959,16 +993,12 @@ public class TiConvert
 	 */
 	public static RectF toRect(HashMap<String, Object>  map)
 	{
-		if (map.containsKey(TiC.PROPERTY_X) && map.containsKey(TiC.PROPERTY_Y) &&
-				map.containsKey(TiC.PROPERTY_WIDTH) && map.containsKey(TiC.PROPERTY_HEIGHT)) {
-			float left = toFloat(map, TiC.PROPERTY_X);
-			float top = toFloat(map, TiC.PROPERTY_Y);
-			float width = toFloat(map, TiC.PROPERTY_WIDTH);
-			float height = toFloat(map, TiC.PROPERTY_HEIGHT);
-			return new RectF(left, top, left + width, top + height);
-		}
-
-		return null;
+		KrollDict dict = new KrollDict((HashMap<String, Object>)map);
+		float left = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_X);
+		float top = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_Y);
+		float width = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_WIDTH);
+		float height = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_HEIGHT);
+		return new RectF(left, top, left + width, top + height);
 	}
 	/**
 	 * Converts value into Rect object and returns it.
@@ -1000,6 +1030,40 @@ public class TiConvert
 	public static RectF toRect(HashMap<String, Object> hashMap, String key)
 	{
 		return toRect(hashMap.get(key));
+	}
+	
+	public static Rect toPaddingRect(Object value)
+	{
+		if (value instanceof Rect) {
+			return (Rect)value;
+
+		} else if (value instanceof HashMap<?,?>) {
+			KrollDict dict = new KrollDict((HashMap<String, Object>)value);
+			Rect result = new Rect();
+			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
+				result.left = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_LEFT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
+				result.right = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_RIGHT);
+			}
+			if (dict.containsKey(TiC.PROPERTY_TOP)) {
+				result.top = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_TOP);
+			}
+			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
+				result.bottom = (int) TiUIHelper.getRawSizeOrZero(dict,
+						TiC.PROPERTY_BOTTOM);
+			}
+			return result;
+		}
+
+		return null;
+	}
+	public static Rect toPaddingRect(HashMap<String, Object> hashMap, String key)
+	{
+		return toPaddingRect(hashMap.get(key));
 	}
 	
 	/**

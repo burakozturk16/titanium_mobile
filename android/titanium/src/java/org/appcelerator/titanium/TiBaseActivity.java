@@ -190,7 +190,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			//Fire focus only if activity is not paused and the removed window was topWindow
 			if (isResumed && isTopWindow) {
 				nextWindow.onWindowFocusChange(true);
-				updateTitle(proxy);
+//				updateTitle(proxy);
 			}
 		}
 		else
@@ -723,11 +723,41 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	@Override
 	public void onBackPressed()
 	{
+		if (!handleBackKeyPressed()){
+			// If event is not handled by any listeners allow default behavior.
+			super.onBackPressed();
+		}
+	}
+	
+	public boolean handleAndroidBackEvent() {
+		KrollProxy proxy = null;
+		if (activityProxy.hasListeners(TiC.EVENT_ANDROID_BACK)) {
+			proxy = activityProxy;
+		} else{
+			TiWindowProxy topWindow = topWindowOnStack();
+			if (topWindow != null && topWindow.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
+				proxy = topWindow;
+			}
+			else {
+				proxy = window.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
+			}
+		}
+		
+		// Prevent default Android behavior for "back" press
+		// if the top window has a listener to handle the event.
+		if (proxy != null) {
+			proxy.fireEvent(TiC.EVENT_ANDROID_BACK);
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean handleBackKeyPressed(){
 		synchronized (interceptOnBackPressedListeners.synchronizedList()) {
 			for (interceptOnBackPressedEvent listener : interceptOnBackPressedListeners.nonNull()) {
 				try {
 					if (listener.interceptOnBackPressed()) {
-						return;
+						return true;
 					}
 
 				} catch (Throwable t) {
@@ -735,18 +765,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 				}
 			}
 		}
-
-		TiWindowProxy topWindow = topWindowOnStack();
-
-		// Prevent default Android behavior for "back" press
-		// if the top window has a listener to handle the event.
-		if (topWindow != null && topWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-			topWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
-
-		} else {
-			// If event is not handled by any listeners allow default behavior.
-			super.onBackPressed();
-		}
+		return handleAndroidBackEvent();
 	}
 
 	@Override
@@ -769,22 +788,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			case KeyEvent.KEYCODE_BACK : {
 				
 				if (event.getAction() == KeyEvent.ACTION_UP) {
-					// String backEvent = "android:back";
-					KrollProxy proxy = null;
-					//android:back could be fired from a tabGroup window (activityProxy)
-					//or hw window (window).This event is added specifically to the activity
-					//proxy of a tab group in window.js
-					if (activityProxy.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-						proxy = activityProxy;
-					} else if (window.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-						proxy = window;
-					}
-					
-					if (proxy != null) {
-						proxy.fireEvent(TiC.EVENT_ANDROID_BACK, null);
-						handled = true;
-					}
-					
+					handled = handleBackKeyPressed();					
 				}
 				break;
 			}
@@ -795,27 +799,12 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 					}
 					handled = true;
 				}
-				// TODO: Deprecate old event
-				if (window.hasListeners("android:camera")) {
-					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:camera", null);
-					}
-					handled = true;
-				}
-
 				break;
 			}
 			case KeyEvent.KEYCODE_FOCUS : {
 				if (window.hasListeners(TiC.EVENT_ANDROID_FOCUS)) {
 					if (event.getAction() == KeyEvent.ACTION_UP) {
 						window.fireEvent(TiC.EVENT_ANDROID_FOCUS, null);
-					}
-					handled = true;
-				}
-				// TODO: Deprecate old event
-				if (window.hasListeners("android:focus")) {
-					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:focus", null);
 					}
 					handled = true;
 				}
@@ -829,13 +818,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 					}
 					handled = true;
 				}
-				// TODO: Deprecate old event
-				if (window.hasListeners("android:search")) {
-					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:search", null);
-					}
-					handled = true;
-				}
 
 				break;
 			}
@@ -846,13 +828,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 					}
 					handled = true;
 				}
-				// TODO: Deprecate old event
-				if (window.hasListeners("android:volup")) {
-					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:volup", null);
-					}
-					handled = true;
-				}
 
 				break;
 			}
@@ -860,13 +835,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 				if (window.hasListeners(TiC.EVENT_ANDROID_VOLDOWN)) {
 					if (event.getAction() == KeyEvent.ACTION_UP) {
 						window.fireEvent(TiC.EVENT_ANDROID_VOLDOWN, null);
-					}
-					handled = true;
-				}
-				// TODO: Deprecate old event
-				if (window.hasListeners("android:voldown")) {
-					if (event.getAction() == KeyEvent.ACTION_UP) {
-						window.fireEvent("android:voldown", null);
 					}
 					handled = true;
 				}

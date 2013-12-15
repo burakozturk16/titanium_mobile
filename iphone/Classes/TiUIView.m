@@ -23,6 +23,7 @@
 #import "TiSVGImage.h"
 #import "TiImageHelper.h"
 #import "TiTransition.h"
+#import "TiViewAnimationStep.h"
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -155,10 +156,18 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
+    CALayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
     BOOL _dispatchPressed;
+    
+    BOOL needsToSetBackgroundImage;
+	BOOL needsToSetBackgroundSelectedImage;
+	BOOL needsToSetBackgroundDisabledImage;
+    BOOL needsUpdateBackgroundImageFrame;
+    UIEdgeInsets _backgroundPadding;
+    UIEdgeInsets _borderPadding;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -175,7 +184,7 @@ DEFINE_EXCEPTIONS
 
 #define kTOUCH_MAX_DIST 70
 
-@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition;
+@synthesize proxy,touchDelegate,oldSize, backgroundLayer = _bgLayer, shouldHandleSelection = _shouldHandleSelection, animateBgdTransition, runningAnimation;
 
 #pragma mark Internal Methods
 
@@ -198,8 +207,8 @@ DEFINE_EXCEPTIONS
     [childViews release];
     [transferLock release];
 	[transformMatrix release];
-	[animation release];
 	[_bgLayer release];
+	[_borderLayer release];
 	[singleTapRecognizer release];
 	[doubleTapRecognizer release];
 	[twoFingerTapRecognizer release];
@@ -266,6 +275,8 @@ DEFINE_EXCEPTIONS
     _touchEnabled = YES;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
+    _backgroundPadding = UIEdgeInsetsZero;
+    self.layer.borderColor = [UIColor clearColor].CGColor;
 }
 
 - (id) init
@@ -418,9 +429,7 @@ DEFINE_EXCEPTIONS
 
 - (void)setAccessibilityHidden_:(id)accessibilityHidden
 {
-	if ([TiUtils isIOS5OrGreater]) {
-		self.accessibilityElementsHidden = [TiUtils boolValue:accessibilityHidden def:NO];
-	}
+    self.accessibilityElementsHidden = [TiUtils boolValue:accessibilityHidden def:NO];
 }
 
 #pragma mark Layout 
@@ -429,7 +438,10 @@ DEFINE_EXCEPTIONS
 {
     
     if (_bgLayer) {
-        _bgLayer.frame = bounds;
+        _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
+    }
+    if (_borderLayer) {
+        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
     }
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
@@ -460,12 +472,13 @@ DEFINE_EXCEPTIONS
 {
     //TIMOB-11197, TC-1264
     [CATransaction begin];
-    if (!animating) {
+    if (runningAnimation == nil) {
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     }
     else {
-        [CATransaction setAnimationDuration:[animation animationDuration]];
-        [CATransaction setAnimationTimingFunction:[animation timingFunction] ];
+//        TiAnimation* anim = (TiViewAnimation*)[_runningAnimation animation];
+        [CATransaction setAnimationDuration:[runningAnimation duration]];
+        [CATransaction setAnimationTimingFunction:[TiAnimation timingFunctionForCurve:[runningAnimation curve]]];
     }
     
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
@@ -554,6 +567,9 @@ DEFINE_EXCEPTIONS
 
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    if (_borderLayer)
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    else
     _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
     
     _bgLayer.opacity = backgroundOpacity;
@@ -561,6 +577,25 @@ DEFINE_EXCEPTIONS
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
+}
+
+
+-(CALayer*)getOrCreateBorderLayer
+{
+    if (_borderLayer != nil) {
+        return _borderLayer;
+    }
+    
+    _borderLayer = [[CALayer alloc] init];
+    if (_bgLayer)
+        [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
+    else
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    _borderLayer.frame = [[self backgroundWrapperView] layer].bounds;
+    
+    _borderLayer.opacity = backgroundOpacity;
+    _borderLayer.cornerRadius = self.layer.cornerRadius;
+    return _borderLayer;
 }
 
 -(CALayer*)backgroundLayer
@@ -747,6 +782,77 @@ DEFINE_EXCEPTIONS
     }
 }
 
+
+//-(void)setBackgroundImageLayerBounds:(CGRect)bounds
+//{
+//    if ([self backgroundLayer] != nil)
+//    {
+//        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
+//                                            bounds.origin.y - padding.origin.y,
+//                                            bounds.size.width + padding.origin.x + padding.size.width,
+//                                            bounds.size.height + padding.origin.y + padding.size.height);
+//        [self backgroundLayer].frame = backgroundFrame;
+//    }
+//}
+
+//-(void) updateBackgroundImageFrameWithPadding
+//{
+//    if (!configurationSet){
+//        needsUpdateBackgroundImageFrame = YES;
+//        return; // lazy init
+//    }
+//    [self setBackgroundImageLayerBounds:self.bounds];
+//}
+
+//-(void)setBackgroundImage_:(id)url
+//{
+//    [super setBackgroundImage_:url];
+//    //if using padding we must not mask to bounds.
+//    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
+////    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingLeft_:(id)left
+//{
+//    padding.origin.x = [TiUtils floatValue:left];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingRight_:(id)right
+//{
+//    padding.size.width = [TiUtils floatValue:right];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingTop_:(id)top
+//{
+//    padding.origin.y = [TiUtils floatValue:top];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+//
+//-(void)setBackgroundPaddingBottom_:(id)bottom
+//{
+//    padding.size.height = [TiUtils floatValue:bottom];
+//    [self updateBackgroundImageFrameWithPadding];
+//}
+
+
+-(void)setBackgroundPadding_:(id)value
+{
+    _backgroundPadding = [TiUtils insetValue:value];
+    if (_bgLayer) {
+        _bgLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _backgroundPadding);
+    }
+}
+
+-(void)setBorderPadding_:(id)value
+{
+    _borderPadding = [TiUtils insetValue:value];
+    if (_borderLayer) {
+        _borderLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _borderPadding);
+    }
+}
+
 -(void)setImageCap_:(id)arg
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
@@ -768,7 +874,10 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderRadius_:(id)radius
 {
-	self.layer.cornerRadius = [TiUtils floatValue:radius];
+    self.layer.cornerRadius = [TiUtils floatValue:radius];
+    if (_borderLayer) {
+        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    }
     if (_bgLayer) {
         _bgLayer.cornerRadius = self.layer.cornerRadius;
     }
@@ -779,18 +888,36 @@ DEFINE_EXCEPTIONS
 -(void)setBorderColor_:(id)color
 {
 	TiColor *ticolor = [TiUtils colorValue:color];
-	self.layer.borderWidth = MAX(self.layer.borderWidth,1);
-	self.layer.borderColor = [ticolor _color].CGColor;
+    CALayer* bgdLayer = [self getOrCreateBorderLayer];
+	bgdLayer.borderWidth = MAX(bgdLayer.borderWidth,1);
+	bgdLayer.borderColor = [ticolor _color].CGColor;
 }
 
 -(void)setBorderWidth_:(id)w
 {
-	self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+    
+	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setAnchorPoint_:(id)point
 {
-	self.layer.anchorPoint = [TiUtils pointValue:point];
+	CGPoint anchorPoint = [TiUtils pointValue:point];
+	CGPoint newPoint = CGPointMake(self.bounds.size.width * anchorPoint.x, self.bounds.size.height * anchorPoint.y);
+    CGPoint oldPoint = CGPointMake(self.bounds.size.width * self.layer.anchorPoint.x, self.bounds.size.height * self.layer.anchorPoint.y);
+    
+    newPoint = CGPointApplyAffineTransform(newPoint, self.transform);
+    oldPoint = CGPointApplyAffineTransform(oldPoint, self.transform);
+    
+    CGPoint position = self.layer.position;
+    
+    position.x -= oldPoint.x;
+    position.x += newPoint.x;
+    
+    position.y -= oldPoint.y;
+    position.y += newPoint.y;
+    
+    self.layer.position = position;
+    self.layer.anchorPoint = anchorPoint;
 }
 
 -(void)setTransform_:(id)transform_
@@ -938,9 +1065,12 @@ DEFINE_EXCEPTIONS
     }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
-//    if (_bgLayer != nil) {
-//		[[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-//	}
+    if (_borderLayer) {
+        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    }
+    if (_bgLayer != nil) {
+        [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    }
 }
 
 - (void)willRemoveSubview:(UIView *)subview
@@ -954,64 +1084,15 @@ DEFINE_EXCEPTIONS
 
 -(void)cancelAllAnimations
 {
-    if (animation != nil) {
-        [animation cancel:nil];
-        RELEASE_TO_NIL(animation);
-    }
     [CATransaction begin];
 	[[self layer] removeAllAnimations];
     [[self backgroundLayer] removeAllAnimations];
 	[CATransaction commit];
 }
 
--(void)animate:(TiAnimation *)newAnimation
-{
-	RELEASE_TO_NIL(animation);
-	
-	if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy viewReady]==NO)
-	{
-		DebugLog(@"[DEBUG] Ti.View.animate() called before view %@ was ready: Will re-attempt", self);
-		if (animationDelayGuard++ > 5)
-		{
-			DebugLog(@"[DEBUG] Animation guard triggered, exceeded timeout to perform animation.");
-            animationDelayGuard = 0;
-			return;
-		}
-		[self performSelector:@selector(animate:) withObject:newAnimation afterDelay:0.01];
-		return;
-	}
-	
-	animationDelayGuard = 0;
-    BOOL resetState = NO;
-    if ([self.proxy isKindOfClass:[TiViewProxy class]] && [(TiViewProxy*)self.proxy willBeRelaying]) {
-        DeveloperLog(@"RESETTING STATE");
-        resetState = YES;
-    }
-    
-    animationDelayGuardForLayout = 0;    
-
-    if (newAnimation != nil) {
-        RELEASE_TO_NIL(animation);
-        animation = [newAnimation retain];
-        animation.resetState = resetState;
-        [animation animate:self];
-    }
-    else {
-        DebugLog(@"[WARN] Ti.View.animate() (view %@) could not make animation from: %@", self, newAnimation);
-    }
-}
--(void)animationStarted
-{
-    animating = YES;
-}
--(void)animationCompleted
-{
-	animating = NO;
-}
-
 -(BOOL)animating
 {
-	return animating;
+	return [(TiAnimatableProxy*)self.proxy animating];
 }
 
 #pragma mark Property Change Support
@@ -1461,7 +1542,7 @@ DEFINE_EXCEPTIONS
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)) && hitView == [self viewForHitTest])
+	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)))
 	{
 		return nil;
 	}
@@ -1826,12 +1907,12 @@ DEFINE_EXCEPTIONS
 }
 
 - (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
-    [viewOut animationStarted];
-    [viewIn animationStarted];
+    [(TiAnimatableProxy*)viewOut.proxy addRunningAnimation:transition];
+    [(TiAnimatableProxy*)viewIn.proxy addRunningAnimation:transition];
     
     [TiTransitionHelper transitionfromView:viewOut toView:viewIn insideView:self withTransition:transition completionBlock:^{
-        [viewOut animationCompleted];
-        [viewIn animationCompleted];
+        [(TiAnimatableProxy*)viewOut.proxy removeRunningAnimation:transition];
+        [(TiAnimatableProxy*)viewIn.proxy removeRunningAnimation:transition];
         if (block != nil) {
             block();
         }

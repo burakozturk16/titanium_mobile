@@ -10,7 +10,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -28,7 +27,7 @@ import android.app.Activity;
 		TiC.PROPERTY_PERSISTENT
 	}
 )
-public class AlertDialogProxy extends TiViewProxy
+public class AlertDialogProxy extends ViewProxy
 {
 	public AlertDialogProxy()
 	{

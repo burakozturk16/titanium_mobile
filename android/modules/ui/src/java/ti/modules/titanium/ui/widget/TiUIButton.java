@@ -31,9 +31,10 @@ import android.content.res.ColorStateList;
 public class TiUIButton extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUIButton";
+	private static final float DEFAULT_SHADOW_RADIUS = 0.5f;
 	
-	private int defaultColor;
-	private float shadowRadius = 0f;
+	private int defaultColor, selectedColor, color, disabledColor;
+	private float shadowRadius = DEFAULT_SHADOW_RADIUS;
 	private float shadowX = 0f;
 	private float shadowY = 0f;
 	private int shadowColor = Color.TRANSPARENT;
@@ -81,12 +82,11 @@ public class TiUIButton extends TiUINonViewGroupView
 		};
 		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		btn.setGravity(Gravity.CENTER);
-		defaultColor = btn.getCurrentTextColor();
+		color = disabledColor = selectedColor = defaultColor = btn.getCurrentTextColor();
 		setNativeView(btn);
 	}
 	
-	private void setTextColors(int color, int selectedColor, int disabledColor) {
-		
+	private void updateTextColors() {
 		int[][] states = new int[][] {
 			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
 			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
@@ -153,12 +153,23 @@ public class TiUIButton extends TiUINonViewGroupView
 			btn.setText(d.getString(TiC.PROPERTY_TITLE));
 		}
 		
-		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
-			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		boolean needsColors = false;
+		if(d.containsKey(TiC.PROPERTY_COLOR)) {
+			needsColors = true;
+			color = d.optColor(TiC.PROPERTY_COLOR, this.color);
 		}
+		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+			needsColors = true;
+			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, this.selectedColor);
+		}
+		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			needsColors = true;
+			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+		}
+		if (needsColors) {
+			updateTextColors();
+		}
+
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
@@ -171,19 +182,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiUIHelper.setAlignment(btn, null, verticalAlign);
 		}
 		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TITLE_PADDING);
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
+			titlePadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TITLE_PADDING);
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_IMAGE_ANCHOR)) {
@@ -207,7 +206,7 @@ public class TiUIButton extends TiUINonViewGroupView
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
 			needShadow = true;
-			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), 0);
+			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), DEFAULT_SHADOW_RADIUS);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			needShadow = true;
@@ -228,12 +227,15 @@ public class TiUIButton extends TiUINonViewGroupView
 		Button btn = (Button) getNativeView();
 		if (key.equals(TiC.PROPERTY_TITLE)) {
 			btn.setText((String) newValue);
-		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
-			KrollDict properties = proxy.getProperties();
-			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		} else if (key.equals(TiC.PROPERTY_COLOR)) {
+			this.color = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
+			this.selectedColor = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			this.disabledColor = TiConvert.toColor(newValue);
+			updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(btn, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
@@ -243,19 +245,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiUIHelper.setAlignment(btn, null, TiConvert.toString(newValue));
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = (KrollDict) newValue;
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				titlePadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				titlePadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				titlePadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				titlePadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
+			titlePadding = TiConvert.toPaddingRect(newValue);
 			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
@@ -288,7 +278,7 @@ public class TiUIButton extends TiUINonViewGroupView
 				btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 			}
 		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(newValue, 0);
+			shadowRadius = TiConvert.toFloat(newValue, DEFAULT_SHADOW_RADIUS);
 			btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(TiConvert.toString(newValue));

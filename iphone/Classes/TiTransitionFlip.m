@@ -42,12 +42,4 @@
     view.layer.doubleSided = NO;
     
 }
-
--(void)prepareViewHolder:(UIView*)holder
-{
-    CATransform3D sublayerTransform = CATransform3DIdentity;
-    sublayerTransform.m34 = 1.0 / kPerspective;
-    holder.layer.sublayerTransform = sublayerTransform;
-}
-
 @end

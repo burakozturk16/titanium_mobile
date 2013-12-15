@@ -48,6 +48,29 @@
 #import "ADSlideTransition.h"
 #import "ADModernPushTransition.h"
 
+@interface UIView (FindUIViewController)
+- (UIViewController *) firstAvailableUIViewController;
+- (id) traverseResponderChainForUIViewController;
+@end
+
+@implementation UIView (FindUIViewController)
+- (UIViewController *) firstAvailableUIViewController {
+    // convenience function for casting and to "mask" the recursive function
+    return (UIViewController *)[self traverseResponderChainForUIViewController];
+}
+
+- (id) traverseResponderChainForUIViewController {
+    id nextResponder = [self nextResponder];
+    if ([nextResponder isKindOfClass:[UIViewController class]]) {
+        return nextResponder;
+    } else if ([nextResponder isKindOfClass:[UIView class]]) {
+        return [nextResponder traverseResponderChainForUIViewController];
+    } else {
+        return nil;
+    }
+}
+@end
+
 @interface TransitionView : UIView
 @end
 @implementation TransitionView
@@ -117,7 +140,6 @@ static NSDictionary* typeMap = nil;
             if ([options objectForKey:@"faces"]) {
                 ((TiTransitionCarousel*)result).faceNb = [TiUtils intValue:@"faces" properties:options];
             }
-            return result;
             break;
         }
         case NWTransitionCross:
@@ -133,11 +155,17 @@ static NSDictionary* typeMap = nil;
             result = [[TitransitionBackFade alloc] initWithDuration:duration];
             break;
         case NWTransitionGhost:
-            return [[TiTransitionGhost alloc] initWithDuration:duration];
+            result = [[TiTransitionGhost alloc] initWithDuration:duration];
             break;
         case NWTransitionZoom:
-            result = [[TiTransitionZoom alloc] initWithDuration:duration];
+        {
+            CGFloat scale = 2.0f;
+            if ([options objectForKey:@"scale"]) {
+                scale = [TiUtils floatValue:@"scale" properties:options];
+            }
+            result = [[TiTransitionZoom alloc] initWithScale:scale forDuration:duration];
             break;
+        }
         case NWTransitionScale:
             result = [[TiTransitionScale alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
@@ -145,7 +173,7 @@ static NSDictionary* typeMap = nil;
             result = [[TiTransitionGlue alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
             break;
         case NWTransitionPushRotate:
-            return [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:view.frame];
+            result = [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:view.frame];
             break;
         case NWTransitionFold:
             result = [[TiTransitionFold alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
@@ -167,7 +195,7 @@ static NSDictionary* typeMap = nil;
         result.type = type;
         result.duration = duration;
     }
-    return result;
+    return [result autorelease];
 }
 
 +(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view
@@ -234,6 +262,7 @@ static NSDictionary* typeMap = nil;
         if (viewOut) {
             [workingView addSubview:viewOut];
         }
+        [workingView release];
     }
     if (viewIn) {
         [workingView addSubview:viewIn];
@@ -243,19 +272,28 @@ static NSDictionary* typeMap = nil;
     [transition prepareViewHolder:holder];
     [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
     
-    [CATransaction setCompletionBlock:^{
-        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+    void (^completionBlock)(void) = ^void(void) {
         [viewOut removeFromSuperview];
         if (needsTransformFix) {
             if (viewIn) {
                 [holder addSubview:viewIn];
             }
             [workingView removeFromSuperview];
-            [workingView release];
         }
         if (block != nil) {
             block();
         }
+    };
+    
+    UIViewController * holderController = [holder firstAvailableUIViewController];
+    if ([holderController.view isHidden]) {
+        completionBlock();
+        return;
+    }
+    [CATransaction setCompletionBlock:^{
+        [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        [transition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
+        completionBlock();
     }];
     
     [adTransition startTransitionFromView:viewOut toView:viewIn inside:workingView];

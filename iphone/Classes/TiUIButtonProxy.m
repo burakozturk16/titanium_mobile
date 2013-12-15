@@ -26,8 +26,7 @@
                                               @"backgroundPaddingRight",
                                               @"backgroundPaddingBottom", @"backgroundPaddingTop",
                                               @"shadowOffset", @"shadowRadius", @"shadowColor",
-                                              @"titlePaddingLeft", @"titlePaddingRight",
-                                              @"titlePaddingTop", @"titlePaddingBottom",
+                                              @"padding",
                                               @"wordWrap", @"borderWidth", nil]];
 }
 

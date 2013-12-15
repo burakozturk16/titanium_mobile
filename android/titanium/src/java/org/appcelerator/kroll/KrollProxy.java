@@ -11,6 +11,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -64,7 +65,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_CALL_PROPERTY_ASYNC = KrollObject.MSG_LAST_ID + 109;
 	protected static final int MSG_CALL_PROPERTY_SYNC = KrollObject.MSG_LAST_ID + 110;
 	protected static final int MSG_MODEL_APPLY_PROPERTIES = KrollObject.MSG_LAST_ID + 111;
-	protected static final int MSG_LAST_ID = MSG_MODEL_APPLY_PROPERTIES;
+	protected static final int MSG_UPDATE_KROLL_PROPERTIES = KrollObject.MSG_LAST_ID + 112;
+	protected static final int MSG_LAST_ID = MSG_UPDATE_KROLL_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
 
@@ -606,6 +608,21 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
+	public void updateKrollObjectProperties()
+	{
+		updateKrollObjectProperties(getProperties());
+	}
+	
+	public void updateKrollObjectProperties(HashMap<String, Object>props)
+	{
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			doUpdateKrollObjectProperties(getProperties());
+
+		} else {
+			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, getProperties());
+			message.sendToTarget();
+		}
+	}
 	
 	/**
 	 * This sets the named property as well as updating the actual JS object.
@@ -675,7 +692,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 	}
 	
-	public void applyPropertiesInternal(Object arg, boolean force)
+	public void applyPropertiesInternal(Object arg, boolean force, boolean wait)
 	{
 		if (!(arg instanceof HashMap)) {
 			Log.w(TAG, "Cannot apply properties: invalid type for properties", Log.DEBUG_MODE);
@@ -701,8 +718,14 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				modelListener.processProperties(changedProps);
 			}
 			else {
-				Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
-				message.sendToTarget();
+				if (wait) {
+					TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES), changedProps);
+				}
+				else {
+					Message message = getMainHandler().obtainMessage(MSG_MODEL_APPLY_PROPERTIES, changedProps);
+					message.sendToTarget();
+				}
+				
 			}
 
 		}
@@ -710,11 +733,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 //			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
 //		}
 	}
+	
+	public void applyPropertiesInternal(Object arg, boolean force)
+	{
+		applyPropertiesInternal(arg, force, false);
+	}
 
 	@Kroll.method
 	public void applyProperties(Object arg)
 	{
-		applyPropertiesInternal(arg, false);
+		applyPropertiesInternal(arg, false, false);
 	}
 
 	/**
@@ -753,6 +781,17 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected void doSetProperty(String name, Object value)
 	{
 		getKrollObject().setProperty(name, value);
+	}
+	
+
+	private void doUpdateKrollObjectProperties()
+	{
+		getKrollObject().updateNativeProperties(getProperties());
+	}
+	
+	private void doUpdateKrollObjectProperties(HashMap<String, Object> props)
+	{
+		getKrollObject().updateNativeProperties(props);
 	}
 
 	@Kroll.getProperty @Kroll.method
@@ -893,6 +932,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 					dict.put(TiC.EVENT_PROPERTY_SOURCE, this);
 				}
 			}
+			dict.put(TiC.EVENT_PROPERTY_TYPE, event);
 			onEventFired(event, dict);
 		}
 
@@ -989,7 +1029,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean hasListeners(String event)
 	{
-		return getKrollObject().hasListeners(event);
+		return hasNonJSEventListener(event) || getKrollObject().hasListeners(event);
 	}
 
 	/**
@@ -1008,6 +1048,25 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 
 		return hasListener;
+	}
+	
+	/**
+	 * Returns true if any view in the hierarchy has the event listener.
+	 */
+	public KrollProxy firstHierarchyListener(String event)
+	{
+		boolean hasListener = hasListeners(event);
+
+		// Checks whether the parent has the listener or not
+		if (!hasListener) {
+			KrollProxy parentProxy = getParentForBubbling();
+			if (parentProxy != null && bubbleParent) {
+				return parentProxy.firstHierarchyListener(event);
+			}
+			return null;
+		}
+
+		return this;
 	}
 
 	public boolean shouldFireChange(Object oldValue, Object newValue)
@@ -1171,7 +1230,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 			case MSG_MODEL_APPLY_PROPERTIES: {
 				if (modelListener != null) {
-					modelListener.processProperties((KrollDict)msg.obj);
+					if (msg.obj instanceof AsyncResult) {
+						AsyncResult result = (AsyncResult) msg.obj;
+						modelListener.processProperties((KrollDict)result.getArg());
+						result.setResult(null);
+						return true;
+						
+					}
+					else {
+						modelListener.processProperties((KrollDict)msg.obj);
+					}
 				}
 				return true;
 			}
@@ -1221,6 +1289,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				getKrollObject().callProperty(propertyName, args);
 				asyncResult.setResult(null);
 
+				return true;
+			}
+			case MSG_UPDATE_KROLL_PROPERTIES: {
+				doUpdateKrollObjectProperties((HashMap<String, Object>) msg.obj);
 				return true;
 			}
 		}
@@ -1353,6 +1425,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 		}
 	}
+	
+	public boolean hasNonJSEventListener(String event)
+	{
+		return eventListeners.containsKey(event) && eventListeners.get(event) != null;
+	}
+
 
 	/**
 	 * Resolves the passed in scheme / path, and uses the Proxy's creationUrl if the path is relative.

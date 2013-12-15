@@ -257,6 +257,7 @@ public class TiUISwitch extends TiUIView
 					};
 				}
 				break;
+
 			default:
 				return;
 		}

@@ -10,14 +10,18 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollEventFunction;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.APIMap;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -25,16 +29,15 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.animation.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
+import org.appcelerator.titanium.animation.TiViewAnimator;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
-import org.appcelerator.titanium.util.TiAnimator;
-import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.TiBlob;
-
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -43,6 +46,7 @@ import com.nineoldandroids.animation.Animator.AnimatorListener;
 import android.util.DisplayMetrics;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -98,6 +102,7 @@ import android.widget.ViewSwitcher;
 	TiC.PROPERTY_FOCUSABLE,
 	TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS,
 	TiC.PROPERTY_TRANSFORM,
+	TiC.PROPERTY_ANCHOR_POINT,
 	TiC.PROPERTY_TOUCH_PASSTHROUGH,
 	TiC.PROPERTY_CLIP_CHILDREN,
 	TiC.PROPERTY_VIEW_MASK,
@@ -137,6 +142,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
 	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
+	
+	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
@@ -153,8 +160,26 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Override
 	public void handleCreationDict(KrollDict options)
 	{
+		boolean needsToUpdateProps = false;
+		if (options == null) {
+			return;
+		}
+		if (options.containsKey(TiC.PROPERTY_PROPERTIES)) {
+			super.handleCreationDict(options.getKrollDict(TiC.PROPERTY_PROPERTIES));
+			needsToUpdateProps = true;
+		}
+		else {
+			super.handleCreationDict(options);
+		}
+		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
+			initFromTemplate(options, this);
+			needsToUpdateProps = true;
+		}
+		if (needsToUpdateProps) {
+			updateKrollObjectProperties();
+		}
 //		options = handleStyleOptions(options);
-		super.handleCreationDict(options);
+//		super.handleCreationDict(options);
 
 		//TODO eventManager.addOnEventChangeListener(this);
 	}
@@ -350,9 +375,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 						DisplayMetrics dm = new DisplayMetrics();
 						TiApplication.getAppCurrentActivity().getWindowManager().getDefaultDisplay().getMetrics(dm);
-
-						int topOffset = dm.heightPixels - decorView.getMeasuredHeight();
-						position[1] -= topOffset; //we remove statusbar height 
+						
+						Rect rect = new Rect();
+						decorView.getWindowVisibleDisplayFrame(rect);
+				        int statusHeight = rect.top;
+				        
+						position[1] -= statusHeight; //we remove statusbar height 
 
 						d.put(TiC.PROPERTY_WIDTH, v.getMeasuredWidth());
 						d.put(TiC.PROPERTY_HEIGHT, v.getMeasuredHeight());
@@ -680,6 +708,95 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		setModelListener(null);
 		KrollRuntime.suggestGC();
 	}
+	
+	protected void addPropToUpdateNativeSide(String key, Object value) 
+	{
+		if (propertiesToUpdateNativeSide == null) 
+		{
+			propertiesToUpdateNativeSide = new HashMap<String, Object>();
+		}
+		propertiesToUpdateNativeSide.put(key, value);
+	}
+	
+	public void updatePropertiesNativeSide() 
+	{
+		if (propertiesToUpdateNativeSide != null) 
+		{
+			updateKrollObjectProperties(propertiesToUpdateNativeSide);
+			propertiesToUpdateNativeSide = null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	protected void initFromTemplate(HashMap template_,
+			TiViewProxy rootProxy) {
+		if (rootProxy != null
+				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
+			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
+			rootProxy.setProperty(bindId,this);
+			rootProxy.addPropToUpdateNativeSide(bindId,this);
+		}
+		if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+			Object childProperties = template_
+					.get(TiC.PROPERTY_CHILD_TEMPLATES);
+			if (childProperties instanceof Object[]) {
+				Object[] propertiesArray = (Object[]) childProperties;
+				for (int i = 0; i < propertiesArray.length; i++) {
+					Object childDict = propertiesArray[i];
+					if (childDict instanceof TiViewProxy) {
+						this.add((TiViewProxy) childDict);
+					} else {
+						TiViewProxy childProxy = createViewFromTemplate(
+								(HashMap) childDict, rootProxy, false);
+						if (childProxy != null){
+							childProxy.updateKrollObjectProperties();
+							this.add(childProxy);
+						}
+					}
+				}
+			}
+		}
+		if (template_.containsKey(TiC.PROPERTY_EVENTS)) {
+			Object events = template_
+					.get(TiC.PROPERTY_EVENTS);
+			if (events instanceof HashMap) {
+				Iterator entries = ((HashMap)events).entrySet().iterator();
+				while (entries.hasNext()) {
+				    Map.Entry entry = (Map.Entry) entries.next();
+				    String key = (String)entry.getKey();
+				    Object value = entry.getValue();
+				    if (value instanceof KrollFunction) {
+						addEventListener(key, new KrollEventFunction(getKrollObject(), (KrollFunction) value));
+				    }
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public TiViewProxy createViewFromTemplate(HashMap template_,
+			TiViewProxy rootProxy, boolean updateRootProperties) {
+		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
+				"Ti.UI.View");
+		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
+				.get(TiC.PROPERTY_PROPERTIES) : template_;
+		try {
+			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+					.forName(APIMap.getProxyClass(type));
+			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
+					new Object[] { properties }, null);
+			if (proxy == null)
+				return null;
+			proxy.initFromTemplate(template_, rootProxy);
+			if (updateRootProperties) {
+				rootProxy.updatePropertiesNativeSide();
+			}
+			return proxy;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
 	/**
 	 * Implementing classes should use this method to create and return the appropriate view.
@@ -697,40 +814,63 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void add(Object args, @Kroll.argument(optional = true) Object index)
 	{
-		TiViewProxy child = null;
-		if (args instanceof TiViewProxy)
-			child = (TiViewProxy) args;
-		
-		int i = -1; // no index by default
-		if (index instanceof Number) {
-			i = ((Number)index).intValue();
-		}
-		if (child == null) {
-			Log.e(TAG, "Add called with a null child");
+		if (args instanceof Object[]) {
+			int i = -1; // no index by default
+			if (index instanceof Number) {
+				i = ((Number) index).intValue();
+			}
+			int arrayIndex = i;
+			for (Object obj : (Object[]) args) {
+				add(obj, Integer.valueOf(arrayIndex));
+				if (arrayIndex != -1)
+					arrayIndex++;
+			}
 			return;
-		}
-
-		if (children == null) {
-			children = new ArrayList<TiViewProxy>();
-		}
-		
-		if (peekView() != null) {
-			if (TiApplication.isUIThread()) {
-				handleAdd(child, i);
+		} else if (args instanceof HashMap) {
+			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
+					this, true);
+			if (childProxy != null) {
+				childProxy.updateKrollObjectProperties();
+				add(childProxy);
+			}
+		} else {
+			TiViewProxy child = null;
+			if (args instanceof TiViewProxy)
+				child = (TiViewProxy) args;
+			
+			if (child == null) {
+				Log.e(TAG, "Add called with a null child");
 				return;
 			}
-
+	
+			int i = -1; // no index by default
+			if (index instanceof Number) {
+				i = ((Number)index).intValue();
+			}
 			
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
-
-		} else {
-			if (i >= 0) {
-				children.add(i, child);
+	
+			if (children == null) {
+				children = new ArrayList<TiViewProxy>();
 			}
-			else {
-				children.add(child);
+			
+			if (peekView() != null) {
+				if (TiApplication.isUIThread()) {
+					handleAdd(child, i);
+					return;
+				}
+	
+				
+				TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
+	
+			} else {
+				if (i >= 0) {
+					children.add(i, child);
+				}
+				else {
+					children.add(child);
+				}
+				child.parent = new WeakReference<TiViewProxy>(this);
 			}
-			child.parent = new WeakReference<TiViewProxy>(this);
 		}
 	}
 
@@ -750,8 +890,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		child.parent = new WeakReference<TiViewProxy>(this);
 		child.setActivity(getActivity());
 		if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
-			((TiWindowProxy)child).onWindowActivityCreated();
-			child.focus();
+			TiWindowProxy childWin = (TiWindowProxy)child;
+			childWin.onWindowActivityCreated();
+			childWin.focus();
 		}
 		if (view != null) {
 			
@@ -884,10 +1025,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	@Override
-	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, List<Animator> listReverse,
 			HashMap options) {
 		if (view != null) {
-			view.prepareAnimatorSet(tiSet, list, options);
+			view.prepareAnimatorSet(tiSet, list, listReverse, options);
 		}
 	}
 	
@@ -918,32 +1059,26 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
-		TiAnimator pendingAnimation = null;
-		synchronized (pendingAnimationLock) {
-			if (pendingAnimations.size() == 0) {
-				return;
-			}
-			pendingAnimation = pendingAnimations.remove(0);
-		}
 		
 		View view = getOuterView();
 		if (view == null) {
+			TiAnimator pendingAnimation = null;
+			synchronized (pendingAnimationLock) {
+				if (pendingAnimations.size() == 0) {
+					return;
+				}
+				pendingAnimation = pendingAnimations.remove(0);
+			}
+			
 			pendingAnimation.applyOptions();
 			((TiViewAnimator) pendingAnimation).simulateFinish(this);
-			pendingAnimation = null;
 			return;
 		}
-		else if (view.getWidth() == 0 && view.getHeight() == 0) {
-			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
-			return;
-		}
-		
-		
-		pendingAnimation.applyOptions();
-		((TiAnimatorSet) pendingAnimation).setProxy(this);
-		
-		prepareAnimatorSet((TiAnimatorSet) pendingAnimation);
-		((TiAnimatorSet) pendingAnimation).set().start();
+//		else if (view.getWidth() == 0 && view.getHeight() == 0) {
+//			getMainHandler().sendEmptyMessage(MSG_QUEUED_ANIMATE);
+//			return;
+//		}
+		super.handlePendingAnimation();
 	}
 
 	protected void handleQueuedAnimate()
@@ -961,11 +1096,18 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	protected void handleBlur()
+	protected boolean handleBlur()
 	{
 		if (view != null) {
-			view.blur();
+			if (!view.blur()) {
+				if (children != null) {
+					for (TiViewProxy child : children) {
+						if (child.handleBlur()) return true;
+					}
+				}
+			} else return true;
 		}
+		return false;
 	}
 
 	@Kroll.method
@@ -1517,5 +1659,15 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				getMainHandler().obtainMessage(MSG_BLUR_BACKGROUND, options).sendToTarget();
 			}
 		} 
+	}
+
+	@Kroll.method
+	public boolean containsView(TiViewProxy proxy)
+	{
+		if (proxy == this)return true;
+		for (TiViewProxy child:getChildren()) { 
+			if (child.containsView(proxy)) return true;
+		}
+		return false;
 	}
 }

@@ -14,6 +14,7 @@
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
 #import "TiUIiOSAttributedStringProxy.h"
 #endif
+#import "DTCoreText.h"
 
 @implementation TiUILabel
 
@@ -22,9 +23,6 @@
 -(id)init
 {
     if (self = [super init]) {
-        padding = CGRectZero;
-        textPadding = CGRectZero;
-        initialLabelFrame = CGRectZero;
     }
     return self;
 }
@@ -43,43 +41,19 @@
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
     CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
-    maxSize.width -= textPadding.origin.x + textPadding.size.width;
+    maxSize.width -= label.viewInsets.left + label.viewInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
-    result.width = MIN(result.width,  maxSize.width);
-    result.height = MIN(result.height,  size.height);
-    if (label.numberOfLines > 0 || label.attributedText != nil) {
-        CGRect textRect = [[self label] textRectForBounds:CGRectMake(0,0,result.width, maxSize.height) limitedToNumberOfLines:label.numberOfLines];
-        
-        textRect.size.height -= 2*textRect.origin.y;
-        result =textRect.size;
-    }
-    result.width += textPadding.origin.x + textPadding.size.width;
-    result.height += textPadding.origin.y + textPadding.size.height;
+    if (size.height > 0) result.height = MIN(result.height,  size.height);
+    //padding
+    result.width += label.viewInsets.left+ label.viewInsets.right;
+    result.height += label.viewInsets.top + label.viewInsets.bottom;
     return result;
 }
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
-}
-
--(void)padLabel
-{
-    if (!configurationSet) {
-        needsPadLabel = YES;
-        return; // lazy init
-    }
-	CGRect	initFrame = CGRectMake(initialLabelFrame.origin.x + textPadding.origin.x
-                                   , initialLabelFrame.origin.y + textPadding.origin.y
-                                   , initialLabelFrame.size.width - textPadding.origin.x - textPadding.size.width
-                                   , initialLabelFrame.size.height - textPadding.origin.y - textPadding.size.height);
-    [label setFrame:initFrame];
-    if ([self backgroundLayer] != nil && !CGRectIsEmpty(initialLabelFrame))
-    {
-        [self updateBackgroundImageFrameWithPadding];
-    }
-	return;
 }
 
 -(void)setCenter:(CGPoint)newCenter
@@ -89,25 +63,18 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    initialLabelFrame = bounds;
-    [self padLabel];
+    [label setFrame:bounds];
     [super frameSizeChanged:frame bounds:bounds];
 }
 
 - (void)configurationStart {
     [super configurationStart];
-    needsUpdateBackgroundImageFrame = needsPadLabel = needsSetText = NO;
+    needsSetText = NO;
 }
 
 - (void)configurationSet {
     
     [super configurationSet];
-    if (needsPadLabel)
-        [self padLabel];
-    
-    if (needsUpdateBackgroundImageFrame)
-        [self updateBackgroundImageFrameWithPadding];
-    
     if (needsSetText)
         [self setAttributedTextViewContent];
 }
@@ -116,13 +83,18 @@
 {
 	if (label==nil)
 	{
-        label = [[TTTAttributedLabel alloc] initWithFrame:CGRectZero];
+        label = [[TDTTTAttributedLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
         label.layer.shadowRadius = 0; //for backward compatibility
         label.layer.shadowOffset = CGSizeZero;
 		label.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        label.touchDelegate = self;
+        label.strokeColorAttributeProperty = DTBackgroundStrokeColorAttribute;
+        label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
+        label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;
+        label.paddingAttributeProperty = DTPaddingAttribute;
         label.delegate = self;
         [self addSubview:label];
 	}
@@ -274,6 +246,7 @@
                         NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
                         [paragraphStyle setLineBreakMode:label.lineBreakMode];
                         [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
+                        [paragraphStyle release];
                     }
                 }];
                 
@@ -285,6 +258,7 @@
                     }
                     [optimizedAttributedText removeAttribute:(NSString*)kCTParagraphStyleAttributeName range:range];
                     [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
+                    [paragraphStyle release];
                 }];
                 [self checkLinkAttributeForString:optimizedAttributedText atPoint:p];
                 [optimizedAttributedText release];
@@ -423,69 +397,17 @@
     [self updateNumberLines];   
 }
 
--(void)setBackgroundImageLayerBounds:(CGRect)bounds
-{
-    if ([self backgroundLayer] != nil)
-    {
-        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
-                                            bounds.origin.y - padding.origin.y,
-                                            bounds.size.width + padding.origin.x + padding.size.width,
-                                            bounds.size.height + padding.origin.y + padding.size.height);
-        [self backgroundLayer].frame = backgroundFrame;
-    }
-}
-
--(void) updateBackgroundImageFrameWithPadding
-{
-    if (!configurationSet){
-        needsUpdateBackgroundImageFrame = YES;
-        return; // lazy init
-    }
-    [self setBackgroundImageLayerBounds:self.bounds];
-}
-
 -(void)setAttributedString_:(id)arg
 {
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
     ENSURE_SINGLE_ARG(arg, TiUIiOSAttributedStringProxy);
     [[self proxy] replaceValue:arg forKey:@"attributedString" notification:NO];
     [[self label] setAttributedText:[arg attributedString]];
-    [self padLabel];
     [(TiViewProxy *)[self proxy] contentsWillChange];
 #endif
 }
 
--(void)setBackgroundImage_:(id)url
-{
-    [super setBackgroundImage_:url];
-    //if using padding we must not mask to bounds.
-    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
-    [self updateBackgroundImageFrameWithPadding];
-}
 
--(void)setBackgroundPaddingLeft_:(id)left
-{
-    padding.origin.x = [TiUtils floatValue:left];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingRight_:(id)right
-{
-    padding.size.width = [TiUtils floatValue:right];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingTop_:(id)top
-{
-    padding.origin.y = [TiUtils floatValue:top];
-    [self updateBackgroundImageFrameWithPadding];
-}
-
--(void)setBackgroundPaddingBottom_:(id)bottom
-{
-    padding.size.height = [TiUtils floatValue:bottom];
-    [self updateBackgroundImageFrameWithPadding];
-}
 
 -(void)setTextAlign_:(id)alignment
 {
@@ -516,23 +438,10 @@
 	[[self label] setShadowOffset:size];
 }
 
--(void)setTextPadding_:(id)value
+-(void)setPadding_:(id)value
 {
-	ENSURE_SINGLE_ARG(value,NSDictionary);
-    NSDictionary* paddingDict = (NSDictionary*)value;
-    if ([paddingDict objectForKey:@"left"]) {
-        textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
-    }
-    if ([paddingDict objectForKey:@"right"]) {
-        textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
-    }
-    if ([paddingDict objectForKey:@"top"]) {
-        textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
-    }
-    if ([paddingDict objectForKey:@"bottom"]) {
-        textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
-    }
-    [self padLabel];
+    [self label].viewInsets = [TiUtils insetValue:value];
+    [(TiViewProxy *)[self proxy] contentsWillChange];
 }
 
 -(void) updateNumberLines

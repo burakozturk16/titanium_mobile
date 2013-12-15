@@ -23,7 +23,7 @@
 
 - (void) dealloc
 {
-	[gradient release];
+	RELEASE_TO_NIL(gradient)
 	[super dealloc];
 }
 
@@ -40,6 +40,7 @@
     CGSize cacheSize;
     CGImageRef cachedSweepImage;
     CGFloat sweepStartAngle;
+    CGRect gradientRect;
 }
 @end
 
@@ -52,6 +53,7 @@
     if (self = [super init])
     {
         sweepStartAngle = 0;
+        gradientRect = CGRectNull;
     }
     return self;
 }
@@ -120,9 +122,10 @@
 	if (colorValues != NULL)
 	{
 		CFRelease(colorValues);
+        colorValues = NULL;
 	}
-	[endPoint release];
-	[startPoint release];
+    RELEASE_TO_NIL(endPoint)
+    RELEASE_TO_NIL(startPoint)
 	[self clearCache];
 	free(colorOffsets);
 	[super dealloc];
@@ -213,6 +216,11 @@
 	endRadius = [TiUtils dimensionValue:newRadius];
 }
 
+-(void)setRect:(id)rect
+{
+	gradientRect = [TiUtils rectValue:rect];
+}
+
 -(void)setColors:(NSArray *)newColors;
 {
 	ENSURE_TYPE(newColors,NSArray);
@@ -274,11 +282,17 @@
 
 -(void)createCache:(CGRect)bounds
 {
-    cacheSize = bounds.size;
-    
+    CGRect actualBounds = bounds;
+    if (!CGRectIsNull(gradientRect)) {
+        actualBounds = gradientRect;
+    }
+    cacheSize = actualBounds.size;
+  
     if (type == TiGradientTypeSweep) {
-        cachedImage = [[UIImage imageWithCGImage:[self newSweepImageGradientInRect:bounds]] retain];
-        return;
+        CGImageRef imgRef = [self newSweepImageGradientInRect:actualBounds];
+        cachedImage = [[UIImage imageWithCGImage:imgRef] retain];
+        CGImageRelease(imgRef);
+       return;
     }
     CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
 	CGContextRef cacheContext = CGBitmapContextCreate(nil, cacheSize.width, cacheSize.height, 8, cacheSize.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
@@ -297,8 +311,8 @@
 	{
 		case TiGradientTypeLinear:
 			CGContextDrawLinearGradient(cacheContext, [self cachedGradient],
-                                        [TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointZero],
-                                        [TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0, 1)],
+                                        [TiUtils pointValue:startPoint bounds:actualBounds defaultOffset:CGPointZero],
+                                        [TiUtils pointValue:endPoint bounds:actualBounds defaultOffset:CGPointMake(0, 1)],
                                         options);
 			break;
 		case TiGradientTypeRadial:
@@ -311,7 +325,7 @@
 					startRadiusPixels = startRadius.value;
 					break;
 				case TiDimensionTypePercent:
-					startRadiusPixels = startRadius.value * PYTHAG(bounds.size);
+					startRadiusPixels = startRadius.value * PYTHAG(actualBounds.size);
 					break;
 				default:
 					startRadiusPixels = 0;
@@ -323,15 +337,15 @@
 					endRadiusPixels = endRadius.value;
 					break;
 				case TiDimensionTypePercent:
-					endRadiusPixels = endRadius.value * PYTHAG(bounds.size);
+					endRadiusPixels = endRadius.value * PYTHAG(actualBounds.size);
 					break;
 				default:
 					endRadiusPixels = PYTHAG(bounds.size);
 			}
 			
 			CGContextDrawRadialGradient(cacheContext, [self cachedGradient],
-                                        [TiUtils pointValue:startPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],startRadiusPixels,
-                                        [TiUtils pointValue:endPoint bounds:bounds defaultOffset:CGPointMake(0.5, 0.5)],endRadiusPixels,
+                                        [TiUtils pointValue:startPoint bounds:actualBounds defaultOffset:CGPointMake(0.5, 0.5)],startRadiusPixels,
+                                        [TiUtils pointValue:endPoint bounds:actualBounds defaultOffset:CGPointMake(0.5, 0.5)],endRadiusPixels,
                                         options);
 			break;
         }
@@ -340,16 +354,21 @@
 	}
     CGImageRef imgRef = CGBitmapContextCreateImage(cacheContext);
     cachedImage = [[UIImage imageWithCGImage:imgRef] retain];
+    CGImageRelease(imgRef);
 	CGContextRelease(cacheContext);
 }
 
 -(void)paintContext:(CGContextRef)context bounds:(CGRect)bounds
 {
-    if (!CGSizeEqualToSize(cacheSize, bounds.size) || cachedImage == nil){
+    if (CGRectIsNull(gradientRect) && !CGSizeEqualToSize(cacheSize, bounds.size) || cachedImage == nil){
         [self clearCache];
         [self createCache:bounds];
     }
-    CGContextDrawImage(context, bounds, cachedImage.CGImage);
+    
+//    CGContextTranslateCTM(context, 0, bounds.size.height);
+//    CGContextScaleCTM(context, 1.0, -1.0);
+    CGRect imageRect = CGRectMake(0, 0, cachedImage.size.width, cachedImage.size.height);
+    CGContextDrawTiledImage(context, imageRect, cachedImage.CGImage);
 }
 
 - (CGImageRef)newSweepImageGradientInRect:(CGRect)rect

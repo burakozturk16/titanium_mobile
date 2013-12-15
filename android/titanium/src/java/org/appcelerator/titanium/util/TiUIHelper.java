@@ -31,7 +31,6 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy.PostOpenListener;
 import org.appcelerator.titanium.view.TiBackgroundDrawable;
@@ -97,6 +96,7 @@ public class TiUIHelper
 	public static final int FACE_DOWN = 6;
 	public static final int UNKNOWN = 7;
 	public static final Pattern SIZED_VALUE = Pattern.compile("(-?[0-9]*\\.?[0-9]+)\\W*(px|dp|dip|sp|sip|mm|cm|pt|in)?");
+	public static final String MIME_TYPE_PNG = "image/png";
 
 	private static Method overridePendingTransition;
 	private static Map<String, String> resourceImageKeys = Collections.synchronizedMap(new HashMap<String, String>());
@@ -373,6 +373,12 @@ public class TiUIHelper
 		getSizeAndUnits(size, result);
 		return getRawSize((int)result[0], result[1], context);
 	}
+	
+	public static float getRawSize(int size, Context context) {
+		float[] result = new float[2];
+		getSizeAndUnits(null, result);
+		return getRawSize((int)result[0], size, context);
+	}
 
 	public static float getRawSize(String size) {
 		return getRawSize(size, null);
@@ -401,8 +407,8 @@ public class TiUIHelper
 			return desc;
 		}
 		String fontSize = null;
-		if (d.containsKey("fontSize")) {
-			fontSize = TiConvert.toString(d, "fontSize");
+		if (d.containsKey("size")) {
+			fontSize = TiConvert.toString(d, "size");
 		}
 		float[] result = new float[2];
 		getSizeAndUnits(fontSize, result);
@@ -410,18 +416,18 @@ public class TiUIHelper
 		desc.size = result[1]; 
 		
 		String fontFamily = null;
-		if (d.containsKey("fontFamily")) {
-			fontFamily = TiConvert.toString(d, "fontFamily");
+		if (d.containsKey("family")) {
+			fontFamily = TiConvert.toString(d, "family");
 		}
 		desc.typeface = toTypeface(context, fontFamily);
 		
 		String fontWeight = null;
 		String fontStyle = null;
-		if (d.containsKey("fontWeight")) {
-			fontWeight = TiConvert.toString(d, "fontWeight");
+		if (d.containsKey("weight")) {
+			fontWeight = TiConvert.toString(d, "weight");
 		}
-		if (d.containsKey("fontStyle")) {
-			fontStyle = TiConvert.toString(d, "fontStyle");
+		if (d.containsKey("style")) {
+			fontStyle = TiConvert.toString(d, "style");
 		}
 		desc.style = toTypefaceStyle(fontWeight, fontStyle);
 
@@ -708,6 +714,7 @@ public class TiUIHelper
 		d.put(TiC.PROPERTY_Y, 0);
 		d.put(TiC.PROPERTY_WIDTH, width);
 		d.put(TiC.PROPERTY_HEIGHT, height);
+		d.put(TiC.PROPERTY_MIMETYPE, MIME_TYPE_PNG);
 
 		KrollDict cropRect = new KrollDict();
 		cropRect.put(TiC.PROPERTY_X, 0);
@@ -715,7 +722,7 @@ public class TiUIHelper
 		cropRect.put(TiC.PROPERTY_WIDTH, width);
 		cropRect.put(TiC.PROPERTY_HEIGHT, height);
 		d.put(TiC.PROPERTY_CROP_RECT, cropRect);
-		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromData(data, "image/png"));
+		d.put(TiC.PROPERTY_MEDIA, TiBlob.blobFromData(data, MIME_TYPE_PNG));
 
 		return d;
 	}

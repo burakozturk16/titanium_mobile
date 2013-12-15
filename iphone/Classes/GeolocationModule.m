@@ -522,6 +522,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	ENSURE_TYPE(callback,KrollCallback);
 	ReverseGeoCallback *rcb = [[ReverseGeoCallback alloc] initWithCallback:callback context:[self executionContext]];
 	[self performGeo:@"r" address:[NSString stringWithFormat:@"%f,%f",lat,lon] callback:rcb];
+    [rcb release];
 }
 
 -(void)forwardGeocoder:(id)args
@@ -531,6 +532,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	ENSURE_TYPE(callback,KrollCallback);
 	ForwardGeoCallback *fcb = [[ForwardGeoCallback alloc] initWithCallback:callback context:[self executionContext]];
 	[self performGeo:@"f" address:[TiUtils stringValue:[args objectAtIndex:0]] callback:fcb];
+    [fcb release];
 }
 
 -(void)getCurrentHeading:(id)callback 

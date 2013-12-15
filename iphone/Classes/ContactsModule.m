@@ -163,6 +163,7 @@ void CMExternalChangeCallback (ABAddressBookRef notifyAddressBook,CFDictionaryRe
 			
 			KrollEvent * invocationEvent = [[KrollEvent alloc] initWithCallback:callback eventObject:propertiesDict thisObject:self];
 			[[callback context] enqueue:invocationEvent];
+            [invocationEvent release];
 		});
 	}, NO);
 #endif

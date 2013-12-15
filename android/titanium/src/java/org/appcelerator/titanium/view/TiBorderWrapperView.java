@@ -9,6 +9,7 @@ package org.appcelerator.titanium.view;
 import java.util.Arrays;
 
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.util.TiUIHelper;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -35,21 +36,23 @@ public class TiBorderWrapperView extends MaskableView
 	private float radius = 0;
 	private float borderWidth = 0;
 	private int alpha = -1;
-	private RectF innerRect;
-	private Path innerPath;
+	private RectF clipRect;
+	private Path clipPath;
 	private Path borderPath;
+	private Path borderClipPath;
 	private Paint paint;
 	private boolean clipChildren = true;
+	private Rect mBorderPadding;
 	
 	
 
 	public TiBorderWrapperView(Context context)
 	{
 		super(context);
-		innerRect = new RectF();
+		clipRect = new RectF();
 		paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 		setWillNotDraw(false);
-		updateBorderPath();
+//		updateBorderPath();
 	}
 	
 	protected void clipCanvas(Canvas canvas) {
@@ -57,12 +60,12 @@ public class TiBorderWrapperView extends MaskableView
 		if (radius > 0) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
-				canvas.clipPath(innerPath);
+				canvas.clipPath(clipPath);
 			} catch (Exception e) {
 				Log.w(TAG, "clipPath failed on canvas: " + e.getMessage(), Log.DEBUG_MODE);
 			}
 		} else {
-			canvas.clipRect(innerRect);
+			canvas.clipRect(clipRect);
 		}
 	}
 	
@@ -100,17 +103,37 @@ public class TiBorderWrapperView extends MaskableView
 	@Override
 	protected void onDraw(Canvas canvas)
 	{
-		drawBorder(canvas);
  	 	super.onDraw(canvas);
- 		clipCanvas(canvas);
+ 		
+	}
+	
+	@Override
+	protected void dispatchDraw(Canvas canvas)
+	{
+		canvas.save();
+		clipCanvas(canvas);
+		super.dispatchDraw(canvas);
+		canvas.restore();
+		drawBorder(canvas);
+	}
+	
+	private static void insetRect(RectF source, Rect inset) {
+		source.set(source.left + inset.left, 
+				source.top + inset.top, 
+				source.right - inset.right, 
+				source.bottom - inset.bottom);
 	}
 
 	private void updateBorderPath()
 	{
 		Rect bounds = new Rect();
 		getDrawingRect(bounds);
+		if (bounds.isEmpty()) return;
 		
+		RectF innerRect = new RectF();
 		RectF outerRect = new RectF();
+		RectF outerRectForDrawing = new RectF();
+		RectF innerRectForDrawing = new RectF();
 		outerRect.set(bounds);
 
 		int padding = 0;
@@ -119,47 +142,68 @@ public class TiBorderWrapperView extends MaskableView
 		maxPadding = (int) Math.min(outerRect.right / 2, outerRect.bottom / 2);
 		padding = (int) Math.min(borderWidth, maxPadding);
 		innerRect.set(bounds.left + padding, bounds.top + padding, bounds.right - padding, bounds.bottom - padding);
-
+		innerRectForDrawing.set(innerRect);
+		outerRectForDrawing.set(outerRect);
+		if (mBorderPadding != null) {
+			insetRect(innerRectForDrawing, mBorderPadding);
+			insetRect(outerRectForDrawing, mBorderPadding);
+		}
 		if (radius > 0) {
+			clipPath = new Path();
 			float outerRadii[] = new float[8];
 			Arrays.fill(outerRadii, radius);
+			clipPath.setFillType(FillType.EVEN_ODD);
 			borderPath = new Path();
-			borderPath.addRoundRect(outerRect, outerRadii, Direction.CW);
+			borderClipPath = new Path();
+			borderClipPath.setFillType(FillType.EVEN_ODD);
+			borderPath.addRoundRect(outerRectForDrawing, outerRadii, Direction.CW);
 			borderPath.setFillType(FillType.EVEN_ODD);
-			innerPath = new Path();
-			innerPath.setFillType(FillType.EVEN_ODD);
 			if (radius - padding > 0) {
 				float innerRadii[] = new float[8];
 				Arrays.fill(innerRadii, radius - padding);
-				borderPath.addRoundRect(innerRect, innerRadii, Direction.CCW);
-				innerPath.addRoundRect(innerRect, innerRadii, Direction.CW);
+				float clipRadii[] = new float[8];
+				Arrays.fill(clipRadii, radius+1);
+				clipPath.addRoundRect(outerRect, clipRadii, Direction.CW);
+				borderClipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
+				borderPath.addRoundRect(innerRectForDrawing, innerRadii, Direction.CCW);
 			} else {
-				borderPath.addRect(innerRect, Direction.CCW);
-				innerPath.addRect(innerRect, Direction.CW);
+				borderPath.addRect(innerRectForDrawing, Direction.CCW);
+				clipPath.addRect(outerRect, Direction.CW);
+				borderClipPath.addRect(outerRect, Direction.CW);
 			}
 		} else {
+			clipPath = null;
 			borderPath = new Path();
-			borderPath.addRect(outerRect, Direction.CW);
-			borderPath.addRect(innerRect, Direction.CCW);
+			borderPath.addRect(outerRectForDrawing, Direction.CW);
+			borderPath.addRect(innerRectForDrawing, Direction.CCW);
 			borderPath.setFillType(FillType.EVEN_ODD);
+			clipRect.set(outerRect);
 		}
 		invalidate();
 	}
 
 	private void drawBorder(Canvas canvas)
 	{
+		canvas.save();
 		if (borderWidth != 0) {
 			paint.setColor(color);
 			if (alpha > -1) {
 				paint.setAlpha(alpha);
 			}
+			if(borderClipPath != null) {
+				canvas.clipPath(borderClipPath);
+			}
 			canvas.drawPath(borderPath, paint);
 		}
+		canvas.restore();
 	}
 
 	public void setColor(int color)
 	{
 		this.color = color;
+		if (this.borderWidth == 0) {
+			this.borderWidth = TiUIHelper.getRawSize(1, null);
+		}
 		postInvalidate();
 	}
 
@@ -195,6 +239,12 @@ public class TiBorderWrapperView extends MaskableView
             final View child = getChildAt(i);
             child.setPressed(pressed);
         }
+	}
+
+	public void setBorderPadding(Rect borderPadding) {
+		mBorderPadding  = borderPadding;
+		updateBorderPath();
+		postInvalidate();
 	};
 
 }

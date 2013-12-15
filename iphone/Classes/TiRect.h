@@ -50,5 +50,7 @@
  @param unit The unit type (as a string) to convert the rect to.
  */
 -(void)convertToUnit:(NSString*)unit;
+-(id)toJSON;
 
++(TiRect*)rect;
 @end

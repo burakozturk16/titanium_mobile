@@ -9,6 +9,7 @@
 #import "TiRect.h"
 #import "TiViewTemplate.h"
 #import <pthread.h>
+#import "TiAnimatableProxy.h"
 
 /**
  Protocol for views that can receive keyboard focus.
@@ -85,14 +86,14 @@ enum
 	TiRefreshViewEnqueued,
 };
 
-@class TiAction, TiBlob;
+@class TiAction, TiBlob, TiViewAnimationStep;
 //For TableRows, we need to have minimumParentHeightForWidth:
 
 /**
  The class represents a proxy that is attached to a view.
  The class is not intended to be overriden.
  */
-@interface TiViewProxy : TiProxy<LayoutAutosizing> 
+@interface TiViewProxy : TiAnimatableProxy<LayoutAutosizing>
 {
 @protected
 //TODO: Actually have a rhyme and reason on keeping things @protected vs @private.
@@ -152,8 +153,6 @@ enum
     
     id observer;
 	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
-    
-    TiAnimation * pendingAnimation;
 }
 
 #pragma mark public API
@@ -211,12 +210,6 @@ enum
  @param arg A single proxy to hide.
  */
 -(void)hide:(id)arg;
-
-/**
- Tells the view proxy to run animation on its view.
- @param arg An animation object.
- */
--(void)animate:(id)arg;
 
 -(void)setTop:(id)value;
 -(void)setBottom:(id)value;
@@ -472,11 +465,6 @@ enum
 #pragma mark Callbacks
 
 /**
- Tells the view proxy that its view animation did complete.
- @param animation The completed animation
- */
--(void)animationCompleted:(TiAnimation*)animation;
-/**
  Tells the view attached to the view proxy to perform a selector with given arguments.
  @param selector The selector to perform.
  @param object The argument for the method performed.
@@ -591,7 +579,7 @@ enum
 -(void)relayout;
 
 -(void)reposition;	//Todo: Replace
--(void)repositionWithinAnimation:(TiAnimation*)animation;
+-(void)repositionWithinAnimation:(TiViewAnimationStep*)animation;
 /**
  Tells if the view is enqueued in the LayoutQueue
  */
@@ -608,7 +596,11 @@ enum
  @param child The child view
  */
 -(void)childWillResize:(TiViewProxy *)child;	//Todo: Replace
--(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiAnimation*)animation;
+-(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiViewAnimationStep*)animation;
+-(void)aboutToBeAnimated;
+
+//-(TiViewAnimation*)getRunningAnimation;
+//-(void)handleViewAnimation:(TiViewAnimation*)viewAnimation;
 
 /**
  get the next children of a certain class starting from a child
@@ -622,9 +614,10 @@ enum
 
 - (void)prepareForReuse;
 
-- (void)unarchiveFromTemplate:(id)viewTemplate;
-- (void)unarchiveFakeFromTemplate:(id)viewTemplate;
-+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
++ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context;
+
+//+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 /**
  Performs view's configuration procedure.
@@ -635,6 +628,13 @@ enum
 -(void)configurationSet:(BOOL)recursive;
 -(BOOL) widthIsAutoSize;
 -(BOOL) heightIsAutoSize;
+
+- (void)focus:(id)args;
+- (void)blur:(id)args;
+- (BOOL)focused:(id)unused;
+-(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
+-(CGSize)verifySize:(CGSize)size;
+
 @end
 
 

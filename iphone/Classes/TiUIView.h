@@ -5,7 +5,6 @@
  * Please see the LICENSE included with this distribution for details.
  */
 #import "TiProxy.h"
-#import "TiAnimation.h"
 #import "TiGradient.h"
 #import "LayoutConstraint.h"
 #import "TiSelectableBackgroundLayer.h"
@@ -41,6 +40,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 @class TiViewProxy;
 @class ADTransition;
+@class TiViewAnimationStep;
 
 /**
  Base class for all Titanium views.
@@ -50,19 +50,12 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 {
 @protected
     BOOL configurationSet;
-	BOOL needsToSetBackgroundImage;
-	BOOL needsToSetBackgroundSelectedImage;
-	BOOL needsToSetBackgroundDisabledImage;
     NSMutableArray* childViews;
 @private
 	TiProxy *proxy;
-	TiAnimation *animation;
 		
 	id transformMatrix;
 	BOOL childrenInitialized;
-
-	unsigned int animationDelayGuard;
-	unsigned int animationDelayGuardForLayout;
 	
 	// Touch detection
     BOOL changedInteraction;
@@ -99,6 +92,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  @return _YES_ if view is being animated, _NO_ otherwise.
  */
 -(BOOL)animating;
+-(void)cancelAllAnimations;
 
 /**
  Provides access to a proxy object of the view. 
@@ -116,6 +110,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Returns view's transformation matrix.
  */
 @property(nonatomic,readonly)			id transformMatrix;
+
+
+@property(nonatomic,readwrite,assign)	TiViewAnimationStep *runningAnimation;
 
 /**
  Provides access to background image of the view.
@@ -143,12 +140,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)handleListenerAddedWithEvent:(NSString *)event;
 -(BOOL)proxyHasGestureListeners;
 -(void)ensureGestureListeners;
-/**
- Tells the view to start specified animation.
- @param newAnimation The animation to start.
- */
--(void)animate:(TiAnimation *)newAnimation;
--(void)cancelAllAnimations;
 
 #pragma mark Framework
 
@@ -210,8 +201,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
  Tells the view to make its root view a first responder.
  */
 -(void)makeRootViewFirstResponder;
--(void)animationStarted;
--(void)animationCompleted;
 
 /**
  The convenience method to raise an exception for the view.

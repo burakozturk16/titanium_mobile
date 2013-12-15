@@ -12,21 +12,15 @@
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
-	TTTAttributedLabel *label;
-    CGRect padding;
-    CGRect textPadding;
-    CGRect initialLabelFrame;
-    BOOL needsUpdateBackgroundImageFrame;
-    BOOL needsPadLabel;
+	TDTTTAttributedLabel *label;
     BOOL needsSetText;
 }
 
 @property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
 
 -(void)setAttributedTextViewContent;
-- (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToWidth:(CGFloat)suggestedWidth;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
-
+-(TDTTTAttributedLabel*)label;
 @end
 
 

@@ -40,7 +40,7 @@ import android.os.Message;
 	TiC.PROPERTY_SEPARATOR_STYLE,
 	TiC.PROPERTY_MIN_ROW_HEIGHT
 })
-public class TableViewProxy extends TiViewProxy
+public class TableViewProxy extends ViewProxy
 {
 	private static final String TAG = "TableViewProxy";
 

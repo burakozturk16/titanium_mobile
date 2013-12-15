@@ -24,6 +24,7 @@
 -(void)stop;
 -(void)pause;
 -(void)resume;
+-(void)playpause;
 -(id)getImage;
 
 -(void)setImage_:(id)arg;

@@ -90,19 +90,10 @@ static NSArray* imageKeySequence;
 
 -(void)stop:(id)args
 {
-//Don't put this in UIThread, because it doesn't need to go in UIThread.
-//Furthermore, by the time this is run, if this stop was called by a destroy
-//Bad things(tm) happen.
-	
-	[destroyLock lock];
-	if ([self viewAttached])
-	{
-		TiThreadPerformOnMainThread(^{
-            TiUIImageView *iv= (TiUIImageView*)[self view];
-            [iv stop];
-        }, NO);
-	}
-	[destroyLock unlock];
+    TiThreadPerformOnMainThread(^{
+        TiUIImageView *iv= (TiUIImageView*)[self view];
+        [iv stop];
+    }, NO);
 }
 
 -(void)pause:(id)args
@@ -131,19 +122,16 @@ static NSArray* imageKeySequence;
 
 -(void)viewWillDetach
 {
-	[self stop:nil];
 	[super viewWillDetach];
 }
 
 -(void)windowWillClose
 {
-	[self stop:nil];
 	[super windowWillClose];
 }
 
 -(void)_destroy
 {
-	[self stop:nil];
 	[super _destroy];
 }
 

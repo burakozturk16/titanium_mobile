@@ -1225,6 +1225,7 @@
             [[self proxy] fireEvent:@"singletap" withObject:event];
         }
     }
+    [event release];
 }
 
 -(void)longPressGesture:(UILongPressGestureRecognizer *)recognizer

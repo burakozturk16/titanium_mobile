@@ -11,7 +11,6 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
@@ -26,7 +25,7 @@ propertyAccessors = {
 	TiC.PROPERTY_TITLEID,
 	TiC.PROPERTY_ICON
 })
-public class TabProxy extends TiViewProxy
+public class TabProxy extends ViewProxy
 {
 	@SuppressWarnings("unused")
 	private static final String TAG = "TabProxy";

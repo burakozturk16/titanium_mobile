@@ -310,19 +310,18 @@ AffineTransform makeMapBetweenRects(Rect source, Rect dest)
     		.scale(dest.width() / source.width(), dest.height() / source.height());
 }
 
-void map(double x, double y, double x2, double y2)
+double[] map(double x, double y)
 {
-    x2 = (m_transform[0] * x + m_transform[2] * y + m_transform[4]);
-    y2 = (m_transform[1] * x + m_transform[3] * y + m_transform[5]);
+	return new double[]{m_transform[0] * x + m_transform[2] * y + m_transform[4],
+			m_transform[1] * x + m_transform[3] * y + m_transform[5]};
 }
 
 Point mapPoint(Point point)
 {
-    double x2 = 0, y2 = 0;
-    map(point.x, point.y, x2, y2);
+    double[] newXY  = map(point.x, point.y);
     
     // Round the point.
-    return new Point((int)Math.round(x2), (int)Math.round(y2));
+    return new Point((int)Math.round(newXY[0]), (int)Math.round(newXY[1]));
 }
 
 public AffineTransform blend(AffineTransform from, double progress)

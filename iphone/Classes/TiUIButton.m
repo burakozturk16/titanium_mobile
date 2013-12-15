@@ -385,22 +385,9 @@
 	[[[b titleLabel] layer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
--(void)setTitlePadding_:(id)value
+-(void)setPadding_:(id)value
 {
-	ENSURE_SINGLE_ARG(value,NSDictionary);
-    NSDictionary* padding = (NSDictionary*)value;
-    if ([padding objectForKey:@"left"]) {
-        titlePadding.left = [TiUtils floatValue:[padding objectForKey:@"left"]];
-    }
-    if ([padding objectForKey:@"right"]) {
-        titlePadding.right = [TiUtils floatValue:[padding objectForKey:@"right"]];
-    }
-    if ([padding objectForKey:@"top"]) {
-        titlePadding.top = [TiUtils floatValue:[padding objectForKey:@"top"]];
-    }
-    if ([padding objectForKey:@"bottom"]) {
-        titlePadding.bottom = [TiUtils floatValue:[padding objectForKey:@"bottom"]];
-    }
+    titlePadding = [TiUtils insetValue:value];
 	[button setTitleEdgeInsets:titlePadding];
     [button setNeedsLayout];
 }

@@ -14,6 +14,9 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiHtml;
+import org.appcelerator.titanium.util.TiHtml.CustomBackgroundSpan;
+import org.appcelerator.titanium.util.TiTypefaceSpan;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUINonViewGroupView;
 
@@ -29,7 +32,6 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
-import android.graphics.Paint;
 import android.graphics.Rect;
 
 import android.graphics.Typeface;
@@ -38,7 +40,6 @@ import android.text.Layout.Alignment;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
-import android.text.TextPaint;
 import android.text.TextUtils.TruncateAt;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
@@ -64,50 +65,19 @@ import android.util.TypedValue;
 public class TiUILabel extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUILabel";
+	private static final float DEFAULT_SHADOW_RADIUS = 0.5f;
 
-	private int defaultColor;
+	private int selectedColor, color, disabledColor;
 	private boolean wordWrap = true;
-	private float shadowRadius = 0f;
+	private float shadowRadius = DEFAULT_SHADOW_RADIUS;
 	private float shadowX = 0f;
 	private float shadowY = -1f; // to have the same value as ios
 	private int shadowColor = Color.TRANSPARENT;
 
 	private Rect textPadding;
-	private String ELLIPSIZE_CHAR = "…";
-	
+	private String ELLIPSIZE_CHAR = "...";
+
 	private TextView tv;
-	
-	public class CustomTypefaceSpan extends TypefaceSpan {
-        private final Typeface newType;
-        private final String fontFamily;
-
-        public CustomTypefaceSpan(String family, Typeface type) {
-            super(family);
-        	this.fontFamily = family;
-            newType = type;
-        }
-        
-        public CustomTypefaceSpan(String family) {
-            super(family);
-            this.fontFamily = family;
-            newType = null;
-        }
-
-        @Override
-        public void updateDrawState(TextPaint ds) {
-            applyCustomTypeFace(ds, newType);
-        }
-
-        @Override
-        public void updateMeasureState(TextPaint paint) {
-            applyCustomTypeFace(paint, newType);
-        }
-
-        private void applyCustomTypeFace(Paint paint, Typeface tf) {
-    		tf = TiUIHelper.toTypeface(tv.getContext(), fontFamily);
-            paint.setTypeface(tf);
-        }
-    }
 
 	public class EllipsizingTextView extends TextView {
 
@@ -412,6 +382,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			int length = ELLIPSIZE_CHAR.length();
 			if (where == TruncateAt.START || where == TruncateAt.END){
 				newText = TextUtils.ellipsize(newText, getPaint(), width, where);
+				if (newText.length() == 0) return newText;
 				String textStr = newText.toString();
 				if (where == TruncateAt.START && !textStr.startsWith(ELLIPSIZE_CHAR)) {
 					newText = TextUtils.concat(ELLIPSIZE_CHAR, newText.subSequence(length, textStr.length()));
@@ -424,6 +395,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				CharSequence newTextLeft = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.END);
 				CharSequence newTextRight = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.START);
 				String textLeftStr = newTextLeft.toString();
+				if (textLeftStr.length() == 0) return newText;
 				if (!textLeftStr.endsWith(ELLIPSIZE_CHAR)) {
 					newTextLeft = TextUtils.concat(ELLIPSIZE_CHAR, newTextLeft.subSequence(length, textLeftStr.length()));
 				}
@@ -484,8 +456,8 @@ public class TiUILabel extends TiUINonViewGroupView
 			else if (span instanceof TypefaceSpan){
 				return new TypefaceSpan(((TypefaceSpan)span).getFamily());
 			}
-			else if (span instanceof CustomTypefaceSpan){
-				return new CustomTypefaceSpan(((TypefaceSpan)span).getFamily());
+			else if (span instanceof TiTypefaceSpan){
+				return new TiTypefaceSpan(((TypefaceSpan)span).getFamily());
 			}
 			else if (span instanceof ImageSpan){
 				return new ImageSpan(((ImageSpan)span).getDrawable());
@@ -499,9 +471,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			else if (span instanceof MaskFilterSpan){
 				return new MaskFilterSpan(((MaskFilterSpan)span).getMaskFilter());
 			}
-			// else if (span instanceof LocaleSpan){
-			// 	return new LocaleSpan(((LocaleSpan)span).getLocale());
-			// }
+			else if (span instanceof CustomBackgroundSpan){
+				return new CustomBackgroundSpan(((CustomBackgroundSpan)span));
+			}
 			
 			return null;
 		}
@@ -564,9 +536,9 @@ public class TiUILabel extends TiUINonViewGroupView
 					Layout layout = createWorkingLayout(workingText, width);
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						if (linesCount > 2) {
+						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
-							int end2 = layout.getLineEnd(linesCount - 1);
+							int end2 = end1 + layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
@@ -600,9 +572,9 @@ public class TiUILabel extends TiUINonViewGroupView
 					Layout layout = createWorkingLayout(workingText, width);
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						if (linesCount > 2) {
+						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
-							int end2 = layout.getLineEnd(linesCount - 1);
+							int end2 = end1 + layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
@@ -690,32 +662,18 @@ public class TiUILabel extends TiUINonViewGroupView
 		tv.setFocusable(false);
 		tv.setSingleLine(false);
 		TiUIHelper.styleText(tv, null);
-		defaultColor = tv.getCurrentTextColor();
+		color = disabledColor = selectedColor = tv.getCurrentTextColor();
 		setNativeView(tv);
 
 	}
 
 	private Spanned fromHtml(String str)
 	{
-		SpannableStringBuilder htmlText = new SpannableStringBuilder(Html.fromHtml(str));
-		Object[] spans = htmlText.getSpans(0, htmlText.length(), Object.class);
-		for (int j = 0; j < spans.length; j++) {
-			Object span = spans[j];
-			if (span instanceof TypefaceSpan){
-				String family = ((TypefaceSpan)span).getFamily();
-				CustomTypefaceSpan newSpan = new CustomTypefaceSpan(family);
-				int flags = htmlText.getSpanFlags(span);
-				int start = htmlText.getSpanStart(span);
-				int end = htmlText.getSpanEnd(span);
-				htmlText.setSpan(newSpan, start, end, flags);
-			}
-		}
-		
+		SpannableStringBuilder htmlText = new SpannableStringBuilder(TiHtml.fromHtml(str));
 		return htmlText;
 	}
 	
-	private void setTextColors(int color, int selectedColor, int disabledColor) {
-		
+	private void updateTextColors() {
 		int[][] states = new int[][] {
 			TiUIHelper.BACKGROUND_DISABLED_STATE, // disabled
 			TiUIHelper.BACKGROUND_SELECTED_STATE, // pressed
@@ -764,11 +722,21 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_TITLE)), TextView.BufferType.SPANNABLE);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_COLOR) || d.containsKey(TiC.PROPERTY_SELECTED_COLOR) || d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
-			int color = d.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		boolean needsColors = false;
+		if(d.containsKey(TiC.PROPERTY_COLOR)) {
+			needsColors = true;
+			color = selectedColor = disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.color);
+		}
+		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
+			needsColors = true;
+			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, this.selectedColor);
+		}
+		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
+			needsColors = true;
+			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+		}
+		if (needsColors) {
+			updateTextColors();
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
@@ -815,22 +783,10 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			tv.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
 		}
-
 		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
-			KrollDict dict = d.getKrollDict(TiC.PROPERTY_TEXT_PADDING);
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
+					textPadding.bottom);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
@@ -843,7 +799,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
 			needShadow = true;
-			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), 0);
+			shadowRadius = TiConvert.toFloat(d.get(TiC.PROPERTY_SHADOW_RADIUS), DEFAULT_SHADOW_RADIUS);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_COLOR)) {
 			needShadow = true;
@@ -878,12 +834,15 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setText(text);
 			TiUIHelper.linkifyIfEnabled(tv, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
-		} else if (key.equals(TiC.PROPERTY_COLOR) || key.equals(TiC.PROPERTY_SELECTED_COLOR) || key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
-			KrollDict properties = proxy.getProperties();
-			int color = properties.optColor(TiC.PROPERTY_COLOR, defaultColor);
-			int selectedColor = properties.optColor(TiC.PROPERTY_SELECTED_COLOR, color);
-			int disabledColor = properties.optColor(TiC.PROPERTY_DISABLED_COLOR, color);
-			setTextColors(color, selectedColor, disabledColor);
+		} else if (key.equals(TiC.PROPERTY_COLOR)) {
+			this.color = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
+			this.selectedColor = TiConvert.toColor(newValue);
+			updateTextColors();
+		} else if (key.equals(TiC.PROPERTY_DISABLED_COLOR)) {
+			this.disabledColor = TiConvert.toColor(newValue);
+			updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			tv.setHighlightColor(TiConvert.toColor((String) newValue));
 		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
@@ -923,21 +882,10 @@ public class TiUILabel extends TiUINonViewGroupView
 			tv.setMaxLines(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)) {
 			Linkify.addLinks(tv, TiConvert.toInt(newValue));
-		}  else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
-			KrollDict dict = (KrollDict) newValue;
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				textPadding.left = (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				textPadding.right =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				textPadding.top =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				textPadding.bottom =  (int) TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_BOTTOM);
-			}
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right, textPadding.bottom);
+		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
+			textPadding = TiConvert.toPaddingRect(newValue);
+			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
+					textPadding.bottom);
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {
@@ -947,7 +895,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 			}
 		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
-			shadowRadius = TiConvert.toFloat(newValue, 0);
+			shadowRadius = TiConvert.toFloat(newValue, DEFAULT_SHADOW_RADIUS);
 			tv.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		} else if (key.equals(TiC.PROPERTY_SHADOW_COLOR)) {
 			shadowColor = TiConvert.toColor(TiConvert.toString(newValue));

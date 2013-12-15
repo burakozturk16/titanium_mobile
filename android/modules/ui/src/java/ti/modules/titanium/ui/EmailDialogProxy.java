@@ -22,7 +22,6 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFile;
 import org.appcelerator.titanium.io.TiFileFactory;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiActivityResultHandler;
 import org.appcelerator.titanium.util.TiActivitySupport;
 import org.appcelerator.titanium.util.TiConvert;
@@ -40,7 +39,7 @@ import android.text.Html;
 
 @Kroll.proxy(creatableInModule=UIModule.class,
 	propertyAccessors={"bccRecipients", "ccRecipients", "html", "messageBody", "subject", "toRecipients"})
-public class EmailDialogProxy extends TiViewProxy implements ActivityTransitionListener {
+public class EmailDialogProxy extends ViewProxy implements ActivityTransitionListener {
 
 	private static final String TAG = "EmailDialogProxy";
 

@@ -497,6 +497,8 @@ typedef enum
 
 +(WebFont*)fontValue:(id)value;
 
++(UIEdgeInsets)insetValue:(id)value;
+
 +(TiScriptError*) scriptErrorValue:(id)value;
 
 +(UITextAlignment)textAlignmentValue:(id)alignment;

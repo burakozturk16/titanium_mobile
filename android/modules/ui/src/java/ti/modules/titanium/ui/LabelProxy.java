@@ -10,7 +10,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUILabel;
@@ -33,7 +32,7 @@ import android.app.Activity;
 	TiC.PROPERTY_SHADOW_RADIUS,
 	TiC.PROPERTY_SHADOW_OFFSET
 })
-public class LabelProxy extends TiViewProxy
+public class LabelProxy extends ViewProxy
 {
 	public LabelProxy()
 	{

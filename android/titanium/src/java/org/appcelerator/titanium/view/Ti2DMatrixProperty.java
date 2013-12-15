@@ -19,6 +19,7 @@ public class Ti2DMatrixProperty extends Property<View, Ti2DMatrix> {
 	@Override
     final public void set(View view, Ti2DMatrix value) {
 		LayoutParams params = view.getLayoutParams();
+		
 		if (params instanceof FreeLayout.LayoutParams) {
 			((FreeLayout.LayoutParams)params).matrix = value;
 			view.setLayoutParams(params);
@@ -28,7 +29,7 @@ public class Ti2DMatrixProperty extends Property<View, Ti2DMatrix> {
 			}
 		}
 		else {
-			DecomposedType decompose = value.getAffineTransform(view, true).decompose();
+			DecomposedType decompose = value.getAffineTransform(view).decompose();
 			ViewHelper.setTranslationX(view, (float) decompose.translateX);
 			ViewHelper.setTranslationY(view, (float) decompose.translateY);
 			ViewHelper.setRotation(view, (float) (decompose.angle*180/Math.PI));

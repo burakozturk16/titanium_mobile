@@ -82,7 +82,7 @@ DEFINE_EXCEPTIONS
 				activityDelegate = [[TiUIView alloc] initWithFrame:button.frame];
 				[activityDelegate addSubview:button];
 				activityDelegate.proxy = (TiViewProxy*)proxy_;
-				button = activityDelegate;
+				button = [activityDelegate autorelease];
 			}
 			self = [super initWithCustomView:button];
 			self.target = self;
@@ -102,7 +102,7 @@ DEFINE_EXCEPTIONS
         id image = [proxy_ valueForKey:@"image"];
         id background = [proxy_ valueForKey:@"backgroundImage"];
         if (background != nil) {
-            self = [super initWithCustomView:[proxy_ view]];
+            self = [super initWithCustomView:[proxy_ getOrCreateView]];
             self.target = self;
             self.action = @selector(clicked:);
 
@@ -223,7 +223,7 @@ DEFINE_EXCEPTIONS
 	else
 	{
         color = [TiUtils colorValue:color];
-        [dict setObject:color forKey:UITextAttributeTextShadowColor];
+        [dict setObject:(color!=nil)?[color _color]:nil forKey:UITextAttributeTextShadowColor];
 	}
     [super setTitleTextAttributes:dict forState:UIControlStateNormal];
 }

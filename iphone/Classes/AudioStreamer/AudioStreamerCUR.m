@@ -1528,6 +1528,7 @@ cleanup:
 			if (err)
 			{
 				[self failWithErrorCode:AS_FILE_STREAM_GET_PROPERTY_FAILED];
+                free(formatList);
 				return;
 			}
 

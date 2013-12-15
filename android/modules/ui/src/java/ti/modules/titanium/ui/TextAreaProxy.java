@@ -39,7 +39,7 @@ import android.os.Message;
 	TiC.PROPERTY_VERTICAL_ALIGN,
 	TiC.PROPERTY_RETURN_KEY_TYPE
 })
-public class TextAreaProxy extends TiViewProxy
+public class TextAreaProxy extends ViewProxy
 {
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SET_SELECTION = MSG_FIRST_ID + 201;

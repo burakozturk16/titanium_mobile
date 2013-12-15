@@ -49,7 +49,7 @@
 -(NSDictionary*)platformDefaultTransition
 {
     if ([TiUtils isIOS7OrGreater]) {
-        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @200 };
+        return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @550 };
     }
     else {
         return @{ @"style" : [NSNumber numberWithInt:NWTransitionSwipe], @"duration" : @300 };
@@ -183,7 +183,13 @@
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
     if (window == rootWindow) {
-        DebugLog(@"[ERROR] Can not close root window of the navWindow. Close this window instead");
+        DebugLog(@"[WARN] Closing the first window is like closing ourself");
+        if ([args count] > 1) {
+            args = [NSArray arrayWithObjects:[args objectAtIndex:1], nil];
+        } else {
+            args = [NSArray array];
+        }
+        [self close:args];
         return;
     }
     UIViewController* winController = [self controllerForWindow:window];
@@ -417,7 +423,7 @@
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
-        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] containerView:self.view];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] autorelease] containerView:self.view];
     }
     
     if (window == current) {

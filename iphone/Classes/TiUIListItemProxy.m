@@ -104,11 +104,11 @@ static NSDictionary* listViewKeysToReplace;
 {
     _listItem = nil;
     _parentForBubbling = nil;
-    [_initialValues release];
-	[_currentValues release];
-	[_resetKeys release];
-	[_indexPath release];
-	[_bindings release];
+    RELEASE_TO_NIL(_initialValues)
+    RELEASE_TO_NIL(_currentValues)
+    RELEASE_TO_NIL(_resetKeys)
+    RELEASE_TO_NIL(_indexPath)
+    RELEASE_TO_NIL(_bindings)
 	[super dealloc];
 }
 
@@ -141,16 +141,10 @@ static NSDictionary* listViewKeysToReplace;
 //    }
 }
 
-- (void)unarchiveFromTemplate:(id)viewTemplate
+- (void)unarchiveFromTemplate:(id)viewTemplate withEvents:(BOOL)withEvents
 {
-	[super unarchiveFromTemplate:viewTemplate];
-	SetEventOverrideDelegateRecursive(self.children, self);
-    unarchived = YES;
-}
-
-- (void)unarchiveFakeFromTemplate:(id)viewTemplate
-{
-	[super unarchiveFakeFromTemplate:viewTemplate];
+	[super unarchiveFromTemplate:viewTemplate withEvents:withEvents];
+	if (withEvents) SetEventOverrideDelegateRecursive(self.children, self);
     unarchived = YES;
 }
 
@@ -240,7 +234,7 @@ static NSDictionary* listViewKeysToReplace;
         }
     }
     
-    if ([properties count] > 0 && _listItem != nil) {
+    if ([properties count] > 0) {
         [self setValuesForKeysWithDictionary:properties];
     }
     

@@ -22,21 +22,20 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.animation.Ti2DMatrixEvaluator;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
+import org.appcelerator.titanium.animation.TiViewAnimator;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.AffineTransform.DecomposedType;
-import org.appcelerator.titanium.util.Ti2DMatrixEvaluator;
-import org.appcelerator.titanium.util.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiRect;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.util.TiViewAnimator;
 import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.TiBlob;
 
 import com.nineoldandroids.animation.Animator;
-import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ArgbEvaluator;
 import com.nineoldandroids.animation.ObjectAnimator;
 import com.nineoldandroids.animation.PropertyValuesHolder;
@@ -142,6 +141,8 @@ public abstract class TiUIView
 	
 	protected boolean exclusiveTouch = false;
 	public boolean hardwareAccEnabled = true;
+	protected TiTouchDelegate mTouchDelegate;
+	private Rect mBorderPadding;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -273,6 +274,10 @@ public abstract class TiUIView
 	{
 		this.parent = parent;
 	}
+	
+	public void setTouchDelegate(TiTouchDelegate delegate) {
+        mTouchDelegate = delegate;
+    }
 
 	/**
 	 * @return the view's layout params.
@@ -372,6 +377,13 @@ public abstract class TiUIView
 				getOuterView().setLayoutParams(layoutParams);
 		}
 	}
+	
+	public void resetAnimatedParams()
+	{
+		if (layoutParams instanceof AnimationLayoutParams) {
+			((AnimationLayoutParams)layoutParams).animationFraction = 0.0f;
+		}
+	}
 
 	public void listenerAdded(String type, int count, KrollProxy proxy) {
 	}
@@ -398,6 +410,26 @@ public abstract class TiUIView
 		View view = getOuterView();
 		if (view != null) {
 			layoutParams.matrix = timatrix;
+			view.setLayoutParams(layoutParams);
+			ViewParent viewParent = view.getParent();
+			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
+				((View) viewParent).postInvalidate();
+			}
+		}
+	}
+	
+	public void applyAnchorPoint(Object anchorPoint)
+	{
+		View view = getOuterView();
+		if (view != null) {
+			if (anchorPoint instanceof HashMap) {
+				HashMap point = (HashMap) anchorPoint;
+				layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
+				layoutParams.anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
+			}
+			else {
+				layoutParams.anchorX = layoutParams.anchorY = 0.5f;
+			}
 			view.setLayoutParams(layoutParams);
 			ViewParent viewParent = view.getParent();
 			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
@@ -627,6 +659,11 @@ public abstract class TiUIView
 			setBorderRadius(TiConvert.toFloat(newValue, 0f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
 			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
+		} else if (key.equals(TiC.PROPERTY_BORDER_PADDING)) {
+			mBorderPadding = TiConvert.toPaddingRect(newValue);
+			if (borderView != null) {
+				borderView.setBorderPadding(mBorderPadding);
+			}
 		} else if (key.equals(TiC.PROPERTY_VIEW_MASK)) {
 			setViewMask(newValue);
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
@@ -636,6 +673,8 @@ public abstract class TiUIView
 				Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
 			applyTransform((Ti2DMatrix)newValue);
+		} else if (key.equals(TiC.PROPERTY_ANCHOR_POINT)) {
+			applyAnchorPoint(newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
 			if (nativeView != null) {
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
@@ -728,18 +767,18 @@ public abstract class TiUIView
 			exclusiveTouch = TiConvert.toBoolean(d, TiC.PROPERTY_EXCLUSIVE_TOUCH);
 		}
 		
-		if (TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
+		if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
 			getOuterView().setLayoutParams(layoutParams);
 		}
 		
 		registerForTouch();
 		registerForKeyPress();
 		
-		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-		
-		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
-			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
+		if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
+			mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
 		}
+		
+		boolean backgroundRepeat = d.optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
@@ -825,11 +864,6 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_ENABLED) && !nativeViewNull) {
 			nativeView.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED, true));
 		}
-
-		if (d.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			Ti2DMatrix matrix = (Ti2DMatrix) d.get(TiC.PROPERTY_TRANSFORM);
-			applyTransform(matrix);
-		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
 			nativeView.setKeepScreenOn(TiConvert.toBoolean(d, TiC.PROPERTY_KEEP_SCREEN_ON, false));
@@ -897,7 +931,7 @@ public abstract class TiUIView
 	/**
 	 * Blurs the view.
 	 */
-	public void blur()
+	public boolean blur()
 	{
 		if (nativeView != null && nativeView.hasFocus()) {
 			nativeView.clearFocus();
@@ -910,7 +944,9 @@ public abstract class TiUIView
 
 				}
 			});
+			return true;
 		}
+		return false;
 	}
 
 	public void release()
@@ -1020,7 +1056,7 @@ public abstract class TiUIView
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_OPACITY))
 				alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_BACKGROUND_OPACITY));
 			
-			if (alpha < 255)
+			if (alpha < 1.0)
 				background.setAlpha(Math.round(alpha * 255));
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
 				background.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));
@@ -1080,14 +1116,12 @@ public abstract class TiUIView
 			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
 				borderView.setBorderAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
 			
-			
-			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_COLOR))
-				borderView.setColor(TiConvert.toColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_BACKGROUND_COLOR))));
 			if (proxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
 				boolean value = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
 				borderView.setClipChildren(value);
 			}
 			
+			if(mBorderPadding != null) borderView.setBorderPadding(mBorderPadding);
 			addBorderView();
 		}
 		return borderView;
@@ -1189,7 +1223,7 @@ public abstract class TiUIView
 	public void registerForTouch()
 	{
 		if (allowRegisterForTouch()) {
-			registerForTouch(getNativeView());
+			registerForTouch(getTouchView());
 		}
 	}
 
@@ -1306,6 +1340,9 @@ public abstract class TiUIView
 
 			public boolean onTouch(View view, MotionEvent event)
 			{
+				if (mTouchDelegate != null) {
+					mTouchDelegate.onTouchEvent(event, TiUIView.this);
+				}
 				if (exclusiveTouch) {
 					ViewGroup parent =  (ViewGroup)view.getParent();
 					if(parent != null) {
@@ -1358,7 +1395,6 @@ public abstract class TiUIView
 					}
 					pointersDown = 0;
 				}
-
 
 				handleTouchEvent(event);
 
@@ -1520,7 +1556,7 @@ public abstract class TiUIView
 		return TiBlob.blobFromImage(bitmap);
 	}
 
-	private View getTouchView()
+	protected View getTouchView()
 	{
 		if (nativeView != null) {
 			return nativeView;
@@ -1769,11 +1805,6 @@ public abstract class TiUIView
 
 	public void setTi2DMatrix(Ti2DMatrix matrix) {
 		applyTransform(matrix);
-		View outerView =  getOuterView();
-		ViewParent viewParent = outerView.getParent();
-		if (outerView.getVisibility() == View.VISIBLE && viewParent instanceof View) {
-			((View) viewParent).postInvalidate();
-		}
 	}
 	
 	public Ti2DMatrix getTi2DMatrix() {
@@ -1781,9 +1812,11 @@ public abstract class TiUIView
 	}
 	
 	public float getAnimatedRectFraction() {
-		if (layoutParams instanceof AnimationLayoutParams)
-			return ((AnimationLayoutParams)layoutParams).animationFraction;
-		return 0.0f;
+		float result = 0.0f;
+		if (layoutParams instanceof AnimationLayoutParams) {
+			result = ((AnimationLayoutParams)layoutParams).animationFraction;
+		}
+		return result;
 	}
 	
 	public void setAnimatedRectFraction(float fraction) {
@@ -1800,20 +1833,23 @@ public abstract class TiUIView
 
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
-			HashMap options) {
-		AnimatorSet set = tiSet.set();
-		
+	public void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, List<Animator> listReverse,
+			HashMap options) {		
 		
 		View view = proxy.getOuterView();
 		((TiViewAnimator)tiSet).setViewProxy(proxy);
 		((TiViewAnimator)tiSet).setView(view);
+		boolean needsReverse = listReverse != null;
+		KrollDict properties = proxy.getProperties();
 
 		if (options.containsKey(TiC.PROPERTY_OPACITY)) {
 			show();
-			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "opacity",
-					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY));
-			list.add(anim);
+			list.add(ObjectAnimator.ofFloat(this, "opacity",
+					TiConvert.toFloat(options, TiC.PROPERTY_OPACITY, 1.0f)));
+			if (needsReverse) {
+				listReverse.add(ObjectAnimator.ofFloat(this, "opacity",
+						TiConvert.toFloat(properties, TiC.PROPERTY_OPACITY, 1.0f)));
+			}
 		}
 
 		if (options.containsKey(TiC.PROPERTY_BACKGROUND_COLOR)) {
@@ -1824,6 +1860,11 @@ public abstract class TiUIView
 			ObjectAnimator anim = ObjectAnimator.ofInt(this, "tiBackgroundColor", TiConvert.toColor(options, TiC.PROPERTY_BACKGROUND_COLOR));
 			 anim.setEvaluator(new ArgbEvaluator());
 			list.add(anim);
+			if (needsReverse) {
+				anim = ObjectAnimator.ofInt(this, "tiBackgroundColor", TiConvert.toColor(properties, TiC.PROPERTY_BACKGROUND_COLOR));
+				anim.setEvaluator(new ArgbEvaluator());
+				listReverse.add(anim);
+			}
 		}
 		
 		ViewParent parent = view.getParent();
@@ -1840,16 +1881,27 @@ public abstract class TiUIView
 				options.containsKey(TiC.PROPERTY_LEFT) ||
 				options.containsKey(TiC.PROPERTY_RIGHT) ||
 				options.containsKey(TiC.PROPERTY_CENTER)) {
-			
-			AnimationLayoutParams animParams = new AnimationLayoutParams(layoutParams);
-			animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
-			animParams.animationFraction = 0.0f;
+			AnimationLayoutParams animParams;
+			if (layoutParams instanceof AnimationLayoutParams) {
+				animParams = (AnimationLayoutParams)layoutParams;
+			}
+			else {
+				animParams = new AnimationLayoutParams(layoutParams);
+				animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+				animParams.animationFraction = 0.0f;
+			}
+			//fillLayout will try to reset animationFraction, here we dont want that
+			float oldAnimationFraction = animParams.animationFraction;
 			TiConvert.fillLayout(options, animParams, false);
+			animParams.animationFraction = oldAnimationFraction;
 			
 			setLayoutParams(animParams); //we need this because otherwise applying the matrix will override it :s
 			view.setLayoutParams(animParams);
 			ObjectAnimator anim = ObjectAnimator.ofFloat(this, "animatedRectFraction", 1.0f);
 			list.add(anim);
+			if (needsReverse) {
+				listReverse.add(ObjectAnimator.ofFloat(this, "animatedRectFraction", 0.0f));
+			}
 		}
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
@@ -1863,11 +1915,23 @@ public abstract class TiUIView
 			}
 			
 			if (parentView instanceof FreeLayout) {
-				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", new Ti2DMatrixEvaluator(view), matrix);
+				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view);
+				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix);
 				list.add(anim);
+				if (needsReverse) {
+					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
+					if (matrix != null && matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
+					{
+						matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
+					}
+					else if(matrix == null) {
+						matrix = new Ti2DMatrix();
+					}
+					listReverse.add(ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix));
+				}
 			}
 			else {
-				DecomposedType decompose = matrix.getAffineTransform(view, true).decompose();
+				DecomposedType decompose = matrix.getAffineTransform(view).decompose();
 				List<PropertyValuesHolder> propertiesList = new ArrayList<PropertyValuesHolder>();
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
 				propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
@@ -1875,14 +1939,20 @@ public abstract class TiUIView
 				propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", (float)decompose.scaleX));
 				propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
 				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
+				if (needsReverse) {
+					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
+					decompose = matrix.getAffineTransform(view).decompose();
+					propertiesList = new ArrayList<PropertyValuesHolder>();
+					propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));
+					propertiesList.add(PropertyValuesHolder.ofFloat("translationY", (float)decompose.translateY));
+					propertiesList.add(PropertyValuesHolder.ofFloat("rotation", (float)(decompose.angle*180/Math.PI)));
+					propertiesList.add(PropertyValuesHolder.ofFloat("scaleX", (float)decompose.scaleX));
+					propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
+					listReverse.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
+				}
 			}
 		}
-
-//		anim.setTarget(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view);
-//		anim.setInterpolator(new AccelerateDecelerateInterpolator());
-//		list.add(anim);
 		view.postInvalidate();
-
 	}
 	
 	@SuppressWarnings({"rawtypes", "unchecked"})

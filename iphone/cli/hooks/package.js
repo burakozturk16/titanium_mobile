@@ -140,11 +140,7 @@ exports.init = function (logger, config, cli) {
 								finished();
 							});
 						}
-
-						logger.info(__('Packaging complete'));
-						logger.info(__('Package location: %s', dest.cyan));
-
-						finished();
+						else finished();
 					});
 					break;
 			}

@@ -45,7 +45,7 @@ import android.widget.TimePicker;
 	"locale", "visibleItems", "value", TiC.PROPERTY_CALENDAR_VIEW_SHOWN
 })
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class PickerProxy extends TiViewProxy implements PickerColumnListener
+public class PickerProxy extends ViewProxy implements PickerColumnListener
 {
 	private int type = UIModule.PICKER_TYPE_PLAIN;
 	private ArrayList<Integer> preselectedRows = new ArrayList<Integer>();

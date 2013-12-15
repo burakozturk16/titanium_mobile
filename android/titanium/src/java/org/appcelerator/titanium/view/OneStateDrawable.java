@@ -1,5 +1,7 @@
 package org.appcelerator.titanium.view;
 
+import org.appcelerator.titanium.util.TiUIHelper;
+
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -17,13 +19,29 @@ public class OneStateDrawable extends Drawable {
 	Drawable imageDrawable; //BitmapDrawable or NinePatchDrawable
 	Drawable gradientDrawable;
 	private Drawable defaultColorDrawable;
+	
+	private int alpha = 255;
+	
+	private void drawColorDrawable(ColorDrawable drawable, Canvas canvas)
+	{
+		int oldAlpha = -1;
+		if (alpha < 255 && alpha != -1) {
+			oldAlpha = drawable.getAlpha();
+			drawable.setAlpha((alpha*oldAlpha)/255);
+		}
+		drawable.draw(canvas);
+		if(oldAlpha != -1) {
+			colorDrawable.setAlpha(oldAlpha);
+		}
+	}
 
 	@Override
 	public void draw(Canvas canvas) {
-		if (colorDrawable != null)
-			colorDrawable.draw(canvas);
+		if (colorDrawable != null) {
+			drawColorDrawable((ColorDrawable) colorDrawable, canvas);
+		}
 		else if(defaultColorDrawable != null) {
-			defaultColorDrawable.draw(canvas);
+			drawColorDrawable((ColorDrawable) defaultColorDrawable, canvas);
 		}
 		if (gradientDrawable != null)
 			gradientDrawable.draw(canvas);
@@ -36,15 +54,28 @@ public class OneStateDrawable extends Drawable {
 	public int getOpacity() {
 		return 0;
 	}
+	
+	private void applyAlphaToDrawable (Drawable drawable)
+	{
+		if (drawable == null) return;
+		if (drawable instanceof ColorDrawable) return;
+		drawable.setAlpha(alpha);
+//		if (alpha == 255 || alpha == -1) {
+//			drawable.setColorFilter(null);
+//		}
+//		else {
+//			drawable.setColorFilter(TiUIHelper.createColorFilterForOpacity((float)alpha / 255));
+//		}
+	}
 
 	@Override
 	public void setAlpha(int alpha) {
-		if (colorDrawable != null)
-			colorDrawable.setAlpha(alpha);
-		if (gradientDrawable != null)
-			gradientDrawable.setAlpha(alpha);
-		if (imageDrawable != null)
-			imageDrawable.setAlpha(alpha);
+		this.alpha = alpha;
+		//dont set it for the color or we break the actual color alpha
+//		applyAlphaToDrawable(defaultColorDrawable);
+//		applyAlphaToDrawable(colorDrawable);
+		applyAlphaToDrawable(gradientDrawable);
+		applyAlphaToDrawable(gradientDrawable);
 	}
 
 	@Override
@@ -100,6 +131,7 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setColorDrawable(Drawable drawable)
 	{
+		applyAlphaToDrawable(drawable);
 		colorDrawable = drawable;
 	}
 	
@@ -107,6 +139,7 @@ public class OneStateDrawable extends Drawable {
 	{
 		if (colorDrawable  == null) {
 			colorDrawable = new ColorDrawable(color);
+//			applyAlphaToDrawable(colorDrawable);
 		}
 		else {
 			((ColorDrawable)colorDrawable).setColor(color);
@@ -122,6 +155,7 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setBitmapDrawable(Drawable drawable)
 	{
+		applyAlphaToDrawable(drawable);
 		imageDrawable = drawable;
 	}
 	
@@ -136,6 +170,7 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setGradientDrawable(Drawable drawable)
 	{
+		applyAlphaToDrawable(drawable);
 		gradientDrawable = drawable;
 	}
 	
@@ -147,6 +182,7 @@ public class OneStateDrawable extends Drawable {
 		}
 	}
 	public void setDefaultColorDrawable(ColorDrawable drawable) {
+		applyAlphaToDrawable(drawable);
 		defaultColorDrawable = drawable;
 	}
 	

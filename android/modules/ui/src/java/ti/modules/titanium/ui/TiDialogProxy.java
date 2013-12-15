@@ -10,7 +10,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.CurrentActivityListener;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiUIHelper;
 
 import android.app.Activity;
@@ -20,7 +19,7 @@ import android.app.Activity;
 	"buttonNames", "androidView",
 	"options", "selectedIndex", "cancel"
 }, parentModule=UIModule.class)
-public abstract class TiDialogProxy extends TiViewProxy
+public abstract class TiDialogProxy extends ViewProxy
 {
 	protected boolean showing = false;
 

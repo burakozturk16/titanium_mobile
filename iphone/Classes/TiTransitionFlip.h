@@ -1,5 +1,5 @@
-#import "TiTransition.h"
+#import "TiTransitionPerspective.h"
 
-@interface TiTransitionFlip : TiTransition
+@interface TiTransitionFlip : TiTransitionPerspective
 - (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 @end

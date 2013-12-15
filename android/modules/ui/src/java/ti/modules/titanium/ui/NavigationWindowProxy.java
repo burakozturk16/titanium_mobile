@@ -70,6 +70,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 100;
 
 
+	private ArrayList<TiWindowProxy> preAddedWindows = new ArrayList<TiWindowProxy>();
 	private ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
 	private HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
 	private HashMap defaultTransition = kDefaultTransition;
@@ -79,7 +80,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		super();
 		setModelListener(this, false);
 	}
-
 
 	@Override
 	public void open(@Kroll.argument(optional = true) Object arg)throws IllegalArgumentException
@@ -148,9 +148,9 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	}
 	private void addWindow(TiWindowProxy proxy, Transition transition) {
 		if (!windows.contains(proxy)) {
-			proxy.setWindowManager(this);
 			windows.add(proxy);
 		}
+		proxy.setWindowManager(this);
 		if (transition != null) animations.put(proxy, transition);
 	}
 	
@@ -167,16 +167,29 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (size > 0) return windows.remove(size - 1);
 		return null;
 	}
-	
 
 	private boolean pushing = false;
 	private boolean poping = false;
 	
 	
 	private boolean popUpToWindow(final TiWindowProxy winToFocus, Object arg) {
-		TiWindowProxy toRemove = popWindow();
+		if (!opened || opening) {
+			int index = preAddedWindows.indexOf(winToFocus);
+			int size = preAddedWindows.size();
+			if (size > 0 && index != -1) {
+				preAddedWindows.subList(index + 1, size).clear();
+			}
+			poping = false;
+			return true;
+		}
 		int index = windows.indexOf(winToFocus);
 		int size = windows.size();
+		if (index == -1 || index >= size - 1) {
+			poping = false;
+			return true;
+		}
+		TiWindowProxy toRemove = popWindow();
+		size = windows.size();
 		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		for (int i = index + 1; i < size; i++) {
 			TiWindowProxy window = windows.get(i);
@@ -194,8 +207,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	public boolean popWindow(TiWindowProxy proxy, Object arg)
 	{
+		if (!opened || opening) {
+			preAddedWindows.remove(proxy);
+			return true;
+		}
 		int index = windows.indexOf(proxy);
-		if (index >=0 && windows.size() > 1){
+		if (index >=1 && windows.size() > 1){
 			int realIndex = Math.max(0, index - 1);
 			TiWindowProxy winToFocus = windows.get(realIndex);
 			return popUpToWindow(winToFocus, arg);
@@ -208,6 +225,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	private void handleWindowClosed(TiWindowProxy toRemove) 
 	{
 		poping = false;
+		if (toRemove == this) return;
 		removeWindow(toRemove);
 		View view = toRemove.getOuterView();
 		if (view != null) {
@@ -215,6 +233,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (parent != null) {
 				((ViewGroup)parent).removeView(view);
 			}
+		}
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
+		if (activity != null) {
+			activity.removeWindowFromStack(toRemove);
+		}
+		else {
+			Log.e(TAG, "handleWindowClosed called with not activity, shouldn't be possible");
 		}
 		toRemove.setActivity(null);
 		toRemove.closeFromActivity(true);
@@ -234,7 +259,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, TiWindowProxy winToFocus, Object arg)
 	{
-		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		Transition transition = null;
 		if (animations.containsKey(toRemove)) {
 			transition = animations.get(toRemove);
@@ -256,12 +280,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
 			fireEvent("closeWindow", options);
 		}
+		
+		if (!opened || opening) {
+			handleWindowClosed(toRemove);
+			return true;
+		}
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
 		if (viewToRemoveFrom != null) {
 			final View viewToRemove = toRemove.getOuterView();
-			final View viewToFocus = winToFocus.getOuterView();
+			final View viewToFocus = winToFocus.getOrCreateView().getOuterView();
 			viewToFocus.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToRemoveFrom, viewToFocus, winToFocus.peekView().getLayoutParams());
 			if (transition != null && animated) {
@@ -293,7 +322,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			viewToFocus.setVisibility(View.VISIBLE);
 		}
 		
-		activity.setWindowProxy(winToFocus);
+		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
+		if (activity != null) activity.setWindowProxy(winToFocus);
     	updateHomeButton(winToFocus);
 		winToFocus.focus();
 
@@ -305,9 +335,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	{
 		TiBaseActivity oldActivity = (TiBaseActivity) getActivity();
 		TiBaseActivity newActivity = (TiBaseActivity) activity;
-		
+		Log.d(TAG, "setActivity :" + newActivity);
 		if (newActivity == oldActivity) return;
-		Log.d(TAG, "setActivity " + activity);
 		super.setActivity(activity);
 		
 		if (oldActivity != null) {
@@ -322,21 +351,33 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			newActivity.addInterceptOnHomePressedEventListener(this);
 		}
 	}
+	
+	private void handlePushFirst (){
+		if (windows.size() == 0) {
+			TiWindowProxy firstWindow = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
+			if (preAddedWindows.size() > 0 ) {
+				addWindow(firstWindow, null);
+				for (int i = 0; i < preAddedWindows.size() - 1; i++) {
+					windows.add(preAddedWindows.get(i));
+				}
+				firstWindow = preAddedWindows.get(preAddedWindows.size() - 1);
+				preAddedWindows.clear();
+			}			
+			handlePush(firstWindow, true, null);
+
+		}
+	}
 
 	private static int viewId = 10000;
 	@Override
 	public void onWindowActivityCreated()
 	{
+		
 		if (opened == true) { 
-			
-			if (windows.size() == 0) {
-				WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
-				handlePush(proxy, true, null);
-			}
+			handlePushFirst();
 			((TiBaseActivity) getActivity()).setWindowProxy(windows.get(windows.size() - 1));
 			updateHomeButton(getCurrentWindow());
 			super.onWindowActivityCreated();
-			return;
 		}
 		else {
 			opened = true; //because handlePush needs this
@@ -344,17 +385,12 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			updateHomeButton(getCurrentWindow());
 			super.onWindowActivityCreated();
 			getParentViewForChild().setId(viewId++);
-			WindowProxy proxy = (WindowProxy)getProperty(TiC.PROPERTY_WINDOW);
-			if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
-				proxy.setProperty(TiC.PROPERTY_EXIT_ON_CLOSE, getProperty(TiC.PROPERTY_EXIT_ON_CLOSE));
-			}
-			handlePush(proxy, true, null);
+			handlePushFirst();
 		}
 	}
 	
 	protected int getContainerId(){
 		int id = getParentViewForChild().getId();
-		Log.d(TAG, "getContainerId " + id);
 		return id;
 	}
 	
@@ -368,8 +404,14 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private boolean handlePop(final TiWindowProxy proxy, Object arg) 
 	{
-		if (!opened || opening || !windows.contains(proxy)) {
+		if (!windows.contains(proxy)) {
 			poping = false;
+			return true;
+		}
+		if (proxy == windows.get(0)) {
+			//first window, closing it is closing ourself
+			poping = false;
+			close(arg);
 			return true;
 		}
 		return popWindow(proxy, arg);
@@ -393,14 +435,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void handlePush(final TiWindowProxy proxy, boolean isFirst, Object arg) 
 	{
-		if (!opened || opening) {
-			pushing = false;
-			return;
-		}
-
 		int index = windows.indexOf(proxy);
-		if (index >=0 ){
-			poping = false;
+		if (index >=0 && !isFirst){
+			pushing = false;
+			poping = true;
 			popUpToWindow(proxy, arg);
 			return;
 		}
@@ -460,8 +498,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
    			viewToAdd.setVisibility(View.VISIBLE);			
 		}
 		addWindow(proxy, transition);
-		
-		
 		proxy.onWindowActivityCreated();
 		activity.setWindowProxy((TiWindowProxy) proxy);
 		updateHomeButton(proxy);
@@ -471,6 +507,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void openWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
+		if (!opened || opening) {
+			preAddedWindows.add(proxy);
+			return;
+		}
 		pushing = true;
 		if (TiApplication.isUIThread()) {
 			handlePush(proxy, false, arg);
@@ -509,7 +549,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	@Kroll.method
 	public Object getWindow(int index)
 	{
-		if (index >= 0  && index < windows.size())
+		if (!opened || opening) {
+			if (index >= 0  && index < preAddedWindows.size())
+				return preAddedWindows.get(index);
+		}
+		else if (index >= 0  && index < windows.size())
 			return windows.get(index);
 		return null;
 	}
@@ -518,6 +562,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void closeWindow(final TiWindowProxy proxy, @Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
+		if (!opened || opening) {
+			preAddedWindows.remove(proxy);
+			return;
+		}
 		poping = true;
 		if (TiApplication.isUIThread()) {
 			handlePop(proxy, arg);
@@ -531,6 +579,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void closeCurrentWindow(@Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
+		if (!opened || opening) {
+			TiWindowProxy currentWindow = getCurrentWindow();
+			if (currentWindow != this) {
+				preAddedWindows.remove(currentWindow);
+			}
+			return;
+		}
 		TiWindowProxy currentWindow = getCurrentWindow();
 		if (currentWindow != this) {
 			poping = true;
@@ -547,6 +602,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void closeAllWindows(@Kroll.argument(optional = true) Object arg)
 	{
 		if (pushing || poping) return;
+		if (!opened || opening) {
+			preAddedWindows.clear();
+			return;
+		}
 		TiWindowProxy window = windows.get(0);
 		poping = true;
 		if (TiApplication.isUIThread()) {
@@ -556,22 +615,24 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(window, arg));
 	}
+	
+	@Override
+	public boolean shouldExitOnClose() {
+		if (windows.size() == 1) {
+			return super.shouldExitOnClose();
+		}
+		return false;
+	}
 
 	@Override
 	public boolean interceptOnBackPressed() {
-		if (pushing || poping) return true;
-		TiWindowProxy currentWindow = getCurrentWindow();
-		if (currentWindow != this) {
+	if (pushing || poping) return true;
+		if (windows.size() > 1) {
+			TiWindowProxy currentWindow = getCurrentWindow();
 			if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK, null);
+				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK);
 				return true;
 			}
-		}
-		if (hasListeners(TiC.EVENT_ANDROID_BACK)) {
-			fireEvent(TiC.EVENT_ANDROID_BACK, null);
-			return true;
-		}
-		if (windows.size() > 1) {
 			poping = true;
 			return popCurrentWindow(null);
 		}
@@ -580,6 +641,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 	@Override
 	public boolean handleClose(TiWindowProxy proxy, Object arg) {
+		if (pushing || poping) return true;
 		poping = true;
 		if (TiApplication.isUIThread()) {
 			return handlePop(proxy, arg);
@@ -591,15 +653,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			return false;
 		}
 	}
+	
+	@Override
+	public KrollProxy getParentForBubbling(TiWindowProxy winProxy) {
+		return this;
+//		return (TiViewProxy.winProxy).getParentForBubbling();
+	}
+
 
 	@Override
 	public boolean handleOpen(TiWindowProxy proxy, Object arg) {
-		return false;
-	}
-	
-	public boolean shouldExitOnClose() {
-		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE))
-			return TiConvert.toBoolean(properties, TiC.PROPERTY_EXIT_ON_CLOSE, false);
 		return false;
 	}
 

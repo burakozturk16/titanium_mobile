@@ -11,7 +11,6 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
@@ -23,7 +22,7 @@ import android.app.Activity;
 	"showCancel", "barColor",
 	TiC.PROPERTY_VALUE
 })
-public class SearchBarProxy extends TiViewProxy
+public class SearchBarProxy extends ViewProxy
 {
 	public SearchBarProxy()
 	{

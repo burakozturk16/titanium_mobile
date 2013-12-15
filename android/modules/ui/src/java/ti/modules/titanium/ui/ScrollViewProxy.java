@@ -6,6 +6,7 @@
  */
 package ti.modules.titanium.ui;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
@@ -13,7 +14,6 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUIScrollView;
@@ -26,23 +26,29 @@ import android.os.Message;
 	TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR,
 	TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 	TiC.PROPERTY_SCROLL_TYPE,
-	TiC.PROPERTY_CONTENT_OFFSET,
+//	TiC.PROPERTY_CONTENT_OFFSET,
 	TiC.PROPERTY_CAN_CANCEL_EVENTS,
 	TiC.PROPERTY_OVER_SCROLL_MODE
 })
-public class ScrollViewProxy extends TiViewProxy
+public class ScrollViewProxy extends ViewProxy
 	implements Handler.Callback
 {
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
 
 	private static final int MSG_SCROLL_TO = MSG_FIRST_ID + 100;
 	private static final int MSG_SCROLL_TO_BOTTOM = MSG_FIRST_ID + 101;
+	private static final int MSG_SET_CONTENT_OFFSET = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
 	public ScrollViewProxy()
 	{
 		super();
 		defaultValues.put(TiC.PROPERTY_OVER_SCROLL_MODE, 0);
+		
+		KrollDict offset = new KrollDict();
+		offset.put(TiC.EVENT_PROPERTY_X, 0);
+		offset.put(TiC.EVENT_PROPERTY_Y, 0);
+		defaultValues.put(TiC.PROPERTY_CONTENT_OFFSET, offset);
 	}
 
 	public ScrollViewProxy(TiContext context)
@@ -83,6 +89,33 @@ public class ScrollViewProxy extends TiViewProxy
 	{
 		return getScrollView().getScrollingEnabled();
 	}
+	
+	@Kroll.method
+	public void setContentOffset(Object offset, @Kroll.argument(optional = true) Object obj)
+	{
+		Boolean animated = true;
+		if (obj instanceof KrollDict) {
+			animated = ((KrollDict)obj).optBoolean("animated", animated);
+		}
+		if (!TiApplication.isUIThread()) {
+			getMainHandler().removeMessages(MSG_SET_CONTENT_OFFSET);
+			getMainHandler().obtainMessage(MSG_SET_CONTENT_OFFSET, animated?1:0, 0, offset).sendToTarget();
+		} else {
+			handleSetContentOffset(offset, animated);
+		}
+	}
+	
+	@Kroll.setProperty
+	public void setContentOffset(Object offset)
+	{
+		setContentOffset(offset, null);
+	}
+	
+	@Kroll.getProperty @Kroll.method
+	public Object getContentOffset()
+	{
+		return getProperty(TiC.PROPERTY_CONTENT_OFFSET);
+	}
 
 	@Kroll.method
 	public void scrollToBottom() {
@@ -103,6 +136,9 @@ public class ScrollViewProxy extends TiViewProxy
 			AsyncResult result = (AsyncResult) msg.obj;
 			result.setResult(null); // signal scrolled
 			return true;
+		} else if (msg.what == MSG_SET_CONTENT_OFFSET) {
+			handleSetContentOffset(msg.obj, msg.arg1 == 1);
+			return true;
 		} else if (msg.what == MSG_SCROLL_TO_BOTTOM) {
 			handleScrollToBottom();
 			AsyncResult result = (AsyncResult) msg.obj;
@@ -115,6 +151,11 @@ public class ScrollViewProxy extends TiViewProxy
 	public void handleScrollTo(int x, int y) {
 		getScrollView().scrollTo(x, y);
 	}
+	
+	public void handleSetContentOffset(Object offset, boolean animated) {
+		getScrollView().setContentOffset(offset, animated);
+	}
+	
 	
 	public void handleScrollToBottom() {
 		getScrollView().scrollToBottom();

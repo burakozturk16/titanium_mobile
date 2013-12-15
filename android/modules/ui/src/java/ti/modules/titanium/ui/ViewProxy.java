@@ -17,38 +17,22 @@ import org.appcelerator.titanium.view.TiUIView;
 import ti.modules.titanium.ui.widget.TiView;
 import android.app.Activity;
 
-@Kroll.proxy(creatableInModule=UIModule.class)
-public class ViewProxy extends TiViewProxy
-{
-	public ViewProxy()
-	{
+@Kroll.proxy(creatableInModule = UIModule.class)
+public class ViewProxy extends TiViewProxy {
+	public ViewProxy() {
 		super();
 	}
 
-	public ViewProxy(TiContext tiContext)
-	{
+	public ViewProxy(TiContext tiContext) {
 		this();
 	}
 
 	@Override
-	public TiUIView createView(Activity activity)
-	{
+	public TiUIView createView(Activity activity) {
 		TiUIView view = new TiView(this);
 		view.getLayoutParams().autoFillsHeight = true;
 		view.getLayoutParams().autoFillsWidth = true;
-		return view;
-	}
-	
-	@Override
-	public void add(Object args, @Kroll.argument(optional = true) Object index)
-	{
-		TiViewProxy child = null;
-		if (args instanceof TiViewProxy)
-			child = (TiViewProxy) args;
-		else if (args instanceof HashMap) {
-			child = (ViewProxy) KrollProxy.createProxy(ViewProxy.class, null, new Object[] { args }, null);
-		}
-		super.add(child, index);
+		return view; 
 	}
 
 	@Override

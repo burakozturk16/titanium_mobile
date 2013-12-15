@@ -209,7 +209,7 @@ def package_sdk(target, source, env):
 	tizen = build_type in ['full', 'tizen']
 	ivi = build_type in ['full', 'ivi']
 	package_all = ARGUMENTS.get('package_all', 0)
-	version_tag = ARGUMENTS.get('version_tag', version)
+	version_tag = ARGUMENTS.get('version_tag', version.replace("+", "."))
 	build_jsca = int(ARGUMENTS.get('build_jsca', 1))
 	print "Packaging MobileSDK (%s)..." % version_tag
 	packager = package.Packager(build_jsca=build_jsca)

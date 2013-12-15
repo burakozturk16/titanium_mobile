@@ -8,10 +8,10 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.util.TiAnimator;
-import org.appcelerator.titanium.util.TiAnimatorListener;
-import org.appcelerator.titanium.util.TiAnimatorSet;
-import org.appcelerator.titanium.view.TiAnimation;
+import org.appcelerator.titanium.animation.TiAnimation;
+import org.appcelerator.titanium.animation.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimatorListener;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -47,6 +47,24 @@ public class AnimatableProxy extends KrollProxy {
 		TiAnimatorSet tiSet = (TiAnimatorSet) pendingAnimation;
 		
 		synchronized (runningAnimationsLock) {
+			tiSet.needsToRestartFromBeginning = (runningAnimations.size() > 0);
+			if (tiSet.cancelRunningAnimations) {
+				for (int i = 0; i < runningAnimations.size(); i++) {
+					runningAnimations.get(i).cancelWithoutResetting();
+				}
+				runningAnimations.clear();
+			}
+			else if (pendingAnimation.animationProxy != null){
+				for (int i = 0; i < runningAnimations.size(); i++) {
+					TiAnimator anim = runningAnimations.get(i);
+					if (anim.animationProxy == pendingAnimation.animationProxy) {
+						anim.cancelWithoutResetting();
+						runningAnimations.remove(anim);
+						break;
+					}
+				}
+				runningAnimations.clear();
+			}
 			runningAnimations.add(pendingAnimation);
 		}
 		prepareAnimatorSet(tiSet);
@@ -85,12 +103,6 @@ public class AnimatableProxy extends KrollProxy {
 	@Kroll.method
 	public void animate(Object arg,
 			@Kroll.argument(optional = true) KrollFunction callback) {
-
-//		if (pendingAnimation != null) {
-//			// already running animation
-//			pendingAnimation.cancelWithoutResetting();
-//			pendingAnimation = null;
-//		}
 		synchronized (pendingAnimationLock) {
 			TiAnimator pendingAnimation = createAnimator();
 			if (arg instanceof HashMap) {
@@ -115,48 +127,50 @@ public class AnimatableProxy extends KrollProxy {
 	}
 	
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
+		tiSet.aboutToBePrepared();
 		AnimatorSet set = tiSet.set();
 		HashMap options = tiSet.getOptions();
-//		if (tiSet.delay != null)
-//			set.setStartDelay(tiSet.delay.longValue());
-//		if (tiSet.duration != null)
-//			set.setDuration(tiSet.duration.longValue());
 
-		set.addListener(new TiAnimatorListener(tiSet,
-				options));
+		TiAnimatorListener listener = new TiAnimatorListener(tiSet,
+				options);		
 		
 		List<Animator> list = new ArrayList<Animator>();
+		List<Animator> listReverse = tiSet.autoreverse?new ArrayList<Animator>():null;
 		
-		prepareAnimatorSet(tiSet, list, options);
+		prepareAnimatorSet(tiSet, list, listReverse, options);
 		
-		int style = tiSet.autoreverse?ValueAnimator.REVERSE:ValueAnimator.RESTART;
 		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
-		if (tiSet.autoreverse) {
-			repeatCount = repeatCount * 2 + 1;
-		}
-			
+		tiSet.setRepeatCount(repeatCount);
+		
 		for (int i = 0; i < list.size(); i++) {
 			ValueAnimator anim = (ValueAnimator) list.get(i);
 			if (tiSet.delay != null)
 				anim.setStartDelay(tiSet.delay.longValue());
 			if (tiSet.duration != null)
 				anim.setDuration(tiSet.duration.longValue());
-			anim.setRepeatCount(repeatCount);
-			anim.setRepeatMode(style);
 		}
 		set.playTogether(list);
+		
+		//reverse set
+		if (listReverse != null) {
+			AnimatorSet reverseSet = tiSet.getOrCreateReverseSet();
+			for (int i = 0; i < listReverse.size(); i++) {
+				ValueAnimator anim = (ValueAnimator) listReverse.get(i);
+				//no startdelay for the reversed animation
+				if (tiSet.duration != null)
+					anim.setDuration(tiSet.duration.longValue());
+			}
+			reverseSet.playTogether(listReverse);
+		}
+		///
+		
+		tiSet.setListener(listener);
+		tiSet.createClonableSets(); //create clonable after adding listener so that it is cloned too
 	}
 
-	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list,
+	protected void prepareAnimatorSet(TiAnimatorSet tiSet, List<Animator> list, List<Animator> listReverse,
 			HashMap options) {
 		Log.d(TAG, "prepareAnimatorSet", Log.DEBUG_MODE);
-//		AnimatorSet set = tiSet.set();
-//		if (tiSet.delay != null)
-//			set.setStartDelay(tiSet.delay.longValue());
-//		if (tiSet.duration != null)
-//			set.setDuration(tiSet.duration.longValue());
-//		set.addListener(new TiAnimatorListener(tiSet, options));
-
 	}
 	
 	public void animationFinished(TiAnimator animation) {
@@ -180,5 +194,10 @@ public class AnimatableProxy extends KrollProxy {
 			}
 			runningAnimations.clear();
 		}
+	}
+	
+	public void afterAnimationReset()
+	{
+		
 	}
 }

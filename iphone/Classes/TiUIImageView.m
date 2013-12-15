@@ -358,7 +358,12 @@ DEFINE_EXCEPTIONS
 		[imageView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
         imageView.backgroundColor = [UIColor clearColor];
 		[imageView setContentMode:[self contentModeForImageView]];
-		[self addSubview:imageView];
+        TiUIView* topView = [[self childViews] firstObject];
+        if (topView != nil)
+            [self insertSubview:imageView belowSubview:topView];
+        else {
+            [self addSubview:imageView];
+        }
 	}
 	return imageView;
 }
@@ -423,8 +428,8 @@ DEFINE_EXCEPTIONS
     {
         factor /= screenScale;
     }
-    int realWidth = imageToUse.size.width * factor;
-    int realHeight = imageToUse.size.height * factor;
+    CGFloat realWidth = imageToUse.size.width * factor;
+    CGFloat realHeight = imageToUse.size.height * factor;
     autoWidth = realWidth;
     autoHeight = realHeight;
 }
@@ -948,6 +953,8 @@ DEFINE_EXCEPTIONS
         [durations addObject:NUMFLOAT(interval)];
     }
     _animatedImage = [[TiAnimatedImage alloc] initWithImages:images andDurations:durations];
+    [durations release];
+    [images release];
     _animatedImage.reverse = reverse;
     _animatedImage.autoreverse = autoreverse;
     _animatedImage.delegate = self;

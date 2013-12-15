@@ -9,11 +9,10 @@
 #import "TiColor.h"
 #import "ListenerEntry.h"
 #import "LayoutConstraint.h"
-#import <QuartzCore/QuartzCore.h>
 
-@class TiViewProxy;
+#import "HLSAnimation.h"
+
 @class TiAnimation;
-
 /**
  Protocol for animation delegate.
  */
@@ -24,11 +23,11 @@
 /**
  Whether or not the animation should transition.
  
- The method is only called if the animation is a transition animation type.
- @param animation The animation this delegate is assigned to.
- @return _YES_ if the animation should transition, _NO_ otherwise.
- */
--(BOOL)animationShouldTransition:(TiAnimation *)animation;
+// The method is only called if the animation is a transition animation type.
+// @param animation The animation this delegate is assigned to.
+// @return _YES_ if the animation should transition, _NO_ otherwise.
+// */
+//-(BOOL)animationShouldTransition:(TiAnimation *)animation;
 
 /**
  Tells the delegate that the animation will start.
@@ -57,107 +56,49 @@
 @end
 
 
+@class TiAnimatableProxy, TiHLSAnimation, HLSAnimation;
 /**
  A type of proxy representing an animation to apply to a view. 
  */
-@interface TiAnimation : TiProxy {
-@private
-        
-	NSNumber	*zIndex;
-	id  left;
-	id  right;
-	id  top;
-	id  bottom;
-	id  width;
-	id  height;
-    
-    BOOL  leftDefined;
-	BOOL  rightDefined;
-	BOOL  topDefined;
-	BOOL  bottomDefined;
-	BOOL  widthDefined;
-	BOOL  heightDefined;
-	BOOL  transformDefined;
-    
-	NSNumber	*duration;
-	TiPoint		*center;
-	TiColor		*backgroundColor;
-	TiColor		*color;
-	NSNumber	*opacity;
-	NSNumber	*opaque;
-	NSNumber	*visible;
-	NSNumber	*curve;
-	NSNumber	*repeat;
-	NSNumber	*autoreverse;
-	NSNumber	*delay;
-	TiProxy		*transform;
-	NSNumber	*transition;
-	TiViewProxy	*view;
-    TiViewProxy *animatedViewProxy;
-
-	// this is a temporary function passed in
+@interface TiAnimation : TiProxy<HLSAnimationDelegate> {
+@protected
 	ListenerEntry *callback;
-	
-	NSObject<TiAnimationDelegate> *delegate;
-
-	// for animation delegate
-	UIView* animatedView;
-		
-	// for autoreverse
-    TiAnimation* reverseAnimation;
-    BOOL isReverse;
-    BOOL resetState;
 }
 
 /**
  Provides access to animation delegate object.
  */
-@property(nonatomic,assign,readwrite) NSObject<TiAnimationDelegate> *delegate;
+@property(nonatomic,assign) NSObject<TiAnimationDelegate> *delegate;
 
-@property(nonatomic,readwrite,retain) UIView* animatedView;
 @property(nonatomic,readonly) ListenerEntry* callback;
-@property(nonatomic,readwrite,retain) TiAnimation* reverseAnimation;
-@property(nonatomic,readwrite,assign) BOOL isReverse;
-@property(nonatomic,readwrite,assign) BOOL resetState;
-
-// animatable properties against what is being animated
-@property(nonatomic,retain,readwrite) NSNumber	*zIndex;
-@property(nonatomic,retain,readwrite) NSNumber	*duration;
-@property(nonatomic,retain,readwrite) TiPoint	*center;
-@property(nonatomic,retain,readwrite) TiColor	*color;
-@property(nonatomic,retain,readwrite) TiColor	*backgroundColor;
-@property(nonatomic,retain,readwrite) NSNumber	*opacity;
-@property(nonatomic,retain,readwrite) NSNumber	*opaque;
-@property(nonatomic,retain,readwrite) NSNumber	*visible;
 
 // properties that control the animation 
-@property(nonatomic,retain,readwrite) NSNumber	*curve;
-@property(nonatomic,retain,readwrite) NSNumber	*repeat;
-@property(nonatomic,retain,readwrite) NSNumber	*autoreverse;
-@property(nonatomic,retain,readwrite) NSNumber	*delay;
-//@property(nonatomic,retain,readwrite) TiProxy	*transform;
-@property(nonatomic,retain,readwrite) NSNumber	*transition;
-@property(nonatomic,retain,readwrite) TiProxy	*view;
+@property(nonatomic,retain) NSNumber	*curve;
+@property(nonatomic,retain) NSNumber* repeat;
+@property(nonatomic,assign) BOOL autoreverse;
+@property(nonatomic,assign) BOOL restartFromBeginning;
+@property(nonatomic,assign) BOOL cancelRunningAnimations;
+@property(nonatomic,assign) CGFloat delay;
+@property(nonatomic,assign) CGFloat duration;
+@property(nonatomic,retain) TiAnimatableProxy	*animatedProxy;
+@property(nonatomic,retain) HLSAnimation	*animation;
 
-+(TiAnimation*)animationFromArg:(id)args context:(id<TiEvaluator>)context create:(BOOL)yn;
 
--(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context;
+//transition properties (to be removed)
+@property(nonatomic,assign) BOOL animated;
+@property(nonatomic,assign) int transition;
+@property(nonatomic,retain) TiViewProxy	*view;
 
--(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context callback:(KrollCallback*)callback;
-
--(void)animate:(id)args;
-
-/**
- Whether or not the animation is a transition animation type.
- @return _YES_ if the animation is a transition animation type, _NO_ otherwise.
- */
--(BOOL)isTransitionAnimation;
-
--(NSTimeInterval)animationDuration;
--(CAMediaTimingFunction*) timingFunction;
--(void)animationCompleted:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context;
--(void)simulateFinish:(TiViewProxy*)proxy;
 -(void)cancel:(id)args;
 
++(TiAnimation*)animationFromArg:(id)args context:(id<TiEvaluator>)context create:(BOOL)yn;
+-(id)initWithDictionary:(NSDictionary*)properties context:(id<TiEvaluator>)context_ callback:(KrollCallback*)callback_;
+-(BOOL)isTransitionAnimation;
+-(NSTimeInterval)getAnimationDuration;
+-(NSUInteger) repeatCount;
++(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_;
++(int)reverseCurve:(int)curve_;
+-(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim;
+-(void)cancelMyselfBeforeStarting;
 
 @end

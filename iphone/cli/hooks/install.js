@@ -21,7 +21,7 @@ exports.init = function (logger, config, cli) {
 	cli.addHook('build.post.compile', {
 		priority: 8000,
 		post: function (builder, finished) {
-			if (cli.argv.target != 'device') return finished();
+			if (cli.argv.target != 'device' && cli.argv.target != 'dist-adhoc') return finished();
 
 			async.parallel([
 				function (next) {
@@ -83,7 +83,7 @@ exports.init = function (logger, config, cli) {
 											err = err.message || err;
 											logger.error(err);
 											if (err.indexOf('0xe8008017') != -1) {
-												logger.error(__('Chances are there is a signing issue with your provisiing profile or the generated app is not compatible with your device'));
+												logger.error(__('Chances are there is a signing issue with your provisioning profile or the generated app is not compatible with your device'));
 											}
 										} else {
 											logger.info(__('App successfully installed on device: %s', device.name.cyan));

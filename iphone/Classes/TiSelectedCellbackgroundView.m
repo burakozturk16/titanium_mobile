@@ -55,7 +55,7 @@ static void addRoundedRectToPath(CGContextRef context, CGRect rect,
 
 -(void)dealloc
 {
-	[fillColor release];
+    RELEASE_TO_NIL(fillColor)
 	[super dealloc];
 }
 

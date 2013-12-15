@@ -21,7 +21,7 @@
 //Toolbar properties derived from the exposed ones.
 	UIToolbar *keyboardUIToolbar;
 
-	BOOL suppressFocusEvents;
+	BOOL _suppressFocusEvents;
 @private
 
 }

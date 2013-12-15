@@ -10,8 +10,10 @@
 #import "TiUtils.h"
 #import "TiApp.h"
 
+
 @implementation TiAppPropertiesProxy {
 	NSData *_defaultsNull;
+    NSString* _changedProperty;
 }
 
 -(void)dealloc
@@ -21,6 +23,8 @@
 	}, YES);
 	RELEASE_TO_NIL(defaultsObject);
 	RELEASE_TO_NIL(_defaultsNull);
+	RELEASE_TO_NIL(_changedProperty);
+    
 	[super dealloc];
 }
 
@@ -69,7 +73,7 @@ ENSURE_TYPE(args,NSArray);\
 NSString *key = [args objectAtIndex:0];\
 id appProp = [[TiApp tiAppProperties] objectForKey:key]; \
 if(appProp) { \
-    return appProp; \
+return appProp; \
 } \
 id defaultValue = [args count] > 1 ? [args objectAtIndex:1] : [NSNull null];\
 if (![self propertyExists:key]) return defaultValue; \
@@ -130,24 +134,23 @@ ENSURE_TYPE(args,NSArray);\
 NSString *key = [args objectAtIndex:0];\
 id appProp = [[TiApp tiAppProperties] objectForKey:key]; \
 if(appProp) { \
-    DebugLog(@"[ERROR] Property \"%@\" already exist and cannot be overwritten", key); \
-    return; \
+DebugLog(@"[ERROR] Property \"%@\" already exist and cannot be overwritten", key); \
+return; \
 } \
 id value = [args count] > 1 ? [args objectAtIndex:1] : nil;\
 if (value==nil || value==[NSNull null]) {\
-	[defaultsObject removeObjectForKey:key];\
-	[defaultsObject synchronize]; \
-	return;\
+[defaultsObject removeObjectForKey:key];\
+[defaultsObject synchronize]; \
+return;\
 }\
 if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:value]) {\
-	return;\
+return;\
 }\
-
-
 
 -(void)setBool:(id)args
 {
 	SETPROP
+    _changedProperty = [key retain];
 	[defaultsObject setBool:[TiUtils boolValue:value] forKey:key];
 	[defaultsObject synchronize];
 }
@@ -155,6 +158,7 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 -(void)setDouble:(id)args
 {
 	SETPROP
+    _changedProperty = [key retain];
 	[defaultsObject setDouble:[TiUtils doubleValue:value] forKey:key];
 	[defaultsObject synchronize];
 }
@@ -162,13 +166,15 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 -(void)setInt:(id)args
 {
 	SETPROP
+    _changedProperty = [key retain];
 	[defaultsObject setInteger:[TiUtils intValue:value] forKey:key];
-	[defaultsObject synchronize];	
+	[defaultsObject synchronize];
 }
 
 -(void)setString:(id)args
 {
 	SETPROP
+    _changedProperty = [key retain];
 	[defaultsObject setObject:[TiUtils stringValue:value] forKey:key];
 	[defaultsObject synchronize];
 }
@@ -186,6 +192,7 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 		}];
 		value = array;
 	}
+    _changedProperty = [key retain];
 	[defaultsObject setObject:value forKey:key];
 	[defaultsObject synchronize];
 }
@@ -194,6 +201,7 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 {
 	SETPROP
 	NSData* encoded = [NSKeyedArchiver archivedDataWithRootObject:value];
+    _changedProperty = [key retain];
 	[defaultsObject setObject:encoded forKey:key];
 	[defaultsObject synchronize];
 }
@@ -205,7 +213,8 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
         DebugLog(@"[ERROR] Cannot remove property \"%@\", it is read-only.", args);
         return;
     }
-	[defaultsObject removeObjectForKey:[TiUtils stringValue:args]];
+    _changedProperty = [[TiUtils stringValue:args] retain];
+	[defaultsObject removeObjectForKey:_changedProperty];
 	[defaultsObject synchronize];
 }
 
@@ -234,7 +243,12 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 
 -(void) NSUserDefaultsDidChange
 {
-	[self fireEvent:@"change" withObject:nil];
+    NSDictionary* event = nil;
+    if (_changedProperty != nil) {
+        event = [NSDictionary dictionaryWithObject:_changedProperty forKey:@"property"];
+        RELEASE_TO_NIL(_changedProperty);
+    }
+	[self fireEvent:@"change" withObject:event];
 }
 
 - (void)registerDefaultsFromSettingsBundle
@@ -246,13 +260,13 @@ if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:val
 	
 	if(!settingsBundle)
 	{
-	   return;
+        return;
 	}
 	
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
 	NSArray *preferences = [settings objectForKey:@"PreferenceSpecifiers"];
 	NSMutableDictionary *defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
-	 
+    
 	for (NSDictionary *prefSpecification in preferences)
 	{
 		NSString *key = [prefSpecification objectForKey:@"Key"];

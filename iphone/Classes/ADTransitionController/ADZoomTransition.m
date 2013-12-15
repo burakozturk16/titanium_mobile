@@ -34,4 +34,21 @@ CGPoint ADRectCenter(CGRect rect) {
     return self;
 }
 
+- (id)initWithScale:(CGFloat)scale forDuration:(double)duration {
+    CABasicAnimation * zoomAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
+    CATransform3D transform = CATransform3DIdentity;
+    transform = CATransform3DScale(transform, scale, scale, 1.0f);
+    zoomAnimation.fromValue = [NSValue valueWithCATransform3D:transform];
+    zoomAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
+    zoomAnimation.duration = duration;
+    
+    CABasicAnimation * outAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
+    outAnimation.fromValue = @-0.001;
+    outAnimation.toValue = @-0.001;
+    outAnimation.duration = duration;
+    
+    self = [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation];
+    return self;
+}
+
 @end

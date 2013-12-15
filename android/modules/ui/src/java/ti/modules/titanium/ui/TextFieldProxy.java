@@ -41,7 +41,7 @@ import android.os.Message;
 	TiC.PROPERTY_RIGHT_BUTTON,
 	TiC.PROPERTY_RETURN_KEY_TYPE
 })
-public class TextFieldProxy extends TiViewProxy
+public class TextFieldProxy extends ViewProxy
 {
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SET_SELECTION = MSG_FIRST_ID + 201;

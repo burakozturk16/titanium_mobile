@@ -9,7 +9,6 @@ package ti.modules.titanium.ui;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUIProgressBar;
@@ -20,7 +19,7 @@ import android.app.Activity;
 	TiC.PROPERTY_VALUE,
 	TiC.PROPERTY_MESSAGE
 })
-public class ProgressBarProxy extends TiViewProxy
+public class ProgressBarProxy extends ViewProxy
 {
 	public ProgressBarProxy()
 	{

@@ -54,8 +54,8 @@
                 if ([[UIFont familyNames] containsObject:family]) {
                     NSArray* fontNames = [[UIFont fontNamesForFamilyName:family] sortedArrayUsingSelector:@selector(compare:)];
                     NSString* foundFontName = nil;
-                    NSMutableArray* primaryMatches = [[NSMutableArray alloc] init];
                     if (isBoldWeight || isSemiboldWeight || isItalicStyle) {
+                        NSMutableArray* primaryMatches = [[NSMutableArray alloc] init];
                         NSString* primaryStyle = nil;
                         NSString* secondaryStyle = nil;
                         BOOL hasSecondaryStyle = NO;
@@ -111,7 +111,6 @@
                         }
                         
                     } else {
-                        
                         for (NSString* name in fontNames) {
                             if ( ([name rangeOfString:@"Bold"].location == NSNotFound) && ([name rangeOfString:@"Italic"].location == NSNotFound)
                                 && ([name rangeOfString:@"Oblique"].location == NSNotFound) && ([name rangeOfString:@"Heavy"].location == NSNotFound)) {
@@ -193,7 +192,7 @@
     
 	float multiplier = 1.0; //Default is px.
 	
-	id sizeObject = [fontDict objectForKey:@"fontSize"];
+	id sizeObject = [fontDict objectForKey:@"size"];
 	if([sizeObject isKindOfClass:[NSString class]]){
 		sizeObject = [sizeObject lowercaseString];
 		if([sizeObject hasSuffix:@"px"]){
@@ -216,7 +215,7 @@
 		}
 	}
 	
-	id familyObject = [fontDict objectForKey:@"fontFamily"];
+	id familyObject = [fontDict objectForKey:@"family"];
 	if ([familyObject isKindOfClass:[NSString class]])
 	{
         // Expedient fix for compatibility with Android.  Apparently this is OK.
@@ -235,7 +234,7 @@
 	}
 
 
-	NSString * fontWeightObject = [fontDict objectForKey:@"fontWeight"];
+	NSString * fontWeightObject = [fontDict objectForKey:@"weight"];
 	if([fontWeightObject isKindOfClass:[NSString class]]){
 		fontWeightObject = [fontWeightObject lowercaseString];
 		if([fontWeightObject isEqualToString:@"semibold"]) {
@@ -272,7 +271,7 @@
         }
 	}
     
-    NSString* fontStyleObject = [fontDict objectForKey:@"fontStyle"];
+    NSString* fontStyleObject = [fontDict objectForKey:@"style"];
     if ([fontStyleObject isKindOfClass:[NSString class]]) {
         fontStyleObject = [fontStyleObject lowercaseString];
         if ([fontStyleObject isEqualToString:@"italic"]) {

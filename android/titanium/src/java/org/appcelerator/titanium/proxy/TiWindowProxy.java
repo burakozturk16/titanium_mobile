@@ -20,11 +20,11 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
+import org.appcelerator.titanium.animation.TiAnimation;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
-import org.appcelerator.titanium.view.TiAnimation;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
@@ -480,7 +480,10 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public KrollProxy getParentForBubbling()
 	{
 		// No events bubble up to decor view.
-		if (getParent() instanceof DecorViewProxy) {
+		if (winManager != null) {
+			return winManager.getParentForBubbling(this);
+		}
+		else if (getParent() instanceof DecorViewProxy) {
 			return null;
 		}
 		return super.getParentForBubbling();
@@ -496,11 +499,27 @@ public abstract class TiWindowProxy extends TiViewProxy
 		return winManager;
 	}
 	
+	private TiWindowProxy findParentWindow(TiViewProxy proxy) {
+		TiViewProxy parent = proxy.getParent();
+		if (parent == null) return null;
+		if (parent instanceof TiWindowProxy) {
+			return (TiWindowProxy)parent;
+		}
+		return findParentWindow(parent);
+	}
+	
 	public boolean shouldExitOnClose() {
 		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE))
 			return TiConvert.toBoolean(properties, TiC.PROPERTY_EXIT_ON_CLOSE, false);
 		else if (winManager != null) {
 			return winManager.shouldExitOnClose();
+		}
+		else {
+			//for window added as child of another TiViewProxy
+			TiWindowProxy parentWindow = findParentWindow(this);
+			if (parentWindow != null) {
+				return parentWindow.shouldExitOnClose();
+			}
 		}
 		return false;
 	}

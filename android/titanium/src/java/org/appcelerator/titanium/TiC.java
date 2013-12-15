@@ -14,6 +14,7 @@ public class TiC
 
 {
 	public static final int API_LEVEL_HONEYCOMB = 11;
+	public static final int API_LEVEL_HONEYCOMB_MR1 = 12;
 	public static final int API_LEVEL_ICE_CREAM_SANDWICH = 14;
 	public static final int API_LEVEL_JELLY_BEAN = 16;
 	public static final String ERROR_PROPERTY_CODE = "code";
@@ -415,6 +416,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String EVENT_PULL_CHANGED = "pullchanged";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PULL_END = "pullend";
 	
 	/**
@@ -431,6 +437,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_RESUME = "resume";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_RETURN = "return";
 
 	/**
 	 * @module.api
@@ -539,9 +550,9 @@ public class TiC
 	public static final String INTENT_PROPERTY_ON_BOOT = "onBoot";
 	public static final String INTENT_PROPERTY_USE_ACTIVITY_WINDOW = "useActivityWindow";
 	public static final String INTENT_PROPERTY_WINDOW_ID = "windowId";
-	public static final String LAYOUT_FILL = "fill";
+	public static final String LAYOUT_FILL = "FILL";
 	public static final String LAYOUT_HORIZONTAL = "horizontal";
-	public static final String LAYOUT_SIZE = "size";
+	public static final String LAYOUT_SIZE = "SIZE";
 	public static final String LAYOUT_VERTICAL = "vertical";
 	public static final String MSG_PROPERTY_EVENT_NAME = "eventName";
 	public static final String MSG_PROPERTY_FILENAME = "filename";
@@ -867,6 +878,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BORDER_PADDING = "borderPadding";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BORDER_RADIUS = "borderRadius";
 
 	/**
@@ -933,6 +949,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CANCEL = "cancel";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_CANCEL_RUNNING_ANIMATIONS = "cancelRunningAnimations";
 
 	/**
 	 * @module.api
@@ -1214,6 +1235,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_EVENT = "event";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_EVENTS = "events";
 
 	/**
 	 * @module.api
@@ -1639,6 +1665,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MAX_LINES = "maxLines";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MAX_ROW_HEIGHT = "maxRowHeight";
 	/**
 	 * @module.api
 	 */
@@ -1821,6 +1852,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_OVER_SCROLL_MODE = "overScrollMode";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_OWN_FRAME_COORD = "ownFrameCoord";
 
 	/**
 	 * @module.api
@@ -2387,12 +2423,12 @@ public class TiC
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TEXT_PADDING = "textPadding";
+	public static final String PROPERTY_TEXT_PADDING = "padding";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_TITLE_PADDING = "titlePadding";
+	public static final String PROPERTY_TITLE_PADDING = "padding";
 
 	/**
 	 * @module.api

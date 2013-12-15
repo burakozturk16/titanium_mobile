@@ -17,6 +17,8 @@ import org.appcelerator.titanium.util.AffineTransform;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
+import com.nineoldandroids.view.ViewHelper;
+
 import android.content.Context;
 import android.graphics.Matrix;
 
@@ -31,6 +33,7 @@ public class Ti2DMatrix extends KrollProxy {
 	public ArrayList<Operation> operations = new ArrayList<Operation>();
 
 	public TiPoint anchor;
+	protected boolean ownFrameCoord = false;
 
 	protected AffineTransform transform = null;
 
@@ -59,7 +62,7 @@ public class Ti2DMatrix extends KrollProxy {
 			this.type = type;
 		}
 
-		public void apply(Context context, int width, int height, int parentWidth, int parentHeight, AffineTransform transform, boolean decaleFromCenter) {
+		public void apply(Context context, int width, int height, int parentWidth, int parentHeight, AffineTransform transform) {
 			float anchorX = 0;
 			float anchorY = 0;
 			if (type == TYPE_SCALE || type == TYPE_ROTATE) {
@@ -68,11 +71,11 @@ public class Ti2DMatrix extends KrollProxy {
 					realAnchor = DEFAULT_ANCHOR_VALUE;
 				anchorX = realAnchor.getX().getAsPixels(context, width, height);
 				anchorY = realAnchor.getY().getAsPixels(context, width, height);
-				if (decaleFromCenter) {
-					anchorX = anchorX - width/2;
-					anchorY = anchorY - height/2;
-				}
+				
+				anchorX = anchorX - width/2;
+				anchorY = anchorY - height/2;
 			}
+			
 			switch (type) {
 			case TYPE_SCALE:
 				transform.scale(scaleToX, scaleToY, anchorX, anchorY);
@@ -86,7 +89,7 @@ public class Ti2DMatrix extends KrollProxy {
 				transform.rotate(rotateOf, anchorX, anchorY);
 				break;
 			case TYPE_MULTIPLY:
-				transform.multiply(multiplyWith.getAffineTransform(context, width, height, parentWidth, parentHeight, decaleFromCenter));
+				transform.multiply(multiplyWith.getAffineTransform(context, width, height, parentWidth, parentHeight));
 				break;
 			case TYPE_INVERT:
 				transform.inverse();
@@ -107,6 +110,7 @@ public class Ti2DMatrix extends KrollProxy {
 	public Ti2DMatrix(Ti2DMatrix prev) {
 		if (prev != null) {
 			handleAnchorPoint(prev.getProperties());
+			ownFrameCoord = prev.ownFrameCoord;
 			operations.addAll(prev.operations);
 		}
 	}
@@ -140,6 +144,10 @@ public class Ti2DMatrix extends KrollProxy {
 			op.scaleToX = op.scaleToY = TiConvert.toFloat(dict,
 					TiC.PROPERTY_SCALE);
 			operations.add(op);
+		}
+		
+		if (dict.containsKey(TiC.PROPERTY_OWN_FRAME_COORD)) {
+			ownFrameCoord = dict.optBoolean(TiC.PROPERTY_OWN_FRAME_COORD, ownFrameCoord);
 		}
 	}
 
@@ -229,13 +237,17 @@ public class Ti2DMatrix extends KrollProxy {
 		return getMatrix(proxy.getOuterView());
 	}
 	
-	public AffineTransform getAffineTransform(Context context, int width, int height, int parentWidth, int parentHeight, boolean decaleFromCenter) {
+	public AffineTransform getAffineTransform(Context context, int width, int height, int parentWidth, int parentHeight) {
 		if (transform != null) return transform;
-		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return null;
+		if (ownFrameCoord) {
+			parentWidth = width;
+			parentHeight = height;
+		}
 		AffineTransform result = new AffineTransform();
+		if (width == 0 || height == 0 || parentWidth == 0 || parentHeight == 0 ) return result;
 		for (Operation op : operations) {
 			if (op != null) {
-				op.apply(context, width, height, parentWidth, parentHeight, result, decaleFromCenter);
+				op.apply(context, width, height, parentWidth, parentHeight, result);
 			}
 		}
 		return result;
@@ -245,17 +257,15 @@ public class Ti2DMatrix extends KrollProxy {
 		return transform;
 	}
 	
-	public AffineTransform getAffineTransform(View view, boolean decaleFromCenter) {
+	public AffineTransform getAffineTransform(View view) {
 		View parent = (View) view.getParent();
 		if (parent == null)
 			parent = view;
+		ViewHelper.setPivotX(view, (float) 0.5);
+		ViewHelper.setPivotY(view, (float) 0.5);
 		return getAffineTransform(view.getContext(),
 				view.getMeasuredWidth(), view.getMeasuredHeight(),
-				parent.getMeasuredWidth(), parent.getMeasuredHeight(), decaleFromCenter);
-	}
-	
-	public AffineTransform getAffineTransform(View view) {
-		return getAffineTransform(view, false);
+				parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 
 	public Matrix getMatrix(View view) {
@@ -268,7 +278,7 @@ public class Ti2DMatrix extends KrollProxy {
 	}
 	
 	public Matrix getMatrix(Context context, int width, int height, int parentWidth, int parentHeight) {
-		AffineTransform transform = getAffineTransform(context, width, height, parentWidth, parentHeight, false);
+		AffineTransform transform = getAffineTransform(context, width, height, parentWidth, parentHeight);
 		return (transform != null) ? transform.toMatrix() : null;
 	}
 }

@@ -56,7 +56,7 @@
     if (offsetValue >= [[buffer data] length]) {
         NSString* errorStr = [NSString stringWithFormat:@"Offset %d is past buffer bounds (length %d)",offsetValue,[[buffer data] length]];
 		NSMutableDictionary * event = [TiUtils dictionaryWithCode:-1 message:errorStr];
-		[event setObject:stream forKey:@"source"];
+		[event setObject:stream?stream:([NSNull null]) forKey:@"source"];
 		[event setObject:NUMINT(-1) forKey:@"bytesProcessed"];
 		[event setObject:errorStr forKey:@"errorDescription"];
         [self _fireEventToListener:@"io" withObject:event listener:callback thisObject:nil];
