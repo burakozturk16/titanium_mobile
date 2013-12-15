@@ -1,85 +1,85 @@
-var Shape = Ti.Shape;
-var isiOS7 = false;
-var isAndroid = Ti.Platform.osname == "android";
-var isApple = Ti.Platform.osname === 'ipad' || Ti.Platform.osname === 'iphone';
-if (isApple) {
-	isiOS7 = parseInt(Titanium.Platform.version.split(".")[0]) >= 7;
+var shape = ti.shape;
+var isios7 = false;
+var isandroid = ti.platform.osname == "android";
+var isapple = ti.platform.osname === 'ipad' || ti.platform.osname === 'iphone';
+if (isapple) {
+	isios7 = parseint(titanium.platform.version.split(".")[0]) >= 7;
 }
-var backColor = 'white';
-var textColor = 'black';
-var navGroup;
-var openWinArgs;
-var html = '  SUCCESS     <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:4px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
-// html = '<span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:3px;padding-bottom:3px;line-height:2em;"> SUCCESS </span><br><span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:0px;padding-bottom:0px;line-height:1em;"> SUCCESS </span>'
-if (isAndroid) {
-	backColor = 'black';
-	textColor = 'gray';
+var backcolor = 'white';
+var textcolor = 'black';
+var navgroup;
+var openwinargs;
+var html = '  success     <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:4px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. la musique pour bande de pierre schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. la particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+// html = '<span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:3px;padding-bottom:3px;line-height:2em;"> success </span><br><span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:0px;padding-bottom:0px;line-height:1em;"> success </span>'
+if (isandroid) {
+	backcolor = 'black';
+	textcolor = 'gray';
 }
 
 function merge_options(obj1, obj2, _new) {
 	_new = _new === true;
-	var newObject = obj1;
+	var newobject = obj1;
 	if (_new === true) {
-		newObject = JSON.parse(JSON.stringify(obj1));
+		newobject = json.parse(json.stringify(obj1));
 	}
 	for (var attrname in obj2) {
-		newObject[attrname] = obj2[attrname];
+		newobject[attrname] = obj2[attrname];
 	}
-	return newObject;
+	return newobject;
 }
-var initWindowArgs = {
-	backgroundColor: backColor,
-	orientationModes: [Ti.UI.UPSIDE_PORTRAIT,
-		Ti.UI.PORTRAIT,
-		Ti.UI.LANDSCAPE_RIGHT,
-		Ti.UI.LANDSCAPE_LEFT
+var initwindowargs = {
+	backgroundcolor: backcolor,
+	orientationmodes: [ti.ui.upside_portrait,
+		ti.ui.portrait,
+		ti.ui.landscape_right,
+		ti.ui.landscape_left
 	]
 };
-if (isiOS7) {
-	initWindowArgs = merge_options(initWindowArgs, {
-		// autoAdjustScrollViewInsets: true,
-		// extendEdges: [Ti.UI.EXTEND_EDGE_ALL],
+if (isios7) {
+	initwindowargs = merge_options(initwindowargs, {
+		// autoadjustscrollviewinsets: true,
+		// extendedges: [ti.ui.extend_edge_all],
 		// translucent: false
 	});
 }
 
-function createWin(_args) {
-	return Ti.UI.createWindow(merge_options(initWindowArgs, _args, true));
+function createwin(_args) {
+	return ti.ui.createwindow(merge_options(initwindowargs, _args, true));
 }
 
-function createListView(_args) {
-	var realArgs = merge_options({
-		allowsSelection: false,
-		rowHeight: 50,
-		selectedBackgroundGradient: {
+function createlistview(_args) {
+	var realargs = merge_options({
+		allowsselection: false,
+		rowheight: 50,
+		selectedbackgroundgradient: {
 			type: 'linear',
 			colors: [{
-				color: '#1E232C',
+				color: '#1e232c',
 				offset: 0.0
 			}, {
-				color: '#3F4A58',
+				color: '#3f4a58',
 				offset: 0.2
 			}, {
-				color: '#3F4A58',
+				color: '#3f4a58',
 				offset: 0.8
 			}, {
-				color: '#1E232C',
+				color: '#1e232c',
 				offset: 1
 			}],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		}
 	}, _args);
-	var listview = Ti.UI.createListView(realArgs);
-	listview.addEventListener('itemclick', function(_event) {
-		if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
-			var item = _event.section.getItemAt(_event.itemIndex);
+	var listview = ti.ui.createlistview(realargs);
+	listview.addeventlistener('itemclick', function(_event) {
+		if (_event.hasownproperty('section') && _event.hasownproperty('itemindex')) {
+			var item = _event.section.getitemat(_event.itemindex);
 			if (item.callback) {
 				item.callback();
 			}
@@ -88,666 +88,173 @@ function createListView(_args) {
 	return listview;
 }
 
-function varSwitch(_var, _val1, _val2) {
+function varswitch(_var, _val1, _val2) {
 	return (_var === _val1) ? _val2 : _val1;
 }
-var androidActivitysSettings = {
-	actionBar: {
-		displayHomeAsUp: true,
-		onHomeIconItemSelected: function(e) {
+var androidactivityssettings = {
+	actionbar: {
+		displayhomeasup: true,
+		onhomeiconitemselected: function(e) {
 			e.window.close();
 		}
 	}
 };
 
-function openWin(_win, _withoutActionBar) {
-	if (isAndroid) {
-		if (_withoutActionBar != true) _win.activity = androidActivitysSettings;
+function openwin(_win, _withoutactionbar) {
+	if (isandroid) {
+		if (_withoutactionbar != true) _win.activity = androidactivityssettings;
 	}
-	mainWin.openWindow(_win);
+	mainwin.openwindow(_win);
 }
 
-function transformExs() {
-	var win = createWin();
-	var listview = createListView();
+function layoutexs() {
+	var win = createwin();
+	var listview = createlistview();
 	listview.sections = [{
 		items: [{
 			properties: {
-				title: 'Transform',
-				backgroundColor: cellColor(1)
+				title: 'animated horizontal'
 			},
-			callback: transform1Ex
-		}, {
-			properties: {
-				title: 'TransformAnimated'
-			},
-			callback: transform2Ex
-		}, {
-			properties: {
-				title: 'PopIn'
-			},
-			callback: transform3Ex
-		}, {
-			properties: {
-				title: 'SlideIn'
-			},
-			callback: transform4Ex
-		}, {
-			properties: {
-				title: 'ListView'
-			},
-			callback: transform5Ex
+			callback: layout1ex
 		}]
 	}];
 	win.add(listview);
-	openWin(win);
+	openwin(win);
 }
 
-function transform1Ex() {
-	var win = createWin();
-	var button = Ti.UI.createButton({
-		bottom: 20,
-		bubbleParent: false,
-		title: 'test buutton'
-	});
-	var t1 = Ti.UI.create2DMatrix();
-	var t2 = t1.scale(2.0, 2.0).translate(0, 40).rotate(90);
-	button.addEventListener('longpress', function(e) {
-		button.animate({
-			duration: 500,
-			transform: varSwitch(button.transform, t2, t1),
-		});
-	});
-	win.add(button);
-	var label = Ti.UI.createLabel({
-		bottom: 20,
-		backgroundColor: 'gray',
-		backgroundSelectedColor: '#ddd',
-		bubbleParent: false,
-		text: 'This is a sample\n text for a label'
-	});
-	var t3 = t1.scale(2.0, 2.0).translate(0, -40).rotate(90);
-	label.addEventListener('longpress', function(e) {
-		label.animate({
-			duration: 500,
-			transform: varSwitch(label.transform, t3, t1),
-		});
-	});
-	win.add(label);
-	openWin(win);
-}
-
-function transform2Ex() {
-	var gone = false;
-	var win = createWin();
-	var t0 = Ti.UI.create2DMatrix({
-		anchorPoint: {
-			x: 0,
-			y: "100%"
-		}
-	});
-	var t1 = t0.rotate(30);
-	var t2 = t0.rotate(145);
-	var t3 = t0.rotate(135);
-	var t4 = t0.translate(0, "100%").rotate(125);
-	var t5 = Ti.UI.create2DMatrix().translate(0, ((Math.sqrt(2)) * 100)).rotate(180);
-	var view = Ti.UI.createView({
-		transform: t0,
-		borderRadius: 6,
-		borderColor: 'orange',
-		borderWidth: 2,
-		backgroundGradient: {
-			type: 'radial',
-			colors: ['orange', 'yellow']
-		},
-		top: 30,
-		width: 100,
-		height: 100
-	});
-	var anim1 = Ti.UI.createAnimation({
-		id: 1,
-		cancelRunningAnimations: true,
-		duration: 800,
-		transform: t1
-	});
-	var animToRun = anim1;
-	anim1.addEventListener('complete', function() {
-		animToRun = anim2;
-		view.animate(anim2);
-	});
-	var anim2 = Ti.UI.createAnimation({
-		id: 2,
-		cancelRunningAnimations: true,
-		duration: 800,
-		transform: t2
-	});
-	anim2.addEventListener('complete', function() {
-		animToRun = anim3;
-		view.animate(anim3);
-	});
-	var anim3 = Ti.UI.createAnimation({
-		id: 3,
-		cancelRunningAnimations: true,
-		duration: 500,
-		transform: t3
-	});
-	anim3.addEventListener('complete', function() {
-		animToRun = anim5;
-		view.animate(anim5);
-	});
-	var anim4 = Ti.UI.createAnimation({
-		id: 4,
-		cancelRunningAnimations: true,
-		duration: 500,
-		transform: t4
-	});
-	anim4.addEventListener('complete', function() {
-		gone = true;
-	});
-	var anim5 = Ti.UI.createAnimation({
-		id: 5,
-		cancelRunningAnimations: true,
-		duration: 200,
-		bottom: 145,
-		top: null
-	});
-	anim5.addEventListener('complete', function() {
-		animToRun = anim6;
-		view.animate(anim6);
-	});
-	var anim6 = Ti.UI.createAnimation({
-		id: 6,
-		cancelRunningAnimations: true,
-		duration: 400,
-		transform: t5
-	});
-	anim6.addEventListener('complete', function() {
-		animToRun = anim1;
-		gone = true;
-	});
-
-	function onclick() {
-		if (gone === true) {
-			view.animate({
-				duration: 300,
-				transform: t0,
-				top: 30,
-				bottom: null
-			}, function() {
-				gone = false;
-			});
-		} else view.animate(animToRun);
-	}
-	win.addEventListener('click', onclick);
-	win.add(view);
-	openWin(win);
-}
-
-function transform3Ex() {
-	var win = createWin();
-	var t = Ti.UI.create2DMatrix().scale(0.3, 0.6);
-	var view = Ti.UI.createView({
-		backgroundColor: 'red',
-		borderRadius: 12,
-		borderColor: 'green',
-		borderWidth: 2,
-		opacity: 0,
+function layout1ex() {
+	var win = createwin();
+	var view = ti.ui.createview({
+		backgroundcolor: 'green',
 		width: 200,
-		height: 200
-	});
-	view.add(Ti.UI.createView({
-		borderRadius: 12,
-		borderColor: 'yellow',
-		borderWidth: 2,
-		backgroundColor: 'blue',
-		bottom: 0,
-		width: Ti.UI.FILL,
-		height: 50
-	}));
-	var showMe = function() {
-		view.opacity = 0;
-		view.transform = t;
-		win.add(view);
-		animation.fadeIn(view, 100);
-		animation.popIn(view);
-	};
-	var hideMe = function(_callback) {
-		animation.fadeOut(view, 200, function() {
-			win.remove(view);
-		});
-	};
-	var button = Ti.UI.createButton({
-		bottom: 10,
-		width: 100,
-		bubbleParent: false,
-		title: 'test buutton'
-	});
-	button.addEventListener('click', function(e) {
-		if (view.opacity === 0) showMe();
-		else hideMe();
-	});
-	win.add(button);
-	openWin(win);
-}
-
-function transform4Ex() {
-	var win = createWin();
-	var t0 = Ti.UI.create2DMatrix();
-	var t1 = t0.translate("-100%", 0);
-	var t2 = t0.translate("100%", 0);
-	var view = Ti.UI.createView({
-		backgroundColor: 'red',
-		opacity: 0,
-		transform: t1,
-		width: 200,
-		height: 200
-	});
-	view.add(Ti.UI.createView({
-		backgroundColor: 'blue',
-		bottom: 10,
-		width: 50,
-		height: 50
-	}));
-	var showMe = function() {
-		view.transform = t1;
-		win.add(view);
-		view.animate({
-			duration: 300,
-			transform: t0,
-			opacity: 1
-		});
-	};
-	var hideMe = function(_callback) {
-		view.animate({
-			duration: 300,
-			transform: t2,
-			opacity: 0
-		}, function() {
-			win.remove(view);
-		});
-	};
-	var button = Ti.UI.createButton({
-		bottom: 10,
-		width: 100,
-		bubbleParent: false,
-		title: 'test buutton'
-	});
-	button.addEventListener('click', function(e) {
-		if (view.opacity === 1) hideMe();
-		else showMe();
-	});
-	win.add(button);
-	openWin(win);
-}
-
-function transform5Ex() {
-	var showItemIndex = -1;
-	var showItemSection = null;
-
-	function hideMenu() {
-		if (showItemIndex != -1 && showItemSection != null) {
-			var hideItem = showItemSection.getItemAt(showItemIndex);
-			hideItem.menu.transform = t1;
-			hideItem.menu.opacity = 0;
-			showItemSection.updateItemAt(showItemIndex, hideItem);
-			showItemIndex = -1;
-			showItemSection = null;
-		}
-	}
-	var win = createWin();
-	var t0 = Ti.UI.create2DMatrix();
-	var t1 = t0.translate(0, "100%");
-	var myTemplate = {
-		childTemplates: [{
-			type: 'Ti.UI.View',
-			bindId: 'holder',
-			properties: {
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
-				touchEnabled: false,
-				layout: 'horizontal',
-				horizontalWrap: false
-			},
-			childTemplates: [{
-				type: 'Ti.UI.ImageView',
-				bindId: 'pic',
-				properties: {
-					touchEnabled: false,
-					width: 50,
-					height: 50
-				}
-			}, {
-				type: 'Ti.UI.Label',
-				bindId: 'info',
-				properties: {
-					color: textColor,
-					touchEnabled: false,
-					font: {
-						fontSize: 20,
-						fontWeight: 'bold'
-					},
-					width: Ti.UI.FILL,
-					left: 10
-				}
-			}, {
-				type: 'Ti.UI.Button',
-				bindId: 'button',
-				properties: {
-					title: 'menu',
-					left: 10
-				},
-				events: {
-					'click': function(_event) {
-						if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
-							hideMenu();
-							var item = _event.section.getItemAt(_event.itemIndex);
-							item.menu = {
-								transform: t0,
-								opacity: 1
-							};
-							showItemIndex = _event.itemIndex;
-							showItemSection = _event.section;
-							_event.section.updateItemAt(_event.itemIndex, item);
-						}
-					}
-				}
-			}]
-		}, {
-			type: 'Ti.UI.Label',
-			bindId: 'menu',
-			properties: {
-				color: 'white',
-				text: 'I am the menu',
-				backgroundColor: '#444',
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
-				opacity: 0,
-				transform: t1
-			},
-			events: {
-				'click': hideMenu
-			}
-		}]
-	};
-	var listView = createListView({
-		templates: {
-			'template': myTemplate
-		},
-		defaultItemTemplate: 'template'
-	});
-	var sections = [{
-		headerTitle: 'Fruits / Frutas',
-		items: [{
-			info: {
-				text: 'Apple'
-			}
-		}, {
-			properties: {
-				backgroundColor: 'red'
-			},
-			info: {
-				text: 'Banana'
-			},
-			pic: {
-				image: 'banana.png'
-			}
-		}]
-	}, {
-		headerTitle: 'Vegetables / Verduras',
-		items: [{
-			info: {
-				text: 'Carrot'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}, {
-			info: {
-				text: 'Potato'
-			}
-		}]
-	}, {
-		headerTitle: 'Grains / Granos',
-		items: [{
-			info: {
-				text: 'Corn'
-			}
-		}, {
-			info: {
-				text: 'Rice'
-			}
-		}]
-	}];
-	listView.setSections(sections);
-	win.add(listView);
-	openWin(win);
-}
-
-function layoutExs() {
-	var win = createWin();
-	var listview = createListView();
-	listview.sections = [{
-		items: [{
-			properties: {
-				title: 'Animated Horizontal'
-			},
-			callback: layout1Ex
-		}]
-	}];
-	win.add(listview);
-	openWin(win);
-}
-
-function layout1Ex() {
-	var win = createWin();
-	var view = Ti.UI.createView({
-		backgroundColor: 'green',
-		width: 200,
-		height: Ti.UI.SIZE,
+		height: ti.ui.size,
 		layout: 'horizontal'
 	});
-	var view1 = Ti.UI.createView({
-		backgroundColor: 'red',
+	var view1 = ti.ui.createview({
+		backgroundcolor: 'red',
 		width: 60,
 		height: 80,
 		left: 0
 	});
-	var view2 = Ti.UI.createView({
-		backgroundColor: 'blue',
+	var view2 = ti.ui.createview({
+		backgroundcolor: 'blue',
 		width: 20,
-		borderColor: 'red',
-		borderWidth: 2,
+		bordercolor: 'red',
+		borderwidth: 2,
 		// top:10,
 		height: 80,
 		left: 10,
 		right: 4
 	});
-	var view3 = Ti.UI.createView({
-		backgroundColor: 'orange',
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
+	var view3 = ti.ui.createview({
+		backgroundcolor: 'orange',
+		width: ti.ui.fill,
+		height: ti.ui.fill,
 		bottom: 6,
 		right: 4
 	});
 	view.add(view1);
 	view.add(view2);
 	view.add({
-		backgroundColor: 'purple',
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
+		backgroundcolor: 'purple',
+		width: ti.ui.fill,
+		height: ti.ui.fill,
 		bottom: 6,
 		right: 4
 	});
 	view.add(view3);
 	win.add(view);
-	win.addEventListener('click', function(e) {
+	win.addeventlistener('click', function(e) {
 		view2.animate({
-			cancelRunningAnimations: true,
-			// restartFromBeginning:true,
+			cancelrunninganimations: true,
+			// restartfrombeginning:true,
 			duration: 300,
 			autoreverse: true,
 			repeat: 4,
-			width: Ti.UI.FILL,
+			width: ti.ui.fill,
 			height: 100,
 			top: null,
 			left: 0,
 			right: 30
 		});
 	});
-	openWin(win);
+	openwin(win);
 }
 
-function shapeExs() {
-	var win = createWin();
-	var listview = createListView();
+function shapeexs() {
+	var win = createwin();
+	var listview = createlistview();
 	listview.sections = [{
 		items: [{
 			properties: {
-				title: 'Arc'
+				title: 'arc'
 			},
-			callback: shape1Ex
+			callback: shape1ex
 		}, {
 			properties: {
-				title: 'Circle'
+				title: 'circle'
 			},
-			callback: shape2Ex
+			callback: shape2ex
 		}, {
 			properties: {
-				title: 'Line'
+				title: 'line'
 			},
-			callback: shape3Ex
+			callback: shape3ex
 		}, {
 			properties: {
-				title: 'Inversed'
+				title: 'inversed'
 			},
-			callback: shape4Ex
+			callback: shape4ex
 		}, {
 			properties: {
-				title: 'Shutter'
+				title: 'shutter'
 			},
-			callback: shape5Ex
+			callback: shape5ex
 		}, {
 			properties: {
-				title: 'Inner Shadow'
+				title: 'inner shadow'
 			},
-			callback: shape6Ex
+			callback: shape6ex
 		}, {
 			properties: {
-				title: 'PieSlice'
+				title: 'pieslice'
 			},
-			callback: shape7Ex
+			callback: shape7ex
 		}]
 	}];
 	win.add(listview);
-	openWin(win);
+	openwin(win);
 }
 
-function shape1Ex() {
-	var win = createWin();
-	var view = Shape.createView({
-		bubbleParent: false,
+function shape1ex() {
+	var win = createwin();
+	var view = shape.createview({
+		bubbleparent: false,
 		width: 200,
 		height: 200
 	});
 	view.add({
-		lineColor: '#777',
-		lineWidth: 10,
-		lineCap: Shape.CAP_ROUND,
-		transform: Ti.UI.create2DMatrix().rotate(5),
-		lineShadow: {
+		linecolor: '#777',
+		linewidth: 10,
+		linecap: shape.cap_round,
+		transform: ti.ui.create2dmatrix().rotate(5),
+		lineshadow: {
 			color: 'white'
 		},
 		operations: [{
 			type: 'arc',
 			radius: '45%',
-			startAngle: -160,
-			sweepAngle: 320
+			startangle: -160,
+			sweepangle: 320
 		}]
 	});
-	var shape = Shape.createArc({
+	var shape = shape.createarc({
 		radius: '45%',
-		startAngle: -160,
-		sweepAngle: 190,
-		lineWidth: 10,
-		lineCap: Shape.CAP_ROUND,
-		lineGradient: {
+		startangle: -160,
+		sweepangle: 190,
+		linewidth: 10,
+		linecap: shape.cap_round,
+		linegradient: {
 			type: 'sweep',
 			colors: [{
 				color: 'orange',
@@ -777,90 +284,90 @@ function shape1Ex() {
 		}
 	});
 	view.add(shape);
-	var anim = Ti.UI.createAnimation({
+	var anim = ti.ui.createanimation({
 		duration: 600,
 		autoreverse: true,
-		sweepAngle: 320
+		sweepangle: 320
 	});
-	view.addEventListener('click', function(e) {
-		// shape.cancelAllAnimations();
-		// shape.sweepAngle = 320;
+	view.addeventlistener('click', function(e) {
+		// shape.cancelallanimations();
+		// shape.sweepangle = 320;
 		shape.animate(anim);
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape2Ex() {
-	var win = createWin();
-	var view = Shape.createView({
+function shape2ex() {
+	var win = createwin();
+	var view = shape.createview({
 		top: 150,
-		borderRadius: 10,
-		borderColor: 'red',
-		borderWidth: 5,
-		bubbleParent: false,
+		borderradius: 10,
+		bordercolor: 'red',
+		borderwidth: 5,
+		bubbleparent: false,
 		width: 300,
 		height: 100,
-		backgroundColor: 'white',
-		transform: Ti.UI.create2DMatrix().scale(1.5, 1.5),
-		viewMask: '/images/body-mask.png'
+		backgroundcolor: 'white',
+		transform: ti.ui.create2dmatrix().scale(1.5, 1.5),
+		viewmask: '/images/body-mask.png'
 	});
-	var shape = Shape.createCircle({
-		fillColor: '#bbb',
-		lineColor: '#777',
-		lineWidth: 1,
-		fillImage: '/images/pattern.png',
-		transform: Ti.UI.create2DMatrix().scale(0.5, 1),
-		lineShadow: {
+	var shape = shape.createcircle({
+		fillcolor: '#bbb',
+		linecolor: '#777',
+		linewidth: 1,
+		fillimage: '/images/pattern.png',
+		transform: ti.ui.create2dmatrix().scale(0.5, 1),
+		lineshadow: {
 			radius: 2,
 			color: 'black'
 		},
 		radius: '40%'
 	});
 	view.add(shape);
-	view.add(Ti.UI.createView({
-		backgroundColor: 'red',
+	view.add(ti.ui.createview({
+		backgroundcolor: 'red',
 		bottom: 10,
 		width: 30,
 		height: 30
 	}));
-	var anim = Ti.UI.createAnimation({
+	var anim = ti.ui.createanimation({
 		duration: 400,
-		lineWidth: 20,
+		linewidth: 20,
 		autoreverse: true,
-		// restartFromBeginning:true,
+		// restartfrombeginning:true,
 		repeat: 2,
-		lineColor: 'yellow',
-		fillColor: 'blue'
+		linecolor: 'yellow',
+		fillcolor: 'blue'
 	});
-	shape.addEventListener('click', function(e) {
-		// e.source.cancelAllAnimations();
+	shape.addeventlistener('click', function(e) {
+		// e.source.cancelallanimations();
 		e.source.animate(anim);
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape3Ex() {
-	var win = createWin();
-	var view = Shape.createView({
-		bubbleParent: false,
-		width: Ti.UI.FILL,
+function shape3ex() {
+	var win = createwin();
+	var view = shape.createview({
+		bubbleparent: false,
+		width: ti.ui.fill,
 		height: 200
 	});
-	var shape = Shape.createLine({
-		lineColor: 'blue',
-		lineWidth: 6,
+	var shape = shape.createline({
+		linecolor: 'blue',
+		linewidth: 6,
 		retina: false,
 		antialiasing: true,
-		lineCap: Shape.CAP_BUTT,
-		lineJoin: Shape.JOIN_ROUND,
-		lineShadow: {
+		linecap: shape.cap_butt,
+		linejoin: shape.join_round,
+		lineshadow: {
 			radius: 3,
 			color: 'blue'
 		},
-		lineImage: '/images/pattern.png',
-		// lineDash:{
+		lineimage: '/images/pattern.png',
+		// linedash:{
 		// 	phase:0,
 		// 	pattern:[10,2,10]
 		// },
@@ -874,12 +381,12 @@ function shape3Ex() {
 		]
 	});
 	view.add(shape);
-	view.addEventListener('click', function(e) {
+	view.addeventlistener('click', function(e) {
 		shape.animate({
 			duration: 400,
-			lineWidth: 20,
+			linewidth: 20,
 			autoreverse: true,
-			lineColor: 'yellow',
+			linecolor: 'yellow',
 			points: [
 				['0%', 30],
 				['10%', 40, '20%', 10, '10%', 30],
@@ -891,118 +398,118 @@ function shape3Ex() {
 		});
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape4Ex() {
-	var win = createWin();
-	win.add(Ti.UI.createLabel({
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
+function shape4ex() {
+	var win = createwin();
+	win.add(ti.ui.createlabel({
+		width: ti.ui.fill,
+		height: ti.ui.fill,
 		bottom: 20,
 		html: html
 	}));
-	var view = Shape.createView({
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
-		bubbleParent: false
+	var view = shape.createview({
+		width: ti.ui.fill,
+		height: ti.ui.fill,
+		bubbleparent: false
 	});
-	var shape = Shape.createCircle({
-		fillColor: 'transparent',
-		lineColor: '#777',
-		lineWidth: 1,
+	var shape = shape.createcircle({
+		fillcolor: 'transparent',
+		linecolor: '#777',
+		linewidth: 1,
 		retina: false,
 		antialiasing: false,
-		fillGradient: {
+		fillgradient: {
 			type: 'radial',
 			colors: ['transparent', 'gray'],
-			// startPoint:{x:0, y:0},
-			// endPoint:{x:0, y:"100%"}
+			// startpoint:{x:0, y:0},
+			// endpoint:{x:0, y:"100%"}
 		},
-		fillInversed: true,
-		fillColor: 'blue',
-		fillShadow: {
+		fillinversed: true,
+		fillcolor: 'blue',
+		fillshadow: {
 			radius: 5,
 			color: 'black'
 		},
 		radius: '20%'
 	});
 	view.add(shape);
-	shape.addEventListener('click', function(e) {
-		e.source.cancelAllAnimations();
+	shape.addeventlistener('click', function(e) {
+		e.source.cancelallanimations();
 		e.source.animate({
 			duration: 400,
-			lineWidth: 20,
+			linewidth: 20,
 			radius: '40%',
-			fillOpacity: 0.7,
+			fillopacity: 0.7,
 			autoreverse: true,
-			lineColor: 'yellow',
-			fillColor: 'blue'
+			linecolor: 'yellow',
+			fillcolor: 'blue'
 		});
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape5Ex() {
-	var win = createWin();
-	win.add(Ti.UI.createLabel({
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
+function shape5ex() {
+	var win = createwin();
+	win.add(ti.ui.createlabel({
+		width: ti.ui.fill,
+		height: ti.ui.fill,
 		bottom: 20,
 		html: html
 	}));
-	var view = Shape.createView({
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
-		bubbleParent: false
+	var view = shape.createview({
+		width: ti.ui.fill,
+		height: ti.ui.fill,
+		bubbleparent: false
 	});
-	var shape = Shape.createRoundedRect({
-		cornerRadius: 10,
-		// lineColor:'#777',
-		// lineWidth:4,
+	var shape = shape.createroundedrect({
+		cornerradius: 10,
+		// linecolor:'#777',
+		// linewidth:4,
 		retina: false,
 		antialiasing: false,
-		fillGradient: {
+		fillgradient: {
 			type: 'radial',
 			colors: ['white', 'gray']
 		},
-		fillInversed: true,
-		fillColor: 'blue',
-		fillShadow: {
+		fillinversed: true,
+		fillcolor: 'blue',
+		fillshadow: {
 			radius: 5,
 			color: 'black'
 		},
-		transform: Ti.UI.create2DMatrix().scale(0.0003)
+		transform: ti.ui.create2dmatrix().scale(0.0003)
 	});
 	view.add(shape);
-	view.addEventListener('click', function(e) {
+	view.addeventlistener('click', function(e) {
 		shape.animate({
 			duration: 3000,
-			restartFromBeginning: true,
-			transform: Ti.UI.create2DMatrix().scale(2)
+			restartfrombeginning: true,
+			transform: ti.ui.create2dmatrix().scale(2)
 		});
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape6Ex() {
-	var win = createWin();
-	win.backgroundColor = 'gray';
-	var view = Shape.createView({
+function shape6ex() {
+	var win = createwin();
+	win.backgroundcolor = 'gray';
+	var view = shape.createview({
 		width: 200,
 		height: 200,
-		bubbleParent: false
+		bubbleparent: false
 	});
-	view.add(Shape.createRoundedRect({
-		lineWidth: 1,
-		fillColor: 'white',
-		lineColor: 'gray',
-		cornerRadius: 10,
-		lineClipped: true,
+	view.add(shape.createroundedrect({
+		linewidth: 1,
+		fillcolor: 'white',
+		linecolor: 'gray',
+		cornerradius: 10,
+		lineclipped: true,
 		radius: '43%',
-		lineShadow: {
+		lineshadow: {
 			radius: 4,
 			color: 'black',
 			offset: {
@@ -1012,116 +519,116 @@ function shape6Ex() {
 		}
 	}));
 	// view.add({
-	// 	lineWidth:4,
-	// 	fillColor:'white',
-	// 	lineColor:'black',
-	// 	cornerRadius:10,
+	// 	linewidth:4,
+	// 	fillcolor:'white',
+	// 	linecolor:'black',
+	// 	cornerradius:10,
 	// 	radius:'43%',
-	// 	lineShadow:{radius:4, color:'black', offset:{x:0,y:-4}},
+	// 	lineshadow:{radius:4, color:'black', offset:{x:0,y:-4}},
 	// 	type:'roundedrect'
 	// });
-	view.add(Ti.UI.createLabel({
+	view.add(ti.ui.createlabel({
 		left: 14,
 		right: 14,
 		top: 14,
 		bottom: 14,
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
+		width: ti.ui.fill,
+		height: ti.ui.fill,
 		bottom: 20,
 		html: html
 	}));
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-function shape7Ex() {
-	var win = createWin({
-		backgroundColor: 'gray'
+function shape7ex() {
+	var win = createwin({
+		backgroundcolor: 'gray'
 	});
-	var view = Shape.createView({
+	var view = shape.createview({
 		width: 200,
 		height: 200,
-		bubbleParent: false
+		bubbleparent: false
 	});
-	var slice1 = Shape.createPieSlice({
-		fillColor: '#aa00ffff',
-		innerRadius: 30,
-		startAngle: 0,
+	var slice1 = shape.createpieslice({
+		fillcolor: '#aa00ffff',
+		innerradius: 30,
+		startangle: 0,
 		radius: '40%',
-		sweepAngle: 40
+		sweepangle: 40
 	});
-	var slice2 = Shape.createPieSlice({
-		fillColor: '#aaff00ff',
-		innerRadius: 30,
-		startAngle: 30,
-		sweepAngle: 100
+	var slice2 = shape.createpieslice({
+		fillcolor: '#aaff00ff',
+		innerradius: 30,
+		startangle: 30,
+		sweepangle: 100
 	});
-	var slice3 = Shape.createPieSlice({
-		fillColor: '#aaffff00',
-		innerRadius: 30,
-		startAngle: -60,
+	var slice3 = shape.createpieslice({
+		fillcolor: '#aaffff00',
+		innerradius: 30,
+		startangle: -60,
 		radius: '20%',
-		sweepAngle: 10
+		sweepangle: 10
 	});
 	view.add({
 		type: 'circle',
 		radius: 30,
-		fillColor: 'blue'
+		fillcolor: 'blue'
 	});
 	view.add(slice1);
 	view.add(slice2);
 	view.add(slice3);
 	win.add(view);
-	var anim1 = Ti.UI.createAnimation({});
+	var anim1 = ti.ui.createanimation({});
 	slice1.animate({
 		duration: 10000,
-		startAngle: 360,
-		repeat: Ti.UI.INFINITE
+		startangle: 360,
+		repeat: ti.ui.infinite
 	});
 	slice2.animate({
 		duration: 5000,
-		startAngle: 200,
+		startangle: 200,
 		autoreverse: true,
-		repeat: Ti.UI.INFINITE
+		repeat: ti.ui.infinite
 	});
 	slice3.animate({
 		duration: 4000,
-		startAngle: -420,
-		repeat: Ti.UI.INFINITE
+		startangle: -420,
+		repeat: ti.ui.infinite
 	});
-	var anim1 = Ti.UI.createAnimation({
+	var anim1 = ti.ui.createanimation({
 		duration: 400,
 		radius: '50%',
-		restartFromBeginning: true,
+		restartfrombeginning: true,
 		autoreverse: true
 	});
-	var anim2 = Ti.UI.createAnimation({
+	var anim2 = ti.ui.createanimation({
 		duration: 700,
 		radius: '30%',
 		repeat: 3,
 		autoreverse: true
 	});
-	var anim3 = Ti.UI.createAnimation({
+	var anim3 = ti.ui.createanimation({
 		duration: 300,
 		radius: '30%'
 	});
 
-	view.addEventListener('click', function(e) {
+	view.addeventlistener('click', function(e) {
 		slice1.animate(anim1);
 		slice2.animate(anim2);
 		// anim3.cancel();
 		slice3.animate(anim3);
 	});
-	openWin(win);
+	openwin(win);
 }
 
-function buttonAndLabelEx() {
-	var win = createWin({
-		navBarHidden: true,
-		dispatchPressed: true,
-		backgroundSelectedColor: 'green'
+function buttonandlabelex() {
+	var win = createwin({
+		navbarhidden: true,
+		dispatchpressed: true,
+		backgroundselectedcolor: 'green'
 	});
-	var button = Ti.UI.createButton({
+	var button = ti.ui.createbutton({
 		top: 0,
 		padding: {
 			left: 30,
@@ -1130,533 +637,533 @@ function buttonAndLabelEx() {
 			right: 30
 		},
 		height: 50,
-		bubbleParent: false,
-		backgroundColor: 'gray',
-		touchPassThrough: false,
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		backgroundcolor: 'gray',
+		touchpassthrough: false,
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
 		title: 'test buutton'
 	});
-	button.add(Ti.UI.createView({
+	button.add(ti.ui.createview({
 		enabled: false,
-		backgroundColor: 'purple',
-		backgroundSelectedColor: 'white',
+		backgroundcolor: 'purple',
+		backgroundselectedcolor: 'white',
 		left: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		backgroundColor: 'green',
+	button.add(ti.ui.createview({
+		backgroundcolor: 'green',
 		bottom: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		backgroundColor: 'yellow',
+	button.add(ti.ui.createview({
+		backgroundcolor: 'yellow',
 		top: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		touchPassThrough: true,
-		backgroundColor: 'orange',
+	button.add(ti.ui.createview({
+		touchpassthrough: true,
+		backgroundcolor: 'orange',
 		right: 0,
 		width: 35,
-		height: Ti.UI.FILL
+		height: ti.ui.fill
 	}));
-	var t1 = Ti.UI.create2DMatrix();
-	var t2 = Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, 40).rotate(90);
-	button.addEventListener('longpress', function(e) {
+	var t1 = ti.ui.create2dmatrix();
+	var t2 = ti.ui.create2dmatrix().scale(2.0, 2.0).translate(0, 40).rotate(90);
+	button.addeventlistener('longpress', function(e) {
 		button.animate({
 			duration: 500,
-			transform: varSwitch(button.transform, t2, t1),
+			transform: varswitch(button.transform, t2, t1),
 		});
 	});
-	button.addEventListener('touchstart', function(e) {
+	button.addeventlistener('touchstart', function(e) {
 		alert('stste');
 	});
 	win.add(button);
-	var label = Ti.UI.createLabel({
+	var label = ti.ui.createlabel({
 		bottom: 20,
-		// dispatchPressed: true,
-		backgroundColor: 'gray',
-		backgroundSelectedColor: '#a46',
+		// dispatchpressed: true,
+		backgroundcolor: 'gray',
+		backgroundselectedcolor: '#a46',
 		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
 			right: 30
 		},
-		bubbleParent: false,
-		selectedColor: 'green',
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		selectedcolor: 'green',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
-		text: 'This is a sample\n text for a label'
+		text: 'this is a sample\n text for a label'
 	});
-	label.add(Ti.UI.createView({
-		touchEnabled: false,
-		backgroundColor: 'red',
-		backgroundSelectedColor: 'white',
+	label.add(ti.ui.createview({
+		touchenabled: false,
+		backgroundcolor: 'red',
+		backgroundselectedcolor: 'white',
 		left: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'green',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'green',
 		bottom: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'yellow',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'yellow',
 		top: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'orange',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'orange',
 		right: 10,
 		width: 15,
 		height: 15
 	}));
-	var t3 = Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, -40).rotate(90);
-	label.addEventListener('longpress', function(e) {
+	var t3 = ti.ui.create2dmatrix().scale(2.0, 2.0).translate(0, -40).rotate(90);
+	label.addeventlistener('longpress', function(e) {
 		label.animate({
 			duration: 500,
-			transform: varSwitch(label.transform, t3, t1),
+			transform: varswitch(label.transform, t3, t1),
 		});
 	});
 	win.add(label);
-	var button2 = Ti.UI.createButton({
+	var button2 = ti.ui.createbutton({
 		padding: {
 			left: 80
 		},
-		bubbleParent: false,
-		backgroundColor: 'gray',
-		dispatchPressed: true,
-		selectedColor: 'red',
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		backgroundcolor: 'gray',
+		dispatchpressed: true,
+		selectedcolor: 'red',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
 		title: 'test buutton'
 	});
-	button2.add(Ti.UI.createButton({
+	button2.add(ti.ui.createbutton({
 		left: 0,
-		backgroundColor: 'green',
-		selectedColor: 'red',
-		backgroundSelectedGradient: {
+		backgroundcolor: 'green',
+		selectedcolor: 'red',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
-		title: 'Osd'
+		title: 'osd'
 	}));
 	win.add(button2);
-	openWin(win);
+	openwin(win);
 }
 
-function pullToRefresh() {
-	var win = createWin();
+function pulltorefresh() {
+	var win = createwin();
 	var sections = [];
 
-	var fruitSection = Ti.UI.createListSection({
-		headerTitle: 'Fruits'
+	var fruitsection = ti.ui.createlistsection({
+		headertitle: 'fruits'
 	});
-	var fruitDataSet = [
+	var fruitdataset = [
 		{
 			properties: {
-				title: 'Apple'
+				title: 'apple'
 			}
 		},
 		{
 			properties: {
-				title: 'Banana'
+				title: 'banana'
 			}
 		},
 		{
 			properties: {
-				title: 'Cantaloupe'
+				title: 'cantaloupe'
 			}
 		},
 		{
 			properties: {
-				title: 'Fig'
+				title: 'fig'
 			}
 		},
 		{
 			properties: {
-				title: 'Guava'
+				title: 'guava'
 			}
 		},
 		{
 			properties: {
-				title: 'Kiwi'
+				title: 'kiwi'
 			}
 		}
 	];
-	fruitSection.setItems(fruitDataSet);
-	sections.push(fruitSection);
+	fruitsection.setitems(fruitdataset);
+	sections.push(fruitsection);
 
-	var vegSection = Ti.UI.createListSection({
-		headerTitle: 'Vegetables'
+	var vegsection = ti.ui.createlistsection({
+		headertitle: 'vegetables'
 	});
-	var vegDataSet = [
+	var vegdataset = [
 		{
 			properties: {
-				title: 'Carrots'
+				title: 'carrots'
 			}
 		},
 		{
 			properties: {
-				title: 'Potatoes'
+				title: 'potatoes'
 			}
 		},
 		{
 			properties: {
-				title: 'Corn'
+				title: 'corn'
 			}
 		},
 		{
 			properties: {
-				title: 'Beans'
+				title: 'beans'
 			}
 		},
 		{
 			properties: {
-				title: 'Tomato'
+				title: 'tomato'
 			}
 		}
 	];
-	vegSection.setItems(vegDataSet);
+	vegsection.setitems(vegdataset);
 
-	var fishSection = Ti.UI.createListSection({
-		headerTitle: 'Fish'
+	var fishsection = ti.ui.createlistsection({
+		headertitle: 'fish'
 	});
-	var fishDataSet = [
+	var fishdataset = [
 		{
 			properties: {
-				title: 'Cod'
+				title: 'cod'
 			}
 		},
 		{
 			properties: {
-				title: 'Haddock'
+				title: 'haddock'
 			}
 		},
 		{
 			properties: {
-				title: 'Salmon'
+				title: 'salmon'
 			}
 		},
 		{
 			properties: {
-				title: 'Tuna'
+				title: 'tuna'
 			}
 		}
 	];
-	fishSection.setItems(fishDataSet);
+	fishsection.setitems(fishdataset);
 
-	var refreshCount = 0;
+	var refreshcount = 0;
 
-	function getFormattedDate() {
-		var date = new Date();
-		return date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear() + ' ' + date.getHours() + ':' + date.getMinutes();
+	function getformatteddate() {
+		var date = new date();
+		return date.getmonth() + '/' + date.getdate() + '/' + date.getfullyear() + ' ' + date.gethours() + ':' + date.getminutes();
 	}
 
-	function resetPullHeader() {
-		actInd.hide();
-		imageArrow.transform = Ti.UI.create2DMatrix();
-		if (refreshCount < 2) {
-			imageArrow.show();
-			labelStatus.text = 'Pull down to refresh...';
-			labelLastUpdated.text = 'Last Updated: ' + getFormattedDate();
+	function resetpullheader() {
+		actind.hide();
+		imagearrow.transform = ti.ui.create2dmatrix();
+		if (refreshcount < 2) {
+			imagearrow.show();
+			labelstatus.text = 'pull down to refresh...';
+			labellastupdated.text = 'last updated: ' + getformatteddate();
 		} else {
-			// labelStatus.text = 'Nothing To Refresh';
-			// labelLastUpdated.text = 'Go Cook Something';
-			// listView.removeEventListener('pull', pullListener);
-			// listView.removeEventListener('pullend', pullendListener);
-			// eventStatus.text = 'Removed event listeners.';
+			// labelstatus.text = 'nothing to refresh';
+			// labellastupdated.text = 'go cook something';
+			// listview.removeeventlistener('pull', pulllistener);
+			// listview.removeeventlistener('pullend', pullendlistener);
+			// eventstatus.text = 'removed event listeners.';
 		}
-		listView.closePullView();
+		listview.closepullview();
 	}
 
-	function loadTableData() {
-		if (refreshCount == 0) {
-			listView.appendSection(vegSection);
-		} else if (refreshCount == 1) {
-			listView.appendSection(fishSection);
+	function loadtabledata() {
+		if (refreshcount == 0) {
+			listview.appendsection(vegsection);
+		} else if (refreshcount == 1) {
+			listview.appendsection(fishsection);
 		}
-		refreshCount++;
-		resetPullHeader();
+		refreshcount++;
+		resetpullheader();
 	}
-	var currentActive;
+	var currentactive;
 
-	function pullListener(e) {
-		if (e.active === currentActive) return;
-		currentActive = e.active;
-		eventStatus.text = 'EVENT pull FIRED. e.active = ' + e.active;
+	function pulllistener(e) {
+		if (e.active === currentactive) return;
+		currentactive = e.active;
+		eventstatus.text = 'event pull fired. e.active = ' + e.active;
 		if (e.active == false) {
-			var unrotate = Ti.UI.create2DMatrix();
-			imageArrow.animate({
+			var unrotate = ti.ui.create2dmatrix();
+			imagearrow.animate({
 				transform: unrotate,
 				duration: 180
 			});
-			labelStatus.text = 'Pull down to refresh...';
+			labelstatus.text = 'pull down to refresh...';
 		} else {
-			var rotate = Ti.UI.create2DMatrix().rotate(180);
-			imageArrow.animate({
+			var rotate = ti.ui.create2dmatrix().rotate(180);
+			imagearrow.animate({
 				transform: rotate,
 				duration: 180
 			});
-			if (refreshCount == 0) {
-				labelStatus.text = 'Release to get Vegetables...';
+			if (refreshcount == 0) {
+				labelstatus.text = 'release to get vegetables...';
 			} else {
-				labelStatus.text = 'Release to get Fish...';
+				labelstatus.text = 'release to get fish...';
 			}
 		}
 	}
 
-	function pullendListener(e) {
-		eventStatus.text = 'EVENT pullend FIRED.';
+	function pullendlistener(e) {
+		eventstatus.text = 'event pullend fired.';
 
-		if (refreshCount == 0) {
-			labelStatus.text = 'Loading Vegetables...';
+		if (refreshcount == 0) {
+			labelstatus.text = 'loading vegetables...';
 		} else {
-			labelStatus.text = 'Loading Fish...';
+			labelstatus.text = 'loading fish...';
 		}
-		imageArrow.hide();
-		actInd.show();
-		listView.showPullView();
-		setTimeout(function() {
-			loadTableData();
+		imagearrow.hide();
+		actind.show();
+		listview.showpullview();
+		settimeout(function() {
+			loadtabledata();
 		}, 2000);
 	}
 
-	var tableHeader = Ti.UI.createView({
-		backgroundColor: '#e2e7ed',
-		width: Ti.UI.FILL,
+	var tableheader = ti.ui.createview({
+		backgroundcolor: '#e2e7ed',
+		width: ti.ui.fill,
 		height: 80
 	});
 
-	var border = Ti.UI.createView({
-		backgroundColor: '#576c89',
+	var border = ti.ui.createview({
+		backgroundcolor: '#576c89',
 		bottom: 0,
 		height: 2
 	});
-	tableHeader.add(border);
+	tableheader.add(border);
 
-	var imageArrow = Ti.UI.createImageView({
-		image: 'https://github.com/appcelerator/titanium_mobile/raw/master/demos/KitchenSink/Resources/images/whiteArrow.png',
+	var imagearrow = ti.ui.createimageview({
+		image: 'https://github.com/appcelerator/titanium_mobile/raw/master/demos/kitchensink/resources/images/whitearrow.png',
 		left: 20,
 		bottom: 10,
 		width: 23,
 		height: 60
 	});
-	tableHeader.add(imageArrow);
+	tableheader.add(imagearrow);
 
-	var labelStatus = Ti.UI.createLabel({
+	var labelstatus = ti.ui.createlabel({
 		color: '#576c89',
 		font: {
-			fontSize: 13,
-			fontWeight: 'bold'
+			fontsize: 13,
+			fontweight: 'bold'
 		},
-		text: 'Pull down to refresh...',
-		textAlign: 'center',
+		text: 'pull down to refresh...',
+		textalign: 'center',
 		left: 55,
 		bottom: 30,
 		width: 200
 	});
-	tableHeader.add(labelStatus);
+	tableheader.add(labelstatus);
 
-	var labelLastUpdated = Ti.UI.createLabel({
+	var labellastupdated = ti.ui.createlabel({
 		color: '#576c89',
 		font: {
-			fontSize: 12
+			fontsize: 12
 		},
-		text: 'Last Updated: ' + getFormattedDate(),
-		textAlign: 'center',
+		text: 'last updated: ' + getformatteddate(),
+		textalign: 'center',
 		left: 55,
 		bottom: 15,
 		width: 200
 	});
-	tableHeader.add(labelLastUpdated);
+	tableheader.add(labellastupdated);
 
-	var actInd = Ti.UI.createActivityIndicator({
+	var actind = ti.ui.createactivityindicator({
 		left: 20,
 		bottom: 13,
 		width: 30,
 		height: 30
 	});
-	tableHeader.add(actInd);
+	tableheader.add(actind);
 
-	var listView = Ti.UI.createListView({
+	var listview = ti.ui.createlistview({
 		height: '90%',
 		top: 0,
-		rowHeight: 50,
+		rowheight: 50,
 		sections: sections,
-		pullView: tableHeader
+		pullview: tableheader
 	});
 
-	listView.addEventListener('pull', pullListener);
+	listview.addeventlistener('pull', pulllistener);
 
-	listView.addEventListener('pullend', pullendListener);
+	listview.addeventlistener('pullend', pullendlistener);
 
-	var eventStatus = Ti.UI.createLabel({
+	var eventstatus = ti.ui.createlabel({
 		font: {
-			fontSize: 13,
-			fontWeight: 'bold'
+			fontsize: 13,
+			fontweight: 'bold'
 		},
-		text: 'Event data will show here',
+		text: 'event data will show here',
 		bottom: 0,
 		height: '10%'
 	})
 
-	win.add(listView);
-	win.add(eventStatus);
-	openWin(win);
+	win.add(listview);
+	win.add(eventstatus);
+	openwin(win);
 }
 
-function maskEx() {
-	var win = createWin();
-	win.backgroundGradient = {
+function maskex() {
+	var win = createwin();
+	win.backgroundgradient = {
 		type: 'linear',
 		colors: ['gray', 'white'],
-		startPoint: {
+		startpoint: {
 			x: 0,
 			y: 0
 		},
-		endPoint: {
+		endpoint: {
 			x: 0,
 			y: "100%"
 		}
 	};
-	var view = Ti.UI.createView({
+	var view = ti.ui.createview({
 		top: 20,
-		borderRadius: 10,
-		borderColor: 'red',
-		borderWidth: 5,
-		bubbleParent: false,
+		borderradius: 10,
+		bordercolor: 'red',
+		borderwidth: 5,
+		bubbleparent: false,
 		width: 300,
 		height: 100,
-		backgroundColor: 'green',
-		viewMask: '/images/body-mask.png',
-		backgroundGradient: {
+		backgroundcolor: 'green',
+		viewmask: '/images/body-mask.png',
+		backgroundgradient: {
 			type: 'linear',
 			colors: ['red', 'green', 'orange'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		}
 	});
-	var imageView = Ti.UI.createImageView({
+	var imageview = ti.ui.createimageview({
 		bottom: 20,
-		// borderRadius : 10,
-		// borderColor:'red',
-		// borderWidth:5,
-		bubbleParent: false,
+		// borderradius : 10,
+		// bordercolor:'red',
+		// borderwidth:5,
+		bubbleparent: false,
 		width: 300,
 		height: 100,
-		backgroundColor: 'yellow',
-		scaleType: Ti.UI.SCALE_TYPE_ASPECT_FIT,
+		backgroundcolor: 'yellow',
+		scaletype: ti.ui.scale_type_aspect_fit,
 		image: '/images/slightlylargerimage.png',
-		imageMask: '/images/body-mask.png',
-		// viewMask : '/images/mask.png',
+		imagemask: '/images/body-mask.png',
+		// viewmask : '/images/mask.png',
 	});
-	view.add(Ti.UI.createView({
-		backgroundColor: 'red',
+	view.add(ti.ui.createview({
+		backgroundcolor: 'red',
 		bottom: 10,
 		width: 30,
 		height: 30
 	}));
 	win.add(view);
-	win.add(imageView);
-	win.add(Ti.UI.createButton({
-		borderRadius: 20,
+	win.add(imageview);
+	win.add(ti.ui.createbutton({
+		borderradius: 20,
 		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
 			right: 30
 		},
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'test buutton',
-		viewMask: '/images/body-mask.png'
+		viewmask: '/images/body-mask.png'
 	}));
-	openWin(win);
+	openwin(win);
 }
 
-function ImageViewEx() {
-	var win = createWin();
-	var view = Ti.UI.createImageView({
-		bubbleParent: false,
+function imageviewex() {
+	var win = createwin();
+	var view = ti.ui.createimageview({
+		bubbleparent: false,
 		width: 300,
-		height: Ti.UI.SIZE,
-		borderColor: 'red',
-		borderWidth: 2,
-		backgroundColor: 'green',
-		backgroundGradient: {
+		height: ti.ui.size,
+		bordercolor: 'red',
+		borderwidth: 2,
+		backgroundcolor: 'green',
+		backgroundgradient: {
 			type: 'linear',
 			colors: ['red', 'green', 'orange'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
 		image: '/images/slightlylargerimage.png',
 	});
-	view.add(Ti.UI.createView({
-		backgroundColor: 'yellow',
+	view.add(ti.ui.createview({
+		backgroundcolor: 'yellow',
 		top: 10,
 		width: 15,
 		height: 15
 	}));
-	view.addEventListener('click', function() {
-		//		view.image = varSwitch(view.image, '/images/slightlylargerimage.png', '/images/poster.jpg');
+	view.addeventlistener('click', function() {
+		//		view.image = varswitch(view.image, '/images/slightlylargerimage.png', '/images/poster.jpg');
 		view.animate({
 			height: 400,
 			duration: 1000,
@@ -1664,7 +1171,7 @@ function ImageViewEx() {
 		});
 	});
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
 function random(min, max) {
@@ -1672,38 +1179,38 @@ function random(min, max) {
 		max = min;
 		min = 0;
 	}
-	return min + Math.floor(Math.random() * (max - min + 1));
+	return min + math.floor(math.random() * (max - min + 1));
 };
 
-function scrollableEx() {
-	var win = createWin();
-	// Create a custom template that displays an image on the left,
+function scrollableex() {
+	var win = createwin();
+	// create a custom template that displays an image on the left,
 	// then a title next to it with a subtitle below it.
-	var myTemplate = {
+	var mytemplate = {
 		properties: {
 			height: 50
 		},
-		childTemplates: [{
-			type: 'Ti.UI.ImageView',
-			bindId: 'leftImageView',
+		childtemplates: [{
+			type: 'ti.ui.imageview',
+			bindid: 'leftimageview',
 			properties: {
 				left: 0,
 				width: 40,
-				localLoadSync: true,
+				localloadsync: true,
 				height: 40,
-				transform: Ti.UI.create2DMatrix().rotate(90),
-				backgroundColor: 'blue',
-				// backgroundSelectedColor:'green',
-				image: '/images/contactIcon.png',
-				// borderColor:'red',
-				// borderWidth:2
-				viewMask: '/images/contactMask.png',
+				transform: ti.ui.create2dmatrix().rotate(90),
+				backgroundcolor: 'blue',
+				// backgroundselectedcolor:'green',
+				image: '/images/contacticon.png',
+				// bordercolor:'red',
+				// borderwidth:2
+				viewmask: '/images/contactmask.png',
 			}
 		}, {
-			type: 'Ti.UI.Label',
-			bindId: 'label',
+			type: 'ti.ui.label',
+			bindid: 'label',
 			properties: {
-				multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+				multilineellipsize: ti.ui.text_ellipsize_tail,
 				top: 2,
 				bottom: 2,
 				left: 45,
@@ -1711,40 +1218,40 @@ function scrollableEx() {
 					bottom: 4
 				},
 				right: 55,
-				touchEnabled: false,
-				height: Ti.UI.FILL,
+				touchenabled: false,
+				height: ti.ui.fill,
 				color: 'black',
 				font: {
-					fontSize: 16
+					fontsize: 16
 				},
-				width: Ti.UI.FILL
+				width: ti.ui.fill
 			}
 		}, {
-			type: 'Ti.UI.ImageView',
-			bindId: 'rightImageView',
+			type: 'ti.ui.imageview',
+			bindid: 'rightimageview',
 			properties: {
 				right: 5,
 				top: 8,
-				localLoadSync: true,
+				localloadsync: true,
 				bottom: 8,
-				width: Ti.UI.SIZE,
-				touchEnabled: false
+				width: ti.ui.size,
+				touchenabled: false
 			}
 		}, {
-			type: 'Ti.UI.ImageView',
-			bindId: 'networkIndicator',
+			type: 'ti.ui.imageview',
+			bindid: 'networkindicator',
 			properties: {
 				right: 40,
 				top: 4,
-				localLoadSync: true,
+				localloadsync: true,
 				height: 15,
-				width: Ti.UI.SIZE,
-				touchEnabled: false
+				width: ti.ui.size,
+				touchenabled: false
 			}
 		}, {
-			type: 'Ti.UI.View',
+			type: 'ti.ui.view',
 			properties: {
-				backgroundColor: '#999',
+				backgroundcolor: '#999',
 				left: 4,
 				right: 4,
 				bottom: 0,
@@ -1752,68 +1259,68 @@ function scrollableEx() {
 			}
 		}]
 	};
-	var contactAction;
-	var blurImage;
-	var listView = Ti.UI.createListView({
-		// Maps myTemplate dictionary to 'template' string
+	var contactaction;
+	var blurimage;
+	var listview = ti.ui.createlistview({
+		// maps mytemplate dictionary to 'template' string
 		templates: {
-			'template': myTemplate
+			'template': mytemplate
 		},
-		defaultItemTemplate: 'template',
-		selectedBackgroundGradient: {
+		defaultitemtemplate: 'template',
+		selectedbackgroundgradient: {
 			type: 'linear',
 			colors: ['blue', 'green'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		}
 	});
-	listView.addEventListener('itemclick', function(_event) {
-		if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
-			var item = _event.section.getItemAt(_event.itemIndex);
-			if (!contactAction) {
-				contactAction = Ti.UI.createView({
-					backgroundColor: 'green'
+	listview.addeventlistener('itemclick', function(_event) {
+		if (_event.hasownproperty('section') && _event.hasownproperty('itemindex')) {
+			var item = _event.section.getitemat(_event.itemindex);
+			if (!contactaction) {
+				contactaction = ti.ui.createview({
+					backgroundcolor: 'green'
 				});
-				blurImage = Ti.UI.createImageView({
-					scaleType: Ti.UI.SCALE_TYPE_ASPECT_FILL,
-					width: Ti.UI.FILL,
-					height: Ti.UI.FILL
+				blurimage = ti.ui.createimageview({
+					scaletype: ti.ui.scale_type_aspect_fill,
+					width: ti.ui.fill,
+					height: ti.ui.fill
 				});
-				contactAction.add(blurImage);
-				blurImage.addEventListener('click', function() {
-					animation.fadeOut(contactAction, 200, function() {
-						win.remove(contactAction);
+				contactaction.add(blurimage);
+				blurimage.addeventlistener('click', function() {
+					animation.fadeout(contactaction, 200, function() {
+						win.remove(contactaction);
 					});
 				});
 			}
-			contactAction.opacity = 0;
-			win.add(contactAction);
-			var image = Ti.Media.takeScreenshot();
-			// var image = Ti.Image.getFilteredViewToImage(win, Ti.Image.FILTER_GAUSSIAN_BLUR, {scale:0.3});
-			blurImage.image = image;
-			animation.fadeIn(contactAction, 300);
+			contactaction.opacity = 0;
+			win.add(contactaction);
+			var image = ti.media.takescreenshot();
+			// var image = ti.image.getfilteredviewtoimage(win, ti.image.filter_gaussian_blur, {scale:0.3});
+			blurimage.image = image;
+			animation.fadein(contactaction, 300);
 		}
 	});
-	var names = ['Carolyn Humbert',
-		'David Michaels',
-		'Rebecca Thorning',
-		'Joe B',
-		'Phillip Craig',
-		'Michelle Werner',
-		'Philippe Christophe',
-		'Marcus Crane',
-		'Esteban Valdez',
-		'Sarah Mullock'
+	var names = ['carolyn humbert',
+		'david michaels',
+		'rebecca thorning',
+		'joe b',
+		'phillip craig',
+		'michelle werner',
+		'philippe christophe',
+		'marcus crane',
+		'esteban valdez',
+		'sarah mullock'
 	];
 
-	function formatTitle(_history) {
-		return _history.fullName + '<br><small><small><b><font color="#5B5B5B">' + (new Date()).toString() + '</font> <font color="#3FAC53"></font></b></small></small>';
+	function formattitle(_history) {
+		return _history.fullname + '<br><small><small><b><font color="#5b5b5b">' + (new date()).tostring() + '</font> <font color="#3fac53"></font></b></small></small>';
 	}
 
 	function random(min, max) {
@@ -1821,204 +1328,204 @@ function scrollableEx() {
 			max = min;
 			min = 0;
 		}
-		return min + Math.floor(Math.random() * (max - min + 1));
+		return min + math.floor(math.random() * (max - min + 1));
 	};
 
 	function update() {
-		// var outgoingImage = Ti.Utils.imageBlob('/images/outgoing.png');
-		// var incomingImage = Ti.Utils.imageBlob('/images/incoming.png');
-		var dataSet = [];
+		// var outgoingimage = ti.utils.imageblob('/images/outgoing.png');
+		// var incomingimage = ti.utils.imageblob('/images/incoming.png');
+		var dataset = [];
 		for (var i = 0; i < 300; i++) {
 			var callhistory = {
-				fullName: names[Math.floor(Math.random() * names.length)],
+				fullname: names[math.floor(math.random() * names.length)],
 				date: random(1293886884000, 1376053320000),
 				kb: random(0, 100000),
 				outgoing: !! random(0, 1),
 				wifi: !! random(0, 1)
 			};
-			dataSet.push({
-				contactName: callhistory.fullName,
+			dataset.push({
+				contactname: callhistory.fullname,
 				label: {
-					html: formatTitle(callhistory)
+					html: formattitle(callhistory)
 				},
-				rightImageView: {
+				rightimageview: {
 					image: (callhistory.outgoing ? '/images/outgoing.png' : '/images/incoming.png')
 				},
-				networkIndicator: {
+				networkindicator: {
 					image: (callhistory.wifi ? '/images/wifi.png' : '/images/mobile.png')
 				}
 			});
 		}
-		var historySection = Ti.UI.createListSection();
-		historySection.setItems(dataSet);
-		listView.sections = [historySection];
+		var historysection = ti.ui.createlistsection();
+		historysection.setitems(dataset);
+		listview.sections = [historysection];
 	}
-	win.add(listView);
-	win.addEventListener('open', update);
-	openWin(win);
+	win.add(listview);
+	win.addeventlistener('open', update);
+	openwin(win);
 }
 
-function listView2Ex() {
-	var win = createWin();
-	// Create a custom template that displays an image on the left,
+function listview2ex() {
+	var win = createwin();
+	// create a custom template that displays an image on the left,
 	// then a title next to it with a subtitle below it.
-	var myTemplate = {
-		childTemplates: [{ // Image justified left
-			type: 'Ti.UI.ImageView', // Use an image view for the image
-			bindId: 'pic', // Maps to a custom pic property of the item data
-			properties: { // Sets the image view  properties
+	var mytemplate = {
+		childtemplates: [{ // image justified left
+			type: 'ti.ui.imageview', // use an image view for the image
+			bindid: 'pic', // maps to a custom pic property of the item data
+			properties: { // sets the image view  properties
 				width: '50dp',
 				height: '50dp',
 				left: 0
 			}
-		}, { // Title
-			type: 'Ti.UI.Label', // Use a label for the title
-			bindId: 'info', // Maps to a custom info property of the item data
-			properties: { // Sets the label properties
+		}, { // title
+			type: 'ti.ui.label', // use a label for the title
+			bindid: 'info', // maps to a custom info property of the item data
+			properties: { // sets the label properties
 				color: 'black',
 				font: {
-					fontFamily: 'Arial',
-					fontSize: '20dp',
-					fontWeight: 'bold'
+					fontfamily: 'arial',
+					fontsize: '20dp',
+					fontweight: 'bold'
 				},
 				left: '60dp',
 				top: 0,
 			}
-		}, { // Subtitle
-			type: 'Ti.UI.Label', // Use a label for the subtitle
-			bindId: 'es_info', // Maps to a custom es_info property of the item data
-			properties: { // Sets the label properties
+		}, { // subtitle
+			type: 'ti.ui.label', // use a label for the subtitle
+			bindid: 'es_info', // maps to a custom es_info property of the item data
+			properties: { // sets the label properties
 				color: 'gray',
 				font: {
-					fontFamily: 'Arial',
-					fontSize: '14dp'
+					fontfamily: 'arial',
+					fontsize: '14dp'
 				},
 				left: '60dp',
 				top: '25dp',
 			}
 		}]
 	};
-	var listView = Ti.UI.createListView({
-		// Maps myTemplate dictionary to 'template' string
+	var listview = ti.ui.createlistview({
+		// maps mytemplate dictionary to 'template' string
 		templates: {
-			'template': myTemplate
+			'template': mytemplate
 		},
-		// Use 'template', that is, the myTemplate dict created earlier
+		// use 'template', that is, the mytemplate dict created earlier
 		// for all items as long as the template property is not defined for an item.
-		defaultItemTemplate: 'template',
-		selectedBackgroundGradient: {
+		defaultitemtemplate: 'template',
+		selectedbackgroundgradient: {
 			type: 'linear',
 			colors: ['blue', 'green'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		}
 	});
-	if (isApple) listView.style = Titanium.UI.iPhone.ListViewStyle.GROUPED;
+	if (isapple) listview.style = titanium.ui.iphone.listviewstyle.grouped;
 	var sections = [];
-	var fruitSection = Ti.UI.createListSection({
-		headerTitle: 'Fruits / Frutas'
+	var fruitsection = ti.ui.createlistsection({
+		headertitle: 'fruits / frutas'
 	});
-	var fruitDataSet = [
+	var fruitdataset = [
 		// the text property of info maps to the text property of the title label
 		// the text property of es_info maps to text property of the subtitle label
 		// the image property of pic maps to the image property of the image view
 		{
 			info: {
-				text: 'Apple'
+				text: 'apple'
 			},
 			es_info: {
-				text: 'Manzana'
+				text: 'manzana'
 			},
 			pic: {
 				image: 'apple.png'
 			}
 		}, {
 			properties: {
-				backgroundColor: 'red'
+				backgroundcolor: 'red'
 			},
 			info: {
-				text: 'Banana'
+				text: 'banana'
 			},
 			es_info: {
-				text: 'Banana'
+				text: 'banana'
 			},
 			pic: {
 				image: 'banana.png'
 			}
 		}
 	];
-	fruitSection.setItems(fruitDataSet);
-	sections.push(fruitSection);
-	var vegSection = Ti.UI.createListSection({
-		headerTitle: 'Vegetables / Verduras'
+	fruitsection.setitems(fruitdataset);
+	sections.push(fruitsection);
+	var vegsection = ti.ui.createlistsection({
+		headertitle: 'vegetables / verduras'
 	});
-	var vegDataSet = [{
+	var vegdataset = [{
 		info: {
-			text: 'Carrot'
+			text: 'carrot'
 		},
 		es_info: {
-			text: 'Zanahoria'
+			text: 'zanahoria'
 		},
 		pic: {
 			image: 'carrot.png'
 		}
 	}, {
 		info: {
-			text: 'Potato'
+			text: 'potato'
 		},
 		es_info: {
-			text: 'Patata'
+			text: 'patata'
 		},
 		pic: {
 			image: 'potato.png'
 		}
 	}];
-	vegSection.setItems(vegDataSet);
-	sections.push(vegSection);
-	var grainSection = Ti.UI.createListSection({
-		headerTitle: 'Grains / Granos'
+	vegsection.setitems(vegdataset);
+	sections.push(vegsection);
+	var grainsection = ti.ui.createlistsection({
+		headertitle: 'grains / granos'
 	});
-	var grainDataSet = [{
+	var graindataset = [{
 		info: {
-			text: 'Corn'
+			text: 'corn'
 		},
 		es_info: {
-			text: 'Maiz'
+			text: 'maiz'
 		},
 		pic: {
 			image: 'corn.png'
 		}
 	}, {
 		info: {
-			text: 'Rice'
+			text: 'rice'
 		},
 		es_info: {
-			text: 'Arroz'
+			text: 'arroz'
 		},
 		pic: {
 			image: 'rice.png'
 		}
 	}];
-	grainSection.setItems(grainDataSet);
-	sections.push(grainSection);
-	listView.setSections(sections);
-	win.add(listView);
-	openWin(win);
+	grainsection.setitems(graindataset);
+	sections.push(grainsection);
+	listview.setsections(sections);
+	win.add(listview);
+	openwin(win);
 }
 
-function listViewEx() {
-	var win = createWin();
-	var listview = Ti.UI
-		.createListView({
-			allowsSelection: false,
-			rowHeight: 50,
-			selectedBackgroundGradient: {
+function listviewex() {
+	var win = createwin();
+	var listview = ti.ui
+		.createlistview({
+			allowsselection: false,
+			rowheight: 50,
+			selectedbackgroundgradient: {
 				type: 'sweep',
 				colors: [{
 					color: 'orange',
@@ -2049,322 +1556,322 @@ function listViewEx() {
 			sections: [{
 				items: [{
 					properties: {
-						backgroundColor: 'blue',
-						title: 'Shape'
+						backgroundcolor: 'blue',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'ButtonsAndLabels'
+						backgroundcolor: 'red',
+						title: 'buttonsandlabels'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						backgroundcolor: 'red',
+						title: 'shape',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape'
+						backgroundcolor: 'red',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						backgroundcolor: 'red',
+						title: 'shape',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape'
+						backgroundcolor: 'red',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						backgroundcolor: 'red',
+						title: 'shape',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape'
+						backgroundcolor: 'red',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						backgroundcolor: 'red',
+						title: 'shape',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape'
+						backgroundcolor: 'red',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						backgroundcolor: 'red',
+						title: 'shape',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						backgroundColor: 'red',
-						title: 'Shape'
+						backgroundcolor: 'red',
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}, {
 					properties: {
-						title: 'Shape'
+						title: 'shape'
 					}
 				}, {
 					properties: {
-						title: 'Transform',
-						accessoryType: Ti.UI.LIST_ACCESSORY_TYPE_CHECKMARK
+						title: 'transform',
+						accessorytype: ti.ui.list_accessory_type_checkmark
 					}
 				}]
 			}]
 		});
-	if (isApple) listview.style = Titanium.UI.iPhone.ListViewStyle.GROUPED;
+	if (isapple) listview.style = titanium.ui.iphone.listviewstyle.grouped;
 	win.add(listview);
-	openWin(win);
+	openwin(win);
 }
 
-function fadeInEx() {
-	var win = createWin();
-	var view = Ti.UI.createView({
-		backgroundColor: 'red',
+function fadeinex() {
+	var win = createwin();
+	var view = ti.ui.createview({
+		backgroundcolor: 'red',
 		opacity: 0,
 		width: 200,
 		height: 200
 	});
-	view.add(Ti.UI.createView({
-		backgroundColor: 'blue',
+	view.add(ti.ui.createview({
+		backgroundcolor: 'blue',
 		bottom: 10,
 		width: 50,
 		height: 50
 	}));
-	var showMe = function() {
+	var showme = function() {
 		view.opacity = 0;
-		view.transform = Ti.UI.create2DMatrix().scale(0.6, 0.6);
+		view.transform = ti.ui.create2dmatrix().scale(0.6, 0.6);
 		win.add(view);
 		view.animate({
 			opacity: 1,
 			duration: 300,
-			transform: Ti.UI.create2DMatrix()
+			transform: ti.ui.create2dmatrix()
 		});
 	};
-	var hideMe = function(_callback) {
+	var hideme = function(_callback) {
 		view.animate({
 			opacity: 0,
 			duration: 200
@@ -2372,24 +1879,24 @@ function fadeInEx() {
 			win.remove(view);
 		});
 	};
-	var button = Ti.UI.createButton({
+	var button = ti.ui.createbutton({
 		top: 10,
 		width: 100,
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'test buutton'
 	});
-	button.addEventListener('click', function(e) {
-		if (view.opacity === 0) showMe();
-		else hideMe();
+	button.addeventlistener('click', function(e) {
+		if (view.opacity === 0) showme();
+		else hideme();
 	});
 	win.add(button);
-	openWin(win);
+	openwin(win);
 }
 // if (false) {
-// 	var set = Ti.UI.createAnimationSet({
-// 		playMode : 1
+// 	var set = ti.ui.createanimationset({
+// 		playmode : 1
 // 	});
-// 	set.addEventListener('complete', function(e) {
+// 	set.addeventlistener('complete', function(e) {
 // 		gone = true;
 // 	});
 // 	set.add({
@@ -2408,7 +1915,7 @@ function fadeInEx() {
 // 		duration : 500,
 // 		transform : t4
 // 	}, view);
-// 	view.addEventListener('click', function(e) {
+// 	view.addeventlistener('click', function(e) {
 // 		if (gone === true) {
 // 			view.animate({
 // 				duration : 300,
@@ -2419,7 +1926,7 @@ function fadeInEx() {
 // 		} else
 // 			set.start();
 // 	});
-// 	win.addEventListener('click', function(e) {
+// 	win.addeventlistener('click', function(e) {
 // 		if (gone === true) {
 // 			view.animate({
 // 				duration : 300,
@@ -2430,69 +1937,69 @@ function fadeInEx() {
 // 		}
 // 	});
 // } else {
-// function transform2Ex() {
-// 	var win = createWin();
-// 	var view = Shape.createView({
+// function transform2ex() {
+// 	var win = createwin();
+// 	var view = shape.createview({
 // 		top : 150,
-// 		borderRadius : 10,
-// 		borderColor : 'red',
-// 		borderWidth : 5,
-// 		bubbleParent : false,
+// 		borderradius : 10,
+// 		bordercolor : 'red',
+// 		borderwidth : 5,
+// 		bubbleparent : false,
 // 		width : 300,
 // 		height : 100,
-// 		backgroundColor : 'white',
-// 		transform : Ti.UI.create2DMatrix().scale(2.0, 2.0),
-// 		viewMask : '/images/body-mask.png'
+// 		backgroundcolor : 'white',
+// 		transform : ti.ui.create2dmatrix().scale(2.0, 2.0),
+// 		viewmask : '/images/body-mask.png'
 // 	});
-// 	var button = Ti.UI.createButton({
+// 	var button = ti.ui.createbutton({
 // 		top : 10,
 // 		width : 100,
-// 		transform : Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, 40),
-// 		bubbleParent : false,
+// 		transform : ti.ui.create2dmatrix().scale(2.0, 2.0).translate(0, 40),
+// 		bubbleparent : false,
 // 		title : 'test buutton'
 // 	});
-// 	button.addEventListener('click', function(e) {
+// 	button.addeventlistener('click', function(e) {
 // 		view.top -=1;
 // 	});
-// 	button.add(Ti.UI.createView({
-// 		backgroundColor : 'red',
+// 	button.add(ti.ui.createview({
+// 		backgroundcolor : 'red',
 // 		bottom : 10,
 // 		width : 5,
 // 		height : 5
 // 	}));
-// 	var shape = Shape.createCircle({
-// 		fillColor : '#bbb',
-// 		lineColor : '#777',
-// 		lineWidth : 1,
-// 		lineShadow : {
+// 	var shape = shape.createcircle({
+// 		fillcolor : '#bbb',
+// 		linecolor : '#777',
+// 		linewidth : 1,
+// 		lineshadow : {
 // 			radius : 2,
 // 			color : 'black'
 // 		},
 // 		radius : '45%'
 // 	});
 // 	view.add(shape);
-// 	view.add(Ti.UI.createView({
-// 		backgroundColor : 'red',
+// 	view.add(ti.ui.createview({
+// 		backgroundcolor : 'red',
 // 		bottom : 10,
 // 		width : 30,
 // 		height : 30
 // 	}));
-// 	view.addEventListener('click', function(e) {
-// 		if (isAndroid)
+// 	view.addeventlistener('click', function(e) {
+// 		if (isandroid)
 // 			set.cancel();
 // 		shape.animate({
 // 			duration : 400,
-// 			lineWidth : 20,
+// 			linewidth : 20,
 // 			autoreverse : true,
-// 			lineColor : 'yellow',
-// 			fillColor : 'blue'
+// 			linecolor : 'yellow',
+// 			fillcolor : 'blue'
 // 		});
 // 	});
 // 	win.add(view);
 // 	win.add(button);
-// 	if (isAndroid) {
-// 		var set = Ti.UI.createAnimationSet({
-// 			playMode : 2
+// 	if (isandroid) {
+// 		var set = ti.ui.createanimationset({
+// 			playmode : 2
 // 		});
 // 		set.add({
 // 			duration : 300,
@@ -2501,18 +2008,18 @@ function fadeInEx() {
 // 		}, view);
 // 		set.add({
 // 			duration : 1000,
-// 			lineWidth : 20,
+// 			linewidth : 20,
 // 			autoreverse : true,
-// 			lineColor : 'yellow',
-// 			fillColor : 'blue'
+// 			linecolor : 'yellow',
+// 			fillcolor : 'blue'
 // 		}, shape);
-// 		win.addEventListener('click', function(e) {
-// 			shape.cancelAllAnimations();
+// 		win.addeventlistener('click', function(e) {
+// 			shape.cancelallanimations();
 // 			set.start();
 // 		});
 // 	}
 // 	else {
-// 		win.addEventListener('click', function(e) {
+// 		win.addeventlistener('click', function(e) {
 // 			view.animate({
 // 				duration : 300,
 // 				autoreverse : true,
@@ -2520,143 +2027,143 @@ function fadeInEx() {
 // 			});
 // 		});
 // 	}
-// 	openWin(win);
+// 	openwin(win);
 // }
 
-function htmlLabelEx() {
-	var win = createWin();
-	var scrollView = Ti.UI.createScrollView({
+function htmllabelex() {
+	var win = createwin();
+	var scrollview = ti.ui.createscrollview({
 		layout: 'vertical',
-		contentHeight: Ti.UI.SIZE
+		contentheight: ti.ui.size
 	});
-	scrollView.add(Ti.UI.createLabel({
-		width: Ti.UI.FILL,
+	scrollview.add(ti.ui.createlabel({
+		width: ti.ui.fill,
 		padding: {
 			left: 20,
 			right: 20,
 			top: 20,
 			bottom: 20
 		},
-		height: Ti.UI.SIZE,
+		height: ti.ui.size,
 		bottom: 20,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
-		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_HEAD,
-		truncationString: '_ _',
+	scrollview.add(ti.ui.createlabel({
+		multilineellipsize: ti.ui.text_ellipsize_head,
+		truncationstring: '_ _',
 		bottom: 20,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
-		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_MIDDLE,
+	scrollview.add(ti.ui.createlabel({
+		multilineellipsize: ti.ui.text_ellipsize_middle,
 		bottom: 20,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
-		width: Ti.UI.FILL,
-		height: Ti.UI.SIZE,
+	scrollview.add(ti.ui.createlabel({
+		width: ti.ui.fill,
+		height: ti.ui.size,
 		bottom: 20,
-		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		multilineellipsize: ti.ui.text_ellipsize_tail,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
+	scrollview.add(ti.ui.createlabel({
 		width: 200,
-		height: Ti.UI.SIZE,
-		backgorundColor: 'green',
+		height: ti.ui.size,
+		backgorundcolor: 'green',
 		bottom: 20,
-		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		multilineellipsize: ti.ui.text_ellipsize_tail,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
+	scrollview.add(ti.ui.createlabel({
 		width: 200,
-		height: Ti.UI.SIZE,
-		backgorundColor: 'blue',
+		height: ti.ui.size,
+		backgorundcolor: 'blue',
 		bottom: 20,
-		ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		ellipsize: ti.ui.text_ellipsize_tail,
 		html: html
 	}));
-	scrollView.add(Ti.UI.createLabel({
+	scrollview.add(ti.ui.createlabel({
 		height: 200,
 		bottom: 20,
-		ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		ellipsize: ti.ui.text_ellipsize_tail,
 		html: html
 	}));
-	win.add(scrollView);
-	
-	openWin(win);
+	win.add(scrollview);
+
+	openwin(win);
 }
 
-function svgExs() {
-	var win = createWin();
-	var listview = createListView();
+function svgexs() {
+	var win = createwin();
+	var listview = createlistview();
 	listview.sections = [{
 		items: [{
 			properties: {
-				title: 'View'
+				title: 'view'
 			},
-			callback: svg1Ex
+			callback: svg1ex
 		}, {
 			properties: {
-				title: 'Button'
+				title: 'button'
 			},
-			callback: svg2Ex
+			callback: svg2ex
 		}, {
 			properties: {
-				title: 'ImageView'
+				title: 'imageview'
 			},
-			callback: svg3Ex
+			callback: svg3ex
 		}, {
 			properties: {
-				title: 'ListView'
+				title: 'listview'
 			},
-			callback: svg4Ex
+			callback: svg4ex
 		}]
 	}];
 	win.add(listview);
-	openWin(win);
+	openwin(win);
 }
 
-function svg1Ex() {
-	var win = createWin();
-	var view = Ti.UI.createView({
-		bubbleParent: false,
+function svg1ex() {
+	var win = createwin();
+	var view = ti.ui.createview({
+		bubbleparent: false,
 		width: 100,
 		height: 100,
-		backgroundColor: 'yellow',
-		scaleType: Ti.UI.SCALE_TYPE_ASPECT_FIT,
-		preventDefaultImage: true,
-		backgroundImage: '/images/Notepad_icon_small.svg'
+		backgroundcolor: 'yellow',
+		scaletype: ti.ui.scale_type_aspect_fit,
+		preventdefaultimage: true,
+		backgroundimage: '/images/notepad_icon_small.svg'
 	});
 	win.add(view);
-	var button = Ti.UI.createButton({
+	var button = ti.ui.createbutton({
 		top: 20,
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'change svg'
 	});
-	button.addEventListener('click', function() {
-		view.backgroundImage = varSwitch(view.backgroundImage, '/images/gradients.svg', '/images/Logo.svg');
+	button.addeventlistener('click', function() {
+		view.backgroundimage = varswitch(view.backgroundimage, '/images/gradients.svg', '/images/logo.svg');
 	});
 	win.add(button);
-	var button2 = Ti.UI.createButton({
+	var button2 = ti.ui.createbutton({
 		bottom: 20,
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'animate'
 	});
-	button2.addEventListener('click', function() {
+	button2.addeventlistener('click', function() {
 		view.animate({
-			height: Ti.UI.FILL,
-			width: Ti.UI.FILL,
+			height: ti.ui.fill,
+			width: ti.ui.fill,
 			duration: 2000,
 			autoreverse: true
 		});
 	});
 	win.add(button2);
-	openWin(win);
+	openwin(win);
 }
 
-function svg2Ex() {
-	var win = createWin();
-	var button = Ti.UI.createButton({
+function svg2ex() {
+	var win = createwin();
+	var button = ti.ui.createbutton({
 		top: 20,
 		padding: {
 			left: 30,
@@ -2664,1190 +2171,377 @@ function svg2Ex() {
 			bottom: 30,
 			right: 30
 		},
-		bubbleParent: false,
-		image: '/images/Logo.svg',
+		bubbleparent: false,
+		image: '/images/logo.svg',
 		title: 'test buutton'
 	});
 	win.add(button);
-	openWin(win);
+	openwin(win);
 }
 
-function svg3Ex() {
-	var win = createWin({
-		backgroundImage: '/images/Notepad_icon_small.svg'
+function svg3ex() {
+	var win = createwin({
+		backgroundimage: '/images/notepad_icon_small.svg'
 	});
-	var imageView = Ti.UI.createImageView({
-		bubbleParent: false,
+	var imageview = ti.ui.createimageview({
+		bubbleparent: false,
 		width: 300,
 		height: 100,
-		backgroundColor: 'yellow',
-		scaleType: Ti.UI.SCALE_TYPE_ASPECT_FIT,
-		preventDefaultImage: true,
-		image: '/images/Notepad_icon_small.svg'
+		backgroundcolor: 'yellow',
+		scaletype: ti.ui.scale_type_aspect_fit,
+		preventdefaultimage: true,
+		image: '/images/notepad_icon_small.svg'
 	});
-	imageView.addEventListener('click', function() {
-		imageView.scaleType = (imageView.scaleType + 1) % 6;
+	imageview.addeventlistener('click', function() {
+		imageview.scaletype = (imageview.scaletype + 1) % 6;
 	});
-	win.add(imageView);
-	var button = Ti.UI.createButton({
+	win.add(imageview);
+	var button = ti.ui.createbutton({
 		top: 20,
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'change svg'
 	});
-	button.addEventListener('click', function() {
-		imageView.image = varSwitch(imageView.image, '/images/gradients.svg', '/images/Logo.svg');
+	button.addeventlistener('click', function() {
+		imageview.image = varswitch(imageview.image, '/images/gradients.svg', '/images/logo.svg');
 	});
 	win.add(button);
-	var button2 = Ti.UI.createButton({
+	var button2 = ti.ui.createbutton({
 		bottom: 20,
-		bubbleParent: false,
+		bubbleparent: false,
 		title: 'animate'
 	});
-	button2.addEventListener('click', function() {
-		imageView.animate({
+	button2.addeventlistener('click', function() {
+		imageview.animate({
 			height: 400,
 			duration: 1000,
 			autoreverse: true
 		});
 	});
 	win.add(button2);
-	openWin(win);
+	openwin(win);
 }
 
-function svg4Ex() {
-	var win = createWin();
-	var myTemplate = {
-		childTemplates: [{
-			type: 'Ti.UI.View',
-			bindId: 'holder',
+function svg4ex() {
+	var win = createwin();
+	var mytemplate = {
+		childtemplates: [{
+			type: 'ti.ui.view',
+			bindid: 'holder',
 			properties: {
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
-				touchEnabled: false,
+				width: ti.ui.fill,
+				height: ti.ui.fill,
+				touchenabled: false,
 				layout: 'horizontal',
-				horizontalWrap: false
+				horizontalwrap: false
 			},
-			childTemplates: [{
-				type: 'Ti.UI.ImageView',
-				bindId: 'pic',
+			childtemplates: [{
+				type: 'ti.ui.imageview',
+				bindid: 'pic',
 				properties: {
-					touchEnabled: false,
+					touchenabled: false,
 					height: 50,
 					image: '/images/gradients.svg'
 				}
 			}, {
-				type: 'Ti.UI.Label',
-				bindId: 'info',
+				type: 'ti.ui.label',
+				bindid: 'info',
 				properties: {
-					color: textColor,
-					touchEnabled: false,
+					color: textcolor,
+					touchenabled: false,
 					font: {
-						fontSize: 20,
-						fontWeight: 'bold'
+						fontsize: 20,
+						fontweight: 'bold'
 					},
-					width: Ti.UI.FILL,
+					width: ti.ui.fill,
 					left: 10
 				}
 			}, {
-				type: 'Ti.UI.Button',
-				bindId: 'button',
+				type: 'ti.ui.button',
+				bindid: 'button',
 				properties: {
 					title: 'menu',
 					left: 10
 				}
 			}]
 		}, {
-			type: 'Ti.UI.Label',
-			bindId: 'menu',
+			type: 'ti.ui.label',
+			bindid: 'menu',
 			properties: {
 				color: 'white',
-				text: 'I am the menu',
-				backgroundColor: '#444',
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
+				text: 'i am the menu',
+				backgroundcolor: '#444',
+				width: ti.ui.fill,
+				height: ti.ui.fill,
 				opacity: 0
 			},
 		}]
 	};
-	var listView = createListView({
+	var listview = createlistview({
 		templates: {
-			'template': myTemplate
+			'template': mytemplate
 		},
-		defaultItemTemplate: 'template'
+		defaultitemtemplate: 'template'
 	});
 	var sections = [{
-		headerTitle: 'Fruits / Frutas',
+		headertitle: 'fruits / frutas',
 		items: [{
 			info: {
-				text: 'Apple'
+				text: 'apple'
 			}
 		}, {
 			properties: {
-				backgroundColor: 'red'
+				backgroundcolor: 'red'
 			},
 			info: {
-				text: 'Banana'
+				text: 'banana'
 			},
 			pic: {
 				image: 'banana.png'
 			}
 		}]
 	}, {
-		headerTitle: 'Vegetables / Verduras',
+		headertitle: 'vegetables / verduras',
 		items: [{
 			info: {
-				text: 'Carrot'
+				text: 'carrot'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			},
 			pic: {
 				image: '/images/opacity.svg'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			},
 			pic: {
 				image: '/images/opacity.svg'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			},
 			pic: {
-				image: '/images/Logo.svg'
+				image: '/images/logo.svg'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}, {
 			info: {
-				text: 'Potato'
+				text: 'potato'
 			}
 		}]
 	}, {
-		headerTitle: 'Grains / Granos',
+		headertitle: 'grains / granos',
 		items: [{
 			info: {
-				text: 'Corn'
+				text: 'corn'
 			}
 		}, {
 			info: {
-				text: 'Rice'
+				text: 'rice'
 			}
 		}]
 	}];
-	listView.setSections(sections);
-	win.add(listView);
-	openWin(win);
+	listview.setsections(sections);
+	win.add(listview);
+	openwin(win);
 }
 
 function float2color(pr, pg, pb) {
 	var color_part_dec = 255 * pr;
-	var r = Number(parseInt(color_part_dec, 10)).toString(16);
+	var r = number(parseint(color_part_dec, 10)).tostring(16);
 	color_part_dec = 255 * pg;
-	var g = Number(parseInt(color_part_dec, 10)).toString(16);
+	var g = number(parseint(color_part_dec, 10)).tostring(16);
 	color_part_dec = 255 * pb;
-	var b = Number(parseInt(color_part_dec, 10)).toString(16);
+	var b = number(parseint(color_part_dec, 10)).tostring(16);
 	return "#" + r + g + b;
 }
 
-function cellColor(_index) {
+function cellcolor(_index) {
 	switch (_index % 4) {
-		case 0: // Green
+		case 0: // green
 			return float2color(0.196, 0.651, 0.573);
-		case 1: // Orange
+		case 1: // orange
 			return float2color(1, 0.569, 0.349);
-		case 2: // Red
+		case 2: // red
 			return float2color(0.949, 0.427, 0.427);
 			break;
-		case 3: // Blue
+		case 3: // blue
 			return float2color(0.322, 0.639, 0.800);
 			break;
 		default:
 			break;
 	}
 }
-var transitionsMap = [{
-	title: 'SwipFade',
-	id: Ti.UI.TransitionStyle.SWIPE_FADE
+var transitionsmap = [{
+	title: 'swipfade',
+	id: ti.ui.transitionstyle.swipe_fade
 }, {
-	title: 'Flip',
-	id: Ti.UI.TransitionStyle.FLIP
+	title: 'flip',
+	id: ti.ui.transitionstyle.flip
 }, {
-	title: 'Cube',
-	id: Ti.UI.TransitionStyle.CUBE
+	title: 'cube',
+	id: ti.ui.transitionstyle.cube
 }, {
-	title: 'Fold',
-	id: Ti.UI.TransitionStyle.FOLD
+	title: 'fold',
+	id: ti.ui.transitionstyle.fold
 }, {
-	title: 'Fade',
-	id: Ti.UI.TransitionStyle.FADE
+	title: 'fade',
+	id: ti.ui.transitionstyle.fade
 }, {
-	title: 'Back Fade',
-	id: Ti.UI.TransitionStyle.BACK_FADE
+	title: 'back fade',
+	id: ti.ui.transitionstyle.back_fade
 }, {
-	title: 'Scale',
-	id: Ti.UI.TransitionStyle.SCALE
+	title: 'scale',
+	id: ti.ui.transitionstyle.scale
 }, {
-	title: 'Push Rotate',
-	id: Ti.UI.TransitionStyle.PUSH_ROTATE
+	title: 'push rotate',
+	id: ti.ui.transitionstyle.push_rotate
 }, {
-	title: 'Slide',
-	id: Ti.UI.TransitionStyle.SLIDE
+	title: 'slide',
+	id: ti.ui.transitionstyle.slide
 }, {
-	title: 'Modern Push',
-	id: Ti.UI.TransitionStyle.MODERN_PUSH
+	title: 'modern push',
+	id: ti.ui.transitionstyle.modern_push
 }, {
-	title: 'Ghost',
-	id: Ti.UI.TransitionStyle.GHOST
+	title: 'ghost',
+	id: ti.ui.transitionstyle.ghost
 }, {
-	title: 'Zoom',
-	id: Ti.UI.TransitionStyle.ZOOM
+	title: 'zoom',
+	id: ti.ui.transitionstyle.zoom
 }, {
-	title: 'SWAP',
-	id: Ti.UI.TransitionStyle.SWAP
+	title: 'swap',
+	id: ti.ui.transitionstyle.swap
 }, {
-	title: 'CAROUSEL',
-	id: Ti.UI.TransitionStyle.CAROUSEL
+	title: 'carousel',
+	id: ti.ui.transitionstyle.carousel
 }, {
-	title: 'CROSS',
-	id: Ti.UI.TransitionStyle.CROSS
+	title: 'cross',
+	id: ti.ui.transitionstyle.cross
 }, {
-	title: 'GLUE',
-	id: Ti.UI.TransitionStyle.GLUE
+	title: 'glue',
+	id: ti.ui.transitionstyle.glue
 }];
 
-function navWindowEx() {
-	function createSimulateWindow(_navWin) {
-		var index = _navWin.stackSize;
-		var color = cellColor(index);
-		var args = merge_options(initWindowArgs, {
-			title: (_navWin.title + ' / win' + (_navWin.stackSize)),
-			backgroundColor: 'transparent',
-			navBarHidden: false
-		}, true);
-		if (isAndroid) {
-			args.activity = {
-				onCreateOptionsMenu: function(e) {
-					var menu = e.menu;
-					var closeMenuItem = menu.add({
-						title: "Close",
-						showAsAction: Ti.Android.SHOW_AS_ACTION_IF_ROOM
-					});
-					closeMenuItem.addEventListener("click", function(e) {
-						newWin.close({
-							transition: {
-								duration: 300
-							}
-						});
-					});
-				}
-			};
-		}
-		var newWin = Ti.UI.createWindow(args);
-
-		function openMe(_params) {
-			Ti.API.info('openMe');
-			_params.transition.duration = 3000;
-			_navWin.openWindow(createSimulateWindow(_navWin), _params);
-		}
-		var listView = createListView({
-			backgroundColor: 'transparent',
-			sections: [{
-				items: [{
-					properties: {
-						color: 'black',
-						title: 'Swipe',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SWIPE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'SwipFade',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SWIPE_FADE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Flip',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.FLIP
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Cube',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.CUBE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'SwipFade FromTop',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SWIPE_FADE,
-						substyle: Ti.UI.TransitionStyle.TOP_TO_BOTTOM
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Flip FromBottom',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.FLIP,
-						substyle: Ti.UI.TransitionStyle.BOTTOM_TO_TOP
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Fold',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.FOLD
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Fade',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.FADE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Back Fade',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.BACK_FADE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Scale',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SCALE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Push Rotate',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.PUSH_ROTATE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Slide',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SLIDE
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Modern Push',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.MODERN_PUSH
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Ghost',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.GHOST
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'Zoom',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.ZOOM
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'SWAP',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.SWAP
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'CAROUSEL',
-						backgroundColor: color
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.CAROUSEL
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'CROSS',
-						backgroundColor: color,
-						backgroundOpacity: 1.0
-					},
-					transition: {
-						style: Ti.UI.TransitionStyle.CROSS
-					}
-				}, {
-					properties: {
-						color: 'black',
-						title: 'GLUE',
-						backgroundColor: color
-					},
-					transition: {
-						style: 40
-					}
-				}, ]
-			}]
-		});
-		listView.addEventListener('itemclick', function(_event) {
-			if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
-				var item = _event.section.getItemAt(_event.itemIndex);
-				Ti.API.info('item ' + JSON.stringify(item));
-				openMe({
-					transition: item.transition
-				});
-			}
-		});
-		newWin.add(listView);
-		return newWin;
-	}
-	var navWin1 = Ti.UI.createNavigationWindow({
-		backgroundColor: 'transparent',
-		title: 'NavWindow1'
-	});
-	navWin1.addEventListener('androidback', function(e) {
-		e.source.closeAllWindows({
-			transition: {
-				duration: 1000
-			}
-		});
-	});
-	navWin1.window = createSimulateWindow(navWin1);
-	var navWin2 = Ti.UI.createNavigationWindow({
-		backgroundColor: 'transparent',
-		title: 'NavWindow2'
-	});
-	navWin2.window = createSimulateWindow(navWin2);
-	var args = {
-		backgroundColor: backColor,
-		borderRadius: 20,
-		title: 'TransitionWindow'
-	};
-	if (isAndroid) {
-		args.barColor = 'red';
-		args.activity = {
-			actionBar: {
-				icon: Ti.Android.R.drawable.ic_menu_preferences,
-				onHomeIconItemSelected: function(e) {
-					slidingMenu.toggleLeftView();
-				}
-			}
-		};
-	}
-	var transitionWindow = Ti.UI.createWindow(args);
-	var transitionViewHolder = Ti.UI.createButton({
-		height: 40,
-		width: 200,
-		borderRadius: 10,
-		backgroundColor: 'red'
-	});
-	var tr1 = Ti.UI.createLabel({
-		text: 'I am a text!',
-		color: '#fff',
-		textAlign: 'center',
-		backgroundColor: 'green',
-		width: Ti.UI.FILL,
-		height: 40,
-	});
-	tr1.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr1, tr2, {
-			style: Ti.UI.TransitionStyle.FOLD,
-			duration: 3000
-		});
-	});
-	var tr2 = Ti.UI.createButton({
-		title: 'I am a button!',
-		color: '#000',
-		height: 40,
-		width: 200,
-		backgroundColor: 'white'
-	});
-	tr2.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr2, tr1, {
-			style: Ti.UI.TransitionStyle.SWIPE
-		});
-	});
-	transitionViewHolder.add(tr1);
-	transitionWindow.add(transitionViewHolder);
-	//LeftMenu
-	var leftMenu = createListView({
-		backgroundColor: 'transparent',
-		sections: [{
-			items: [{
-				properties: {
-					title: 'nav1',
-					backgroundColor: 'transparent'
-				},
-				callback: function() {
-					slidingMenu.centerView = navWin1;
-				}
-			}, {
-				properties: {
-					title: 'nav2',
-					backgroundColor: 'transparent'
-				},
-				callback: function() {
-					slidingMenu.centerView = navWin2;
-				}
-			}, {
-				properties: {
-					title: 'Transition',
-					backgroundColor: 'transparent'
-				},
-				callback: function() {
-					slidingMenu.centerView = transitionWindow;
-				}
-			}, {
-				properties: {
-					title: 'Close',
-					backgroundColor: 'transparent'
-				},
-				callback: function() {
-					slidingMenu.close();
-				}
-			}]
-		}]
-	});
-	//slidingMenu
-	var slidingMenu = Ti.UI.createSlideMenu({
-		orientationModes: [Ti.UI.UPSIDE_PORTRAIT,
-			Ti.UI.PORTRAIT,
-			Ti.UI.LANDSCAPE_RIGHT,
-			Ti.UI.LANDSCAPE_LEFT
-		],
-		leftViewWidth: -60,
-		leftViewDisplacement: 40,
-		shadowWidth: 0,
-		backgroundGradient: {
-			type: 'linear',
-			colors: ['#444154', '#a86e6a'],
-			startPoint: {
-				x: 0,
-				y: 0
-			},
-			endPoint: {
-				x: "100%",
-				y: 0
-			}
-		},
-		leftView: leftMenu,
-		centerView: transitionWindow
-	});
-	slidingMenu.open();
-}
-
-function choseTransition(_view, _property) {
-	var optionTitles = ['Cancel'];
-	for (var i = 0; i < transitionsMap.length; i++) {
-		optionTitles.push(transitionsMap[i].title);
+function chosetransition(_view, _property) {
+	var optiontitles = ['cancel'];
+	for (var i = 0; i < transitionsmap.length; i++) {
+		optiontitles.push(transitionsmap[i].title);
 	};
 	var opts = {
 		cancel: 0,
-		options: optionTitles,
-		selectedIndex: 0,
+		options: optiontitles,
+		selectedindex: 0,
 		destructive: 0,
-		title: 'Transition Style'
+		title: 'transition style'
 	};
 
-	var dialog = Ti.UI.createOptionDialog(opts);
-	dialog.addEventListener('click', function(e) {
+	var dialog = ti.ui.createoptiondialog(opts);
+	dialog.addeventlistener('click', function(e) {
 		if (e.cancel == false) {
 			_view[_property] = {
-				style: transitionsMap[e.index - 1].id
+				style: transitionsmap[e.index - 1].id
 			};
 		}
 	});
 	dialog.show();
 }
 
-function slideMenuEx() {
-	var rootWindows = [];
-	var otherWindows = [];
-
-	function closeWindow(_win) {
-		var lastWin = otherWindows[otherWindows.length - 1];
-		if (_win === lastWin) {
-			otherWindows.pop();
-			var lastWin = otherWindows[otherWindows.length - 1];
-			_win.animate({
-					transform: Ti.UI.create2DMatrix().translate('100%', 0),
-					duration: 400
-				},
-				function() {
-					_win.close();
-				});
-			lastWin.animate({
-				transform: null,
-				opacity: 1,
-				duration: 400
-			});
-		} else {
-			_win.close();
-		}
-	};
-
-	function openMovieWindow(_imgUrl) {
-		var win = createWin({
-			navBarHidden: true,
-			transform: Ti.UI.create2DMatrix().translate('100%', 0)
-		});
-		var closeButton = Ti.UI.createLabel({
-			text: '<-',
-			color: 'white',
-			textAlign: 'center',
-			backgroundColor: '#77000000',
-			width: 50,
-			height: 40,
-			top: 0,
-			left: 10,
-			font: {
-				fontSize: 24,
-				fontWeight: 'bold'
-			}
-		});
-		closeButton.addEventListener('click', function(e) {
-			closeWindow(win);
-		});
-		var verticalScrollView = Ti.UI.createScrollableView({
-			disableBounce: true,
-			layout: 'vertical',
-			transition: {
-				style: Ti.UI.TransitionStyle.SWIPE_FADE,
-				substyle: Ti.UI.TransitionStyle.TOP_TO_BOTTOM
-			}
-		});
-		var topView = Ti.UI.createView({
-			backgroundColor: 'black'
-		});
-		var glassView = Ti.UI.createView({
-			bottom: 0,
-			height: 100
-		});
-		var textView = Ti.UI.createView({
-			backgroundColor: '#55ffffff'
-		});
-		var blurImageView = Ti.UI.createImageView({
-			opacity: 0,
-			preventDefaultImage: true,
-			scaleType: Ti.UI.SCALE_TYPE_ASPECT_FILL,
-			width: Ti.UI.FILL,
-			height: Ti.UI.FILL
-		});
-		var imageView = Ti.UI.createImageView({
-			scaleType: Ti.UI.SCALE_TYPE_ASPECT_FILL,
-			preventDefaultImage: true,
-			opacity: 0,
-			width: Ti.UI.FILL,
-			height: Ti.UI.FILL,
-			image: _imgUrl.replace('-138', '')
-		});
-		imageView.addEventListener('load', function(e) {
-			// setTimeout(function(){
-			Ti.Image.getFilteredViewToImage(imageView, Ti.Image.FILTER_GAUSSIAN_BLUR, {
-				scale: 0.3,
-				radius: 1,
-				callback: function(result) {
-					blurImageView.image = result.image;
-					glassView.backgroundImage = result.image.imageAsCropped(glassView.rect, {
-						scale: 0.3
-					});
-					imageView.animate({
-						opacity: 1,
-						duration: 500
-					});
-				}
-			});
-			scrollView.addEventListener('scroll', function(e) {
-				blurImageView.opacity = Math.max(0, e.currentPageAsFloat);
-			});
-			// }, 2000);
-		});
-		var scrollView = Ti.UI.createScrollableView({
-			disableBounce: true
-		});
-		topView.add(imageView);
-		topView.add(blurImageView);
-		glassView.add(textView);
-		topView.add(glassView);
-		topView.add(scrollView);
-		var leftView = Ti.UI.createView({
-			backgroundColor: '#55000000'
-		});
-		leftView.add(Ti.UI.createLabel({
-			text: 'Test Movie',
-			color: backColor,
-			padding: {
-				left: 20,
-				right: 20,
-				top: 10,
-				bottom: 10
-			},
-			backgroundColor: '#55000000',
-			borderColor: 'gray',
-			borderRadius: 10,
-			borderWidth: 2
-		}));
-		var rightView = Ti.UI.createView({
-			backgroundColor: '#55000000'
-		});
-		rightView.add(Ti.UI.createLabel({
-			text: 'Test Movie',
-			color: backColor,
-			padding: {
-				left: 20,
-				right: 20,
-				top: 10,
-				bottom: 10
-			},
-			backgroundColor: '#55000000',
-			borderColor: 'gray',
-			borderRadius: 10,
-			borderWidth: 2
-		}));
-		scrollView.views = [leftView, rightView];
-		var view2 = Ti.UI.createView({
-			backgroundColor: 'gray'
-		});
-		view2.add(createListView({
-			top: 100,
-			backgroundColor: '#666',
-			pageMargin: 10,
-			exclusiveTouch: true,
-			bottom: 50,
-			sections: [{
-				items: [{
-					properties: {
-						title: 'test1'
-					},
-					callback: function() {
-						scrollView.movePrevious(false);
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'test2'
-					}
-				}, {
-					properties: {
-						title: 'Close'
-					},
-					callback: function() {
-						slidingMenu.close();
-					}
-				}]
-			}]
-		}));
-		view2.add({
-			backgroundGradient: {
-				type: 'linear',
-				colors: ['#333', 'transparent'],
-				startPoint: {
-					x: 0,
-					y: 0
-				},
-				endPoint: {
-					x: 0,
-					y: "100%"
-				}
-			},
-			height: 10,
-			width: Ti.UI.FILL,
-			top: 100
-		});
-		view2.add({
-			backgroundGradient: {
-				type: 'linear',
-				colors: ['transparent', '#333'],
-				startPoint: {
-					x: 0,
-					y: 0
-				},
-				endPoint: {
-					x: 0,
-					y: "100%"
-				}
-			},
-			height: 10,
-			width: Ti.UI.FILL,
-			bottom: 50
-		});
-		verticalScrollView.views = [topView, view2];
-		win.add(verticalScrollView);
-		win.add(closeButton);
-		var lastWin = otherWindows[otherWindows.length - 1];
-		win.addEventListener('open', function(e) {
-			lastWin.animate({
-				transform: Ti.UI.create2DMatrix().scale(0.9),
-				opacity: 0.5,
-				duration: 200
-			});
-			e.source.animate({
-				transform: null,
-				duration: 400
-			}, function() {
-				Ti.API.info('test');
-				imageView.image = _imgUrl.replace('-138', '');
-			});
-		});
-		win.addEventListener('androidback', function(e) {
-			closeWindow(e.source);
-		});
-		win.open({
-			animated: false
-		});
-		otherWindows.push(win);
-	}
-	var rootWindow1 = Ti.UI.createWindow({
-		navBarHidden: true,
-		backgroundColor: backColor
-	});
-
-	function getScrollViewPage(_imgUrl, _title) {
-		var view = Ti.UI.createView({
-			opacity: 0,
-			height: Ti.UI.FILL,
-			width: Ti.UI.FILL,
-			// left:'15%',
-			// right:'15%'
-		});
-		var imageView = Ti.UI.createImageView({
-			scaleType: Ti.UI.SCALE_TYPE_ASPECT_FILL,
-			height: Ti.UI.FILL,
-			width: Ti.UI.FILL,
-			image: _imgUrl
-		});
-		var glassView = Ti.UI.createLabel({
-			color: 'white',
-			bottom: 0,
-			width: Ti.UI.FILL,
-			height: 80,
-			text: _title
-		});
-		// var textView = Ti.UI.createView({backgroundColor:'#55000000'});
-		imageView.addEventListener('load', function(e) {
-			glassView.blurBackground('backgroundImage', {
-				blend: Ti.UI.BlendMode.DARKEN,
-				radius: 1,
-				scale: 0.3,
-				tint: '#aa000000',
-				callback: function() {
-					view.animate({
-						opacity: 1,
-						duration: 400
-					});
-				}
-			});
-		});
-		imageView.addEventListener('click', function(e) {
-			openMovieWindow(_imgUrl);
-		});
-		// glassView.add(textView);
-		view.add(imageView);
-		view.add(glassView);
-		return view;
-	}
-	var scrollView = Ti.UI.createScrollableView({
-		backgroundColor: 'blue',
-		height: 300,
-		width: '90%',
-		transition: {
-			style: Ti.UI.TransitionStyle.SWIPE_FADE
-		},
-		showPagingControl: true,
-		disableBounce: false,
-		pageWidth: '60%',
-		cacheSize: 5,
-		views: [getScrollViewPage('http://zapp.trakt.us/images/posters_movies/192263-138.jpg', 'The Croods'),
-			getScrollViewPage('http://zapp.trakt.us/images/posters_movies/208623-138.jpg', 'This Is The End'),
-			getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210231-138.jpg', 'Now You See Me'),
-			getScrollViewPage('http://zapp.trakt.us/images/posters_movies/176347-138.jpg', 'Into Darkness'),
-			getScrollViewPage('http://zapp.trakt.us/images/posters_movies/210596-138.jpg', 'Pain And Gain')
-		]
-	});
-	rootWindow1.add(scrollView);
-
-	var button = Ti.UI.createButton({
-		bottom: 0,
-		bubbleParent: false,
-		title: 'Transition'
-	});
-	button.addEventListener('click', function() {
-		choseTransition(scrollView, 'transition');
-	});
-	rootWindow1.add(button);
-	rootWindows.push(rootWindow1);
-
-	function openRootWindow(_win) {
-		// if (slidingMenu.centerView !== _win) {
-		slidingMenu.centerView = _win;
-		// }
-		for (var i = 1; i < otherWindows.length; i++) {
-			otherWindows[i].close();
-		};
-	}
-	var slidingMenu = Ti.UI.createSlideMenu({
-		backgroundColor: backColor,
-		navBarHidden: true,
-		leftViewWidth: '40%',
-		backgroundColor: 'gray',
-		// fading:1.0,
-		leftTransition: {
-			style: Ti.UI.TransitionStyle.SLIDE,
-			substyle: Ti.UI.TransitionStyle.LEFT_TO_RIGHT
-		}
-	});
-	var listview = createListView({
-		backgroundColor: 'transparent',
-		sections: [{
-			items: [{
-				properties: {
-					title: 'test1'
-				},
-				callback: function() {
-					openRootWindow(rootWindow1);
-				}
-			}, {
-				properties: {
-					title: 'test2',
-					accessoryType: Titanium.UI.LIST_ACCESSORY_TYPE_CHECKMARK
-				},
-				callback: transform2Ex
-			}, {
-				properties: {
-					title: 'PopIn'
-				},
-				callback: transform3Ex
-			}, {
-				properties: {
-					title: 'SlideIn'
-				},
-				callback: transform4Ex
-			}, {
-				properties: {
-					title: 'Transition Style'
-				},
-				callback: function() {
-					choseTransition(slidingMenu, 'leftTransition');
-				}
-			}, {
-				properties: {
-					title: 'Close'
-				},
-				callback: function() {
-					slidingMenu.close();
-				}
-			}]
-		}]
-	});
-	slidingMenu.leftView = listview;
-	slidingMenu.centerView = Ti.UI.createWindow({
-		backgroundColor: backColor,
-		navBarHidden: true
-	});
-	otherWindows.push(slidingMenu);
-	// slidingMenu.add(Ti.UI.createView({
-	// backgroundColor: 'red',
-	// height: 60,
-	// width: Ti.UI.FILL
-	// }));
-	slidingMenu.open();
-}
-
 function test2() {
-	var win = createWin({
+	var win = createwin({
 		modal: true
 	});
-	var view = Ti.UI.createView({
-		width: Ti.UI.FILL,
+	var view = ti.ui.createview({
+		width: ti.ui.fill,
 		height: 60
 	});
-	var view1 = Ti.UI.createView({
+	var view1 = ti.ui.createview({
 		layout: 'vertical'
 	});
-	var view2 = Ti.UI.createView({
+	var view2 = ti.ui.createview({
 		height: '65%',
 		layout: 'horizontal',
-		width: Ti.UI.FILL
+		width: ti.ui.fill
 	});
-	var view3 = Ti.UI.createLabel({
-		text: 'This is my tutle test',
+	var view3 = ti.ui.createlabel({
+		text: 'this is my tutle test',
 		top: 2,
-		ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		ellipsize: ti.ui.text_ellipsize_tail,
 		font: {
-			fontSize: 14
+			fontsize: 14
 		},
-		width: Ti.UI.FILL
+		width: ti.ui.fill
 	});
-	var view4 = Ti.UI.createLabel({
+	var view4 = ti.ui.createlabel({
 		color: 'white',
 		text: 'test',
 		padding: {
@@ -3855,36 +2549,36 @@ function test2() {
 			right: 4,
 			bottom: 2
 		},
-		shadowColor: '#55000000',
-		shadowRadius: 2,
+		shadowcolor: '#55000000',
+		shadowradius: 2,
 		font: {
-			fontSize: 12,
-			fontWeight: 'bold'
+			fontsize: 12,
+			fontweight: 'bold'
 		},
-		backgroundColor: 'red',
-		borderRadius: 4,
+		backgroundcolor: 'red',
+		borderradius: 4,
 		right: 4
 	});
-	var view5 = Ti.UI.createView({
-		height: Ti.UI.FILL,
+	var view5 = ti.ui.createview({
+		height: ti.ui.fill,
 		layout: 'horizontal',
-		width: Ti.UI.FILL
+		width: ti.ui.fill
 	});
-	var view6 = Ti.UI.createLabel({
+	var view6 = ti.ui.createlabel({
 		font: {
-			fontSize: 12
+			fontsize: 12
 		},
 		color: 'black',
 		bottom: 2
 	});
-	var view7 = Ti.UI.createLabel({
+	var view7 = ti.ui.createlabel({
 		font: {
-			fontSize: 12
+			fontsize: 12
 		},
 		text: 'date',
 		color: 'black',
 		bottom: 2,
-		textAlign: 'right',
+		textalign: 'right',
 		right: 4
 	});
 	view5.add(view6);
@@ -3898,60 +2592,60 @@ function test2() {
 	win.open();
 }
 
-function listViewLayout() {
-	var win = createWin();
+function listviewlayout() {
+	var win = createwin();
 	var template = {
 		properties: {
 			layout: 'horizontal',
-			backgroundColor: 'orange'
+			backgroundcolor: 'orange'
 		},
-		childTemplates: [{
-			type: 'Ti.UI.Button',
-			bindId: 'button',
+		childtemplates: [{
+			type: 'ti.ui.button',
+			bindid: 'button',
 			properties: {
 				width: 40,
 				height: 40,
-				backgroundColor: 'purple',
+				backgroundcolor: 'purple',
 				left: 4,
 				right: 4,
 				font: {
-					fontSize: 18,
-					fontWeight: 'bold'
+					fontsize: 18,
+					fontweight: 'bold'
 				},
-				borderRadius: 10,
+				borderradius: 10,
 				color: 'white',
-				selectedColor: 'black'
+				selectedcolor: 'black'
 			}
 		}, {
-			type: 'Ti.UI.View',
+			type: 'ti.ui.view',
 			properties: {
-				width: Ti.UI.FILL,
-				height: Ti.UI.FILL,
+				width: ti.ui.fill,
+				height: ti.ui.fill,
 				layout: 'vertical'
 			},
-			childTemplates: [{
-				type: 'Ti.UI.View',
+			childtemplates: [{
+				type: 'ti.ui.view',
 				properties: {
 					layout: 'horizontal',
-					backgroundColor: 'blue',
-					width: Ti.UI.FILL,
-					height: Ti.UI.FILL
+					backgroundcolor: 'blue',
+					width: ti.ui.fill,
+					height: ti.ui.fill
 				},
-				childTemplates: [{
-					type: 'Ti.UI.Label',
-					bindId: 'tlabel',
+				childtemplates: [{
+					type: 'ti.ui.label',
+					bindid: 'tlabel',
 					properties: {
 						top: 2,
-						backgroundColor: 'gray',
-						ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+						backgroundcolor: 'gray',
+						ellipsize: ti.ui.text_ellipsize_tail,
 						font: {
-							fontSize: 14
+							fontsize: 14
 						},
-						width: Ti.UI.FILL
+						width: ti.ui.fill
 					}
 				}, {
-					type: 'Ti.UI.Label',
-					bindId: 'plabel',
+					type: 'ti.ui.label',
+					bindid: 'plabel',
 					properties: {
 						color: 'white',
 						padding: {
@@ -3959,66 +2653,66 @@ function listViewLayout() {
 							right: 14,
 							bottom: 2
 						},
-						shadowColor: '#55000000',
-						selectedColor: 'green',
-						shadowRadius: 2,
-						borderRadius: 4,
+						shadowcolor: '#55000000',
+						selectedcolor: 'green',
+						shadowradius: 2,
+						borderradius: 4,
 						font: {
-							fontSize: 12,
-							fontWeight: 'bold'
+							fontsize: 12,
+							fontweight: 'bold'
 						},
-						backgroundColor: 'red',
+						backgroundcolor: 'red',
 						right: 4
 					}
 				}]
 			}, {
-				type: 'Ti.UI.View',
+				type: 'ti.ui.view',
 				properties: {
 					layout: 'horizontal',
-					width: Ti.UI.FILL,
-					backgroundColor: 'yellow',
+					width: ti.ui.fill,
+					backgroundcolor: 'yellow',
 					height: 16,
 					top: 2,
 					bottom: 6
 
 				},
-				childTemplates: [{
-					type: 'Ti.UI.View',
+				childtemplates: [{
+					type: 'ti.ui.view',
 					properties: {
-						width: Ti.UI.FILL,
-						backgroundColor: '#e9e9e9',
-						borderRadius: 4
+						width: ti.ui.fill,
+						backgroundcolor: '#e9e9e9',
+						borderradius: 4
 					},
-					childTemplates: [{
-						type: 'Ti.UI.View',
-						bindId: 'progressbar',
+					childtemplates: [{
+						type: 'ti.ui.view',
+						bindid: 'progressbar',
 						properties: {
 							left: 0,
-							height: Ti.UI.FILL,
-							backgroundColor: 'green'
+							height: ti.ui.fill,
+							backgroundcolor: 'green'
 						}
 					}, {
-						type: 'Ti.UI.Label',
-						bindId: 'sizelabel',
+						type: 'ti.ui.label',
+						bindid: 'sizelabel',
 						properties: {
 							color: 'black',
-							shadowColor: '#55ffffff',
-							shadowRadius: 2,
+							shadowcolor: '#55ffffff',
+							shadowradius: 2,
 							font: {
-								fontSize: 12
+								fontsize: 12
 							}
 						}
 					}]
 				}, {
-					type: 'Ti.UI.Label',
-					bindId: 'timelabel',
+					type: 'ti.ui.label',
+					bindid: 'timelabel',
 					properties: {
 						font: {
-							fontSize: 12
+							fontsize: 12
 						},
-						backgroundColor: 'green',
+						backgroundcolor: 'green',
 						color: 'black',
-						textAlign: 'right',
+						textalign: 'right',
 						right: 4,
 						width: 80
 					}
@@ -4027,16 +2721,16 @@ function listViewLayout() {
 		}]
 	};
 
-	var names = ['Carolyn Humbert',
-		'David Michaels',
-		'Rebecca Thorning',
-		'Joe B',
-		'Phillip Craig',
-		'Michelle Werner',
-		'Philippe Christophe',
-		'Marcus Crane',
-		'Esteban Valdez',
-		'Sarah Mullock'
+	var names = ['carolyn humbert',
+		'david michaels',
+		'rebecca thorning',
+		'joe b',
+		'phillip craig',
+		'michelle werner',
+		'philippe christophe',
+		'marcus crane',
+		'esteban valdez',
+		'sarah mullock'
 	];
 	var priorities = ['downloading',
 		'success',
@@ -4044,128 +2738,128 @@ function listViewLayout() {
 		'test',
 		'processing'
 	];
-	var listView = createListView({
-		minRowHeight: 40,
+	var listview = createlistview({
+		minrowheight: 40,
 		templates: {
 			'template': template
 		},
-		defaultItemTemplate: 'template'
+		defaultitemtemplate: 'template'
 	});
 	var items = [];
 	for (var i = 0; i < 100; i++) {
 		items.push({
 			properties: {
-				height: Ti.UI.SIZE
+				height: ti.ui.size
 			},
 			tlabel: {
-				text: names[Math.floor(Math.random() * names.length)]
+				text: names[math.floor(math.random() * names.length)]
 			},
 			plabel: {
-				text: priorities[Math.floor(Math.random() * priorities.length)]
+				text: priorities[math.floor(math.random() * priorities.length)]
 			},
 			sizelabel: {
 				text: 'size'
 			},
 			timelabel: {
-				text: (new Date()).toString()
+				text: (new date()).tostring()
 			},
 			progressbar: {
-				width: Math.floor(Math.random() * 100) + '%'
+				width: math.floor(math.random() * 100) + '%'
 			}
 		});
 	}
-	listView.setSections([{
+	listview.setsections([{
 		items: items
 	}]);
-	win.add(listView);
-	openWin(win);
+	win.add(listview);
+	openwin(win);
 }
 
-function keyboardTest() {
-	var textfield = Ti.UI.createTextField();
-	var dialog = Ti.UI.createAlertDialog({
+function keyboardtest() {
+	var textfield = ti.ui.createtextfield();
+	var dialog = ti.ui.createalertdialog({
 		title: 'test',
-		buttonNames: ['cancel', 'ok'],
+		buttonnames: ['cancel', 'ok'],
 		persistent: true,
 		cancel: 0,
-		androidView: textfield
+		androidview: textfield
 	});
-	textfield.addEventListener('change', function(e) {
+	textfield.addeventlistener('change', function(e) {
 		textfield.blur();
 	});
-	dialog.addEventListener('open', function(e) {
+	dialog.addeventlistener('open', function(e) {
 		textfield.focus();
 	});
-	dialog.addEventListener('click', function(e) {
+	dialog.addeventlistener('click', function(e) {
 		if (e.cancel)
 			return;
 	});
-	dialog.addEventListener('return', function(e) {});
+	dialog.addeventlistener('return', function(e) {});
 	dialog.show();
 }
 
-function transitionTest() {
-	var win = createWin();
+function transitiontest() {
+	var win = createwin();
 
-	var holderHolder = Ti.UI.createView({
-		// clipChildren:false,
+	var holderholder = ti.ui.createview({
+		// clipchildren:false,
 		height: 100,
-		borderColor: 'green',
+		bordercolor: 'green',
 		width: 220,
-		backgroundColor: 'green'
+		backgroundcolor: 'green'
 	});
-	var transitionViewHolder = Ti.UI.createView({
-		clipChildren: false,
+	var transitionviewholder = ti.ui.createview({
+		clipchildren: false,
 		height: 80,
 		width: 200,
-		borderColor: 'green',
-		// borderRadius: 10,
-		backgroundColor: 'red'
+		bordercolor: 'green',
+		// borderradius: 10,
+		backgroundcolor: 'red'
 	});
-	var tr1 = Ti.UI.createLabel({
-		text: 'I am a text!',
+	var tr1 = ti.ui.createlabel({
+		text: 'i am a text!',
 		color: '#fff',
-		textAlign: 'center',
-		backgroundColor: 'green',
+		textalign: 'center',
+		backgroundcolor: 'green',
 		width: 50,
 		height: 40,
 	});
-	tr1.addEventListener('click', function(e) {
-		Ti.API.info('click');
-		transitionViewHolder.transitionViews(tr1, tr2, {
-			style: Ti.UI.TransitionStyle.CUBE,
+	tr1.addeventlistener('click', function(e) {
+		ti.api.info('click');
+		transitionviewholder.transitionviews(tr1, tr2, {
+			style: ti.ui.transitionstyle.cube,
 			duration: 3000,
 			reverse: true
 		});
 	});
-	var tr2 = Ti.UI.createButton({
-		title: 'I am a button!',
+	var tr2 = ti.ui.createbutton({
+		title: 'i am a button!',
 		color: '#000',
 		height: 40,
-		backgroundColor: 'white'
+		backgroundcolor: 'white'
 	});
-	tr2.addEventListener('click', function(e) {
-		transitionViewHolder.transitionViews(tr2, tr1, {
-			style: Ti.UI.TransitionStyle.SWIPE_DUAL_FADE,
+	tr2.addeventlistener('click', function(e) {
+		transitionviewholder.transitionviews(tr2, tr1, {
+			style: ti.ui.transitionstyle.swipe_dual_fade,
 		});
 	});
-	transitionViewHolder.add(tr1);
-	holderHolder.add(transitionViewHolder);
-	win.add(holderHolder);
-	openWin(win);
+	transitionviewholder.add(tr1);
+	holderholder.add(transitionviewholder);
+	win.add(holderholder);
+	openwin(win);
 }
 
-function opacityTest() {
-	var win = createWin({
-		dispatchPressed: true,
-		backgroundSelectedColor: 'green'
+function opacitytest() {
+	var win = createwin({
+		dispatchpressed: true,
+		backgroundselectedcolor: 'green'
 	});
 
-	var image1 = Ti.UI.createImageView({
-		backgroundColor: 'yellow',
+	var image1 = ti.ui.createimageview({
+		backgroundcolor: 'yellow',
 		image: "animation/win_1.png"
 	});
-	image1.addEventListener('longpress', function() {
+	image1.addeventlistener('longpress', function() {
 		image1.animate({
 			opacity: 0,
 			autoreverse: true,
@@ -4173,7 +2867,7 @@ function opacityTest() {
 		});
 	});
 
-	var button = Ti.UI.createButton({
+	var button = ti.ui.createbutton({
 		top: 0,
 		padding: {
 			left: 30,
@@ -4182,54 +2876,54 @@ function opacityTest() {
 			right: 30
 		},
 		height: 50,
-		bubbleParent: false,
-		backgroundColor: 'gray',
-		touchPassThrough: false,
-		dispatchPressed: true,
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		backgroundcolor: 'gray',
+		touchpassthrough: false,
+		dispatchpressed: true,
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
 		title: 'test buutton'
 	});
-	button.add(Ti.UI.createView({
+	button.add(ti.ui.createview({
 		enabled: true,
-		backgroundColor: 'purple',
-		backgroundSelectedColor: 'white',
+		backgroundcolor: 'purple',
+		backgroundselectedcolor: 'white',
 		left: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		backgroundColor: 'green',
+	button.add(ti.ui.createview({
+		backgroundcolor: 'green',
 		bottom: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		backgroundColor: 'yellow',
+	button.add(ti.ui.createview({
+		backgroundcolor: 'yellow',
 		top: 10,
 		width: 15,
 		height: 15
 	}));
-	button.add(Ti.UI.createView({
-		touchPassThrough: true,
-		backgroundColor: 'orange',
+	button.add(ti.ui.createview({
+		touchpassthrough: true,
+		backgroundcolor: 'orange',
 		right: 0,
 		width: 35,
-		height: Ti.UI.FILL
+		height: ti.ui.fill
 	}));
-	var t1 = Ti.UI.create2DMatrix();
-	var t2 = Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, 40).rotate(90);
-	button.addEventListener('longpress', function(e) {
+	var t1 = ti.ui.create2dmatrix();
+	var t2 = ti.ui.create2dmatrix().scale(2.0, 2.0).translate(0, 40).rotate(90);
+	button.addeventlistener('longpress', function(e) {
 		button.animate({
 			opacity: 0,
 			autoreverse: true,
@@ -4237,61 +2931,61 @@ function opacityTest() {
 		});
 	});
 	win.add(button);
-	var label = Ti.UI.createLabel({
+	var label = ti.ui.createlabel({
 		bottom: 20,
-		// dispatchPressed: true,
-		backgroundColor: 'gray',
-		backgroundSelectedColor: '#a46',
+		// dispatchpressed: true,
+		backgroundcolor: 'gray',
+		backgroundselectedcolor: '#a46',
 		padding: {
 			left: 30,
 			top: 30,
 			bottom: 30,
 			right: 30
 		},
-		bubbleParent: false,
-		selectedColor: 'green',
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		selectedcolor: 'green',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
-		text: 'This is a sample\n text for a label'
+		text: 'this is a sample\n text for a label'
 	});
-	label.add(Ti.UI.createView({
-		touchEnabled: false,
-		backgroundColor: 'red',
-		backgroundSelectedColor: 'white',
+	label.add(ti.ui.createview({
+		touchenabled: false,
+		backgroundcolor: 'red',
+		backgroundselectedcolor: 'white',
 		left: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'green',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'green',
 		bottom: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'yellow',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'yellow',
 		top: 10,
 		width: 15,
 		height: 15
 	}));
-	label.add(Ti.UI.createView({
-		backgroundColor: 'orange',
+	label.add(ti.ui.createview({
+		backgroundcolor: 'orange',
 		right: 10,
 		width: 15,
 		height: 15
 	}));
-	var t3 = Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, -40).rotate(90);
-	label.addEventListener('longpress', function(e) {
+	var t3 = ti.ui.create2dmatrix().scale(2.0, 2.0).translate(0, -40).rotate(90);
+	label.addeventlistener('longpress', function(e) {
 		label.animate({
 			opacity: 0,
 			autoreverse: true,
@@ -4299,175 +2993,175 @@ function opacityTest() {
 		});
 	});
 	win.add(label);
-	var button2 = Ti.UI.createButton({
+	var button2 = ti.ui.createbutton({
 		padding: {
 			left: 80
 		},
-		bubbleParent: false,
-		backgroundColor: 'gray',
-		dispatchPressed: true,
-		selectedColor: 'red',
-		backgroundSelectedGradient: {
+		bubbleparent: false,
+		backgroundcolor: 'gray',
+		dispatchpressed: true,
+		selectedcolor: 'red',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
 		title: 'test buutton'
 	});
-	button2.add(Ti.UI.createButton({
+	button2.add(ti.ui.createbutton({
 		left: 0,
-		backgroundColor: 'green',
-		selectedColor: 'red',
-		backgroundSelectedGradient: {
+		backgroundcolor: 'green',
+		selectedcolor: 'red',
+		backgroundselectedgradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
-			startPoint: {
+			startpoint: {
 				x: 0,
 				y: 0
 			},
-			endPoint: {
+			endpoint: {
 				x: 0,
 				y: "100%"
 			}
 		},
-		title: 'Osd'
+		title: 'osd'
 	}));
 	win.add(button2);
 	win.add(image1);
-	openWin(win);
+	openwin(win);
 }
 
-function imageViewTests() {
-	var win = createWin();
-	var listview = createListView();
+function imageviewtests() {
+	var win = createwin();
+	var listview = createlistview();
 	listview.sections = [{
 		items: [{
 			properties: {
-				title: 'AnimationTest'
+				title: 'animationtest'
 			},
-			callback: imageViewAnimationTest
+			callback: imageviewanimationtest
 		}, {
 			properties: {
-				title: 'TransitionTest'
+				title: 'transitiontest'
 			},
-			callback: imageViewTransitionTest
+			callback: imageviewtransitiontest
 		}]
 	}];
 	win.add(listview);
-	openWin(win);
+	openwin(win);
 }
 
-function imageViewTransitionTest() {
-	var win = createWin();
+function imageviewtransitiontest() {
+	var win = createwin();
 
-	var image1 = Ti.UI.createImageView({
-		backgroundColor: 'yellow',
+	var image1 = ti.ui.createimageview({
+		backgroundcolor: 'yellow',
 		image: "animation/win_1.png",
 		width: 100,
 		transition: {
-			style: Ti.UI.TransitionStyle.FLIP,
-			// substyle:Ti.UI.TransitionStyle.TOP_TO_BOTTOM
+			style: ti.ui.transitionstyle.flip,
+			// substyle:ti.ui.transitionstyle.top_to_bottom
 		}
 	});
 	win.add(image1);
-	image1.addEventListener('click', function() {
-		image1.image = "animation/win_" + Math.floor(Math.random() * 16 + 1) + ".png";
+	image1.addeventlistener('click', function() {
+		image1.image = "animation/win_" + math.floor(math.random() * 16 + 1) + ".png";
 	});
-	var button = Ti.UI.createButton({
+	var button = ti.ui.createbutton({
 		bottom: 0,
-		bubbleParent: false,
-		title: 'Transition'
+		bubbleparent: false,
+		title: 'transition'
 	});
-	button.addEventListener('click', function() {
-		choseTransition(image1, 'transition');
+	button.addeventlistener('click', function() {
+		chosetransition(image1, 'transition');
 	});
 	win.add(button);
-	openWin(win);
+	openwin(win);
 }
 
-function imageViewAnimationTest() {
-	var win = createWin();
+function imageviewanimationtest() {
+	var win = createwin();
 
-	var image1 = Ti.UI.createImageView({
-		backgroundColor: 'yellow',
+	var image1 = ti.ui.createimageview({
+		backgroundcolor: 'yellow',
 		width: 100,
 		transition: {
-			style: Ti.UI.TransitionStyle.FADE,
+			style: ti.ui.transitionstyle.fade,
 		},
 		image: 'http://zapp.trakt.us/images/posters_movies/192263-138.jpg',
-		animatedImages: ["animation/win_1.png", "animation/win_2.png", "animation/win_3.png", "animation/win_4.png",
+		animatedimages: ["animation/win_1.png", "animation/win_2.png", "animation/win_3.png", "animation/win_4.png",
 						"animation/win_5.png", "animation/win_6.png", "animation/win_7.png", "animation/win_8.png",
 						"animation/win_9.png", "animation/win_10.png", "animation/win_11.png", "animation/win_12.png",
 						"animation/win_13.png", "animation/win_14.png", "animation/win_15.png", "animation/win_16.png"],
 		duration: 100,
-		viewMask: '/images/body-mask.png'
+		viewmask: '/images/body-mask.png'
 	});
 	win.add(image1);
-	var btnHolder = Ti.UI.createView({
+	var btnholder = ti.ui.createview({
 		left: 0,
 		layout: 'vertical',
-		height: Ti.UI.SIZE,
-		width: Ti.UI.SIZE,
-		backgroundColor: 'green'
+		height: ti.ui.size,
+		width: ti.ui.size,
+		backgroundcolor: 'green'
 	});
-	btnHolder.add([
+	btnholder.add([
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			left: 0,
 			bid: 0,
 			title: 'start'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			right: 0,
 			bid: 1,
 			title: 'pause'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			left: 0,
 			bid: 2,
 			title: 'resume'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			right: 0,
 			bid: 3,
 			title: 'playpause'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			left: 0,
 			bid: 4,
 			title: 'stop'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			right: 0,
 			bid: 5,
 			title: 'reverse'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			left: 0,
 			bid: 6,
 			title: 'autoreverse'
 		},
 		{
-			type: 'Ti.UI.Button',
+			type: 'ti.ui.button',
 			right: 0,
 			bid: 7,
 			title: 'transition'
 		}
 	]);
-	btnHolder.addEventListener('singletap', function(e) {
+	btnholder.addeventlistener('singletap', function(e) {
 		info(stringify(e));
 		switch (e.source.bid) {
 			case 0:
@@ -4480,7 +3174,7 @@ function imageViewAnimationTest() {
 				image1.resume();
 				break;
 			case 3:
-				image1.pauseOrResume();
+				image1.pauseorresume();
 				break;
 			case 4:
 				image1.stop();
@@ -4492,243 +3186,184 @@ function imageViewAnimationTest() {
 				image1.autoreverse = !image1.autoreverse;
 				break;
 			case 7:
-				choseTransition(image1, 'transition');
+				chosetransition(image1, 'transition');
 				break;
 
 		}
 	});
-	win.add(btnHolder);
-	openWin(win);
+	win.add(btnholder);
+	openwin(win);
 }
 
-function antiAliasTest() {
-	var win = createWin();
-	var view = Ti.UI.createView({
-		backgroundColor: 'blue',
-		borderWidth: 4,
-		borderColor: 'green',
-		borderRadius: 50,
+function antialiastest() {
+	var win = createwin();
+	var view = ti.ui.createview({
+		backgroundcolor: 'blue',
+		borderwidth: 4,
+		bordercolor: 'green',
+		borderradius: 50,
 		width: 300,
 		height: 300
 	});
 	view.add({
-		backgroundColor: 'red',
+		backgroundcolor: 'red',
 		left: 0,
 		top: 0,
 		width: 100,
 		height: 100
 	});
-	view.addEventListener('singletap', function() {
+	view.addeventlistener('singletap', function() {
 		view.animate({
 			top: 0,
 			duration: 200,
 			autoreverse: true
 		});
 	});
-	view.addEventListener('longpress', function() {
+	view.addeventlistener('longpress', function() {
 		view.animate({
-			transform: Ti.UI.create2DMatrix().scale(0.3, 0.3),
+			transform: ti.ui.create2dmatrix().scale(0.3, 0.3),
 			duration: 200,
 			autoreverse: true
 		});
 	});
 
 	win.add(view);
-	openWin(win);
+	openwin(win);
 }
 
-var firstWindow = createWin({});
-var listview = createListView({
-	// minRowHeight:100,
-	// maxRowHeight:140
+var firstwindow = createwin({});
+var listview = createlistview({
+	// minrowheight:100,
+	// maxrowheight:140
 });
-var color = cellColor(0);
+var color = cellcolor(0);
 listview.sections = [{
 	items: [{
 		properties: {
-			title: 'Transform',
-			height: Ti.UI.FILL,
-			backgroundColor: color
+			title: 'imageview tests'
 		},
-		callback: transformExs
+		callback: imageviewtests
 	}, {
 		properties: {
-			height: 200,
-			title: 'SlideMenu'
+			title: 'antialiastest'
 		},
-		callback: slideMenuEx
+		callback: antialiastest
 	}, {
 		properties: {
-			title: 'ImageView tests'
+			title: 'opacity'
 		},
-		callback: imageViewTests
+		callback: opacitytest
 	}, {
 		properties: {
-			title: 'antiAliasTest'
+			title: 'layout'
 		},
-		callback: antiAliasTest
+		callback: layoutexs
 	}, {
 		properties: {
-			title: 'NavigationWindow'
+			title: 'listviewlayout'
 		},
-		callback: navWindowEx
+		callback: listviewlayout
 	}, {
 		properties: {
-			title: 'Opacity'
+			title: 'transitiontest'
 		},
-		callback: opacityTest
+		callback: transitiontest
 	}, {
 		properties: {
-			title: 'Layout'
+			title: 'shapes'
 		},
-		callback: layoutExs
+		callback: shapeexs
 	}, {
 		properties: {
-			title: 'listViewLayout'
+			title: 'buttonsandlabels'
 		},
-		callback: listViewLayout
+		callback: buttonandlabelex
 	}, {
 		properties: {
-			title: 'transitionTest'
+			title: 'mask'
 		},
-		callback: transitionTest
+		callback: maskex
 	}, {
 		properties: {
-			title: 'Shapes'
+			title: 'imageview'
 		},
-		callback: shapeExs
+		callback: imageviewex
 	}, {
 		properties: {
-			title: 'ButtonsAndLabels'
+			title: 'animationset'
 		},
-		callback: buttonAndLabelEx
+		callback: transform2ex
 	}, {
 		properties: {
-			title: 'Mask'
+			title: 'html label'
 		},
-		callback: maskEx
+		callback: htmllabelex
 	}, {
 		properties: {
-			title: 'ImageView'
+			title: 'svg'
 		},
-		callback: ImageViewEx
+		callback: svgexs
 	}, {
 		properties: {
-			title: 'AnimationSet'
+			title: 'pulltorefresh'
 		},
-		callback: transform2Ex
-	}, {
-		properties: {
-			title: 'HTML Label'
-		},
-		callback: htmlLabelEx
-	}, {
-		properties: {
-			title: 'SVG'
-		},
-		callback: svgExs
-	}, {
-		properties: {
-			title: 'PullToRefresh'
-		},
-		callback: pullToRefresh
+		callback: pulltorefresh
 		}, {
 		properties: {
-			title: 'ListView'
+			title: 'listview'
 		},
-		callback: listViewEx
+		callback: listviewex
 	}, {
 		properties: {
-			title: 'ListView2'
+			title: 'listview2'
 		},
-		callback: listView2Ex
+		callback: listview2ex
 	}]
 }];
-firstWindow.add(listview);
-var mainWin = Ti.UI.createNavigationWindow({
-	backgroundColor: backColor,
-	exitOnClose: true,
-	window: firstWindow,
+firstwindow.add(listview);
+var mainwin = ti.ui.createnavigationwindow({
+	backgroundcolor: backcolor,
+	exitonclose: true,
+	window: firstwindow,
 	transition: {
-		style: Ti.UI.TransitionStyle.CUBE
+		style: ti.ui.transitionstyle.cube
 	}
 });
-mainWin.addEventListener('openWindow', function(e) {
-	Ti.API.info(e);
+mainwin.addeventlistener('openwindow', function(e) {
+	ti.api.info(e);
 });
-mainWin.addEventListener('closeWindow', function(e) {
-	Ti.API.info(e);
+mainwin.addeventlistener('closewindow', function(e) {
+	ti.api.info(e);
 });
-mainWin.open();
-var app = {};
-var ak = require('akylas.commonjs');
-ak.load(this, {
-	modules: ['ti', 'moment', 'animation'],
-	additions: []
-});
-ak.prepareAppObject(app);
-ak.ti.loadRjss('$variables'); //load variables
-ak.ti.loadCreatorsFromDir('ui');
-// /RJSS loading
-ak.ti.loadRjssFromDir('rjss');
+mainwin.open();
 
-function textFieldTest() {
-	(new DataPlanAlert()).showMe();
-}
-// textFieldTest();
 
 function test2() {
-	var win = createWin();
-	var holder = Ti.UI.createView({
+	var win = createwin();
+	var holder = ti.ui.createview({
 		width: 200,
 		height: '80%',
-		backgroundColor: 'red',
+		backgroundcolor: 'red',
 		layout: 'vertical'
 	});
-	var view1 = Ti.UI.createView({
-		width: Ti.UI.FILL,
-		height: Ti.UI.SIZE,
-		backgroundColor: 'yellow'
+	var view1 = ti.ui.createview({
+		width: ti.ui.fill,
+		height: ti.ui.size,
+		backgroundcolor: 'yellow'
 	});
 	view1.add({
-		width: Ti.UI.FILL,
-		height: Ti.UI.FILL,
-		backgroundColor: 'blue'
+		width: ti.ui.fill,
+		height: ti.ui.fill,
+		backgroundcolor: 'blue'
 	});
 	holder.add([
 		view1,
 		{
-			width: Ti.UI.FILL,
+			width: ti.ui.fill,
 			height: 60,
-			backgroundColor: 'orange'
+			backgroundcolor: 'orange'
 		}
 	]);
 	win.add(holder);
-	openWin(win);
+	openwin(win);
 }
-
-function test3(){
-	var win = createWin();
-	var view = new View({
-		properties: {rclass:'AutoSize Horizontal'},
-		childTemplates: [{
-			type: 'Ti.UI.Label',
-			bindId: 'tlabel',
-			properties: {
-				rclass: 'FillWidth LabelTest RightLabel'
-			}
-			}, {
-			type: 'Ti.UI.Label',
-			bindId: 'sizelabel',
-			properties: {
-				rclass: 'FillWidth LabelTest LeftLabel',
-			}
-		}]
-	});
-	view.tlabel.html = 'Test1';
-	view.sizelabel.html = 'Test2';
-	win.add(view);
-	openWin(win);
-}
-test3();
-// htmlLabelEx();
