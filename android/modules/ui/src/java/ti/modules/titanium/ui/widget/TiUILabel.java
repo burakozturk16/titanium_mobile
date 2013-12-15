@@ -538,7 +538,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
 						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
-							int end2 = layout.getLineEnd(linesCount - 1);
+							int end2 = end1 + layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
@@ -574,7 +574,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
 						if (linesCount >= 2) {
 							int end1 = layout.getLineEnd(linesCount - 2);
-							int end2 = layout.getLineEnd(linesCount - 1);
+							int end2 = end1 + layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
