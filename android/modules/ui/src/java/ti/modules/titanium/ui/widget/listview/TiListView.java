@@ -712,15 +712,12 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		return p;
 	}
 	private void setHeaderOrFooterView (Object viewObj, boolean isHeader) {
-		if (viewObj instanceof TiViewProxy) {
-			TiViewProxy viewProxy = (TiViewProxy)viewObj;
-			View view = layoutHeaderOrFooterView(viewProxy);
-			if (view != null) {
-				if (isHeader) {
-					headerView = view;
-				} else {
-					footerView = view;
-				}
+		View view = layoutHeaderOrFooterView(viewObj, proxy);
+		if (view != null) {
+			if (isHeader) {
+				headerView = view;
+			} else {
+				footerView = view;
 			}
 		}
 	}
@@ -729,11 +726,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		if (pullView != null) {
 			pullView.releaseViews();
 		}
-		if (viewObj instanceof TiViewProxy) {
-			pullView = (TiViewProxy)viewObj;
-			return layoutHeaderOrFooterView(pullView);
-		}
-		return null;
+		return layoutHeaderOrFooterView(viewObj, proxy);
 	}
 	
 	public void showPullView(boolean animated) {
@@ -862,7 +855,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 	}
 	
-	public View layoutHeaderOrFooterView (TiViewProxy viewProxy) {
+	public View layoutHeaderOrFooterView (Object object, TiViewProxy parent) {
+		TiViewProxy viewProxy;
+		if (object instanceof TiViewProxy) {
+			viewProxy = (TiViewProxy)object;
+		}
+		else if(object instanceof HashMap) {
+			viewProxy = proxy.createViewFromTemplate((HashMap) object, parent, true);
+		}
+		else return null;
 		TiUIView tiView = viewProxy.peekView();
 		if (tiView != null) {
 			TiViewProxy parentProxy = viewProxy.getParent();

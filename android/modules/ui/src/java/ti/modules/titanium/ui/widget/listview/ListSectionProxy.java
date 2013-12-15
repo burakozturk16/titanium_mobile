@@ -50,8 +50,8 @@ public class ListSectionProxy extends ViewProxy{
 	private String headerTitle;
 	private String footerTitle;
 	
-	private TiViewProxy headerView;
-	private TiViewProxy footerView;
+	private Object headerView;
+	private Object footerView;
 	
 	private WeakReference<TiListView> listView;
 	public TiDefaultListViewTemplate builtInTemplate;
@@ -131,16 +131,10 @@ public class ListSectionProxy extends ViewProxy{
 			footerTitle = TiConvert.toString(dict, TiC.PROPERTY_FOOTER_TITLE);
 		}
 		if (dict.containsKey(TiC.PROPERTY_HEADER_VIEW)) {
-			Object obj = dict.get(TiC.PROPERTY_HEADER_VIEW);
-			if (obj instanceof TiViewProxy) {
-				headerView = (TiViewProxy) obj;
-			}
+			headerView = dict.get(TiC.PROPERTY_HEADER_VIEW);
 		}
 		if (dict.containsKey(TiC.PROPERTY_FOOTER_VIEW)) {
-			Object obj = dict.get(TiC.PROPERTY_FOOTER_VIEW);
-			if (obj instanceof TiViewProxy) {
-				footerView = (TiViewProxy) obj;
-			}
+			footerView = dict.get(TiC.PROPERTY_FOOTER_VIEW);
 		}
 		if (dict.containsKey(TiC.PROPERTY_ITEMS)) {
 			handleSetItems(dict.get(TiC.PROPERTY_ITEMS));
@@ -160,7 +154,7 @@ public class ListSectionProxy extends ViewProxy{
 	}
 	
 	@Kroll.method @Kroll.getProperty
-	public TiViewProxy getHeaderView() {
+	public Object getHeaderView() {
 		return headerView;
 	}
 	
@@ -173,7 +167,7 @@ public class ListSectionProxy extends ViewProxy{
 	}
 	
 	@Kroll.method @Kroll.getProperty
-	public TiViewProxy getFooterView() {
+	public Object getFooterView() {
 		return footerView;
 	}
 	
@@ -224,9 +218,9 @@ public class ListSectionProxy extends ViewProxy{
 
 	public View getHeaderOrFooterView(int index) {
 		if (isHeaderView(index)) {
-			return getListView().layoutHeaderOrFooterView(headerView);
+			return getListView().layoutHeaderOrFooterView(headerView, this);
 		} else if (isFooterView(index)) {
-			return getListView().layoutHeaderOrFooterView(footerView);
+			return getListView().layoutHeaderOrFooterView(footerView, this);
 		}
 		return null;
 	}
