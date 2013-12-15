@@ -705,6 +705,17 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)setPullView_:(id)args
 {
+    if ([args isKindOfClass:[NSDictionary class]]) {
+        id<TiEvaluator> context = self.proxy.executionContext;
+        if (context == nil) {
+            context = self.proxy.pageContext;
+        }
+        args = [[TiViewProxy class] unarchiveFromDictionary:args rootProxy:self.proxy inContext:context];
+        [context.krollContext invokeBlockOnThread:^{
+            [self.proxy rememberProxy:args];
+            [args forgetSelf];
+        }];
+    }
     ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
     if (args == nil) {
         [_pullViewProxy setProxyObserver:nil];
