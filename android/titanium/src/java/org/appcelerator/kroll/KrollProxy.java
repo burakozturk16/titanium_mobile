@@ -932,6 +932,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 					dict.put(TiC.EVENT_PROPERTY_SOURCE, this);
 				}
 			}
+			dict.put(TiC.EVENT_PROPERTY_TYPE, event);
 			onEventFired(event, dict);
 		}
 
@@ -1028,7 +1029,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean hasListeners(String event)
 	{
-		return getKrollObject().hasListeners(event);
+		return hasNonJSEventListener(event) || getKrollObject().hasListeners(event);
 	}
 
 	/**
@@ -1424,6 +1425,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 		}
 	}
+	
+	public boolean hasNonJSEventListener(String event)
+	{
+		return eventListeners.containsKey(event) && eventListeners.get(event) != null;
+	}
+
 
 	/**
 	 * Resolves the passed in scheme / path, and uses the Proxy's creationUrl if the path is relative.
