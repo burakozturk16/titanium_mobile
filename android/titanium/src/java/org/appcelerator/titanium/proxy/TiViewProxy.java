@@ -10,10 +10,13 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollEventFunction;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
@@ -161,14 +164,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (options == null) {
 			return;
 		}
-		if (options.containsKey(TiC.PROPERTY_PROPERTIES) || options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+		if (options.containsKey(TiC.PROPERTY_PROPERTIES)) {
 			super.handleCreationDict(options.getKrollDict(TiC.PROPERTY_PROPERTIES));
 			needsToUpdateProps = true;
 		}
 		else {
 			super.handleCreationDict(options);
 		}
-		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
 			initFromTemplate(options, this);
 			needsToUpdateProps = true;
 		}
@@ -750,6 +753,21 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 							this.add(childProxy);
 						}
 					}
+				}
+			}
+		}
+		if (template_.containsKey(TiC.PROPERTY_EVENTS)) {
+			Object events = template_
+					.get(TiC.PROPERTY_EVENTS);
+			if (events instanceof HashMap) {
+				Iterator entries = ((HashMap)events).entrySet().iterator();
+				while (entries.hasNext()) {
+				    Map.Entry entry = (Map.Entry) entries.next();
+				    String key = (String)entry.getKey();
+				    Object value = entry.getValue();
+				    if (value instanceof KrollFunction) {
+						addEventListener(key, new KrollEventFunction(getKrollObject(), (KrollFunction) value));
+				    }
 				}
 			}
 		}

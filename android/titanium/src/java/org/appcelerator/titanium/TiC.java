@@ -1235,6 +1235,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_EVENT = "event";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_EVENTS = "events";
 
 	/**
 	 * @module.api
