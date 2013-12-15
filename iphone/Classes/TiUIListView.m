@@ -339,8 +339,24 @@ static NSDictionary* replaceKeysForRow;
     if (sectionResult!=nil) {
         *sectionResult = proxy;
     }
-    TiViewProxy* viewproxy = [proxy valueForKey:location];
-    if (viewproxy!=nil && [viewproxy isKindOfClass:[TiViewProxy class]]) {
+    id value = [proxy valueForKey:location];
+    TiViewProxy* viewproxy = nil;
+    if ([value isKindOfClass:[TiViewProxy class]]) {
+        viewproxy = value;
+    }
+    else if ([value isKindOfClass:[NSDictionary class]]) {
+        id<TiEvaluator> context = proxy.executionContext;
+        if (context == nil) {
+            context = proxy.pageContext;
+        }
+        viewproxy = [[TiViewProxy class] unarchiveFromDictionary:value rootProxy:proxy inContext:context];
+        [context.krollContext invokeBlockOnThread:^{
+            [proxy rememberProxy:viewproxy];
+            [viewproxy forgetSelf];
+        }];
+    }
+    
+    if (viewproxy!=nil) {
         LayoutConstraint *viewLayout = [viewproxy layoutProperties];
         //If height is not dip, explicitly set it to SIZE
         if (viewLayout->height.type != TiDimensionTypeDip) {
@@ -1380,7 +1396,7 @@ static NSDictionary* replaceKeysForRow;
             return nil;
         }
     }
-
+    
     return [self sectionView:section forLocation:@"headerView" section:nil];
 }
 
@@ -1434,7 +1450,7 @@ static NSDictionary* replaceKeysForRow;
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
+                size += [viewProxy minimumParentSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
@@ -1494,7 +1510,7 @@ static NSDictionary* replaceKeysForRow;
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
-                size += [viewProxy autoSizeForSize:[self.tableView bounds].size].height;
+                size += [viewProxy minimumParentSizeForSize:[self.tableView bounds].size].height;
                 break;
             default:
                 size+=DEFAULT_SECTION_HEADERFOOTER_HEIGHT;
