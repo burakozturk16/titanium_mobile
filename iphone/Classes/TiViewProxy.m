@@ -2033,24 +2033,13 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return [self _hasListeners:type checkParent:YES];
 }
 
--(void)fireEvent:(NSString*)type propagate:(BOOL)propagate
-{
-	[self fireEvent:type withObject:nil withSource:self propagate:propagate reportSuccess:NO errorCode:0 message:nil];
-}
-
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate
-{
-	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:NO errorCode:0 message:nil];
-}
-
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
 {
     if (eventOverrideDelegate != nil) {
         obj = [eventOverrideDelegate overrideEventObject:obj forEvent:type fromViewProxy:self];
     }
-	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:report errorCode:code message:message];
+	[super fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message checkForListener:checkForListener];
 }
-
 
 -(void)_listenerAdded:(NSString*)type count:(int)count
 {
@@ -2630,8 +2619,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             [observer proxyDidRelayout:self];
         }
 
-        if (layoutChanged && [self _hasListeners:@"postlayout"]) {
-            [self fireEvent:@"postlayout" withObject:nil propagate:NO];
+        if (layoutChanged) {
+            [self fireEvent:@"postlayout" propagate:NO];
         }
 	}
 #ifdef VERBOSE

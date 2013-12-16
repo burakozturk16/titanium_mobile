@@ -401,9 +401,7 @@
             }
         }
     }
-    if ([self _hasListeners:@"blur"]) {
-        [self fireEvent:@"blur" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"blur" withObject:nil propagate:NO];
 }
 
 - (void)handleWillFocus
@@ -425,9 +423,7 @@
             }
         }
     }
-    if ([self _hasListeners:@"focus"]) {
-        [self fireEvent:@"focus" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"focus" withObject:nil propagate:NO];
 }
 
 -(void)setActive:(id)active

@@ -1435,10 +1435,10 @@ DEFINE_EXCEPTIONS
 {
 	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
     if ([recognizer numberOfTouchesRequired] == 2) {
-		[proxy fireEvent:@"twofingertap" withObject:event];
+		[proxy fireEvent:@"twofingertap" withObject:event checkForListener:NO];
 	}
     else
-        [proxy fireEvent:@"singletap" withObject:event];
+        [proxy fireEvent:@"singletap" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedDoubleTap:(UITapGestureRecognizer*)recognizer
@@ -1447,12 +1447,12 @@ DEFINE_EXCEPTIONS
     //Because double-tap suppresses touchStart and double-click, we must do this:
     if ([proxy _hasListeners:@"touchstart"])
     {
-        [proxy fireEvent:@"touchstart" withObject:event propagate:YES];
+        [proxy fireEvent:@"touchstart" withObject:event checkForListener:NO];
     }
     if ([proxy _hasListeners:@"dblclick"]) {
-        [proxy fireEvent:@"dblclick" withObject:event propagate:YES];
+        [proxy fireEvent:@"dblclick" withObject:event checkForListener:NO];
     }
-    [proxy fireEvent:@"doubletap" withObject:event];
+    [proxy fireEvent:@"doubletap" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
@@ -1461,7 +1461,7 @@ DEFINE_EXCEPTIONS
                            NUMDOUBLE(recognizer.scale), @"scale", 
                            NUMDOUBLE(recognizer.velocity), @"velocity", 
                            nil]; 
-    [self.proxy fireEvent:@"pinch" withObject:event]; 
+    [self.proxy fireEvent:@"pinch" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
@@ -1472,7 +1472,7 @@ DEFINE_EXCEPTIONS
                                NUMFLOAT(p.x), @"x",
                                NUMFLOAT(p.y), @"y",
                                nil];
-        [self.proxy fireEvent:@"longpress" withObject:event]; 
+        [self.proxy fireEvent:@"longpress" withObject:event checkForListener:NO];
     }
 }
 
@@ -1503,7 +1503,7 @@ DEFINE_EXCEPTIONS
 {
 	NSMutableDictionary *event = [[TiUtils dictionaryFromGesture:recognizer inView:self] mutableCopy];
 	[event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
-	[proxy fireEvent:@"swipe" withObject:event];
+	[proxy fireEvent:@"swipe" withObject:event checkForListener:NO];
 	[event release];
 
 }
@@ -1612,7 +1612,7 @@ DEFINE_EXCEPTIONS
 		if ([proxy _hasListeners:@"touchstart"])
 		{
             NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
+			[proxy fireEvent:@"touchstart" withObject:evt checkForListener:NO];
 			[self handleControlEvents:UIControlEventTouchDown];
 		}
 	}
@@ -1642,7 +1642,7 @@ DEFINE_EXCEPTIONS
 		if ([proxy _hasListeners:@"touchmove"])
 		{
             NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
+			[proxy fireEvent:@"touchmove" withObject:evt checkForListener:NO];
 		}
 	}
 }
@@ -1670,7 +1670,7 @@ DEFINE_EXCEPTIONS
 		{
             NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
             if (hasTouchEnd) {
-                [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
+                [proxy fireEvent:@"touchend" withObject:evt checkForListener:NO];
                 [self handleControlEvents:UIControlEventTouchCancel];
             }
             
@@ -1678,7 +1678,7 @@ DEFINE_EXCEPTIONS
             // but DO invoke the touch delegate.
             // clicks should also be handled by any control the view is embedded in.
             if (hasDblclick && [touch tapCount] == 2) {
-                [proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+                [proxy fireEvent:@"dblclick" withObject:evt checkForListener:NO];
                 return;
             }
             if (hasClick)
@@ -1687,7 +1687,7 @@ DEFINE_EXCEPTIONS
                 BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                                 localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
                 if (!outside && touchDelegate == nil) {
-                    [proxy fireEvent:@"click" withObject:evt propagate:YES];
+                    [proxy fireEvent:@"click" withObject:evt checkForListener:NO];
                     return;
                 } 
             }
@@ -1715,7 +1715,7 @@ DEFINE_EXCEPTIONS
 		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
 		if ([proxy _hasListeners:@"touchcancel"])
 		{
-			[proxy fireEvent:@"touchcancel" withObject:evt propagate:YES];
+			[proxy fireEvent:@"touchcancel" withObject:evt checkForListener:NO];
 		}
 	}
 }

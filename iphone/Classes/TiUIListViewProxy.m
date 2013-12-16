@@ -520,7 +520,7 @@
             return;
         }
         if ( (indexPath.section > marker.section) || ( (marker.section == indexPath.section) && (indexPath.row >= marker.row) ) ){
-            [self fireEvent:@"marker" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self fireEvent:@"marker" withObject:nil propagate:NO checkForListener:NO];
             RELEASE_TO_NIL(marker);
         }
         pthread_rwlock_unlock(&_markerLock);
