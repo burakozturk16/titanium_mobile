@@ -95,7 +95,7 @@
             NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(self.openSide == MMDrawerSideRight?1:0), @"side",
                                  NUMFLOAT(duration), @"duration",
                                  NUMBOOL(duration > 0), @"animated", nil];
-            [self.proxy fireEvent:@"closemenu" withObject:evt];
+            [self.proxy fireEvent:@"closemenu" withObject:evt propagate:NO checkForListener:NO];
         }
     
 }
@@ -110,7 +110,7 @@
         NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(self.openSide == MMDrawerSideRight?1:0), @"side",
                              NUMFLOAT(duration), @"duration",
                              NUMBOOL(duration > 0), @"animated", nil];
-        [self.proxy fireEvent:@"openmenu" withObject:evt];
+        [self.proxy fireEvent:@"openmenu" withObject:evt propagate:NO checkForListener:NO];
     }
     
 }
@@ -206,7 +206,7 @@
             if ([self.proxy _hasListeners:@"scrollstart"])
             {
                 NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(0), @"offset", nil];
-                [self.proxy fireEvent:@"scrollstart" withObject:evt];
+                [self.proxy fireEvent:@"scrollstart" withObject:evt propagate:NO checkForListener:NO];
             }
         case UIGestureRecognizerStateChanged:{
             CGRect newFrame = self.startingPanRect;
@@ -217,7 +217,7 @@
             if ([self.proxy _hasListeners:@"scroll"])
             {
                 NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(xOffset), @"offset", nil];
-                [self.proxy fireEvent:@"scroll" withObject:evt];
+                [self.proxy fireEvent:@"scroll" withObject:evt propagate:NO checkForListener:NO];
             }
             break;
         }
@@ -232,7 +232,7 @@
             if ([self.proxy _hasListeners:@"scrollend"])
             {
                 NSDictionary *evt = [NSDictionary dictionaryWithObjectsAndKeys:NUMFLOAT(xOffset), @"offset", nil];
-                [self.proxy fireEvent:@"scrollend" withObject:evt];
+                [self.proxy fireEvent:@"scrollend" withObject:evt propagate:NO checkForListener:NO];
             }
             break;
         }
