@@ -158,17 +158,6 @@
 	return toolbar!=nil;
 }
 
-//TODO: Remove when deprecated
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-{
-	if (![TiUtils boolValue:[self valueForKey:@"enabled"] def:YES])
-	{
-		//Rogue event. We're supposed to be disabled!
-		return;
-	}
-	[super fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:report errorCode:code message:message];
-}
-
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
 {
 	if (![TiUtils boolValue:[self valueForKey:@"enabled"] def:YES])

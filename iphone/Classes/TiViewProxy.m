@@ -2033,18 +2033,14 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return [self _hasListeners:type checkParent:YES];
 }
 
-//TODO: Remove once we've properly deprecated.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type propagate:(BOOL)propagate
 {
-	// Note that some events (like movie 'complete') are fired after the view is removed/dealloc'd.
-	// Because of the handling below, we can safely set the view to 'nil' in this case.
-//	TiUIView* proxyView = [self viewAttached] ? view : nil;
-	//TODO: We have to do view instead of [self view] because of a freaky race condition that can
-	//happen in the background (See bug 2809). This assumes that view == [self view], which may
-	//not always be the case in the future. Then again, we shouldn't be dealing with view in the BG...
-	
+	[self fireEvent:type withObject:nil withSource:self propagate:propagate reportSuccess:NO errorCode:0 message:nil];
+}
 
-    [super fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:report errorCode:code message:message];
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate
+{
+	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:NO errorCode:0 message:nil];
 }
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;

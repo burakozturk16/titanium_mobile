@@ -112,13 +112,9 @@
     opening = NO;
     opened = YES;
     [self viewDidAppear:false];
-    if ([self _hasListeners:@"open"]) {
-        [self fireEvent:@"open" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"open" propagate:NO];
     if (focussed && [self handleFocusEvents]) {
-        if ([self _hasListeners:@"focus"]) {
-            [self fireEvent:@"focus" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-        }
+        [self fireEvent:@"focus" propagate:NO];
     }
     [super windowDidOpen];
     [self forgetProxy:openAnimation];
@@ -143,9 +139,7 @@
     opened = NO;
     closing = NO;
     [self viewDidDisappear:false];
-    if ([self _hasListeners:@"close"]) {
-        [self fireEvent:@"close" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"close" propagate:NO];
     [self forgetProxy:closeAnimation];
     RELEASE_TO_NIL(closeAnimation);
     if (tab == nil && (self.isManaged == NO)) {
@@ -426,9 +420,7 @@
     if (focussed == NO) {
         focussed = YES;
         if ([self handleFocusEvents] && opened) {
-            if ([self _hasListeners:@"focus"]) {
-                [self fireEvent:@"focus" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-            }
+            [self fireEvent:@"blur" propagate:NO];
         }
         UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
         [[self view] setAccessibilityElementsHidden:NO];
@@ -446,9 +438,7 @@
     if (focussed == YES) {
         focussed = NO;
         if ([self handleFocusEvents]) {
-            if ([self _hasListeners:@"blur"]) {
-                [self fireEvent:@"blur" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-            }
+            [self fireEvent:@"blur" propagate:NO];
         }
         [[self view] setAccessibilityElementsHidden:YES];
     }

@@ -635,6 +635,10 @@ enum
 -(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
 -(CGSize)verifySize:(CGSize)size;
 
+//shortcut methods
+-(void)fireEvent:(NSString*)type withObject:(id)object propagate:(BOOL)propagate;
+-(void)fireEvent:(NSString*)type propagate:(BOOL)propagate;
+
 @end
 
 
