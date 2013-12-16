@@ -1025,7 +1025,7 @@ static NSDictionary* replaceKeysForRow;
             if (itemId != nil) {
                 [eventObject setObject:itemId forKey:@"itemId"];
             }
-            [self.proxy fireEvent:eventName withObject:eventObject withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self.proxy fireEvent:eventName withObject:eventObject propagate:NO checkForListener:NO];
             [eventObject release];
         }
         [theItem release];
@@ -1194,7 +1194,7 @@ static NSDictionary* replaceKeysForRow;
             if (itemId != nil) {
                 [eventObject setObject:itemId forKey:@"itemId"];
             }
-            [self.proxy fireEvent:eventName withObject:eventObject withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self.proxy fireEvent:eventName withObject:eventObject propagate:NO checkForListener:NO];
             [eventObject release];
         }
         
@@ -1233,7 +1233,7 @@ static NSDictionary* replaceKeysForRow;
             if (itemId != nil) {
                 [eventObject setObject:itemId forKey:@"itemId"];
             }
-            [self.proxy fireEvent:eventName withObject:eventObject];
+            [self.proxy fireEvent:eventName withObject:eventObject checkForListener:NO];
             [eventObject release];
         }
         
@@ -1667,7 +1667,7 @@ static NSDictionary* replaceKeysForRow;
         NSMutableDictionary* event = [self eventObjectForScrollView:scrollView];
         [event setObject:NUMINT(((NSIndexPath*)[visibles objectAtIndex:0]).row) forKey:@"firstVisibleItem"];
         [event setObject:NUMINT([visibles count]) forKey:@"visibleItemCount"];
-		[self.proxy fireEvent:@"scroll" withObject:event];
+		[self.proxy fireEvent:@"scroll" withObject:event checkForListener:NO];
 	}
 }
 
@@ -1687,10 +1687,10 @@ static NSDictionary* replaceKeysForRow;
             pullChanged = YES;
         }
         if (pullChanged && [self.proxy _hasListeners:@"pullchanged"]) {
-            [self.proxy fireEvent:@"pullchanged" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self.proxy fireEvent:@"pullchanged" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] propagate:NO checkForListener:NO];
         }
         if (scrollView.contentOffset.y <= 0 && [self.proxy _hasListeners:@"pull"]) {
-            [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] propagate:NO checkForListener:NO];
         }
     }
     
@@ -1700,10 +1700,7 @@ static NSDictionary* replaceKeysForRow;
 {
 	// suspend image loader while we're scrolling to improve performance
 	[[ImageLoader sharedLoader] suspend];
-    if([self.proxy _hasListeners:@"dragstart"])
-	{
-        [self.proxy fireEvent:@"dragstart" withObject:nil];
-    }
+    [self.proxy fireEvent:@"dragstart" withObject:nil];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
@@ -1715,15 +1712,13 @@ static NSDictionary* replaceKeysForRow;
 	}
 	if ([self.proxy _hasListeners:@"dragend"])
 	{
-		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
+		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil] checkForListener:NO];
 	}
     
     
     if ( (_pullViewProxy != nil) && (pullActive == YES) ) {
         pullActive = NO;
-        if ([self.proxy _hasListeners:@"pullend"]) {
-            [self.proxy fireEvent:@"pullend" withObject:nil withSource:self.proxy propagate:NO reportSuccess:NO errorCode:0 message:nil];
-        }
+        [self.proxy fireEvent:@"pullend" withObject:nil propagate:NO];
     }
 }
 
@@ -1733,7 +1728,7 @@ static NSDictionary* replaceKeysForRow;
 	[[ImageLoader sharedLoader] resume];
 	if ([self.proxy _hasListeners:@"scrollend"])
 	{
-		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView]];
+		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView] checkForListener:NO];
 	}
 }
 
@@ -1779,9 +1774,12 @@ static NSDictionary* replaceKeysForRow;
     NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
     indexPath = [self pathForSearchPath:indexPath];
     if (indexPath != nil) {
-        NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView];
-        [event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
-        [[self proxy] fireEvent:@"swipe" withObject:event];
+        if ([[self proxy] _hasListeners:@"swipe"]) {
+            NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView];
+            [event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
+            [[self proxy] fireEvent:@"swipe" withObject:event checkForListener:NO];
+        }
+        
     }
     else {
         [super recognizedSwipe:recognizer];
@@ -1804,8 +1802,10 @@ static NSDictionary* replaceKeysForRow;
         
         NSMutableDictionary *event;
         if (indexPath != nil) {
-            NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView atPoint:point];
-            [[self proxy] fireEvent:@"longpress" withObject:event];
+            if ([[self proxy] _hasListeners:@"longpress"]) {
+                NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:theTableView atPoint:point];
+                [[self proxy] fireEvent:@"longpress" withObject:event checkForListener:NO];
+            }
         }
         else {
             [super recognizedLongPress:recognizer];
@@ -1962,7 +1962,7 @@ static NSDictionary* replaceKeysForRow;
 	}
 	
 	
-	[self.proxy fireEvent:eventName withObject:[self EventObjectForItemAtIndexPath:indexPath tableView:tableView]];
+	[self.proxy fireEvent:eventName withObject:[self EventObjectForItemAtIndexPath:indexPath tableView:tableView] checkForListener:NO];
 }
 
 #pragma mark - UITapGestureRecognizer
