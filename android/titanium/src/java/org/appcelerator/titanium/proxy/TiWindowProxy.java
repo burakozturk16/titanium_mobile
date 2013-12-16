@@ -64,6 +64,8 @@ public abstract class TiWindowProxy extends TiViewProxy
 	
 	private TiWindowManager winManager = null;
 	
+	protected boolean customHandleOpenEvent = false;
+	
 	/**
 	 * An interface to intercept OnBackPressed events.
 	 */
@@ -460,6 +462,18 @@ public abstract class TiWindowProxy extends TiViewProxy
 		if (nativeView != null) {
 			nativeView.postInvalidate();
 		}
+		if (!customHandleOpenEvent) {
+			sendOpenEvent();
+		}
+	}
+	
+	public void customHandleOpenEvent(boolean value){
+		this.customHandleOpenEvent = value;
+	}
+
+	
+	public void sendOpenEvent(){
+		fireEvent(TiC.EVENT_OPEN);
 	}
 
 	@Kroll.method @Kroll.getProperty

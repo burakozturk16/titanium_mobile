@@ -57,7 +57,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
-	protected boolean firstLayout = true;
 
 	protected WeakReference<TiBaseActivity> windowActivity;
 
@@ -85,17 +84,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			super(proxy);
 			layoutParams.autoFillsHeight = true;
 			layoutParams.autoFillsWidth = true;
-			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), this) {
-				@Override
-				protected void onLayout(boolean changed, int left, int top, int right, int bottom)
-				{
-					super.onLayout(changed, left, top, right, bottom);
-					if (firstLayout) {
-						firstLayout = false;
-						fireEvent(TiC.EVENT_OPEN, null);
-					}
-				}
-			};
+			TiCompositeLayout layout = new TiCompositeLayout(proxy.getActivity(), this);
 			setNativeView(layout);
 		}
 	}
@@ -346,7 +335,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		super.closeFromActivity(activityIsFinishing);
-		firstLayout = true;
 	}
 
 	@Override
