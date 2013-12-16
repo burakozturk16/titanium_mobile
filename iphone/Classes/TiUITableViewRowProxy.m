@@ -847,7 +847,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     }
 }
 
--(void)updateAnimated:(TiAnimation*)animation
+-(void)updateAnimated:(TiViewAnimationStep*)animation
 {
     if ([self isAttached] && !modifyingRow && !attaching)
 	{
@@ -910,7 +910,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	}
 }
 
--(void)repositionWithinAnimation:(TiAnimation*)animation
+-(void)repositionWithinAnimation:(TiViewAnimationStep*)animation
 {
 //	[self triggerUpdateIfHeightChanged];
 }
