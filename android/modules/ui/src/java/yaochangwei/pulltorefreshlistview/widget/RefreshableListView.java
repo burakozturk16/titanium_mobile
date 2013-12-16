@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
 import android.widget.ListView;
 
 public class RefreshableListView extends ListView {
@@ -83,10 +84,16 @@ public class RefreshableListView extends ListView {
 	}
 
 	public void setBottomContentView(View v) {
+		if (v.getParent() != null) {
+			((ViewGroup)v.getParent()).removeView(v);
+		}
 		mListBottomView.addView(v);
 	}
 
 	public void setContentView(View v) {
+		if (v.getParent() != null) {
+			((ViewGroup)v.getParent()).removeView(v);
+		}
 		mListHeaderView.addView(v);
 	}
 	
