@@ -284,7 +284,6 @@
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if ((theWindow != rootWindow) && [theWindow opening]) {
         [theWindow windowWillOpen];
-        [theWindow windowDidOpen];
     }
 }
 
@@ -303,6 +302,9 @@
     }
     RELEASE_TO_NIL(current);
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
+    if ((theWindow != rootWindow) && [theWindow opening]) {
+        [theWindow windowDidOpen];
+    }
     current = [theWindow retain];
     [self childOrientationControllerChangedFlags:current];
     if (focussed) {
@@ -326,7 +328,7 @@
 		[self fireEvent:@"openWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
                                                    @"transition":[self propsDictFromTransition:transition],
                                                    @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
-                                                   @"animated": NUMBOOL(transition != nil)}];
+                                                   @"animated": NUMBOOL(transition != nil)} checkForListener:NO];
     }
 }
 - (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
@@ -335,7 +337,7 @@
 		[self fireEvent:@"closeWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
                                                     @"transition":[self propsDictFromTransition:transition],
                                                     @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
-                                                    @"animated": NUMBOOL(transition != nil)}];
+                                                    @"animated": NUMBOOL(transition != nil)} checkForListener:NO];
     }
 }
 
