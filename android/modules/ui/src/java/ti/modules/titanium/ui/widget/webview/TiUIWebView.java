@@ -104,10 +104,10 @@ public class TiUIWebView extends TiUIView
 			// also to be detected as a click on the webview.  So we cannot let handling of the event one way block
 			// the handling the other way -- it must be passed to both in all cases for everything to work correctly.
 			//
-			if (ev.getAction() == MotionEvent.ACTION_UP) {
+			if (ev.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
 				Rect r = new Rect(0, 0, getWidth(), getHeight());
 				if (r.contains((int) ev.getX(), (int) ev.getY())) {
-					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev));
+					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev), true, false);
 				}
 			}
 			

@@ -71,10 +71,6 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 			protected void onLayout(boolean changed, int left, int top, int right, int bottom)
 			{
 				super.onLayout(changed, left, top, right, bottom);
-				if (firstLayout) {
-					firstLayout = false;
-					fireEvent(TiC.EVENT_OPEN, null);
-				}
 				TiUIHelper.firePostLayoutEvent(TiUISlideMenu.this);
 			}
 			
@@ -97,7 +93,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 					options.put("side", (leftOrRight == 1)?UIModule.RIGHT_VIEW:UIModule.LEFT_VIEW);
 					options.put("animated", animated);
 					options.put("duration", duration);
-					proxy.fireEvent("closemenu", options);
+					proxy.fireEvent("closemenu", options, false, false);
 				}
 			}
 		});
@@ -110,7 +106,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 					options.put("side", (leftOrRight == 1)?UIModule.RIGHT_VIEW:UIModule.LEFT_VIEW);
 					options.put("animated", animated);
 					options.put("duration", duration);
-					proxy.fireEvent("openmenu", options);
+					proxy.fireEvent("openmenu", options, false, false);
 				}
 			}
 		});
@@ -122,7 +118,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				{
 					KrollDict options = new KrollDict();
 					options.put("offset", scroll);
-					proxy.fireEvent("scroll", options);
+					proxy.fireEvent("scroll", options, false, false);
 				}
 				
 			}
@@ -134,7 +130,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				{
 					KrollDict options = new KrollDict();
 					options.put("offset", scroll);
-					proxy.fireEvent("scrollend", options);
+					proxy.fireEvent("scrollend", options, false, false);
 				}
 			}
 
@@ -145,7 +141,7 @@ public class TiUISlideMenu extends TiUIView implements ConfigurationChangedListe
 				{
 					KrollDict options = new KrollDict();
 					options.put("offset", scroll);
-					proxy.fireEvent("scrollstart", options);
+					proxy.fireEvent("scrollstart", options, false, false);
 				}
 			}
 		});

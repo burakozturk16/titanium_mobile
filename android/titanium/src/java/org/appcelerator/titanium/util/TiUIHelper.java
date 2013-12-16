@@ -1198,8 +1198,8 @@ public class TiUIHelper
 
 	public static void firePostLayoutEvent(TiUIView view)
 	{
-		if (view != null && view.getProxy() != null && view.getProxy().hasListeners(TiC.EVENT_POST_LAYOUT)) {
-			view.fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
+		if (view != null && view.getProxy() != null) {
+			view.getProxy().fireEvent(TiC.EVENT_POST_LAYOUT, null, false);
 		}
 	}
 

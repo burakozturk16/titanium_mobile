@@ -52,11 +52,11 @@ public class TiUINativePicker extends TiUIPicker
 			
 			@Override
 			public boolean onTouchEvent(MotionEvent event) {
-				if (event.getAction() == MotionEvent.ACTION_UP) {
+				if (event.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
 					KrollDict data = new KrollDict();
 					data.put(TiC.PROPERTY_X, event.getX());
 					data.put(TiC.PROPERTY_Y, event.getY());
-					fireEvent(TiC.EVENT_CLICK, data);
+					fireEvent(TiC.EVENT_CLICK, data, false);
 				}
 				return super.onTouchEvent(event);
 			}

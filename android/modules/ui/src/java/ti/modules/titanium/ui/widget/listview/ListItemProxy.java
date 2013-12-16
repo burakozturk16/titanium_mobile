@@ -49,35 +49,35 @@ public class ListItemProxy extends TiViewProxy
 		return getListProxy();
 	}
 
-	public boolean fireEvent(final String event, final Object data, boolean bubbles)
+	public boolean fireEvent(final String event, final Object data, boolean bubbles, boolean checkParent)
 	{
-		fireItemClick(event, data);
-		return super.fireEvent(event, data, bubbles);
+		if (event.equals(TiC.EVENT_CLICK)) fireItemClick(event, data);
+		return super.fireEvent(event, data, bubbles, checkParent);
 	}
 
 	private void fireItemClick(String event, Object data)
 	{
-		if (event.equals(TiC.EVENT_CLICK) && data instanceof HashMap) {
+		TiViewProxy listViewProxy = listProxy.get();
+		if (listViewProxy != null) {
+		if (listViewProxy != null && listViewProxy.hasListeners(TiC.EVENT_ITEM_CLICK)) {
 			KrollDict eventData = new KrollDict((HashMap) data);
 			Object source = eventData.get(TiC.EVENT_PROPERTY_SOURCE);
 			if (source != null && !source.equals(this) && listProxy != null) {
-				TiViewProxy listViewProxy = listProxy.get();
-				if (listViewProxy != null) {
-					listViewProxy.fireEvent(TiC.EVENT_ITEM_CLICK, eventData);
+					listViewProxy.fireEvent(TiC.EVENT_ITEM_CLICK, eventData, false, false);
 				}
 			}
 		}
 	}
 
 	@Override
-	public boolean hierarchyHasListener(String event)
+	public boolean hasListeners(String event, boolean bubbles)
 	{
 		// In order to fire the "itemclick" event when the children views are clicked,
 		// the children views' "click" events must be fired and bubbled up. (TIMOB-14901)
 		if (event.equals(TiC.EVENT_CLICK)) {
 			return true;
 		}
-		return super.hierarchyHasListener(event);
+		return super.hasListeners(event, bubbles);
 	}
 
 	public void release()

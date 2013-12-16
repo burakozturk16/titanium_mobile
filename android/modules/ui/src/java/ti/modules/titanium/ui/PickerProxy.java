@@ -730,25 +730,27 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	
 	public void fireSelectionChange(int columnIndex, int rowIndex)
 	{
-		KrollDict d = new KrollDict();
-		d.put("columnIndex", columnIndex);
-		d.put("rowIndex", rowIndex);
-		PickerColumnProxy column = getColumn(columnIndex);
-		PickerRowProxy row = getRow(columnIndex, rowIndex);
-		d.put("column", column);
-		d.put("row", row);
-		int columnCount = getColumnCount();
-		ArrayList<String> selectedValues = new ArrayList<String>(columnCount);
-		for (int i = 0; i < columnCount; i++) {
-			PickerRowProxy rowInColumn = getSelectedRow(i);
-			if (rowInColumn != null) {
-				selectedValues.add(rowInColumn.toString());
-			} else {
-				selectedValues.add(null);
+		if (hasListeners(TiC.EVENT_CHANGE)) {
+			KrollDict d = new KrollDict();
+			d.put("columnIndex", columnIndex);
+			d.put("rowIndex", rowIndex);
+			PickerColumnProxy column = getColumn(columnIndex);
+			PickerRowProxy row = getRow(columnIndex, rowIndex);
+			d.put("column", column);
+			d.put("row", row);
+			int columnCount = getColumnCount();
+			ArrayList<String> selectedValues = new ArrayList<String>(columnCount);
+			for (int i = 0; i < columnCount; i++) {
+				PickerRowProxy rowInColumn = getSelectedRow(i);
+				if (rowInColumn != null) {
+					selectedValues.add(rowInColumn.toString());
+				} else {
+					selectedValues.add(null);
+				}
 			}
+			d.put("selectedValue", selectedValues.toArray());
+			fireEvent(TiC.EVENT_CHANGE, d, false, false);
 		}
-		d.put("selectedValue", selectedValues.toArray());
-		fireEvent("change", d);
 	}
 
 	@Override

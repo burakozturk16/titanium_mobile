@@ -473,7 +473,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 	
 	public void sendOpenEvent(){
-		fireEvent(TiC.EVENT_OPEN);
+		fireEvent(TiC.EVENT_OPEN, null, false);
 	}
 
 	@Kroll.method @Kroll.getProperty

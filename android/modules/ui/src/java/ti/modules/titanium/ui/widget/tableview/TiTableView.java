@@ -18,6 +18,7 @@ import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -341,15 +342,14 @@ public class TiTableView extends FrameLayout
 				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
 					scrollValid = false;
-					KrollDict eventArgs = new KrollDict();
-					KrollDict size = new KrollDict();
-					size.put("width", TiTableView.this.getWidth());
-					size.put("height", TiTableView.this.getHeight());
-					eventArgs.put("size", size);
-					KrollDict scrollEndArgs = new KrollDict(eventArgs);
-					fProxy.fireEvent(TiC.EVENT_SCROLLEND, eventArgs);
-					// TODO: Deprecate old event
-					fProxy.fireEvent("scrollEnd", scrollEndArgs);
+					if (fProxy.hasListeners(TiC.EVENT_SCROLLEND)) {
+						KrollDict eventArgs = new KrollDict();
+						KrollDict size = new KrollDict();
+						size.put(TiC.PROPERTY_WIDTH, TiTableView.this.getWidth());
+						size.put(TiC.PROPERTY_HEIGHT, TiTableView.this.getHeight());
+						eventArgs.put(TiC.PROPERTY_SIZE, size);
+						fProxy.fireEvent(TiC.EVENT_SCROLLEND, eventArgs);
+					}
 				}
 				else if (scrollState == OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
 					scrollValid = true;
@@ -367,15 +367,17 @@ public class TiTableView extends FrameLayout
 				}
 				if(fireScroll) {
 					lastValidfirstItem = firstVisibleItem;
-					KrollDict eventArgs = new KrollDict();
-					eventArgs.put("firstVisibleItem", firstVisibleItem);
-					eventArgs.put("visibleItemCount", visibleItemCount);
-					eventArgs.put("totalItemCount", totalItemCount);
-					KrollDict size = new KrollDict();
-					size.put("width", TiTableView.this.getWidth());
-					size.put("height", TiTableView.this.getHeight());
-					eventArgs.put("size", size);
-					fProxy.fireEvent(TiC.EVENT_SCROLL, eventArgs);
+					if (fProxy.hasListeners(TiC.EVENT_SCROLL)) {
+						KrollDict eventArgs = new KrollDict();
+						eventArgs.put("firstVisibleItem", firstVisibleItem);
+						eventArgs.put("visibleItemCount", visibleItemCount);
+						eventArgs.put("totalItemCount", totalItemCount);
+						KrollDict size = new KrollDict();
+						size.put(TiC.PROPERTY_WIDTH, TiTableView.this.getWidth());
+						size.put(TiC.PROPERTY_HEIGHT, TiTableView.this.getHeight());
+						eventArgs.put(TiC.PROPERTY_SIZE, size);
+						fProxy.fireEvent(TiC.EVENT_SCROLL, eventArgs);
+					}
 				}
 			}
 		});
@@ -640,9 +642,8 @@ public class TiTableView extends FrameLayout
 
 		super.onLayout(changed, left, top, right, bottom);
 
-		TiViewProxy viewProxy = proxy;
-		if (viewProxy != null && viewProxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
-			viewProxy.fireEvent(TiC.EVENT_POST_LAYOUT, null);
+		if (proxy != null) {
+			TiUIHelper.firePostLayoutEvent(proxy.peekView());
 		}
 
 		// Layout is finished, re-enable focus events.

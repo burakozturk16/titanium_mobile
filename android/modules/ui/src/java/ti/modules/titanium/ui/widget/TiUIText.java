@@ -555,13 +555,13 @@ public class TiUIText extends TiUIView
 		//Since Jelly Bean, pressing the 'return' key won't trigger onEditorAction callback
 		//http://stackoverflow.com/questions/11311790/oneditoraction-is-not-called-after-enter-key-has-been-pressed-on-jelly-bean-em
 		//So here we need to handle the 'return' key manually
-		if (Build.VERSION.SDK_INT >= 16 && before == 0 && s.length() > start && s.charAt(start) == '\n') {
+		if (Build.VERSION.SDK_INT >= 16 && before == 0 && s.length() > start && s.charAt(start) == '\n' && hasListeners(TiC.EVENT_RETURN)) {
 			//We use the previous value to make it consistent with pre Jelly Bean behavior (onEditorAction is called before 
 			//onTextChanged.
 			String value = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VALUE));
 			KrollDict data = new KrollDict();
 			data.put(TiC.PROPERTY_VALUE, value);
-			fireEvent(TiC.EVENT_RETURN, data);
+			fireEvent(TiC.EVENT_RETURN, data, false, false);
 		}
 		/**
 		 * There is an Android bug regarding setting filter on EditText that impacts auto completion.
@@ -575,11 +575,11 @@ public class TiUIText extends TiUIView
 		}
 		String newText = realtv.getText().toString();
 		if (!disableChangeEvent
-			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText)))) {
+			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText) && hasListeners(TiC.EVENT_CHANGE)))) {
 			KrollDict data = new KrollDict();
 			data.put(TiC.PROPERTY_VALUE, newText);
 			proxy.setProperty(TiC.PROPERTY_VALUE, newText);
-			fireEvent(TiC.EVENT_CHANGE, data);
+			fireEvent(TiC.EVENT_CHANGE, data, false, false);
 		}
 	}
 
@@ -632,8 +632,7 @@ public class TiUIText extends TiUIView
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent)
 	{
 		String value = realtv.getText().toString();
-		KrollDict data = new KrollDict();
-		data.put(TiC.PROPERTY_VALUE, value);
+		
 
 		proxy.setProperty(TiC.PROPERTY_VALUE, value);
 		Log.d(TAG, "ActionID: " + actionId + " KeyEvent: " + (keyEvent != null ? keyEvent.getKeyCode() : null),
@@ -644,10 +643,12 @@ public class TiUIText extends TiUIView
 		//this callback is triggered twice (except for keys that are mapped to EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_ACTION_DONE). The first check is to deal with those keys - filter out
 		//one of the two callbacks, and the next checks deal with 'Next' and 'Done' callbacks, respectively.
 		//Refer to TiUIText.handleReturnKeyType(int) for a list of return keys that are mapped to EditorInfo.IME_ACTION_NEXT and EditorInfo.IME_ACTION_DONE.
-		if ((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
+		if (((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
 				actionId == EditorInfo.IME_ACTION_NEXT || 
-				actionId == EditorInfo.IME_ACTION_DONE ) {
-			fireEvent(TiC.EVENT_RETURN, data);
+				actionId == EditorInfo.IME_ACTION_DONE ) && hasListeners(TiC.EVENT_RETURN)) {
+			KrollDict data = new KrollDict();
+			data.put(TiC.PROPERTY_VALUE, value);
+			fireEvent(TiC.EVENT_RETURN, data, false, false);
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);

@@ -1193,44 +1193,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		return view.toImage(scale);
 	}
-
-
-	/**
-	 * Fires an event that can optionally be "bubbled" to the parent view.
-	 *
-	 * @param eventName event to get dispatched to listeners
-	 * @param data data to include in the event
-	 * @param bubbles if true will send the event to the parent view after it has been dispatched to this view's listeners.
-	 * @return true if the event was handled
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public boolean fireEvent(String eventName, Object data, boolean bubbles)
-	{
-		if (data == null) {
-			data = new KrollDict();
-		}
-
-		// Set the "bubbles" property to indicate if the event needs to be bubbled.
-		if (data instanceof HashMap) {
-			((HashMap)data).put(TiC.PROPERTY_BUBBLES, bubbles);
-		}
-
-		// Dispatch the event to JavaScript which takes care of the bubbling.
-		return super.fireEvent(eventName, data);
-	}
-
-	/**
-	 * Fires an event that will be bubbled to the parent view.
-	 */
-	@Override
-	public boolean fireEvent(String eventName, Object data)
-	{
-		// To remain compatible this override of fireEvent will always
-		// bubble the event to the parent view. It should eventually be deprecated
-		// in favor of using the fireEvent(String, Object, boolean) method.
-		return fireEvent(eventName, data, true);
-	}
-
+	
 	/**
 	 * @return The parent view proxy of this view proxy.
 	 * @module.api

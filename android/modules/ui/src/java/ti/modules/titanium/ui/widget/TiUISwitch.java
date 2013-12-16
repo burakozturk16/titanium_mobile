@@ -198,14 +198,16 @@ public class TiUISwitch extends TiUIView
 
 	@Override
 	public void onCheckedChanged(CompoundButton btn, boolean value) {
-		KrollDict data = new KrollDict();
 
 		proxy.setProperty(TiC.PROPERTY_VALUE, value);
 		//if user triggered change, we fire it.
 		if (oldValue != value) {
-			data.put(TiC.PROPERTY_VALUE, value);
-			fireEvent(TiC.EVENT_CHANGE, data);
 			oldValue = value;
+			if (hasListeners(TiC.EVENT_CHANGE)) {
+				KrollDict data = new KrollDict();
+				data.put(TiC.PROPERTY_VALUE, value);
+				fireEvent(TiC.EVENT_CHANGE, data, false, false);
+			}
 		}
 	}
 	

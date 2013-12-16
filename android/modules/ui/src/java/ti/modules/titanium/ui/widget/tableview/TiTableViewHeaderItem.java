@@ -6,11 +6,6 @@
  */
 package ti.modules.titanium.ui.widget.tableview;
 
-import java.util.List;
-
-import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollPropertyChange;
-import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiBorderWrapperView;

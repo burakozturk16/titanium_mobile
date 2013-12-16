@@ -253,14 +253,7 @@ public class ScrollableViewProxy extends TiViewProxy
 			KrollDict options = new KrollDict();
 			options.put("view", currentView);
 			options.put("currentPage", currentPage);
-			fireEvent(TiC.EVENT_DRAGEND, options);
-		}
-		// TODO: Deprecate old event
-		if (hasListeners("dragEnd")) {
-			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
-			fireEvent("dragEnd", options);
+			fireEvent(TiC.EVENT_DRAGEND, options, false, false);
 		}
 	}
 
@@ -271,14 +264,7 @@ public class ScrollableViewProxy extends TiViewProxy
 			KrollDict options = new KrollDict();
 			options.put("view", currentView);
 			options.put("currentPage", currentPage);
-			fireEvent(TiC.EVENT_SCROLLEND, options);
-		}
-		// TODO: Deprecate old event
-		if (hasListeners("scrollEnd")) {
-			KrollDict options = new KrollDict();
-			options.put("view", currentView);
-			options.put("currentPage", currentPage);
-			fireEvent("scrollEnd", options);
+			fireEvent(TiC.EVENT_SCROLLEND, options, false, false);
 		}
 	}
 
@@ -299,7 +285,7 @@ public class ScrollableViewProxy extends TiViewProxy
 			KrollDict options = new KrollDict();
 			options.put("view", currentView);
 			options.put("currentPage", currentPage);
-			fireEvent(TiC.EVENT_SCROLLSTART, options);
+			fireEvent(TiC.EVENT_SCROLLSTART, options, false, false);
 		}
 	}
 	@Kroll.setProperty @Kroll.method

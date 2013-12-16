@@ -1243,7 +1243,7 @@ public abstract class TiUIView
 				@Override
 				public boolean onScale(ScaleGestureDetector sgd)
 				{
-					if (proxy.hierarchyHasListener(TiC.EVENT_PINCH)) {
+					if (hierarchyHasListener(TiC.EVENT_PINCH)) {
 						float timeDelta = sgd.getTimeDelta() == 0 ? minTimeDelta : sgd.getTimeDelta();
 
 						// Suppress scale events (and allow for possible two-finger tap events)
@@ -1261,7 +1261,7 @@ public abstract class TiUIView
 							data.put(TiC.EVENT_PROPERTY_VELOCITY, (sgd.getScaleFactor() - 1.0f) / timeDelta * 1000);
 							data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 	
-							return fireEvent(TiC.EVENT_PINCH, data);
+							return fireEventNoCheck(TiC.EVENT_PINCH, data);
 						}
 					}
 					return false;
@@ -1280,10 +1280,14 @@ public abstract class TiUIView
 			@Override
 			public boolean onDoubleTap(MotionEvent e)
 			{
-				if (proxy.hierarchyHasListener(TiC.EVENT_DOUBLE_TAP) || proxy.hierarchyHasListener(TiC.EVENT_DOUBLE_CLICK)) {
-					boolean handledTap = fireEvent(TiC.EVENT_DOUBLE_TAP, dictFromEvent(e));
-					boolean handledClick = fireEvent(TiC.EVENT_DOUBLE_CLICK, dictFromEvent(e));
-					return handledTap || handledClick;
+				boolean hasDoubleTap = hierarchyHasListener(TiC.EVENT_DOUBLE_TAP);
+				boolean hasDoubleClick = hierarchyHasListener(TiC.EVENT_DOUBLE_CLICK);
+				
+				if (hasDoubleTap || hasDoubleClick) {
+					KrollDict event = dictFromEvent(e);
+					if (hasDoubleTap) fireEventNoCheck(TiC.EVENT_DOUBLE_TAP, event);
+					if (hasDoubleClick) fireEventNoCheck(TiC.EVENT_DOUBLE_CLICK, event);
+					return true;
 				}
 				return false;
 			}
@@ -1292,8 +1296,8 @@ public abstract class TiUIView
 			public boolean onSingleTapConfirmed(MotionEvent e)
 			{
 				Log.d(TAG, "TAP, TAP, TAP on " + proxy, Log.DEBUG_MODE);
-				if (proxy.hierarchyHasListener(TiC.EVENT_SINGLE_TAP)) {
-					return fireEvent(TiC.EVENT_SINGLE_TAP, dictFromEvent(e));
+				if (hierarchyHasListener(TiC.EVENT_SINGLE_TAP)) {
+					return fireEventNoCheck(TiC.EVENT_SINGLE_TAP, dictFromEvent(e));
 					// Moved click handling to the onTouch listener, because a single tap is not the
 					// same as a click. A single tap is a quick tap only, whereas clicks can be held
 					// before lifting.
@@ -1311,14 +1315,14 @@ public abstract class TiUIView
 			public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY)
 			{
 				Log.d(TAG, "SWIPE on " + proxy, Log.DEBUG_MODE);
-				if (proxy.hierarchyHasListener(TiC.EVENT_SWIPE)) {
+				if (hierarchyHasListener(TiC.EVENT_SWIPE)) {
 					KrollDict data = dictFromEvent(e2);
 					if (Math.abs(velocityX) > Math.abs(velocityY)) {
 						data.put(TiC.EVENT_PROPERTY_DIRECTION, velocityX > 0 ? "right" : "left");
 					} else {
 						data.put(TiC.EVENT_PROPERTY_DIRECTION, velocityY > 0 ? "down" : "up");
 					}
-					return fireEvent(TiC.EVENT_SWIPE, data);
+					return fireEventNoCheck(TiC.EVENT_SWIPE, data);
 				}
 				return false;
 			}
@@ -1328,8 +1332,8 @@ public abstract class TiUIView
 			{
 				Log.d(TAG, "LONGPRESS on " + proxy, Log.DEBUG_MODE);
 
-				if (proxy.hierarchyHasListener(TiC.EVENT_LONGPRESS)) {
-					fireEvent(TiC.EVENT_LONGPRESS, dictFromEvent(e));
+				if (hierarchyHasListener(TiC.EVENT_LONGPRESS)) {
+					fireEventNoCheck(TiC.EVENT_LONGPRESS, dictFromEvent(e));
 				}
 			}
 		});
@@ -1389,7 +1393,9 @@ public abstract class TiUIView
 					}
 				} else if (event.getAction() == MotionEvent.ACTION_UP) {
 					if (pointersDown == 1) {
-						fireEvent(TiC.EVENT_TWOFINGERTAP, dictFromEvent(event));
+						if (hierarchyHasListener(TiC.EVENT_TWOFINGERTAP)) {
+							fireEventNoCheck(TiC.EVENT_TWOFINGERTAP, dictFromEvent(event));
+						}
 						pointersDown = 0;
 						return true;
 					}
@@ -1410,8 +1416,8 @@ public abstract class TiUIView
 	protected void handleTouchEvent(MotionEvent event) {
 		String motionEvent = motionEvents.get(event.getAction());
 		if (motionEvent != null) {
-			if (proxy.hierarchyHasListener(motionEvent)) {
-				fireEvent(motionEvent, dictFromEvent(event));
+			if (hierarchyHasListener(motionEvent)) {
+				fireEventNoCheck(motionEvent, dictFromEvent(event));
 			}
 		}
 	}
@@ -1493,15 +1499,17 @@ public abstract class TiUIView
 			public boolean onKey(View view, int keyCode, KeyEvent event)
 			{
 				if (event.getAction() == KeyEvent.ACTION_UP) {
-					KrollDict data = new KrollDict();
-					data.put(TiC.EVENT_PROPERTY_KEYCODE, keyCode);
-					fireEvent(TiC.EVENT_KEY_PRESSED, data);
+					if (hierarchyHasListener(TiC.EVENT_KEY_PRESSED)) {
+						KrollDict data = new KrollDict();
+						data.put(TiC.EVENT_PROPERTY_KEYCODE, keyCode);
+						fireEventNoCheck(TiC.EVENT_KEY_PRESSED, data);
+					}
 
 					switch (keyCode) {
 						case KeyEvent.KEYCODE_ENTER:
 						case KeyEvent.KEYCODE_DPAD_CENTER:
-							if (proxy.hasListeners(TiC.EVENT_CLICK)) {
-								fireEvent(TiC.EVENT_CLICK, null);
+							if (hierarchyHasListener(TiC.EVENT_CLICK)) {
+								fireEventNoCheck(TiC.EVENT_CLICK, null);
 								return true;
 							}
 					}
@@ -1627,16 +1635,41 @@ public abstract class TiUIView
 	}
 	
 	public boolean fireEvent(String eventName, KrollDict data) {
-		return fireEvent(eventName, data, true);
+		return fireEvent(eventName, data, true, true);
+	}
+	
+	public boolean fireEventNoCheck(String eventName, KrollDict data) {
+		return fireEvent(eventName, data, true, false);
+	}
+	
+	public boolean fireEvent(String eventName, KrollDict data, boolean bubbles) {
+		return fireEvent(eventName, data, bubbles, true);
+	}
+	
+	public boolean hasListeners(String event, boolean checkParent) {
+		return proxy.hasListeners(event, checkParent);
+	}
+	
+	public boolean hasListeners(String event) {
+		return hasListeners(event, false);
+	}
+	
+	public boolean hierarchyHasListener(String event) {
+		return proxy.hierarchyHasListener(event);
 	}
 
-	public boolean fireEvent(String eventName, KrollDict data, boolean bubbles) {
+
+	public boolean fireEvent(String eventName, KrollDict data, boolean bubbles, boolean checkListeners) {
+		if (checkListeners && !hasListeners(eventName, bubbles))
+		{
+			return false;
+		}
 		if (data == null && additionalEventData != null) {
 			data = new KrollDict(additionalEventData);
 		} else if (additionalEventData != null) {
 			data.putAll(additionalEventData);
 		}
-		return proxy.fireEvent(eventName, data, bubbles);
+		return proxy.fireEvent(eventName, data, bubbles, false);
 	}
 
 	protected void setOnLongClickListener(View view)

@@ -278,7 +278,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put("stackIndex", windows.indexOf(winToFocus));
 			options.put(TiC.PROPERTY_ANIMATED, animated);
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
-			fireEvent("closeWindow", options);
+			fireEvent("closeWindow", options, false, false);
 		}
 		
 		if (!opened || opening) {
@@ -459,7 +459,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			options.put("stackIndex", windows.size());
 			options.put(TiC.PROPERTY_ANIMATED, animated);
 			options.put(TiC.PROPERTY_TRANSITION, getDictFromTransition(transition));
-			fireEvent("openWindow", options);
+			fireEvent("openWindow", options, false, false);
 		}
 		TiBaseActivity activity = (TiBaseActivity) getActivity();
 		if (viewToAddTo != null) {
@@ -635,7 +635,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (windows.size() > 1) {
 			TiWindowProxy currentWindow = getCurrentWindow();
 			if (currentWindow.hasListeners(TiC.EVENT_ANDROID_BACK)) {
-				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK);
+				currentWindow.fireEvent(TiC.EVENT_ANDROID_BACK, false, false);
+				return true;
+			} else if (hasListeners(TiC.EVENT_ANDROID_BACK)) {
+				fireEvent(TiC.EVENT_ANDROID_BACK, false, false);
 				return true;
 			}
 			poping = true;

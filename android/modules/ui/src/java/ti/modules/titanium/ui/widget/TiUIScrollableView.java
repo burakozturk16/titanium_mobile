@@ -19,7 +19,6 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
-import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
 import org.appcelerator.titanium.util.TiViewHelper;
