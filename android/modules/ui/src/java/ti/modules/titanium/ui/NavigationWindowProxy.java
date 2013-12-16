@@ -481,11 +481,15 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					
 					public void onAnimationEnd(Animator arg0) {	
 						viewToAddTo.removeView(viewToHide);
+						proxy.sendOpenEvent();
+						proxy.customHandleOpenEvent(false);
 						pushing = false;
 					}
 
 					public void onAnimationCancel(Animator arg0) {		
 						viewToAddTo.removeView(viewToHide);
+						proxy.sendOpenEvent();
+						proxy.customHandleOpenEvent(false);
 						pushing = false; 
 					}
 				});
@@ -497,6 +501,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			}
    			viewToAdd.setVisibility(View.VISIBLE);			
 		}
+		proxy.customHandleOpenEvent(true);
 		addWindow(proxy, transition);
 		proxy.onWindowActivityCreated();
 		activity.setWindowProxy((TiWindowProxy) proxy);
