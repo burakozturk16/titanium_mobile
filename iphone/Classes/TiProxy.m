@@ -922,6 +922,15 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
     [self fireEvent:type withObject:params propagate:bubble reportSuccess:NO errorCode:0 message:nil];
 }
 
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn
+{
+    [self fireEvent:type withObject:nil propagate:yn reportSuccess:NO errorCode:0 message:nil];
+}
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn checkForListener:(BOOL)checkForListener
+{
+    [self fireEvent:type withObject:nil propagate:yn reportSuccess:NO errorCode:0 message:nil checkForListener:checkForListener];
+}
+
 -(void)fireEvent:(NSString*)type withObject:(id)obj
 {
     [self fireEvent:type withObject:obj propagate:YES reportSuccess:NO errorCode:0 message:nil];

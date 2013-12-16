@@ -306,6 +306,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 -(void)fireEvent:(NSString*)type withObject:(id)obj checkForListener:(BOOL)checkForListener;
 
 //For UI events:
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn;
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn;
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
 
