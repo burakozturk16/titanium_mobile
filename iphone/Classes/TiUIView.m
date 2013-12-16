@@ -904,10 +904,7 @@ DEFINE_EXCEPTIONS
 	CGPoint anchorPoint = [TiUtils pointValue:point];
 	CGPoint newPoint = CGPointMake(self.bounds.size.width * anchorPoint.x, self.bounds.size.height * anchorPoint.y);
     CGPoint oldPoint = CGPointMake(self.bounds.size.width * self.layer.anchorPoint.x, self.bounds.size.height * self.layer.anchorPoint.y);
-    
-    newPoint = CGPointApplyAffineTransform(newPoint, self.transform);
-    oldPoint = CGPointApplyAffineTransform(oldPoint, self.transform);
-    
+
     CGPoint position = self.layer.position;
     
     position.x -= oldPoint.x;
