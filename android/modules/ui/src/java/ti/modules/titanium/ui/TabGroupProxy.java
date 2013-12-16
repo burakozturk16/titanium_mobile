@@ -55,6 +55,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	public TabGroupProxy()
 	{
 		super();
+		customHandleOpenEvent(true);
 	}
 
 	public TabGroupProxy(TiContext tiContext)
