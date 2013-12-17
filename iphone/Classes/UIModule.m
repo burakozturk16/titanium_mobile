@@ -63,9 +63,6 @@
 #ifdef USE_TI_UITRANSITIONSTYLE
 #import "TiUITransitionStyleProxy.h"
 #endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
-#import "TiUISlideMenuOptionsProxy.h"
-#endif
 #ifdef USE_TI_UIBLENDMODE
 #import "TiUIBlendModeProxy.h"
 #endif
@@ -120,9 +117,6 @@ return ivarName;	\
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
     FORGET_AND_RELEASE(transitionStyle);
-#endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
-    FORGET_AND_RELEASE(slideMenuOptions);
 #endif
 #ifdef USE_TI_UIBLENDMODE
     FORGET_AND_RELEASE(blendMode);
@@ -501,17 +495,6 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 	return transitionStyle;
 }
 #endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
--(id)SlideMenuOptions
-{
-	if (slideMenuOptions==nil)
-	{
-		slideMenuOptions = [[TiUISlideMenuOptionsProxy alloc] _initWithPageContext:[self executionContext]];
-        [self rememberProxy:slideMenuOptions];
-	}
-	return slideMenuOptions;
-}
-#endif
 #ifdef USE_TI_UIBLENDMODE
 -(id)BlendMode
 {
@@ -551,9 +534,6 @@ MAKE_SYSTEM_PROP(EXTEND_EDGE_ALL,15);   //UIEdgeRectAll
 #endif
 #ifdef USE_TI_UITRANSITIONSTYLE
 	FORGET_AND_RELEASE(transitionStyle);
-#endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
-	FORGET_AND_RELEASE(slideMenuOptions);
 #endif
 #ifdef USE_TI_UIBLENDMODE
 	FORGET_AND_RELEASE(blendMode);

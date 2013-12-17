@@ -41,9 +41,6 @@
 #ifdef USE_TI_UITRANSITIONSTYLE
 	TiProxy *transitionStyle;
 #endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
-	TiProxy *slideMenuOptions;
-#endif
 #ifdef USE_TI_UIBLENDMODE
 	TiProxy *blendMode;
 #endif
@@ -235,9 +232,6 @@
 
 #ifdef USE_TI_UITRANSITIONSTYLE
 @property(nonatomic,readonly) TiProxy* TransitionStyle;
-#endif
-#ifdef USE_TI_UISLIDEMENUOPTIONS
-@property(nonatomic,readonly) TiProxy* SlideMenuOptions;
 #endif
 #ifdef USE_TI_UIBLENDMODE
 @property(nonatomic,readonly) TiProxy* BlendMode;
