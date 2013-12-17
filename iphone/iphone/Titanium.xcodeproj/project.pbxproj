@@ -637,6 +637,9 @@
 		D52A8E73183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
+		D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
+		D535603918609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
+		D535603A18609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -2086,6 +2089,8 @@
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAnimatableProxy.h; sourceTree = "<group>"; };
 		D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAnimatableProxy.m; sourceTree = "<group>"; };
+		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
+		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
 		D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSlide.m; sourceTree = "<group>"; };
 		D54C7CF21811570B00F592A9 /* TiTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransition.m; sourceTree = "<group>"; };
@@ -4023,6 +4028,8 @@
 				D5216939183A598500FBB24B /* TiTransitionAnimation+Friend.h */,
 				D521693A183A598500FBB24B /* TiTransitionAnimationStep.h */,
 				D521693B183A598500FBB24B /* TiTransitionAnimationStep.m */,
+				D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */,
+				D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */,
 			);
 			name = Animation;
 			sourceTree = "<group>";
@@ -4764,6 +4771,7 @@
 				24CA8BB9111161FE0084E2DE /* TiNetworkHTTPClientResultProxy.m in Sources */,
 				24CA8BBA111161FE0084E2DE /* TiNetworkHTTPClientProxy.m in Sources */,
 				24CA8BBB111161FE0084E2DE /* TiModule.m in Sources */,
+				D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */,
 				D57007F918255C520063F7FE /* TiTransitionSwipeDualFade.m in Sources */,
 				24CA8BBC111161FE0084E2DE /* TiMediaVideoPlayerProxy.m in Sources */,
 				24CA8BBD111161FE0084E2DE /* TiMediaSoundProxy.m in Sources */,
@@ -5197,6 +5205,7 @@
 				24D8E46F119B9D8A00F8CAA6 /* SCListener.m in Sources */,
 				D57007F518255BBD0063F7FE /* ADSwipeDualFadeTransition.m in Sources */,
 				24D8E470119B9D8A00F8CAA6 /* TiMediaAudioSession.m in Sources */,
+				D535603918609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */,
 				24D8E471119B9D8A00F8CAA6 /* TiUIPickerProxy.m in Sources */,
 				24D8E472119B9D8A00F8CAA6 /* TiUIPicker.m in Sources */,
 				24D8E473119B9D8A00F8CAA6 /* TiUIPickerRowProxy.m in Sources */,
@@ -5552,6 +5561,7 @@
 				DABB374712E8CB280026A6EA /* SCListener.m in Sources */,
 				D57007F618255BBD0063F7FE /* ADSwipeDualFadeTransition.m in Sources */,
 				DABB374812E8CB280026A6EA /* TiMediaAudioSession.m in Sources */,
+				D535603A18609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */,
 				DABB374912E8CB280026A6EA /* TiUIPickerProxy.m in Sources */,
 				DABB374A12E8CB280026A6EA /* TiUIPicker.m in Sources */,
 				DABB374B12E8CB280026A6EA /* TiUIPickerRowProxy.m in Sources */,
