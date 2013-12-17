@@ -1211,6 +1211,51 @@
 		};
 /* End PBXBuildRule section */
 
+/* Begin PBXContainerItemProxy section */
+		D5EE1BA41860A11500579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = AkylasShapes;
+		};
+		D5EE1BA61860A12800579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = AkylasShapes;
+		};
+		D5EE1BDE1860ABD100579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = AkylasSlidemenu;
+		};
+		D5EE1BE01860ABDB00579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = AkylasSlidemenu;
+		};
+		D5EE1BE81860CAB900579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = ak_commonjs_ios;
+		};
+		D5EE1BEB1860CAC300579573 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = ak_commonjs_ios;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1D0061BF160283820016BBEE /* TiBindingRunLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBindingRunLoop.h; sourceTree = "<group>"; };
 		1D0061C0160283820016BBEE /* TiBindingRunLoop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBindingRunLoop.m; sourceTree = "<group>"; };
@@ -2365,6 +2410,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */,
+				D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */,
+				D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */,
 				D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */,
 				D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */,
@@ -3591,6 +3639,9 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
+				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
+				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
 				24CA8902111160BE0084E2DE /* Classes */,
 				24CA8903111160C30084E2DE /* Thirdparty */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -4404,8 +4455,28 @@
 			name = UIViewsTouchDelegate;
 			sourceTree = "<group>";
 		};
+		D5EE1BA01860A11400579573 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				D5EE1BA51860A11500579573 /* libAkylasShapes.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D5EE1BDA1860ABD100579573 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D5EE1BE41860CAB900579573 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D93DAA4C16CBF8A000AD64C9 /* Calendar */ = {
@@ -4471,6 +4542,9 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
+				D5EE1BEC1860CAC300579573 /* PBXTargetDependency */,
+				D5EE1BE11860ABDB00579573 /* PBXTargetDependency */,
+				D5EE1BA71860A12800579573 /* PBXTargetDependency */,
 			);
 			name = "Titanium-KitchenSink";
 			productName = Titanium;
@@ -4537,6 +4611,20 @@
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D5EE1BE41860CAB900579573 /* Products */;
+					ProjectRef = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+				},
+				{
+					ProductGroup = D5EE1BA01860A11400579573 /* Products */;
+					ProjectRef = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
+				},
+				{
+					ProductGroup = D5EE1BDA1860ABD100579573 /* Products */;
+					ProjectRef = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				1D6058900D05DD3D006BFB54 /* Titanium-KitchenSink */,
@@ -4545,6 +4633,30 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D5EE1BA51860A11500579573 /* libAkylasShapes.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAkylasShapes.a;
+			remoteRef = D5EE1BA41860A11500579573 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAkylasSlidemenu.a;
+			remoteRef = D5EE1BDE1860ABD100579573 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAkylasCommonjs.a;
+			remoteRef = D5EE1BE81860CAB900579573 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1D60588D0D05DD3D006BFB54 /* Resources */ = {
