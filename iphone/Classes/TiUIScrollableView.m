@@ -739,7 +739,7 @@
     UIScrollView* sv = [self scrollview];
     ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
     RELEASE_TO_NIL(_transition);
-    _transition = [TiTransitionHelper transitionFromArg:value containerView:sv];
+    _transition = [[TiTransitionHelper transitionFromArg:value containerView:sv] retain];
     if (_transition) {
         _reverseDrawOrder = [_transition needsReverseDrawOrder];
         [_transition prepareViewHolder:sv];
