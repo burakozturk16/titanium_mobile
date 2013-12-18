@@ -3404,14 +3404,14 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	if (context == nil) {
 		context = self.pageContext;
 	}
-	NSDictionary* properties = [dictionary objectForKey:@"properties"];
+	NSDictionary* properties = (NSDictionary*)[dictionary objectForKey:@"properties"];
     if (properties == nil) properties = dictionary;
 	[self _initWithProperties:properties];
     NSString* bindId = [dictionary objectForKey:@"bindId"];
     if (bindId) {
         [rootProxy setValue:self forKey:bindId];
     }
-	NSDictionary* events = [dictionary objectForKey:@"events"];
+	NSDictionary* events = (NSDictionary*)[dictionary objectForKey:@"events"];
 	if ([events count] > 0) {
 		[context.krollContext invokeBlockOnThread:^{
 			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *listeners, BOOL *stop) {
@@ -3421,7 +3421,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 			}];
 		}];
 	}
-	NSArray* childTemplates = [dictionary objectForKey:@"childTemplates"];
+	NSArray* childTemplates = (NSArray*)[dictionary objectForKey:@"childTemplates"];
 	
 	[childTemplates enumerateObjectsUsingBlock:^(NSDictionary *childTemplate, NSUInteger idx, BOOL *stop) {
 		TiViewProxy *child = [[self class] unarchiveFromDictionary:childTemplate rootProxy:rootProxy inContext:context];
