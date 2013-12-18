@@ -847,9 +847,9 @@
 		D5DC32F8180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32F9180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32FA180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
-		D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BA51860A11500579573 /* libAkylasShapes.a */; };
-		D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */; };
-		D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */; };
+		D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BA51860A11500579573 /* libAkylasShapes.a */; settings = {ATTRIBUTES = (Weak, ); }; };
+		D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */; settings = {ATTRIBUTES = (Weak, ); }; };
+		D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 		D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
 		D5FD09DD1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
 		D5FD09DE1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
@@ -3639,9 +3639,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
-				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
-				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
+				D55ED5781861B3C90035749B /* _dependencies_ */,
 				24CA8902111160BE0084E2DE /* Classes */,
 				24CA8903111160C30084E2DE /* Thirdparty */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -4083,6 +4081,16 @@
 				D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */,
 			);
 			name = Animation;
+			sourceTree = "<group>";
+		};
+		D55ED5781861B3C90035749B /* _dependencies_ */ = {
+			isa = PBXGroup;
+			children = (
+				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
+				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
+				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
+			);
+			name = _dependencies_;
 			sourceTree = "<group>";
 		};
 		D56915D2168F536700C3F89F /* TTTAttributedLabel */ = {
