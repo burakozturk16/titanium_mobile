@@ -32,7 +32,8 @@
 		"titanium-sdk": ">=0.1.0",
 		"uglify-js": "~2.4.3",
 		"wrench": "~1.5.1",
-		"xmldom": "~0.1.16"
+		"xmldom": "~0.1.16",
+		"xcode": "git://github.com/Akylas/node-xcode.git"
 	},
 	"devDependencies": {
 		"colors": "~0.6.2",

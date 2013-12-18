@@ -74,6 +74,19 @@ def generate_jsca():
 	 finally:
 		 jsca_temp_file.close()
 
+def prepare_xcode():
+	iphoneSrc = os.path.join(top_dir,'iphone','iphone')
+	process_args = ["node", os.path.join(cur_dir, 'xcode.js'), os.path.join(iphoneSrc, 'Titanium.xcodeproj'), os.path.join(top_dir, 'dist', 'ios')]
+	print "Preparing XCode project..."
+	print " ".join(process_args)
+	process = subprocess.Popen(process_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	process_return_code = process.wait()
+	if process_return_code != 0:
+		 err_output = process.stderr.read()
+		 print >> sys.stderr, "Failed to prepare XCode project.  Output:"
+		 print >> sys.stderr, err_output
+	return process_return_code
+
 def zip_dir(zf,dir,basepath,subs=None,cb=None, ignore_paths=None, ignore_files=None):
 	for root, dirs, files in os.walk(dir):
 		for name in ignoreDirs:
@@ -273,7 +286,22 @@ def zip_iphone_ipad(zf,basepath,platform,version,version_tag):
 
 	zip_dir(zf,os.path.join(top_dir,'iphone','Classes'),basepath+'/iphone/Classes',subs)
 	zip_dir(zf,os.path.join(top_dir,'iphone','headers'),basepath+'/iphone/headers',subs)
-	zip_dir(zf,os.path.join(top_dir,'iphone','iphone'),basepath+'/iphone/iphone',subs)
+
+	xcodeProject =  'Titanium.xcodeproj'
+	iphoneSrc = os.path.join(top_dir,'iphone','iphone')
+	iphoneDst = basepath+'/iphone/iphone'
+	ignore_paths=[]
+	ignore_paths.append(os.path.join(iphoneSrc, xcodeProject))
+	ignore_paths.append(os.path.join(iphoneSrc,  'Build'))
+
+	print 'zip_iphone_ipad'
+	zip_dir(zf,iphoneSrc,iphoneDst,subs, ignore_paths=ignore_paths)
+	if (prepare_xcode() == 0):
+		zip_dir(zf,os.path.join(top_dir, 'dist', 'ios', xcodeProject),iphoneDst + '/' +  xcodeProject,subs)
+	else:
+		print "[ERROR] could not prepare XCode project"
+		sys.exit(1)
+
 	zf.write(os.path.join(top_dir, 'iphone', 'AppledocSettings.plist'),'%s/iphone/AppledocSettings.plist'%(basepath))
 	zip_dir(zf, os.path.join(top_dir, 'iphone', 'cli'), basepath+'/iphone/cli')
 	zip_dir(zf, os.path.join(top_dir, 'iphone', 'templates'), basepath+'/iphone/templates')
@@ -562,7 +590,7 @@ def zip_mobilesdk(dist_dir, osname, version, module_apiversion, android, iphone,
 	zf.close()
 
 class Packager(object):
-	def __init__(self, build_jsca=1):
+	def __init__(self, build_jsca=0):
 		self.build_jsca = build_jsca
 
 	def build(self, dist_dir, version, module_apiversion, android=True, iphone=True, ipad=True, mobileweb=True, blackberry=True, tizen=True, ivi=True, version_tag=None, node_appc_branch=False):
@@ -570,7 +598,7 @@ class Packager(object):
 			version_tag = version
 
 		# get all SDK level npm dependencies
-		resolve_npm_deps(top_dir, version, node_appc_branch)()
+		# resolve_npm_deps(top_dir, version, node_appc_branch)()
 
 		zip_mobilesdk(dist_dir, os_names[platform.system()], version, module_apiversion, android, iphone, ipad, mobileweb, blackberry, tizen, ivi, version_tag, self.build_jsca)
 
@@ -590,4 +618,4 @@ class Packager(object):
 			zip_mobilesdk(dist_dir, os, version, module_apiversion, android, iphone, ipad, mobileweb, blackberry, tizen, ivi, version_tag, self.build_jsca)
 
 if __name__ == '__main__':
-	Packager().build(os.path.abspath('../dist'), "1.1.0")
+	Packager().build(os.path.abspath('../dist'), "3.3.0.test", "2.0")
