@@ -48,3 +48,18 @@ Button {
 .LeftLabel {
     textAlign:'left'
 }
+
+.Test3 {
+    bottom:1,
+}
+
+.Test2 {
+    rclass:'Test3',
+    right:1,
+    top:5,
+}
+
+.Test1 {
+    rclass:'Test2',
+    right:8,
+}
