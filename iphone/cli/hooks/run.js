@@ -117,12 +117,12 @@ exports.init = function (logger, config, cli) {
 				}.bind(this));
 
 				simProcess.on('exit', function (code, signal) {
-					clearTimeout(findLogTimer);
 
 					if (simStarted) {
 						var endLogTxt = __('End simulator log');
 						logger.log(('-- ' + endLogTxt + ' ' + (new Array(75 - endLogTxt.length)).join('-')).grey);
-					}
+					} else return
+					clearTimeout(findLogTimer);
 
 					if (code || simErr.length) {
 						finished(new appc.exception(__('An error occurred running the iOS Simulator'), simErr));
