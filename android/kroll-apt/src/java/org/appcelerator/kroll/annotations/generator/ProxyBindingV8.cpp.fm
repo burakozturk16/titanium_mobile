@@ -34,6 +34,10 @@
 #include "${superPackageName}.${superProxyClassName}.h"
 </#if>
 
+<#if superApiName??>
+using namespace <@Proxy.superNamespaceApi/>;
+</#if>
+
 #define TAG "${proxyClassName}"
 
 using namespace v8;
