@@ -1,8 +1,0 @@
-<project name="shape" default="build">
-	<import file="../../build/build-module.xml"/>
-	
-	<path id="dependencies">
-		<path path="${dist.classes.dir}/app"/>
-		<path path="${dist.classes.dir}/api"/>
-	</path>
-</project>
