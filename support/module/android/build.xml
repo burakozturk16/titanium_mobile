@@ -112,6 +112,7 @@ timodule.xml.
 	<property name="classes" location="${build}/classes"/>
 	<property name="docs" location="${build}/docs"/>
 	<property name="dist" location="${ti.module.root}/dist"/>
+	<property name="bin" location="${ti.module.root}/bin"/>
 	<property name="lib" location="${ti.module.root}/lib"/>
 	<property name="jni" location="${ti.module.root}/jni"/>
 	<property name="libs" location="${ti.module.root}/libs"/>
@@ -472,6 +473,8 @@ timodule.xml.
 	</target>
 
 	<target name="post.dist">
+		<mkdir dir="${bin}"/>
+		<copy file="${module.jar}" todir="${bin}"/>
 	</target>
 
 	<target name="pre.clean">
@@ -480,9 +483,8 @@ timodule.xml.
 	<target name="clean" description="Cleans classes and dist files" depends="ndk.clean,pre.clean">
 		<delete dir="${classes}"/>
 		<delete dir="${dist}"/>
-		<delete includeemptydirs="true" failonerror="false">
-			<fileset dir="${gen}" includes="**/*"/>
-		</delete>
+		<delete dir="${bin}"/>
+		<delete dir="${build}"/>
 		<antcall target="post.clean"/>
 	</target>
 
