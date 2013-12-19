@@ -78,7 +78,6 @@ def prepare_xcode():
 	iphoneSrc = os.path.join(top_dir,'iphone','iphone')
 	process_args = ["node", os.path.join(cur_dir, 'xcode.js'), os.path.join(iphoneSrc, 'Titanium.xcodeproj'), os.path.join(top_dir, 'dist', 'ios')]
 	print "Preparing XCode project..."
-	print " ".join(process_args)
 	process = subprocess.Popen(process_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	process_return_code = process.wait()
 	if process_return_code != 0:
