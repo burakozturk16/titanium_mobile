@@ -313,7 +313,7 @@ public class KrollJSONGenerator extends AbstractProcessor {
 								break;
 							superApiName = "." + superApiName;
 						}
-						proxyProperties.put("superApiName", superApiName);
+						if (superApiName.length() > 0) proxyProperties.put("superApiName", superApiName);
 					}
 				}
 

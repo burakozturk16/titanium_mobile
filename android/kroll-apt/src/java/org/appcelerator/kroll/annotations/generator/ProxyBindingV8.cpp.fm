@@ -34,7 +34,7 @@
 #include "${superPackageName}.${superProxyClassName}.h"
 </#if>
 
-<#if superApiName??>
+<#if moduleId != "titanium" && superApiName??>
 using namespace <@Proxy.superNamespaceApi/>;
 </#if>
 
