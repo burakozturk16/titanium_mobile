@@ -1,24 +1,7 @@
 {
 	"Resources/app.js": 1,
-	"Resources/akylas.commonjs.js": 1,
-	"Resources/AkInclude/akylas.additions.function.js": 1,
-	"Resources/AkInclude/akylas.additions.math.js": 1,
-	"Resources/AkInclude/akylas.additions.number.js": 1,
-	"Resources/AkInclude/akylas.additions.string.js": 1,
-	"Resources/AkInclude/akylas.animation.js": 1,
-	"Resources/AkInclude/akylas.global.js": 1,
-	"Resources/AkInclude/akylas.lang.js": 1,
-	"Resources/AkInclude/akylas.ti.js": 1,
-	"Resources/AkInclude/akylas.util.js": 1,
-	"Resources/AkInclude/redux.js": 1,
 	"Resources/lib/underscore.js": 1,
 	"Resources/lib/moment/moment.js": 1,
 	"Resources/lib/moment/lang/fr.js": 1,
-	"Resources/rjss/alert.rjss": 1,
-	"Resources/rjss/common.rjss": 1,
-	"Resources/rjss/dataplan.rjss": 1,
-	"Resources/ui/DAlert.js": 1,
-	"Resources/ui/DataPlanAlert.js": 1,
-	"Resources/ui/DataPlanView.js": 1,
-	"Resources/ui/DatePickerTextField.js": 1
+	"Resources/rjss/common.rjss": 1
 }
