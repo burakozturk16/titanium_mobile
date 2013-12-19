@@ -1,4 +1,20 @@
-var Shape = Ti.Shape;
+var Shape = require('akylas.shapes');
+var slidemenu = require('akylas.slidemenu');
+var ak = require('akylas.commonjs');
+
+ak.load(this, {
+	modules: ['ti', 'moment', 'animation'],
+	additions: []
+});
+redux.fn.addNaturalConstructor(this, slidemenu, 'SlideMenu', 'SlideMenu');
+
+var app = {};
+ak.prepareAppObject(app);
+ak.ti.loadRjss('$variables'); //load variables
+ak.ti.loadCreatorsFromDir('ui');
+// /RJSS loading
+ak.ti.loadRjssFromDir('rjss');
+
 var isiOS7 = false;
 var isAndroid = Ti.Platform.osname == "android";
 var isApple = Ti.Platform.osname === 'ipad' || Ti.Platform.osname === 'iphone';
@@ -9,7 +25,7 @@ var backColor = 'white';
 var textColor = 'black';
 var navGroup;
 var openWinArgs;
-var html = '  SUCCESS     <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:4px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
+var html = '  SUCCESS     <font color="red">musique</font> électronique <b><span style="background-color:green;border-color:black;border-radius:20px;border-width:1px">est un type de </span><big><big>musique</big></big> qui a <font color="green">été conçu à</font></b> partir des années<br> 1950 avec des générateurs de signaux<br> et de sons synthétiques. Avant de pouvoir être utilisée en temps réel, elle a été primitivement enregistrée sur bande magnétique, ce qui permettait aux compositeurs de manier aisément les sons, par exemple dans l\'utilisation de boucles répétitives superposées. Ses précurseurs ont pu bénéficier de studios spécialement équipés ou faisaient partie d\'institutions musicales pré-existantes. La musique pour bande de Pierre Schaeffer, également appelée musique concrète, se distingue de ce type de musique dans la mesure où son matériau primitif était constitué des sons de la vie courante. La particularité de la musique électronique de l\'époque est de n\'utiliser que des sons générés par des appareils électroniques.';
 // html = '<span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:3px;padding-bottom:3px;line-height:2em;"> SUCCESS </span><br><span style="border-style:solid;background-color:green;border-color:red;border-radius:20px;border-width:3px;padding-top:0px;padding-bottom:0px;line-height:1em;"> SUCCESS </span>'
 if (isAndroid) {
 	backColor = 'black';
@@ -137,6 +153,11 @@ function transformExs() {
 				title: 'ListView'
 			},
 			callback: transform5Ex
+		}, {
+			properties: {
+				title: 'AnchorPoint'
+			},
+			callback: transform6Ex
 		}]
 	}];
 	win.add(listview);
@@ -196,6 +217,11 @@ function transform2Ex() {
 		borderRadius: 6,
 		borderColor: 'orange',
 		borderWidth: 2,
+		backgroundPadding: {
+			left: 10,
+			right: 10,
+			bottom: -5
+		},
 		backgroundGradient: {
 			type: 'radial',
 			colors: ['orange', 'yellow']
@@ -290,13 +316,17 @@ function transform3Ex() {
 		backgroundColor: 'red',
 		borderRadius: 12,
 		borderColor: 'green',
+		borderPadding: {
+			left: 10,
+			right: 10,
+			bottom: -5
+		},
 		borderWidth: 2,
 		opacity: 0,
 		width: 200,
 		height: 200
 	});
 	view.add(Ti.UI.createView({
-		borderRadius: 12,
 		borderColor: 'yellow',
 		borderWidth: 2,
 		backgroundColor: 'blue',
@@ -308,11 +338,11 @@ function transform3Ex() {
 		view.opacity = 0;
 		view.transform = t;
 		win.add(view);
-		animation.fadeIn(view, 100);
-		animation.popIn(view);
+		ak.animation.fadeIn(view, 100);
+		ak.animation.popIn(view);
 	};
 	var hideMe = function(_callback) {
-		animation.fadeOut(view, 200, function() {
+		ak.animation.fadeOut(view, 200, function() {
 			win.remove(view);
 		});
 	};
@@ -423,8 +453,8 @@ function transform5Ex() {
 					color: textColor,
 					touchEnabled: false,
 					font: {
-						fontSize: 20,
-						fontWeight: 'bold'
+						size: 20,
+						weight: 'bold'
 					},
 					width: Ti.UI.FILL,
 					left: 10
@@ -597,6 +627,74 @@ function transform5Ex() {
 	}];
 	listView.setSections(sections);
 	win.add(listView);
+	openWin(win);
+}
+
+function transform6Ex() {
+	var win = createWin();
+	var t = Ti.UI.create2DMatrix().rotate(90);
+	var view = Ti.UI.createView({
+		transform:null,
+		backgroundColor: 'red',
+		borderRadius: 12,
+		borderColor: 'green',
+		borderWidth: 2,
+		width: 200,
+		height: 200
+	});
+	win.add(view);
+	var bid = -1;
+	function createBtn(_title) {
+		bid++;
+		return {
+				type: 'Ti.UI.Button',
+				left:0,
+				bid: bid,
+				title: _title
+		}
+	}
+
+	win.add({
+		properties: {width:'SIZE',height:'SIZE',left:0, layout:'vertical'},
+		childTemplates: [
+			createBtn('topright'),
+			createBtn('bottomright'),
+			createBtn('bottomleft'),
+			createBtn('topleft'),
+			createBtn('center'),
+		]
+	});
+	win.addEventListener('click', function(e) {
+		if (e.source.bid !== undefined) {
+			info(e.source.bid);
+			var anchorPoint = {x:0,y:0};
+			switch (e.source.bid) {
+				case 0:
+					anchorPoint.x = 1;
+					break;
+				case 1:
+					anchorPoint.x = 1;
+					anchorPoint.y = 1;
+					break;
+				case 2:
+					anchorPoint.y = 1;
+					break;
+				case 3:
+					break;
+				case 4:
+					anchorPoint.x = 0.5;
+					anchorPoint.y = 0.5;
+					break;
+			}
+			view.anchorPoint = anchorPoint;
+		} else {
+			// view.transform = (view.transform === null)?t:null;
+			view.animate({
+				transform:(view.transform === null)?t:null,
+				duration:500
+			})
+		}
+	});
 	openWin(win);
 }
 
@@ -1117,7 +1215,6 @@ function shape7Ex() {
 
 function buttonAndLabelEx() {
 	var win = createWin({
-		navBarHidden: true,
 		dispatchPressed: true,
 		backgroundSelectedColor: 'green'
 	});
@@ -1182,13 +1279,11 @@ function buttonAndLabelEx() {
 			transform: varSwitch(button.transform, t2, t1),
 		});
 	});
-	button.addEventListener('touchstart', function(e) {
-		alert('stste');
-	});
+
 	win.add(button);
 	var label = Ti.UI.createLabel({
 		bottom: 20,
-		// dispatchPressed: true,
+		dispatchPressed: true,
 		backgroundColor: 'gray',
 		backgroundSelectedColor: '#a46',
 		padding: {
@@ -1493,8 +1588,8 @@ function pullToRefresh() {
 	var labelStatus = Ti.UI.createLabel({
 		color: '#576c89',
 		font: {
-			fontSize: 13,
-			fontWeight: 'bold'
+			size: 13,
+			weight: 'bold'
 		},
 		text: 'Pull down to refresh...',
 		textAlign: 'center',
@@ -1507,7 +1602,7 @@ function pullToRefresh() {
 	var labelLastUpdated = Ti.UI.createLabel({
 		color: '#576c89',
 		font: {
-			fontSize: 12
+			size: 12
 		},
 		text: 'Last Updated: ' + getFormattedDate(),
 		textAlign: 'center',
@@ -1539,8 +1634,8 @@ function pullToRefresh() {
 
 	var eventStatus = Ti.UI.createLabel({
 		font: {
-			fontSize: 13,
-			fontWeight: 'bold'
+			size: 13,
+			weight: 'bold'
 		},
 		text: 'Event data will show here',
 		bottom: 0,
@@ -1715,7 +1810,7 @@ function scrollableEx() {
 				height: Ti.UI.FILL,
 				color: 'black',
 				font: {
-					fontSize: 16
+					size: 16
 				},
 				width: Ti.UI.FILL
 			}
@@ -1878,8 +1973,8 @@ function listView2Ex() {
 				color: 'black',
 				font: {
 					fontFamily: 'Arial',
-					fontSize: '20dp',
-					fontWeight: 'bold'
+					size: '20dp',
+					weight: 'bold'
 				},
 				left: '60dp',
 				top: 0,
@@ -1891,7 +1986,7 @@ function listView2Ex() {
 				color: 'gray',
 				font: {
 					fontFamily: 'Arial',
-					fontSize: '14dp'
+					size: '14dp'
 				},
 				left: '60dp',
 				top: '25dp',
@@ -2544,6 +2639,7 @@ function htmlLabelEx() {
 	scrollView.add(Ti.UI.createLabel({
 		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_HEAD,
 		truncationString: '_ _',
+		// verticalAlign:'top',
 		bottom: 20,
 		html: html
 	}));
@@ -2555,6 +2651,7 @@ function htmlLabelEx() {
 	scrollView.add(Ti.UI.createLabel({
 		width: Ti.UI.FILL,
 		height: Ti.UI.SIZE,
+		// verticalAlign:'bottom',
 		bottom: 20,
 		multiLineEllipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
 		html: html
@@ -2742,8 +2839,8 @@ function svg4Ex() {
 					color: textColor,
 					touchEnabled: false,
 					font: {
-						fontSize: 20,
-						fontWeight: 'bold'
+						size: 20,
+						weight: 'bold'
 					},
 					width: Ti.UI.FILL,
 					left: 10
@@ -3327,7 +3424,7 @@ function navWindowEx() {
 		}]
 	});
 	//slidingMenu
-	var slidingMenu = Ti.UI.createSlideMenu({
+	var slidingMenu = SlideMenu.createSlideMenu({
 		orientationModes: [Ti.UI.UPSIDE_PORTRAIT,
 			Ti.UI.PORTRAIT,
 			Ti.UI.LANDSCAPE_RIGHT,
@@ -3419,8 +3516,8 @@ function slideMenuEx() {
 			top: 0,
 			left: 10,
 			font: {
-				fontSize: 24,
-				fontWeight: 'bold'
+				size: 24,
+				weight: 'bold'
 			}
 		});
 		closeButton.addEventListener('click', function(e) {
@@ -3754,7 +3851,7 @@ function slideMenuEx() {
 			otherWindows[i].close();
 		};
 	}
-	var slidingMenu = Ti.UI.createSlideMenu({
+	var slidingMenu = slidemenu.createSlideMenu({
 		backgroundColor: backColor,
 		navBarHidden: true,
 		leftViewWidth: '40%',
@@ -3843,7 +3940,7 @@ function test2() {
 		top: 2,
 		ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
 		font: {
-			fontSize: 14
+			size: 14
 		},
 		width: Ti.UI.FILL
 	});
@@ -3858,8 +3955,8 @@ function test2() {
 		shadowColor: '#55000000',
 		shadowRadius: 2,
 		font: {
-			fontSize: 12,
-			fontWeight: 'bold'
+			size: 12,
+			weight: 'bold'
 		},
 		backgroundColor: 'red',
 		borderRadius: 4,
@@ -3872,14 +3969,14 @@ function test2() {
 	});
 	var view6 = Ti.UI.createLabel({
 		font: {
-			fontSize: 12
+			size: 12
 		},
 		color: 'black',
 		bottom: 2
 	});
 	var view7 = Ti.UI.createLabel({
 		font: {
-			fontSize: 12
+			size: 12
 		},
 		text: 'date',
 		color: 'black',
@@ -3915,13 +4012,14 @@ function listViewLayout() {
 				left: 4,
 				right: 4,
 				font: {
-					fontSize: 18,
-					fontWeight: 'bold'
+					size: 18,
+					weight: 'bold'
 				},
 				borderRadius: 10,
 				color: 'white',
 				selectedColor: 'black'
-			}
+			},
+			events:{click:function(e){}}
 		}, {
 			type: 'Ti.UI.View',
 			properties: {
@@ -3943,10 +4041,12 @@ function listViewLayout() {
 					properties: {
 						top: 2,
 						backgroundColor: 'gray',
+						maxLines: 2,
 						ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
 						font: {
-							fontSize: 14
+							size: 14
 						},
+						height: 'FILL',
 						width: Ti.UI.FILL
 					}
 				}, {
@@ -3956,7 +4056,7 @@ function listViewLayout() {
 						color: 'white',
 						padding: {
 							left: 4,
-							right: 14,
+							right: 4,
 							bottom: 2
 						},
 						shadowColor: '#55000000',
@@ -3964,8 +4064,8 @@ function listViewLayout() {
 						shadowRadius: 2,
 						borderRadius: 4,
 						font: {
-							fontSize: 12,
-							fontWeight: 'bold'
+							size: 12,
+							weight: 'bold'
 						},
 						backgroundColor: 'red',
 						right: 4
@@ -4003,9 +4103,11 @@ function listViewLayout() {
 						properties: {
 							color: 'black',
 							shadowColor: '#55ffffff',
+							width: 'FILL',
+							height: 'FILL',
 							shadowRadius: 2,
 							font: {
-								fontSize: 12
+								size: 12
 							}
 						}
 					}]
@@ -4014,12 +4116,13 @@ function listViewLayout() {
 					bindId: 'timelabel',
 					properties: {
 						font: {
-							fontSize: 12
+							size: 12
 						},
 						backgroundColor: 'green',
 						color: 'black',
 						textAlign: 'right',
 						right: 4,
+						height: 'FILL',
 						width: 80
 					}
 				}]
@@ -4052,10 +4155,10 @@ function listViewLayout() {
 		defaultItemTemplate: 'template'
 	});
 	var items = [];
-	for (var i = 0; i < 100; i++) {
+	for (var i = 0; i < 1; i++) {
 		items.push({
 			properties: {
-				height: Ti.UI.SIZE
+				height: 60
 			},
 			tlabel: {
 				text: names[Math.floor(Math.random() * names.length)]
@@ -4181,7 +4284,7 @@ function opacityTest() {
 			bottom: 30,
 			right: 30
 		},
-		height: 50,
+		height: 70,
 		bubbleParent: false,
 		backgroundColor: 'gray',
 		touchPassThrough: false,
@@ -4544,6 +4647,14 @@ var listview = createListView({
 });
 var color = cellColor(0);
 listview.sections = [{
+	headerView:{
+		type:'Ti.UI.Label',
+		properties:{
+			backgroundColor:'red',
+			bottom:20,
+			text:'HeaderView created from Dict'
+		}
+	},
 	items: [{
 		properties: {
 			title: 'Transform',
@@ -4660,17 +4771,6 @@ mainWin.addEventListener('closeWindow', function(e) {
 	Ti.API.info(e);
 });
 mainWin.open();
-var app = {};
-var ak = require('akylas.commonjs');
-ak.load(this, {
-	modules: ['ti', 'moment', 'animation'],
-	additions: []
-});
-ak.prepareAppObject(app);
-ak.ti.loadRjss('$variables'); //load variables
-ak.ti.loadCreatorsFromDir('ui');
-// /RJSS loading
-ak.ti.loadRjssFromDir('rjss');
 
 function textFieldTest() {
 	(new DataPlanAlert()).showMe();
@@ -4707,29 +4807,213 @@ function test2() {
 	openWin(win);
 }
 
-function test3(){
-	var win = createWin();
+function borderPaddingEx() {
+	var win = createWin({backgroundColor:'white'});
 	var view = new View({
-		properties: {rclass:'AutoSize Horizontal'},
-		childTemplates: [{
-			type: 'Ti.UI.Label',
-			bindId: 'tlabel',
-			properties: {
-				rclass: 'FillWidth LabelTest RightLabel'
+		"type" : "Ti.UI.Label",
+		"bindId" : "title",
+		"properties" : {
+			"rclass" : "NZBGetTVRTitle",
+			text:'downloadpath',
+			"font" : {
+				"size" : 14
+			},
+			"padding" : {
+				"left" : 4,
+				"right" : 4
+			},
+			"textAlign" : "right",
+			"width" : 110,
+			"color" : "black"
+		}
+	});
+
+	win.add([view, {
+		type: 'Ti.UI.Label',
+		properties: {
+			top: 20,
+			color: 'black',
+			text: 'Border Padding',
+			borderPadding: {
+				top: -2,
+				left: -2,
+				right: -2
+			},
+			borderWidth: 2,
+			borderColor: 'darkGray',
+			backgroundColor: 'gray',
+			padding: {
+				left: 40,
+				right: 40,
+				bottom: 10,
+				top: 10
 			}
-			}, {
-			type: 'Ti.UI.Label',
-			bindId: 'sizelabel',
-			properties: {
-				rclass: 'FillWidth LabelTest LeftLabel'
+		},
+		events:{'click':function(e){Ti.API.info(e);}}
+	}]);
+
+	win.add({
+		"properties" : {
+			"rclass" : "GenericRow TVRow",
+			"layout" : "horizontal",
+			"height" : "SIZE"
+		},
+		"childTemplates" : [{
+			"type" : "Ti.UI.Label",
+			"bindId" : "title",
+			"properties" : {
+				"rclass" : "NZBGetTVRTitle",
+				text:'downloadpath',
+				"font" : {
+					"size" : 14
+				},
+				"padding" : {
+					"left" : 4,
+					"right" : 4
+				},
+				"textAlign" : "right",
+				"width" : 110,
+				"color" : "black"
+			}
+		}, {
+			"type" : "Ti.UI.Label",
+			"bindId" : "value",
+			"properties" : {
+				"rclass" : "NZBGetTVRValue",
+				"color" : "#686868",
+				"font" : {
+					"size" : 14
+				},
+				text:'/volume1/downloads/complete/movies/The.Family.2013.1080p.BluRay.DTS.x264-DON.cp(tt2404311)',
+				"top" : 4,
+				"bottom" : 4,
+				"padding" : {
+					"left" : 4,
+					"right" : 4,
+					"bottom" : 2,
+					"top" : 2
+				},
+				"verticalAlign" : "center",
+				"left" : 4,
+				"width" : "FILL",
+				"height" : "SIZE",
+				"right" : 4,
+				"textAlign" : "left",
+				"maxLines" : 2,
+				"borderColor" : "#EEEEEE",
+				"ellipsize" : "END",
+				"borderRadius" : 2
 			}
 		}]
 	});
 
-	view.tlabel.html = 'Test1';
-	view.sizelabel.html = 'Test2';
-	win.add(view);
+
+	// win.add({
+		// type: 'Ti.UI.View',
+		// properties: {
+			// width: 200,
+			// height: 20
+		// },
+		// events:{
+			// 'click':function(e){info(stringify(e));}
+		// },
+		// childTemplates: [{
+			// borderPadding: {
+				// bottom: -1
+			// },
+			// borderColor: 'darkGray',
+			// backgroundColor: 'gray',
+			// borderRadius: 4
+		// }, {
+			// bindId: 'progress',
+			// properties: {
+				// borderPadding: {
+					// top: -1,
+					// left: -1,
+					// right: -1
+				// },
+				// borderColor: '#66AC66',
+				// backgroundColor: '#62C462',
+				// borderRadius: 4,
+				// left: 0,
+				// width: '50%',
+				// backgroundGradient: {
+					// type: 'linear',
+					// rect:{x:0, y:0, width:40, height:40},
+					// colors: [{
+						// offset: 0,
+						// color: '#26ffffff'
+					// }, {
+						// offset: 0.25,
+						// color: '#26ffffff'
+					// }, {
+						// offset: 0.25,
+						// color: 'transparent'
+					// }, {
+						// offset: 0.5,
+						// color: 'transparent'
+					// }, {
+						// offset: 0.5,
+						// color: '#26ffffff'
+					// }, {
+						// offset: 0.75,
+						// color: '#26ffffff'
+					// }, {
+						// offset: 0.75,
+						// color: 'transparent'
+					// }, {
+						// offset: 1,
+						// color: 'transparent'
+					// }],
+					// startPoint: {
+						// x: 0,
+						// y: 0
+					// },
+					// endPoint: {
+						// x: "100%",
+						// y: '100%'
+					// }
+				// }
+			// }
+		// }]
+	// });
+
 	openWin(win);
 }
+
+function test3() {
+	var win = createWin();
+	var view = Ti.UI.createView({
+		anchorPoint: {
+			x: 0,
+			y: 1
+		},
+		backgroundColor: 'red',
+		borderRadius: 12,
+		borderColor: 'green',
+		// borderPadding:{left:10,right:10,bottom:-5},
+		borderWidth: 2,
+		width: 200,
+		height: 200
+	});
+	var isTurned = false;
+	var untrans = Ti.UI.create2DMatrix();
+	var trans = untrans.rotate(180);
+
+	win.addEventListener('click', function() {
+		view.animate({
+			transform: isTurned ? untrans : trans,
+			duration: 400
+		});
+		isTurned = !isTurned;
+	});
+	win.add(view);
+
+	// win.open();
+	var test = new SlideMenu({
+		centerView:win
+	});
+	test.open();
+}
 test3();
-// htmlLabelEx();
+// transform6Ex();
