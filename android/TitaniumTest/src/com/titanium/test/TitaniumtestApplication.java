@@ -5,8 +5,12 @@
  */
 package com.titanium.test;
 
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.runtime.v8.V8Runtime;
+import org.appcelerator.kroll.KrollExternalModule;
+import org.appcelerator.kroll.KrollModule;
+import org.appcelerator.kroll.KrollModuleInfo;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiRootActivity;
@@ -28,16 +32,37 @@ public final class TitaniumtestApplication extends TiApplication
 
 		V8Runtime runtime = new V8Runtime();
 
-
-
+		runtime.addExternalModule("akylas.shapes",
+				(Class<? extends KrollExternalModule>) akylas.shapes.ShapesModuleBootstrap.class);
+		runtime.addExternalModule("akylas.commonjs",
+				(Class<? extends KrollExternalModule>) akylas.commonjs.AkylasCommonjsBootstrap.class);
+		runtime.addExternalCommonJsModule("akylas.commonjs", akylas.commonjs.CommonJsSourceProvider.class);
+		runtime.addExternalModule("akylas.slidemenu",
+				(Class<? extends KrollExternalModule>) akylas.slidemenu.AkylasSlidemenuBootstrap.class);
 
 		KrollRuntime.init(this, runtime);
+		
 
-
-//		stylesheet = new ApplicationStylesheet();
+		// stylesheet = new ApplicationStylesheet();
 		postOnCreate();
 		TiConfig.DEBUG = TiConfig.LOGD = true;
 
+		// Custom modules
+		KrollModuleInfo moduleInfo;
+
+		try {
+			akylas.shapes.ShapesModule.onAppCreate(this);
+			akylas.commonjs.AkylasCommonjsModule.onAppCreate(this);
+			akylas.slidemenu.AkylasSlidemenuModule.onAppCreate(this);
+		} catch (Exception e) {
+		}
+
+		moduleInfo = new KrollModuleInfo("akylas.shapes","akylas.shapes", "","", "", "","", "");
+		KrollModule.addCustomModuleInfo(moduleInfo);
+		moduleInfo = new KrollModuleInfo("akylas.slidemenu","akylas.slidemenu", "","", "", "","", "");
+		KrollModule.addCustomModuleInfo(moduleInfo);
+		moduleInfo = new KrollModuleInfo("akylas.commonjs","akylas.commonjs", "","", "", "","", "");
+		KrollModule.addCustomModuleInfo(moduleInfo);
 	}
 
 	@Override
