@@ -593,9 +593,9 @@
 
 -(BOOL)textFieldShouldReturn:(UITextField *)tf 
 {
-	if ([self.proxy _hasListeners:@"return"])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO]) {
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"]];
+		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"] propagate:NO checkForListener:NO];
 	}
     
     if ([self textWidgetView].returnKeyType == UIReturnKeyNext)

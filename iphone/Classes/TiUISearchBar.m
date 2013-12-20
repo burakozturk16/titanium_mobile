@@ -221,9 +221,9 @@
 	[self.proxy replaceValue:text forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-	if ([self.proxy _hasListeners:@"return"])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"]];
+		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}
 
 	if (delegate!=nil && [delegate respondsToSelector:@selector(searchBarSearchButtonClicked:)])

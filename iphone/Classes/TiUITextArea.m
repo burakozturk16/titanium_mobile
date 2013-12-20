@@ -235,9 +235,9 @@
 {
 	NSString * text = [(UITextView *)textWidgetView text];
 
-	if (returnActive && [self.proxy _hasListeners:@"return"])
+    if (returnActive && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"]];
+		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}	
 
 	returnActive = NO;
@@ -278,7 +278,10 @@
 	NSString *curText = [[tv text] stringByReplacingCharactersInRange:range withString:text];
 	if ([text isEqualToString:@"\n"])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[(UITextView *)textWidgetView text] forKey:@"value"]];
+        if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+        {
+            [self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[(UITextView *)textWidgetView text] forKey:@"value"] propagate:NO checkForListener:NO];
+        }
 		if (suppressReturn)
 		{
 			[tv resignFirstResponder];
