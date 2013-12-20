@@ -195,7 +195,6 @@ public class TiUIText extends TiUIView
 		}
 
 		public void setLeftView(Object leftView) {
-			Log.i(TAG, "setLeftView ");
 			leftPane.removeAllViews();
 			if (leftView == null){
 				leftPane.setVisibility(View.GONE);
@@ -224,7 +223,6 @@ public class TiUIText extends TiUIView
 		}
 
 		public void setRightView(Object rightView) {
-			Log.i(TAG, "setRightView ");
 			rightPane.removeAllViews();
 			if (rightView == null){
 				rightPane.setVisibility(View.GONE);
@@ -433,7 +431,10 @@ public class TiUIText extends TiUIView
 			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
 		}
-		
+		if (d.containsKey(TiC.PROPERTY_PADDING)) {
+			Rect padding = TiConvert.toPaddingRect(d, TiC.PROPERTY_PADDING);
+			realtv.setPadding(padding.left, padding.top, padding.right, padding.bottom);
+		}
 
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
 			TiUIHelper.linkifyIfEnabled(realtv, d.get(TiC.PROPERTY_AUTO_LINK));
@@ -520,6 +521,10 @@ public class TiUIText extends TiUIView
 			tv.setLeftView(newValue);
 		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
 			tv.setRightView(newValue);
+		} else if (key.equals(TiC.PROPERTY_PADDING)) {
+			Rect padding = TiConvert.toPaddingRect(newValue);
+			realtv.setPadding(padding.left, padding.top, padding.right, padding.bottom);
+			realtv.requestLayout();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
