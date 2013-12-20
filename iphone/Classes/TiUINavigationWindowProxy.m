@@ -17,7 +17,9 @@
 @end
 
 @implementation TiUINavigationWindowProxy
-
+{
+    BOOL _hasOnStackChange;
+}
 -(void)_destroy
 {
     RELEASE_TO_NIL(rootWindow);
@@ -42,6 +44,7 @@
 	if ((self = [super init]))
 	{
         self.defaultTransition = [self platformDefaultTransition];
+        _hasOnStackChange = NO;
 	}
 	return self;
 }
@@ -322,25 +325,41 @@
              @"reverse": NUMBOOL(transition.isReversed)};
 }
 
-- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+-(void)setOnstackchange:(KrollCallback *)callback
 {
-    if ([self _hasListeners:@"openWindow"]) {
-		[self fireEvent:@"openWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
-                                                   @"transition":[self propsDictFromTransition:transition],
-                                                   @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
-                                                   @"animated": NUMBOOL(transition != nil)} checkForListener:NO];
-    }
+	_hasOnStackChange = [callback isKindOfClass:[KrollCallback class]];
+	[self setValue:callback forUndefinedKey:@"onstackchange"];
 }
-- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+
+-(void)fireEvent:(NSString *)type forController:(UIViewController *)viewController transition:(ADTransition *)transition
 {
-    if ([self _hasListeners:@"closeWindow"]) {
-		[self fireEvent:@"closeWindow" withObject:@{@"window": ((TiViewController*)viewController).proxy,
-                                                    @"transition":[self propsDictFromTransition:transition],
-                                                    @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
-                                                    @"animated": NUMBOOL(transition != nil)} checkForListener:NO];
+    BOOL hasEvent = [self _hasListeners:type checkParent:NO];
+    
+    if (_hasOnStackChange || hasEvent) {
+        NSDictionary* dict = @{@"window": ((TiViewController*)viewController).proxy,
+                               @"transition":[self propsDictFromTransition:transition],
+                               @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
+                               @"animated": NUMBOOL(transition != nil)};
+        if (_hasOnStackChange){
+            NSMutableDictionary * event = [dict mutableCopy];
+            [event setObject:type forKey:@"type"];
+            [self fireCallback:@"onstackchange" withArg:event withSource:self];
+        }
+        else {
+            [self fireEvent:type withObject:dict propagate:NO checkForListener:NO];
+        }
     }
 }
 
+- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    [self fireEvent:@"openWindow" forController:viewController transition:transition];
+}
+
+- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    [self fireEvent:@"closeWindow" forController:viewController transition:transition];
+}
 #pragma mark - Public API
 
 -(void)setTransition:(id)arg
