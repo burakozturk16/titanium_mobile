@@ -222,6 +222,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	if (self = [super init])
 	{
 		_bubbleParent = YES;
+        _bubbleParentDefined = NO;
 #if PROXY_MEMORY_TRACK == 1
 		NSLog(@"[DEBUG] INIT: %@ (%d)",self,[self hash]);
 #endif
@@ -621,6 +622,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 -(void)setBubbleParent:(id)arg
 {
+    _bubbleParentDefined = YES;
     _bubbleParent = [TiUtils boolValue:arg def:YES];
 }
 

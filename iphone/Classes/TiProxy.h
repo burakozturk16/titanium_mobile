@@ -102,7 +102,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 @interface TiProxy : NSObject<KrollTargetable> {
 @public
 	BOOL _bubbleParent;
-
+	BOOL _bubbleParentDefined;
+    
 @private
 	NSMutableDictionary *listeners;
 	BOOL destroyed;
