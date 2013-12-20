@@ -194,8 +194,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 }
                 resultSize = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
             }
-            resultSize.width = roundf(resultSize.width);
-            resultSize.height = roundf(resultSize.height);
+            resultSize.width = ceilf(resultSize.width); //use ceilf to get same result as sizeThatFits
+            resultSize.height = ceilf(resultSize.height); //use ceilf to get same result as sizeThatFits
             resultSize.width += _padding.left + _padding.right;
             resultSize.height += _padding.top + _padding.bottom;
             return resultSize;
@@ -257,16 +257,19 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 //we do it in the proxy for faster performances in tableviews
 -(void)setText:(id)value
 {
-    [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeText];
+    //the test is for listview measurement when a same template is used for text and html
+    if (value || _contentType == kContentTypeText)
+        [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeText];
 	[self replaceValue:value forKey:@"text" notification:NO];
 }
 
 -(void)setHtml:(id)value
 {
-    [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
+    //the test is for listview measurement when a same template is used for text and html
+    if (value || _contentType == kContentTypeHTML)
+        [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
 	[self replaceValue:value forKey:@"html" notification:NO];
 }
-
 -(void)setColor:(id)color
 {
 	UIColor * newColor = [[TiUtils colorValue:color] _color];
