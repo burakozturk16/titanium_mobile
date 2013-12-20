@@ -18,3 +18,9 @@
 @property (nonatomic, unsafe_unretained) id <TouchDelegate> touchDelegate;
 
 @end
+
+@interface TDUIView : UIView
+
+@property (nonatomic, unsafe_unretained) id <TouchDelegate> touchDelegate;
+
+@end
