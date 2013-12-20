@@ -388,6 +388,23 @@
 	}];
 }
 
+- (id)getItem:(id)args
+{
+	ENSURE_ARG_COUNT(args, 2);
+	NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
+	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+    if ([_sections count] <= sectionIndex) {
+        DebugLog(@"[WARN] ListView: getItem section  index is out of range");
+        return nil;
+    }
+    TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+    if ([section itemCount] <= itemIndex) {
+        DebugLog(@"[WARN] ListView: getItem index is out of range");
+        return nil;
+    }
+    return [section itemAtIndex:itemIndex];
+}
+
 - (id)getChildByBindId:(id)args
 {
 	ENSURE_ARG_COUNT(args, 3);
