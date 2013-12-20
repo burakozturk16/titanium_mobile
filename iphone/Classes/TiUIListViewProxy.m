@@ -395,12 +395,12 @@
 	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
 	NSString *bindId = [TiUtils stringValue:[args objectAtIndex:2]];
     if ([_sections count] <= sectionIndex) {
-        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        DebugLog(@"[WARN] ListView:getChildByBindId section index is out of range");
         return nil;
     }
     TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
     if ([section itemCount] <= itemIndex) {
-        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        DebugLog(@"[WARN] ListView: getChildByBindId index is out of range");
         return nil;
     }
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
