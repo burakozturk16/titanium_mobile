@@ -11,6 +11,7 @@
 #import "TiUIListItem.h"
 #import "TiUtils.h"
 #import "TiViewTemplate.h"
+#import "TiTableView.h"
 
 @interface TiUIListViewProxy ()
 @property (nonatomic, readwrite) TiUIListView *listView;
