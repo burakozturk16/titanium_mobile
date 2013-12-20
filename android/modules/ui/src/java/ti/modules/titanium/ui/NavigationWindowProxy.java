@@ -272,7 +272,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (transition != null) transition.setReversed(!transition.isReversed());
 		}
 		
-		if (hasListeners("closeWindow")) {
+		if (hasListeners("closeWindow", false)) {
 			KrollDict options = new KrollDict();
 			options.put(TiC.PROPERTY_WINDOW, winToFocus);
 			options.put("stackIndex", windows.indexOf(winToFocus));
@@ -453,7 +453,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (!isFirst && animated) {
 			transition = TransitionHelper.transitionFromObject((HashMap) ((arg != null)?((HashMap)arg).get(TiC.PROPERTY_TRANSITION):null), defaultTransition, null);
 		}
-		if (!isFirst && hasListeners("openWindow")) {
+		if (!isFirst && hasListeners("openWindow", false)) {
 			KrollDict options = new KrollDict();
 			options.put(TiC.PROPERTY_WINDOW, proxy);
 			options.put("stackIndex", windows.size());
