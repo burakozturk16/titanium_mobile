@@ -1084,8 +1084,8 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     if (_attributedText == nil) {
         CGRect rectWithPadding = UIEdgeInsetsInsetRect(rect, _viewInsets);
         CGRect textRect = [super textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
+        CGFloat yOffset = 0.0f;
         if (textRect.size.height < rectWithPadding.size.height) {
-            CGFloat yOffset = 0.0f;
             switch (self.verticalAlignment) {
                 case TTTAttributedLabelVerticalAlignmentCenter:
                     yOffset = floorf((rectWithPadding.size.height - textRect.size.height) / 2.0f);
@@ -1097,11 +1097,13 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
                 default:
                     break;
             }
-            
-            rectWithPadding.origin.y += yOffset;
             rectWithPadding.size.height = textRect.size.height;
         }
-        [super drawTextInRect:rectWithPadding];
+        CGContextRef c = UIGraphicsGetCurrentContext();
+        CGContextSaveGState(c); {
+            CGContextTranslateCTM(c, 0.0f, yOffset);
+            [super drawTextInRect:rectWithPadding];
+        } CGContextRestoreGState(c);
         return;
     }
         
