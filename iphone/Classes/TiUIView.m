@@ -293,7 +293,7 @@ DEFINE_EXCEPTIONS
     _touchEnabled = YES;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
-    _backgroundPadding = UIEdgeInsetsZero;
+    _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
     self.layer.borderColor = [UIColor clearColor].CGColor;
 }
 
