@@ -1056,13 +1056,18 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		msg.obj = event;
 		TiMessenger.getMainMessenger().sendMessage(msg);
 	}
-
+	
 	/**
 	 * @param event the event to check
 	 * @return whether the associated KrollObject has an event listener for the passed in event.
 	 * @module.api
 	 */
 	public boolean hasListeners(String event)
+	{
+		return hasListeners(event, true);
+	}
+	
+	public boolean _hasListeners(String event)
 	{
 		return hasNonJSEventListener(event) || getKrollObject().hasListeners(event);
 	}
@@ -1074,7 +1079,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean hasListeners(String event, boolean checkParent)
 	{
-		boolean hasListener = hasListeners(event);
+		boolean hasListener = _hasListeners(event);
 		if (hasProperty(TiC.PROPERTY_BUBBLE_PARENT)) {
 			checkParent = TiConvert.toBoolean(getProperty(TiC.PROPERTY_BUBBLE_PARENT), checkParent);
 		}
