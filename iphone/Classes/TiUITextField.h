@@ -26,6 +26,7 @@
     TiUIView * touchHandler;
 }
 
+@property(nonatomic,readwrite,assign) UIEdgeInsets padding;
 @property(nonatomic,readwrite,assign) CGFloat paddingLeft;
 @property(nonatomic,readwrite,assign) CGFloat paddingRight;
 @property(nonatomic,readwrite,assign) CGFloat leftButtonPadding;
@@ -45,6 +46,7 @@
 #pragma mark Internal 
 
 -(TiTextField*)textWidgetView;
+-(void)setPadding:(UIEdgeInsets)inset;
 
 @end
 

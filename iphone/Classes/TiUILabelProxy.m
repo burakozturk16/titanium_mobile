@@ -47,7 +47,9 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 }
 
 @implementation TiUILabelProxy
-
+{
+    UIEdgeInsets _padding;
+}
 
 +(NSSet*)transferableProperties
 {
@@ -71,6 +73,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(id)init
 {
     if (self = [super init]) {
+        _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
         UIColor* color = [UIColor darkTextColor];
         options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
@@ -136,9 +139,19 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)configurationSet:(BOOL)recursive
 {
     configSet = YES;
+    [(TiUILabel*)view setPadding:_padding];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
     [super configurationSet:recursive];
+}
+
+
+-(void)setPadding:(id)value
+{
+    _padding = [TiUtils insetValue:value];
+    if (view != nil)
+        [(TiUILabel*)view setPadding:_padding];
+    [self contentsWillChange];
 }
 
 -(CGSize) suggestedSizeForSize:(CGSize)size
@@ -150,24 +163,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         if (_realLabelContent != nil)
         {
             CGSize resultSize = CGSizeZero;
-            CGRect textPadding = CGRectZero;
-            if ([self valueForKey:@"padding"]) {
-                NSDictionary* paddingDict = (NSDictionary*)[self valueForKey:@"padding"];
-                if ([paddingDict objectForKey:@"left"]) {
-                    textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
-                }
-                if ([paddingDict objectForKey:@"right"]) {
-                    textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
-                }
-                if ([paddingDict objectForKey:@"top"]) {
-                    textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
-                }
-                if ([paddingDict objectForKey:@"bottom"]) {
-                    textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
-                };
-            }
             CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
-            maxSize.width -= textPadding.origin.x + textPadding.size.width;
+            maxSize.width -= _padding.left + _padding.right;
             if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
             {
                 
@@ -199,14 +196,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             }
             resultSize.width = roundf(resultSize.width);
             resultSize.height = roundf(resultSize.height);
-            resultSize.width += textPadding.origin.x + textPadding.size.width;
-            resultSize.height += textPadding.origin.y + textPadding.size.height;
+            resultSize.width += _padding.left + _padding.right;
+            resultSize.height += _padding.top + _padding.bottom;
             return resultSize;
         }
     }
     return CGSizeZero;
 }
-
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {

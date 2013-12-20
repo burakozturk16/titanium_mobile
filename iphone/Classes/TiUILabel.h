@@ -21,6 +21,7 @@
 -(void)setAttributedTextViewContent;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
 -(TDTTTAttributedLabel*)label;
+-(void)setPadding:(UIEdgeInsets)inset;
 @end
 
 

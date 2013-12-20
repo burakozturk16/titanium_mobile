@@ -19,8 +19,10 @@
 #endif
 
 @implementation TiTextField
-
-@synthesize leftButtonPadding, rightButtonPadding, paddingLeft, paddingRight, becameResponder;
+{
+    UIEdgeInsets _padding;
+}
+@synthesize padding = _padding, leftButtonPadding, rightButtonPadding, paddingLeft, paddingRight, becameResponder;
 
 -(void)configure
 {
@@ -31,6 +33,7 @@
 	rightButtonPadding = 0;
 	paddingLeft = 0;
 	paddingRight = 0;
+    _padding = UIEdgeInsetsZero;
 	[super setLeftViewMode:UITextFieldViewModeAlways];
 	[super setRightViewMode:UITextFieldViewModeAlways];	
 }
@@ -120,6 +123,12 @@
 		}
 		right.frame = CGRectMake(rightButtonPadding, 0, width, height);
 	}
+}
+
+-(void)setPadding:(UIEdgeInsets)value
+{
+    _padding = value;
+    [self setNeedsLayout];
 }
 
 -(void)setPaddingLeft:(CGFloat)left_
@@ -233,40 +242,64 @@
 
 -(void)setLeftView:(UIView*)value
 {
-	if ((value != nil) && (paddingLeft > 0.5))
-	{
-		CGRect wrapperFrame = [value bounds];
-		wrapperFrame.size.width += paddingLeft;
-		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-		
-		CGPoint valueCenter = [value center];
-		valueCenter.x += paddingLeft;
-		[value setCenter:valueCenter];
-		
-		[wrapperView addSubview:value];
-		value = wrapperView;
-		[wrapperView autorelease];
-	}
+//	if ((value != nil) && (paddingLeft > 0.5))
+//	{
+//		CGRect wrapperFrame = [value bounds];
+//		wrapperFrame.size.width += paddingLeft;
+//		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
+//		
+//		CGPoint valueCenter = [value center];
+//		valueCenter.x += paddingLeft;
+//		[value setCenter:valueCenter];
+//		
+//		[wrapperView addSubview:value];
+//		value = wrapperView;
+//		[wrapperView autorelease];
+//	}
 
 	[super setLeftView:value];
 }
 
 -(void)setRightView:(UIView*)value
 {
-	if ((value != nil) && (paddingRight > 0.5))
-	{
-		CGRect wrapperFrame = [value bounds];
-		wrapperFrame.size.width += paddingRight;
-		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-
-		[wrapperView addSubview:value];
-		value = wrapperView;
-		[wrapperView autorelease];
-	}
+//	if ((value != nil) && (paddingRight > 0.5))
+//	{
+//		CGRect wrapperFrame = [value bounds];
+//		wrapperFrame.size.width += paddingRight;
+//		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
+//
+//		[wrapperView addSubview:value];
+//		value = wrapperView;
+//		[wrapperView autorelease];
+//	}
 
 	[super setRightView:value];
 }
 
+- (CGRect)textRectForBounds:(CGRect)bounds
+{
+    return UIEdgeInsetsInsetRect(bounds, _padding);
+}
+- (CGRect)editingRectForBounds:(CGRect)bounds
+{
+    return UIEdgeInsetsInsetRect(bounds, _padding);
+}
+
+- (CGRect)leftViewRectForBounds:(CGRect)bounds
+{
+    if ((paddingLeft > 0.5)) {
+        return CGRectOffset(bounds, paddingLeft, 0);
+    }
+    return bounds;
+}
+
+- (CGRect)rightViewRectForBounds:(CGRect)bounds
+{
+    if ((paddingRight > 0.5)) {
+        return CGRectOffset(bounds, -paddingRight, 0);
+    }
+    return bounds;
+}
 
 @end
 
@@ -310,8 +343,18 @@
 	return textWidgetView;
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self textWidgetView] setExclusiveTouch:value];
+}
 
 #pragma mark Public APIs
+
+-(void)setPadding:(UIEdgeInsets)inset
+{
+    [self textWidgetView].padding = inset;
+}
 
 -(void)setPaddingLeft_:(id)value
 {

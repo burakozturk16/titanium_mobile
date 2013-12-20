@@ -123,6 +123,12 @@
     }
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self textWidgetView] setExclusiveTouch:value];
+}
+
 #pragma mark Public APIs
 
 -(void)setEnabled_:(id)value
@@ -159,6 +165,13 @@
 {
 	[[self textWidgetView] setBackgroundColor:[Webcolor webColorNamed:color]];
 }
+
+
+-(void)setPadding:(UIEdgeInsets)inset
+{
+	[(UITextView *)[self textWidgetView] setTextContainerInset:inset];
+}
+
 
 #pragma mark Public Method
 

@@ -26,6 +26,7 @@
 }
 
 @property(nonatomic,readonly) BOOL becameResponder;
+-(void)setPadding:(UIEdgeInsets)inset;
 @end
 
 #endif

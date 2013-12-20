@@ -17,15 +17,13 @@
 
 	int style;
 	
-    BOOL touchStarted;
-
-	UIEdgeInsets titlePadding;
-    
+    BOOL touchStarted;    
 }
 
 -(UIButton*)button;
 
 -(void)setEnabled_:(id)value;
+-(void)setPadding:(UIEdgeInsets)inset;
 
 @end
 

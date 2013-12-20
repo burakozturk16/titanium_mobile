@@ -10,6 +10,9 @@
 #import "TiUITextField.h"
 
 @implementation TiUITextFieldProxy
+{
+    UIEdgeInsets _padding;
+}
 
 +(NSSet*)transferableProperties
 {
@@ -57,6 +60,61 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
 -(NSString*)apiName
 {
     return @"Ti.UI.TextField";
+}
+
+-(id)init
+{
+    if (self = [super init]) {
+        _padding = UIEdgeInsetsZero;
+    }
+    return self;
+}
+
+-(void)configurationSet
+{
+    [super configurationSet];
+    [(TiUITextField*)view setPadding:_padding];
+}
+
+-(void)setPadding:(id)value
+{
+    _padding = [TiUtils insetValue:value];
+    if (view != nil)
+        [(TiUITextField*)view setPadding:_padding];
+    [self contentsWillChange];
+}
+
+-(CGSize)contentSizeForSize:(CGSize)size
+{
+    if (view != nil)
+        return [(TiUITextWidget*)view contentSizeForSize:size];
+    else
+    {
+        NSString* text = [TiUtils stringValue:[self valueForKey:@"value"]];
+        CGSize resultSize = CGSizeZero;
+        CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
+        maxSize.width -= _padding.left + _padding.right;
+        
+        UILineBreakMode breakMode = UILineBreakModeWordWrap;
+        id fontValue = [self valueForKey:@"font"];
+        UIFont * font;
+        if (fontValue!=nil)
+        {
+            font = [[TiUtils fontValue:fontValue] font];
+        }
+        else
+        {
+            font = [UIFont systemFontOfSize:17];
+        }
+        maxSize.height = font.lineHeight; //textfield has one line
+        resultSize = [text sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+        resultSize.width = roundf(resultSize.width);
+        resultSize.height = roundf(resultSize.height);
+        resultSize.width += _padding.left + _padding.right;
+        resultSize.height += _padding.top + _padding.bottom;
+        return resultSize;
+    }
+    return CGSizeZero;
 }
 
 @end

@@ -315,6 +315,12 @@
     return [[self label] isHighlighted];
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self label] setExclusiveTouch:value];
+}
+
 #pragma mark Public APIs
 
 -(void)setVerticalAlign_:(id)value
@@ -337,6 +343,14 @@
 	[[self label] setTextColor:newColor];
 }
 
+//-(void)setGradient_:(id)newGradientDict
+//{
+//    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+//	UIColor * newColor = [UIColor colorWithPatternImage: newGradient;
+//    if (newColor == nil)
+//        newColor = [UIColor darkTextColor];
+//	[[self label] setTextColor:newColor];
+//}
 //-(void)setText_:(id)value
 //{
 //	[self setAttributedTextViewContent];
@@ -438,10 +452,9 @@
 	[[self label] setShadowOffset:size];
 }
 
--(void)setPadding_:(id)value
+-(void)setPadding:(UIEdgeInsets)inset
 {
-    [self label].viewInsets = [TiUtils insetValue:value];
-    [(TiViewProxy *)[self proxy] contentsWillChange];
+    [self label].viewInsets = inset;
 }
 
 -(void) updateNumberLines
