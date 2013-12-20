@@ -9,12 +9,14 @@
     UIImage* image;
     TiSVGImage* svg;
     TiGradient* gradient;
+    NSShadow* shadow;
     BOOL imageRepeat;
 }
 @property(nonatomic,retain) UIColor *color;
 @property(nonatomic,retain) UIImage *image;
 @property(nonatomic,retain) TiGradient *gradient;
 @property(nonatomic,retain) TiSVGImage *svg;
+@property(nonatomic,retain) NSShadow *shadow;
 @property(nonatomic,assign) BOOL imageRepeat;
 @end
 

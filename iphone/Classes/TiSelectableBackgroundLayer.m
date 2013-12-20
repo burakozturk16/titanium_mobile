@@ -27,6 +27,7 @@
     RELEASE_TO_NIL(color)
     RELEASE_TO_NIL(image)
     RELEASE_TO_NIL(svg)
+    RELEASE_TO_NIL(shadow)
 	[super dealloc];
 }
 
@@ -165,7 +166,7 @@
         readyToCreateDrawables = NO;
         _needsToSetDrawables = NO;
         _animateTransition = NO;
-        self.masksToBounds=YES;
+        self.masksToBounds = NO;
 //        self.needsDisplayOnBoundsChange = YES;
         self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
@@ -202,6 +203,7 @@
 
 -(void)setBounds:(CGRect)bounds
 {
+    bounds = CGRectIntegral(bounds);
     BOOL needsToUpdate = (bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
     
 	[super setBounds:bounds];
@@ -238,7 +240,20 @@
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
         [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        if (currentDrawable.shadow) {
+            self.shadowOpacity = 1.0f;
+            self.shadowColor = ((UIColor*)currentDrawable.shadow.shadowColor).CGColor;
+            self.shadowOffset = currentDrawable.shadow.shadowOffset;
+        }
+        else {
+            self.shadowOpacity = 0.0f;
+        }
     }
+    else {
+        self.shadowOpacity = 0.0f;
+    }
+//    self.shadowOpacity = 1.0f;
+//    self.shadowColor = [UIColor blackColor].CGColor;
     currentState = state;
 }
 
@@ -304,6 +319,16 @@
 {
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.gradient = gradient;
+    if (readyToCreateDrawables) {
+        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+    }
+}
+
+
+- (void)setShadow:(NSShadow*)shadow forState:(UIControlState)state
+{
+    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    drawable.shadow = shadow;
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
