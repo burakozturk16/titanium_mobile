@@ -16,6 +16,7 @@
 #ifdef USE_TI_UIREFRESHCONTROL
 #import "TiUIRefreshControlProxy.h"
 #endif
+#import "TiTableView.h"
 
 #define GROUPED_MARGIN_WIDTH 18.0
 
@@ -31,7 +32,7 @@
 static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point);
 
 @implementation TiUIListView {
-    TDUITableView *_tableView;
+    TiTableView *_tableView;
     NSDictionary *_templates;
     id _defaultItemTemplate;
 
@@ -176,7 +177,7 @@ static NSDictionary* replaceKeysForRow;
     [self setHeaderFooter:_headerViewProxy isHeader:YES];
 }
 
-- (TDUITableView *)tableView
+- (TiTableView *)tableView
 {
     if (_tableView == nil) {
         UITableViewStyle style = UITableViewStylePlain;
@@ -184,13 +185,11 @@ static NSDictionary* replaceKeysForRow;
             style = [TiUtils intValue:[self.proxy valueForKey:@"style"] def:style];
         }
 
-        _tableView = [[TDUITableView alloc] initWithFrame:self.bounds style:style];
+        _tableView = [[TiTableView alloc] initWithFrame:self.bounds style:style];
         _tableView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
         _tableView.delegate = self;
         _tableView.dataSource = self;
-
         _tableView.touchDelegate = self;
-        
         if (TiDimensionIsDip(_rowHeight)) {
             [_tableView setRowHeight:_rowHeight.value];
         }
@@ -817,6 +816,11 @@ static NSDictionary* replaceKeysForRow;
         [_tableView setEditing:editing animated:YES];
         [_tableView endUpdates];
     }
+}
+
+-(void)setDelaysContentTouches_:(id)value
+{
+    [[self tableView] setDelaysContentTouches:[TiUtils boolValue:value def:YES]];
 }
 
 #pragma mark - Search Support
