@@ -25,6 +25,22 @@
 #import "TiTransition.h"
 #import "TiViewAnimationStep.h"
 
+@interface UntouchableView : UIView
+
+@end
+
+@implementation UntouchableView
+
+- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
+{
+    UIView* result = [super hitTest:point withEvent:event];
+    if (result == self)
+        return nil;
+    return result;
+}
+
+@end
+
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
 {
@@ -156,6 +172,7 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
+    UntouchableView* _childrenHolder;
     CALayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
@@ -204,6 +221,7 @@ DEFINE_EXCEPTIONS
 
 -(void)dealloc
 {
+    [_childrenHolder release];
     [childViews release];
     [transferLock release];
 	[transformMatrix release];
@@ -434,6 +452,20 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Layout 
 
+
+-(void)updateBorderRadius
+{
+    if (_borderLayer) {
+        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    if (_bgLayer) {
+        _bgLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    if (_childrenHolder) {
+        _childrenHolder.layer.cornerRadius = self.layer.cornerRadius;
+    }
+}
+
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
     
@@ -559,6 +591,19 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(UIView*)parentViewForChildren
+{
+//    if (_childrenHolder == nil) {
+//        _childrenHolder = [[UntouchableView alloc] initWithFrame:self.bounds];
+//        _childrenHolder.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+//        _childrenHolder.layer.masksToBounds = YES;
+//        _childrenHolder.layer.cornerRadius = self.layer.cornerRadius;
+//
+//        [self addSubview:_childrenHolder];
+//    }
+    return self;
+}
+
 -(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
     if (_bgLayer != nil) {
@@ -570,8 +615,7 @@ DEFINE_EXCEPTIONS
     if (_borderLayer)
         [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
     else
-    _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
-    
+        _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.cornerRadius = self.layer.cornerRadius;
     _bgLayer.readyToCreateDrawables = configurationSet;
@@ -591,7 +635,7 @@ DEFINE_EXCEPTIONS
         [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
     else
         [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    _borderLayer.frame = [[self backgroundWrapperView] layer].bounds;
+   _borderLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
     
     _borderLayer.opacity = backgroundOpacity;
     _borderLayer.cornerRadius = self.layer.cornerRadius;
@@ -872,15 +916,11 @@ DEFINE_EXCEPTIONS
 }
 
 
+
 -(void)setBorderRadius_:(id)radius
 {
     self.layer.cornerRadius = [TiUtils floatValue:radius];
-    if (_borderLayer) {
-        _borderLayer.cornerRadius = self.layer.cornerRadius;
-    }
-    if (_bgLayer) {
-        _bgLayer.cornerRadius = self.layer.cornerRadius;
-    }
+    [self updateBorderRadius];
     [self updateViewShadowPath];
 }
 
@@ -1004,6 +1044,13 @@ DEFINE_EXCEPTIONS
 	touchPassThrough = [TiUtils boolValue:arg];
 }
 
+
+-(void)setExclusiveTouch_:(id)arg
+{
+	self.exclusiveTouch = [TiUtils boolValue:arg];
+}
+
+
 -(BOOL)touchPassThrough {
     return touchPassThrough;
 }
@@ -1017,13 +1064,12 @@ DEFINE_EXCEPTIONS
 -(void)setClipChildren_:(id)arg
 {
     clipChildren = [TiUtils boolValue:arg];
-    self.clipsToBounds = [self clipChildren];
+    self.layer.masksToBounds = self.clipsToBounds = [self clipChildren];
 }
 
 -(BOOL)clipChildren
 {
     return (clipChildren && ([[self shadowLayer] shadowOpacity] == 0));
-
 }
 
 
@@ -1586,6 +1632,24 @@ DEFINE_EXCEPTIONS
     return UIControlStateDisabled;
 }
 
+-(void)touchSetHighlighted:(BOOL)highlighted
+{
+    [self setHighlighted:highlighted];
+}
+
+-(void)handleTouchEvent:(NSString*)event forTouch:(UITouch*)touch
+{
+    if ([self interactionEnabled])
+	{
+		if ([proxy _hasListeners:event])
+		{
+            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+			[proxy fireEvent:event withObject:evt checkForListener:NO];
+//			[self handleControlEvents:UIControlEventTouchDown];
+		}
+	}
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
@@ -1594,28 +1658,13 @@ DEFINE_EXCEPTIONS
     [super touchesBegan:touches withEvent:event];
 }
 
--(void)touchSetHighlighted:(BOOL)highlighted
-{
-    [self setHighlighted:highlighted];
-}
-
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     
-    UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:YES];
     }
-	
-	if ([self interactionEnabled])
-	{
-		if ([proxy _hasListeners:@"touchstart"])
-		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchstart" withObject:evt checkForListener:NO];
-			[self handleControlEvents:UIControlEventTouchDown];
-		}
-	}
+	[self handleTouchEvent:@"touchstart" forTouch:[touches anyObject]];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -1637,14 +1686,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:!outside];
     }
-	if ([self interactionEnabled])
-	{
-		if ([proxy _hasListeners:@"touchmove"])
-		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchmove" withObject:evt checkForListener:NO];
-		}
-	}
+	[self handleTouchEvent:@"touchmove" forTouch:touch];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
@@ -1709,15 +1751,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:NO];
     }
-	if ([self interactionEnabled])
-	{
-		UITouch *touch = [touches anyObject];
-		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-		if ([proxy _hasListeners:@"touchcancel"])
-		{
-			[proxy fireEvent:@"touchcancel" withObject:evt checkForListener:NO];
-		}
-	}
+	[self handleTouchEvent:@"touchcancel" forTouch:[touches anyObject]];
 }
 
 #pragma mark Listener management

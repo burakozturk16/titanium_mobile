@@ -1524,7 +1524,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(UIView *)parentViewForChild:(TiViewProxy *)child
 {
-	return view;
+	return [view parentViewForChildren];
 }
 
 #pragma mark Event trigger methods
