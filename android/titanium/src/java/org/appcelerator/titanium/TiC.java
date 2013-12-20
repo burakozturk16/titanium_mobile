@@ -211,6 +211,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_PADDING = "padding";
+
+	/**
+	 * @module.api
+	 */
 	public static final String EVENT_PAUSE = "pause";
 
 	/**
