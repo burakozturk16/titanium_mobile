@@ -195,14 +195,12 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 
 		@Override
-		public Object getItem(int arg0) {
-			//not using this method
-			return arg0;
+		public Object getItem(int position) {
+			return position;
 		}
 
 		@Override
 		public long getItemId(int position) {
-			//not using this method
 			return position;
 		}
 		
@@ -929,6 +927,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 	}
 	
+	public KrollDict getItem(int sectionIndex, int itemIndex) {
+		if (sectionIndex < 0 || sectionIndex >= sections.size()) {
+			Log.e(TAG, "getItem Invalid section index");
+			return null;
+		}
+		
+		return sections.get(itemIndex).getItemAt(itemIndex);
+	}
+	
 	protected Pair<ListSectionProxy, Pair<Integer, Integer>> getSectionInfoByEntryIndex(int index) {
 		if (index < 0) {
 			return null;
@@ -1130,4 +1137,18 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		reFilter(text);
 	}
 	
+	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
+		int position = findItemPosition(sectionIndex, itemIndex);
+		if (position > -1) {
+			View content = listView.getChildAt(position);
+			if (content != null) {
+				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
+				TiUIView tiView = itemContent.getViewFromBinding(bindId);
+				if (tiView != null) {
+					return tiView.getProxy();
+				}
+			}
+		}
+		return null;
+	}
 }

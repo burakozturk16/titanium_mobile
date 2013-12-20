@@ -165,6 +165,31 @@ public class ListViewProxy extends TiViewProxy {
 	}
 	
 	@Kroll.method
+	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			return ((TiListView) listView).getChildByBindId(sectionIndex, itemIndex, bindId);
+		}
+		return null;
+	}
+	
+	@Kroll.method
+	public KrollDict getItem(int sectionIndex, int itemIndex) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			return ((TiListView) listView).getItem(sectionIndex, itemIndex);
+		} else {
+			if (sectionIndex < 0 || sectionIndex >= preloadSections.size()) {
+				Log.e(TAG, "getItem Invalid section index");
+				return null;
+			}
+			
+			return preloadSections.get(itemIndex).getItemAt(itemIndex);
+		}
+	}
+	
+	
+	@Kroll.method
 	public void setMarker(Object marker) {
 		if (marker instanceof HashMap) {
 			HashMap<String, Integer> m = (HashMap<String, Integer>) marker;
