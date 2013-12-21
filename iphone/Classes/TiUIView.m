@@ -302,7 +302,6 @@ DEFINE_EXCEPTIONS
 	self = [super init];
 	if (self != nil)
 	{
-        [self initialize];
 	}
 	return self;
 }
