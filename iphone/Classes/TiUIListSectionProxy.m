@@ -267,6 +267,7 @@
 			TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
 			if ((cell != nil) && ([cell canApplyDataItem:item])) {
 				cell.dataItem = item;
+                [cell setNeedsLayout];
 			} else {
 				forceReload = YES;
 			}
