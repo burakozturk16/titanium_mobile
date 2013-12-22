@@ -3545,7 +3545,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         TiViewProxy *view2Proxy = nil;
         ENSURE_ARG_OR_NIL_AT_INDEX(view1Proxy, args, 0, TiViewProxy);
         ENSURE_ARG_OR_NIL_AT_INDEX(view2Proxy, args, 1, TiViewProxy);
-        if ([self viewAttached])
+        if (windowOpened && [self viewAttached])
         {
             if (view1Proxy != nil) {
                 pthread_rwlock_wrlock(&childrenLock);
@@ -3574,6 +3574,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 [self layoutChildren:NO];
                 LayoutConstraint *contraints = [view2Proxy layoutProperties];
                 ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+                [view2Proxy refreshView:nil];
                 
                 id<TiEvaluator> context = self.executionContext;
                 if (context == nil) {
