@@ -2441,8 +2441,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         {
             [self determineSandboxBounds];
         }
-        [self relayout];
-		[self layoutChildren:NO];
+        if ([self relayout] || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
+            [self layoutChildren:NO];
+        }
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
 			[parent childWillResize:self withinAnimation:animation];
 		}
@@ -2574,7 +2575,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 #pragma mark Layout commands that need refactoring out
 
--(void)relayout
+-(BOOL)relayout
 {
 	if (!repositioning && !CGSizeEqualToSize(sandboxBounds.size, CGSizeZero))
 	{
@@ -2601,7 +2602,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		positionCache.x += sizeCache.origin.x + sandboxBounds.origin.x;
 		positionCache.y += sizeCache.origin.y + sandboxBounds.origin.y;
         
-        BOOL layoutChanged = (!CGRectEqualToRect([view bounds], sizeCache) || !CGPointEqualToPoint([view center], positionCache));
+        BOOL layoutChanged = (!CGRectEqualToRect([view bounds], sizeCache) || !CGPointEqualToPoint([view center], positionCache) || autoresizeCache != view.autoresizingMask);
         if (!layoutChanged && [view isKindOfClass:[TiUIView class]]) {
             //Views with flexible margins might have already resized when the parent resized.
             //So we need to explicitly check for oldSize here which triggers frameSizeChanged
@@ -2609,23 +2610,25 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             layoutChanged = layoutChanged || !(CGSizeEqualToSize(oldSize,sizeCache.size));
         }
         
-		[view setAutoresizingMask:autoresizeCache];
-		[view setCenter:positionCache];
-		[view setBounds:sizeCache];
-
-		[parent insertSubview:view forProxy:self];
-
-		[self refreshSize];
-		[self refreshPosition];
-		repositioning = NO;
-        
-        if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
-            [observer proxyDidRelayout:self];
-        }
-
+		
         if (layoutChanged) {
+            [view setAutoresizingMask:autoresizeCache];
+            [view setBounds:sizeCache];
+            [view setCenter:positionCache];
+            
+            [parent insertSubview:view forProxy:self];
+            
+            [self refreshSize];
+            [self refreshPosition];
+            
+            if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
+                [observer proxyDidRelayout:self];
+            }
+
             [self fireEvent:@"postlayout" propagate:NO];
         }
+        repositioning = NO;
+        return layoutChanged;
 	}
 #ifdef VERBOSE
 	else
@@ -2633,7 +2636,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		DeveloperLog(@"[INFO] %@ Calling Relayout from within relayout.",self);
 	}
 #endif
-
+    return NO;
 }
 
 -(void)layoutChildrenIfNeeded
@@ -2648,12 +2651,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     }
     
     [self refreshView:nil];
-
-    BOOL wasSet=OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags);
-    if (wasSet && [self viewAttached])
-    {
-        [self layoutChildren:NO];
-    }
 }
 
 -(BOOL)willBeRelaying

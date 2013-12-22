@@ -576,7 +576,7 @@ enum
 /**
  Tells the view to adjust its size and position according to the current layout constraints.
  */
--(void)relayout;
+-(BOOL)relayout;
 
 -(void)reposition;	//Todo: Replace
 -(void)repositionWithinAnimation:(TiViewAnimationStep*)animation;
