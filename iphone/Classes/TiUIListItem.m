@@ -31,6 +31,7 @@
     TiDimension topCap;
     TiDimension bottomCap;
     TiDimension rightCap;
+    BOOL _needsLayout;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -84,6 +85,7 @@ DEFINE_EXCEPTIONS
     [self.contentView addSubview:_viewHolder];
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
+    _needsLayout = NO;
 }
 
 -(void)setGrouped:(BOOL)grouped
@@ -409,11 +411,18 @@ static NSArray* handledKeys;
     self.detailTextLabel.text = [newValue description];
 }
 
+-(void)setFrame:(CGRect)frame
+{
+    _needsLayout = YES;
+    [super setFrame:frame];
+}
+
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    if (_templateStyle == TiUIListItemTemplateStyleCustom) {
+    if (_needsLayout && _templateStyle == TiUIListItemTemplateStyleCustom) {
         [_proxy layoutChildren:NO];
+        _needsLayout = NO;
     }
 }
 @end
