@@ -131,6 +131,7 @@
         [rootWindow open:nil];
         [rootWindow windowWillOpen];
         [rootWindow windowDidOpen];
+        current = rootWindow;
     }
     return [rootWindow hostingController];
 }
@@ -452,17 +453,32 @@
     }
     else {
         if (window == rootWindow) {
-            [navController popToRootViewControllerWithTransition:transition.adTransition];
+            NSArray* outViewControllers = [navController popToRootViewControllerWithTransition:transition.adTransition];
+            if (outViewControllers) {
+                for (int i = 0; i < outViewControllers.count - 1; i++) {
+                    TiWindowProxy* win = (TiWindowProxy *)[[outViewControllers objectAtIndex:i ] proxy];
+                    [win setTab:nil];
+                    [win setParentOrientationController:nil];
+                    [win close:nil];
+                }
+            }
         }
         else {
             UIViewController* winController = [self controllerForWindow:window];
             if (winController) {
-                [navController popToViewController:winController withTransition:transition.adTransition];
+                NSArray* outViewControllers = [navController popToViewController:winController withTransition:transition.adTransition];
+                if (outViewControllers) {
+                    for (int i = 0; i < outViewControllers.count - 1; i++) {
+                        TiWindowProxy* win = (TiWindowProxy *)[[outViewControllers objectAtIndex:i ] proxy];
+                        [win setTab:nil];
+                        [win setParentOrientationController:nil];
+                        [win close:nil];
+                    }
+                }
             }
         }
         
     }
-    
 }
 
 -(UIViewController*) controllerForWindow:(TiWindowProxy*)window
