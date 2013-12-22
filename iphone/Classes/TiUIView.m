@@ -285,7 +285,7 @@ DEFINE_EXCEPTIONS
     transferLock = [[NSRecursiveLock alloc] init];
     touchPassThrough = NO;
     _shouldHandleSelection = YES;
-    self.clipsToBounds = clipChildren = YES;
+    self.clipsToBounds = self.layer.masksToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
