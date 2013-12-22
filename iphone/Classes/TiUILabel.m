@@ -56,10 +56,10 @@
     return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
 }
 
--(void)setCenter:(CGPoint)newCenter
-{
-	[super setCenter:CGPointMake(floorf(newCenter.x), floorf(newCenter.y))];
-}
+//-(void)setCenter:(CGPoint)newCenter
+//{
+//	[super setCenter:CGPointMake(floorf(newCenter.x), floorf(newCenter.y))];
+//}
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
