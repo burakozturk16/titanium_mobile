@@ -104,7 +104,12 @@
 
 
 @implementation TiUIWindowProxy
-
+{
+    BOOL navButtonNotSet;
+    BOOL navBarWillShow;
+    BOOL toolbarButtonNotSet;
+    BOOL toolbarBarWillShow;
+}
 -(void)_destroy
 {
     if (!closing && opened) {
@@ -126,6 +131,10 @@
 
 -(void)_configure
 {
+    navButtonNotSet = NO;
+    navBarWillShow = NO;
+    toolbarButtonNotSet = NO;
+    toolbarBarWillShow = NO;
 	[self replaceValue:nil forKey:@"barColor" notification:NO];
 	[self replaceValue:nil forKey:@"navTintColor" notification:NO];
 	[self replaceValue:nil forKey:@"barImage" notification:NO];
@@ -188,7 +197,7 @@
 	}
 	
 	//
-	// at this level, open is top-level since this is a window.  if you want 
+	// at this level, open is top-level since this is a window.  if you want
 	// to open a window within a tab, you'll need to call tab.open(window)
 	//
 	
@@ -224,13 +233,13 @@
                     contextReady = YES;
 					return [super _handleOpen:args];
 				}
-				else 
+				else
 				{
 					return NO;
 				}
 			}
 		}
-		else 
+		else
 		{
 			DebugLog(@"[ERROR] Url not supported in a window. %@",url);
 		}
@@ -244,7 +253,7 @@
     // Because other windows or proxies we have open and wish to continue functioning might be relying
     // on our created context, we CANNOT explicitly shut down here.  Instead we should memory-manage
     // contexts better so they stop when they're no longer in use.
-
+    
     // Sadly, today is not that day. Without shutdown, we leak all over the place.
     if (context!=nil) {
         NSMutableArray* childrenToRemove = [[NSMutableArray alloc] init];
@@ -317,9 +326,51 @@
 #pragma mark - UINavController, NavItem UI
 
 
+#define SETPROP(m,x) \
+{\
+id value = [self valueForKey:m]; \
+if (value!=nil)\
+{\
+[self x:(value==[NSNull null]) ? nil : value];\
+}\
+else{\
+[self replaceValue:nil forKey:m notification:NO];\
+}\
+}\
+
+#define SETPROPOBJ(m,x) \
+{\
+id value = [self valueForKey:m]; \
+if (value!=nil)\
+{\
+if ([value isKindOfClass:[TiComplexValue class]])\
+{\
+TiComplexValue *cv = (TiComplexValue*)value;\
+[self x:(cv.value==[NSNull null]) ? nil : cv.value withObject:cv.properties];\
+}\
+else\
+{\
+[self x:(value==[NSNull null]) ? nil : value withObject:nil];\
+}\
+}\
+else{\
+[self replaceValue:nil forKey:m notification:NO];\
+}\
+}\
+
 -(void)showNavBar:(NSArray*)args
 {
 	ENSURE_UI_THREAD(showNavBar,args);
+    id navController = [self navControllerForController:controller];
+    if ((controller == nil) || navController == nil) {
+        return;
+    }
+    navBarWillShow = YES;
+    if (navButtonNotSet) {
+        SETPROPOBJ(@"leftNavButton",setLeftNavButton);
+        SETPROPOBJ(@"rightNavButton",setRightNavButton);
+        SETPROPOBJ(@"rightNavButtons",setRightNavButtons);
+    }
 	[self replaceValue:@NO forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
 	{
@@ -327,6 +378,7 @@
 		id properties = (args!=nil && [args count] > 0) ? [args objectAtIndex:0] : nil;
 		BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
 		[navController setNavigationBarHidden:NO animated:animated];
+        navBarWillShow = NO;
 	}
 }
 
@@ -375,10 +427,10 @@
         {
             newColor =[TiUtils colorValue:[[self tabGroup] valueForKey:@"barColor"]];
         }
-
+        
         UIColor * barColor = [TiUtils barColorForColor:newColor];
         UIBarStyle navBarStyle = [TiUtils barStyleForColor:newColor];
-
+        
         UINavigationBar * navBar = [navController navigationBar];
         [navBar setBarStyle:barStyle];
         if([TiUtils isIOS7OrGreater]) {
@@ -395,7 +447,7 @@
     ENSURE_UI_THREAD(setTitleAttributes,args);
     ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary);
     [self replaceValue:args forKey:@"titleAttributes" notification:NO];
-
+    
     NSMutableDictionary* theAttributes = nil;
     if (args != nil) {
         theAttributes = [NSMutableDictionary dictionary];
@@ -528,6 +580,11 @@
     id navController = [self navControllerForController:controller];
 	if (controller!=nil && navController != nil)
 	{
+        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
+            navButtonNotSet = YES;
+            return;
+        }
+        navButtonNotSet = NO;
 		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
 		[self replaceValue:proxy forKey:@"rightNavButton" notification:NO];
 		if (proxy==nil || [proxy supportsNavBarPositioning])
@@ -557,7 +614,7 @@
 			THROW_INVALID_ARG(msg);
 		}
 	}
-	else 
+	else
 	{
 		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxy properties:properties] autorelease] forKey:@"rightNavButton" notification:NO];
 	}
@@ -576,6 +633,11 @@
     id navController = [self navControllerForController:controller];
 	if (controller!=nil && navController != nil)
 	{
+        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
+            navButtonNotSet = YES;
+            return;
+        }
+        navButtonNotSet = NO;
 		ENSURE_TYPE_OR_NIL(proxies,NSArray);
 		[self replaceValue:proxies forKey:@"rightNavButtons" notification:NO];
         NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
@@ -619,6 +681,11 @@
     id navController = [self navControllerForController:controller];
 	if (controller!=nil && navController != nil)
 	{
+        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
+            navButtonNotSet = YES;
+            return;
+        }
+        navButtonNotSet = NO;
 		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
 		[self replaceValue:proxy forKey:@"leftNavButton" notification:NO];
 		if (proxy==nil || [proxy supportsNavBarPositioning])
@@ -630,14 +697,14 @@
 				TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
 				[p removeBarButtonView];
 			}
-			controller.navigationItem.leftBarButtonItem = nil;			
+			controller.navigationItem.leftBarButtonItem = nil;
 			if (proxy!=nil)
 			{
 				// add the new one
                 BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
                 [controller.navigationItem setLeftBarButtonItem:[proxy barButtonItem] animated:animated];
             }
-			else 
+			else
 			{
 				controller.navigationItem.leftBarButtonItem = nil;
 			}
@@ -666,7 +733,7 @@
 
 -(void)hideTabBar:(id)value
 {
-	[self setTabBarHidden:@YES];	
+	[self setTabBarHidden:@YES];
 }
 
 -(void)showTabBar:(id)value
@@ -689,10 +756,10 @@
 	{
 		return;
 	}
-
+    
 	UIViewController * prevController = [controllerArray objectAtIndex:controllerPosition-1];
 	UIBarButtonItem * backButton = nil;
-
+    
 	UIImage * backImage = [TiUtils image:[self valueForKey:@"backButtonTitleImage"] proxy:self];
 	if (backImage != nil)
 	{
@@ -722,7 +789,7 @@
 	if (controller!=nil)
 	{
 		[self refreshBackButton];	//Because this is actually a property of a DIFFERENT view controller,
-		//we can't attach this until we're in the navbar stack.
+                                    //we can't attach this until we're in the navbar stack.
 	}
 }
 
@@ -733,13 +800,13 @@
 	if (controller!=nil)
 	{
 		[self refreshBackButton];	//Because this is actually a property of a DIFFERENT view controller,
-		//we can't attach this until we're in the navbar stack.
+                                    //we can't attach this until we're in the navbar stack.
 	}
 }
 
 -(void)updateNavBar
 {
-    //Called from the view when the screen rotates. 
+    //Called from the view when the screen rotates.
     //Resize titleControl and barImage based on navbar bounds
     id navController = [self navControllerForController:controller];
     if (!shouldUpdateNavBar || controller == nil || navController == nil) {
@@ -767,7 +834,7 @@
     CGSize availableTitleSize = CGSizeZero;
     availableTitleSize.width = barFrame.size.width - (2*TI_NAVBAR_BUTTON_WIDTH);
     availableTitleSize.height = barFrame.size.height;
-
+    
     //Check for titlePrompt. Ugly hack. Assuming 50% for prompt height.
     if (ourNavItem.prompt != nil) {
         availableTitleSize.height /= 2.0f;
@@ -775,7 +842,7 @@
     }
     
     TiViewProxy * titleControl = [self valueForKey:@"titleControl"];
-
+    
     UIView * oldView = [ourNavItem titleView];
     if ([oldView isKindOfClass:[TiUIView class]]) {
         TiViewProxy * oldProxy = (TiViewProxy *)[(TiUIView *)oldView proxy];
@@ -795,7 +862,7 @@
         }
         [oldProxy removeBarButtonView];
     }
-
+    
 	if ([titleControl isKindOfClass:[TiViewProxy class]])
 	{
 		newTitleView = [titleControl barButtonViewForSize:availableTitleSize];
@@ -810,7 +877,7 @@
 			newTitleView = [[[UIImageView alloc] initWithImage:image] autorelease];
 		}
 	}
-
+    
     if (oldView != newTitleView) {
         [ourNavItem setTitleView:newTitleView];
     }
@@ -869,7 +936,7 @@
 	{
         properties = [self valueForKey:@"toolbarSettings"];
     }
-    else 
+    else
 	{
         [self setValue:properties forKey:@"toolbarSettings"];
     }
@@ -895,7 +962,7 @@
 		if (shouldUpdateNavBar && controller!=nil && navController != nil)
 		{
 			NSArray *existing = [controller toolbarItems];
-//			UINavigationController * ourNC = navController;
+            //			UINavigationController * ourNC = navController;
 			if (existing!=nil)
 			{
 				for (id current in existing)
@@ -938,39 +1005,6 @@
 	
 }
 
-
-#define SETPROP(m,x) \
-{\
-  id value = [self valueForKey:m]; \
-  if (value!=nil)\
-  {\
-	[self x:(value==[NSNull null]) ? nil : value];\
-  }\
-  else{\
-	[self replaceValue:nil forKey:m notification:NO];\
-  }\
-}\
-
-#define SETPROPOBJ(m,x) \
-{\
-id value = [self valueForKey:m]; \
-if (value!=nil)\
-{\
-if ([value isKindOfClass:[TiComplexValue class]])\
-{\
-     TiComplexValue *cv = (TiComplexValue*)value;\
-     [self x:(cv.value==[NSNull null]) ? nil : cv.value withObject:cv.properties];\
-}\
-else\
-{\
-	[self x:(value==[NSNull null]) ? nil : value withObject:nil];\
-}\
-}\
-else{\
-[self replaceValue:nil forKey:m notification:NO];\
-}\
-}\
-
 -(void)setupWindowDecorations
 {
     id navController = [self navControllerForController:controller];
@@ -979,6 +1013,7 @@ else{\
     }
     
     [navController setToolbarHidden:!hasToolbar animated:YES];
+    
     //Need to clear title for titleAttributes to apply correctly on iOS6.
     SETPROP(@"titleAttributes",setTitleAttributes);
     SETPROP(@"title",setTitle);
@@ -994,7 +1029,7 @@ else{\
     SETPROPOBJ(@"toolbar",setToolbar);
     [self updateBarImage];
     [self refreshBackButton];
-
+    
     id navBarHidden = [self valueForKey:@"navBarHidden"];
     if (navBarHidden!=nil) {
         id properties = [NSArray arrayWithObject:[NSDictionary dictionaryWithObject:@NO forKey:@"animated"]];
