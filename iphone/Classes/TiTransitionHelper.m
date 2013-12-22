@@ -221,7 +221,7 @@ static NSDictionary* typeMap = nil;
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg defaultTransition:(TiTransition*)transition containerView:(UIView*)container
 {
     TiTransition* result = transition;
-    if (arg != nil || defaultArg != nil) {
+    if ((arg != nil && [arg isKindOfClass:[NSDictionary class]]) || defaultArg != nil) {
         float duration = [TiUtils floatValue:@"duration" properties:arg def:[TiUtils floatValue:@"duration" properties:defaultArg def:300]]/1000;
         BOOL reversed =  [TiUtils boolValue:@"reverse" properties:arg def:(transition && [transition.adTransition isReversed])];
         
