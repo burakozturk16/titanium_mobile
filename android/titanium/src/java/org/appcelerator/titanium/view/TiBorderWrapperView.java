@@ -33,7 +33,7 @@ public class TiBorderWrapperView extends MaskableView
 	private static final String TAG = "TiBorderWrapperView";
 
 	private int color = Color.TRANSPARENT;
-	private float radius = 0;
+	private float[] radius = null;
 	private float borderWidth = 0;
 	private int alpha = -1;
 	private RectF clipRect;
@@ -57,7 +57,7 @@ public class TiBorderWrapperView extends MaskableView
 	
 	protected void clipCanvas(Canvas canvas) {
 		if (!this.clipChildren) return;
-		if (radius > 0) {
+		if (radius != null) {
 			// This still happens sometimes when hw accelerated so, catch and warn
 			try {
 				canvas.clipPath(clipPath);
@@ -104,7 +104,6 @@ public class TiBorderWrapperView extends MaskableView
 	protected void onDraw(Canvas canvas)
 	{
  	 	super.onDraw(canvas);
- 		
 	}
 	
 	@Override
@@ -122,6 +121,28 @@ public class TiBorderWrapperView extends MaskableView
 				source.top + inset.top, 
 				source.right - inset.right, 
 				source.bottom - inset.bottom);
+	}
+	
+	private float[] innerRadiusFromPadding(RectF outerRect)
+	{
+		int maxPadding = (int) Math.min(outerRect.right / 2, outerRect.bottom / 2);
+		int padding = (int) Math.min(borderWidth, maxPadding);
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = Math.max(radius[i] - padding, 0);
+		}
+		return result;
+	}
+	
+	private float[] clipRadiusFromPadding(RectF outerRect)
+	{
+		int maxPadding = (int) Math.min(outerRect.right / 2, outerRect.bottom / 2);
+		int padding = (int) Math.min(borderWidth, maxPadding);
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = radius[i] + 1;
+		}
+		return result;
 	}
 
 	private void updateBorderPath()
@@ -148,29 +169,17 @@ public class TiBorderWrapperView extends MaskableView
 			insetRect(innerRectForDrawing, mBorderPadding);
 			insetRect(outerRectForDrawing, mBorderPadding);
 		}
-		if (radius > 0) {
+		if (radius !=null) {
 			clipPath = new Path();
-			float outerRadii[] = new float[8];
-			Arrays.fill(outerRadii, radius);
 			clipPath.setFillType(FillType.EVEN_ODD);
 			borderPath = new Path();
 			borderClipPath = new Path();
-			borderClipPath.setFillType(FillType.EVEN_ODD);
-			borderPath.addRoundRect(outerRectForDrawing, outerRadii, Direction.CW);
+			borderClipPath.setFillType(FillType.EVEN_ODD); 
+			borderPath.addRoundRect(outerRectForDrawing, radius, Direction.CW);
 			borderPath.setFillType(FillType.EVEN_ODD);
-			if (radius - padding > 0) {
-				float innerRadii[] = new float[8];
-				Arrays.fill(innerRadii, radius - padding);
-				float clipRadii[] = new float[8];
-				Arrays.fill(clipRadii, radius+1);
-				clipPath.addRoundRect(outerRect, clipRadii, Direction.CW);
-				borderClipPath.addRoundRect(outerRect, outerRadii, Direction.CW);
-				borderPath.addRoundRect(innerRectForDrawing, innerRadii, Direction.CCW);
-			} else {
-				borderPath.addRect(innerRectForDrawing, Direction.CCW);
-				clipPath.addRect(outerRect, Direction.CW);
-				borderClipPath.addRect(outerRect, Direction.CW);
-			}
+			clipPath.addRoundRect(outerRect, clipRadiusFromPadding(outerRect), Direction.CW);
+			borderClipPath.addRoundRect(outerRect, radius, Direction.CW);
+			borderPath.addRoundRect(innerRectForDrawing, innerRadiusFromPadding(outerRect), Direction.CCW);
 		} else {
 			clipPath = null;
 			borderPath = new Path();
@@ -207,14 +216,14 @@ public class TiBorderWrapperView extends MaskableView
 		postInvalidate();
 	}
 
-	public void setRadius(float radius)
+	public void setRadius(float[] radius)
 	{
 		this.radius = radius;
 		updateBorderPath();
 		postInvalidate();
 	}
 
-	public float getRadius()
+	public float[] getRadius()
 	{
 		return this.radius;
 	}

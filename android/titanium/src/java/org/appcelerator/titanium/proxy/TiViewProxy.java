@@ -1056,6 +1056,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	ViewSwitcher flipper = null;
+
+	private boolean transitioning;
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
@@ -1544,6 +1546,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
+							transitioning = false;
 						}
 					}
 
@@ -1552,6 +1555,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
+							transitioning = false;
 						}
 					}
 
@@ -1568,6 +1572,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				if (viewOut!=null) {
 					viewToAddTo.removeView(viewToHide);
 					remove(viewOut);
+					transitioning = false;
 				}
 			}
 			if (viewIn!=null) viewToAdd.setVisibility(View.VISIBLE);
@@ -1575,12 +1580,15 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		else {
 			if (viewIn!=null) add(viewIn);
 			if (viewOut!=null) remove(viewOut);
+			transitioning = false;
 		}
 	}
 	
 	@Kroll.method
 	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg)
 	{
+		if (transitioning) return;
+		transitioning = true;
 		if (TiApplication.isUIThread()) {
 			handleTransitionViews(viewOut, viewIn, arg);
 		} else {

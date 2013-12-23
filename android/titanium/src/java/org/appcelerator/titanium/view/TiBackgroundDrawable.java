@@ -20,7 +20,7 @@ public class TiBackgroundDrawable extends Drawable {
 	static final int NOT_SET = -1;
 	private int alpha = NOT_SET;
 	
-	private RectF innerRect;
+//	private RectF innerRect;
 	private SparseArray<OneStateDrawable> drawables;
 	private OneStateDrawable currentDrawable;
 	private ColorDrawable defaultColorDrawable;
@@ -33,7 +33,7 @@ public class TiBackgroundDrawable extends Drawable {
 		defaultColorDrawable = null;
 		mStateSets = new SparseArray<int[]>();
 		drawables = new SparseArray<OneStateDrawable>();
-		innerRect = new RectF();
+//		innerRect = new RectF();
 	}
 	
 	private int keyOfStateSet(int[] stateSet) {
@@ -89,11 +89,20 @@ public class TiBackgroundDrawable extends Drawable {
 	protected void onBoundsChange(Rect bounds)
 	{
 		super.onBoundsChange(bounds);
-		innerRect.set(bounds);
+//		innerRect.set(bounds);
 		int length = drawables.size();
 		for(int i = 0; i < length; i++) {
 		   Drawable drawable = drawables.valueAt(i);
 		   drawable.setBounds(bounds);
+		}
+	}
+	
+	public void setRadius(float[] radius)
+	{
+		int length = drawables.size();
+		for(int i = 0; i < length; i++) {
+			OneStateDrawable drawable = drawables.valueAt(i);
+			drawable.setRadius(radius);
 		}
 	}
 	
@@ -200,14 +209,14 @@ public class TiBackgroundDrawable extends Drawable {
 		onStateChange(getState());
 	}
 	
-	protected void setNativeView(View view)
-	{
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.setNativeView(view);
-		}
-	}
+//	protected void setNativeView(View view)
+//	{
+//		int length = drawables.size();
+//		for(int i = 0; i < length; i++) {
+//			OneStateDrawable drawable = drawables.valueAt(i);
+//			drawable.setNativeView(view);
+//		}
+//	}
 	
 	public void setImageRepeat(boolean repeat)
 	{
