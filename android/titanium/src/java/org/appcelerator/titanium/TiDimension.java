@@ -387,7 +387,7 @@ public class TiDimension
 		return getPercentPixels(parent.getWidth(), parent.getHeight());
 	}
 
-	protected static DisplayMetrics getDisplayMetrics(Context context)
+	public static DisplayMetrics getDisplayMetrics(Context context)
 	{
 		if (metrics == null) {
 			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
