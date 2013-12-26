@@ -24,6 +24,8 @@
 #import "TiImageHelper.h"
 #import "TiTransition.h"
 #import "TiViewAnimationStep.h"
+#import "TiBorderLayer.h"
+
 
 @interface UntouchableView : UIView
 
@@ -173,7 +175,7 @@ NSArray* listenerArray = nil;
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
     UntouchableView* _childrenHolder;
-    CALayer* _borderLayer;
+    TiBorderLayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
@@ -449,31 +451,34 @@ DEFINE_EXCEPTIONS
     self.accessibilityElementsHidden = [TiUtils boolValue:accessibilityHidden def:NO];
 }
 
-#pragma mark Layout 
+#pragma mark Layout
 
-
--(void)updateBorderRadius
+-(void)applyPathToLayersMask:(CALayer*)layer path:(CGPathRef)path
 {
-    if (_borderLayer) {
-        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    if (layer == nil) return;
+    if (path == nil) {
+        layer.mask = nil;
     }
-    if (_bgLayer) {
-        _bgLayer.cornerRadius = self.layer.cornerRadius;
-    }
-    if (_childrenHolder) {
-        _childrenHolder.layer.cornerRadius = self.layer.cornerRadius;
+    else {
+        if (layer.mask == nil) {
+            layer.mask = [CAShapeLayer layer];
+        }
+        ((CAShapeLayer*)layer.mask).path = path;
     }
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    
     if (_bgLayer) {
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
     if (_borderLayer) {
-        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
+        _borderLayer.frame = bounds;
     }
+    CGPathRef path = [_borderLayer path];
+    [self applyPathToLayersMask:self.layer path:path];
+    [self applyPathToLayersMask:_bgLayer path:path];
+    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
@@ -616,28 +621,26 @@ DEFINE_EXCEPTIONS
     else
         _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
-    _bgLayer.cornerRadius = self.layer.cornerRadius;
+    [self applyPathToLayersMask:_bgLayer path:[_borderLayer path]];
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
 }
 
 
--(CALayer*)getOrCreateBorderLayer
+-(TiBorderLayer*)getOrCreateBorderLayer
 {
     if (_borderLayer != nil) {
         return _borderLayer;
     }
     
-    _borderLayer = [[CALayer alloc] init];
+    _borderLayer = [[TiBorderLayer alloc] init];
     if (_bgLayer)
         [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
     else
         [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
    _borderLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
-    
     _borderLayer.opacity = backgroundOpacity;
-    _borderLayer.cornerRadius = self.layer.cornerRadius;
     return _borderLayer;
 }
 
@@ -888,13 +891,6 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)setBorderPadding_:(id)value
-{
-    _borderPadding = [TiUtils insetValue:value];
-    if (_borderLayer) {
-        _borderLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _borderPadding);
-    }
-}
 
 -(void)setImageCap_:(id)arg
 {
@@ -918,8 +914,12 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderRadius_:(id)radius
 {
-    self.layer.cornerRadius = [TiUtils floatValue:radius];
-    [self updateBorderRadius];
+    [[self getOrCreateBorderLayer] setRadius:radius];
+    CGPathRef path = [_borderLayer path];
+    [self applyPathToLayersMask:self.layer path:path];
+    [self applyPathToLayersMask:_bgLayer path:path];
+    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+
     [self updateViewShadowPath];
 }
 
@@ -927,15 +927,23 @@ DEFINE_EXCEPTIONS
 -(void)setBorderColor_:(id)color
 {
 	TiColor *ticolor = [TiUtils colorValue:color];
-    CALayer* bgdLayer = [self getOrCreateBorderLayer];
+    TiBorderLayer* bgdLayer = [self getOrCreateBorderLayer];
 	bgdLayer.borderWidth = MAX(bgdLayer.borderWidth,1);
-	bgdLayer.borderColor = [ticolor _color].CGColor;
+	bgdLayer.borderColor = [ticolor _color];
 }
 
 -(void)setBorderWidth_:(id)w
 {
     
 	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+}
+
+-(void)setBorderPadding_:(id)value
+{
+    _borderPadding = [TiUtils insetValue:value];
+    if (_borderLayer) {
+        _borderLayer.borderPadding = _borderPadding;
+    }
 }
 
 -(void)setAnchorPoint_:(id)point
@@ -1089,8 +1097,7 @@ DEFINE_EXCEPTIONS
 {
     if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
-        //to speedup things
-        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
+        [self shadowLayer].shadowPath = [_borderLayer path];
     }
 }
 
