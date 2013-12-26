@@ -850,6 +850,9 @@
 		D5DC32F8180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32F9180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32FA180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
+		D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
+		D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
+		D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BA51860A11500579573 /* libAkylasShapes.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 		D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 		D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */; settings = {ATTRIBUTES = (Weak, ); }; };
@@ -2170,6 +2173,8 @@
 		D557958B1837C4330057DD41 /* TiHLSAnimation+Friend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "TiHLSAnimation+Friend.h"; path = "Animation/TiHLSAnimation+Friend.h"; sourceTree = "<group>"; };
 		D55795971839398C0057DD41 /* TiHLSAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSAnimationStep.h; path = Animation/TiHLSAnimationStep.h; sourceTree = "<group>"; };
 		D55795981839398C0057DD41 /* TiHLSAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSAnimationStep.m; path = Animation/TiHLSAnimationStep.m; sourceTree = "<group>"; };
+		D55EB01E18630B08004DCAF7 /* TiLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiLabel.h; sourceTree = "<group>"; };
+		D55EB01F18630B08004DCAF7 /* TiLabel.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiLabel.m; sourceTree = "<group>"; };
 		D5691303168F0F4200C3F89F /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		D56915AB168F16FA00C3F89F /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
 		D56915C2168F192B00C3F89F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -2346,6 +2351,8 @@
 		D5D545241845F873009539C9 /* DTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedLabel.h; path = ../Classes/DTCoreText/DTAttributedLabel.h; sourceTree = "<group>"; };
 		D5DC32F6180EED41006CCEBD /* TiTransitionCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionCube.h; sourceTree = "<group>"; };
 		D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionCube.m; sourceTree = "<group>"; };
+		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
+		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
 		D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasShapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/AkylasShapes.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasSlidemenu.xcodeproj; path = ../../../modules/akylas_modules/slidemenu/ios/AkylasSlidemenu.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ak_commonjs_ios.xcodeproj; path = ../../../modules/akylas_modules/commonjs/ios/ak_commonjs_ios.xcodeproj; sourceTree = "<group>"; };
@@ -2899,6 +2906,8 @@
 				D597CF0617D719C4009A080B /* TiCellBackgroundView.m */,
 				D58DCBCB17FEF0F50011FE0E /* TiSVGImage.h */,
 				D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */,
+				D5E999101869C8A2005B3664 /* TiBorderLayer.h */,
+				D5E999111869C8A2005B3664 /* TiBorderLayer.m */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -3478,6 +3487,8 @@
 				D56915C9168F2E7300C3F89F /* TiUILabel.m */,
 				D56915CA168F2E7300C3F89F /* TiUILabelProxy.h */,
 				D56915CB168F2E7300C3F89F /* TiUILabelProxy.m */,
+				D55EB01E18630B08004DCAF7 /* TiLabel.h */,
+				D55EB01F18630B08004DCAF7 /* TiLabel.m */,
 			);
 			name = Label;
 			sourceTree = "<group>";
@@ -4798,6 +4809,7 @@
 				24CA895D111161050084E2DE /* AFUIImageReflection.m in Sources */,
 				D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				24CA895E111161050084E2DE /* ASIAuthenticationDialog.m in Sources */,
+				D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */,
 				24CA895F111161050084E2DE /* ASIFormDataRequest.m in Sources */,
 				24CA8960111161050084E2DE /* ASIHTTPRequest.m in Sources */,
 				243ECCB81126988200639DF4 /* TiUIiPhoneScrollIndicatorStyleProxy.m in Sources */,
@@ -5150,6 +5162,7 @@
 				DA3B2FA8143EDEE3000DC803 /* TiUIiOSToolbar.m in Sources */,
 				DA3B2FAA143EDEE3000DC803 /* TiUIiOSToolbarProxy.m in Sources */,
 				24D8E3BB119B9D8A00F8CAA6 /* TiUITableViewAction.m in Sources */,
+				D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */,
 				24D8E3BC119B9D8A00F8CAA6 /* TiFile.m in Sources */,
 				D5C8C97417EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				24D8E3BE119B9D8A00F8CAA6 /* main.m in Sources */,
@@ -5507,6 +5520,7 @@
 				DA3B2FAF143EDF3B000DC803 /* TiUIiOSToolbar.m in Sources */,
 				DA3B2FB1143EDF3B000DC803 /* TiUIiOSToolbarProxy.m in Sources */,
 				DABB36A112E8CB280026A6EA /* TiUITableViewAction.m in Sources */,
+				D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */,
 				DABB36A212E8CB280026A6EA /* TiFile.m in Sources */,
 				D5C8C97517EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				DABB36A412E8CB280026A6EA /* main.m in Sources */,
