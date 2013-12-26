@@ -794,7 +794,7 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
 //                    runBounds.size.width = CGRectGetWidth(lineBounds);
 //                }
                 
-                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(runBounds.origin.x+ lineWidth/2,runBounds.origin.y + lineWidth/2,  runBounds.size.width - lineWidth, runBounds.size.height + 3.0f - lineWidth) cornerRadius:cornerRadius] CGPath];
+                CGPathRef path = [[UIBezierPath bezierPathWithRoundedRect:CGRectMake(runBounds.origin.x+ lineWidth/2,runBounds.origin.y + lineWidth/2,  runBounds.size.width - lineWidth, runBounds.size.height +ceilf(runBounds.size.height/12.0f) +  1.0f - lineWidth) cornerRadius:cornerRadius] CGPath];
                 
                 CGContextSetLineJoin(c, kCGLineJoinRound);
                 
