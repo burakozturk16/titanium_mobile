@@ -3415,10 +3415,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	NSDictionary* events = (NSDictionary*)[dictionary objectForKey:@"events"];
 	if ([events count] > 0) {
 		[context.krollContext invokeBlockOnThread:^{
-			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *listeners, BOOL *stop) {
-				[listeners enumerateObjectsUsingBlock:^(KrollWrapper *wrapper, NSUInteger idx, BOOL *stop) {
-					[self addEventListener:[NSArray arrayWithObjects:eventName, wrapper, nil]];
-				}];
+			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, KrollCallback *listener, BOOL *stop) {
+                [self addEventListener:[NSArray arrayWithObjects:eventName, listener, nil]];
 			}];
 		}];
 	}
