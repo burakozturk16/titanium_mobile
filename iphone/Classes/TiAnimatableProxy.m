@@ -101,7 +101,13 @@
 
 -(void)animationDidComplete:(TiAnimation*)animation
 {
-    animation.animation = nil;
+    if (animation.animation)
+    {
+        TiThreadPerformOnMainThread(^{
+            [animation.animation cancel];
+        }, YES);
+        animation.animation = nil;
+    }
     [self removeRunningAnimation:animation];
 }
 
