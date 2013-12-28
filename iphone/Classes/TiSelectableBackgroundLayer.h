@@ -9,7 +9,7 @@
     UIImage* image;
     TiSVGImage* svg;
     TiGradient* gradient;
-    NSShadow* shadow;
+    NSShadow* _shadow;
     BOOL imageRepeat;
 }
 @property(nonatomic,retain) UIColor *color;
@@ -33,8 +33,6 @@
 @property(nonatomic,assign) BOOL readyToCreateDrawables;
 @property(nonatomic,assign) BOOL animateTransition;
 
-//- (void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect;
-
 - (void)setState:(UIControlState)state;
 - (void)setState:(UIControlState)state animated:(BOOL)animated;
 - (UIControlState)getState;
@@ -42,5 +40,4 @@
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(id)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
-//-(void) setHidden:(BOOL)hidden animated:(BOOL)animated;
 @end

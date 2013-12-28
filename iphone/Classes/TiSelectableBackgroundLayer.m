@@ -10,7 +10,7 @@
 
 @end
 @implementation TiDrawable
-@synthesize gradient, color, image, svg, imageRepeat;
+@synthesize gradient, color, image, svg, imageRepeat, shadow = _shadow;
 
 - (id)init {
     if (self = [super init])
@@ -27,7 +27,7 @@
     RELEASE_TO_NIL(color)
     RELEASE_TO_NIL(image)
     RELEASE_TO_NIL(svg)
-    RELEASE_TO_NIL(shadow)
+    RELEASE_TO_NIL(_shadow)
 	[super dealloc];
 }
 
@@ -91,6 +91,7 @@
     CGContextSaveGState(ctx);
     
     CGContextSetAllowsAntialiasing(ctx, true);
+    CGContextSetShouldAntialias(ctx, true);
     if (color) {
         CGContextSetFillColorWithColor(ctx, [color CGColor]);
         CGContextFillRect(ctx, rect);
@@ -140,21 +141,6 @@
 @implementation TiSelectableBackgroundLayer
 @synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
 
-//- (id) initWithLayer:(id)layer {
-//    if(self = [super initWithLayer:layer]) {
-//        if([layer isKindOfClass:[TiSelectableBackgroundLayer class]]) {
-//            TiSelectableBackgroundLayer *other = (TiSelectableBackgroundLayer*)layer;
-//            self.imageRepeat = other.imageRepeat;
-//            stateLayersMap = [[NSMutableDictionary dictionaryWithDictionary:other.stateLayersMap] retain];
-//            stateLayers = [[NSMutableArray arrayWithArray:other.stateLayers] retain];
-//            currentState = [other getState];
-//            readyToCreateDrawables = YES;
-//            currentDrawable = [self getOrCreateDrawableForState:currentState];
-//        }
-//    }
-//    return self;
-//}
-
 - (id)init {
     if (self = [super init])
     {
@@ -167,12 +153,8 @@
         _needsToSetDrawables = NO;
         _animateTransition = NO;
         self.masksToBounds = NO;
-//        self.needsDisplayOnBoundsChange = YES;
         self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
-//        self.actions = [NSDictionary dictionaryWithObjectsAndKeys:
-//                        [NSNull null], @"bounds",
-//                        nil];
     }
     return self;
 }
@@ -184,22 +166,6 @@
 	[stateLayers release];
 	[super dealloc];
 }
-
-//-(void)setFrame:(CGRect)frame
-//{
-//    BOOL needsToUpdate = (frame.size.width != 0 && frame.size.height!= 0 && (!CGSizeEqualToSize(frame.size, self.frame.size) || _needsToSetDrawables));
-//    
-//	[super setFrame:frame];
-//    if (needsToUpdate) {
-//        CGSize size = self.frame.size;
-//        _needsToSetDrawables = NO;
-//        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-//            if (drawable != nil) {
-//                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
-//            }
-//        }];
-//    }
-//}
 
 -(void)setBounds:(CGRect)bounds
 {
