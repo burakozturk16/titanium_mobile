@@ -297,6 +297,7 @@ DEFINE_EXCEPTIONS
     animateBgdTransition = NO;
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
     self.layer.borderColor = [UIColor clearColor].CGColor;
+    viewState = -1;
 }
 
 - (id) init
@@ -1033,7 +1034,7 @@ DEFINE_EXCEPTIONS
 -(void)setEnabled_:(id)arg
 {
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
     changedInteraction = YES;
 }
 
@@ -1634,7 +1635,11 @@ DEFINE_EXCEPTIONS
 
 -(UIControlState)realStateForState:(UIControlState)state
 {
-    if ([self enabledForBgState]) return state;
+    if ([self enabledForBgState]) {
+        if (viewState != -1)
+            state = viewState;
+        return state;
+    }
     return UIControlStateDisabled;
 }
 
@@ -1745,7 +1750,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -1901,7 +1906,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
-    [self setBgState:[self realStateForState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal]];
+    [self setBgState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
@@ -1923,7 +1928,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:[self realStateForState:isSelected?UIControlStateSelected:UIControlStateNormal]];
+    [self setBgState:isSelected?UIControlStateSelected:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{

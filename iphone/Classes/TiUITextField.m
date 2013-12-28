@@ -380,7 +380,7 @@
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
 }
 
 -(BOOL) enabledForBgState {
@@ -391,7 +391,7 @@
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
 }
 
 -(void)setHintText_:(id)value
@@ -537,6 +537,7 @@
         NSString* theText = [ourProxy valueForKey:@"value"];
         [tf setText:theText];
     }
+    viewState = UIControlStateSelected;
     
 	[self textWidget:tf didFocusWithText:[tf text]];
 	[self performSelector:@selector(textFieldDidChange:) onThread:[NSThread currentThread] withObject:nil waitUntilDone:NO];
@@ -565,6 +566,8 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)tf
 {
+    viewState = -1;
+    [self setBgState:UIControlStateNormal];
 	[self textWidget:tf didBlurWithText:[tf text]];
 }
 
@@ -572,7 +575,8 @@
 {
     TiUITextWidgetProxy * ourProxy = (TiUITextWidgetProxy *)[self proxy];
     
-    //TIMOB-14563. This is incorrect when passowrd mark is used. Just ignore.
+    
+   //TIMOB-14563. This is incorrect when passowrd mark is used. Just ignore.
     if ([ourProxy suppressFocusEvents]) {
         return;
     }

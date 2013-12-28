@@ -51,6 +51,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 @protected
     BOOL configurationSet;
     NSMutableArray* childViews;
+    UIControlState viewState;
 @private
 	TiProxy *proxy;
 		
