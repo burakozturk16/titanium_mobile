@@ -9,18 +9,34 @@
 #import "TiBorderLayer.h"
 #import "TiBase.h"
 #import "TiUtils.h"
+#import "TiAnimation.h"
+#import "TiViewAnimationStep.h"
 
-
-CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFloat width )
+CGFloat* innerRadiusFromPadding(const CGFloat* radii, const CGRect  rect, float _decale)
 {
+    CGFloat maxPadding = MIN(rect.size.width / 2, rect.size.height / 2);
+    CGFloat padding = MIN(2*_decale, maxPadding)/2.0f;
+    CGFloat* result = malloc(8 * sizeof(CGFloat *));
+    for (int i = 0; i < 8; i++) {
+        result[i] = MAX(radii[i] - padding, 0);
+    }
+    return result;
+}
+
+CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFloat _decale)
+{
+    if (radii == NULL) {
+        return CGPathCreateWithRect(CGRectInset(rect, _decale, _decale), NULL);
+    }
+    radii = innerRadiusFromPadding(radii, rect, _decale);
     // create a mutable path
     CGMutablePathRef path = CGPathCreateMutable();
    
     // get the 4 corners of the rect
-    CGPoint topLeft = CGPointMake(rect.origin.x, rect.origin.y);
-    CGPoint topRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y);
-    CGPoint bottomRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
-    CGPoint bottomLeft = CGPointMake(rect.origin.x, rect.origin.y + rect.size.height);
+    CGPoint topLeft = CGPointMake(rect.origin.x + _decale, rect.origin.y + _decale);
+    CGPoint topRight = CGPointMake(rect.origin.x + rect.size.width - _decale, rect.origin.y + _decale);
+    CGPoint bottomRight = CGPointMake(rect.origin.x + rect.size.width - _decale, rect.origin.y + rect.size.height - _decale);
+    CGPoint bottomLeft = CGPointMake(rect.origin.x + _decale, rect.origin.y + rect.size.height -_decale);
     
     // move to top left
     CGPathMoveToPoint(path, NULL, topLeft.x + radii[0], topLeft.y);
@@ -55,17 +71,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 
 @implementation TiBorderLayer
 {
-    CGPathRef _path;
-    CGPathRef _borderPath;
+    CGPathRef _clippingPath;
     CGFloat* radii;
-    CGFloat _borderWidth;
-    UIColor* _borderColor;
-    UIEdgeInsets _borderPadding;
+    CGFloat _theWidth;
+    UIEdgeInsets _thePadding;
 }
-@synthesize borderWidth = _borderWidth;
-@synthesize borderColor = _borderColor;
-@synthesize path = _path;
-@synthesize borderPadding = _borderPadding;
+@synthesize clippingPath = _clippingPath;
+@synthesize thePadding = _thePadding;
+
 -(id)init
 {
     if (self = [super init])
@@ -73,8 +86,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
         self.needsDisplayOnBoundsChange = YES;
         self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
-        _path = nil;
-        _borderPath = nil;
+        _clippingPath = nil;
         radii = NULL;
     }
     return self;
@@ -82,37 +94,16 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 
 -(void)dealloc
 {
-    if (_path != nil)
+    if (_clippingPath != nil)
     {
-        CGPathRelease(_path);
-        _path = nil;
-    }
-    if (_borderPath != nil)
-    {
-        CGPathRelease(_borderPath);
-        _borderPath = nil;
+        CGPathRelease(_clippingPath);
+        _clippingPath = nil;
     }
     if (radii != NULL) {
         free(radii);
         radii = NULL;
     }
     [super dealloc];
-}
-
--(void)drawInContext:(CGContextRef)ctx
-{
-    if (_borderPath == nil) return;
-    CGContextSaveGState(ctx);
-    CGContextSetAllowsAntialiasing(ctx, true);
-    CGContextSetShouldAntialias(ctx, true);
-    CGContextSetStrokeColorWithColor(ctx, _borderColor.CGColor);
-    CGContextSetLineWidth(ctx, 2*_borderWidth);
-    CGContextAddPath(ctx, _borderPath);
-    CGContextClip(ctx);
-    CGContextAddPath(ctx, _borderPath);
-    
-    CGContextDrawPath(ctx, kCGPathStroke);
-    CGContextRestoreGState(ctx);
 }
 
 -(void)setRadius:(id)value
@@ -148,48 +139,96 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     [super setFrame:frame];
     [self updateBorder];
 }
+
+-(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*)runningAnimation
+{
+    [super setFrame:frame];
+    if (runningAnimation) {
+        CGPathRef newBorderPath = [self borderPathForBounds:[self bounds]];
+        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"path"];
+        animation.fromValue = (id)[self getOrCreateLayerMask].path;
+        animation.toValue = (id)newBorderPath;
+        animation.duration = [runningAnimation duration];
+        animation.timingFunction = [TiAnimation timingFunctionForCurve:[runningAnimation curve]];
+        animation.fillMode = kCAFillModeBoth;
+        [self getOrCreateLayerMask].path = newBorderPath;
+        [[self getOrCreateLayerMask] addAnimation:animation forKey:nil];
+        CGPathRelease(newBorderPath);
+      
+        CGPathRef newClippingPath = [self pathForClippingForBounds:[self bounds]];
+        self.clippingPath = newClippingPath;
+        CGPathRelease(newClippingPath);
+    }
+    else
+        [self updateBorder];
+}
+
 -(void)updateBorder
 {
     [self updateBorderRect:[self bounds]];
 }
 
+-(CGPathRef)pathForClippingForBounds:(CGRect)bounds
+{
+    if(radii != NULL) {
+        //the 0.5f is there to have a clean border where you don't see the background
+        return CGPathCreateRoundiiRect(bounds, radii, 0.5f);
+    }
+    else {
+        return CGPathCreateWithRect(bounds, NULL);
+    }
+}
+-(CGPathRef)borderPathForBounds:(CGRect)bounds
+{
+    return CGPathCreateRoundiiRect(UIEdgeInsetsInsetRect(bounds, _thePadding), radii, _theWidth/2);
+}
+
+-(CAShapeLayer*)getOrCreateLayerMask
+{
+    [self setOrCreateMaskOnLayer:self];
+    return (CAShapeLayer*)self.mask;
+}
+
+-(void)setOrCreateMaskOnLayer:(CALayer*)layer
+{
+    if (layer.mask == nil)
+    {
+        layer.mask = [CAShapeLayer layer];
+        ((CAShapeLayer*)layer.mask).fillColor = [[UIColor clearColor] CGColor];
+        ((CAShapeLayer*)layer.mask).strokeColor = [[UIColor blackColor] CGColor];
+    }
+}
+
 -(void)updateBorderRect:(CGRect)bounds
 {
     if (CGRectIsEmpty(bounds)) return;
-    if (_borderPath != nil) {
-        CGPathRelease(_borderPath);
-        _borderPath = nil;
-    }
-    if (_path != nil) {
-        CGPathRelease(_path);
-        _path = nil;
-    }
-    if(radii != NULL) {
-        _borderPath = CGPathCreateRoundiiRect(UIEdgeInsetsInsetRect(bounds, _borderPadding), radii, _borderWidth);
-        _path = CGPathCreateRoundiiRect(bounds, radii, _borderWidth);
-    }
-    else {
-        _borderPath = CGPathCreateWithRect(UIEdgeInsetsInsetRect(bounds, _borderPadding), NULL);
-        _path = CGPathCreateWithRect(bounds, NULL);
-    }
-    [self setNeedsDisplay];
+    [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
+    self.clippingPath = [self pathForClippingForBounds:[self bounds]];
 }
 
--(void)setBorderWidth:(CGFloat)width
+-(void)setTheWidth:(CGFloat)width
 {
-    _borderWidth = width;
+    if (width == _theWidth) return;
+    _theWidth = [self getOrCreateLayerMask].lineWidth = width;
     [self updateBorder];
 }
 
--(void)setBorderColor:(UIColor *)color
+-(void)setThePadding:(UIEdgeInsets)inset
 {
-    _borderColor = [color retain];
+    _thePadding = inset;
     [self updateBorder];
 }
 
--(void)setBorderPadding:(UIEdgeInsets)inset
+
+-(void)setClippingPath:(CGPathRef)clippingPath
 {
-    _borderPadding = inset;
-    [self updateBorder];
+    if (_clippingPath != nil)
+    {
+        CGPathRelease(_clippingPath);
+        _clippingPath = nil;
+    }
+    if (clippingPath)
+        _clippingPath = CGPathRetain(clippingPath);
 }
+
 @end

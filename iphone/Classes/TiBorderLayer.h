@@ -6,12 +6,13 @@
 //
 //
 
-#import <QuartzCore/QuartzCore.h>
+#import "TiSelectableBackgroundLayer.h"
 
-@interface TiBorderLayer : CALayer
-@property(nonatomic,readonly) CGPathRef path;
-@property(nonatomic,retain) UIColor* borderColor;
-@property(nonatomic,assign) CGFloat borderWidth;
-@property(nonatomic,assign) UIEdgeInsets borderPadding;
+@class TiViewAnimationStep;
+@interface TiBorderLayer : TiSelectableBackgroundLayer
+@property(nonatomic,readonly) CGPathRef clippingPath;
+@property(nonatomic,assign) CGFloat theWidth;
+@property(nonatomic,assign) UIEdgeInsets thePadding;
 -(void)setRadius:(id)value;
+-(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*)animation;
 @end

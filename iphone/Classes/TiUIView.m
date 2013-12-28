@@ -26,6 +26,26 @@
 #import "TiViewAnimationStep.h"
 #import "TiBorderLayer.h"
 
+@interface CALayer (Additions)
+- (void)bringToFront;
+- (void)sendToBack;
+@end
+
+@implementation CALayer (Additions)
+
+- (void)bringToFront {
+    CALayer *superlayer = self.superlayer;
+    [self removeFromSuperlayer];
+    [superlayer addSublayer:self];
+}
+
+- (void)sendToBack {
+    CALayer *superlayer = self.superlayer;
+    [self removeFromSuperlayer];
+    [superlayer insertSublayer:self atIndex:0];
+}
+@end
+
 
 @interface UntouchableView : UIView
 
@@ -464,6 +484,14 @@ DEFINE_EXCEPTIONS
         if (layer.mask == nil) {
             layer.mask = [CAShapeLayer layer];
         }
+        if (runningAnimation) {
+            CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
+            pathAnimation.fromValue = (id)((CAShapeLayer*)layer.mask).path;
+            pathAnimation.duration = [runningAnimation duration];
+            pathAnimation.timingFunction = [TiAnimation timingFunctionForCurve:[runningAnimation curve]];
+            pathAnimation.toValue = (id)path;
+            [layer.mask addAnimation:pathAnimation forKey:@"clippingpath"];
+        }
         ((CAShapeLayer*)layer.mask).path = path;
     }
 }
@@ -474,9 +502,9 @@ DEFINE_EXCEPTIONS
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
     if (_borderLayer) {
-        _borderLayer.frame = bounds;
+        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
     }
-    CGPathRef path = [_borderLayer path];
+    CGPathRef path = [_borderLayer clippingPath];
     [self applyPathToLayersMask:self.layer path:path];
     [self applyPathToLayersMask:_bgLayer path:path];
     [self applyPathToLayersMask:[_childrenHolder layer] path:path];
@@ -616,13 +644,11 @@ DEFINE_EXCEPTIONS
     }
 
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
+    
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-    if (_borderLayer)
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    else
-        _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
+    _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
-    [self applyPathToLayersMask:_bgLayer path:[_borderLayer path]];
+    [self applyPathToLayersMask:_bgLayer path:[_borderLayer clippingPath]];
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
@@ -636,11 +662,8 @@ DEFINE_EXCEPTIONS
     }
     
     _borderLayer = [[TiBorderLayer alloc] init];
-    if (_bgLayer)
-        [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
-    else
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-   _borderLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
+    [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+   _borderLayer.thePadding = _borderPadding;
     _borderLayer.opacity = backgroundOpacity;
     return _borderLayer;
 }
@@ -916,7 +939,7 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
     [[self getOrCreateBorderLayer] setRadius:radius];
-    CGPathRef path = [_borderLayer path];
+    CGPathRef path = [_borderLayer clippingPath];
     [self applyPathToLayersMask:self.layer path:path];
     [self applyPathToLayersMask:_bgLayer path:path];
     [self applyPathToLayersMask:[_childrenHolder layer] path:path];
@@ -927,23 +950,67 @@ DEFINE_EXCEPTIONS
 
 -(void)setBorderColor_:(id)color
 {
-	TiColor *ticolor = [TiUtils colorValue:color];
-    TiBorderLayer* bgdLayer = [self getOrCreateBorderLayer];
-	bgdLayer.borderWidth = MAX(bgdLayer.borderWidth,1);
-	bgdLayer.borderColor = [ticolor _color];
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    TiBorderLayer* borderLayer = [self getOrCreateBorderLayer];
+	borderLayer.theWidth = MAX(borderLayer.theWidth,1);
+	borderLayer.backgroundColor = uiColor.CGColor;
+}
+
+-(void) setBorderSelectedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateSelected];
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderHighlightedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderDisabledColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateDisabled];
+}
+
+-(void) setBorderGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateNormal];
+}
+
+-(void) setBorderSelectedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderHighlightedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderDisabledGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateDisabled];
 }
 
 -(void)setBorderWidth_:(id)w
 {
     
-	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+	[self getOrCreateBorderLayer].theWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setBorderPadding_:(id)value
 {
     _borderPadding = [TiUtils insetValue:value];
     if (_borderLayer) {
-        _borderLayer.borderPadding = _borderPadding;
+        _borderLayer.thePadding = _borderPadding;
     }
 }
 
@@ -1013,8 +1080,12 @@ DEFINE_EXCEPTIONS
 
 -(void)setBgState:(UIControlState)state
 {
+    state = [self realStateForState:state];
     if (_bgLayer != nil) {
         [_bgLayer setState:state];
+    }
+    if (_borderLayer != nil) {
+        [_borderLayer setState:state];
     }
 }
 
@@ -1022,6 +1093,9 @@ DEFINE_EXCEPTIONS
 {
     if (_bgLayer != nil) {
         return [_bgLayer getState];
+    }
+    else if(_borderLayer != nil) {
+        return [_borderLayer getState];
     }
     return UIControlStateNormal;
 }
@@ -1098,7 +1172,7 @@ DEFINE_EXCEPTIONS
 {
     if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
-        [self shadowLayer].shadowPath = [_borderLayer path];
+        [self shadowLayer].shadowPath = [_borderLayer clippingPath];
     }
 }
 
@@ -1115,12 +1189,8 @@ DEFINE_EXCEPTIONS
     }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
-    if (_borderLayer) {
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    }
-    if (_bgLayer != nil) {
-        [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-    }
+    [_borderLayer bringToFront];
+    [_bgLayer sendToBack];
 }
 
 - (void)willRemoveSubview:(UIView *)subview
