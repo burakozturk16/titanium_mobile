@@ -192,9 +192,8 @@
     id<NSFastEnumeration> keySeq = props;
 
     for (NSString* key in keySeq) {
-        if ([self valueForKey:key]) {
-            [self setValue:[self valueForKey:key] forKey:key];
-        }
+        id value = [self valueForKey:key];
+        [self setValue:value?value:[NSNull null] forKey:key];
     }
 }
 
