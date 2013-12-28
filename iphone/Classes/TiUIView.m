@@ -1136,7 +1136,9 @@ DEFINE_EXCEPTIONS
 {
     [CATransaction begin];
 	[[self layer] removeAllAnimations];
-    [[self backgroundLayer] removeAllAnimations];
+    for (CALayer* layer in [[self layer] sublayers]) {
+        [layer removeAllAnimations];
+    }
 	[CATransaction commit];
 }
 
