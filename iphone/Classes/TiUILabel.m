@@ -44,6 +44,7 @@
     maxSize.width -= label.viewInsets.left + label.viewInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
+    if (size.width > 0) result.width = MIN(result.width,  size.width);
     if (size.height > 0) result.height = MIN(result.height,  size.height);
     //padding
     result.width += label.viewInsets.left+ label.viewInsets.right;

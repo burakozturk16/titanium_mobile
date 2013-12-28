@@ -162,7 +162,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     {
         if (_realLabelContent != nil)
         {
-            CGSize resultSize = CGSizeZero;
+            CGSize result = CGSizeZero;
             CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
             maxSize.width -= _padding.left + _padding.right;
             if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
@@ -170,10 +170,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 
                 if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
                 {
-                    resultSize = [(NSAttributedString*)_realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
+                    result = [(NSAttributedString*)_realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
                 }else {
                     CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)_realLabelContent);
-                    resultSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [_realLabelContent length]), NULL, maxSize, NULL);
+                    result = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [_realLabelContent length]), NULL, maxSize, NULL);
                     CFRelease(framesetter);
                 }
             }
@@ -192,13 +192,15 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 {
                     font = [UIFont systemFontOfSize:17];
                 }
-                resultSize = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+                result = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
             }
-            resultSize.width = ceilf(resultSize.width); //use ceilf to get same result as sizeThatFits
-            resultSize.height = ceilf(resultSize.height); //use ceilf to get same result as sizeThatFits
-            resultSize.width += _padding.left + _padding.right;
-            resultSize.height += _padding.top + _padding.bottom;
-            return resultSize;
+            result.width = ceilf(result.width); //use ceilf to get same result as sizeThatFits
+            result.height = ceilf(result.height); //use ceilf to get same result as sizeThatFits
+            result.width += _padding.left + _padding.right;
+            result.height += _padding.top + _padding.bottom;
+            if (size.width > 0) result.width = MIN(result.width,  size.width);
+            if (size.height > 0) result.height = MIN(result.height,  size.height);
+            return result;
         }
     }
     return CGSizeZero;
