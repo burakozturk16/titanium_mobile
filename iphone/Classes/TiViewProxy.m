@@ -573,7 +573,7 @@ static NSSet* transferableProps = nil;
 {
     TiThreadPerformOnMainThread(^{
         [super resetProxyPropertiesForAnimation:animation];
-		[self reposition];
+		[parent layoutChildren:NO];
     }, YES);
 }
 
@@ -2441,7 +2441,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         {
             [self determineSandboxBounds];
         }
-        if ([self relayout] || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
+        if ([self relayout] || animation || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
             [self layoutChildren:NO];
         }
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
@@ -2589,6 +2589,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             repositioning = NO;
             return;
         }
+        dirtyflags = 0;
         if (parent != nil && (!TiLayoutRuleIsAbsolute([parent layoutProperties]->layoutStyle)) ) {
             sizeCache.size = SizeConstraintViewWithSizeAddingResizing(&layoutProperties,self, sandboxBounds.size, &autoresizeCache);
         }
@@ -2707,11 +2708,9 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 		return;
 	}
 	if ([NSThread isMainThread])
-	{	//NOTE: This will cause problems with ScrollableView, or is a new wrapper needed?
-		[self willChangeSize];
-		[self willChangePosition];
+    {
         [view setRunningAnimation:animation];
-        [parent childWillResize:self withinAnimation:animation];
+        [parent refreshView:nil withinAnimation:animation];
         [view setRunningAnimation:nil];
 	}
 	else 
