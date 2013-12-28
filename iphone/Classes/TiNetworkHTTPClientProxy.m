@@ -380,30 +380,30 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 }
 
--(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) request
+-(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) rq
 {
 	if (hasOnsendstream)
     {
-        [request setUploadProgressDelegate:self];
+        [rq setUploadProgressDelegate:self];
     }
     if (hasOndatastream)
     {
-        [request setDownloadProgressDelegate:self];
+        [rq setDownloadProgressDelegate:self];
     }
 }
 
-- (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL
+- (void)request:(ASIHTTPRequest *)rq willRedirectToURL:(NSURL *)newURL
 {
     if (hasOnredirect)
     {
 		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[request url] absoluteString],@"from",
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[rq url] absoluteString],@"from",
                                [newURL absoluteString],@"to", @"redirect",@"type",nil];
 		[self fireCallback:@"onredirect" withArg:event withSource:thisPointer];
 		[thisPointer release];
     }
-    if ([request shouldRedirect])
-        [request redirectToURL:newURL];
+    if ([rq shouldRedirect])
+        [rq redirectToURL:newURL];
 }
 
 -(void)open:(id)args
