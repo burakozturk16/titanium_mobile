@@ -12,6 +12,39 @@
 
 #import "HLSAnimation.h"
 
+enum TiAnimCurve
+{
+	kTiAnimCurveEaseInOut,
+	kTiAnimCurveEaseIn,
+	kTiAnimCurveEaseOut,
+	kTiAnimCurveLinear,
+	kTiAnimCurveEaseInCirc,
+    kTiAnimCurveEaseOutCirc,
+    kTiAnimCurveEaseInOutCirc,
+    kTiAnimCurveEaseInCubic,
+    kTiAnimCurveEaseOutCubic,
+    kTiAnimCurveEaseInOutCubic,
+    kTiAnimCurveEaseInExpo,
+    kTiAnimCurveEaseOutExpo,
+    kTiAnimCurveEaseInOutExpo,
+    kTiAnimCurveEaseInQuad,
+    kTiAnimCurveEaseOutQuad,
+    kTiAnimCurveEaseInOutQuad,
+    kTiAnimCurveEaseInQuart,
+    kTiAnimCurveEaseOutQuart,
+    kTiAnimCurveEaseInOutQuart,
+    kTiAnimCurveEaseInQuint,
+    kTiAnimCurveEaseOutQuint,
+    kTiAnimCurveEaseInOutQuint,
+    kTiAnimCurveEaseInSine,
+    kTiAnimCurveEaseOutSine,
+    kTiAnimCurveEaseInOutSine,
+    kTiAnimCurveEaseInBack,
+    kTiAnimCurveEaseOutBack,
+    kTiAnimCurveEaseInOutBack
+};
+
+
 @class TiAnimation;
 /**
  Protocol for animation delegate.

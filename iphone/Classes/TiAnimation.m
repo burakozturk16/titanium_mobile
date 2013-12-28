@@ -8,6 +8,7 @@
 #import "TiViewProxy.h"
 #import "KrollCallback.h"
 #import "TiHLSAnimation+Friend.h"
+#import "CAMediaTimingFunction+AdditionalEquations.h"
 
 #ifdef DEBUG 
 	#define ANIMATION_DEBUG 0
@@ -206,10 +207,33 @@ static NSArray *animProps;
 +(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_
 {
     switch (curve_) {
-        case UIViewAnimationOptionCurveEaseInOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        case UIViewAnimationOptionCurveEaseIn: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-        case UIViewAnimationOptionCurveEaseOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-        case UIViewAnimationOptionCurveLinear: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        case kTiAnimCurveEaseInOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        case kTiAnimCurveEaseIn: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+        case kTiAnimCurveEaseOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+        case kTiAnimCurveLinear: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        case kTiAnimCurveEaseOutCirc: return [CAMediaTimingFunction easeOutCirc];
+        case kTiAnimCurveEaseInOutCirc: return [CAMediaTimingFunction easeInOutCirc];
+        case kTiAnimCurveEaseInCubic: return [CAMediaTimingFunction easeInCubic];
+        case kTiAnimCurveEaseOutCubic: return [CAMediaTimingFunction easeOutCubic];
+        case kTiAnimCurveEaseInOutCubic: return [CAMediaTimingFunction easeInOutCubic];
+        case kTiAnimCurveEaseInExpo: return [CAMediaTimingFunction easeInExpo];
+        case kTiAnimCurveEaseOutExpo: return [CAMediaTimingFunction easeOutExpo];
+        case kTiAnimCurveEaseInOutExpo: return [CAMediaTimingFunction easeInOutExpo];
+        case kTiAnimCurveEaseInQuad: return [CAMediaTimingFunction easeInQuad];
+        case kTiAnimCurveEaseOutQuad: return [CAMediaTimingFunction easeOutQuad];
+        case kTiAnimCurveEaseInOutQuad: return [CAMediaTimingFunction easeInOutQuad];
+        case kTiAnimCurveEaseInQuart: return [CAMediaTimingFunction easeInQuart];
+        case kTiAnimCurveEaseOutQuart: return [CAMediaTimingFunction easeOutQuart];
+        case kTiAnimCurveEaseInOutQuart: return [CAMediaTimingFunction easeInOutQuart];
+        case kTiAnimCurveEaseInQuint: return [CAMediaTimingFunction easeInQuint];
+        case kTiAnimCurveEaseOutQuint: return [CAMediaTimingFunction easeOutQuint];
+        case kTiAnimCurveEaseInOutQuint: return [CAMediaTimingFunction easeInOutQuint];
+        case kTiAnimCurveEaseInSine: return [CAMediaTimingFunction easeInSine];
+        case kTiAnimCurveEaseOutSine: return [CAMediaTimingFunction easeOutSine];
+        case kTiAnimCurveEaseInOutSine: return [CAMediaTimingFunction easeInOutSine];
+        case kTiAnimCurveEaseInBack: return [CAMediaTimingFunction easeInBack];
+        case kTiAnimCurveEaseOutBack: return [CAMediaTimingFunction easeOutBack];
+        case kTiAnimCurveEaseInOutBack: return [CAMediaTimingFunction easeInOutBack];
         default: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
     }
 }
