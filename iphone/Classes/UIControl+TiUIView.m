@@ -60,6 +60,6 @@ NSString * const kTiUIViewKey = @"kTiView";
     [self setEnabledCustom:highlighted];
     TiUIView* tiView = [self tiUIView];
     if (tiView)
-        [tiView setBgState:[tiView realStateForState:UIControlStateNormal]];
+        [tiView setBgState:UIControlStateNormal];
 }
 @end
