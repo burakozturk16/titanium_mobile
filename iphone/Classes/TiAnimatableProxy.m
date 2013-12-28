@@ -179,6 +179,7 @@
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
+    if (newAnimation == nil) return;
     [self rememberProxy:newAnimation];
 	pthread_rwlock_rdlock(&pendingLock);
     [_pendingAnimations addObject:newAnimation];
