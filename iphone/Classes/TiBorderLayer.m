@@ -149,7 +149,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
         animation.fromValue = (id)[self getOrCreateLayerMask].path;
         animation.toValue = (id)newBorderPath;
         animation.duration = [runningAnimation duration];
-        animation.timingFunction = [TiAnimation timingFunctionForCurve:[runningAnimation curve]];
+        animation.timingFunction = [runningAnimation curve];
         animation.fillMode = kCAFillModeBoth;
         [self getOrCreateLayerMask].path = newBorderPath;
         [[self getOrCreateLayerMask] addAnimation:animation forKey:nil];
