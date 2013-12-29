@@ -497,6 +497,16 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(void)applyClippingPath:(CGPathRef)path
+{
+    if (self.layer.mask && ![self.layer.mask isKindOfClass:[CAShapeLayer class]])
+        [self applyPathToLayersMask:self.layer.mask path:path];
+    else
+        [self applyPathToLayersMask:self.layer path:path];
+    [self applyPathToLayersMask:_bgLayer path:path];
+    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+}
+
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
     if (_bgLayer) {
@@ -505,10 +515,7 @@ DEFINE_EXCEPTIONS
     if (_borderLayer) {
         [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
     }
-    CGPathRef path = [_borderLayer clippingPath];
-    [self applyPathToLayersMask:self.layer path:path];
-    [self applyPathToLayersMask:_bgLayer path:path];
-    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+    [self applyClippingPath:[_borderLayer clippingPath]];
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
@@ -537,18 +544,14 @@ DEFINE_EXCEPTIONS
 -(void)updateBounds:(CGRect)newBounds
 {
     //TIMOB-11197, TC-1264
-    [CATransaction begin];
     if (runningAnimation == nil) {
-        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+        [CATransaction begin];
+        [CATransaction setDisableActions:YES];
     }
-    else {
-//        TiAnimation* anim = (TiViewAnimation*)[_runningAnimation animation];
-        [CATransaction setAnimationDuration:[runningAnimation duration]];
-        [CATransaction setAnimationTimingFunction:[TiAnimation timingFunctionForCurve:[runningAnimation curve]]];
-    }
-    
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
-    [CATransaction commit];
+    if (runningAnimation == nil) {
+        [CATransaction commit];
+    }
 }
 
 
@@ -940,11 +943,7 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
     [[self getOrCreateBorderLayer] setRadius:radius];
-    CGPathRef path = [_borderLayer clippingPath];
-    [self applyPathToLayersMask:self.layer path:path];
-    [self applyPathToLayersMask:_bgLayer path:path];
-    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
-
+    [self applyClippingPath:[_borderLayer clippingPath]];
     [self updateViewShadowPath];
 }
 
