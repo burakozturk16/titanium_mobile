@@ -227,6 +227,11 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Internal Methods
 
+//+(Class)layerClass
+//{
+//    return [CAShapeLayer class];
+//}
+
 #if VIEW_DEBUG
 -(id)retain
 {
@@ -318,7 +323,18 @@ DEFINE_EXCEPTIONS
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
     self.layer.borderColor = [UIColor clearColor].CGColor;
     viewState = -1;
+//    self.layer.delegate = self;
 }
+//
+//- (void)displayLayer:(CALayer *)layer
+//{
+//    [super displayLayer:layer];
+//}
+//
+//- (void)drawLayer:(CALayer *)layer inContext:(CGContextRef)ctx
+//{
+//    [super drawLayer:layer inContext:ctx];
+//}
 
 - (id) init
 {
@@ -838,6 +854,64 @@ DEFINE_EXCEPTIONS
     [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
 }
 
+-(void) setBackgroundInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateNormal];
+}
+
+-(void) setBackgroundSelectedInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundDisabledInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateDisabled];
+}
+
+
 -(void)setOpacity_:(id)opacity
 {
  	ENSURE_UI_THREAD_1_ARG(opacity);
@@ -962,6 +1036,9 @@ DEFINE_EXCEPTIONS
     TiBorderLayer* borderLayer = [self getOrCreateBorderLayer];
 	borderLayer.theWidth = MAX(borderLayer.theWidth,1);
 	borderLayer.backgroundColor = uiColor.CGColor;
+    
+//    self.layer.borderWidth = MAX(self.layer.borderWidth,1);
+//    self.layer.borderColor = uiColor.CGColor;
 }
 
 -(void) setBorderSelectedColor_:(id)color
@@ -1012,6 +1089,7 @@ DEFINE_EXCEPTIONS
 {
     
 	[self getOrCreateBorderLayer].theWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+//    self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
 -(void)setBorderPadding_:(id)value

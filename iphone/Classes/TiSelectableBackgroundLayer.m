@@ -5,17 +5,19 @@
 @interface TiDrawable()
 {
     UIImage* _bufferImage;
+    NSArray* _innerShadows;
 }
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate;
 
 @end
 @implementation TiDrawable
-@synthesize gradient, color, image, svg, imageRepeat, shadow = _shadow;
+@synthesize gradient, color, image, svg, imageRepeat, shadow = _shadow, innerShadows = _innerShadows;
 
 - (id)init {
     if (self = [super init])
     {
         imageRepeat = NO;
+        _innerShadows = nil;
     }
     return self;
 }
@@ -28,6 +30,7 @@
     RELEASE_TO_NIL(image)
     RELEASE_TO_NIL(svg)
     RELEASE_TO_NIL(_shadow)
+    RELEASE_TO_NIL(_innerShadows)
 	[super dealloc];
 }
 
@@ -37,8 +40,9 @@
     if (_bufferImage == nil && (gradient != nil ||
                                 color != nil ||
                                 image != nil ||
+                                _innerShadows != nil ||
                                 svg != nil)) {
-        if (gradient == nil && color == nil && image != nil) {
+        if (gradient == nil && color == nil && _innerShadows == nil && image != nil) {
             _bufferImage = [image retain];
         }
         else {
@@ -72,24 +76,30 @@
         [layer setContents:(id)_bufferImage.CGImage];
     }
 }
--(void)drawBufferFromLayer:(CALayer*)layer
+-(void)drawBufferFromLayer:(TiSelectableBackgroundLayer*)layer
 {
     CGRect rect = layer.bounds;
+//    CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+//	CGContextRef cacheContext = CGBitmapContextCreate(nil, rect.size.width, rect.size.height, 8, rect.size.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
+//	CGColorSpaceRelease(space);
     UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     if (ctx == 0) {
         UIGraphicsEndImageContext();
         return;
     }
-    [self drawInContext:UIGraphicsGetCurrentContext() inRect:rect];
+    [self drawInContext:ctx inRect:rect forLayer:layer];
+//    CGImageRef imgRef = CGBitmapContextCreateImage(cacheContext);
+//    _bufferImage = [[UIImage imageWithCGImage:imgRef] retain];
+//    CGImageRelease(imgRef);
+//	CGContextRelease(cacheContext);
     _bufferImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
     UIGraphicsEndImageContext();
 }
 
--(void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect
+-(void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect forLayer:(TiSelectableBackgroundLayer*)layer
 {
-    CGContextSaveGState(ctx);
-    
+//    CGContextSaveGState(ctx);
     CGContextSetAllowsAntialiasing(ctx, true);
     CGContextSetShouldAntialias(ctx, true);
     if (color) {
@@ -118,7 +128,24 @@
         CGContextScaleCTM( ctx, scale.width, scale.height );
         [svg.CALayerTree renderInContext:ctx];
     }
-    CGContextRestoreGState(ctx);
+    if(_innerShadows) {
+        UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectInfinite];
+        if (layer.shadowPath) {
+            [path appendPath:[UIBezierPath bezierPathWithCGPath:layer.shadowPath]];
+        }
+        else {
+            [path appendPath:[UIBezierPath bezierPathWithRect:CGRectInset(rect, -1, -1)]];
+        }
+        path.usesEvenOddFillRule = YES;
+        for (NSShadow* shadow in _innerShadows) {
+            CGSize offset = shadow.shadowOffset;
+            CGFloat blur = shadow.shadowBlurRadius;
+            CGColorRef shadowColor = ((UIColor*)shadow.shadowColor).CGColor;
+            CGContextSetShadowWithColor(ctx, offset, blur, shadowColor);
+            CGContextSetFillColorWithColor(ctx, shadowColor);
+            [path fill]; // to get the shadow
+        }
+    }
 }
 
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate
@@ -295,6 +322,15 @@
 {
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.shadow = shadow;
+    if (readyToCreateDrawables) {
+        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+    }
+}
+
+- (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state
+{
+    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    drawable.innerShadows = shadows;
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }

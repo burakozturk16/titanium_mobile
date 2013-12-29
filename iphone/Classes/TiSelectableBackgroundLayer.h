@@ -17,6 +17,7 @@
 @property(nonatomic,retain) TiGradient *gradient;
 @property(nonatomic,retain) TiSVGImage *svg;
 @property(nonatomic,retain) NSShadow *shadow;
+@property(nonatomic,retain) NSArray *innerShadows;
 @property(nonatomic,assign) BOOL imageRepeat;
 @end
 
@@ -40,4 +41,5 @@
 - (void)setColor:(UIColor*)color forState:(UIControlState)state;
 - (void)setImage:(id)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
+- (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state;
 @end
