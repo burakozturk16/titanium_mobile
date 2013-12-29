@@ -538,6 +538,7 @@ static NSSet* transferableProps = nil;
         hlsAnimation.transitionViewProxy = animation.view;
         step = [TiTransitionAnimationStep animationStep];
         step.duration = [animation getAnimationDuration];
+        step.curve = [animation curve];
         [(TiTransitionAnimationStep*)step addTransitionAnimation:hlsAnimation insideHolder:[self getOrCreateView]];
     }
     else {
@@ -547,7 +548,8 @@ static NSSet* transferableProps = nil;
         hlsAnimation.animationProxy = animation;
         step = [TiViewAnimationStep animationStep];
         step.duration = [animation getAnimationDuration];
-        [(TiViewAnimationStep*)step addViewAnimation:hlsAnimation forView:self.view];
+        step.curve = [animation curve];
+       [(TiViewAnimationStep*)step addViewAnimation:hlsAnimation forView:self.view];
     }
     
     return [HLSAnimation animationWithAnimationStep:step];

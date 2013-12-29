@@ -488,7 +488,8 @@ DEFINE_EXCEPTIONS
             CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
             pathAnimation.fromValue = (id)((CAShapeLayer*)layer.mask).path;
             pathAnimation.duration = [runningAnimation duration];
-            pathAnimation.timingFunction = [TiAnimation timingFunctionForCurve:[runningAnimation curve]];
+            pathAnimation.timingFunction = [runningAnimation curve];
+            pathAnimation.fillMode = kCAFillModeBoth;
             pathAnimation.toValue = (id)path;
             [layer.mask addAnimation:pathAnimation forKey:@"clippingpath"];
         }

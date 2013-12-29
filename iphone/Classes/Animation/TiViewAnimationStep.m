@@ -6,6 +6,7 @@
 #import "TiUIView.h"
 #import "TiAnimation.h"
 #import "TiViewProxy.h"
+#import "CAMediaTimingFunction+HLSExtensions.h"
 
 @interface TiViewAnimationStep ()
 
@@ -44,16 +45,25 @@
     for (UIView *view in [self objects]) {
         
         TiViewAnimation *viewAnimation = (TiViewAnimation *)[self objectAnimationForObject:view];
-        UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction); // Backwards compatible
+        UIViewAnimationOptions options = (UIViewAnimationOptionAllowUserInteraction); //Backwards compatible
         if (!viewAnimation.animationProxy.restartFromBeginning && !viewAnimation.animationProxy.cancelRunningAnimations) {
             options |= UIViewAnimationOptionBeginFromCurrentState;
         }
         NSTimeInterval animationDuration = self.duration;
-        options |= self.curve;
         NSAssert(viewAnimation != nil, @"Missing view animation; data consistency failure");
         [viewAnimation checkParameters];
         void (^animation)() = ^{
-            [viewAnimation applyOnView:view forStep:self];
+            if (self.curve) {
+                [CATransaction begin];
+                [CATransaction setAnimationDuration:self.duration];
+                [CATransaction setAnimationTimingFunction:self.curve];
+                [viewAnimation applyOnView:view forStep:self];
+                [CATransaction commit];
+            }
+            else {
+                [viewAnimation applyOnView:view forStep:self];
+            }
+            
         };
         
         void (^complete)(BOOL) = ^(BOOL finished) {
@@ -107,7 +117,7 @@
 - (id)reverseAnimationStep
 {
     TiViewAnimationStep *reverseAnimationStep = [super reverseAnimationStep];
-    reverseAnimationStep.curve = [TiAnimation reverseCurve:self.curve];
+    reverseAnimationStep.curve = [self.curve inverseFunction];
 
     return reverseAnimationStep;
 }

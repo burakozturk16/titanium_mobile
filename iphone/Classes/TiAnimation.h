@@ -106,7 +106,7 @@ enum TiAnimCurve
 @property(nonatomic,readonly) ListenerEntry* callback;
 
 // properties that control the animation 
-@property(nonatomic,retain) NSNumber	*curve;
+@property(nonatomic,retain) CAMediaTimingFunction* curve;
 @property(nonatomic,retain) NSNumber* repeat;
 @property(nonatomic,assign) BOOL autoreverse;
 @property(nonatomic,assign) BOOL restartFromBeginning;
@@ -130,7 +130,7 @@ enum TiAnimCurve
 -(NSTimeInterval)getAnimationDuration;
 -(NSUInteger) repeatCount;
 +(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_;
-+(int)reverseCurve:(int)curve_;
++(CAMediaTimingFunction*)reverseCurve:(CAMediaTimingFunction*)curve_;
 -(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim;
 -(void)cancelMyselfBeforeStarting;
 

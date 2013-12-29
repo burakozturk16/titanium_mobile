@@ -16,12 +16,13 @@
 
 @interface TiAnimation()
 {
+    CAMediaTimingFunction* _curve;
 }
 
 @end
 
 @implementation TiAnimation
-@synthesize callback, duration, repeat, autoreverse, delay, restartFromBeginning, curve, cancelRunningAnimations;
+@synthesize callback, duration, repeat, autoreverse, delay, restartFromBeginning, curve = _curve, cancelRunningAnimations;
 @synthesize animation, animatedProxy;
 @synthesize animated, transition, view;
 
@@ -34,6 +35,7 @@ static NSArray *animProps;
         autoreverse = NO;
         repeat = [NSNumber numberWithInt:1];
         duration = 0;
+        _curve = [[TiAnimation timingFunctionForCurve:kTiAnimCurveEaseInOut] retain];
         
         transition = UIViewAnimationTransitionNone;
         animated = NO;
@@ -58,6 +60,7 @@ static NSArray *animProps;
 	RELEASE_TO_NIL(animatedProxy);
 	RELEASE_TO_NIL(animation);
 	RELEASE_TO_NIL(view);
+	RELEASE_TO_NIL(_curve);
 	[super dealloc];
 }
 
@@ -238,23 +241,14 @@ static NSArray *animProps;
     }
 }
 
-+(int)reverseCurve:(int)curve_
++(CAMediaTimingFunction*)reverseCurve:(CAMediaTimingFunction*)curve_
 {
-    switch (curve_) {
-        case UIViewAnimationCurveEaseIn:
-            return UIViewAnimationCurveEaseOut;
-            break;
-            
-        case UIViewAnimationCurveEaseOut:
-            return UIViewAnimationCurveEaseIn;
-            break;
-            
-        case UIViewAnimationCurveLinear:
-        case UIViewAnimationCurveEaseInOut:
-        default:
-            return curve_;
-            break;
-    }
+    float coords1[2];
+    float coords2[2];
+    [curve_ getControlPointAtIndex:1 values:coords1];
+    [curve_ getControlPointAtIndex:2 values:coords2];
+    CAMediaTimingFunction* function = [CAMediaTimingFunction functionWithControlPoints:coords2[0] :coords1[1] :coords1[0] :coords2[1]];
+    return function;
 }
 
 -(void)cancelMyselfBeforeStarting
@@ -309,6 +303,25 @@ static NSArray *animProps;
 		// called by the view to cause himself to be animated
 		[(TiAnimatableProxy*)args animate:[NSArray arrayWithObject:self]];
 	}
+}
+
+-(void)setCurve:(id)value
+{
+    RELEASE_TO_NIL(_curve);
+    if ([value isKindOfClass:[NSNumber class]])
+    {
+        _curve = [[TiAnimation timingFunctionForCurve:[value intValue]] retain];
+    }
+    else if ([value isKindOfClass:[NSArray class]])
+    {
+        NSArray* array = (NSArray*)value;
+        int count = [array count];
+        if (count == 4)
+        {
+            _curve = [[CAMediaTimingFunction functionWithControlPoints: [[array objectAtIndex:0] doubleValue] : [[array objectAtIndex:1] doubleValue] : [[array objectAtIndex:2] doubleValue] : [[array objectAtIndex:3] doubleValue]] retain];
+        }
+    }
+    [self replaceValue:value forKey:@"curve" notification:NO];
 }
 
 #pragma mark -

@@ -13,14 +13,9 @@
  */
 @interface TiHLSAnimationStep : HLSAnimationStep {
 @private
-    UIViewAnimationCurve m_curve;
+    CAMediaTimingFunction* m_curve;
 }
 
-/**
- * The animation curve to use
- *
- * Default value is UIViewAnimationCurveEaseInOut
- */
-@property (nonatomic, assign) UIViewAnimationCurve curve;
+@property (nonatomic, retain) CAMediaTimingFunction* curve;
 
 @end
