@@ -499,28 +499,35 @@ DEFINE_EXCEPTIONS
 
 -(void)applyClippingPath:(CGPathRef)path
 {
-    if (self.layer.mask && ![self.layer.mask isKindOfClass:[CAShapeLayer class]])
-        [self applyPathToLayersMask:self.layer.mask path:path];
-    else
-        [self applyPathToLayersMask:self.layer path:path];
-    [self applyPathToLayersMask:_bgLayer path:path];
-    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+    if (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]])
+//        [self applyPathToLayersMask:self.layer.mask path:path];
+//    else
+    [self applyPathToLayersMask:self.layer path:path];
+    if ([[self shadowLayer] shadowOpacity] > 0.0f)
+    {
+        [self shadowLayer].shadowPath = path;
+    }
+//    [self applyPathToLayersMask:_bgLayer path:path];
+//    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    CGPathRef clippingPath = [_borderLayer clippingPath];
     if (_bgLayer) {
+        _bgLayer.shadowPath = clippingPath;
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
     if (_borderLayer) {
+        _borderLayer.shadowPath = clippingPath;
         [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
     }
-    [self applyClippingPath:[_borderLayer clippingPath]];
+    [self applyClippingPath:clippingPath];
+    
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
     [self updateTransform];
-    [self updateViewShadowPath];
 }
 
 
@@ -943,8 +950,9 @@ DEFINE_EXCEPTIONS
 -(void)setBorderRadius_:(id)radius
 {
     [[self getOrCreateBorderLayer] setRadius:radius];
-    [self applyClippingPath:[_borderLayer clippingPath]];
-    [self updateViewShadowPath];
+    if (!CGRectIsEmpty([self bounds])) {
+        [self applyClippingPath:[_borderLayer clippingPath]];
+    }
 }
 
 
@@ -1165,11 +1173,6 @@ DEFINE_EXCEPTIONS
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
-    [self updateViewShadowPath];
-}
-
--(void)updateViewShadowPath
-{
     if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
         [self shadowLayer].shadowPath = [_borderLayer clippingPath];
@@ -1958,7 +1961,7 @@ DEFINE_EXCEPTIONS
         self.layer.mask = nil;
     }
     else {
-        if (self.layer.mask == nil) {
+        if (self.layer.mask == nil || [self.layer.mask isKindOfClass:[CAShapeLayer class]]) {
             self.layer.mask = [CALayer layer];
             self.layer.mask.frame = self.layer.bounds;
         }
