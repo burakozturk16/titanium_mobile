@@ -320,6 +320,16 @@
     }
 }
 
+
+-(void)setFrame:(CGRect)frame
+{
+    [super setFrame:frame];
+    if (self.mask) {
+        self.mask.frame = frame;
+    }
+}
+
+
 //
 //static NSArray *animationKeys;
 //+ (NSArray *)animationKeys
