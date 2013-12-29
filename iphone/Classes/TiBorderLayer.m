@@ -170,13 +170,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 
 -(CGPathRef)pathForClippingForBounds:(CGRect)bounds
 {
-    if(radii != NULL) {
         //the 0.5f is there to have a clean border where you don't see the background
         return CGPathCreateRoundiiRect(bounds, radii, 0.5f);
-    }
-    else {
-        return CGPathCreateWithRect(bounds, NULL);
-    }
 }
 -(CGPathRef)borderPathForBounds:(CGRect)bounds
 {
@@ -202,8 +197,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 -(void)updateBorderRect:(CGRect)bounds
 {
     if (CGRectIsEmpty(bounds)) return;
-    [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
-    self.clippingPath = [self pathForClippingForBounds:[self bounds]];
+    CGPathRef path = [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
+    CGPathRelease(path);
+     path = self.clippingPath = [self pathForClippingForBounds:[self bounds]];
+    CGPathRelease(path);
 }
 
 -(void)setTheWidth:(CGFloat)width
