@@ -7,7 +7,11 @@
 //
 
 #import "TiUIHelper.h"
+#import "TiBase.h"
 #import "TiUtils.h"
+@implementation TiShadow
+@end
+
 
 @implementation TiUIHelper
 
@@ -22,16 +26,16 @@
     layer.masksToBounds = NO;
     layer.shouldRasterize = YES;
     layer.rasterizationScale = [[UIScreen mainScreen] scale];
-    ShadowDef data = [TiUIHelper getShadow:args];
-    layer.shadowOffset = data.offset;
-    layer.shadowOpacity = data.opacity;
-    layer.shadowColor = data.color;
-    layer.shadowRadius = data.radius;
+    TiShadow* data = [TiUIHelper getShadow:args];
+    layer.shadowOffset = data.shadowOffset;
+    layer.shadowOpacity = 1.0f;
+    layer.shadowColor = ((UIColor*)data.shadowColor).CGColor;
+    layer.shadowRadius = data.shadowBlurRadius;
 }
 
-+(ShadowDef)getShadow:(NSDictionary*)args;
++(TiShadow*)getShadow:(NSDictionary*)args;
 {
-    ShadowDef result;
+    TiShadow* result = [[TiShadow alloc] init];
     if ([args objectForKey:@"offset"]) {
         NSDictionary* offsetDict  = [args objectForKey:@"offset"];
         CGSize offset = CGSizeZero;
@@ -41,32 +45,32 @@
         if ([offsetDict objectForKey:@"y"]) {
             offset.height = [TiUtils floatValue:[offsetDict objectForKey:@"y"]];
         }
-        result.offset = offset;
+        result.shadowOffset = offset;
     }
     else {
-        result.offset = CGSizeZero;
+        result.shadowOffset = CGSizeZero;
     }
     
-    if ([args objectForKey:@"opacity"]) {
-        result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
-    }
-    else {
-        result.opacity = 1.0f;
-    }
+//    if ([args objectForKey:@"opacity"]) {
+//        result.opacity = [TiUtils floatValue:[args objectForKey:@"opacity"]];
+//    }
+//    else {
+//        result.opacity = 1.0f;
+//    }
     
     if ([args objectForKey:@"color"]) {
-        result.color = [[TiUtils colorValue:[args objectForKey:@"color"]] _color].CGColor;
+        result.shadowColor = [[TiUtils colorValue:[args objectForKey:@"color"]] _color];
     }
     else {
-        result.color = [UIColor blackColor].CGColor;
+        result.shadowColor = [UIColor blackColor];
     }
     if ([args objectForKey:@"radius"]) {
-        result.radius = [TiUtils floatValue:[args objectForKey:@"radius"]];
+        result.shadowBlurRadius = [TiUtils floatValue:[args objectForKey:@"radius"]];
     }
     else {
-        result.radius = 3.0f; //same as Android
+        result.shadowBlurRadius = 3.0f; //same as Android
     }
-    return result;
+    return [result autorelease];
 }
 
 @end
