@@ -650,10 +650,15 @@ public class TiUIText extends TiUIView
 		//Refer to TiUIText.handleReturnKeyType(int) for a list of return keys that are mapped to EditorInfo.IME_ACTION_NEXT and EditorInfo.IME_ACTION_DONE.
 		if (((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
 				actionId == EditorInfo.IME_ACTION_NEXT || 
-				actionId == EditorInfo.IME_ACTION_DONE ) && hasListeners(TiC.EVENT_RETURN)) {
-			KrollDict data = new KrollDict();
-			data.put(TiC.PROPERTY_VALUE, value);
-			fireEvent(TiC.EVENT_RETURN, data, false, false);
+				actionId == EditorInfo.IME_ACTION_DONE )) {
+			if (hasListeners(TiC.EVENT_RETURN)) 
+			{
+				KrollDict data = new KrollDict();
+				data.put(TiC.PROPERTY_VALUE, value);
+				fireEvent(TiC.EVENT_RETURN, data, false, false);
+			}
+			
+			blur();
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
