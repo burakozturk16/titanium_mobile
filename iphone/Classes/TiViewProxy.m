@@ -2443,7 +2443,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         {
             [self determineSandboxBounds];
         }
-        if ([self relayout] || animation || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
+        if ([self relayout] || relayout || animation || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
             [self layoutChildren:NO];
         }
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
