@@ -75,11 +75,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (self = [super init]) {
         _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
-        UIColor* color = [UIColor darkTextColor];
         options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithInt:kCTLeftTextAlignment], DTDefaultTextAlignment,
-                    color, DTDefaultTextColor,
-                    color, DTDefaultLinkColor,
                     [NSNumber numberWithInt:0], DTDefaultFontStyle,
                     @"Helvetica", DTDefaultFontFamily,
                      [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
@@ -271,18 +268,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (value || _contentType == kContentTypeHTML)
         [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
 	[self replaceValue:value forKey:@"html" notification:NO];
-}
--(void)setColor:(id)color
-{
-	UIColor * newColor = [[TiUtils colorValue:color] _color];
-    if (newColor == nil)
-        newColor = [UIColor darkTextColor];
-    [options setValue:newColor forKey:DTDefaultTextColor];
-    [options setValue:newColor forKey:DTDefaultLinkColor];
-    
-    //we need to reset the text to update default paragraph settings
-	[self replaceValue:color forKey:@"color" notification:YES];
-    [self updateAttributeText];
 }
 
 -(void)setFont:(id)font
