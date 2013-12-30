@@ -1134,11 +1134,10 @@ public abstract class TiUIView
 			if (currentActivity == null) {
 				currentActivity = TiApplication.getAppCurrentActivity();
 			}
-			borderView = new TiBorderWrapperView(currentActivity);
+			borderView = new TiBorderWrapperView(currentActivity, proxy);
+			ViewHelper.setAlpha(borderView, ViewHelper.getAlpha(nativeView));
 			borderView.setVisibility(this.visibility);
-			if (proxy.hasProperty(TiC.PROPERTY_OPACITY))
-				borderView.setBorderAlpha(Math.round(TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_OPACITY)) * 255));
-			
+
 			if (proxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
 				boolean value = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_CLIP_CHILDREN));
 				borderView.setClipChildren(value);
@@ -1600,8 +1599,7 @@ public abstract class TiUIView
 			ViewHelper.setAlpha(parentForChildren, opacity);
 		}
 		if (borderView != null) {
-			borderView.setBorderAlpha(Math.round(opacity * 255));
-			borderView.postInvalidate();
+			ViewHelper.setAlpha(borderView, opacity);
 		}
 
 	}
