@@ -14,11 +14,20 @@
 
 CGFloat* innerRadiusFromPadding(const CGFloat* radii, const CGRect  rect, float _decale)
 {
-    CGFloat maxPadding = MIN(rect.size.width / 2, rect.size.height / 2);
-    CGFloat padding = MIN(2*_decale, maxPadding)/2.0f;
+    CGFloat maxPadding = MIN(rect.size.width / 4, rect.size.height / 4);
+    CGFloat padding = MIN(_decale, maxPadding);
     CGFloat* result = malloc(8 * sizeof(CGFloat *));
     for (int i = 0; i < 8; i++) {
         result[i] = MAX(radii[i] - padding, 0);
+    }
+    return result;
+}
+
+CGFloat* decaleRadius(const CGFloat* radii, float _decale)
+{
+    CGFloat* result = malloc(8 * sizeof(CGFloat *));
+    for (int i = 0; i < 8; i++) {
+        result[i] = radii[i] + _decale;
     }
     return result;
 }
@@ -110,6 +119,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     if (self = [super init])
     {
         self.needsDisplayOnBoundsChange = YES;
+        self.masksToBounds = NO;
         self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         _clippingPath = nil;
@@ -199,8 +209,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 
 -(CGPathRef)pathForClippingForBounds:(CGRect)bounds
 {
-        //the 0.5f is there to have a clean border where you don't see the background
-        return CGPathCreateRoundiiRect(bounds, radii, 0.5f);
+    //the 0.5f is there to have a clean border where you don't see the background
+    return CGPathCreateRoundiiRect(bounds, radii, 0.0f);
 }
 -(CGPathRef)borderPathForBounds:(CGRect)bounds
 {
@@ -229,7 +239,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     _lastRect = bounds;
     CGPathRef path = [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
     CGPathRelease(path);
-     path = self.clippingPath = [self pathForClippingForBounds:bounds];
+     path = self.clippingPath = self.shadowPath = [self pathForClippingForBounds:bounds];
     CGPathRelease(path);
     return _clippingPath;
 }
@@ -237,6 +247,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 -(void)setTheWidth:(CGFloat)width
 {
     if (width == _theWidth) return;
+    //the 0.5f compensate the 0.5f applied to the clippingPath
     _theWidth = [self getOrCreateLayerMask].lineWidth = width;
     [self updateBorder];
 }

@@ -321,20 +321,9 @@ DEFINE_EXCEPTIONS
     _dispatchPressed = NO;
     animateBgdTransition = NO;
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
-    self.layer.borderColor = [UIColor clearColor].CGColor;
     viewState = -1;
-//    self.layer.delegate = self;
 }
-//
-//- (void)displayLayer:(CALayer *)layer
-//{
-//    [super displayLayer:layer];
-//}
-//
-//- (void)drawLayer:(CALayer *)layer inContext:(CGContextRef)ctx
-//{
-//    [super drawLayer:layer inContext:ctx];
-//}
+
 
 - (id) init
 {
@@ -518,26 +507,29 @@ DEFINE_EXCEPTIONS
 //        [self applyPathToLayersMask:self.layer.mask path:path];
 //    else
     if (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]])
+    {
         [self applyPathToLayersMask:self.layer path:path];
+    }
     if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
         [self shadowLayer].shadowPath = path;
     }
-//    [self applyPathToLayersMask:_bgLayer path:path];
-//    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+    [self applyPathToLayersMask:_bgLayer path:path];
+    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    CGPathRef clippingPath = [_borderLayer updateBorderRect:bounds];
+    CGPathRef clippingPath = nil;
+    if (_borderLayer) {
+        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
+        clippingPath = [_borderLayer clippingPath];
+    }
     if (_bgLayer) {
         _bgLayer.shadowPath = clippingPath;
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
-    if (_borderLayer) {
-        _borderLayer.shadowPath = clippingPath;
-        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
-    }
+    
 
     [self applyClippingPath:clippingPath];
     
