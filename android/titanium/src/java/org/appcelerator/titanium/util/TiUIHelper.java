@@ -53,12 +53,14 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
@@ -114,6 +116,21 @@ public class TiUIHelper
 			getSizeAndUnits(null, result);
 			sizeUnit = (int)result[0];
 			size = result[1];
+		}
+	}
+	
+	public static class Shadow {
+		public float radius = 3;
+		public float dx = 0;
+		public float dy = 0;
+		public int color = Color.BLACK;
+		
+		public Shadow() 
+		{
+		}
+		public Shadow(int color) 
+		{
+			this.color = color;
 		}
 	}
 	
@@ -381,7 +398,13 @@ public class TiUIHelper
 	}
 
 	public static float getRawSize(String size) {
+		
 		return getRawSize(size, null);
+	}
+	
+	public static float getRawSizeOrZero(String size, Context context) {
+		if (size == null || size.length() == 0) return 0;
+		return getRawSize(size, context);
 	}
 
 	public static float getRawSizeOrZero(KrollDict dict, String property,
@@ -397,7 +420,7 @@ public class TiUIHelper
 	}
 
 	public static float getRawSizeOrZero(Object value) {
-		return getRawSize(TiConvert.toString(value), null);
+		return getRawSizeOrZero(TiConvert.toString(value), null);
 	}
 	
 	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
@@ -1258,5 +1281,30 @@ public class TiUIHelper
 		d.put(TiC.PROPERTY_X, nativeLeft.getAsDefault(decorView));
 		d.put(TiC.PROPERTY_Y, nativeTop.getAsDefault(decorView));
 		return d;
+	}
+	
+	public static RectF insetRect(RectF source, Rect inset) {
+		if (inset == null) return source;
+		return new RectF(source.left + inset.left, 
+				source.top + inset.top, 
+				source.right - inset.right, 
+				source.bottom - inset.bottom);
+	}
+	
+	public static Shadow getShadow(KrollDict dict) {
+		Shadow result = new Shadow();
+		if (dict == null) return result;
+		if (dict.containsKey(TiC.PROPERTY_OFFSET)) 
+		{
+			HashMap offset = (HashMap) dict.get(TiC.PROPERTY_OFFSET);
+			result.dx = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_X));
+			result.dy = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_Y));
+		}
+		result.radius = TiUIHelper.getRawSize(dict.optString(TiC.PROPERTY_RADIUS, "3"));
+		if (dict.containsKey(TiC.PROPERTY_COLOR))
+		{
+			result.color = TiConvert.toColor(dict, TiC.PROPERTY_COLOR, result.color);
+		}
+		return result;
 	}
 }

@@ -22,9 +22,8 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 import org.appcelerator.titanium.view.Ti2DMatrix;
-import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1083,6 +1082,20 @@ public class TiConvert
 		}
 
 		return null;
+	}
+	
+	/**
+	 * Converts an array of boxed objects into a primitive Shadow array.
+	 * @param inArray array that contains HashMap objects
+	 * @return a primitive Shadow array
+	 * @throws ClassCastException if a non-Hashmap object is found in the array.
+	 */
+	public static Shadow[] toShadowArray(Object[] inArray) {
+		Shadow[] outArray = new Shadow[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = TiUIHelper.getShadow(new KrollDict((HashMap) inArray[i]));
+		}
+		return outArray;
 	}
 
 }

@@ -107,8 +107,7 @@ public class TiUISwitch extends TiUIView
 			TiUIHelper.setAlignment(cb, null, verticalAlign);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
-			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));		
-			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, colorDrawable);
+			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_CHECKED_STATE, TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
 			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE), backgroundRepeat, proxy);
