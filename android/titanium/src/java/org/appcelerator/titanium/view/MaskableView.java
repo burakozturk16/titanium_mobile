@@ -27,25 +27,25 @@ public class MaskableView extends FreeLayout {
 	}
 	
 	@Override
-	protected void onDraw(Canvas canvas)
+	public void draw(Canvas canvas)
 	{
 		if (bitmap != null) {
 			Rect bounds = new Rect();
 			getDrawingRect(bounds);
-			super.onDraw(canvas);
+			super.draw(canvas);
 			canvas.drawBitmap(bitmap, bitmapRect, bounds, maskPaint);
 		}
 		else {
-			super.onDraw(canvas);
+			super.draw(canvas);
 		}
 	}
 	@Override
 	protected void dispatchDraw(Canvas canvas)
 	{
-		if (bitmap != null) {
+		if (bitmap != null && willNotDraw()) {
 			Rect bounds = new Rect();
 			getDrawingRect(bounds);
-			super.dispatchDraw(canvas); 
+			super.dispatchDraw(canvas);
 			canvas.drawBitmap(bitmap, bitmapRect, bounds, maskPaint);
 		}
 		else {
@@ -65,13 +65,10 @@ public class MaskableView extends FreeLayout {
 		this.bitmap = bitmap;
 	
 		if (bitmap != null) {
-			setWillNotDraw(false);
 			bitmapRect.set(0,0, bitmap.getWidth(), bitmap.getHeight());
 			maskPaint.setShader(new BitmapShader(convertToAlphaMask(bitmap), Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
 		}
 		else {
-			setWillNotDraw(true);
-
 		}
 		invalidate();
 	}
