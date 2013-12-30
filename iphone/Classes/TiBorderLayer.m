@@ -100,6 +100,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     CGFloat* radii;
     CGFloat _theWidth;
     UIEdgeInsets _thePadding;
+    CGRect _lastRect;
 }
 @synthesize clippingPath = _clippingPath;
 @synthesize thePadding = _thePadding;
@@ -113,6 +114,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         _clippingPath = nil;
         radii = NULL;
+        _lastRect = CGRectZero;
     }
     return self;
 }
@@ -185,11 +187,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
         CGPathRelease(newClippingPath);
     }
     else
-        [self updateBorder];
+        [self updateBorderRect:[self bounds]];//dont update if same rect
 }
 
 -(void)updateBorder
 {
+    //updateBorder will force the update.
+    _lastRect = CGRectZero;
     [self updateBorderRect:[self bounds]];
 }
 
@@ -219,13 +223,15 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     }
 }
 
--(void)updateBorderRect:(CGRect)bounds
+-(CGPathRef)updateBorderRect:(CGRect)bounds
 {
-    if (CGRectIsEmpty(bounds)) return;
+    if (CGRectIsEmpty(bounds) || CGRectEqualToRect(bounds, _lastRect)) return;
+    _lastRect = bounds;
     CGPathRef path = [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
     CGPathRelease(path);
-     path = self.clippingPath = [self pathForClippingForBounds:[self bounds]];
+     path = self.clippingPath = [self pathForClippingForBounds:bounds];
     CGPathRelease(path);
+    return _clippingPath;
 }
 
 -(void)setTheWidth:(CGFloat)width

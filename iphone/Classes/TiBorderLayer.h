@@ -15,4 +15,5 @@
 @property(nonatomic,assign) UIEdgeInsets thePadding;
 -(void)setRadius:(id)value;
 -(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*)animation;
+-(CGPathRef)updateBorderRect:(CGRect)bounds;
 @end
