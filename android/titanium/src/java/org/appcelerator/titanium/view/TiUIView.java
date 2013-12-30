@@ -1180,7 +1180,7 @@ public abstract class TiUIView
 		if (radius.length == 4) {
 			result = new float[8];
 			for (int i = 0; i < radius.length; i++) {
-				result[i] = result[i+1] = radius[i] * factor;
+				result[i*2] = result[i*2+1] = radius[i] * factor;
 			}
 		}
 		else if (radius.length == 8) 
