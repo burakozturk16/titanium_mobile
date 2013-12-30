@@ -114,10 +114,25 @@
 
 #pragma mark Reverse animation
 
+- (CAMediaTimingFunction *)inverseFunction:(CAMediaTimingFunction*)function
+{
+    float values1[2];
+    memset(values1, 0, sizeof(values1));
+    [function getControlPointAtIndex:1 values:values1];
+    
+    float values2[2];
+    memset(values2, 0, sizeof(values2));
+    [function getControlPointAtIndex:2 values:values2];
+    
+    // Flip the original curve around the y = 1 - x axis
+    // Refer to the "Introduction to Animation Types and Timing Programming Guide"
+    return [CAMediaTimingFunction functionWithControlPoints:1.f - values2[0] :1.f - values2[1] :1.f - values1[0] :1.f - values1[1]];
+}
+
 - (id)reverseAnimationStep
 {
     TiViewAnimationStep *reverseAnimationStep = [super reverseAnimationStep];
-    reverseAnimationStep.curve = [self.curve inverseFunction];
+    reverseAnimationStep.curve = [self inverseFunction:self.curve];
 
     return reverseAnimationStep;
 }
