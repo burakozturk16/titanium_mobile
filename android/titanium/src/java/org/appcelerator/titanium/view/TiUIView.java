@@ -19,6 +19,7 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
+import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
@@ -104,7 +105,9 @@ public abstract class TiUIView
 	public static final int SOFT_KEYBOARD_HIDE_ON_FOCUS = 1;
 	public static final int SOFT_KEYBOARD_SHOW_ON_FOCUS = 2;
 	
-	private static final int MSG_SET_BACKGROUND = 100;
+	private static final int MSG_FIRST_ID = 100;
+	private static final int MSG_SET_BACKGROUND = MSG_FIRST_ID + 1;
+	private static final int MSG_CLEAR_FOCUS = MSG_FIRST_ID + 2;
 
 	protected View nativeView; // Native View object
 
@@ -298,6 +301,12 @@ public abstract class TiUIView
 		switch(msg.what) {
 			case MSG_SET_BACKGROUND : {
 				applyCustomBackground();
+				return true;
+			}
+			case MSG_CLEAR_FOCUS : {
+				AsyncResult result = (AsyncResult) msg.obj;
+				handleClearFocus((View) result.getArg());
+				result.setResult(null); //Signal added.
 				return true;
 			}
 		}
@@ -924,10 +933,27 @@ public abstract class TiUIView
 
 	public boolean hasFocus()
 	{
-		if (nativeView != null) {
-			return nativeView.hasFocus();
+		View view = getFocusView();
+		if (view != null) {
+			return view.hasFocus();
 		}
 		return false;
+	}
+	
+	protected void handleClearFocus(View view)
+	{
+		view.clearFocus();
+		TiUIHelper.hideSoftKeyboard(view);
+	}
+	
+	protected void clearFocus(View view)
+	{
+		if (TiApplication.isUIThread()) {
+			handleClearFocus(view);
+		}
+		else {
+			TiMessenger.sendBlockingMainMessage(proxy.getMainHandler().obtainMessage(MSG_CLEAR_FOCUS), view);
+		}
 	}
 
 	/**
@@ -935,17 +961,9 @@ public abstract class TiUIView
 	 */
 	public boolean blur()
 	{
-		if (nativeView != null && nativeView.hasFocus()) {
-			nativeView.clearFocus();
-			TiMessenger.postOnMain(new Runnable() {
-				public void run()
-				{
-					if (nativeView != null) {
-						TiUIHelper.showSoftKeyboard(nativeView, false);
-					}
-
-				}
-			});
+		View view = getFocusView();
+		if (view != null && view.hasFocus()) {
+			clearFocus(view);
 			return true;
 		}
 		return false;
@@ -1256,6 +1274,11 @@ public abstract class TiUIView
 	}
 
 	public View getRootView()
+	{
+		return nativeView;
+	}
+	
+	public View getFocusView()
 	{
 		return nativeView;
 	}

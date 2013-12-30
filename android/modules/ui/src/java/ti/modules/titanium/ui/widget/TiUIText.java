@@ -175,7 +175,16 @@ public class TiUIText extends TiUIView
 			params.gravity = Gravity.CENTER;
 			this.addView(leftPane, params);
 
-			editText = new TiEditText(context);
+			editText = new TiEditText(context){
+				@Override
+				public boolean hasFocus() {
+					return super.hasFocus(); 
+				}
+				@Override
+				public void clearFocus() {
+					super.clearFocus(); 
+				}
+			};
 			editText.setId(200);
 			params = new LinearLayout.LayoutParams(0, LayoutParams.FILL_PARENT, 1.0f);
 			this.addView(editText, params);
@@ -594,6 +603,11 @@ public class TiUIText extends TiUIView
 		super.applyCustomBackground();
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
+	}
+	@Override
+	public View getFocusView()
+	{
+		return realtv;
 	}
 
 	@Override

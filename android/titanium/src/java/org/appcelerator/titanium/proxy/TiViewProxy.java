@@ -507,6 +507,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return null;
 	}
 	
+	public View getFocusView()
+	{
+		if (view  != null)
+			return view.getFocusView();
+		return null;
+	}
+	
+	
 	public View getOuterView()
 	{
 		if (view  != null)
