@@ -227,13 +227,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		poping = false;
 		if (toRemove == this) return;
 		removeWindow(toRemove);
-		View view = toRemove.getOuterView();
-		if (view != null) {
-			ViewParent parent = view.getParent();
-			if (parent != null) {
-				((ViewGroup)parent).removeView(view);
-			}
-		}
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) {
 			activity.removeWindowFromStack(toRemove);
