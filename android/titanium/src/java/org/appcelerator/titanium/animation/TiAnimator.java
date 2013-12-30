@@ -17,7 +17,6 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.AnimatableProxy;
-import org.appcelerator.titanium.proxy.TiInterpolator;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.os.Build;
@@ -135,7 +134,7 @@ public class TiAnimator
 			else if (value instanceof Object[]) {
 				double[] values = TiConvert.toDoubleArray((Object[]) value);
 				if (values.length == 4) {
-					curve =new CubicBezierInterpolator(values[0], values[1], values[2], values[3], duration);
+					curve =new CubicBezierInterpolator(values[0], values[1], values[2], values[3]);
 				}
 			}
 		}
