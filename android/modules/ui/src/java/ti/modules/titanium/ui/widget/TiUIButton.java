@@ -200,8 +200,8 @@ public class TiUIButton extends TiUINonViewGroupView
 			if (value instanceof HashMap) {
 				needShadow = true;
 				HashMap dict = (HashMap) value;
-				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
-				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
+				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
 			}
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
@@ -273,8 +273,8 @@ public class TiUIButton extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {
 				HashMap dict = (HashMap) newValue;
-				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
-				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
+				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
 				btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 			}
 		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
