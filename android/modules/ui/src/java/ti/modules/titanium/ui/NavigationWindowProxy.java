@@ -458,18 +458,18 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (viewToAddTo != null) {
 			proxy.setActivity(activity);
 			final View viewToAdd = proxy.getOrCreateView().getOuterView();
-			viewToAdd.setVisibility(View.GONE);			
+			viewToAdd.setVisibility(View.GONE);
 			TiUIHelper.addView(viewToAddTo, viewToAdd, proxy.peekView().getLayoutParams());
 			TiWindowProxy winToBlur = getCurrentWindow();
 			final View viewToHide = winToBlur.getOuterView();
-			if (transition != null) {	
+			if (transition != null) {
 				transition.setTargets(viewToAddTo, viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
-					public void onAnimationStart(Animator arg0) {							
+					public void onAnimationStart(Animator arg0) {
 					}
 					
-					public void onAnimationRepeat(Animator arg0) {							
+					public void onAnimationRepeat(Animator arg0) {
 					}
 					
 					public void onAnimationEnd(Animator arg0) {	
@@ -479,7 +479,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 						pushing = false;
 					}
 
-					public void onAnimationCancel(Animator arg0) {		
+					public void onAnimationCancel(Animator arg0) {
 						viewToAddTo.removeView(viewToHide);
 						proxy.sendOpenEvent();
 						proxy.customHandleOpenEvent(false);
@@ -492,7 +492,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				viewToAddTo.removeView(viewToHide);
 				pushing = false; 
 			}
-   			viewToAdd.setVisibility(View.VISIBLE);			
+   			viewToAdd.setVisibility(View.VISIBLE);
 		}
 		proxy.customHandleOpenEvent(true);
 		addWindow(proxy, transition);
