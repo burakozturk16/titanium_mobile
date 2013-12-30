@@ -6,10 +6,17 @@
  */
 package org.appcelerator.titanium.view;
 
+import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
+
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Path.Direction;
+import android.graphics.Path.FillType;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
@@ -23,14 +30,20 @@ public class TiBackgroundDrawable extends Drawable {
 //	private RectF innerRect;
 	private SparseArray<OneStateDrawable> drawables;
 	private OneStateDrawable currentDrawable;
-	private ColorDrawable defaultColorDrawable;
+	private int defaultColor = Color.TRANSPARENT;
 	private SparseArray<int[]> mStateSets;
+	
+	private RectF bounds = new RectF();
+	private float[] radius = null;
+	Path path;
+	private float pathWidth = 0;
+	private Rect mPadding;
 	
 
 	public TiBackgroundDrawable()
 	{
 		currentDrawable = null;
-		defaultColorDrawable = null;
+		mPadding = null;
 		mStateSets = new SparseArray<int[]>();
 		drawables = new SparseArray<OneStateDrawable>();
 //		innerRect = new RectF();
@@ -78,18 +91,63 @@ public class TiBackgroundDrawable extends Drawable {
 		if (currentDrawable != null) {
 			currentDrawable.draw(canvas);
 		}
-		else if(defaultColorDrawable != null) {
-			defaultColorDrawable.draw(canvas);
+		else if(defaultColor != Color.TRANSPARENT) {
+			canvas.drawColor(defaultColor);
 		}
 
 		canvas.restore();
+	}
+	
+	private float[] innerRadiusFromPadding(RectF outerRect, float padding)
+	{
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = Math.max(radius[i] - padding, 0);
+		}
+		return result;
+	}
+	
+	private void updatePath(){
+		if (bounds.isEmpty()) return;
+		path = new Path();
+		path.setFillType(FillType.EVEN_ODD);
+		RectF outerRect = TiUIHelper.insetRect(bounds, mPadding);
+		if (radius != null) {
+			path.addRoundRect(outerRect, radius, Direction.CW);
+			if (pathWidth > 0) {
+				float padding = 0;
+				float maxPadding = 0;
+				RectF innerRect = new RectF(); 
+				maxPadding = Math.min(bounds.width() / 2, bounds.height() / 2);
+				padding = Math.min(pathWidth, maxPadding);
+				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
+				path.addRoundRect(innerRect, innerRadiusFromPadding(outerRect, padding), Direction.CCW);
+			}
+		}
+		else {
+			path.addRect(outerRect, Direction.CW);
+			if (pathWidth > 0) {
+				int padding = 0;
+				int maxPadding = 0;
+				RectF innerRect = new RectF();
+				maxPadding = (int) Math.min(bounds.width() / 2, bounds.height() / 2);
+				padding = (int) Math.min(pathWidth, maxPadding);
+				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
+				path.addRect(innerRect, Direction.CCW);
+			}
+		}
+		invalidateSelf();
+	}
+	public Path getPath(){
+		return path;
 	}
 
 	@Override
 	protected void onBoundsChange(Rect bounds)
 	{
+		this.bounds = new RectF(bounds);
 		super.onBoundsChange(bounds);
-//		innerRect.set(bounds);
+		updatePath();
 		int length = drawables.size();
 		for(int i = 0; i < length; i++) {
 		   Drawable drawable = drawables.valueAt(i);
@@ -99,13 +157,27 @@ public class TiBackgroundDrawable extends Drawable {
 	
 	public void setRadius(float[] radius)
 	{
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.setRadius(radius);
-		}
+		this.radius = radius;
+		updatePath();
 	}
 	
+	public void setPathWidth(float width)
+	{
+		this.pathWidth = width;
+		updatePath();
+	}
+	public void setRadiusWidth(float[] radius, float width)
+	{
+		this.pathWidth = width;
+		this.radius = radius;
+		updatePath();
+	}
+	
+	public void setPadding(Rect padding) {
+		this.mPadding = padding;
+		updatePath();
+	}
+
 	// @Override
 	// protected boolean onLevelChange(int level)
 	// {
@@ -121,7 +193,7 @@ public class TiBackgroundDrawable extends Drawable {
 	protected boolean onStateChange(int[] stateSet) {
 		
 		super.onStateChange(stateSet);
-		setState(stateSet);
+//		setState(stateSet);
 		int key = keyOfBestMatchingStateSet(stateSet);
         if (key < 0) {
         	key = keyOfBestMatchingStateSet(StateSet.WILD_CARD);
@@ -130,7 +202,6 @@ public class TiBackgroundDrawable extends Drawable {
 		if (key != -1)
 		{
 			newdrawable = drawables.get(key);
-			invalidateSelf();
 		}
 		
 		if (newdrawable != currentDrawable)
@@ -156,9 +227,9 @@ public class TiBackgroundDrawable extends Drawable {
 		{
 			key = mStateSets.size();
 			mStateSets.append(key, stateSet);
-			drawable = new OneStateDrawable();
+			drawable = new OneStateDrawable(this);
 			drawable.setAlpha(this.alpha);
-			drawable.setDefaultColorDrawable(defaultColorDrawable);
+			drawable.setDefaultColor(defaultColor);
 			drawables.append(key, drawable);
 		}
 		else
@@ -177,19 +248,12 @@ public class TiBackgroundDrawable extends Drawable {
 		return result;
 	}
 	
-	public void setColorDrawableForState(int[] stateSet, Drawable drawable)
-	{
-		if (drawable != null) {
-			drawable.setBounds(this.getBounds());
-		}
-		getOrCreateDrawableForState(stateSet).setColorDrawable(drawable);
-		onStateChange(getState());
-	}
-	
 	public void setColorForState(int[] stateSet, int color)
 	{
 		getOrCreateDrawableForState(stateSet).setColor(color);
+		onStateChange(getState());
 	}
+
 	
 	public void setImageDrawableForState(int[] stateSet, Drawable drawable)
 	{
@@ -206,6 +270,12 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setBounds(this.getBounds());
 		}
 		getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
+		onStateChange(getState());
+	}
+	
+	public void setInnerShadowsForState(int[] stateSet, Shadow[] shadows)
+	{
+		getOrCreateDrawableForState(stateSet).setInnerShadows(shadows);
 		onStateChange(getState());
 	}
 	
@@ -227,15 +297,15 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 	}
 	
-	public void invalidateDrawable(Drawable who) {
-		
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.invalidateDrawable(who);
-		}
-
-	}
+//	public void invalidateDrawable(Drawable who) {
+//		
+//		int length = drawables.size();
+//		for(int i = 0; i < length; i++) {
+//			OneStateDrawable drawable = drawables.valueAt(i);
+//			drawable.invalidateDrawable(who);
+//		}
+//
+//	}
 
 	public void releaseDelegate() {
 		int length = drawables.size();
@@ -269,12 +339,12 @@ public class TiBackgroundDrawable extends Drawable {
 		
 	}
 
-	public void setDefaultColorDrawable(ColorDrawable colorDrawable) {
-		defaultColorDrawable = colorDrawable;
+	public void setDefaultColor(int defaultColor) {
+		this.defaultColor = defaultColor;
 		int length = drawables.size();
 		for(int i = 0; i < length; i++) {
 			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.setDefaultColorDrawable(colorDrawable);
+			drawable.setDefaultColor(defaultColor);
 		}
 	}
 }

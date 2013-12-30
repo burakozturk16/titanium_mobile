@@ -2,6 +2,8 @@ package org.appcelerator.titanium.view;
 
 import java.util.WeakHashMap;
 
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
+
 import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
@@ -9,7 +11,6 @@ import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Path.Direction;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
@@ -22,20 +23,7 @@ import android.util.Pair;
 
 public class OneStateDrawable extends Drawable {
 	
-	public static class Shadow {
-		public float radius = 12;
-		public float dx = 0;
-		public float dy = 20;
-		public int color = Color.BLUE;
-		
-		public Shadow() 
-		{
-		}
-		public Shadow(int color) 
-		{
-			this.color = color;
-		}
-	}
+	
 	private static final String TAG = "OneStateDrawable";
 	private RectF bounds = new RectF();
 	
@@ -44,32 +32,22 @@ public class OneStateDrawable extends Drawable {
     private Canvas tempCanvas;
     private Bitmap tempBitmap;
 			
-	Drawable colorDrawable;
+	int color = Color.TRANSPARENT;
 	Drawable imageDrawable; //BitmapDrawable or NinePatchDrawable
 	Drawable gradientDrawable;
-	private Drawable defaultColorDrawable;
-//	private Shadow[] outerShadows = {new Shadow(Color.RED)};
+	private int defaultColor = Color.TRANSPARENT;
 	private Shadow[] innerShadows = null;
-	private float[] radius = null;
 	Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-	Path path;
+	TiBackgroundDrawable parent;
 	
-	Bitmap cachedBitmap;
+	Bitmap cachedBitmap = null;
 	Canvas cacheCanvas = new Canvas();
 	
 	private int alpha = 255;
 	
-	private void drawColorDrawable(ColorDrawable drawable, Canvas canvas)
+	public OneStateDrawable(TiBackgroundDrawable parent) 
 	{
-		int oldAlpha = -1;
-		if (alpha < 255 && alpha != -1) {
-			oldAlpha = drawable.getAlpha();
-			drawable.setAlpha((alpha*oldAlpha)/255);
-		}
-		drawable.draw(canvas);
-		if(oldAlpha != -1) {
-			colorDrawable.setAlpha(oldAlpha);
-		}
+		this.parent = parent;
 	}
 	
 	private void generateTempCanvas(){
@@ -91,35 +69,32 @@ public class OneStateDrawable extends Drawable {
 
 	@Override
 	public void draw(Canvas canvas) {
-//		if (outerShadows != null && outerShadows.length > 0) {
-//			for(Shadow shadow : outerShadows){
-//				canvas.save();
-//				canvas.translate(50, 20);
-//				paint.setColor(shadow.color); 
-//                paint.setShadowLayer(shadow.radius, shadow.dx, shadow.dy, shadow.color);
-//                canvas.drawPath(path, paint);
-//                paint.clearShadowLayer();
-//                canvas.restore();
-////	            paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
-////                canvas.drawPath(path, paint);
-////                paint.setXfermode(null);
-//			}
-//		}
-		if (cachedBitmap == null && !bounds.isEmpty()) {
+
+		boolean needsDrawing = (color != Color.TRANSPARENT || defaultColor != Color.TRANSPARENT ||
+				gradientDrawable != null || imageDrawable != null);
+		if (needsDrawing && cachedBitmap == null && !bounds.isEmpty()) {
 			cachedBitmap = Bitmap.createBitmap((int)bounds.width(), (int)bounds.height(), Bitmap.Config.ARGB_8888);
 			cacheCanvas.setBitmap(cachedBitmap);
-			cacheCanvas.clipPath(path);
-			if (colorDrawable != null) {
-				drawColorDrawable((ColorDrawable) colorDrawable, cacheCanvas);
+			Path path = parent.getPath();
+			if (color != Color.TRANSPARENT) {
+				paint.setColor(color);
+				cacheCanvas.drawPath(path, paint);
 			}
-			else if(defaultColorDrawable != null) {
-				drawColorDrawable((ColorDrawable) defaultColorDrawable, cacheCanvas);
+			else if(defaultColor != Color.TRANSPARENT) { 
+				paint.setColor(defaultColor);
+				cacheCanvas.drawPath(path, paint);
 			}
-			if (gradientDrawable != null)
-				gradientDrawable.draw(cacheCanvas);
+			if (gradientDrawable != null) 
+			{
+				paint.setShader(((TiGradientDrawable)gradientDrawable).getShaderFactory().resize((int)bounds.width(), (int)bounds.height()));
+				cacheCanvas.drawPath(path, paint);
+			}
 			if (imageDrawable != null) {
-				imageDrawable.draw(cacheCanvas);
+				cacheCanvas.clipPath(path);
+				imageDrawable.draw(canvas);
 			}
+            paint.setShader(null);
+            paint.setColor(0);
 			if (innerShadows != null && innerShadows.length > 0) {
 				generateTempCanvas();
 				for(Shadow shadow : innerShadows){
@@ -141,7 +116,10 @@ public class OneStateDrawable extends Drawable {
 			}
 			cacheCanvas.setBitmap(null);
 		}
-		if (cachedBitmap != null) canvas.drawBitmap(cachedBitmap, 0, 0, null);
+		if (cachedBitmap != null) {
+			if (alpha != -1) paint.setAlpha(alpha);
+			canvas.drawBitmap(cachedBitmap, 0, 0, null);
+		}
 	}
 
 	@Override
@@ -186,93 +164,61 @@ public class OneStateDrawable extends Drawable {
 	}
 	
 	
-	private void updatePath(){
-		path = new Path();
-		if (radius != null) {
-			path.addRoundRect(bounds, radius, Direction.CW);
-		}
-		else {
-			path.addRect(bounds, Direction.CW);
-		}
-	}
 	
 	@Override
 	public void setBounds (Rect bounds) {
 		this.bounds = new RectF(bounds);
 		clearBitmap();
-		updatePath();
-		if (colorDrawable != null)
-			colorDrawable.setBounds(bounds);
 		if (gradientDrawable != null)
 			gradientDrawable.setBounds(bounds);
 		if (imageDrawable != null) 
 			imageDrawable.setBounds(bounds);
 	}
 	
-	@Override
-	public boolean setState (int[] stateSet) {
-		boolean result = false;
-		if (colorDrawable != null)
-			result |= colorDrawable.setState(stateSet);
-		if (gradientDrawable != null)
-			result |= gradientDrawable.setState(stateSet);
-		if (imageDrawable != null)
-			result |= imageDrawable.setState(stateSet);
-		return result;
-	}
+//	@Override
+//	public boolean setState (int[] stateSet) {
+//		boolean result = false;
+//		if (colorDrawable != null)
+//			result |= colorDrawable.setState(stateSet);
+//		if (gradientDrawable != null)
+//			result |= gradientDrawable.setState(stateSet);
+//		if (imageDrawable != null)
+//			result |= imageDrawable.setState(stateSet);
+//		return result;
+//	}
 	
-	@Override
-	public void invalidateSelf() {
-		clearBitmap();
-		if (colorDrawable != null)
-			colorDrawable.invalidateSelf();
-		if (gradientDrawable != null)
-			gradientDrawable.invalidateSelf();
-		if (imageDrawable != null)
-			imageDrawable.invalidateSelf();
-	}
+//	@Override
+//	public void invalidateSelf() {
+//		clearBitmap();
+//		if (gradientDrawable != null)
+//			gradientDrawable.invalidateSelf();
+//		if (imageDrawable != null)
+//			imageDrawable.invalidateSelf();
+//	}
 	
 	public void releaseDelegate() {
 		clearBitmap();
 		imageDrawable = null;
-		colorDrawable = null;
 		gradientDrawable = null;
 	}
 	
-	public void invalidateDrawable(Drawable who) {
-		clearBitmap();
-		if (colorDrawable == who)
-			colorDrawable.invalidateSelf();
-		else if (gradientDrawable  == who)
-			gradientDrawable.invalidateSelf();
-		else if (imageDrawable  == who)
-			imageDrawable.invalidateSelf();
-	}
-	
-	public void setColorDrawable(Drawable drawable)
-	{
-		clearBitmap();
-		applyAlphaToDrawable(drawable);
-		colorDrawable = drawable;
-	}
+//	public void invalidateDrawable(Drawable who) {
+//		clearBitmap();
+//		if (gradientDrawable  == who)
+//			gradientDrawable.invalidateSelf();
+//		else if (imageDrawable  == who)
+//			imageDrawable.invalidateSelf();
+//	}
 	
 	public void setColor(int color)
 	{
 		clearBitmap();
-		if (colorDrawable  == null) {
-			colorDrawable = new ColorDrawable(color);
-//			applyAlphaToDrawable(colorDrawable);
-		}
-		else {
-			((ColorDrawable)colorDrawable).setColor(color);
-		}
+		this.color = color;
 	}
 	
 	public int getColor()
 	{
-		if (colorDrawable != null)
-			return ((ColorDrawable)colorDrawable).getColor();
-		return Color.TRANSPARENT;
+		return color;
 	}
 	
 	public void setBitmapDrawable(Drawable drawable)
@@ -299,26 +245,13 @@ public class OneStateDrawable extends Drawable {
 		gradientDrawable = drawable;
 	}
 	
-//	protected void setNativeView(View view)
-//	{
-//		if (gradientDrawable != null && imageDrawable instanceof TiGradientDrawable) {
-//			TiGradientDrawable drawable  = (TiGradientDrawable)gradientDrawable;
-//			drawable.invalidateSelf();
-//		}
-//	}
-	public void setDefaultColorDrawable(ColorDrawable drawable) {
+	public void setDefaultColor(int color) {
 		clearBitmap();
-		applyAlphaToDrawable(drawable);
-		defaultColorDrawable = drawable;
+		defaultColor = color;
 	}
 	
-	public void setRadius(float[] radius)
-	{
+	public void setInnerShadows(Shadow[] shadows) {
 		clearBitmap();
-		this.radius = radius;
-		if (!bounds.isEmpty()) {
-			updatePath();
-		}
+		innerShadows = shadows;
 	}
-	
 }

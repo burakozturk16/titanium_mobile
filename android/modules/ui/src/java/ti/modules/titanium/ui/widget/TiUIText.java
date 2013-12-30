@@ -157,6 +157,19 @@ public class TiUIText extends TiUIView
 		{
 			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT);
 		}
+		
+		
+		@Override
+		protected void drawableStateChanged() {
+	        
+	    }
+		
+		@Override
+		public void childDrawableStateChanged(View child) {
+			if (child == editText) {
+				propagateChildDrawableState(child);
+			}
+		}
 
 		private void init(Context context) {
 			layout = this;
