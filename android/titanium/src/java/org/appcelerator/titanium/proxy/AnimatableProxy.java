@@ -13,6 +13,8 @@ import org.appcelerator.titanium.animation.TiAnimator;
 import org.appcelerator.titanium.animation.TiAnimatorListener;
 import org.appcelerator.titanium.animation.TiAnimatorSet;
 
+import android.view.animation.Interpolator;
+
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
 import com.nineoldandroids.animation.ValueAnimator;
@@ -141,13 +143,16 @@ public class AnimatableProxy extends KrollProxy {
 		
 		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
 		tiSet.setRepeatCount(repeatCount);
-		
+		Interpolator interpolator = tiSet.curve;
+
 		for (int i = 0; i < list.size(); i++) {
 			ValueAnimator anim = (ValueAnimator) list.get(i);
 			if (tiSet.delay != null)
 				anim.setStartDelay(tiSet.delay.longValue());
 			if (tiSet.duration != null)
 				anim.setDuration(tiSet.duration.longValue());
+			if (interpolator != null)
+				anim.setInterpolator(interpolator);
 		}
 		set.playTogether(list);
 		
