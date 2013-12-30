@@ -41,29 +41,54 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
     // move to top left
     CGPathMoveToPoint(path, NULL, topLeft.x + radii[0], topLeft.y);
     
-    // add top line
-    CGPathAddLineToPoint(path, NULL, topRight.x - radii[2], topRight.y);
     
-    // add top right curve
-    CGPathAddQuadCurveToPoint(path, NULL, topRight.x, topRight.y, topRight.x, topRight.y + radii[3]);
     
-    // add right line
-    CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y - radii[4]);
+    if (radii[2] == radii[3]) {
+        CGFloat radius = radii[2];
+        CGPathAddRelativeArc(path, NULL, topRight.x - radius, topRight.y + radius, radius, -M_PI_2, M_PI_2);
+    }
+    else {
+        // add top line
+        CGPathAddLineToPoint(path, NULL, topRight.x - radii[2], topRight.y);
+        // add top right curve
+        CGPathAddQuadCurveToPoint(path, NULL, topRight.x, topRight.y, topRight.x, topRight.y + radii[3]);
+    }
     
-    // add bottom right curve
-    CGPathAddQuadCurveToPoint(path, NULL, bottomRight.x, bottomRight.y, bottomRight.x - radii[5], bottomRight.y);
     
-    // add bottom line
-    CGPathAddLineToPoint(path, NULL, bottomLeft.x + radii[6], bottomLeft.y);
+    if (radii[4] == radii[5]) {
+        CGFloat radius = radii[4];
+        CGPathAddRelativeArc(path, NULL, bottomRight.x - radius, bottomRight.y - radius, radius, 0, M_PI_2);
+    }
+    else {
+        // add right line
+        CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y - radii[4]);
+        
+        // add bottom right curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomRight.x, bottomRight.y, bottomRight.x - radii[5], bottomRight.y);
+    }
     
-    // add bottom left curve
-    CGPathAddQuadCurveToPoint(path, NULL, bottomLeft.x, bottomLeft.y, bottomLeft.x, bottomLeft.y - radii[7]);
-    
-    // add left line
-    CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y + radii[0]);
-    
-    // add top left curve
-    CGPathAddQuadCurveToPoint(path, NULL, topLeft.x, topLeft.y, topLeft.x + radii[1], topLeft.y);
+    if (radii[6] == radii[7]) {
+        CGFloat radius = radii[6];
+        CGPathAddRelativeArc(path, NULL, bottomLeft.x + radius, bottomLeft.y - radius, radius, M_PI_2, M_PI_2);
+    }
+    else {
+        // add bottom line
+        CGPathAddLineToPoint(path, NULL, bottomLeft.x + radii[6], bottomLeft.y);
+        
+        // add bottom left curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomLeft.x, bottomLeft.y, bottomLeft.x, bottomLeft.y - radii[7]);
+    }
+    if (radii[0] == radii[1]) {
+        CGFloat radius = radii[0];
+        CGPathAddRelativeArc(path, NULL, topLeft.x + radius, topLeft.y + radius, radius, M_PI, M_PI_2);
+    }
+    else {
+        // add left line
+        CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y + radii[0]);
+        
+        // add top left curve
+        CGPathAddQuadCurveToPoint(path, NULL, topLeft.x, topLeft.y, topLeft.x + radii[1], topLeft.y);
+    }
     
     // return the path
     return path;
