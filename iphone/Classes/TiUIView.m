@@ -515,10 +515,10 @@ DEFINE_EXCEPTIONS
 
 -(void)applyClippingPath:(CGPathRef)path
 {
-    if (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]])
 //        [self applyPathToLayersMask:self.layer.mask path:path];
 //    else
-    [self applyPathToLayersMask:self.layer path:path];
+    if (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]])
+        [self applyPathToLayersMask:self.layer path:path];
     if ([[self shadowLayer] shadowOpacity] > 0.0f)
     {
         [self shadowLayer].shadowPath = path;
@@ -529,7 +529,7 @@ DEFINE_EXCEPTIONS
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    CGPathRef clippingPath = [_borderLayer clippingPath];
+    CGPathRef clippingPath = [_borderLayer updateBorderRect:bounds];
     if (_bgLayer) {
         _bgLayer.shadowPath = clippingPath;
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
@@ -538,6 +538,7 @@ DEFINE_EXCEPTIONS
         _borderLayer.shadowPath = clippingPath;
         [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
     }
+
     [self applyClippingPath:clippingPath];
     
     if (self.layer.mask != nil) {
