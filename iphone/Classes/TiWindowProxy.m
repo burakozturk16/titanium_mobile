@@ -102,7 +102,7 @@
 {
     [super windowWillOpen];
     [self viewWillAppear:false];
-    if (tab == nil && (self.isManaged == NO)) {
+    if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willOpenWindow:self];
     }
 }
@@ -119,7 +119,7 @@
     [super windowDidOpen];
     [self forgetProxy:openAnimation];
     RELEASE_TO_NIL(openAnimation);
-    if (tab == nil && (self.isManaged == NO)) {
+    if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] didOpenWindow:self];
     }
 }
@@ -127,7 +127,7 @@
 -(void) windowWillClose
 {
     [self viewWillDisappear:false];
-    if (tab == nil && (self.isManaged == NO)) {
+    if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willCloseWindow:self];
     }
     [[NSNotificationCenter defaultCenter] removeObserver:self];
@@ -142,7 +142,7 @@
     [self fireEvent:@"close" propagate:NO];
     [self forgetProxy:closeAnimation];
     RELEASE_TO_NIL(closeAnimation);
-    if (tab == nil && (self.isManaged == NO)) {
+    if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] didCloseWindow:self];
     }
     tab = nil;
