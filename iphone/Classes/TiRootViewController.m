@@ -819,10 +819,15 @@
     [self dismissKeyboard];
     [[containedWindows lastObject] resignFocus];
     if ([theWindow isModal]) {
-        [modalWindows addObject:theWindow];
+        if (![modalWindows containsObject:theWindow]) {
+            [modalWindows addObject:theWindow];
+        }
     } else {
-        [containedWindows addObject:theWindow];
-        theWindow.parentOrientationController = self;
+        if (![containedWindows containsObject:theWindow]) {
+            [containedWindows addObject:theWindow];
+            theWindow.parentOrientationController = self;
+        }
+        
     }
 }
 
