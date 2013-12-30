@@ -79,9 +79,6 @@
 -(void)drawBufferFromLayer:(TiSelectableBackgroundLayer*)layer
 {
     CGRect rect = layer.bounds;
-//    CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
-//	CGContextRef cacheContext = CGBitmapContextCreate(nil, rect.size.width, rect.size.height, 8, rect.size.width * (CGColorSpaceGetNumberOfComponents(space) + 1), space, kCGImageAlphaPremultipliedLast);
-//	CGColorSpaceRelease(space);
     UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     if (ctx == 0) {
@@ -89,17 +86,13 @@
         return;
     }
     [self drawInContext:ctx inRect:rect forLayer:layer];
-//    CGImageRef imgRef = CGBitmapContextCreateImage(cacheContext);
-//    _bufferImage = [[UIImage imageWithCGImage:imgRef] retain];
-//    CGImageRelease(imgRef);
-//	CGContextRelease(cacheContext);
+
     _bufferImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
     UIGraphicsEndImageContext();
 }
 
 -(void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect forLayer:(TiSelectableBackgroundLayer*)layer
 {
-//    CGContextSaveGState(ctx);
     CGContextSetAllowsAntialiasing(ctx, true);
     CGContextSetShouldAntialias(ctx, true);
     if (color) {
@@ -395,14 +388,17 @@
     id action  = [super actionForKey:event];
     if ([event isEqualToString:@"contents"])
     {
-        CATransition *transition = [CATransition animation];
-        if (_animateTransition && transition.duration == 0)
-        {
-            transition.duration = 0.2;
-            transition.type = kCATransitionReveal;
-            transition.subtype = kCATransitionFade;
+        if (_animateTransition) {
+            CATransition *transition = [CATransition animation];
+            if (transition.duration == 0)
+            {
+                transition.duration = 0.2;
+                transition.type = kCATransitionReveal;
+                transition.subtype = kCATransitionFade;
+            }
+            [self addAnimation:transition forKey:nil];
         }
-        [self addAnimation:transition forKey:nil];
+        else return  nil;
     }
 
     return action;
