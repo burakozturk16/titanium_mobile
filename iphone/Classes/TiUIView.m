@@ -432,6 +432,9 @@ DEFINE_EXCEPTIONS
     if (_bgLayer) {
         _bgLayer.readyToCreateDrawables = YES;
     }
+    if (_borderLayer) {
+        _borderLayer.readyToCreateDrawables = YES;
+    }
 }
 
 -(void)setProxy:(TiProxy *)p
@@ -581,22 +584,21 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)updatePathForClipping:(CGRect)bounds
 {
     //the 0.5f is there to have a clean border where you don't see the background
-    CGPathRef path = nil;
+    CGPathRef path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
     if (usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
-        path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
         [self applyPathToLayersMask:self.layer path:path];
+        
     }
     else {
         CGFloat radius = radii[0];
-        path = CGPathCreateWithRoundedRect(bounds, radius, radius, NULL);
         self.layer.cornerRadius = radius;
+        if (_bgLayer) _bgLayer.cornerRadius = radius;
     }
     if (_bgLayer)
     {
         _bgLayer.shadowPath = path;
     }
-    
     CGPathRelease(path);
 }
 
@@ -608,7 +610,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     if (_borderLayer) {
         [_borderLayer updateBorderPath:radii inBounds:bounds];
-        _borderLayer.frame = bounds;
+        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
     }
     if (_bgLayer) {
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
@@ -763,14 +765,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     
     _borderLayer = [[TiBorderLayer alloc] init];
+    _borderLayer.cornerRadius = self.layer.cornerRadius;
+   [_borderLayer setRadii:radii];
     [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-   _borderLayer.thePadding = _borderPadding;
-    CGRect bounds = [[self backgroundWrapperView] layer].bounds;
+    CGRect bounds = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
     if (!CGRectIsEmpty(bounds)) {
-        if (radii)
-        {
-            [_borderLayer updateBorderPath:radii inBounds:bounds];
-        }
         _borderLayer.frame = bounds;
     }
     
@@ -1120,6 +1119,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             }
         }
         usePathAsBorder = YES;
+        [_borderLayer swithToContentBorder];
     }
     else
     {
@@ -1128,32 +1128,23 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         for (int i = 0; i < 8; ++i){
             radii[i] = radius;
         }
-        usePathAsBorder = NO;
+        if (usePathAsBorder == NO)
+        {
+            self.layer.cornerRadius = radius;
+            if (_bgLayer) _bgLayer.cornerRadius = radius;
+            if (_borderLayer) _borderLayer.cornerRadius = radius;
+        }
     }
     if (_borderLayer)
     {
-        CGRect bounds = [[self backgroundWrapperView] layer].bounds;
-        if (!CGRectIsEmpty(bounds)) {
-            [_borderLayer updateBorderPath:radii inBounds:bounds];
-            _borderLayer.frame = bounds;
-        }
+        [_borderLayer setRadii:radii];
     }
-//    if (!CGRectIsEmpty([self bounds])) {
-//        [self applyClippingPath:[_borderLayer clippingPath]];
-//    }
 }
-
 
 -(void)setBorderColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    TiBorderLayer* borderLayer = [self getOrCreateBorderLayer];
-	borderLayer.clipWidth = MAX(borderLayer.clipWidth,1);
-//	borderLayer.backgroundColor = uiColor.CGColor;
-    [borderLayer setColor:uiColor forState:UIControlStateNormal];
-    
-//    self.layer.borderWidth = MAX(self.layer.borderWidth,1);
-//    self.layer.borderColor = uiColor.CGColor;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateNormal];
 }
 
 -(void) setBorderSelectedColor_:(id)color
@@ -1202,16 +1193,17 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setBorderWidth_:(id)w
 {
-    
-	[self getOrCreateBorderLayer].clipWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
-//    self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+	[[self getOrCreateBorderLayer] setClipWidth:TiDimensionCalculateValueFromString([TiUtils stringValue:w])];
 }
 
 -(void)setBorderPadding_:(id)value
 {
     _borderPadding = [TiUtils insetValue:value];
     if (_borderLayer) {
-        _borderLayer.thePadding = _borderPadding;
+        CGRect bounds = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
+        if (!CGRectIsEmpty(bounds)) {
+            _borderLayer.frame = bounds;
+        }
     }
 }
 

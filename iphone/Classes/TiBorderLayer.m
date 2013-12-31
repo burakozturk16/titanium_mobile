@@ -105,15 +105,16 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 
 @implementation TiBorderLayer
 {
-    UIEdgeInsets _thePadding;
+    BOOL _usingDefaultBorderStyle;
+    CGFloat* _radii;//we do not hold that value!
 }
-@synthesize thePadding = _thePadding;
 
 -(id)init
 {
     if (self = [super init])
     {
-
+        self.clipWidth = 1;
+        _usingDefaultBorderStyle = YES;
     }
     return self;
 }
@@ -126,18 +127,88 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 
 -(CGPathRef)borderPath:(const CGFloat*)radii forBounds:(CGRect)bounds
 {
-    return CGPathCreateRoundiiRectWithDecale(UIEdgeInsetsInsetRect(bounds, _thePadding), radii, self.clipWidth/2);
-}
-
--(void)setThePadding:(UIEdgeInsets)inset
-{
-    _thePadding = inset;
+    return CGPathCreateRoundiiRectWithDecale(bounds, radii, self.clipWidth/2);
 }
 
 -(void)updateBorderPath:(const CGFloat*)radii inBounds:(CGRect)bounds
 {
+    if (_usingDefaultBorderStyle) {
+        self.cornerRadius = radii?radii[0]:0;
+        return;
+    }
     CGPathRef path = self.shadowPath = [self borderPath:radii forBounds:bounds];
     CGPathRelease(path);
+}
+
+-(void)swithToContentBorder
+{
+    if (_usingDefaultBorderStyle == NO) return;
+    _usingDefaultBorderStyle = NO;
+    if (self.borderWidth > 0)
+    {
+        self.clipWidth = self.borderWidth;
+        [self setColor:[UIColor colorWithCGColor:self.borderColor] forState:UIControlStateNormal];
+        self.borderWidth = 0;
+        
+        self.cornerRadius = 0.0f;
+        [self updateBorderPath:_radii inBounds:[self bounds]];
+    }
+}
+
+-(void)setClipWidth:(CGFloat)width
+{
+    if (_usingDefaultBorderStyle) {
+        self.borderWidth = width;
+        return;
+    }
+    if (width == self.clipWidth) return;
+    [self updateBorderPath:_radii inBounds:[self bounds]];
+    [super setClipWidth:width];
+}
+
+-(void)setCornerRadius:(CGFloat)cornerRadius
+{
+    if (_usingDefaultBorderStyle)
+    {
+        [super setCornerRadius:cornerRadius];
+    }
+}
+
+-(void)setRadii:(CGFloat*)radii
+{
+    if (radii == _radii) return;
+    _radii = radii;
+    
+    CGRect bounds = self.bounds;
+    if (!CGRectIsEmpty(bounds)) {
+        [self updateBorderPath:_radii inBounds:bounds];
+    }
+}
+
+-(void)setFrame:(CGRect)frame
+{
+    [self updateBorderPath:_radii inBounds:frame];
+    [super setFrame:frame];
+}
+
+- (void)setColor:(UIColor*)color forState:(UIControlState)state
+{
+    if (state == UIControlStateNormal && _usingDefaultBorderStyle)
+    {
+        self.borderWidth = MAX(self.borderWidth,1);
+        self.borderColor = color.CGColor;
+    }
+    else {
+        [self swithToContentBorder];
+        [super setColor:color forState:state];
+        
+    }
+}
+
+-(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state
+{
+    [self swithToContentBorder];
+    return [super getOrCreateDrawableForState:state];
 }
 
 @end
