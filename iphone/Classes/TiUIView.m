@@ -1893,6 +1893,16 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return [self interactionEnabled];
 }
 
+-(void)setViewState:(UIControlState)state
+{
+    BOOL needsUpdate = viewState != state;
+    viewState = state;
+    if (needsUpdate)
+    {
+        [self setBgState:UIControlStateNormal];
+    }
+}
+
 -(UIControlState)realStateForState:(UIControlState)state
 {
     if ([self enabledForBgState]) {

@@ -537,7 +537,7 @@
         NSString* theText = [ourProxy valueForKey:@"value"];
         [tf setText:theText];
     }
-    viewState = UIControlStateSelected;
+    [self setViewState:UIControlStateSelected];
     
 	[self textWidget:tf didFocusWithText:[tf text]];
 	[self performSelector:@selector(textFieldDidChange:) onThread:[NSThread currentThread] withObject:nil waitUntilDone:NO];
@@ -566,7 +566,7 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)tf
 {
-    viewState = -1;
+    [self setViewState:-1];
     [self setBgState:UIControlStateNormal];
 	[self textWidget:tf didBlurWithText:[tf text]];
 }
