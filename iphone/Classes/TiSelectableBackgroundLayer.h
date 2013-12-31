@@ -33,6 +33,7 @@
 @property(nonatomic,readonly) NSArray *stateLayers;
 @property(nonatomic,assign) BOOL readyToCreateDrawables;
 @property(nonatomic,assign) BOOL animateTransition;
+@property(nonatomic,assign) CGFloat clipWidth;
 
 - (void)setState:(UIControlState)state;
 - (void)setState:(UIControlState)state animated:(BOOL)animated;

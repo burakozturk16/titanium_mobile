@@ -207,6 +207,8 @@ NSArray* listenerArray = nil;
     BOOL needsUpdateBackgroundImageFrame;
     UIEdgeInsets _backgroundPadding;
     UIEdgeInsets _borderPadding;
+    CGFloat* radii;
+    BOOL usePathAsBorder;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -266,6 +268,10 @@ DEFINE_EXCEPTIONS
 	proxy = nil;
 	touchDelegate = nil;
 	childViews = nil;
+    if (radii != NULL) {
+        free(radii);
+        radii = NULL;
+    }
 	[super dealloc];
 }
 
@@ -322,6 +328,8 @@ DEFINE_EXCEPTIONS
     animateBgdTransition = NO;
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
     viewState = -1;
+    radii = NULL;
+    usePathAsBorder = NO;
 }
 
 
@@ -502,37 +510,110 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)applyClippingPath:(CGPathRef)path
+CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
-//        [self applyPathToLayersMask:self.layer.mask path:path];
-//    else
-    if (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]])
+    if (radii == NULL) {
+        return nil;
+    }
+    // create a mutable path
+    CGMutablePathRef path = CGPathCreateMutable();
+    
+    // get the 4 corners of the rect
+    CGPoint topLeft = CGPointMake(rect.origin.x, rect.origin.y);
+    CGPoint topRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y);
+    CGPoint bottomRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+    CGPoint bottomLeft = CGPointMake(rect.origin.x, rect.origin.y + rect.size.height);
+    
+    // move to top left
+    CGPathMoveToPoint(path, NULL, topLeft.x + radii[0], topLeft.y);
+    
+    if (radii[2] == radii[3]) {
+        CGFloat radius = radii[2];
+        CGPathAddRelativeArc(path, NULL, topRight.x - radius, topRight.y + radius, radius, -M_PI_2, M_PI_2);
+    }
+    else {
+        // add top line
+        CGPathAddLineToPoint(path, NULL, topRight.x - radii[2], topRight.y);
+        // add top right curve
+        CGPathAddQuadCurveToPoint(path, NULL, topRight.x, topRight.y, topRight.x, topRight.y + radii[3]);
+    }
+    
+    
+    if (radii[4] == radii[5]) {
+        CGFloat radius = radii[4];
+        CGPathAddRelativeArc(path, NULL, bottomRight.x - radius, bottomRight.y - radius, radius, 0, M_PI_2);
+    }
+    else {
+        // add right line
+        CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y - radii[4]);
+        
+        // add bottom right curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomRight.x, bottomRight.y, bottomRight.x - radii[5], bottomRight.y);
+    }
+    
+    if (radii[6] == radii[7]) {
+        CGFloat radius = radii[6];
+        CGPathAddRelativeArc(path, NULL, bottomLeft.x + radius, bottomLeft.y - radius, radius, M_PI_2, M_PI_2);
+    }
+    else {
+        // add bottom line
+        CGPathAddLineToPoint(path, NULL, bottomLeft.x + radii[6], bottomLeft.y);
+        
+        // add bottom left curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomLeft.x, bottomLeft.y, bottomLeft.x, bottomLeft.y - radii[7]);
+    }
+    if (radii[0] == radii[1]) {
+        CGFloat radius = radii[0];
+        CGPathAddRelativeArc(path, NULL, topLeft.x + radius, topLeft.y + radius, radius, M_PI, M_PI_2);
+    }
+    else {
+        // add left line
+        CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y + radii[0]);
+        
+        // add top left curve
+        CGPathAddQuadCurveToPoint(path, NULL, topLeft.x, topLeft.y, topLeft.x + radii[1], topLeft.y);
+    }
+    
+    // return the path
+    return path;
+}
+
+-(void)updatePathForClipping:(CGRect)bounds
+{
+    //the 0.5f is there to have a clean border where you don't see the background
+    CGPathRef path = nil;
+    if (usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
+        path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
         [self applyPathToLayersMask:self.layer path:path];
     }
-    if ([[self shadowLayer] shadowOpacity] > 0.0f)
-    {
-        [self shadowLayer].shadowPath = path;
+    else {
+        CGFloat radius = radii[0];
+        path = CGPathCreateWithRoundedRect(bounds, radius, radius, NULL);
+        self.layer.cornerRadius = radius;
     }
-    [self applyPathToLayersMask:_bgLayer path:path];
-    [self applyPathToLayersMask:[_childrenHolder layer] path:path];
+    if (_bgLayer)
+    {
+        _bgLayer.shadowPath = path;
+    }
+    
+    CGPathRelease(path);
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    CGPathRef clippingPath = nil;
+    if (radii != NULL)
+    {
+        [self updatePathForClipping:bounds];
+    }
     if (_borderLayer) {
-        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
-        clippingPath = [_borderLayer clippingPath];
+        [_borderLayer updateBorderPath:radii inBounds:bounds];
+        _borderLayer.frame = bounds;
     }
     if (_bgLayer) {
-        _bgLayer.shadowPath = clippingPath;
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
-    
 
-    [self applyClippingPath:clippingPath];
-    
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
@@ -574,7 +655,7 @@ DEFINE_EXCEPTIONS
 -(void)checkBounds
 {
     CGRect newBounds = [self bounds];
-    if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
+    if(!CGRectIsEmpty(newBounds) && !CGSizeEqualToSize(oldSize, newBounds.size)) {
         [self updateBounds:newBounds];
         oldSize = newBounds.size;
     }
@@ -668,7 +749,7 @@ DEFINE_EXCEPTIONS
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
     _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
-    [self applyPathToLayersMask:_bgLayer path:[_borderLayer clippingPath]];
+    _bgLayer.shadowPath = self.layer.shadowPath;
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     return _bgLayer;
@@ -684,6 +765,15 @@ DEFINE_EXCEPTIONS
     _borderLayer = [[TiBorderLayer alloc] init];
     [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
    _borderLayer.thePadding = _borderPadding;
+    CGRect bounds = [[self backgroundWrapperView] layer].bounds;
+    if (!CGRectIsEmpty(bounds)) {
+        if (radii)
+        {
+            [_borderLayer updateBorderPath:radii inBounds:bounds];
+        }
+        _borderLayer.frame = bounds;
+    }
+    
     _borderLayer.opacity = backgroundOpacity;
     return _borderLayer;
 }
@@ -1012,14 +1102,45 @@ DEFINE_EXCEPTIONS
     }
 }
 
-
-
--(void)setBorderRadius_:(id)radius
+-(void)setBorderRadius_:(id)value
 {
-    [[self getOrCreateBorderLayer] setRadius:radius];
-    if (!CGRectIsEmpty([self bounds])) {
-        [self applyClippingPath:[_borderLayer clippingPath]];
+    if ([value isKindOfClass:[NSArray class]]) {
+        radii =(CGFloat*)malloc(8*sizeof(CGFloat));
+        NSArray* array = (NSArray*)value;
+        int count = [array count];
+        if (count == 4)
+        {
+            for (int i = 0; i < count; ++i){
+                radii[2*i] = radii[2*i+1] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
+            }
+        } else  if (count == 8)
+        {
+            for (int i = 0; i < count; ++i){
+                radii[i] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
+            }
+        }
+        usePathAsBorder = YES;
     }
+    else
+    {
+        radii = (CGFloat*)malloc(8*sizeof(CGFloat));
+        CGFloat radius = [TiUtils floatValue:value def:0.0f];
+        for (int i = 0; i < 8; ++i){
+            radii[i] = radius;
+        }
+        usePathAsBorder = NO;
+    }
+    if (_borderLayer)
+    {
+        CGRect bounds = [[self backgroundWrapperView] layer].bounds;
+        if (!CGRectIsEmpty(bounds)) {
+            [_borderLayer updateBorderPath:radii inBounds:bounds];
+            _borderLayer.frame = bounds;
+        }
+    }
+//    if (!CGRectIsEmpty([self bounds])) {
+//        [self applyClippingPath:[_borderLayer clippingPath]];
+//    }
 }
 
 
@@ -1027,8 +1148,9 @@ DEFINE_EXCEPTIONS
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
     TiBorderLayer* borderLayer = [self getOrCreateBorderLayer];
-	borderLayer.theWidth = MAX(borderLayer.theWidth,1);
-	borderLayer.backgroundColor = uiColor.CGColor;
+	borderLayer.clipWidth = MAX(borderLayer.clipWidth,1);
+//	borderLayer.backgroundColor = uiColor.CGColor;
+    [borderLayer setColor:uiColor forState:UIControlStateNormal];
     
 //    self.layer.borderWidth = MAX(self.layer.borderWidth,1);
 //    self.layer.borderColor = uiColor.CGColor;
@@ -1081,7 +1203,7 @@ DEFINE_EXCEPTIONS
 -(void)setBorderWidth_:(id)w
 {
     
-	[self getOrCreateBorderLayer].theWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+	[self getOrCreateBorderLayer].clipWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 //    self.layer.borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
 }
 
@@ -1244,10 +1366,10 @@ DEFINE_EXCEPTIONS
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
-    if ([[self shadowLayer] shadowOpacity] > 0.0f)
-    {
-        [self shadowLayer].shadowPath = [_borderLayer clippingPath];
-    }
+//    if ([[self shadowLayer] shadowOpacity] > 0.0f)
+//    {
+//        [self shadowLayer].shadowPath = [_borderLayer clippingPath];
+//    }
 }
 
 -(NSArray*) childViews

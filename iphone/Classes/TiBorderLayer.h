@@ -10,10 +10,6 @@
 
 @class TiViewAnimationStep;
 @interface TiBorderLayer : TiSelectableBackgroundLayer
-@property(nonatomic,readonly) CGPathRef clippingPath;
-@property(nonatomic,assign) CGFloat theWidth;
 @property(nonatomic,assign) UIEdgeInsets thePadding;
--(void)setRadius:(id)value;
--(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*)animation;
--(CGPathRef)updateBorderRect:(CGRect)bounds;
+-(void)updateBorderPath:(const CGFloat*)radii inBounds:(CGRect)bounds;
 @end

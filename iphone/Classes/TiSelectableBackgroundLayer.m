@@ -95,6 +95,23 @@
 {
     CGContextSetAllowsAntialiasing(ctx, true);
     CGContextSetShouldAntialias(ctx, true);
+    if (layer.shadowPath) {
+        CGContextAddPath(ctx, layer.shadowPath);
+        if (layer.clipWidth > 0) {
+            CGContextSetLineWidth(ctx, layer.clipWidth);
+            CGContextReplacePathWithStrokedPath(ctx);
+        }
+        CGContextClip(ctx);
+    }
+    else if (layer.clipWidth > 0)
+    {
+        CGFloat halfWidth = layer.clipWidth / 2.0f;
+        CGContextAddRect(ctx, CGRectInset(rect, halfWidth, halfWidth));
+        CGContextSetLineWidth(ctx, layer.clipWidth);
+        CGContextReplacePathWithStrokedPath(ctx);
+        CGContextClip(ctx);
+    }
+
     if (color) {
         CGContextSetFillColorWithColor(ctx, [color CGColor]);
         CGContextFillRect(ctx, rect);
@@ -155,11 +172,12 @@
     UIControlState currentState;
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
+    CGFloat _clipWidth;
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth;
 
 - (id)init {
     if (self = [super init])
@@ -172,9 +190,10 @@
         readyToCreateDrawables = NO;
         _needsToSetDrawables = NO;
         _animateTransition = NO;
-        self.masksToBounds = NO;
-        self.shouldRasterize = YES;
+//        self.masksToBounds = NO;
+//        self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
+        _clipWidth = 0.0f;
     }
     return self;
 }
@@ -328,6 +347,20 @@
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
 }
+
+-(void)setClipWidth:(CGFloat)width
+{
+    if (width == _clipWidth) return;
+    //the 0.5f compensate the 0.5f applied to the clippingPath
+    _clipWidth = width;
+    if (readyToCreateDrawables) {
+        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+            [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+        }];
+    }
+}
+
+
 
 - (void)setReadyToCreateDrawables:(BOOL)value
 {

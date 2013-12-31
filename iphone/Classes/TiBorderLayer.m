@@ -32,7 +32,7 @@ CGFloat* decaleRadius(const CGFloat* radii, float _decale)
     return result;
 }
 
-CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFloat _decale)
+CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* radii, CGFloat _decale)
 {
     if (radii == NULL) {
         return CGPathCreateWithRect(CGRectInset(rect, _decale, _decale), NULL);
@@ -105,169 +105,39 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii, CGFl
 
 @implementation TiBorderLayer
 {
-    CGPathRef _clippingPath;
-    CGFloat* radii;
-    CGFloat _theWidth;
     UIEdgeInsets _thePadding;
-    CGRect _lastRect;
 }
-@synthesize clippingPath = _clippingPath;
 @synthesize thePadding = _thePadding;
 
 -(id)init
 {
     if (self = [super init])
     {
-        self.needsDisplayOnBoundsChange = YES;
-        self.masksToBounds = NO;
-        self.shouldRasterize = YES;
-        self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
-        _clippingPath = nil;
-        radii = NULL;
-        _lastRect = CGRectZero;
+
     }
     return self;
 }
 
 -(void)dealloc
 {
-    if (_clippingPath != nil)
-    {
-        CGPathRelease(_clippingPath);
-        _clippingPath = nil;
-    }
-    if (radii != NULL) {
-        free(radii);
-        radii = NULL;
-    }
+
     [super dealloc];
 }
 
--(void)setRadius:(id)value
+-(CGPathRef)borderPath:(const CGFloat*)radii forBounds:(CGRect)bounds
 {
-    if ([value isKindOfClass:[NSArray class]]) {
-        radii =(CGFloat*)malloc(8*sizeof(CGFloat));
-        NSArray* array = (NSArray*)value;
-        int count = [array count];
-        if (count == 4)
-        {
-            for (int i = 0; i < count; ++i){
-                radii[2*i] = radii[2*i+1] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
-            }
-        } else  if (count == 8)
-        {
-            for (int i = 0; i < count; ++i){
-                radii[i] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
-            }
-        }
-    }
-    else
-    {
-        radii = (CGFloat*)malloc(8*sizeof(CGFloat));
-        CGFloat radius = [TiUtils floatValue:value def:0.0f];
-        for (int i = 0; i < 8; ++i){
-            radii[i] = radius;
-        }
-    }
-}
-
--(void)setFrame:(CGRect)frame
-{
-    [super setFrame:frame];
-    [self updateBorder];
-}
-
--(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*)runningAnimation
-{
-    [super setFrame:frame];
-    if (runningAnimation) {
-        CGPathRef newBorderPath = [self borderPathForBounds:[self bounds]];
-        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"path"];
-        animation.fromValue = (id)[self getOrCreateLayerMask].path;
-        animation.toValue = (id)newBorderPath;
-        animation.duration = [runningAnimation duration];
-        animation.timingFunction = [runningAnimation curve];
-        animation.fillMode = kCAFillModeBoth;
-        [self getOrCreateLayerMask].path = newBorderPath;
-        [[self getOrCreateLayerMask] addAnimation:animation forKey:nil];
-        CGPathRelease(newBorderPath);
-      
-        CGPathRef newClippingPath = [self pathForClippingForBounds:[self bounds]];
-        self.clippingPath = newClippingPath;
-        CGPathRelease(newClippingPath);
-    }
-    else
-        [self updateBorderRect:[self bounds]];//dont update if same rect
-}
-
--(void)updateBorder
-{
-    //updateBorder will force the update.
-    _lastRect = CGRectZero;
-    [self updateBorderRect:[self bounds]];
-}
-
--(CGPathRef)pathForClippingForBounds:(CGRect)bounds
-{
-    //the 0.5f is there to have a clean border where you don't see the background
-    return CGPathCreateRoundiiRect(bounds, radii, 0.0f);
-}
--(CGPathRef)borderPathForBounds:(CGRect)bounds
-{
-    return CGPathCreateRoundiiRect(UIEdgeInsetsInsetRect(bounds, _thePadding), radii, _theWidth/2);
-}
-
--(CAShapeLayer*)getOrCreateLayerMask
-{
-    [self setOrCreateMaskOnLayer:self];
-    return (CAShapeLayer*)self.mask;
-}
-
--(void)setOrCreateMaskOnLayer:(CALayer*)layer
-{
-    if (layer.mask == nil)
-    {
-        layer.mask = [CAShapeLayer layer];
-        ((CAShapeLayer*)layer.mask).fillColor = [[UIColor clearColor] CGColor];
-        ((CAShapeLayer*)layer.mask).strokeColor = [[UIColor blackColor] CGColor];
-    }
-}
-
--(CGPathRef)updateBorderRect:(CGRect)bounds
-{
-    if (CGRectIsEmpty(bounds) || CGRectEqualToRect(bounds, _lastRect)) return;
-    _lastRect = bounds;
-    CGPathRef path = [self getOrCreateLayerMask].path = [self borderPathForBounds:bounds];
-    CGPathRelease(path);
-     path = self.clippingPath = self.shadowPath = [self pathForClippingForBounds:bounds];
-    CGPathRelease(path);
-    return _clippingPath;
-}
-
--(void)setTheWidth:(CGFloat)width
-{
-    if (width == _theWidth) return;
-    //the 0.5f compensate the 0.5f applied to the clippingPath
-    _theWidth = [self getOrCreateLayerMask].lineWidth = width;
-    [self updateBorder];
+    return CGPathCreateRoundiiRectWithDecale(UIEdgeInsetsInsetRect(bounds, _thePadding), radii, self.clipWidth/2);
 }
 
 -(void)setThePadding:(UIEdgeInsets)inset
 {
     _thePadding = inset;
-    [self updateBorder];
 }
 
-
--(void)setClippingPath:(CGPathRef)clippingPath
+-(void)updateBorderPath:(const CGFloat*)radii inBounds:(CGRect)bounds
 {
-    if (_clippingPath != nil)
-    {
-        CGPathRelease(_clippingPath);
-        _clippingPath = nil;
-    }
-    if (clippingPath)
-        _clippingPath = CGPathRetain(clippingPath);
+    CGPathRef path = self.shadowPath = [self borderPath:radii forBounds:bounds];
+    CGPathRelease(path);
 }
 
 @end
