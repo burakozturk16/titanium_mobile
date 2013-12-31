@@ -3565,9 +3565,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             if (view2Proxy) {
                 view2 = [view2Proxy getOrCreateView];
                 [view2Proxy windowWillOpen];
+                [view2Proxy fakeOpening]; //we need that as we dont have parent yet
                 [view2Proxy windowDidOpen];
-                [self relayout];
-                [self layoutChildren:NO];
                 LayoutConstraint *contraints = [view2Proxy layoutProperties];
                 ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
                 [view2Proxy refreshView:nil];
