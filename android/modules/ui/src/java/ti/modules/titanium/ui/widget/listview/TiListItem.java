@@ -30,6 +30,7 @@ import android.widget.ImageView;
 public class TiListItem extends TiUIView implements TiTouchDelegate {
 	TiUIView mClickDelegate;
 	View listItemLayout;
+	private boolean shouldFireClick = true;
 	public TiListItem(TiViewProxy proxy) {
 		super(proxy);
 	}
@@ -90,7 +91,8 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 			{
 				KrollDict data = dictFromEvent(lastUpEvent);
 				handleFireItemClick(new KrollDict(data));
-				fireEvent(TiC.EVENT_CLICK, data);
+				if (shouldFireClick) fireEvent(TiC.EVENT_CLICK, data);
+				shouldFireClick = true;
 			}
 		});
 	}
@@ -127,6 +129,9 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 
 	@Override
 	public void onTouchEvent(MotionEvent event, TiUIView fromView) {
+		if (fromView != this) {
+			shouldFireClick = false;
+		}
 		if (fromView instanceof TiUIButton || 
 				fromView instanceof TiUISwitch ||
 				fromView instanceof TiUISlider ||
