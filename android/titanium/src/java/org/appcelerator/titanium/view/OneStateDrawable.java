@@ -2,6 +2,7 @@ package org.appcelerator.titanium.view;
 
 import java.util.WeakHashMap;
 
+import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 
 import android.graphics.Bitmap;
@@ -66,7 +67,6 @@ public class OneStateDrawable extends Drawable {
 	        canvasStore.put(key, new Pair<Canvas, Bitmap>(tempCanvas, tempBitmap));
         }
     }
-
 	@Override
 	public void draw(Canvas canvas) {
 
@@ -170,8 +170,8 @@ public class OneStateDrawable extends Drawable {
 	public void setBounds (Rect bounds) {
 		this.bounds = new RectF(bounds);
 		clearBitmap();
-		if (gradientDrawable != null)
-			gradientDrawable.setBounds(bounds);
+//		if (gradientDrawable != null)
+//			gradientDrawable.setBounds(bounds);
 		if (imageDrawable != null) 
 			imageDrawable.setBounds(bounds);
 	}

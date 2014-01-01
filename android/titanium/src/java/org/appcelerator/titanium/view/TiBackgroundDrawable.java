@@ -17,11 +17,9 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
 import android.util.StateSet;
-import android.view.View;
 
 public class TiBackgroundDrawable extends Drawable {
 	static final int NOT_SET = -1;
@@ -136,7 +134,6 @@ public class TiBackgroundDrawable extends Drawable {
 				path.addRect(innerRect, Direction.CCW);
 			}
 		}
-		invalidateSelf();
 	}
 	public Path getPath(){
 		return path;
@@ -159,23 +156,27 @@ public class TiBackgroundDrawable extends Drawable {
 	{
 		this.radius = radius;
 		updatePath();
+		invalidateSelf();
 	}
 	
 	public void setPathWidth(float width)
 	{
 		this.pathWidth = width;
 		updatePath();
+		invalidateSelf();
 	}
 	public void setRadiusWidth(float[] radius, float width)
 	{
 		this.pathWidth = width;
 		this.radius = radius;
 		updatePath();
+		invalidateSelf();
 	}
 	
 	public void setPadding(Rect padding) {
 		this.mPadding = padding;
 		updatePath();
+		invalidateSelf();
 	}
 
 	// @Override
