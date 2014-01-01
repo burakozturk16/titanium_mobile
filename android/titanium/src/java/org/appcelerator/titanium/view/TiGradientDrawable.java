@@ -142,6 +142,8 @@ public class TiGradientDrawable extends ShapeDrawable {
 			
 			if (mCachedShader == null || mCachedWidth != width || mCachedheight != height) 
 			{
+				mCachedWidth = height;
+				mCachedheight = height;
 				float x0 = startPoint.getX().getAsPixels(null, width, height);
 				float y0 = startPoint.getY().getAsPixels(null, width, height);
 				float x1 = endPoint.getX().getAsPixels(null, width, height);
