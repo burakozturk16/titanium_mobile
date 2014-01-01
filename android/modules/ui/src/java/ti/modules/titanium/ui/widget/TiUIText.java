@@ -667,7 +667,7 @@ public class TiUIText extends TiUIView
 				fireEvent(TiC.EVENT_RETURN, data, false, false);
 			}
 			
-			blur();
+			if (actionId != EditorInfo.IME_ACTION_NEXT) blur();
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
