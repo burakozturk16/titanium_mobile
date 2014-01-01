@@ -704,22 +704,18 @@ public class TiUILabel extends TiUINonViewGroupView
 //		TiUIHelper.styleText(tv, null, null, null);
 		
 		boolean needShadow = false;
-
+		
 		// Only accept one, prefer text to title.
-		if (d.containsKey(TiC.PROPERTY_HTML)) {
-			String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
-			if (html == null) {
-				html = "";
-			}
+		String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
+		String text = TiConvert.toString(d, TiC.PROPERTY_TEXT);
+		String title = TiConvert.toString(d, TiC.PROPERTY_TITLE);
+
+		if (html != null) {
 			tv.setText(fromHtml(html), TextView.BufferType.SPANNABLE);
-		} else if (d.containsKey(TiC.PROPERTY_TEXT)) {
-			String text = TiConvert.toString(d, TiC.PROPERTY_TEXT);
-			if (text == null) {
-				text = "";
-			}
+		} else if (title != null) {
+			tv.setText(Html.fromHtml(title), TextView.BufferType.SPANNABLE);
+		} else if (text != null) {
 			tv.setText(text);
-		} else if (d.containsKey(TiC.PROPERTY_TITLE)) { //TODO this may not need to be supported.
-			tv.setText(Html.fromHtml(TiConvert.toString(d, TiC.PROPERTY_TITLE)), TextView.BufferType.SPANNABLE);
 		}
 
 		boolean needsColors = false;
