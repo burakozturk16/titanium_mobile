@@ -113,6 +113,12 @@ public class TiUIText extends TiUIView
 			super(context);
 		}
 		
+		@Override
+		public View focusSearch(int direction) {
+			View result = super.focusSearch(direction);
+	        return result;
+	    }
+		
 		/** 
 		 * Check whether the called view is a text editor, in which case it would make sense to 
 		 * automatically display a soft input window for it.
@@ -161,8 +167,8 @@ public class TiUIText extends TiUIView
 		
 		@Override
 		protected void drawableStateChanged() {
-	        
-	    }
+		
+		}
 		
 		@Override
 		public void childDrawableStateChanged(View child) {
@@ -188,16 +194,7 @@ public class TiUIText extends TiUIView
 			params.gravity = Gravity.CENTER;
 			this.addView(leftPane, params);
 
-			editText = new TiEditText(context){
-				@Override
-				public boolean hasFocus() {
-					return super.hasFocus(); 
-				}
-				@Override
-				public void clearFocus() {
-					super.clearFocus(); 
-				}
-			};
+			editText = new TiEditText(context);
 			editText.setId(200);
 			params = new LinearLayout.LayoutParams(0, LayoutParams.FILL_PARENT, 1.0f);
 			this.addView(editText, params);
@@ -302,29 +299,6 @@ public class TiUIText extends TiUIView
 		
 		public boolean hasFocus() {
 			return editText.hasFocus();
-		}
-
-		public void focus() {
-			if (this.getVisibility() == View.INVISIBLE) return;
-			if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
-					&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
-				editText.clearFocus();
-				this.requestFocus();
-				TiUIHelper.hideSoftKeyboard(editText);
-			}
-			else {
-				editText.requestFocus();
-				TiUIText.requestSoftInputChange(proxy, editText);
-			}
-		}
-
-		public void blur() {
-			if (editText.hasFocus()) {
-				editText.clearFocus();
-				this.requestFocus();
-				TiUIHelper.hideSoftKeyboard(editText);
-			}
-
 		}
 
 		public void setOnFocusChangeListener(OnFocusChangeListener l) {
@@ -606,11 +580,11 @@ public class TiUIText extends TiUIView
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
 	}
-	@Override
-	public View getFocusView()
-	{
-		return realtv;
-	}
+	// @Override
+	// public View getFocusView()
+	// {
+	// 	return realtv;
+	// }
 
 	@Override
 	public void setVisibility(int visibility)
@@ -623,7 +597,7 @@ public class TiUIText extends TiUIView
 	@Override
 	public void onFocusChange(View v, boolean hasFocus)
 	{
-		tv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+		
 		if (v == realtv)
 			Log.d(TAG, "onFocusChange "  + hasFocus + "  for FocusFixedEditText with text " + realtv.getText(), Log.DEBUG_MODE);
 		else
@@ -637,6 +611,10 @@ public class TiUIText extends TiUIView
 			nativeView.getFocusedRect(r);
 			nativeView.requestRectangleOnScreen(r);
 
+		}
+		else {
+			tv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+			tv.requestFocus();
 		}
 		super.onFocusChange(v, hasFocus);
 	}
@@ -681,6 +659,7 @@ public class TiUIText extends TiUIView
 		if (enableReturnKey != null && enableReturnKey && v.getText().length() == 0) {
 			return true;
 		}
+		tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
 		return false;
 	}
 
@@ -872,4 +851,23 @@ public class TiUIText extends TiUIView
 		realtv.setInputType(currentInputType);
 	}
 
+	@Override
+	public void focus()
+	{
+		if (tv != null && tv.getVisibility() == View.INVISIBLE) return;
+		if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
+				&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
+			return;
+		}
+		super.focus();
+	}
+
+//	@Override
+//	public boolean blur()
+//	{
+//		if (tv != null) {
+//			return tv.blur();
+//		}
+//		return false;
+//	}
 }
