@@ -144,13 +144,16 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
 	
 	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
+	protected ArrayList<HashMap> pendingTransitions;
+	protected Object pendingTransitionLock;
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
 	 */
 	public TiViewProxy()
 	{
-		pendingAnimationLock = new Object();
+		pendingTransitionLock = new Object();
+		pendingTransitions = new ArrayList<HashMap>();
 		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
 		defaultValues.put(TiC.PROPERTY_KEEP_SCREEN_ON, false);
@@ -1530,8 +1533,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
-		Log.w(TAG, "handleTransitionViews "  + viewOut + " " + viewIn);
-		if (viewOut != null && !children.contains(viewOut)) return;
+		if ((viewOut == null && viewIn == null) || (viewOut != null && !children.contains(viewOut))){
+			transitioning = false;
+			handlePendingTransition();
+			return;
+		}
 
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
@@ -1554,8 +1560,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
-							transitioning = false;
 						}
+						transitioning = false;
+						handlePendingTransition();
 					}
 
 					public void onAnimationCancel(Animator arg0) {
@@ -1563,8 +1570,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						if (viewOut!=null) {
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
-							transitioning = false;
 						}
+						transitioning = false;
+						handlePendingTransition();
 					}
 
 					public void onAnimationRepeat(Animator arg0) {
@@ -1581,6 +1589,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					viewToAddTo.removeView(viewToHide);
 					remove(viewOut);
 					transitioning = false;
+					handlePendingTransition();
 				}
 			}
 			if (viewIn!=null) viewToAdd.setVisibility(View.VISIBLE);
@@ -1589,13 +1598,37 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (viewIn!=null) add(viewIn);
 			if (viewOut!=null) remove(viewOut);
 			transitioning = false;
+			handlePendingTransition();
 		}
+	}
+	
+	protected void handlePendingTransition()
+	{
+		HashMap<String, Object> pendingTransition = null;
+		synchronized (pendingTransitionLock) {
+			if (pendingTransitions.size() == 0) {
+				return;
+			}
+			pendingTransition = pendingTransitions.remove(0);
+		}
+		
+		transitionViews((TiViewProxy)pendingTransition.get("viewOut"), 
+				(TiViewProxy)pendingTransition.get("viewIn"), pendingTransition.get("arg"));
 	}
 	
 	@Kroll.method
 	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg)
 	{
-		if (transitioning) return;
+		if (transitioning) {
+			synchronized (pendingTransitionLock) {
+				HashMap<String, Object> pending = new HashMap<String, Object>();
+				pending.put("viewOut", viewOut);
+				pending.put("viewIn", viewIn);
+				pending.put("arg", arg);
+				pendingTransitions.add(pending);
+			}
+			return;
+		}
 		transitioning = true;
 		if (TiApplication.isUIThread()) {
 			handleTransitionViews(viewOut, viewIn, arg);
