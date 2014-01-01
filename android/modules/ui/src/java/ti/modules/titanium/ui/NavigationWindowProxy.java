@@ -47,7 +47,6 @@ import android.app.Activity;
 import android.os.Message;
 import android.util.Pair;
 import android.view.View;
-import android.view.ViewParent;
 
 import android.view.ViewGroup;
 
@@ -71,6 +70,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 
 	private ArrayList<TiWindowProxy> preAddedWindows = new ArrayList<TiWindowProxy>();
+	private ArrayList<HashMap> preAddedArgs = new ArrayList<HashMap>();
 	private ArrayList<TiWindowProxy> windows = new ArrayList<TiWindowProxy>();
 	private HashMap<TiWindowProxy, Transition> animations = new HashMap<TiWindowProxy, Transition>();
 	private HashMap defaultTransition = kDefaultTransition;
@@ -178,6 +178,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			int size = preAddedWindows.size();
 			if (size > 0 && index != -1) {
 				preAddedWindows.subList(index + 1, size).clear();
+				preAddedArgs.subList(index + 1, size).clear();
 			}
 			poping = false;
 			return true;
@@ -208,7 +209,9 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public boolean popWindow(TiWindowProxy proxy, Object arg)
 	{
 		if (!opened || opening) {
-			preAddedWindows.remove(proxy);
+			int index = preAddedWindows.indexOf(proxy);
+			preAddedWindows.remove(index);
+			preAddedArgs.remove(index);
 			return true;
 		}
 		int index = windows.indexOf(proxy);
@@ -351,10 +354,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (preAddedWindows.size() > 0 ) {
 				addWindow(firstWindow, null);
 				for (int i = 0; i < preAddedWindows.size() - 1; i++) {
-					windows.add(preAddedWindows.get(i));
+					Transition transition = TransitionHelper.transitionFromObject((HashMap) preAddedArgs.get(i).get(TiC.PROPERTY_TRANSITION), defaultTransition, null);
+					addWindow(preAddedWindows.get(i), transition);
 				}
-				firstWindow = preAddedWindows.get(preAddedWindows.size() - 1);
+				int index = preAddedWindows.size() - 1;
+				firstWindow = preAddedWindows.get(index);
+				HashMap args = preAddedArgs.get(index);
+				Transition transition = TransitionHelper.transitionFromObject((HashMap) args.get(TiC.PROPERTY_TRANSITION), defaultTransition, null);
+				if (transition != null) animations.put(firstWindow, transition);
 				preAddedWindows.clear();
+				preAddedArgs.clear();
 			}			
 			handlePush(firstWindow, true, null);
 
@@ -463,6 +472,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			TiWindowProxy winToBlur = getCurrentWindow();
 			final View viewToHide = winToBlur.getOuterView();
 			if (transition != null) {
+				proxy.customHandleOpenEvent(true);
 				transition.setTargets(viewToAddTo, viewToAdd, viewToHide);
 
 				AnimatorSet set = transition.getSet(new AnimatorListener() {
@@ -494,7 +504,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			}
    			viewToAdd.setVisibility(View.VISIBLE);
 		}
-		proxy.customHandleOpenEvent(true);
 		addWindow(proxy, transition);
 		proxy.onWindowActivityCreated();
 		activity.setWindowProxy((TiWindowProxy) proxy);
@@ -507,6 +516,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		if (pushing || poping) return;
 		if (!opened || opening) {
 			preAddedWindows.add(proxy);
+			preAddedArgs.add((arg != null)?(HashMap)arg:new HashMap<String, Object>());
 			return;
 		}
 		pushing = true;
@@ -561,7 +571,9 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	{
 		if (pushing || poping) return;
 		if (!opened || opening) {
-			preAddedWindows.remove(proxy);
+			int index = preAddedWindows.indexOf(proxy);
+			preAddedWindows.remove(index);
+			preAddedArgs.remove(index);
 			return;
 		}
 		poping = true;
