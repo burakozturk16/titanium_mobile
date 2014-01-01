@@ -497,25 +497,8 @@
 
 -(void)setVerticalAlign_:(id)value
 {
-	if ([value isKindOfClass:[NSString class]])
-	{
-		if ([value isEqualToString:@"top"])
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentTop];
-		}
-		else if ([value isEqualToString:@"middle"] || [value isEqualToString:@"center"])
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
-		}
-		else 
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentBottom];
-		}
-	}
-	else
-	{
-		[[self textWidgetView] setContentVerticalAlignment:[TiUtils intValue:value]];
-	}
+    UIControlContentVerticalAlignment verticalAlign = [TiUtils contentVerticalAlignmentValue:value];
+    [[self textWidgetView] setContentVerticalAlignment:verticalAlign];
 }
 
 #pragma mark Public Method
