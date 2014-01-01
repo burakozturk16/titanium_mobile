@@ -1143,9 +1143,11 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			View content = listView.getChildAt(position);
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
-				TiUIView tiView = itemContent.getViewFromBinding(bindId);
-				if (tiView != null) {
-					return tiView.getProxy();
+				if (itemContent != null) {
+					TiUIView tiView = itemContent.getViewFromBinding(bindId);
+					if (tiView != null) {
+						return tiView.getProxy();
+					}
 				}
 			}
 		}
