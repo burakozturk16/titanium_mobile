@@ -98,7 +98,7 @@ public class OneStateDrawable extends Drawable {
 			if (innerShadows != null && innerShadows.length > 0) {
 				generateTempCanvas();
 				for(Shadow shadow : innerShadows){
-					paint.setColor(shadow.color);
+					paint.setColor(TiUIHelper.adjustColorAlpha(shadow.color, 0.7f));
 					tempCanvas.drawPath(path, paint);
 	                paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OUT));
 	                paint.setMaskFilter(new BlurMaskFilter(shadow.radius, BlurMaskFilter.Blur.NORMAL));

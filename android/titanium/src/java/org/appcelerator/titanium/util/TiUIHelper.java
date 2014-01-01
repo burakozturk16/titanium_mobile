@@ -1300,11 +1300,19 @@ public class TiUIHelper
 			result.dx = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_X));
 			result.dy = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_Y));
 		}
-		result.radius = TiUIHelper.getRawSize(dict.optString(TiC.PROPERTY_RADIUS, "3"));
+		result.radius = dict.optFloat(TiC.PROPERTY_RADIUS, 3);
 		if (dict.containsKey(TiC.PROPERTY_COLOR))
 		{
 			result.color = TiConvert.toColor(dict, TiC.PROPERTY_COLOR, result.color);
 		}
 		return result;
+	}
+	
+	public static int adjustColorAlpha(int color, float factor) {
+	    int alpha = Math.round(Color.alpha(color) * factor);
+	    int red = Color.red(color);
+	    int green = Color.green(color);
+	    int blue = Color.blue(color);
+	    return Color.argb(alpha, red, green, blue);
 	}
 }
