@@ -39,7 +39,7 @@ public class TiBorderWrapperView extends MaskableView
 	private RectF clipRect;
 	private Path clipPath;
 	private boolean clipChildren = true;
-	private Rect mBorderPadding;
+	private Rect mBorderPadding = null;
 	private TiViewProxy proxy;
 	private boolean mDrawableSizeChanged = false;
 	
@@ -151,26 +151,28 @@ public class TiBorderWrapperView extends MaskableView
         if (mDrawable != null) mDrawable.setVisible(visibility == VISIBLE, false);
     }
 	
-//	@Override
-//	protected void onDraw(Canvas canvas)
-//	{
-// 	 	super.onDraw(canvas);
-//	}
-	
 	@Override
 	protected void dispatchDraw(Canvas canvas)
 	{
-		canvas.save();
-		clipCanvas(canvas);
-		super.dispatchDraw(canvas);
-		canvas.restore();
-		drawBorder(canvas);
+		if (mBorderPadding != null)
+		{
+			canvas.save();
+			clipCanvas(canvas);
+			super.dispatchDraw(canvas);
+			drawBorder(canvas);
+			canvas.restore();
+		}
+		else  {
+			canvas.save();
+			clipCanvas(canvas);
+			super.dispatchDraw(canvas);
+			canvas.restore();
+			drawBorder(canvas);
+		}
 	}
 	
 	private float[] clipRadiusFromPadding(RectF outerRect)
 	{
-//		int maxPadding = (int) Math.min(outerRect.right / 2, outerRect.bottom / 2);
-//		int padding = (int) Math.min(borderWidth, maxPadding);
 		float[] result = new float[8];
 		for (int i = 0; i < result.length; i++) {
 			result[i] = radius[i] + 1;
