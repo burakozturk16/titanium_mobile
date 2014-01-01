@@ -86,6 +86,7 @@ public class OneStateDrawable extends Drawable {
 			}
 			if (gradientDrawable != null) 
 			{
+				paint.setColor(Color.WHITE);
 				paint.setShader(((TiGradientDrawable)gradientDrawable).getShaderFactory().resize((int)bounds.width(), (int)bounds.height()));
 				cacheCanvas.drawPath(path, paint);
 			}
