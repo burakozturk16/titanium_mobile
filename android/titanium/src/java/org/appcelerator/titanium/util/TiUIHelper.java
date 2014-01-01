@@ -590,7 +590,7 @@ public class TiUIHelper
 		if (textAlign != null) {
 			if ("left".equals(textAlign)) {
 				 gravity |= Gravity.LEFT;
-			} else if ("center".equals(textAlign)) {
+			} else if ("center".equals(textAlign) || "middle".equals(textAlign)) {
 				gravity |=  Gravity.CENTER_HORIZONTAL;
 			} else if ("right".equals(textAlign)) {
 				gravity |=  Gravity.RIGHT;
@@ -613,7 +613,7 @@ public class TiUIHelper
 		if (verticalAlign != null) {
 			if ("top".equals(verticalAlign)) {
 				gravity |= Gravity.TOP;
-			} else if ("middle".equals(verticalAlign)) {
+			} else if ("middle".equals(verticalAlign) || "center".equals(verticalAlign)) {
 				gravity |= Gravity.CENTER_VERTICAL;			
 			} else if ("bottom".equals(verticalAlign)) {
 				gravity |= Gravity.BOTTOM;			
