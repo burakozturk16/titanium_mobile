@@ -484,7 +484,7 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		private void ellipseText(int width, int height) {
 			if (!needsEllipsize() || needsEllipsing == false
-					|| (width <= 0) || (height <= 0) || (this.maxLines == 1 || this.singleline == true)) return;
+					|| (width <= 0) || (height <= 0)) return;
 			
 			boolean ellipsized = false;
 			CharSequence workingText = fullText;
