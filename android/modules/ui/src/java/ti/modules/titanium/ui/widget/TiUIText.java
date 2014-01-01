@@ -443,6 +443,13 @@ public class TiUIText extends TiUIView
 			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
 		}
+		
+		//the order is important because returnKeyType must overload keyboard return key defined
+		// by keyboardType
+		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
+			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
+		}
+		
 		if (d.containsKey(TiC.PROPERTY_PADDING)) {
 			Rect padding = TiConvert.toPaddingRect(d, TiC.PROPERTY_PADDING);
 			realtv.setPadding(padding.left, padding.top, padding.right, padding.bottom);
