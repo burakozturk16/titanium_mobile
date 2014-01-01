@@ -117,7 +117,7 @@
     //This way proxy always has correct sandbox when laying out
     [_proxy getOrCreateView];
     [_proxy parentWillShow];
-    UIView *wrapperView = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+    UIView *wrapperView = [[UIView alloc] initWithFrame:[TiUtils contentFrame:YES]];
     wrapperView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     [wrapperView addSubview:[_proxy view]];
     [wrapperView bringSubviewToFront:[_proxy view]];
