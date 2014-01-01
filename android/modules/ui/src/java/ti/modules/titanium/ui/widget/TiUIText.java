@@ -433,19 +433,9 @@ public class TiUIText extends TiUIView
 		}
 
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String textAlign = null;
-			String verticalAlign = null;
-			if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN)) {
-				textAlign = d.getString(TiC.PROPERTY_TEXT_ALIGN);
-			}
-			if (d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-				verticalAlign = d.getString(TiC.PROPERTY_VERTICAL_ALIGN);
-			}
-			handleTextAlign(textAlign, verticalAlign);
-		}
-
-		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
-			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
+			String textAlign = d.optString(TiC.PROPERTY_TEXT_ALIGN, "left");
+			String verticalAlign = d.optString(TiC.PROPERTY_VERTICAL_ALIGN, "middle");
+			TiUIHelper.setAlignment(realtv, textAlign, verticalAlign);
 		}
 
 		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT)
@@ -514,20 +504,12 @@ public class TiUIText extends TiUIView
 			} else {
 				realtv.setEllipsize(null);
 			}
-		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN) || key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String textAlign = null;
-			String verticalAlign = null;
-			if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
-				textAlign = TiConvert.toString(newValue);
-			} else if (proxy.hasProperty(TiC.PROPERTY_TEXT_ALIGN)){
-				textAlign = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_TEXT_ALIGN));
-			}
-			if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-				verticalAlign = TiConvert.toString(newValue);
-			} else if (proxy.hasProperty(TiC.PROPERTY_VERTICAL_ALIGN)){
-				verticalAlign = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VERTICAL_ALIGN));
-			}
-			handleTextAlign(textAlign, verticalAlign);
+		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
+			TiUIHelper.setAlignment(realtv, TiConvert.toString(newValue), null);
+			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
+			TiUIHelper.setAlignment(realtv, null, TiConvert.toString(newValue));
+			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_KEYBOARD_TYPE)
 			|| (key.equals(TiC.PROPERTY_AUTOCORRECT) || key.equals(TiC.PROPERTY_AUTOCAPITALIZATION)
 				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
@@ -693,17 +675,6 @@ public class TiUIText extends TiUIView
 			return true;
 		}
 		return false;
-	}
-
-	public void handleTextAlign(String textAlign, String verticalAlign)
-	{
-		if (verticalAlign == null) {
-			verticalAlign = field ? "middle" : "top";
-		}
-		if (textAlign == null) {
-			textAlign = "left";
-		}
-		TiUIHelper.setAlignment(realtv, textAlign, verticalAlign);
 	}
 
 	public void handleKeyboard(KrollDict d) 
