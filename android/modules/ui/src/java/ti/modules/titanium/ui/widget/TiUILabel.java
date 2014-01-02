@@ -536,13 +536,14 @@ public class TiUILabel extends TiUINonViewGroupView
 					Layout layout = createWorkingLayout(workingText, width);
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
-						if (linesCount >= 2) {
+						if (linesCount > maxLines && linesCount >= 2) {
+							int start2 = layout.getLineStart(linesCount - 1);
 							int end1 = layout.getLineEnd(linesCount - 2);
 							int end2 = layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
-							newText.append(getEllipsedTextForOneLine(fullText.subSequence(end1, end2), ellipsize, width));
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, start2 + end2), ellipsize, width));
 							workingText = newText;
 						} else {
 							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
@@ -573,12 +574,13 @@ public class TiUILabel extends TiUINonViewGroupView
 					int linesCount = getLinesCount(layout, height);
 					if (layout.getLineCount() > linesCount && ellipsize != null) {
 						if (linesCount >= 2) {
+							int start2 = layout.getLineStart(linesCount - 1);
 							int end1 = layout.getLineEnd(linesCount - 2);
 							int end2 = layout.getLineEnd(linesCount - 1);
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
-							newText.append(getEllipsedTextForOneLine(fullText.subSequence(end1, end2), ellipsize, width));
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, start2 + end2), ellipsize, width));
 							workingText = newText;
 						} else {
 							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
