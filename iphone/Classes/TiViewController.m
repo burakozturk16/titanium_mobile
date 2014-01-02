@@ -55,11 +55,12 @@
 
 - (void)viewDidLayoutSubviews
 {
-#ifdef DEVELOPER
     CGRect bounds = [[self view] bounds];
+#ifdef DEVELOPER
     NSLog(@"TIVIEWCONTROLLER DID LAYOUT SUBVIEWS %.1f %.1f",bounds.size.width, bounds.size.height);
 #endif
-    if (!CGRectEqualToRect([_proxy sandboxBounds], [[self view] bounds])) {
+    if (!CGRectEqualToRect([_proxy sandboxBounds], bounds)) {
+        [_proxy setSandboxBounds:bounds];
         [_proxy parentSizeWillChange];
     }
     [super viewDidLayoutSubviews];
@@ -120,12 +121,13 @@
     [self setHidesBottomBarWhenPushed:[TiUtils boolValue:[_proxy valueForUndefinedKey:@"tabBarHidden"] def:NO]];
     //Always wrap proxy view with a wrapperView.
     //This way proxy always has correct sandbox when laying out
-    [_proxy getOrCreateView];
+    TiUIView* pView = [_proxy getOrCreateView];
     [_proxy parentWillShow];
     UIView *wrapperView = [[UIView alloc] initWithFrame:[TiUtils contentFrame:YES]];
+    _proxy.sandboxBounds = wrapperView.bounds;
     wrapperView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
-    [wrapperView addSubview:[_proxy view]];
-    [wrapperView bringSubviewToFront:[_proxy view]];
+    [wrapperView addSubview:pView];
+    [wrapperView bringSubviewToFront:pView];
     self.view = wrapperView;
     [wrapperView release];
 }
