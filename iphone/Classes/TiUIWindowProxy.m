@@ -14,6 +14,7 @@
 #import "TiApp.h"
 #import "TiLayoutQueue.h"
 #import "UIViewController+ADTransitionController.h"
+#import "TiViewController.h"
 
 // this is how long we should wait on the new JS context to be loaded
 // holding the UI thread before we return during an window open. we 

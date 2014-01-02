@@ -7,6 +7,7 @@
 
 #import "TiViewController.h"
 #import "TiApp.h"
+#import "TiViewProxy.h"
 
 @implementation TiViewController
 

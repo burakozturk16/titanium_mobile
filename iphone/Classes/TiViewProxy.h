@@ -10,50 +10,7 @@
 #import "TiViewTemplate.h"
 #import <pthread.h>
 #import "TiAnimatableProxy.h"
-
-/**
- Protocol for views that can receive keyboard focus.
- */
-@protocol TiKeyboardFocusableView
-
-#pragma mark Public Titanium APIs.
-
-/**
- Tells the view to focus.
- @param args Unused.
- */
-- (void)focus:(id)args;
-
-/**
- Tells the view to stop generating focus/blur events. This should not be
- JS-accessable, and is meant to handle tableview and layout issues.
- */
-@property(nonatomic,readwrite,assign)	BOOL suppressFocusEvents;
-
-/**
- Tells the view to blur.
- @param args Unused.
- */
-- (void)blur:(id)args;
-/**
- Tells if this proxy is currently focused
- */
-- (BOOL)focused:(id)unused;
-
-#pragma mark Private internal APIs.
-
-/**
- Returns keyboard accessory view.
- */
-@property(nonatomic,readonly) UIView * keyboardAccessoryView;
-
-/**
- Returns keyboard accessory height.
- */
-@property(nonatomic,readonly) CGFloat keyboardAccessoryHeight;
-
-@end
-
+#import "TiViewController.h"
 /*
  This Protocol will be implemented by objects that want to
  monitor views not in the normal view heirarchy. 
@@ -86,7 +43,7 @@ enum
 	TiRefreshViewEnqueued,
 };
 
-@class TiAction, TiBlob, TiViewAnimationStep;
+@class TiAction, TiBlob, TiViewAnimationStep, TiViewController;
 //For TableRows, we need to have minimumParentHeightForWidth:
 
 /**
@@ -153,9 +110,11 @@ enum
     
     id observer;
 	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
+    TiViewController* controller;
 }
 
 #pragma mark public API
+@property(nonatomic, readwrite, retain) TiViewController* controller;
 
 @property(nonatomic,readonly) TiRect * size;
 @property(nonatomic,readonly) TiRect * rect;

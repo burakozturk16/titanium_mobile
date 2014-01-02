@@ -34,10 +34,6 @@
 }
 
 -(void) dealloc {
-    if (controller != nil) {
-        TiThreadReleaseOnMainThread(controller, NO);
-        controller = nil;
-    }
     
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
     if(transitionProxy != nil)
@@ -442,14 +438,6 @@
         }
         [[self view] setAccessibilityElementsHidden:YES];
     }
-}
-
--(UIViewController*)hostingController;
-{
-    if (controller == nil) {
-        controller = [[TiViewController alloc] initWithViewProxy:self];
-    }
-    return controller;
 }
 
 -(TiProxy *)topWindow

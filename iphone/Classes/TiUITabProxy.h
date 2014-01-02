@@ -14,7 +14,7 @@
 
 @interface TiUITabProxy : TiViewProxy<TiTab,UINavigationControllerDelegate,TiOrientationController> {
 @private
-	UINavigationController *controller;
+	UINavigationController *_controller;
 	TiWindowProxy *rootWindow;
     TiWindowProxy *current;
 	//This is an assign only property. TabGroup retains instances of tab.

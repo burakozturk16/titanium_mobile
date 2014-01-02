@@ -10,6 +10,7 @@
 #import "TiApp.h"
 #import "TiLayoutQueue.h"
 #import "TiErrorController.h"
+#import "TiViewProxy.h"
 
 #ifdef FORCE_WITH_MODAL
 @interface ForcingController: UIViewController {

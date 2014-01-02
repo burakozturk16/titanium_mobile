@@ -24,6 +24,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <libkern/OSAtomic.h>
 #import <pthread.h>
+#import "TiViewController.h"
 
 
 @interface TiViewProxy()
@@ -40,7 +41,7 @@
 
 @implementation TiViewProxy
 
-@synthesize eventOverrideDelegate = eventOverrideDelegate;
+@synthesize eventOverrideDelegate = eventOverrideDelegate, controller = controller;
 
 static NSArray* layoutProps = nil;
 static NSSet* transferableProps = nil;
@@ -1821,6 +1822,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)dealloc
 {
+    if (controller != nil) {
+        [controller detachProxy]; //make the controller knows we are done
+        TiThreadReleaseOnMainThread(controller, NO);
+        controller = nil;
+    }
 	RELEASE_TO_NIL(pendingAdds);
 	RELEASE_TO_NIL(destroyLock);
 //	RELEASE_TO_NIL(_runningViewAnimations);
@@ -1829,6 +1835,15 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	//Dealing with children is in _destroy, which is called by super dealloc.
 	
 	[super dealloc];
+}
+
+
+-(UIViewController*)hostingController;
+{
+    if (controller == nil) {
+        controller = [[TiViewController alloc] initWithViewProxy:self];
+    }
+    return controller;
 }
 
 -(BOOL)retainsJsObjectForKey:(NSString *)key

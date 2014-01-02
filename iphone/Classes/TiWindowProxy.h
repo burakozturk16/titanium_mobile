@@ -6,7 +6,7 @@
  */
 #import "TiViewProxy.h"
 #import "TiTab.h"
-#import "TiViewController.h"
+#import "TiControllerProtocols.h"
 
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
 #import "TiUIiOSTransitionAnimationProxy.h"
@@ -14,7 +14,6 @@
 
 @interface TiWindowProxy : TiViewProxy<TiWindowProtocol, HLSAnimationDelegate> {
 @protected
-    TiViewController* controller;
     id<TiOrientationController> parentController;
     TiOrientationFlags _supportedOrientations;
     BOOL opening;
