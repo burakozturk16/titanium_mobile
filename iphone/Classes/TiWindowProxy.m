@@ -76,8 +76,8 @@
 
 -(TiUIView*)newView
 {
-	CGRect frame = [TiUtils appFrame];
-	TiUIWindow * win = [[TiUIWindow alloc] initWithFrame:frame];
+	TiUIWindow * win = (TiUIWindow*)[super newView];
+    win.frame =[TiUtils appFrame];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(rootViewDidForceFrame:) name:kTiFrameAdjustNotification object:nil];
 	return win;
 }
