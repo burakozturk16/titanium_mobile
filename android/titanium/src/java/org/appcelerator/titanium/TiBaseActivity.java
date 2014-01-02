@@ -738,7 +738,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			if (topWindow != null && topWindow.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
 				proxy = topWindow;
 			}
-			else {
+			else if(window != null) {
 				proxy = window.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
 			}
 		}
