@@ -29,21 +29,25 @@
 //                           afterDelay:[[UIApplication sharedApplication] statusBarOrientationAnimationDuration] ];
 //    }
 //}
+
+-(void)setFrame:(CGRect)frame
 {
-    [super frameSizeChanged:frame bounds:bounds];
-    
-    //Need the delay so that we get the right navbar bounds
-    TiProxy* windowProxy = [self proxy];
-    if ([windowProxy respondsToSelector:@selector(willChangeSize)]) {
-        [(id)windowProxy willChangeSize];
-    }
-    if ([windowProxy respondsToSelector:@selector(updateNavBar)]) {
-        [windowProxy performSelector:@selector(updateNavBar) 
-                           withObject:nil 
-                           afterDelay:[[UIApplication sharedApplication] statusBarOrientationAnimationDuration] ];
+	// this happens when a controller resizes its view
+	if ([self.proxy isKindOfClass:[TiWindowProxy class]])
+	{
+        CGRect currentframe = [self frame];
+        if (!CGRectIsEmpty(frame) && !CGRectEqualToRect(frame, currentframe))
+        {
+            CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+            [(TiWindowProxy*)self.proxy setSandboxBounds:bounds];
+            [(TiWindowProxy*)self.proxy relayout];
+            [(TiWindowProxy*)self.proxy layoutChildren:NO];
+        }
+	}
+    else {
+        [super setFrame:frame];
     }
 }
-
 
 @end
 
