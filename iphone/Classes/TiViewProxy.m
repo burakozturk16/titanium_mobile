@@ -3502,7 +3502,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	ENSURE_UI_THREAD_1_ARG(args)
 	if ([self viewAttached])
 	{
-		[[self view] resignFirstResponder];
+		[[self view] endEditing:YES];
 	}
 }
 
