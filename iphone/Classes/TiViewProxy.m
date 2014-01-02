@@ -2167,12 +2167,12 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willShow;
 {
-	if(dirtyflags)
-	{//If we have any need for changes, let's enroll ourselves.
-        [self willEnqueue];
-        [self relayout];
-		[self layoutChildren:NO];
-	}
+//	if(dirtyflags)
+//	{//If we have any need for changes, let's enroll ourselves.
+//        [self willEnqueue];
+//        [self relayout];
+//		[self layoutChildren:NO];
+//	}
 
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
 	[parent contentsWillChange];
@@ -2187,7 +2187,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
 	[parent contentsWillChange];
 
-	[self willEnqueue];
+//	[self willEnqueue];
 
 	pthread_rwlock_rdlock(&childrenLock);
 	[children makeObjectsPerformSelector:@selector(parentWillHide)];
