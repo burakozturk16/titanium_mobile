@@ -6,11 +6,13 @@
     NSMutableArray* _runningAnimations;
 	pthread_rwlock_t runningLock;
 	pthread_rwlock_t pendingLock;
+    BOOL _animating;
 }
 
 @end
 
 @implementation TiAnimatableProxy
+@synthesize animating = _animating;
 
 -(id)init
 {
@@ -20,6 +22,7 @@
 		pthread_rwlock_init(&pendingLock, NULL);
         _pendingAnimations = [[NSMutableArray alloc] init];
         _runningAnimations = [[NSMutableArray alloc] init];
+        _animating = NO;
     }
     return self;
 }
@@ -35,7 +38,7 @@
 
 -(BOOL)animating
 {
-    return ([_runningAnimations count] > 0);
+    return (_animating || [_runningAnimations count] > 0);
 }
 
 -(void)addRunningAnimation:(TiAnimation *)animation
