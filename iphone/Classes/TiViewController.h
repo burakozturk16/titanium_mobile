@@ -13,8 +13,8 @@
     TiViewProxy* _proxy;
     TiOrientationFlags _supportedOrientations;
 }
-
 -(id)initWithViewProxy:(TiViewProxy*)window;
+-(void)detachProxy;
 -(TiViewProxy*) proxy;
 
 @end

@@ -38,6 +38,10 @@
 {
     return _proxy;
 }
+-(void)detachProxy
+{
+    _proxy = nil;
+}
 
 #ifdef DEVELOPER
 - (void)viewWillLayoutSubviews
