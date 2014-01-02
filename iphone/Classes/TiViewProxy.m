@@ -2399,7 +2399,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	VerboseLog(@"[INFO] Parent Will Hide for %@",self);
 	if(!parentVisible)
-	{//Nothing to do here, we're already visible here.
+	{//Nothing to do here, we're already invisible here.
 		return;
 	}
 	parentVisible = NO;
