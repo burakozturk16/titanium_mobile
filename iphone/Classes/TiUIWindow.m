@@ -14,7 +14,21 @@
 	[super dealloc];
 }
 
--(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
+//-(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
+//{
+//    [super frameSizeChanged:frame bounds:bounds];
+//    
+//    //Need the delay so that we get the right navbar bounds
+//    TiProxy* windowProxy = [self proxy];
+//    if ([windowProxy respondsToSelector:@selector(willChangeSize)]) {
+//        [(id)windowProxy willChangeSize];
+//    }
+//    if ([windowProxy respondsToSelector:@selector(updateNavBar)]) {
+//        [windowProxy performSelector:@selector(updateNavBar) 
+//                           withObject:nil 
+//                           afterDelay:[[UIApplication sharedApplication] statusBarOrientationAnimationDuration] ];
+//    }
+//}
 {
     [super frameSizeChanged:frame bounds:bounds];
     
