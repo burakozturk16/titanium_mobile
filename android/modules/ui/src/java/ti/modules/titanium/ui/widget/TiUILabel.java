@@ -94,6 +94,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		private float lineAdditionalVerticalPadding = 0.0f;
 		private float minTextSize;
 		private float maxTextSize;
+		private String textStr;
 		
 		@Override
 		protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec)
@@ -381,6 +382,12 @@ public class TiUILabel extends TiUINonViewGroupView
 			CharSequence newText = strimText(text);				
 			int length = ELLIPSIZE_CHAR.length();
 			if (where == TruncateAt.START || where == TruncateAt.END){
+				if (where == TruncateAt.START) {
+					newText = TextUtils.concat(ELLIPSIZE_CHAR, newText);
+				}
+				else if(where == TruncateAt.END) {
+					newText = TextUtils.concat(newText, ELLIPSIZE_CHAR);
+				}
 				newText = TextUtils.ellipsize(newText, getPaint(), width, where);
 				if (newText.length() == 0) return newText;
 				String textStr = newText.toString();
@@ -395,11 +402,12 @@ public class TiUILabel extends TiUINonViewGroupView
 				CharSequence newTextLeft = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.END);
 				CharSequence newTextRight = TextUtils.ellipsize(newText, getPaint(), width/2, TruncateAt.START);
 				String textLeftStr = newTextLeft.toString();
-				if (textLeftStr.length() == 0) return newText;
+				String textRightStr = newTextRight.toString();
+				if (textLeftStr.length() == 0 || (
+						textLeftStr.length() + textRightStr.length() == newText.toString().length())) return newText;
 				if (!textLeftStr.endsWith(ELLIPSIZE_CHAR)) {
 					newTextLeft = TextUtils.concat(ELLIPSIZE_CHAR, newTextLeft.subSequence(length, textLeftStr.length()));
 				}
-				String textRightStr = newTextRight.toString();
 				if (textRightStr.startsWith(ELLIPSIZE_CHAR)) {
 					newTextRight = (CharSequence) newTextRight.subSequence(length, newTextRight.length());
 				}
@@ -580,7 +588,7 @@ public class TiUILabel extends TiUINonViewGroupView
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
-							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, start2 + end2), ellipsize, width));
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, end2), ellipsize, width));
 							workingText = newText;
 						} else {
 							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
