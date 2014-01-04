@@ -36,6 +36,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     BOOL _ios7OrGreater;
     CGFloat _statusBarDecale;
     CGFloat _realStatusBarDecale;
+    ADTransition* _currentTransition;
 }
 @end
 
@@ -71,6 +72,10 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     [_viewControllers release], _viewControllers = nil;
     [_navigationBar release], _navigationBar = nil;
     [_toolbar release], _toolbar = nil;
+    if (_currentTransition != nil) {
+        _currentTransition.delegate = nil;
+        [_currentTransition release], _currentTransition = nil;
+    }
     [super dealloc];
 }
 
@@ -459,6 +464,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 #pragma mark -
 #pragma mark ADTransitionDelegate
 - (void)pushTransitionDidFinish:(ADTransition *)transition {
+    [_currentTransition release], _currentTransition = nil;
     BOOL animated = transition ? YES : NO;
     if ([_viewControllers count] >= 2) {
         UIViewController * outViewController = _viewControllers[([_viewControllers count] - 2)];
@@ -475,6 +481,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 }
 
 - (void)popTransitionDidFinish:(ADTransition *)transition {
+    [_currentTransition release], _currentTransition = nil;
     BOOL animated = transition ? YES : NO;
     _containerView.layer.transform = CATransform3DIdentity;
 
@@ -578,6 +585,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 
 - (void)_transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition {
+    _currentTransition = [transition retain];
     [transition transitionFromView:viewOut toView:viewIn inside:_containerView];
 }
 
