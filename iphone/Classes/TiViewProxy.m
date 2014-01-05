@@ -1634,6 +1634,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)windowDidClose
 {
+    if (controller) {
+        [controller removeFromParentViewController];
+        RELEASE_TO_NIL_AUTORELEASE(controller);
+    }
 	pthread_rwlock_rdlock(&childrenLock);
 	for (TiViewProxy *child in children)
 	{

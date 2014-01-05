@@ -170,10 +170,7 @@
     }
     tab = nil;
     self.isManaged = NO;
-    if (controller) {
-        [controller removeFromParentViewController];
-        RELEASE_TO_NIL_AUTORELEASE(controller);
-    }
+    
     [super windowDidClose];
     [self forgetSelf];
 }
