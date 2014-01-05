@@ -20,19 +20,10 @@
 {
     BOOL _hasOnStackChange;
 }
--(void)_destroy
-{
-    RELEASE_TO_NIL(rootWindow);
-    RELEASE_TO_NIL(navController);
-    RELEASE_TO_NIL(current);
-    RELEASE_TO_NIL(_defaultTransition);
-    [super _destroy];
-}
-
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(rootWindow);
+	RELEASE_TO_NIL_AUTORELEASE(rootWindow);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
     RELEASE_TO_NIL(_defaultTransition);
@@ -131,7 +122,7 @@
         [rootWindow open:nil];
         [rootWindow windowWillOpen];
         [rootWindow windowDidOpen];
-        current = rootWindow;
+        current = [rootWindow retain];
     }
     return [rootWindow hostingController];
 }
