@@ -300,6 +300,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     UIView * viewIn = viewController.view;
     
+    //better to do it now. Otherwise in addChildViewController we wont use the correct frame size
+    [self updateLayoutForController:viewController];
     
     [self addChildViewController:viewController];
     [viewController beginAppearanceTransition:YES animated:animated];
@@ -310,7 +312,6 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:viewController animated:animated];
     }
-    [self updateLayoutForController:viewController];
     
     [_containerView addSubview:viewIn];
     
@@ -362,6 +363,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     [_transitions removeLastObject];
     
     UIViewController * inViewController = _viewControllers[([_viewControllers count] - 2)];
+    inViewController.view.frame = _containerView.bounds;
+    
     [inViewController beginAppearanceTransition:YES animated:animated];
     
     if ([self.delegate respondsToSelector:@selector(transitionController:willPopToViewController:transition:)]) {
@@ -370,7 +373,6 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     if ([self.delegate respondsToSelector:@selector(transitionController:willShowViewController:animated:)]) {
         [self.delegate transitionController:self willShowViewController:inViewController animated:animated];
     }
-    inViewController.view.frame = _containerView.bounds;
     [_containerView addSubview:inViewController.view];
     
     UIViewController * outViewController = [_viewControllers lastObject];
