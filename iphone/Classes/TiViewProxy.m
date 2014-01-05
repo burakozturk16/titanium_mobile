@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -3823,7 +3823,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
                 [view2Proxy fakeOpening]; //we need that as we dont have parent yet
                 [view2Proxy windowDidOpen];
                 LayoutConstraint *contraints = [view2Proxy layoutProperties];
-                ApplyConstraintToViewWithBounds(contraints, view2, self.view.bounds);
+                ApplyConstraintToViewWithBounds(contraints, &layoutProperties, view2, self.view.bounds);
                 [view2Proxy refreshView:nil];
                 
                 id<TiEvaluator> context = self.executionContext;

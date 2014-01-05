@@ -694,7 +694,7 @@
                 if ([theProxy viewAttached]) {
                     [[[self view] superview] insertSubview:animatedOver belowSubview:[self view]];
                     LayoutConstraint* layoutProps = [theProxy layoutProperties];
-                    ApplyConstraintToViewWithBounds(layoutProps, (TiUIView*)animatedOver, [[animatedOver superview] bounds]);
+                    ApplyConstraintToViewWithBounds(layoutProps, &layoutProperties, (TiUIView*)animatedOver, [[animatedOver superview] bounds]);
                     [theProxy layoutChildren:NO];
                     RELEASE_TO_NIL(animatedOver);
                 }

@@ -349,7 +349,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         //Either the view has flexible height or pins were not defined for positioning
         int marginSuggestions=0;
         
-        if(TiDimensionDidCalculateValue(constraint->top, referenceSize.height, &frameTop))
+        if((!horizontal || TiDimensionIsUndefined(constraint->bottom) || flexibleSize) && TiDimensionDidCalculateValue(constraint->top, referenceSize.height, &frameTop))
         {
             marginSuggestions++;
         }
@@ -359,7 +359,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         }
         if (isSizeUndefined || (marginSuggestions == 0) || flexibleSize) {
             CGFloat frameBottom;
-            if(TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom))
+            if((!horizontal || TiDimensionIsUndefined(constraint->top) || flexibleSize) && TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom))
             {
                 marginSuggestions++;
                 frameTop += parentSize.height - viewSize.height - frameBottom;
@@ -383,7 +383,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
 }
 
 
-void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * subView, CGRect viewBounds)
+void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiUIView * subView, CGRect viewBounds)
 {
 	if(constraint == NULL)
 	{
@@ -396,7 +396,7 @@ void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * s
 	resultBounds.origin = CGPointZero;
 	resultBounds.size = SizeConstraintViewWithSizeAddingResizing(constraint,(TiViewProxy *)[subView proxy], viewBounds.size, &resultMask);
 	
-	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, nil, (TiViewProxy *)[subView proxy], resultBounds.size,
+	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, parentConstraint, (TiViewProxy *)[subView proxy], resultBounds.size,
 			[[subView layer] anchorPoint], viewBounds.size, viewBounds.size, &resultMask);
 	
 	resultCenter.x += resultBounds.origin.x + viewBounds.origin.x;
