@@ -1372,7 +1372,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)setClipChildren_:(id)arg
 {
     clipChildren = [TiUtils boolValue:arg];
-    self.layer.masksToBounds = self.clipsToBounds = [self clipChildren];
+    self.clipsToBounds = [self clipChildren];
 }
 
 -(BOOL)clipChildren
