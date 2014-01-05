@@ -164,15 +164,12 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
             maxSize.width -= _padding.left + _padding.right;
             if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
             {
-                
-                if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
+                int numberOfLines = 0;
+                if ([self valueForKey:@"maxLines"])
                 {
-                    result = [(NSAttributedString*)_realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
-                }else {
-                    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)_realLabelContent);
-                    result = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [_realLabelContent length]), NULL, maxSize, NULL);
-                    CFRelease(framesetter);
+                    numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
                 }
+                result = [TDTTTAttributedLabel sizeThatFitsAttributedString:_realLabelContent withConstraints:maxSize limitedToNumberOfLines:numberOfLines];
             }
             else
             {
@@ -189,8 +186,23 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 {
                     font = [UIFont systemFontOfSize:17];
                 }
+                int numberOfLines = 0;
+                if ([self valueForKey:@"maxLines"])
+                {
+                    numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
+                }
+                font.lineHeight;
                 result = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
-            }
+                if (numberOfLines > 0)
+                {
+                    CGFloat fontHeight = font.lineHeight;
+                    int currentNbLines = result.height / fontHeight;
+                    if (currentNbLines > numberOfLines)
+                    {
+                        result.height = numberOfLines * fontHeight;
+                    }
+                }
+           }
             result.width = ceilf(result.width); //use ceilf to get same result as sizeThatFits
             result.height = ceilf(result.height); //use ceilf to get same result as sizeThatFits
             result.width += _padding.left + _padding.right;
