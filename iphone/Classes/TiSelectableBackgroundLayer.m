@@ -160,6 +160,7 @@
 
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate
 {
+    if (!layer.shadowPath && _bufferImage && (color || image) && gradient == nil && _innerShadows == nil) return;
     RELEASE_TO_NIL(_bufferImage);
     [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
 }
