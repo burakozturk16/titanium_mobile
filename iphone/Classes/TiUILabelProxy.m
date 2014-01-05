@@ -122,8 +122,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     }
     if (view!=nil) {
         [(TiUILabel*)view setAttributedTextViewContent];
-        [self contentsWillChange];
     }
+    [self contentsWillChange];
     attributeTextNeedsUpdate = NO;
 }
 
@@ -317,6 +317,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         RELEASE_TO_NIL(contentString);
         RELEASE_TO_NIL(_realLabelContent);
         _contentHash = 0;
+        [self updateAttributeText];
         return;
     }
     
