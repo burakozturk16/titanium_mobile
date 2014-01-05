@@ -101,7 +101,11 @@ DEFINE_EXCEPTIONS
 	RELEASE_TO_NIL(imageView);
 	RELEASE_TO_NIL(_svg);
 	RELEASE_TO_NIL(_transition);
-	RELEASE_TO_NIL(_animatedImage);
+    if (_animatedImage) {
+        _animatedImage.delegate = nil;
+        RELEASE_TO_NIL(_animatedImage);
+    }
+    
 	RELEASE_TO_NIL(_currentImage);
 	[super dealloc];
 }
