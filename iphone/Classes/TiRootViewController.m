@@ -1084,8 +1084,11 @@
 #endif
     for (id<TiWindowProtocol> thisWindow in containedWindows) {
         if ([thisWindow isKindOfClass:[TiViewProxy class]]) {
-            if (!CGRectEqualToRect([(TiViewProxy*)thisWindow sandboxBounds], [[self view] bounds])) {
-                [(TiViewProxy*)thisWindow parentSizeWillChange];
+            TiViewProxy* proxy = (TiViewProxy*)thisWindow;
+            CGRect bounds = [[self view] bounds];
+            if (!CGRectEqualToRect([proxy sandboxBounds], bounds)) {
+                [proxy setSandboxBounds:bounds];
+                [proxy parentSizeWillChange];
             }
         }
     }
@@ -1418,6 +1421,7 @@
     }
     [super viewDidDisappear:animated];
 }
+
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     for (id<TiWindowProtocol> thisWindow in containedWindows) {

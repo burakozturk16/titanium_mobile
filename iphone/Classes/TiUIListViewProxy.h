@@ -13,6 +13,7 @@
 
 @property (nonatomic, readonly) NSArray *sections;
 @property (nonatomic, readonly) NSNumber *sectionCount;
+@property (nonatomic, readonly) NSDictionary *propertiesForItems;
 
 - (TiUIListSectionProxy *)sectionForIndex:(NSUInteger)index;
 - (void) deleteSectionAtIndex:(NSUInteger)index;

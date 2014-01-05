@@ -30,24 +30,20 @@
 //    }
 //}
 
--(void)setFrame:(CGRect)frame
-{
-	// this happens when a controller resizes its view
-	if ([self.proxy isKindOfClass:[TiWindowProxy class]])
-	{
-        CGRect currentframe = [self frame];
-        if (!CGRectIsEmpty(frame) && !CGRectEqualToRect(frame, currentframe))
-        {
-            CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
-            [(TiWindowProxy*)self.proxy setSandboxBounds:bounds];
-            [(TiWindowProxy*)self.proxy relayout];
-            [(TiWindowProxy*)self.proxy layoutChildren:NO];
-        }
-	}
-    else {
-        [super setFrame:frame];
-    }
-}
+//-(void)setFrame:(CGRect)frame
+//{
+//	// this happens when a controller resizes its view
+//	if (!CGRectIsEmpty(frame) && [self.proxy isKindOfClass:[TiViewProxy class]])
+//	{
+//        CGRect currentframe = [self frame];
+//        if (!CGRectEqualToRect(frame, currentframe))
+//        {
+//            CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+//            [(TiViewProxy*)self.proxy setSandboxBounds:bounds];
+//        }
+//	}
+//    [super setFrame:frame];
+//}
 
 @end
 

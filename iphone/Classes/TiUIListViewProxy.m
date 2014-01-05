@@ -23,6 +23,31 @@
 	pthread_mutex_t _operationQueueMutex;
 	pthread_rwlock_t _markerLock;
 	NSIndexPath *marker;
+    NSDictionary* _propertiesForItems;
+}
+@synthesize propertiesForItems = _propertiesForItems;
+
+static NSArray* keysToGetFromListView;
+-(NSArray *)keysToGetFromListView
+{
+	if (keysToGetFromListView == nil)
+	{
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", nil] retain];
+	}
+	return keysToGetFromListView;
+}
+
+static NSDictionary* listViewKeysToReplace;
+-(NSDictionary *)listViewKeysToReplace
+{
+	if (listViewKeysToReplace == nil)
+	{
+		listViewKeysToReplace = [@{@"selectedBackgroundColor": @"backgroundSelectedColor",
+                                   @"selectedBackgroundGradient": @"backgroundSelectedGradient",
+                                   @"selectedBackgroundImage": @"backgroundSelectedImage"
+                                   } retain];
+	}
+	return listViewKeysToReplace;
 }
 
 - (id)init
@@ -56,6 +81,7 @@
 	pthread_rwlock_destroy(&_markerLock);
 	[_sections release];
 	RELEASE_TO_NIL(marker);
+    RELEASE_TO_NIL(_propertiesForItems);
     [super dealloc];
 }
 
@@ -63,6 +89,20 @@
 {
 	return (TiUIListView *)self.view;
 }
+
+-(void)setValue:(id)value forKey:(NSString *)key
+{
+    if ([[self keysToGetFromListView] containsObject:key])
+    {
+        if (_propertiesForItems == nil)
+        {
+            _propertiesForItems = [[NSMutableDictionary alloc] init];
+        }
+        [_propertiesForItems setValue:value forKey:[[self listViewKeysToReplace] valueForKey:key]];
+    }
+    [super setValue:value forKey:key];
+}
+
 
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block
 {

@@ -360,6 +360,8 @@ enum
  */
 -(void)viewDidDetach;
 
+-(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
+
 #pragma mark Housecleaning state accessors
 //TODO: Sounds like the redundancy department of redundancy was here.
 /**
@@ -593,7 +595,9 @@ enum
 - (BOOL)focused:(id)unused;
 -(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
 -(CGSize)verifySize:(CGSize)size;
-
+-(void)setFakeAnimationOfDuration:(NSTimeInterval)duration andCurve:(CAMediaTimingFunction*)curve;
+-(void)removeFakeAnimation;
+-(void)refreshViewIfNeeded;
 @end
 
 

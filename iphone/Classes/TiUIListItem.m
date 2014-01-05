@@ -85,7 +85,7 @@ DEFINE_EXCEPTIONS
     [self.contentView addSubview:_viewHolder];
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
-    _needsLayout = NO;
+    [_proxy dirtyItAll];
 }
 
 -(void)setGrouped:(BOOL)grouped
@@ -319,18 +319,6 @@ static NSArray* handledKeys;
     }
 }
 
--(void)setHighlighted:(BOOL)yn
-{
-    [super setHighlighted:yn];
-    [self unHighlight:[self subviews]];
-}
-
--(void)setSelected:(BOOL)yn
-{
-    [super setSelected:yn];
-    [self unHighlight:[self subviews]];
-}
-
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
@@ -413,16 +401,26 @@ static NSArray* handledKeys;
 
 -(void)setFrame:(CGRect)frame
 {
-    _needsLayout = YES;
+	// this happens when a controller resizes its view
+    
+    if (!CGRectIsEmpty(frame))
+	{
+        CGRect currentbounds = [self bounds];
+        CGRect newBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+        if (!CGRectEqualToRect(newBounds, currentbounds))
+        {
+            [(TiViewProxy*)self.proxy setSandboxBounds:newBounds];
+        }
+	}
     [super setFrame:frame];
+	
 }
 
 - (void)layoutSubviews
 {
     [super layoutSubviews];
-    if (_needsLayout && _templateStyle == TiUIListItemTemplateStyleCustom) {
-        [_proxy layoutChildren:NO];
-        _needsLayout = NO;
+    if (_templateStyle == TiUIListItemTemplateStyleCustom) {
+        [_proxy refreshViewIfNeeded:YES];
     }
 }
 @end

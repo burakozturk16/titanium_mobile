@@ -199,7 +199,7 @@ static NSDictionary* replaceKeysForRow;
             doSetBackground = (backgroundColor != nil);
         }
         if (doSetBackground) {
-            [[self class] setBackgroundColor:[TiUtils colorValue:backgroundColor] onTable:_tableView];
+            [[self class] setBackgroundColor:[UIColor clearColor] onTable:_tableView];
         }
         UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
         tapGestureRecognizer.delegate = self;
@@ -632,11 +632,19 @@ static NSDictionary* replaceKeysForRow;
 	_maxRowHeight = [TiUtils dimensionValue:height];
 }
 
+-(void)onCreateCustomBackground
+{
+    if (_tableView != nil) {
+		[[self class] setBackgroundColor:[UIColor clearColor] onTable:_tableView];
+	}
+}
+
 - (void)setBackgroundColor_:(id)arg
 {
 	if (_tableView != nil) {
-		[[self class] setBackgroundColor:[TiUtils colorValue:arg] onTable:_tableView];
+		[[self class] setBackgroundColor:[UIColor clearColor] onTable:_tableView];
 	}
+    [super setBackgroundColor:arg];
 }
 
 - (void)setHeaderTitle_:(id)args
@@ -757,13 +765,10 @@ static NSDictionary* replaceKeysForRow;
         viewLayout->top = TiDimensionUndefined;
         viewLayout->centerY = TiDimensionUndefined;
         
-        [_pullViewProxy getOrCreateView];
         [_pullViewProxy setProxyObserver:self];
+        [_pullViewProxy parentWillShow];
         [_pullViewProxy windowWillOpen];
-        [_pullViewWrapper addSubview:[_pullViewProxy view]];
-        _pullViewProxy.parentVisible = YES;
-        [_pullViewProxy refreshSize];
-        [_pullViewProxy willChangeSize];
+        [_pullViewWrapper addSubview:[_pullViewProxy getOrCreateView]];
         [_pullViewProxy windowDidOpen];
     }
     
@@ -1984,10 +1989,9 @@ static NSDictionary* replaceKeysForRow;
 
 #pragma mark - Static Methods
 
-+ (void)setBackgroundColor:(TiColor*)color onTable:(UITableView*)table
++ (void)setBackgroundColor:(UIColor*)bgColor onTable:(UITableView*)table
 {
 	UIColor* defaultColor = [table style] == UITableViewStylePlain ? [UIColor whiteColor] : [UIColor groupTableViewBackgroundColor];
-	UIColor* bgColor = [color _color];
 	
 	// WORKAROUND FOR APPLE BUG: 4.2 and lower don't like setting background color for grouped table views on iPad.
 	// So, we check the table style and device, and if they match up wrong, we replace the background view with our own.

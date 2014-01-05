@@ -9,6 +9,30 @@
 #import "TiApp.h"
 #import "TiViewProxy.h"
 
+@interface ControllerWrapperView : UIView
+@property (nonatomic,assign) TiViewProxy* proxy;
+
+@end
+
+@implementation ControllerWrapperView
+
+-(void)setFrame:(CGRect)frame
+{
+    // this happens when a controller resizes its view
+	if (!CGRectIsEmpty(frame) && [self.proxy isKindOfClass:[TiViewProxy class]])
+	{
+        CGRect currentframe = [self frame];
+        if (!CGRectEqualToRect(frame, currentframe))
+        {
+            CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+            [(TiViewProxy*)self.proxy setSandboxBounds:bounds];
+        }
+	}
+    [super setFrame:frame];
+}
+
+@end
+
 @implementation TiViewController
 
 -(id)initWithViewProxy:(TiViewProxy*)window
@@ -123,8 +147,8 @@
     //This way proxy always has correct sandbox when laying out
     TiUIView* pView = [_proxy getOrCreateView];
     [_proxy parentWillShow];
-    UIView *wrapperView = [[UIView alloc] initWithFrame:[TiUtils contentFrame:YES]];
-    _proxy.sandboxBounds = wrapperView.bounds;
+    ControllerWrapperView *wrapperView = [[ControllerWrapperView alloc] initWithFrame:pView.bounds];
+    wrapperView.proxy = _proxy;
     wrapperView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
     [wrapperView addSubview:pView];
     [wrapperView bringSubviewToFront:pView];
@@ -137,8 +161,8 @@
 -(void)viewWillAppear:(BOOL)animated
 {
     [_proxy parentWillShow];
-   	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
-        [(id<TiWindowProtocol>)_proxy viewWillAppear:animated];
+   	if ([_proxy respondsToSelector:@selector(viewWillAppear:)]) {
+        [(id)_proxy viewWillAppear:animated];
     }
     [super viewWillAppear:animated];
 }
@@ -169,6 +193,10 @@
    	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
         [(id<TiWindowProtocol>)_proxy willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
     }
+    else {
+        [_proxy setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+        [_proxy refreshViewIfNeeded];
+    }
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
@@ -176,12 +204,18 @@
    	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
         [(id<TiWindowProtocol>)_proxy willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
     }
+    else {
+        [_proxy setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+    }
     [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
    	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
         [(id<TiWindowProtocol>)_proxy didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    }
+    else {
+        [_proxy removeFakeAnimation];
     }
     [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }

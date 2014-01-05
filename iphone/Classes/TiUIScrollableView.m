@@ -159,6 +159,13 @@
 	}	
 }
 
+-(void)layoutSubviews
+{
+////	[super layoutSubviews];
+////	[self checkBounds];
+}
+
+
 -(void)renderView:(TiViewProxy*)viewProxy forIndex:(int)index withRefresh:(BOOL)refresh
 {
 	int svSubviewsCount = [_wrappers count];
@@ -176,9 +183,8 @@
         }
         [viewproxy windowWillOpen];
         [viewproxy windowDidOpen];
-        [viewproxy layoutChildrenIfNeeded];
     } else if (!CGRectEqualToRect([viewproxy sandboxBounds], [wrapper bounds])) {
-        [viewproxy parentSizeWillChange];
+        [self.proxy layoutChild:viewproxy optimize:NO withMeasuredBounds:[wrapper bounds]];
     }
 }
 
@@ -447,12 +453,12 @@
     [self manageCache:[self currentPage]];
 	
     //To make sure all subviews are properly resized.
-    UIScrollView *sv = [self scrollview];
-    for(UIView *view in _wrappers){
-        for (TiUIView *sView in [view subviews]) {
-                [sView checkBounds];
-        }
-    }
+//    UIScrollView *sv = [self scrollview];
+//    for(UIView *view in _wrappers){
+//        for (TiUIView *sView in [view subviews]) {
+//                [sView checkBounds];
+//        }
+//    }
     
     [super frameSizeChanged:frame bounds:visibleBounds];
 }

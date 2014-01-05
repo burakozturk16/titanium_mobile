@@ -19,6 +19,9 @@
 @end
 
 @implementation TiWindowProxy
+{
+    BOOL readyToBeLayout;
+}
 
 @synthesize tab = tab;
 @synthesize isManaged;
@@ -28,7 +31,9 @@
 	if ((self = [super init]))
 	{
         [self setDefaultReadyToCreateView:YES];
+        opening = NO;
         opened = NO;
+        readyToBeLayout = NO;
 	}
 	return self;
 }
@@ -82,22 +87,38 @@
 	return win;
 }
 
--(BOOL)suppressesRelayout
+-(void)refreshViewIfNeeded
 {
-    if (controller != nil) {
-        //If controller view is not loaded, sandbox bounds will become zero.
-        //In that case we do not want to mess up our sandbox, which is by default
-        //mainscreen bounds. It will adjust when view loads.
-        return ![controller isViewLoaded];
+	if (!readyToBeLayout) return;
+    [super refreshViewIfNeeded];
+}
+
+-(BOOL)relayout
+{
+    if (!readyToBeLayout) {
+        //in case where the window was actually added as a child we want to make sure we are good
+        readyToBeLayout = YES;
     }
-    return [super suppressesRelayout];
+    [super relayout];
+}
+
+-(void)setSandboxBounds:(CGRect)rect
+{
+    if (!readyToBeLayout) {
+        //in case where the window was actually added as a child we want to make sure we are good
+        readyToBeLayout = YES;
+    }
+    [super setSandboxBounds:rect];
 }
 
 #pragma mark - Utility Methods
 -(void)windowWillOpen
 {
+    if (!opened){
+        opening = YES;
+    }
     [super windowWillOpen];
-    [self viewWillAppear:false];
+//    [self viewWillAppear:false];
     if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willOpenWindow:self];
     }
@@ -107,7 +128,12 @@
 {
     opening = NO;
     opened = YES;
-    [self viewDidAppear:false];
+//    if (!readyToBeLayout)
+//    {
+//        [self viewWillAppear:false];
+//        [self viewDidAppear:false];
+//    }
+//    [self viewDidAppear:false];
     [self fireEvent:@"open" propagate:NO];
     if (focussed && [self handleFocusEvents]) {
         [self fireEvent:@"focus" propagate:NO];
@@ -122,7 +148,7 @@
 
 -(void) windowWillClose
 {
-    [self viewWillDisappear:false];
+//    [self viewWillDisappear:false];
     if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] willCloseWindow:self];
     }
@@ -134,16 +160,20 @@
 {
     opened = NO;
     closing = NO;
-    [self viewDidDisappear:false];
+//    [self viewDidDisappear:false];
     [self fireEvent:@"close" propagate:NO];
     [self forgetProxy:closeAnimation];
+    [[NSNotificationCenter defaultCenter] removeObserver:self]; //just to be sure
     RELEASE_TO_NIL(closeAnimation);
     if (tab == nil && (self.isManaged == NO) && controller == nil) {
         [[[[TiApp app] controller] topContainerController] didCloseWindow:self];
     }
     tab = nil;
     self.isManaged = NO;
-    RELEASE_TO_NIL_AUTORELEASE(controller);
+    if (controller) {
+        [controller removeFromParentViewController];
+        RELEASE_TO_NIL_AUTORELEASE(controller);
+    }
     [super windowDidClose];
     [self forgetSelf];
 }
@@ -487,7 +517,6 @@
 {
     if ([self _handleOpen:args]) {
         [self parentWillShow];
-        [self view];
         if (tab != nil) {
             if ([args count] > 0) {
                 args = [NSArray arrayWithObjects:self, [args objectAtIndex:0], nil];
@@ -516,6 +545,7 @@
             [[TiApp app] showModalController:theController animated:animated];
         } else {
             [self windowWillOpen];
+            [self view];
             if ((self.isManaged == NO) && ((openAnimation == nil) || (![openAnimation isTransitionAnimation]))){
                 [self attachViewToTopContainerController];
             }
@@ -586,6 +616,7 @@
 //Containing controller will call these callbacks(appearance/rotation) on contained windows when it receives them.
 -(void)viewWillAppear:(BOOL)animated
 {
+    readyToBeLayout = YES;
     [self willShow];
 }
 -(void)viewWillDisappear:(BOOL)animated
@@ -613,27 +644,17 @@
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-    //For various views (scrollableView, NavGroup etc this info neeeds to be forwarded)
-    NSArray* childProxies = [self children];
-	for (TiViewProxy * thisProxy in childProxies)
-	{
-		if ([thisProxy respondsToSelector:@selector(willAnimateRotationToInterfaceOrientation:duration:)])
-		{
-			[(id)thisProxy willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
-		}
-	}
+    [self refreshViewIfNeeded];
 }
 
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-    
+    [self setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
 }
-
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
-    
+    [self removeFakeAnimation];
 }
-
 
 #pragma mark - TiAnimation Delegate Methods
 

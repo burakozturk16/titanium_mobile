@@ -630,27 +630,30 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	// this happens when a view is added to another view but not
 	// through the framework (such as a tableview header) and it
 	// means we need to force the layout of our children
-	if (childrenInitialized==NO && 
-		CGRectIsEmpty(frame)==NO &&
-		[self.proxy isKindOfClass:[TiViewProxy class]])
-	{
-		childrenInitialized=YES;
-		[(TiViewProxy*)self.proxy layoutChildren:NO];
-	}
+//	if (childrenInitialized==NO && 
+//		CGRectIsEmpty(frame)==NO &&
+//		[self.proxy isKindOfClass:[TiViewProxy class]])
+//	{
+//		childrenInitialized=YES;
+//		[(TiViewProxy*)self.proxy layoutChildren:NO];
+//	}
 }
 
 
 -(void)updateBounds:(CGRect)newBounds
 {
     //TIMOB-11197, TC-1264
+    [CATransaction begin];
     if (runningAnimation == nil) {
-        [CATransaction begin];
-        [CATransaction setDisableActions:YES];
+        [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     }
+    else {
+        [CATransaction setAnimationDuration:[runningAnimation duration]];
+        [CATransaction setAnimationTimingFunction:[runningAnimation curve]];
+    }
+    
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
-    if (runningAnimation == nil) {
-        [CATransaction commit];
-    }
+    [CATransaction commit];
 }
 
 
@@ -740,12 +743,17 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return self;
 }
 
+-(void)onCreateCustomBackground
+{
+    
+}
+
 -(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
     if (_bgLayer != nil) {
         return _bgLayer;
     }
-
+    
     _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
     
     [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
@@ -754,6 +762,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     _bgLayer.shadowPath = self.layer.shadowPath;
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
+    [self onCreateCustomBackground];
     return _bgLayer;
 }
 
@@ -2268,6 +2277,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     //get the visible rect
     CGRect visibleRect = [self.superview convertRect:self.frame toView:self];
+    if (CGRectIsEmpty(visibleRect)) return;
     visibleRect.origin.y += self.frame.origin.y;
     visibleRect.origin.x += self.frame.origin.x;
     

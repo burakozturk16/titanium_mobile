@@ -32,29 +32,6 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 @synthesize indexPath = _indexPath;
 @synthesize parentForBubbling = _parentForBubbling;
 
-static NSArray* keysToGetFromListView;
--(NSArray *)keysToGetFromListView
-{
-	if (keysToGetFromListView == nil)
-	{
-		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", nil] retain];
-	}
-	return keysToGetFromListView;
-}
-
-static NSDictionary* listViewKeysToReplace;
--(NSDictionary *)listViewKeysToReplace
-{
-	if (listViewKeysToReplace == nil)
-	{
-		listViewKeysToReplace = [@{@"selectedBackgroundColor": @"backgroundSelectedColor",
-                                   @"selectedBackgroundGradient": @"backgroundSelectedGradient",
-                                   @"selectedBackgroundImage": @"backgroundSelectedImage"
-                                   } retain];
-	}
-	return listViewKeysToReplace;
-}
-
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context
 {
     self = [self _initWithPageContext:context];
@@ -94,6 +71,7 @@ static NSDictionary* listViewKeysToReplace;
     view = _listItem.viewHolder;
     [view initializeState];
     viewInitialized = YES;
+    parentVisible = YES;
     [self setReadyToCreateView:YES];
     [self windowWillOpen];
     [self windowDidOpen];
@@ -159,15 +137,6 @@ static NSDictionary* listViewKeysToReplace;
 	return _bindings;
 }
 
-//-(void)setValue:(id)value forUndefinedKey:(NSString *)key
-//{
-//    if ([self shouldUpdateValue:value forKeyPath:key]) {
-//        [self recordChangeValue:value forKeyPath:key withBlock:^{
-//            [super setValue:value forUndefinedKey:key];
-//        }];
-//    }
-//}
-
 -(void)setValue:(id)value forKey:(NSString *)key
 {
     if ([self shouldUpdateValue:value forKeyPath:key]) {
@@ -177,12 +146,41 @@ static NSDictionary* listViewKeysToReplace;
     }
 }
 
+-(void)setValue:(id)value forKeyPath:(NSString *)keyPath
+{
+    if([keyPath isEqualToString:@"properties"])
+    {
+        [self setValuesForKeysWithDictionary:value];
+    }
+    else if ([value isKindOfClass:[NSDictionary class]]) {
+        id bindObject = [self.bindings objectForKey:keyPath];
+        if (bindObject != nil) {
+            BOOL reproxying = NO;
+            if ([bindObject isKindOfClass:[TiProxy class]]) {
+                [bindObject setReproxying:YES];
+                reproxying = YES;
+            }
+            [(NSDictionary *)value enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
+                NSString *newKeyPath = [NSString stringWithFormat:@"%@.%@", keyPath, key];
+                if ([self shouldUpdateValue:value forKeyPath:newKeyPath]) {
+                    [self recordChangeValue:value forKeyPath:newKeyPath withBlock:^{
+                        [bindObject setValue:value forKey:key];
+                    }];
+                }
+            }];
+            if (reproxying) {
+                [bindObject setReproxying:NO];
+            }
+        }
+    }
+    else [super setValue:value forKeyPath:keyPath];
+}
+
+
 - (void)setDataItem:(NSDictionary *)dataItem
 {
     [self configurationStart:YES];
 	[_resetKeys addObjectsFromArray:[_currentValues allKeys]];
-	id propertiesValue = [dataItem objectForKey:@"properties"];
-    NSMutableDictionary* properties = [NSMutableDictionary dictionaryWithDictionary:propertiesValue];
     NSInteger templateStyle = (_listItem != nil)?_listItem.templateStyle:TiUIListItemTemplateStyleCustom;
 	switch (templateStyle) {
 		case UITableViewCellStyleSubtitle:
@@ -191,53 +189,17 @@ static NSDictionary* listViewKeysToReplace;
 		case UITableViewCellStyleDefault:
             unarchived = YES;
 			break;
-			
 		default:
-			[dataItem enumerateKeysAndObjectsUsingBlock:^(NSString *bindId, id dict, BOOL *stop) {
-				if (![dict isKindOfClass:[NSDictionary class]] || [bindId isEqualToString:@"properties"]) {
-					return;
-				}
-				id bindObject = [self valueForUndefinedKey:bindId];
-				if (bindObject != nil) {
-					BOOL reproxying = NO;
-					if ([bindObject isKindOfClass:[TiProxy class]]) {
-						[bindObject setReproxying:YES];
-						reproxying = YES;
-					}
-					[(NSDictionary *)dict enumerateKeysAndObjectsUsingBlock:^(NSString *key, id value, BOOL *stop) {
-						NSString *keyPath = [NSString stringWithFormat:@"%@.%@", bindId, key];
-						if ([self shouldUpdateValue:value forKeyPath:keyPath]) {
-							[self recordChangeValue:value forKeyPath:keyPath withBlock:^{
-								[bindObject setValue:value forKey:key];
-							}];
-						}
-					}];
-					if (reproxying) {
-						[bindObject setReproxying:NO];
-					}
-				}
-			}];
 			break;
 	}
+    [dataItem enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
+        [self setValue:obj forKeyPath:key];
+    }];
     
-    NSDictionary* listViewProps = [_listViewProxy allProperties];
-    for (NSString* key in [self keysToGetFromListView]) {
-        if ([listViewProps objectForKey:key]) {
-            id value = [listViewProps objectForKey:key];
-            NSString* realKey = key;
-            if ([[self listViewKeysToReplace] objectForKey:realKey]) {
-                realKey = [[self listViewKeysToReplace] objectForKey:realKey];
-            }
-            if ([self shouldUpdateValue:value forKeyPath:realKey]) {
-                    [properties setObject:value forKey:realKey];
-            }
-        }
+    NSDictionary* listViewProps = [_listViewProxy propertiesForItems];
+    if ([listViewProps count] > 0) {
+        [self setValuesForKeysWithDictionary:listViewProps];
     }
-    
-    if ([properties count] > 0) {
-        [self setValuesForKeysWithDictionary:properties];
-    }
-    
     
     enumeratingResetKeys = YES;
 	[_resetKeys enumerateObjectsUsingBlock:^(NSString *keyPath, BOOL *stop) {
@@ -247,6 +209,7 @@ static NSDictionary* listViewKeysToReplace;
 	}];
     [_resetKeys removeAllObjects];
     enumeratingResetKeys = NO;
+    
     [self configurationSet:YES];
 }
 

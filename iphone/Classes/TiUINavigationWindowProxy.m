@@ -288,6 +288,7 @@
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if ((theWindow != rootWindow) && [theWindow opening]) {
         [theWindow windowWillOpen];
+        [theWindow setAnimating:YES];
     }
 }
 
@@ -307,6 +308,7 @@
     RELEASE_TO_NIL(current);
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if ((theWindow != rootWindow) && [theWindow opening]) {
+        [theWindow setAnimating:NO];
         [theWindow windowDidOpen];
     }
     current = [theWindow retain];

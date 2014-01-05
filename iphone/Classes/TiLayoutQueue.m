@@ -73,12 +73,7 @@ void performLayoutRefresh(CFRunLoopTimerRef timer, void *info)
 
 +(void)layoutProxy:(TiViewProxy*)thisProxy
 {
-    if ([thisProxy viewAttached]) {
-        [thisProxy layoutChildrenIfNeeded];
-    }
-    else {
-        [thisProxy refreshView:nil];
-    }
+    [thisProxy refreshViewOrParent];
 }
 
 +(void)addViewProxy:(TiViewProxy*)newViewProxy
