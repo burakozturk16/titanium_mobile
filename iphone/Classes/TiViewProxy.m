@@ -660,7 +660,7 @@ LAYOUTPROPERTIES_SETTER(setHeight,height,TiDimensionFromObject,[self willChangeS
 	static NSArray *keySequence = nil;
 	static dispatch_once_t onceToken;
 	dispatch_once(&onceToken, ^{
-		keySequence = [@[@"imageCap",@"backgroundColor",@"backgroundImage",@"backgroundGradient",@"backgroundOpacity", @"borderPadding"] retain];
+		keySequence = [@[@"clipChildren", @"borderPadding", @"borderRadius", @"imageCap",@"backgroundColor",@"backgroundImage",@"backgroundGradient",@"backgroundOpacity", ] retain];
 	});
 	return keySequence;
 }

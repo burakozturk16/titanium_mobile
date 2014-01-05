@@ -410,7 +410,7 @@ DEFINE_EXCEPTIONS
 	
 	[self updateTouchHandling];
 	 
-	super.backgroundColor = [UIColor clearColor];
+	super.backgroundColor = nil;
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
@@ -585,12 +585,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     //the 0.5f is there to have a clean border where you don't see the background
     CGPathRef path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
-    if (usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
+    if (clipChildren && usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
         [self applyPathToLayersMask:self.layer path:path];
         
     }
-    else {
+    else if (!usePathAsBorder) {
         CGFloat radius = radii[0];
         self.layer.cornerRadius = radius;
         if (_bgLayer) _bgLayer.cornerRadius = radius;
@@ -827,7 +827,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
         uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
     }
-    super.backgroundColor = uicolor;
+    if (clipChildren || radii == nil)
+    {
+        super.backgroundColor = uicolor;
+    }
+    else
+    {
+        [[self getOrCreateCustomBackgroundLayer] setColor:uicolor forState:UIControlStateNormal];
+    }
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
@@ -1101,6 +1108,38 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 }
 
+-(void)setusePathAsBorder:(BOOL)value
+{
+    if (value != usePathAsBorder)
+    {
+        usePathAsBorder = value;
+        if (usePathAsBorder) {
+            [_borderLayer swithToContentBorder];
+            self.layer.cornerRadius = 0;
+            if (_bgLayer) _bgLayer.cornerRadius = 0;
+            if (_borderLayer) _borderLayer.cornerRadius = 0;
+            if (self.backgroundColor)
+            {
+                [[self getOrCreateCustomBackgroundLayer] setColor:super.backgroundColor forState:UIControlStateNormal];
+                super.backgroundColor = nil;
+            }
+        }
+        else {
+            CGFloat radius = radii[0];
+            self.layer.cornerRadius = radius;
+            if (_bgLayer) _bgLayer.cornerRadius = radius;
+            if (_borderLayer) _borderLayer.cornerRadius = radius;
+        }
+    }
+    else if(!usePathAsBorder)
+    {
+        CGFloat radius = radii[0];
+        self.layer.cornerRadius = radius;
+        if (_bgLayer) _bgLayer.cornerRadius = radius;
+        if (_borderLayer) _borderLayer.cornerRadius = radius;
+    }
+}
+
 -(void)setBorderRadius_:(id)value
 {
     if ([value isKindOfClass:[NSArray class]]) {
@@ -1118,8 +1157,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
                 radii[i] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
             }
         }
-        usePathAsBorder = YES;
-        [_borderLayer swithToContentBorder];
+        [self setusePathAsBorder:YES];
     }
     else
     {
@@ -1128,12 +1166,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         for (int i = 0; i < 8; ++i){
             radii[i] = radius;
         }
-        if (usePathAsBorder == NO)
-        {
-            self.layer.cornerRadius = radius;
-            if (_bgLayer) _bgLayer.cornerRadius = radius;
-            if (_borderLayer) _borderLayer.cornerRadius = radius;
-        }
+        [self setusePathAsBorder:!clipChildren];
     }
     if (_borderLayer)
     {
