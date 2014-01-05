@@ -53,7 +53,7 @@
             // to add to the view hiearchry inside the animation block or you'll get the sizings as part of the
             // animation.. which we don't want
             LayoutConstraint *contraints = [transitionAnimation.transitionViewProxy layoutProperties];
-            ApplyConstraintToViewWithBounds(contraints, transitionView, holderView.bounds);
+            ApplyConstraintToViewWithBounds(contraints, [transitionAnimation.holderViewProxy layoutProperties], transitionView, holderView.bounds);
             [transitionAnimation.transitionViewProxy windowWillOpen];
             [transitionAnimation.transitionViewProxy layoutChildren:NO];
         }
