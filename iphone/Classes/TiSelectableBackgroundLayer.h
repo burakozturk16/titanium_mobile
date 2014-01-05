@@ -34,6 +34,7 @@
 @property(nonatomic,assign) BOOL readyToCreateDrawables;
 @property(nonatomic,assign) BOOL animateTransition;
 @property(nonatomic,assign) CGFloat clipWidth;
+@property (nonatomic, readwrite, assign) CGPathRef clippingPath;
 
 - (void)setState:(UIControlState)state;
 - (void)setState:(UIControlState)state animated:(BOOL)animated;

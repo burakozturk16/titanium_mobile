@@ -174,11 +174,12 @@
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
     CGFloat _clipWidth;
+    CGPathRef _clippingPath;
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, clippingPath = _clippingPath;
 
 - (id)init {
     if (self = [super init])
@@ -204,6 +205,11 @@
     currentDrawable = nil;
 	[stateLayersMap release];
 	[stateLayers release];
+    if (_clippingPath)
+    {
+        CGPathRelease(_clippingPath);
+        _clippingPath = nil;
+    }
 	[super dealloc];
 }
 
@@ -438,5 +444,12 @@
     return action;
 }
 
+-(void)setClippingPath:(CGPathRef)newPath
+{
+    if ( newPath != _clippingPath ) {
+        CGPathRelease(_clippingPath);
+        _clippingPath = CGPathRetain(newPath);
+    }
+}
 
 @end
