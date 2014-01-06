@@ -3547,24 +3547,29 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
     
     if (CGSizeEqualToSize([[self view] bounds].size, CGSizeZero)) return;
-
-//TODO: This is really expensive, but what can you do? Laying out the child needs the lock again.
-	pthread_rwlock_rdlock(&childrenLock);
-	NSArray * childrenArray = [[self visibleChildren] retain];
-	pthread_rwlock_unlock(&childrenLock);
     
-    NSUInteger childCount = [childrenArray count];
-    if (childCount > 0) {
-        NSArray * measuredBounds = [[self measureChildren:childrenArray] retain];
-        NSUInteger childIndex;
-        for (childIndex = 0; childIndex < childCount; childIndex++) {
-            id child = [childrenArray objectAtIndex:childIndex];
-            CGRect childSandBox = (CGRect)[(TiRect*)[measuredBounds objectAtIndex:childIndex] rect];
-            [self layoutChild:child optimize:optimize withMeasuredBounds:childSandBox];
+    if (childrenCount > 0)
+    {
+        //TODO: This is really expensive, but what can you do? Laying out the child needs the lock again.
+        pthread_rwlock_rdlock(&childrenLock);
+        NSArray * childrenArray = [[self visibleChildren] retain];
+        pthread_rwlock_unlock(&childrenLock);
+        
+        NSUInteger childCount = [childrenArray count];
+        if (childCount > 0) {
+            NSArray * measuredBounds = [[self measureChildren:childrenArray] retain];
+            NSUInteger childIndex;
+            for (childIndex = 0; childIndex < childCount; childIndex++) {
+                id child = [childrenArray objectAtIndex:childIndex];
+                CGRect childSandBox = (CGRect)[(TiRect*)[measuredBounds objectAtIndex:childIndex] rect];
+                [self layoutChild:child optimize:optimize withMeasuredBounds:childSandBox];
+            }
+            [measuredBounds release];
         }
-        [measuredBounds release];
+        [childrenArray release];
     }
-	[childrenArray release];
+
+
 	
 	if (optimize==NO)
 	{
