@@ -436,11 +436,9 @@
 
 -(void)setBounds:(CGRect)bounds_
 {
-    lastPage = [self currentPage];
+    lastPage = currentPage;
     enforceCacheRecalculation = YES;
     [super setBounds:bounds_];
-    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
-    enforceCacheRecalculation = NO;
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)visibleBounds
@@ -448,6 +446,8 @@
     if (CGSizeEqualToSize(visibleBounds.size, CGSizeZero)) return;
 	
     [self updateScrollViewFrame:visibleBounds];
+    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
+    enforceCacheRecalculation = NO;
     [self refreshScrollView:NO];
     [self setContentOffsetForPage:currentPage animated:NO];
     [self manageCache:[self currentPage]];
