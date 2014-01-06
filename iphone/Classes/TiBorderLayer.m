@@ -149,7 +149,6 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         self.clipWidth = self.borderWidth;
         [self setColor:[UIColor colorWithCGColor:self.borderColor] forState:UIControlStateNormal];
         self.borderWidth = 0;
-        
         self.cornerRadius = 0.0f;
         [self updateBorderPath:_radii inBounds:[self bounds]];
     }
@@ -187,9 +186,15 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 
 -(void)setFrame:(CGRect)frame
 {
-    [self updateBorderPath:_radii inBounds:frame];
     [super setFrame:frame];
 }
+
+-(void)setBounds:(CGRect)bounds
+{
+    [self updateBorderPath:_radii inBounds:bounds];
+    [super setBounds:bounds];
+}
+
 
 - (void)setColor:(UIColor*)color forState:(UIControlState)state
 {
