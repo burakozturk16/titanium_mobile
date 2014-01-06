@@ -1392,6 +1392,23 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     return [self view];
 }
 
+-(void)determineSandboxBoundsForce
+{
+    if(!CGRectIsEmpty(view.bounds)){
+        [self setSandboxBounds:view.bounds];
+    }
+    else if (!CGRectIsEmpty(sizeCache)) {
+        [self setSandboxBounds:sizeCache];
+    }
+    else if (parent != nil) {
+        CGRect bounds = [[parent view] bounds];
+        if (!CGRectIsEmpty(bounds)){
+            [self setSandboxBounds:bounds];
+        }
+        else [self setSandboxBounds:parent.sandboxBounds];
+    }
+}
+
 -(TiUIView*)view
 {
 	if (view == nil && readyToCreateView)
@@ -3857,15 +3874,18 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             pthread_rwlock_unlock(&childrenLock);
             
             TiUIView* view1 = nil;
-            TiUIView* view2 = nil;
+            __block TiUIView* view2 = nil;
             if (view2Proxy) {
-                view2 = [view2Proxy getOrCreateView];
-                [view2Proxy windowWillOpen];
-                [view2Proxy fakeOpening]; //we need that as we dont have parent yet
-                [view2Proxy windowDidOpen];
-                LayoutConstraint *contraints = [view2Proxy layoutProperties];
-                ApplyConstraintToViewWithBounds(contraints, &layoutProperties, view2, self.view.bounds);
-                [view2Proxy refreshView:nil];
+                [view2Proxy performBlockWithoutLayout:^{
+                    [view2Proxy setParent:self];
+                    [self refreshViewOrParent];
+                    [view2Proxy determineSandboxBoundsForce];
+                    view2 = [view2Proxy getOrCreateView];
+                    [view2Proxy windowWillOpen];
+                    [view2Proxy windowDidOpen];
+                    [view2Proxy dirtyItAll];
+                    [view2Proxy refreshViewIfNeeded];
+                }];
                 
                 id<TiEvaluator> context = self.executionContext;
                 if (context == nil) {
