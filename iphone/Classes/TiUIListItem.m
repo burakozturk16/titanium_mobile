@@ -276,6 +276,7 @@ DEFINE_EXCEPTIONS
 - (void)prepareForReuse
 {
 	RELEASE_TO_NIL(_dataItem);
+    [_proxy prepareForReuse];
 	[super prepareForReuse];
 }
 
