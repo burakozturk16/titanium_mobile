@@ -54,6 +54,7 @@
 	UIImageView * imageView;
     UIViewContentMode scaleType;
 	BOOL localLoadSync;
+    BOOL _reusing;
     
     CGFloat animationDuration;
     TiSVGImage* _svg;
@@ -84,6 +85,7 @@ DEFINE_EXCEPTIONS
         usingNewMethod = NO;
         stopped = YES;
         autoScale = 1;
+        _reusing = NO;
     }
     return self;
 }
@@ -151,6 +153,8 @@ DEFINE_EXCEPTIONS
             result.width = (result.height*autoWidth/autoHeight);
         }
     }
+    result.width = ceilf(result.width);
+    result.height = ceilf(result.height);
     return result;
 }
 
@@ -386,7 +390,7 @@ DEFINE_EXCEPTIONS
 -(void) transitionToImage:(UIImage*)image
 {
     ENSURE_UI_THREAD(transitionToImage,image);
-    [self updateAutoSizeFromImage:image];
+    image = [self prepareImage:image];
 	if (self.proxy==nil)
 	{
 		// this can happen after receiving an async callback for loading the image
@@ -398,7 +402,7 @@ DEFINE_EXCEPTIONS
     if (transition != nil) {
         UIImageView *iv = [self imageView];
         UIImageView *newView = [self cloneView:iv];
-        newView.image = [self convertToUIImage:image];
+        newView.image = image;
         [TiTransitionHelper transitionfromView:iv toView:newView insideView:self withTransition:transition completionBlock:^{
             placeholderLoading = NO;
             [self fireLoadEventWithState:@"image"];
@@ -411,7 +415,7 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)updateAutoSizeFromImage:(id)image
+-(id)prepareImage:(id)image
 {
     UIImage* imageToUse = nil;
     if ([image isKindOfClass:[UIImage class]]) {
@@ -420,11 +424,14 @@ DEFINE_EXCEPTIONS
     else if([image isKindOfClass:[TiSVGImage class]]) {
         autoHeight = _svg.size.height;
         autoWidth = _svg.size.width;
-        return;
+            // NOTE: Loading from URL means we can't pre-determine any % value.
+        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+                                       TiDimensionCalculateValue(height,0.0));
+        return [_svg imageForSize:_imagesize];
     }
     else {
         autoHeight = autoWidth = 0;
-        return;
+        return nil;
     }
     float factor = 1.0f;
     float screenScale = [UIScreen mainScreen].scale;
@@ -436,6 +443,7 @@ DEFINE_EXCEPTIONS
     CGFloat realHeight = imageToUse.size.height * factor;
     autoWidth = realWidth;
     autoHeight = realHeight;
+    return imageToUse;
 }
 
 -(void)loadImageInBackground:(NSNumber*)pos
@@ -453,9 +461,7 @@ DEFINE_EXCEPTIONS
 		return;
 	}
 
-    UIImage *imageToUse = [self rotatedImage:theimage];
-    
-    [self updateAutoSizeFromImage:imageToUse];
+    UIImage *imageToUse = [self prepareImage:[self convertToUIImage:theimage]];
     
 	TiThreadPerformOnMainThread(^{
 		UIView *view = [[container subviews] objectAtIndex:position];
@@ -550,11 +556,8 @@ DEFINE_EXCEPTIONS
     {
         UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:defURL withSize:_imagesize];
         
-        UIImage *imageToUse = [self rotatedImage:poster];
-        
-        [self updateAutoSizeFromImage:imageToUse];
         // TODO: Use the full image size here?  Auto width/height is going to be changed once the image is loaded.
-        [self imageView].image = imageToUse;
+        [self imageView].image = [self prepareImage:poster];
     }
 }
 
@@ -580,7 +583,7 @@ DEFINE_EXCEPTIONS
         UIImage *image = nil;
         if (localLoadSync)
         {
-            image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
+            image = [self convertToUIImage:[[ImageLoader sharedLoader] loadImmediateImage:url_]];
             if (image == nil && [url_ isFileURL]) {
                 image = [UIImage imageWithContentsOfFile:[url_ path]];
                 if (image != nil) {
@@ -589,8 +592,7 @@ DEFINE_EXCEPTIONS
             }
         
             if (image != nil) {
-                UIImage *imageToUse = [self rotatedImage:image];
-                [self transitionToImage:imageToUse];
+                [self transitionToImage:image];
             }
             else {
                 [self loadDefaultImage:_imagesize];
@@ -608,9 +610,8 @@ DEFINE_EXCEPTIONS
         
 		if (image!=nil)
 		{
-			UIImage *imageToUse = [self rotatedImage:image];
 			[(TiUIImageViewProxy*)[self proxy] setImageURL:url_];
-            [self transitionToImage:imageToUse];
+            [self transitionToImage:image];
 		}
 	}
 }
@@ -653,19 +654,19 @@ DEFINE_EXCEPTIONS
         image = (TiSVGImage*)arg;
     }
     
-	if ([image isKindOfClass:[UIImage class]]) {
-        imageToUse = [self rotatedImage:image];
-    }
-    else if([image isKindOfClass:[TiSVGImage class]]) {
-        // NOTE: Loading from URL means we can't pre-determine any % value.
-		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-									  TiDimensionCalculateValue(height,0.0));
-        imageToUse = [_svg imageForSize:_imagesize] ;
-    }
-    
-    [self updateAutoSizeFromImage:imageToUse];
+//	if ([image isKindOfClass:[UIImage class]]) {
+//        imageToUse = [self rotatedImage:image];
+//    }
+//    else if([image isKindOfClass:[TiSVGImage class]]) {
+//        // NOTE: Loading from URL means we can't pre-determine any % value.
+//		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+//									  TiDimensionCalculateValue(height,0.0));
+//        imageToUse = [_svg imageForSize:_imagesize] ;
+//    }
+//    
+//    [self prepareImage:imageToUse];
 
-    return imageToUse;
+    return image;
 }
 #pragma mark Public APIs
 
@@ -816,6 +817,11 @@ DEFINE_EXCEPTIONS
     return [[self imageView] image];
 }
 
+-(void)setReusing:(BOOL)value
+{
+    _reusing = value;
+}
+
 -(void)setImage_:(id)arg
 {
 
@@ -827,6 +833,12 @@ DEFINE_EXCEPTIONS
     if (_animatedImage) {
         [_animatedImage stop];
     }
+    
+    if (_reusing) {
+        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+                                       TiDimensionCalculateValue(height,0.0));
+        [self loadDefaultImage:_imagesize];
+    }
 	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
     [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
     
@@ -835,7 +847,6 @@ DEFINE_EXCEPTIONS
 		return;
 	}
 	
-	BOOL replaceProperty = YES;
 	id image = nil;
     NSURL* imageURL = nil;
     RELEASE_TO_NIL(_svg);

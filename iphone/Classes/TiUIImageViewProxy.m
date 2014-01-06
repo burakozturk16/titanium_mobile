@@ -260,8 +260,15 @@ USE_VIEW_FOR_CONTENT_SIZE
 
 - (void)prepareForReuse
 {
-    [self cancelPendingImageLoads];
+    [(TiUIImageView *)[self view] setReusing:YES];
     [super prepareForReuse];
+}
+
+
+- (void)configurationSet:(BOOL)recursive
+{
+    [(TiUIImageView *)[self view] setReusing:NO];
+    [super configurationSet:recursive];
 }
 
 @end

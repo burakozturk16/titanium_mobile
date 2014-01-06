@@ -28,6 +28,7 @@
 -(id)getImage;
 
 -(void)setImage_:(id)arg;
+-(void)setReusing:(BOOL)value;
 
 
 @end
