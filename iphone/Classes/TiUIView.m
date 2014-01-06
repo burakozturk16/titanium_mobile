@@ -1227,13 +1227,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 		if (newVal)
 		{
 			[viewProxy willHide];
-            [viewProxy refreshView:nil];
 		}
 		else
 		{
-            [viewProxy refreshView:nil];
-			[viewProxy willShow];
-            //Redraw ourselves if changing from invisible to visible, to handle any changes made
+            [viewProxy performBlockWithoutLayout:^{
+                [[viewProxy parent] contentsWillChangeImmediate];
+            }];
 		}
 	}
 }
