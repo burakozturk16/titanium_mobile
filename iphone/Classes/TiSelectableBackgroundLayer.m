@@ -160,7 +160,12 @@
 
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate
 {
-    if (!layer.shadowPath && _bufferImage && (color || image) && gradient == nil && _innerShadows == nil) return;
+    [self updateInLayer:layer onlyCreateImage:onlyCreate forceChange:YES];
+}
+
+-(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate forceChange:(BOOL)force
+{
+    if (!force && !layer.shadowPath && _bufferImage && (color || image) && gradient == nil && _innerShadows == nil) return;
     RELEASE_TO_NIL(_bufferImage);
     [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
 }
@@ -220,12 +225,12 @@
     
 	[super setBounds:bounds];
     if (needsToUpdate) {
-        _needsToSetDrawables = NO;
         [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
             if (drawable != nil) {
-                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable) forceChange:_needsToSetDrawables];
             }
         }];
+        _needsToSetDrawables = NO;
     }
 }
 
