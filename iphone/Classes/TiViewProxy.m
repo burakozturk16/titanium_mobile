@@ -3088,9 +3088,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         if (ourView != nil)
         {
             CGRect bounds = [ourView bounds];
+            CGFloat width = ceilf((bounds.size.width - widthNonFill) / nbWidthAutoFill);
             for (id child in widthFillChildren) {
                 int index = [childArray indexOfObject:child];
-                [(TiRect*)[measuredBounds objectAtIndex:index] setWidth:[NSNumber numberWithFloat:((bounds.size.width - widthNonFill) / nbWidthAutoFill)]];
+                [(TiRect*)[measuredBounds objectAtIndex:index] setWidth:[NSNumber numberWithFloat:width]];
             }
         }
     }
@@ -3101,9 +3102,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         if (ourView != nil)
         {
             CGRect bounds = [ourView bounds];
+            CGFloat height = ceilf((bounds.size.height - heightNonFill) / nbHeightAutoFill);
             for (id child in heightFillChildren) {
                 int index = [childArray indexOfObject:child];
-                [(TiRect*)[measuredBounds objectAtIndex:index] setHeight:[NSNumber numberWithFloat:((bounds.size.height - heightNonFill) / nbHeightAutoFill)]];
+                [(TiRect*)[measuredBounds objectAtIndex:index] setHeight:[NSNumber numberWithFloat:height]];
             }
         }
     }
