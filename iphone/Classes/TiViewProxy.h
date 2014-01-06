@@ -581,23 +581,73 @@ enum
 //+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 /**
- Performs view's configuration procedure.
+ Performs view's configuration procedure. Used during proxy creation and listview item update
  */
 -(void)configurationStart;
 -(void)configurationStart:(BOOL)recursive;
 -(void)configurationSet;
 -(void)configurationSet:(BOOL)recursive;
+
+
 -(BOOL) widthIsAutoSize;
 -(BOOL) heightIsAutoSize;
 
+/**
+ foucs methods
+ */
 - (void)focus:(id)args;
 - (void)blur:(id)args;
 - (BOOL)focused:(id)unused;
+
+/**
+ Method to simulate the layout of child even if not really a child
+ */
 -(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
+
+/**
+ Verify size
+ */
 -(CGSize)verifySize:(CGSize)size;
+
+/**
+ Set a fake animation (used by windows during rotation)
+ */
 -(void)setFakeAnimationOfDuration:(NSTimeInterval)duration andCurve:(CAMediaTimingFunction*)curve;
+/**
+ remove the fake animation
+ */
 -(void)removeFakeAnimation;
+
+/**
+ The current running animation
+ */
+-(TiViewAnimationStep*)runningAnimation;
+
+/**
+ Update the view if necessary
+ */
 -(void)refreshViewIfNeeded;
+-(void)refreshViewIfNeeded:(BOOL)recursive;
+
+/**
+ Make the view dirty so that it will get refreshed on the next run
+ */
+-(void)dirtyItAll;
+
+/**
+Set the animation on its view and all it's children
+ */
+-(void)setRunningAnimationRecursive:(TiViewAnimationStep*)animation;
+
+/**
+ Tells if the view is currently in the process of being rotated
+ */
+-(BOOL)isRotating;
+
+/**
+ Create or access a managing controller. Only call if you want a controller!
+ */
+-(UIViewController*) hostingController;
 @end
 
 
