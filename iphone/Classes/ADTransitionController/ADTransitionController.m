@@ -625,6 +625,16 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     [self updateLayoutForController:self.viewControllers.lastObject];
 }
 
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration{
+    [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+    [self.viewControllers.lastObject willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+}
+
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+    [self.viewControllers.lastObject didRotateFromInterfaceOrientation:fromInterfaceOrientation ];
+}
+
 #pragma mark - iOS 7 Status Bar Helpers
 -(UIViewController*)childViewControllerForStatusBarStyle{
     return self.viewControllers.lastObject;
