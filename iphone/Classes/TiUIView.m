@@ -599,6 +599,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     {
         _bgLayer.shadowPath = path;
     }
+
     CGPathRelease(path);
 }
 
@@ -609,7 +610,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [self updatePathForClipping:bounds];
     }
     if (_borderLayer) {
-        [_borderLayer updateBorderPath:radii inBounds:bounds];
         _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
     }
     if (_bgLayer) {
@@ -621,24 +621,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     [self updateTransform];
 }
-
-
--(void)setFrame:(CGRect)frame
-{
-	[super setFrame:frame];
-	
-	// this happens when a view is added to another view but not
-	// through the framework (such as a tableview header) and it
-	// means we need to force the layout of our children
-//	if (childrenInitialized==NO && 
-//		CGRectIsEmpty(frame)==NO &&
-//		[self.proxy isKindOfClass:[TiViewProxy class]])
-//	{
-//		childrenInitialized=YES;
-//		[(TiViewProxy*)self.proxy layoutChildren:NO];
-//	}
-}
-
 
 -(void)updateBounds:(CGRect)newBounds
 {
@@ -775,8 +757,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     
     _borderLayer = [[TiBorderLayer alloc] init];
-    _borderLayer.cornerRadius = self.layer.cornerRadius;
-   [_borderLayer setRadii:radii];
+    if (usePathAsBorder) {
+        [_borderLayer swithToContentBorder];
+    }
+    else {
+        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    [_borderLayer setRadii:radii];
     [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
     CGRect bounds = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
     if (!CGRectIsEmpty(bounds)) {
@@ -1036,61 +1023,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 }
 
-
-//-(void)setBackgroundImageLayerBounds:(CGRect)bounds
-//{
-//    if ([self backgroundLayer] != nil)
-//    {
-//        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
-//                                            bounds.origin.y - padding.origin.y,
-//                                            bounds.size.width + padding.origin.x + padding.size.width,
-//                                            bounds.size.height + padding.origin.y + padding.size.height);
-//        [self backgroundLayer].frame = backgroundFrame;
-//    }
-//}
-
-//-(void) updateBackgroundImageFrameWithPadding
-//{
-//    if (!configurationSet){
-//        needsUpdateBackgroundImageFrame = YES;
-//        return; // lazy init
-//    }
-//    [self setBackgroundImageLayerBounds:self.bounds];
-//}
-
-//-(void)setBackgroundImage_:(id)url
-//{
-//    [super setBackgroundImage_:url];
-//    //if using padding we must not mask to bounds.
-//    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
-////    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingLeft_:(id)left
-//{
-//    padding.origin.x = [TiUtils floatValue:left];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingRight_:(id)right
-//{
-//    padding.size.width = [TiUtils floatValue:right];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingTop_:(id)top
-//{
-//    padding.origin.y = [TiUtils floatValue:top];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingBottom_:(id)bottom
-//{
-//    padding.size.height = [TiUtils floatValue:bottom];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-
-
 -(void)setBackgroundPadding_:(id)value
 {
     _backgroundPadding = [TiUtils insetValue:value];
@@ -1127,7 +1059,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             [_borderLayer swithToContentBorder];
             self.layer.cornerRadius = 0;
             if (_bgLayer) _bgLayer.cornerRadius = 0;
-            if (_borderLayer) _borderLayer.cornerRadius = 0;
             if (self.backgroundColor)
             {
                 [[self getOrCreateCustomBackgroundLayer] setColor:super.backgroundColor forState:UIControlStateNormal];
@@ -1138,7 +1069,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             CGFloat radius = radii[0];
             self.layer.cornerRadius = radius;
             if (_bgLayer) _bgLayer.cornerRadius = radius;
-            if (_borderLayer) _borderLayer.cornerRadius = radius;
         }
     }
     else if(!usePathAsBorder)
@@ -1146,7 +1076,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         CGFloat radius = radii[0];
         self.layer.cornerRadius = radius;
         if (_bgLayer) _bgLayer.cornerRadius = radius;
-        if (_borderLayer) _borderLayer.cornerRadius = radius;
     }
 }
 
@@ -1307,11 +1236,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             //Redraw ourselves if changing from invisible to visible, to handle any changes made
 		}
 	}
-    
-//    //Redraw ourselves if changing from invisible to visible, to handle any changes made
-//	if (!self.hidden && oldVal) {
-//        [viewProxy willEnqueue];
-//    }
 }
 
 -(void)setBgState:(UIControlState)state
