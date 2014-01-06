@@ -421,7 +421,16 @@ static NSArray* handledKeys;
 {
     [super layoutSubviews];
     if (_templateStyle == TiUIListItemTemplateStyleCustom) {
-        [_proxy refreshViewIfNeeded:YES];
+        TiViewAnimationStep* anim = [_proxy runningAnimation];
+        if (anim)
+        {
+            [_proxy setRunningAnimationRecursive:anim];
+            [_proxy refreshViewIfNeeded:YES];
+            [_proxy setRunningAnimationRecursive:nil];
+        }
+        else {
+            [_proxy refreshViewIfNeeded:YES];
+        }
     }
 }
 @end

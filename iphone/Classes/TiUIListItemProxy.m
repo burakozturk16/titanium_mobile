@@ -337,6 +337,12 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     return width;
 }
 
+
+-(TiViewAnimationStep*)runningAnimation
+{
+    return [_listViewProxy runningAnimation];
+}
+
 @end
 
 static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventOverrideDelegate> eventOverrideDelegate)
