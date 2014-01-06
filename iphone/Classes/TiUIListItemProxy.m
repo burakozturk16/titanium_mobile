@@ -30,7 +30,6 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 @synthesize listItem = _listItem;
 @synthesize indexPath = _indexPath;
-@synthesize parentForBubbling = _parentForBubbling;
 
 - (id)initWithListViewProxy:(TiUIListViewProxy *)listViewProxy inContext:(id<TiEvaluator>)context
 {
@@ -63,6 +62,12 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     return self;
 }
 
+-(void)cleanup
+{
+    _listViewProxy = nil;
+    _listItem = nil;
+}
+
 -(void) setListItem:(TiUIListItem *)newListItem
 {
     //we must not retain the item or we get a cyclic retain problem
@@ -80,8 +85,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 -(void)dealloc
 {
-    _listItem = nil;
-    _parentForBubbling = nil;
+    [self cleanup];
     RELEASE_TO_NIL(_initialValues)
     RELEASE_TO_NIL(_currentValues)
     RELEASE_TO_NIL(_resetKeys)
@@ -92,7 +96,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 -(TiProxy*)parentForBubbling
 {
-	return _parentForBubbling;
+	return _listViewProxy;
 }
 
 
@@ -102,22 +106,11 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	[super detachView];
 }
 
--(void)_destroy
-{
-	view = nil;
-	[super _destroy];
-}
-
--(void)_initWithProperties:(NSDictionary*)properties
-{
-    [super _initWithProperties:properties];
-//    if (_listItem != nil) {
-//        [self applyCellProps:properties];
-//    }
-//    else {
-//        [self getCellPropsFromDict:properties];
-//    }
-}
+//-(void)_destroy
+//{
+//	view = nil;
+//	[super _destroy];
+//}
 
 - (void)unarchiveFromTemplate:(id)viewTemplate withEvents:(BOOL)withEvents
 {

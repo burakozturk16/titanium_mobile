@@ -262,6 +262,7 @@ DEFINE_EXCEPTIONS
 
 - (void)dealloc
 {
+	[_proxy cleanup];
 	_proxy.listItem = nil;
 	_proxy.modelDelegate = nil;
     _viewHolder.proxy = nil;

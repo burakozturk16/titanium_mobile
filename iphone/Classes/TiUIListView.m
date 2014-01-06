@@ -1343,7 +1343,6 @@ static NSDictionary* replaceKeysForRow;
             context = self.listViewProxy.pageContext;
         }
         TiUIListItemProxy *cellProxy = [[TiUIListItemProxy alloc] initWithListViewProxy:self.listViewProxy inContext:context];
-        cellProxy.parentForBubbling = (TiViewProxy*)self.proxy;
         if ([templateId isKindOfClass:[NSNumber class]]) {
             UITableViewCellStyle cellStyle = [templateId unsignedIntegerValue];
             cell = [[TiUIListItem alloc] initWithStyle:cellStyle position:position grouped:grouped reuseIdentifier:cellIdentifier proxy:cellProxy];
