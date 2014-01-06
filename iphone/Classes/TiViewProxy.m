@@ -42,6 +42,7 @@
 	unsigned int animationDelayGuard;
     BOOL _transitioning;
     id _pendingTransition;
+    int childrenCount;
 }
 @end
 
@@ -282,6 +283,7 @@ static NSSet* transferableProps = nil;
 		{
 			[children addObject:arg];
 		}
+        childrenCount = [children count];
 		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
         
@@ -325,6 +327,7 @@ static NSSet* transferableProps = nil;
             {
                 [children addObject:arg];
             }
+            childrenCount = [children count];
             pthread_rwlock_unlock(&childrenLock);
         }
 //		pthread_rwlock_wrlock(&childrenLock);
@@ -368,6 +371,7 @@ static NSSet* transferableProps = nil;
 		[arg parentWillHide];
 	}
 
+    childrenCount = [children count];
 	if ([children count]==0)
 	{
 		RELEASE_TO_NIL(children);
@@ -457,6 +461,7 @@ static NSSet* transferableProps = nil;
 		}
 
 		[children removeAllObjects];
+        childrenCount = 0;
 		RELEASE_TO_NIL(children);
 
 		pthread_rwlock_unlock(&childrenLock);
@@ -1782,6 +1787,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         hidden = NO;
         [self resetDefaultValues];
         _transitioning = NO;
+        childrenCount = 0;
 //        _runningViewAnimations = [[NSMutableArray alloc] init];
 	}
 	return self;
@@ -2279,6 +2285,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willResizeChildren
 {
+    if (childrenCount == 0) return;
 	SET_AND_PERFORM(TiRefreshViewChildrenPosition,return);
 	[self willEnqueueIfVisible];
 }
