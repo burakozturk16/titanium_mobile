@@ -292,8 +292,8 @@ static NSSet* transferableProps = nil;
         [arg getOrCreateView];
         
         //Turn on clipping because I have children
-        if ([[self view] respondsToSelector:@selector(updateViewShadowPath)])
-            [[self view] updateViewShadowPath];
+//        if ([[self view] respondsToSelector:@selector(updateViewShadowPath)])
+//            [[self view] updateViewShadowPath];
         
 		[self contentsWillChange];
 		if(parentVisible && !hidden)
