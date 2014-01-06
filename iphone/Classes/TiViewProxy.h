@@ -472,6 +472,12 @@ enum
 -(void)contentsWillChange;
 
 /**
+ Tells the view proxy that the attached view contents will change and
+ that it should layout immediately
+ */
+-(void)contentsWillChangeImmediate;
+
+/**
  Tells the view proxy that the attached view's parent size will change.
  */
 -(void)parentSizeWillChange;
@@ -628,6 +634,12 @@ enum
  */
 -(void)refreshViewIfNeeded;
 -(void)refreshViewIfNeeded:(BOOL)recursive;
+-(void)refreshViewOrParent;
+
+/**
+ Perform a block while preventing relayout
+ */
+-(void)performBlockWithoutLayout:(void (^)(void))block;
 
 /**
  Make the view dirty so that it will get refreshed on the next run

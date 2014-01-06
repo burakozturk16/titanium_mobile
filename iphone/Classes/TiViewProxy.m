@@ -2268,14 +2268,18 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willShow;
 {
-    [self refreshViewIfNeeded];
-
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
-	[parent contentsWillChange];
-
-	pthread_rwlock_rdlock(&childrenLock);
-	[children makeObjectsPerformSelector:@selector(parentWillShow)];
-	pthread_rwlock_unlock(&childrenLock);
+    
+    pthread_rwlock_rdlock(&childrenLock);
+    [children makeObjectsPerformSelector:@selector(parentWillShow)];
+    pthread_rwlock_unlock(&childrenLock);
+    
+    if (parent && parentVisible)
+        [parent contentsWillChange];
+    else {
+        [self contentsWillChange];
+    }
+    
 }
 
 -(void)willHide;
@@ -2461,7 +2465,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     allowContentChange = NO;
     [self contentsWillChange];
     allowContentChange = YES;
-    [self refreshViewIfNeeded];
+    [self refreshViewOrParent];
 }
 
 -(void)parentSizeWillChange
