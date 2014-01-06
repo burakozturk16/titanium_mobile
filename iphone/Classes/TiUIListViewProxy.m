@@ -79,7 +79,7 @@ static NSDictionary* listViewKeysToReplace;
 	[_operationQueue release];
 	pthread_mutex_destroy(&_operationQueueMutex);
 	pthread_rwlock_destroy(&_markerLock);
-	[_sections release];
+    RELEASE_TO_NIL(_sections);
 	RELEASE_TO_NIL(marker);
     RELEASE_TO_NIL(_propertiesForItems);
     [super dealloc];
