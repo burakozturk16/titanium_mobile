@@ -121,11 +121,12 @@ static NSSet* transferableProps = nil;
         NSArray* subproxies = onlyVisible?[self visibleChildren]:[self children];
         for (TiViewProxy * thisChildProxy in subproxies)
         {
+            block(thisChildProxy);
             [thisChildProxy runBlock:block onlyVisible:onlyVisible recursive:recursive];
         }
         pthread_rwlock_unlock(&childrenLock);
     }
-    block(self);
+//    block(self);
 }
 
 -(void)makeChildrenPerformSelector:(SEL)selector withObject:(id)object
@@ -2930,12 +2931,25 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     [view setRunningAnimation:animation];
 }
 
+-(void)setRunningAnimationRecursive:(TiViewAnimationStep*)animation
+{
+    [view setRunningAnimation:animation];
+    [self runBlock:^(TiViewProxy *proxy) {
+        [proxy setRunningAnimationRecursive:animation];
+    } onlyVisible:YES recursive:YES];
+}
+
 -(void)setFakeAnimationOfDuration:(NSTimeInterval)duration andCurve:(CAMediaTimingFunction*)curve
 {
     TiFakeAnimation* anim = [[TiFakeAnimation alloc] init];
     anim.duration = duration;
     anim.curve = curve;
-    [self setRunningAnimation:anim];
+    [self setRunningAnimationRecursive:anim];
+}
+
+-(BOOL)isRotating
+{
+    return [[self runningAnimation] isKindOfClass:[TiFakeAnimation class]];
 }
 
 -(void)removeFakeAnimation
@@ -2943,7 +2957,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     id anim = [self runningAnimation];
     if ([anim isKindOfClass:[TiFakeAnimation class]])
     {
-        [self setRunningAnimation:nil];
+        [self setRunningAnimationRecursive:nil];
         [anim release];
     }
 }
