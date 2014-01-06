@@ -3877,6 +3877,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
             __block TiUIView* view2 = nil;
             if (view2Proxy) {
                 [view2Proxy performBlockWithoutLayout:^{
+                    [self determineSandboxBoundsForce]; //just in case
                     [view2Proxy setParent:self];
                     [self refreshViewOrParent];
                     [view2Proxy determineSandboxBoundsForce];
