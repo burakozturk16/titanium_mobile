@@ -73,6 +73,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     UIEdgeInsets _defaultSeparatorInsets;
     
     NSMutableDictionary* _measureProxies;
+    BOOL _scrollSuspendImageLoading;
 }
 
 static NSDictionary* replaceKeysForRow;
@@ -98,6 +99,7 @@ static NSDictionary* replaceKeysForRow;
         _defaultItemTemplate = [[NSNumber numberWithUnsignedInteger:UITableViewCellStyleDefault] retain];
         allowsSelection = YES;
         _defaultSeparatorInsets = UIEdgeInsetsZero;
+        _scrollSuspendImageLoading = NO;
     }
     return self;
 }
@@ -827,6 +829,13 @@ static NSDictionary* replaceKeysForRow;
 {
     [[self tableView] setDelaysContentTouches:[TiUtils boolValue:value def:YES]];
 }
+
+
+-(void)setScrollSuspendsImageLoading_:(id)value
+{
+    _scrollSuspendImageLoading = [TiUtils boolValue:value def:_scrollSuspendImageLoading];
+}
+
 
 #pragma mark - Search Support
 -(void)setCaseInsensitiveSearch_:(id)args
@@ -1708,13 +1717,13 @@ static NSDictionary* replaceKeysForRow;
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
 	// suspend image loader while we're scrolling to improve performance
-	[[ImageLoader sharedLoader] suspend];
+	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] suspend];
     [self.proxy fireEvent:@"dragstart" withObject:nil];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-    if (decelerate==NO)
+    if (decelerate==NO && _scrollSuspendImageLoading)
 	{
 		// resume image loader when we're done scrolling
 		[[ImageLoader sharedLoader] resume];
@@ -1734,7 +1743,7 @@ static NSDictionary* replaceKeysForRow;
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
 	// resume image loader when we're done scrolling
-	[[ImageLoader sharedLoader] resume];
+	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] resume];
 	if ([self.proxy _hasListeners:@"scrollend"])
 	{
 		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView] checkForListener:NO];
@@ -1744,7 +1753,7 @@ static NSDictionary* replaceKeysForRow;
 - (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
 {
 	// suspend image loader while we're scrolling to improve performance
-	[[ImageLoader sharedLoader] suspend];
+	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] suspend];
 	return YES;
 }
 
