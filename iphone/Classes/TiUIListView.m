@@ -135,7 +135,6 @@ static NSDictionary* replaceKeysForRow;
 -(TiViewProxy*)initWrapperProxy
 {
     TiViewProxy* theProxy = [[TiViewProxy alloc] init];
-    [theProxy setDefaultReadyToCreateView:YES];
     LayoutConstraint* viewLayout = [theProxy layoutProperties];
     viewLayout->width = TiDimensionAutoFill;
     viewLayout->height = TiDimensionAutoSize;
@@ -146,13 +145,10 @@ static NSDictionary* replaceKeysForRow;
 {
     [theProxy setProxyObserver:self];
     if (header) {
-        [self.tableView setTableHeaderView:[theProxy getOrCreateView]];
+        [self.tableView setTableHeaderView:[theProxy getAndPrepareViewForOpening:CGRectZero]];
     } else {
-        [self.tableView setTableFooterView:[theProxy getOrCreateView]];
+        [self.tableView setTableFooterView:[theProxy getAndPrepareViewForOpening:CGRectZero]];
     }
-    [theProxy windowWillOpen];
-    [theProxy setParentVisible:YES];
-    [theProxy windowDidOpen];
 }
 
 -(void)configureFooter
@@ -161,22 +157,46 @@ static NSDictionary* replaceKeysForRow;
         _footerViewProxy = [self initWrapperProxy];
         [self setHeaderFooter:_footerViewProxy isHeader:NO];
     }
-    
 }
 
--(void)configureHeaders
+-(TiViewProxy*)getOrCreateFooterHolder
 {
-    _headerViewProxy = [self initWrapperProxy];
-    LayoutConstraint* viewLayout = [_headerViewProxy layoutProperties];
-    viewLayout->layoutStyle = TiLayoutRuleVertical;
-    
-    _searchWrapper = [self initWrapperProxy];
-    _headerWrapper = [self initWrapperProxy];
+    if (_footerViewProxy == nil) {
+        _footerViewProxy = [self initWrapperProxy];
+        [self setHeaderFooter:_footerViewProxy isHeader:NO];
+    }
+    return _footerViewProxy;
+}
 
-    [_headerViewProxy add:_searchWrapper];
-    [_headerViewProxy add:_headerWrapper];
-    
-    [self setHeaderFooter:_headerViewProxy isHeader:YES];
+-(TiViewProxy*)getOrCreateHeaderHolder
+{
+    if (_headerViewProxy == nil) {
+        _headerViewProxy = [self initWrapperProxy];
+        LayoutConstraint* viewLayout = [_headerViewProxy layoutProperties];
+        viewLayout->layoutStyle = TiLayoutRuleVertical;
+        
+        _searchWrapper = [self initWrapperProxy];
+        _headerWrapper = [self initWrapperProxy];
+        
+        [_headerViewProxy add:@[_searchWrapper, _headerWrapper]];
+        
+        [self setHeaderFooter:_headerViewProxy isHeader:YES];
+    }
+    return _headerViewProxy;
+}
+-(TiViewProxy*)getOrCreateSearchWrapper
+{
+    if (_searchWrapper == nil) {
+        [self getOrCreateHeaderHolder];
+    }
+    return _searchWrapper;
+}
+-(TiViewProxy*)getOrCreateHeaderWrapper
+{
+    if (_headerWrapper == nil) {
+        [self getOrCreateHeaderHolder];
+    }
+    return _headerWrapper;
 }
 
 - (TiTableView *)tableView
@@ -208,7 +228,6 @@ static NSDictionary* replaceKeysForRow;
         [_tableView addGestureRecognizer:tapGestureRecognizer];
         [tapGestureRecognizer release];
 
-        [self configureHeaders];
         if ([TiUtils isIOS7OrGreater]) {
             _defaultSeparatorInsets = [_tableView separatorInset];
         }
@@ -653,7 +672,7 @@ static NSDictionary* replaceKeysForRow;
 {
     [_headerWrapper removeAllChildren:nil];
     TiViewProxy *theProxy = [[self class] titleViewForText:[TiUtils stringValue:args] inTable:[self tableView] footer:NO];
-    [_headerWrapper add:theProxy];
+    [[self getOrCreateSearchWrapper] add:theProxy];
 }
 
 - (void)setFooterTitle_:(id)args
@@ -668,7 +687,7 @@ static NSDictionary* replaceKeysForRow;
         [self configureFooter];
         [_footerViewProxy removeAllChildren:nil];
         TiViewProxy *theProxy = [[self class] titleViewForText:[TiUtils stringValue:args] inTable:[self tableView] footer:YES];
-        [_footerViewProxy add:theProxy];
+        [[self getOrCreateFooterHolder] add:theProxy];
     }
 }
 
@@ -678,7 +697,7 @@ static NSDictionary* replaceKeysForRow;
     [self tableView];
     [_headerWrapper removeAllChildren:nil];
     if (args!=nil) {
-        [_headerWrapper add:(TiViewProxy*) args];
+        [[self getOrCreateSearchWrapper] add:(TiViewProxy*) args];
     }
 }
 
@@ -768,10 +787,7 @@ static NSDictionary* replaceKeysForRow;
         viewLayout->centerY = TiDimensionUndefined;
         
         [_pullViewProxy setProxyObserver:self];
-        [_pullViewProxy parentWillShow];
-        [_pullViewProxy windowWillOpen];
-        [_pullViewWrapper addSubview:[_pullViewProxy getOrCreateView]];
-        [_pullViewProxy windowDidOpen];
+        [_pullViewWrapper addSubview:[_pullViewProxy getAndPrepareViewForOpening:_pullViewWrapper.bounds]];
     }
     
 }
@@ -884,7 +900,7 @@ static NSDictionary* replaceKeysForRow;
         searchController.searchResultsDataSource = self;
         searchController.searchResultsDelegate = self;
         searchController.delegate = self;
-        [_searchWrapper add:searchViewProxy];
+        [[self getOrCreateSearchWrapper] add:searchViewProxy];
         keepSectionsInSearch = NO;
     } else {
         keepSectionsInSearch = [TiUtils boolValue:[self.proxy valueForKey:@"keepSectionsInSearch"] def:NO];
