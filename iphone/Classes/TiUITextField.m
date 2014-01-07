@@ -277,6 +277,11 @@
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
+        LayoutConstraint* constraint = [vp layoutProperties];
+        if (TiDimensionIsUndefined(constraint->left))
+        {
+            constraint->left = TiDimensionDip(0);
+        }
 		[[self textWidgetView] setLeftView:[vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds]];
 	}
 	else
@@ -299,6 +304,11 @@
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
+        LayoutConstraint* constraint = [vp layoutProperties];
+        if (TiDimensionIsUndefined(constraint->right))
+        {
+            constraint->right = TiDimensionDip(0);
+        }
 		[[self textWidgetView] setRightView:[vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds]];
 	}
 	else
