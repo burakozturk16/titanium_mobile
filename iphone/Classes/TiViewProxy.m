@@ -1437,16 +1437,20 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 		// If parent has a non absolute layout signal the parent that
 		//contents will change else just lay ourselves out
-		if (parent != nil && ![parent absoluteLayout]) {
-			[parent contentsWillChange];
-		}
-		else {
+//		if (parent != nil && ![parent absoluteLayout]) {
+//			[parent contentsWillChange];
+//		}
+//		else {
 			if(CGRectIsEmpty(sandboxBounds) && !CGRectIsEmpty(view.bounds)){
                 [self setSandboxBounds:view.bounds];
 			}
-            [self dirtyItAll];
-            [self refreshViewIfNeeded];
-		}
+//            [self dirtyItAll];
+//            [self refreshViewIfNeeded];
+//		}
+        if (!CGRectIsEmpty(sandboxBounds))
+        {
+            [self refreshView];
+        }
 		viewInitialized = YES;
         [self handlePendingAnimation];
 	}
@@ -2889,10 +2893,10 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         
 		
 //        if (layoutChanged) {
-            [view setAutoresizingMask:autoresizeCache];
-            [view setBounds:sizeCache];
-            [view setCenter:positionCache];
-            
+        [view setAutoresizingMask:autoresizeCache];
+        [view setBounds:sizeCache];
+        [view setCenter:positionCache];
+        
             if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
                 [parent insertSubview:view forProxy:self];
             }
@@ -3579,9 +3583,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
     CGRect bounds = [self computeChildSandbox:child withBounds:[parentView bounds]];
     [child setSandboxBounds:bounds];
-    [child relayout];
-	// tell our children to also layout
-	[child layoutChildren:NO];
+    [child refreshViewIfNeeded];
 }
 
 -(void)layoutChildren:(BOOL)optimize
