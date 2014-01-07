@@ -590,14 +590,6 @@ DEFINE_EXCEPTIONS
                     [[ImageLoader sharedLoader] cache:image forURL:url_];
                 }
             }
-        
-            if (image != nil) {
-                [self transitionToImage:image];
-            }
-            else {
-                [self loadDefaultImage:_imagesize];
-            }
-            return;
         }
         
 		if (image==nil)
@@ -606,10 +598,7 @@ DEFINE_EXCEPTIONS
 			placeholderLoading = YES;
 			[(TiUIImageViewProxy *)[self proxy] startImageLoad:url_];
 			return;
-		}
-        
-		if (image!=nil)
-		{
+		} else {
 			[(TiUIImageViewProxy*)[self proxy] setImageURL:url_];
             [self transitionToImage:image];
 		}
@@ -1021,6 +1010,16 @@ DEFINE_EXCEPTIONS
 -(void)imageLoadFailed:(ImageLoaderRequest*)request error:(NSError*)error
 {
 	NSLog(@"[ERROR] Failed to load image: %@, Error: %@",[request url], error);
+    // NOTE: Loading from URL means we can't pre-determine any % value.
+    CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+                                   TiDimensionCalculateValue(height,0.0));
+    
+    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
+    {
+        _imagesize.width *= 2;
+        _imagesize.height *= 2;
+    }
+    [self loadDefaultImage:_imagesize];
 }
 
 @end
