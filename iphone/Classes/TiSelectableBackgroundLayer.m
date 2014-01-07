@@ -6,6 +6,7 @@
 {
     UIImage* _bufferImage;
     NSArray* _innerShadows;
+    BOOL _needsUpdate;
 }
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate;
 
@@ -18,6 +19,7 @@
     {
         imageRepeat = NO;
         _innerShadows = nil;
+        _needsUpdate = YES;
     }
     return self;
 }
@@ -34,14 +36,20 @@
 	[super dealloc];
 }
 
+-(void)setNeedsUpdate
+{
+    _needsUpdate = YES;
+}
+
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
     
-    if (_bufferImage == nil && (gradient != nil ||
+    if ((_needsUpdate || _bufferImage == nil) && (gradient != nil ||
                                 color != nil ||
                                 image != nil ||
                                 _innerShadows != nil ||
                                 svg != nil)) {
+        _needsUpdate = NO;
         if (gradient == nil && color == nil && _innerShadows == nil && image != nil) {
             _bufferImage = [image retain];
         }
@@ -180,6 +188,7 @@
     BOOL _needsToSetDrawables;
     CGFloat _clipWidth;
     CGPathRef _clippingPath;
+    BOOL _needsToSetAllDrawablesOnNextSize;
 }
 @end
 
@@ -196,6 +205,7 @@
         _imageRepeat = NO;
         readyToCreateDrawables = NO;
         _needsToSetDrawables = NO;
+        _needsToSetAllDrawablesOnNextSize = NO;
         _animateTransition = NO;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         _clipWidth = 0.0f;
@@ -219,15 +229,27 @@
 -(void)setBounds:(CGRect)bounds
 {
     bounds = CGRectIntegral(bounds);
-    BOOL needsToUpdate = (readyToCreateDrawables && bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
+    
+    CGRect currentRect = [self bounds];
+    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
     
 	[super setBounds:bounds];
     if (needsToUpdate) {
-        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-            if (drawable != nil) {
-                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable) forceChange:_needsToSetDrawables];
-            }
-        }];
+        if (readyToCreateDrawables)
+        {
+            [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+                if (drawable != nil && drawable == currentDrawable) {
+                    [drawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+                }
+                else {
+                    [drawable setNeedsUpdate];
+                }
+            }];
+        }
+        else {
+            self.readyToCreateDrawables = YES;
+        }
+        
         _needsToSetDrawables = NO;
     }
 }
@@ -312,7 +334,7 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.color = color;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
     }
     else {
         _needsToSetDrawables = YES;
@@ -329,7 +351,7 @@
         drawable.svg = image;
     else return;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
     }
     else {
         _needsToSetDrawables = YES;
@@ -341,7 +363,7 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.gradient = gradient;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
     }
     else {
         _needsToSetDrawables = YES;
@@ -354,7 +376,7 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.shadow = shadow;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
     }
     else {
         _needsToSetDrawables = YES;
@@ -366,10 +388,27 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.innerShadows = shadows;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
     }
     else {
         _needsToSetDrawables = YES;
+    }
+}
+
+-(void)update
+{
+    if (currentDrawable != nil) {
+        [currentDrawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+    }
+}
+
+-(void)updateDrawable:(TiDrawable*)drawable
+{
+    if (drawable == currentDrawable) {
+        [currentDrawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+    }
+    else {
+        [drawable setNeedsUpdate];
     }
 }
 
@@ -380,7 +419,12 @@
     _clipWidth = width;
     if (readyToCreateDrawables) {
         [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-            [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+            if (drawable != nil && drawable == currentDrawable) {
+                [drawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+            }
+            else {
+                [drawable setNeedsUpdate];
+            }
         }];
     }
     else {
@@ -392,15 +436,20 @@
 
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
+    if (value && self.bounds.size.width == 0 && self.bounds.size.height == 0) {
+        _needsToSetAllDrawablesOnNextSize = YES;
+        return;
+    }
     if (value != readyToCreateDrawables) {
         readyToCreateDrawables = value;
         if (readyToCreateDrawables) {
-            if (_needsToSetDrawables && self.frame.size.width != 0 && self.frame.size.height!= 0) {
+            if (_needsToSetDrawables) {
                 [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
                     if (drawable != nil) {
-                        [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+                        [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable) forceChange:_needsToSetDrawables];
                     }
                 }];
+                _needsToSetDrawables = NO;
             }
         }
     }
