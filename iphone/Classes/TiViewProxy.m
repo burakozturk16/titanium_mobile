@@ -1392,8 +1392,19 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     return [self view];
 }
 
+-(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds
+{
+    [self setSandboxBounds:bounds];
+    [self parentWillShow];
+    [self windowWillOpen];
+    [self windowDidOpen];
+    TiUIView* tiview = [self getOrCreateView];
+    return tiview;
+}
+
 -(void)determineSandboxBoundsForce
 {
+    if(!CGRectIsEmpty(sandboxBounds)) return;
     if(!CGRectIsEmpty(view.bounds)){
         [self setSandboxBounds:view.bounds];
     }
@@ -2576,6 +2587,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     [self refreshView:transferView withinAnimation:nil];
 }
 
+
+-(void)refreshView
+{
+    [self dirtyItAll];
+	[self refreshViewIfNeeded:NO];
+}
+
 -(void)refreshViewIfNeeded
 {
 	[self refreshViewIfNeeded:NO];
@@ -2825,6 +2843,22 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     return TiLayoutRuleIsAbsolute(layoutProperties.layoutStyle);
 }
 
+
+-(CGRect)computeBoundsForParentBounds:(CGRect)parentBounds
+{
+    CGSize size = SizeConstraintViewWithSizeAddingResizing(&layoutProperties,self, parentBounds.size, &autoresizeCache);
+    if (!CGSizeEqualToSize(size, sizeCache.size)) {
+        sizeCache.size = size;
+    }
+    CGPoint position = PositionConstraintGivenSizeBoundsAddingResizing(&layoutProperties, [parent layoutProperties], self, sizeCache.size,
+                                                               [[view layer] anchorPoint], parentBounds.size, sandboxBounds.size, &autoresizeCache);
+    position.x += sizeCache.origin.x + sandboxBounds.origin.x;
+    position.y += sizeCache.origin.y + sandboxBounds.origin.y;
+    if (!CGPointEqualToPoint(position, positionCache)) {
+        positionCache = position;
+    }
+    return CGRectMake(position.x - size.width/2, position.y - size.height/2, size.width, size.height);
+}
 
 #pragma mark Layout commands that need refactoring out
 
