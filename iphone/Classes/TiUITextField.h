@@ -11,26 +11,14 @@
 
 @interface TiTextField : UITextField
 {
-	CGFloat paddingLeft;
-	CGFloat paddingRight;
-	CGFloat leftButtonPadding;
-	CGFloat rightButtonPadding;
 	UITextFieldViewMode leftMode;
 	UITextFieldViewMode rightMode;
-	UIView *left;
-	UIView *right;
-	UIView *leftView;
-	UIView *rightView;
 	
 	BOOL becameResponder;
     TiUIView * touchHandler;
 }
 
 @property(nonatomic,readwrite,assign) UIEdgeInsets padding;
-@property(nonatomic,readwrite,assign) CGFloat paddingLeft;
-@property(nonatomic,readwrite,assign) CGFloat paddingRight;
-@property(nonatomic,readwrite,assign) CGFloat leftButtonPadding;
-@property(nonatomic,readwrite,assign) CGFloat rightButtonPadding;
 
 @property(nonatomic,readonly) BOOL becameResponder;
 

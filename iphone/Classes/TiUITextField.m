@@ -22,17 +22,10 @@
 {
     UIEdgeInsets _padding;
 }
-@synthesize padding = _padding, leftButtonPadding, rightButtonPadding, paddingLeft, paddingRight, becameResponder;
+@synthesize padding = _padding, becameResponder;
 
 -(void)configure
 {
-	// defaults
-	leftMode = UITextFieldViewModeAlways;
-	rightMode = UITextFieldViewModeAlways;
-	leftButtonPadding = 0;
-	rightButtonPadding = 0;
-	paddingLeft = 0;
-	paddingRight = 0;
     _padding = UIEdgeInsetsZero;
 	[super setLeftViewMode:UITextFieldViewModeAlways];
 	[super setRightViewMode:UITextFieldViewModeAlways];	
@@ -40,16 +33,11 @@
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(left);
-	RELEASE_TO_NIL(right);
-	RELEASE_TO_NIL(leftView);
-	RELEASE_TO_NIL(rightView);
 	[super dealloc];
 }
 
 -(void)setTouchHandler:(TiUIView*)handler
 {
-	//Assign only. No retain
 	touchHandler = handler;
 }
 
@@ -83,124 +71,10 @@
 	return view;
 }
 
--(void)updateLeftView
-{
-	if (left == nil)
-	{
-		left = [self newPadView:leftButtonPadding + paddingLeft height:10];
-		left.frame = CGRectMake(0, 0, left.frame.size.width, left.frame.size.height);
-		[super setLeftView:left];
-	}
-	else 
-	{
-		CGFloat width = leftButtonPadding + paddingLeft;
-		CGFloat height = 10;
-		if (leftView!=nil)
-		{
-			width += leftView.frame.size.width;
-			height = leftView.frame.size.height;
-		}
-		left.frame = CGRectMake(leftButtonPadding, 0, width, height);
-	}
-}
-
--(void)updateRightView
-{
-	if (right == nil)
-	{
-		right = [self newPadView:rightButtonPadding + paddingRight height:10];
-		right.frame = CGRectMake(0, 0, right.frame.size.width, right.frame.size.height);
-		[super setRightView:right];
-	}
-	else 
-	{
-		CGFloat width = rightButtonPadding + paddingRight;
-		CGFloat height = 10;
-		if (rightView!=nil)
-		{
-			width += rightView.frame.size.width;
-			height = rightView.frame.size.height;
-		}
-		right.frame = CGRectMake(rightButtonPadding, 0, width, height);
-	}
-}
-
 -(void)setPadding:(UIEdgeInsets)value
 {
     _padding = value;
     [self setNeedsLayout];
-}
-
--(void)setPaddingLeft:(CGFloat)left_
-{
-	paddingLeft = left_;
-	[self updateLeftView];
-}
-
--(void)setPaddingRight:(CGFloat)right_
-{
-	paddingRight = right_;
-	[self updateRightView];
-}
-
--(void)setLeftButtonPadding:(CGFloat)left_
-{
-	leftButtonPadding = left_;
-	[self updateLeftView];
-}
-
--(void)setRightButtonPadding:(CGFloat)right_
-{
-	rightButtonPadding = right_;
-	[self updateRightView];
-}
-
--(void)setSubviewVisibility:(UIView*)view hidden:(BOOL)hidden
-{
-	for (UIView *v in [view subviews])
-	{
-		v.hidden = hidden;
-	}	
-}
-
--(void)updateMode:(UITextFieldViewMode)mode forView:(UIView*)view
-{
-	switch(mode)
-	{
-		case UITextFieldViewModeNever:
-		{
-			[self setSubviewVisibility:view hidden:YES];
-			break;
-		}
-		case UITextFieldViewModeWhileEditing:
-		{
-			[self setSubviewVisibility:view hidden:![self isEditing]];
-			break;
-		}
-		case UITextFieldViewModeUnlessEditing:
-		{
-			[self setSubviewVisibility:view hidden:[self isEditing]];
-			break;
-		}
-		case UITextFieldViewModeAlways:
-		default:
-		{
-			[self setSubviewVisibility:view hidden:NO];
-			break;
-		}
-	}
-}
-
--(void)repaintMode
-{
-	if (left!=nil)
-	{
-		[self updateMode:leftMode forView:left];
-	}
-	if (right!=nil)
-	{
-		[self updateMode:rightMode forView:right];
-	}
 }
 
 -(BOOL)canBecomeFirstResponder
@@ -214,7 +88,7 @@
 	
 	if ([super resignFirstResponder])
 	{
-		[self repaintMode];
+//		[self repaintMode];
 		return YES;
 	}
 	return NO;
@@ -226,7 +100,7 @@
 		if ([super becomeFirstResponder])
 		{
 			becameResponder = YES;
-			[self repaintMode];
+//			[self repaintMode];
 			return YES;
 		}
 	}
@@ -240,65 +114,45 @@
 	return [super isFirstResponder];
 }
 
--(void)setLeftView:(UIView*)value
-{
-//	if ((value != nil) && (paddingLeft > 0.5))
-//	{
-//		CGRect wrapperFrame = [value bounds];
-//		wrapperFrame.size.width += paddingLeft;
-//		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-//		
-//		CGPoint valueCenter = [value center];
-//		valueCenter.x += paddingLeft;
-//		[value setCenter:valueCenter];
-//		
-//		[wrapperView addSubview:value];
-//		value = wrapperView;
-//		[wrapperView autorelease];
-//	}
-
-	[super setLeftView:value];
-}
-
--(void)setRightView:(UIView*)value
-{
-//	if ((value != nil) && (paddingRight > 0.5))
-//	{
-//		CGRect wrapperFrame = [value bounds];
-//		wrapperFrame.size.width += paddingRight;
-//		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-//
-//		[wrapperView addSubview:value];
-//		value = wrapperView;
-//		[wrapperView autorelease];
-//	}
-
-	[super setRightView:value];
-}
-
 - (CGRect)textRectForBounds:(CGRect)bounds
 {
-    return UIEdgeInsetsInsetRect(bounds, _padding);
+    CGRect result = UIEdgeInsetsInsetRect(bounds, _padding);
+    if ([self leftView]){
+        CGRect rect = [self leftViewRectForBounds:result];
+        CGFloat width = rect.origin.x - rect.size.width;
+        result.origin.y +=width;
+        result.size.width -= width;
+    }
+    if ([self rightView]){
+        CGRect rect = [self rightViewRectForBounds:result];
+        CGFloat width = result.size.width - rect.origin.x;
+        result.size.width -= width;
+    }
+    return result;
 }
 - (CGRect)editingRectForBounds:(CGRect)bounds
 {
-    return UIEdgeInsetsInsetRect(bounds, _padding);
+    return [self textRectForBounds:bounds];
 }
 
 - (CGRect)leftViewRectForBounds:(CGRect)bounds
 {
-    if ((paddingLeft > 0.5)) {
-        return CGRectOffset(bounds, paddingLeft, 0);
+    if ([[self leftView] isKindOfClass:[TiUIView class]]){
+        TiViewProxy* proxy  = (TiViewProxy*)[((TiUIView*)[self leftView]) proxy];
+        CGRect frame = [proxy computeBoundsForParentBounds:bounds];
+        return frame;
     }
-    return bounds;
+    return [super rightViewRectForBounds:bounds];
 }
 
 - (CGRect)rightViewRectForBounds:(CGRect)bounds
 {
-    if ((paddingRight > 0.5)) {
-        return CGRectOffset(bounds, -paddingRight, 0);
+    if ([[self rightView] isKindOfClass:[TiUIView class]]){
+        TiViewProxy* proxy  = (TiViewProxy*)[((TiUIView*)[self rightView]) proxy];
+        CGRect frame = [proxy computeBoundsForParentBounds:bounds];
+        return frame;
     }
-    return bounds;
+    return [super rightViewRectForBounds:bounds];
 }
 
 @end
@@ -354,26 +208,6 @@
 -(void)setPadding:(UIEdgeInsets)inset
 {
     [self textWidgetView].padding = inset;
-}
-
--(void)setPaddingLeft_:(id)value
-{
-	[self textWidgetView].paddingLeft = [TiUtils floatValue:value];
-}
-
--(void)setLeftButtonPadding_:(id)value
-{
-	[self textWidgetView].leftButtonPadding = [TiUtils floatValue:value];
-}
-
--(void)setPaddingRight_:(id)value
-{
-	[self textWidgetView].paddingRight = [TiUtils floatValue:value];
-}
-
--(void)setRightButtonPadding_:(id)value
-{
-	[self textWidgetView].rightButtonPadding = [TiUtils floatValue:value];
 }
 
 -(void)setEditable_:(id)value
@@ -443,11 +277,11 @@
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		[[self textWidgetView] setLeftView:[vp getOrCreateView]];
+		[[self textWidgetView] setLeftView:[vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds]];
 	}
 	else
 	{
-		UIView* leftView = [[self textWidgetView] rightView];
+		UIView* leftView = [[self textWidgetView] leftView];
         if ([leftView isKindOfClass:[TiUIView class]]){
             [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
             [[self textWidgetView] setLeftView:nil];
@@ -460,25 +294,12 @@
 	[[self textWidgetView] setLeftViewMode:[TiUtils intValue:value]];
 }
 
--(void)updateBounds:(CGRect)newBounds
-{
-    [super updateBounds:newBounds];
-    UIView* rightView = [[self textWidgetView] rightView];
-    if ([rightView isKindOfClass:[TiUIView class]]){
-        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)rightView) proxy]) withParent:self];
-    }
-    UIView* leftView = [[self textWidgetView] rightView];
-    if ([leftView isKindOfClass:[TiUIView class]]){
-        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)leftView) proxy]) withParent:self];
-    }
-}
-
 -(void)setRightButton_:(id)value
 {
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		[[self textWidgetView] setRightView:[vp getOrCreateView]];
+		[[self textWidgetView] setRightView:[vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds]];
 	}
 	else
 	{
@@ -603,8 +424,6 @@
 	return [[self textWidgetView] sizeThatFits:size];
 }
 
-
-	
 @end
 
 #endif
