@@ -417,6 +417,12 @@ DEFINE_EXCEPTIONS
 -(void)configurationStart
 {
     configurationSet = needsToSetBackgroundImage = needsToSetBackgroundDisabledImage = needsToSetBackgroundSelectedImage = NO;
+    if (_bgLayer) {
+        _bgLayer.readyToCreateDrawables = configurationSet;
+    }
+    if (_borderLayer) {
+        _borderLayer.readyToCreateDrawables = configurationSet;
+    }
 }
 
 -(void)configurationSet
@@ -430,10 +436,10 @@ DEFINE_EXCEPTIONS
     if (needsToSetBackgroundSelectedImage)
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
     if (_bgLayer) {
-        _bgLayer.readyToCreateDrawables = YES;
+        _bgLayer.readyToCreateDrawables = configurationSet;
     }
     if (_borderLayer) {
-        _borderLayer.readyToCreateDrawables = YES;
+        _borderLayer.readyToCreateDrawables = configurationSet;
     }
 }
 
@@ -605,6 +611,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    if (![(TiViewProxy*)proxy viewLayedOut]) return;
     if (radii != NULL)
     {
         [self updatePathForClipping:bounds];
@@ -769,7 +776,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if (!CGRectIsEmpty(bounds)) {
         _borderLayer.frame = bounds;
     }
-    
+    _borderLayer.readyToCreateDrawables = configurationSet;
     _borderLayer.opacity = backgroundOpacity;
     return _borderLayer;
 }
