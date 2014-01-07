@@ -18,17 +18,22 @@
 
 -(void)setFrame:(CGRect)frame
 {
+    BOOL needsLayout = NO;
+    
     // this happens when a controller resizes its view
 	if (!CGRectIsEmpty(frame) && [self.proxy isKindOfClass:[TiViewProxy class]])
 	{
         CGRect currentframe = [self frame];
         if (!CGRectEqualToRect(frame, currentframe))
         {
+            needsLayout = YES;
             CGRect bounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
             [(TiViewProxy*)self.proxy setSandboxBounds:bounds];
         }
 	}
     [super setFrame:frame];
+    if (needsLayout)
+        [(TiViewProxy*)self.proxy parentSizeWillChange];
 }
 
 @end
@@ -160,17 +165,21 @@
 
 -(void)viewWillAppear:(BOOL)animated
 {
-    [_proxy parentWillShow];
    	if ([_proxy respondsToSelector:@selector(viewWillAppear:)]) {
         [(id)_proxy viewWillAppear:animated];
+    }
+    else {
+        [_proxy parentWillShow];
     }
     [super viewWillAppear:animated];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
-    [_proxy parentWillHide];
-   	if ([_proxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
-        [(id<TiWindowProtocol>)_proxy viewWillDisappear:animated];
+    if ([_proxy respondsToSelector:@selector(viewWillDisappear:)]) {
+        [(id)_proxy viewWillDisappear:animated];
+    }
+    else {
+        [_proxy parentWillHide];
     }
     [super viewWillDisappear:animated];
 }
