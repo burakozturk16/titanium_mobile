@@ -850,6 +850,15 @@
 		D5DC32F8180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32F9180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
 		D5DC32FA180EED41006CCEBD /* TiTransitionCube.m in Sources */ = {isa = PBXBuildFile; fileRef = D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */; };
+		D5E75A71187C58F00016542B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A6E187C58F00016542B /* icon.png */; };
+		D5E75A72187C58F00016542B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A6E187C58F00016542B /* icon.png */; };
+		D5E75A73187C58F00016542B /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A6E187C58F00016542B /* icon.png */; };
+		D5E75A77187C58F00016542B /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A70187C58F00016542B /* icon@2x.png */; };
+		D5E75A78187C58F00016542B /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A70187C58F00016542B /* icon@2x.png */; };
+		D5E75A79187C58F00016542B /* icon@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A70187C58F00016542B /* icon@2x.png */; };
+		D5E75A7B187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
+		D5E75A7C187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
+		D5E75A7D187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
 		D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
@@ -2351,6 +2360,9 @@
 		D5D545241845F873009539C9 /* DTAttributedLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAttributedLabel.h; path = ../Classes/DTCoreText/DTAttributedLabel.h; sourceTree = "<group>"; };
 		D5DC32F6180EED41006CCEBD /* TiTransitionCube.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionCube.h; sourceTree = "<group>"; };
 		D5DC32F7180EED41006CCEBD /* TiTransitionCube.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionCube.m; sourceTree = "<group>"; };
+		D5E75A6E187C58F00016542B /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = ../../demos/KitchenSink/icons/icon.png; sourceTree = "<group>"; };
+		D5E75A70187C58F00016542B /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon@2x.png"; path = "../../demos/KitchenSink/icons/icon@2x.png"; sourceTree = "<group>"; };
+		D5E75A7A187C59060016542B /* icon_120@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon_120@2x.png"; path = "../../demos/KitchenSink/icons/icon_120@2x.png"; sourceTree = "<group>"; };
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
 		D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasShapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/AkylasShapes.xcodeproj; sourceTree = "<group>"; };
@@ -4104,6 +4116,9 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
+				D5E75A6E187C58F00016542B /* icon.png */,
+				D5E75A7A187C59060016542B /* icon_120@2x.png */,
+				D5E75A70187C58F00016542B /* icon@2x.png */,
 				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
 				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
 				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
@@ -4624,6 +4639,15 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0430;
+				TargetAttributes = {
+					1D6058900D05DD3D006BFB54 = {
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 0;
+							};
+						};
+					};
+				};
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "Titanium" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -4689,6 +4713,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5E75A71187C58F00016542B /* icon.png in Resources */,
+				D5E75A77187C58F00016542B /* icon@2x.png in Resources */,
+				D5E75A7B187C59060016542B /* icon_120@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4696,6 +4723,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5E75A72187C58F00016542B /* icon.png in Resources */,
+				D5E75A78187C58F00016542B /* icon@2x.png in Resources */,
+				D5E75A7C187C59060016542B /* icon_120@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4703,6 +4733,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5E75A73187C58F00016542B /* icon.png in Resources */,
+				D5E75A79187C58F00016542B /* icon@2x.png in Resources */,
+				D5E75A7D187C59060016542B /* icon_120@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
