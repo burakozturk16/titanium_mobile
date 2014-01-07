@@ -32,6 +32,7 @@
     TiDimension bottomCap;
     TiDimension rightCap;
     BOOL _needsLayout;
+    BOOL configurationSet;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -85,12 +86,36 @@ DEFINE_EXCEPTIONS
     [self.contentView addSubview:_viewHolder];
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
+    configurationSet = NO;
     [_proxy dirtyItAll];
 }
 
 -(void)setGrouped:(BOOL)grouped
 {
     _grouped = grouped && ![TiUtils isIOS7OrGreater];
+}
+
+-(void)configurationStart
+{
+    configurationSet = NO;
+    if (_bgSelectedView) {
+        [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+    if (_bgView) {
+        [_bgView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+}
+
+-(void)configurationSet
+{
+	// can be used to trigger things after all properties are set
+    configurationSet = YES;
+    if (_bgSelectedView) {
+        [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+    if (_bgView) {
+        [_bgView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
 }
 
 -(void) updateBackgroundLayerCorners:(TiCellBackgroundView*)view {
@@ -126,6 +151,7 @@ DEFINE_EXCEPTIONS
     _bgSelectedView.alpha = self.contentView.alpha;
 
     [self updateBackgroundLayerCorners:_bgSelectedView];
+    [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
     return _bgSelectedView;
 }
 

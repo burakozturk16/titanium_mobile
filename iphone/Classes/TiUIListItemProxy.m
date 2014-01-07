@@ -170,6 +170,18 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 }
 
 
+-(void)configurationStart:(BOOL)recursive
+{
+    [_listItem configurationStart];
+    [super configurationStart:recursive];
+}
+
+-(void)configurationSet:(BOOL)recursive
+{
+    [super configurationSet:recursive];
+    [_listItem configurationSet];
+}
+
 - (void)setDataItem:(NSDictionary *)dataItem
 {
     [self configurationStart:YES];

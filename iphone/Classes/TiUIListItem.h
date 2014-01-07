@@ -37,6 +37,8 @@ typedef enum
 
 - (BOOL)canApplyDataItem:(NSDictionary *)otherItem;
 - (void)setPosition:(int)position isGrouped:(BOOL)grouped;
+-(void)configurationStart;
+-(void)configurationSet;
 @end
 
 #endif

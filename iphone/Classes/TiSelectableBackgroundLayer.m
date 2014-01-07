@@ -197,8 +197,6 @@
         readyToCreateDrawables = NO;
         _needsToSetDrawables = NO;
         _animateTransition = NO;
-//        self.masksToBounds = NO;
-//        self.shouldRasterize = YES;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         _clipWidth = 0.0f;
     }
@@ -221,7 +219,7 @@
 -(void)setBounds:(CGRect)bounds
 {
     bounds = CGRectIntegral(bounds);
-    BOOL needsToUpdate = (bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
+    BOOL needsToUpdate = (readyToCreateDrawables && bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
     
 	[super setBounds:bounds];
     if (needsToUpdate) {
@@ -256,7 +254,7 @@
     }
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
-        [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        if (readyToCreateDrawables) [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
         if (currentDrawable.shadow) {
             self.shadowOpacity = 1.0f;
             self.shadowColor = ((UIColor*)currentDrawable.shadow.shadowColor).CGColor;
@@ -316,6 +314,9 @@
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
+    else {
+        _needsToSetDrawables = YES;
+    }
 }
 
 
@@ -330,6 +331,9 @@
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
+    else {
+        _needsToSetDrawables = YES;
+    }
 }
 
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state
@@ -338,6 +342,9 @@
     drawable.gradient = gradient;
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+    }
+    else {
+        _needsToSetDrawables = YES;
     }
 }
 
@@ -349,6 +356,9 @@
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
     }
+    else {
+        _needsToSetDrawables = YES;
+    }
 }
 
 - (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state
@@ -357,6 +367,9 @@
     drawable.innerShadows = shadows;
     if (readyToCreateDrawables) {
         [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+    }
+    else {
+        _needsToSetDrawables = YES;
     }
 }
 
@@ -370,6 +383,9 @@
             [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
         }];
     }
+    else {
+        _needsToSetDrawables = YES;
+    }
 }
 
 
@@ -379,21 +395,16 @@
     if (value != readyToCreateDrawables) {
         readyToCreateDrawables = value;
         if (readyToCreateDrawables) {
-            if (self.frame.size.width != 0 && self.frame.size.height!= 0) {
+            if (_needsToSetDrawables && self.frame.size.width != 0 && self.frame.size.height!= 0) {
                 [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
                     if (drawable != nil) {
                         [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
                     }
                 }];
             }
-            else {
-                _needsToSetDrawables = YES;
-            }
-            
         }
     }
 }
-
 
 -(void)setFrame:(CGRect)frame
 {
@@ -403,31 +414,6 @@
     }
 }
 
-
-//
-//static NSArray *animationKeys;
-//+ (NSArray *)animationKeys
-//{
-//    if (!animationKeys)
-//        animationKeys = [[NSArray arrayWithObjects:@"bounds",@"contents",nil] retain];
-//    
-//    return animationKeys;
-//}
-//
-//+(BOOL)needsDisplayForKey:(NSString*)key
-//{
-//    if ([key isEqualToString:@"contents"] || [key isEqualToString:@"bounds"])
-//        return YES;
-//    return [super needsDisplayForKey:key];
-//}
-
-//
-//- (void)drawInContext:(CGContextRef)ctx
-//{
-//    [currentDrawable drawInContext:ctx inRect:self.bounds];
-//}
-
-//
 - (id<CAAction>)actionForKey:(NSString *)event
 {
     id action  = [super actionForKey:event];
