@@ -442,23 +442,9 @@ static NSSet* transferableProps = nil;
 			if (view!=nil)
 			{
 				TiUIView *childView = [(TiViewProxy *)child view];
-				if ([NSThread isMainThread])
-				{
-					[childView removeFromSuperview];
-				}
-				else
-				{
-					TiThreadPerformOnMainThread(^{
-						[childView removeFromSuperview];
-					}, NO);
-				}
+                [childView removeFromSuperview];
 			}
-		}
-
-		[self contentsWillChange];
-		if(parentVisible && !hidden)
-		{
-			[arg parentWillHide];
+			[child parentWillHide];
 		}
 
 		[children removeAllObjects];
@@ -469,23 +455,10 @@ static NSSet* transferableProps = nil;
 
 		if (view!=nil)
 		{
-			BOOL layoutNeedsRearranging = ![self absoluteLayout];
-			if ([NSThread isMainThread])
-			{
-				if (layoutNeedsRearranging)
-				{
-					[self layoutChildren:NO];
-				}
-			}
-			else
-			{
-				TiThreadPerformOnMainThread(^{
-					if (layoutNeedsRearranging)
-					{
-						[self layoutChildren:NO];
-					}
-				}, NO);
-			}
+            if (![self absoluteLayout])
+            {
+                [self layoutChildren:NO];
+            }
 		}
 	}
 }
