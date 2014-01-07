@@ -1746,6 +1746,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	return view!=nil && windowOpened;
 }
 
+-(BOOL)viewLayedOut
+{
+	return !CGRectIsEmpty(sizeCache);
+}
+
 //TODO: When swapping about proxies, views are uninitialized, aren't they?
 -(BOOL)viewInitialized
 {
@@ -1928,11 +1933,12 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)viewWillAppear:(BOOL)animated
 {
-    [self willShow];
+    [self parentWillShowWithoutUpdate];
+    [self refreshView];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
-    [self willHide];
+    [self parentWillHide];
 }
 
 -(UIViewController*)hostingController;
@@ -2288,10 +2294,16 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
     
     pthread_rwlock_rdlock(&childrenLock);
-    [children makeObjectsPerformSelector:@selector(parentWillShow)];
+    if (allowContentChange)
+    {
+        [children makeObjectsPerformSelector:@selector(parentWillShow)];
+    }
+    else {
+        [children makeObjectsPerformSelector:@selector(parentWillShowWithoutUpdate)];
+    }
     pthread_rwlock_unlock(&childrenLock);
     
-    if (parent && parentVisible)
+    if (parent && ![parent absoluteLayout])
         [parent contentsWillChange];
     else {
         [self contentsWillChange];
@@ -2303,8 +2315,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 {
 	SET_AND_PERFORM(TiRefreshViewZIndex,);
     
-//    [self refreshViewIfNeeded];
-
 	pthread_rwlock_rdlock(&childrenLock);
 	[children makeObjectsPerformSelector:@selector(parentWillHide)];
 	pthread_rwlock_unlock(&childrenLock);
@@ -2526,6 +2536,14 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	}
 }
 
+-(void)parentWillShowWithoutUpdate
+{
+    BOOL wasSet = allowContentChange;
+    allowContentChange = NO;
+    [self parentWillShow];
+    allowContentChange = wasSet;
+}
+
 -(void)parentWillHide
 {
 	VerboseLog(@"[INFO] Parent Will Hide for %@",self);
@@ -2634,7 +2652,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     OSAtomicTestAndSet(TiRefreshViewEnqueued, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewSize, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewPosition, &dirtyflags);
-    OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
+    if (childrenCount > 0) OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
 }
 
 -(BOOL)isDirty
@@ -3944,9 +3962,6 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     [view configurationSet];
     if (recursive)[self makeChildrenPerformSelector:@selector(configurationSet:) withObject:recursive];
     allowContentChange = YES;
-//    if (needsContentChange) {
-//        [self contentsWillChange];
-//    }
 }
 
 -(void)configurationSet

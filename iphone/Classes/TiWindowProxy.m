@@ -614,14 +614,14 @@
 -(void)viewWillAppear:(BOOL)animated
 {
     readyToBeLayout = YES;
-    [self willShow];
+    [super viewWillAppear:animated];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
     if (controller != nil) {
         [self resignFocus];
     }
-    [self willHide];
+    [super viewWillDisappear:animated];
 }
 -(void)viewDidAppear:(BOOL)animated
 {

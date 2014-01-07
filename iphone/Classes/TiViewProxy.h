@@ -362,6 +362,9 @@ enum
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
 
+-(void)viewWillAppear:(BOOL)animated;
+-(void)viewWillDisappear:(BOOL)animated;
+
 #pragma mark Housecleaning state accessors
 //TODO: Sounds like the redundancy department of redundancy was here.
 /**
@@ -381,6 +384,8 @@ enum
  @return _YES_ if the view proxy has been initialized and its view has a superview and non-empty bounds, _NO_ otherwise.
  */
 -(BOOL)viewReady;
+
+-(BOOL)viewLayedOut;
 
 /**
  Whether or not a window attached to the view proxy has been opened.
@@ -539,6 +544,7 @@ enum
 -(void)layoutChild:(TiViewProxy*)child optimize:(BOOL)optimize withMeasuredBounds:(CGRect)bounds;
 -(NSArray*)measureChildren:(NSArray*)childArray;
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds;
+-(CGRect)computeBoundsForParentBounds:(CGRect)parentBounds;
 
 /**
  Tells the view to adjust its size and position according to the current layout constraints.
@@ -660,6 +666,7 @@ Set the animation on its view and all it's children
  Create or access a managing controller. Only call if you want a controller!
  */
 -(UIViewController*) hostingController;
+-(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds;
 @end
 
 
