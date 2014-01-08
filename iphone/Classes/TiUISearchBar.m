@@ -203,7 +203,7 @@
 	[self.proxy replaceValue:text forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-	if ([self.proxy _hasListeners:@"change"])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
 		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"]];
 	}
@@ -221,7 +221,7 @@
 	[self.proxy replaceValue:text forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"return" checkParent:NO])
 	{
 		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}
