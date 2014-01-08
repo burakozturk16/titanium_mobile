@@ -41,6 +41,30 @@
     return (_animating || [_runningAnimations count] > 0);
 }
 
+-(void)clearPendingAnimations
+{
+    pthread_rwlock_rdlock(&runningLock);
+    for (TiAnimation* animation in _runningAnimations) {
+        [self forgetProxy:animation];
+    }
+    [_runningAnimations removeAllObjects];
+	pthread_rwlock_unlock(&runningLock);
+    pthread_rwlock_rdlock(&pendingLock);
+    for (TiAnimation* animation in _pendingAnimations) {
+        [self forgetProxy:animation];
+    }
+    [_pendingAnimations removeAllObjects];
+	pthread_rwlock_unlock(&pendingLock);
+}
+
+-(void)removePendingAnimation:(TiAnimation *)animation
+{
+    [self forgetProxy:animation];
+	pthread_rwlock_rdlock(&pendingLock);
+    [_pendingAnimations removeObject:animation];
+	pthread_rwlock_unlock(&pendingLock);
+}
+
 -(void)addRunningAnimation:(TiAnimation *)animation
 {
 	pthread_rwlock_rdlock(&runningLock);

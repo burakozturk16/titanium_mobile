@@ -26,5 +26,7 @@
 #pragma Public API
 -(void)cancelAllAnimations:(id)arg;
 -(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation;
+-(void)clearPendingAnimations;
+-(void)removePendingAnimation:(TiAnimation *)animation;
 
 @end

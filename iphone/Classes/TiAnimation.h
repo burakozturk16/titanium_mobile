@@ -133,5 +133,6 @@ enum TiAnimCurve
 +(CAMediaTimingFunction*)reverseCurve:(CAMediaTimingFunction*)curve_;
 -(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim;
 -(void)cancelMyselfBeforeStarting;
+-(void)simulateFinish:(TiAnimatableProxy*)proxy;
 
 @end

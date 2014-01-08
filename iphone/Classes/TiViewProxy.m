@@ -488,14 +488,6 @@ static NSSet* transferableProps = nil;
     return nil;
 }
 
--(void)handlePendingAnimation
-{
-    if (!view) { //dont use [self view] as we also handlePendingAnimation inside (thread lock!)
-        return;
-    }
-    [super handlePendingAnimation];
-}
-
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
 {
     if ([self viewReady]==NO &&  ![pendingAnimation isTransitionAnimation])
@@ -504,6 +496,9 @@ static NSSet* transferableProps = nil;
 		if (animationDelayGuard++ > 5)
 		{
 			DebugLog(@"[DEBUG] Animation guard triggered, exceeded timeout to perform animation.");
+            [pendingAnimation simulateFinish:self];
+            [self removePendingAnimation:pendingAnimation];
+            [self handlePendingAnimation];
             animationDelayGuard = 0;
 			return;
 		}
@@ -524,6 +519,7 @@ static NSSet* transferableProps = nil;
         [self windowWillOpen]; // we need to manually attach the window if you're animating
         [parent childWillResize:self];
     }
+    
 }
 
 -(HLSAnimation*)animationForAnimation:(TiAnimation*)animation
@@ -1450,9 +1446,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         if (!CGRectIsEmpty(sandboxBounds))
         {
             [self refreshView];
+            [self handlePendingAnimation];
         }
 		viewInitialized = YES;
-        [self handlePendingAnimation];
 	}
 
 	CGRect bounds = [view bounds];
@@ -1747,8 +1743,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(BOOL)viewReady
 {
-	return view!=nil && 
-//			CGRectIsEmpty(view.bounds)==NO && 
+	return view!=nil &&
+			CGRectIsEmpty(view.bounds)==NO &&
 			CGRectIsNull(view.bounds)==NO &&
 			[view superview] != nil;
 }
@@ -2009,6 +2005,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         self.modelDelegate = nil;
     }
 	[destroyLock unlock];
+    [self clearPendingAnimations];
     [self resetDefaultValues];
 
 }
@@ -2892,21 +2889,23 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         }
         
 		
-//        if (layoutChanged) {
         [view setAutoresizingMask:autoresizeCache];
         [view setBounds:sizeCache];
         [view setCenter:positionCache];
         
-            if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
-                [parent insertSubview:view forProxy:self];
-            }
-            
-            if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
-                [observer proxyDidRelayout:self];
-            }
+        if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
+            [parent insertSubview:view forProxy:self];
+        }
+        
+        if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
+            [observer proxyDidRelayout:self];
+        }
 
-           if (layoutChanged) [self fireEvent:@"postlayout" propagate:NO];
-//        }
+        if (layoutChanged) {
+            [self fireEvent:@"postlayout" propagate:NO];
+            [self handlePendingAnimation];
+
+        }
         repositioning = NO;
         return layoutChanged;
 	}
