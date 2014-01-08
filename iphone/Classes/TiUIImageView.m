@@ -61,6 +61,8 @@
     BOOL animationPaused;
     BOOL autoreverse;
     BOOL usingNewMethod;
+    NSURL *_defaultImageUrl;
+    BOOL _preventDefaultImage;
 }
 @property(nonatomic,retain) NSDictionary *transition;
 -(void)startTimerWithEvent:(NSString *)eventName;
@@ -86,6 +88,7 @@ DEFINE_EXCEPTIONS
         stopped = YES;
         autoScale = 1;
         _reusing = NO;
+        _preventDefaultImage = NO;
     }
     return self;
 }
@@ -103,6 +106,7 @@ DEFINE_EXCEPTIONS
 	RELEASE_TO_NIL(imageView);
 	RELEASE_TO_NIL(_svg);
 	RELEASE_TO_NIL(_transition);
+    RELEASE_TO_NIL(_defaultImageUrl)
     if (_animatedImage) {
         _animatedImage.delegate = nil;
         RELEASE_TO_NIL(_animatedImage);
@@ -541,34 +545,19 @@ DEFINE_EXCEPTIONS
 
 -(void)loadDefaultImage:(CGSize)_imagesize
 {
-    // use a placeholder image - which the dev can specify with the
-    // defaultImage property or we'll provide the MCTS stock one
-    // if not specified
-    NSURL *defURL = [TiUtils toURL:[self.proxy valueForKey:@"defaultImage"] proxy:self.proxy];
-    
-    if ((defURL == nil) && ![TiUtils boolValue:[self.proxy valueForKey:@"preventDefaultImage"] def:NO])
-    {	//This is a special case, because it IS built into the bundle despite being in the simulator.
-        NSString * filePath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"modules/ui/_images/photoDefault.png"];
-        defURL = [NSURL fileURLWithPath:filePath];
-    }
-    
-    if (defURL!=nil)
+    if (_preventDefaultImage) return;
+    if (_defaultImageUrl!=nil)
     {
-        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:defURL withSize:_imagesize];
+        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:_defaultImageUrl withSize:_imagesize];
         
-        // TODO: Use the full image size here?  Auto width/height is going to be changed once the image is loaded.
         [self imageView].image = [self prepareImage:poster];
     }
 }
 
 -(void)loadUrl:(id)img
 {
-	[self cancelPendingImageLoads];
-	
 	if (img!=nil)
 	{
-		[self removeAllImagesFromContainer];
-		
 		NSURL *url_ = [TiUtils toURL:[img absoluteString] proxy:self.proxy];
         
         // NOTE: Loading from URL means we can't pre-determine any % value.
@@ -820,7 +809,13 @@ DEFINE_EXCEPTIONS
 	[self removeAllImagesFromContainer];
 	[self cancelPendingImageLoads];
     if (_animatedImage) {
+        if (_animatedImage.paused)
+        {
+            [self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+            [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
+        }
         [_animatedImage stop];
+        
     }
     
     if (_reusing) {
@@ -828,8 +823,7 @@ DEFINE_EXCEPTIONS
                                        TiDimensionCalculateValue(height,0.0));
         [self loadDefaultImage:_imagesize];
     }
-	[self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
-    [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
+	
     
 	if (arg==nil || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
 	{
@@ -995,6 +989,18 @@ DEFINE_EXCEPTIONS
     self.transition = arg;
 }
 
+-(void)setPreventDefaultImage_:(id)value
+{
+	_preventDefaultImage = [TiUtils boolValue:value];
+    if (configurationSet) [self setImage_:[self.proxy valueForKey:@"image"]];
+}
+
+-(void)setDefaultImage_:(id)value
+{
+    RELEASE_TO_NIL(_defaultImageUrl)
+	_defaultImageUrl = [[TiUtils toURL:value proxy:self.proxy] retain];
+    if (configurationSet) [self setImage_:[self.proxy valueForKey:@"image"]];
+}
 
 #pragma mark ImageLoader delegates
 
