@@ -313,11 +313,6 @@
 	[super viewWillDisappear:animated];
 }
 
-- (void)viewDidDisappear:(BOOL)animated;  // Called after the view was dismissed, covered or otherwise hidden. Default does nothing
-{
-	[super viewDidDisappear:animated];
-}
-
 #pragma mark - UINavController, NavItem UI
 
 
