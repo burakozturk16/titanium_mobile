@@ -179,10 +179,8 @@
 	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
     if (![viewproxy viewAttached]) {
         if ([[viewproxy view] superview] != wrapper) {
-            [wrapper addSubview:[viewproxy getOrCreateView]];
+            [wrapper addSubview:[viewproxy getAndPrepareViewForOpening:[wrapper bounds]]];
         }
-        [viewproxy windowWillOpen];
-        [viewproxy windowDidOpen];
     } else if (!CGRectEqualToRect([viewproxy sandboxBounds], [wrapper bounds])) {
         [self.proxy layoutChild:viewproxy optimize:NO withMeasuredBounds:[wrapper bounds]];
     }
