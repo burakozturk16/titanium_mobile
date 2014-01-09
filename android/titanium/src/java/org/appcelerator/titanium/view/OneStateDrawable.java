@@ -92,7 +92,7 @@ public class OneStateDrawable extends Drawable {
 			}
 			if (imageDrawable != null) {
 				cacheCanvas.clipPath(path);
-				imageDrawable.draw(canvas);
+				imageDrawable.draw(cacheCanvas);
 			}
             paint.setShader(null);
             paint.setColor(0);
@@ -156,7 +156,7 @@ public class OneStateDrawable extends Drawable {
 		//dont set it for the color or we break the actual color alpha
 //		applyAlphaToDrawable(defaultColorDrawable);
 //		applyAlphaToDrawable(colorDrawable);
-		applyAlphaToDrawable(gradientDrawable);
+		applyAlphaToDrawable(imageDrawable);
 		applyAlphaToDrawable(gradientDrawable);
 	}
 
