@@ -64,6 +64,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.support.v4.view.ViewCompat;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 import android.util.SparseArray;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -293,6 +294,15 @@ public abstract class TiUIView
 		return layoutParams;
 	}
 	
+	
+	public Context getContext()
+	{
+		if (nativeView != null)
+		{
+			return nativeView.getContext();
+		}
+		return null;
+	}
 	
 	
 	//This handler callback is tied to the UI thread.
@@ -1344,12 +1354,14 @@ public abstract class TiUIView
 
 	protected KrollDict dictFromEvent(MotionEvent e)
 	{
+		DisplayMetrics metrics = TiDimension.getDisplayMetrics(getContext());
+		double density = metrics.density;
 		KrollDict data = new KrollDict();
-		data.put(TiC.EVENT_PROPERTY_X, (double)e.getX());
-		data.put(TiC.EVENT_PROPERTY_Y, (double)e.getY());
+		data.put(TiC.EVENT_PROPERTY_X, (double)e.getX() / density);
+		data.put(TiC.EVENT_PROPERTY_Y, (double)e.getY() / density);
 		KrollDict globalPoint = new KrollDict();
-		globalPoint.put(TiC.EVENT_PROPERTY_X, (double)e.getRawX());
-		globalPoint.put(TiC.EVENT_PROPERTY_Y, (double)e.getRawY());
+		globalPoint.put(TiC.EVENT_PROPERTY_X, (double)e.getRawX() / density);
+		globalPoint.put(TiC.EVENT_PROPERTY_Y, (double)e.getRawY() / density);
 		data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
 		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 		return data;
