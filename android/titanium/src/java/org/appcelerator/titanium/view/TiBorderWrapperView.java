@@ -193,7 +193,7 @@ public class TiBorderWrapperView extends MaskableView
 		if (radius !=null) {
 			clipPath = new Path();
 			clipPath.setFillType(FillType.EVEN_ODD);
-			clipPath.addRoundRect(outerRect, clipRadiusFromPadding(outerRect), Direction.CW);
+			clipPath.addRoundRect(outerRect, (borderWidth> 1)?clipRadiusFromPadding(outerRect):radius, Direction.CW);
 			
 		} else {
 			clipPath = null;
