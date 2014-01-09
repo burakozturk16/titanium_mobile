@@ -676,7 +676,7 @@ public abstract class TiUIView
 				background.setImageRepeat(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
 			if (background != null)
-				TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(newValue, 1f));
+				TiUIHelper.setDrawableOpacity(background, ViewHelper.getAlpha(getNativeView())*TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
 			TiBackgroundDrawable drawable = view.getBorderDrawable();
@@ -1209,7 +1209,7 @@ public abstract class TiUIView
 				alpha *= TiConvert.toFloat(proxy.getProperty(TiC.PROPERTY_BACKGROUND_OPACITY));
 			
 			if (alpha < 1.0)
-				background.setAlpha(Math.round(alpha * 255));
+				TiUIHelper.setDrawableOpacity(background, alpha);
 			if (proxy.hasProperty(TiC.PROPERTY_BACKGROUND_REPEAT))
 				background.setImageRepeat(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_BACKGROUND_REPEAT)));
 			if (borderView != null) {
