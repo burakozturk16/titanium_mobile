@@ -121,6 +121,7 @@ public abstract class TiUIView
 	
 	protected boolean touchPassThrough = false;
 	protected boolean dispatchPressed = false;
+	protected boolean reusing = false;
 
 	protected KrollDict lastUpEvent = new KrollDict(2);
 	protected KrollDict lastDownEvent = new KrollDict(2);
@@ -461,6 +462,12 @@ public abstract class TiUIView
 	protected void redrawNativeView() {
 		if (nativeView != null)
 			nativeView.postInvalidate();
+	}
+	
+	//for listview 
+	public void setReusing(boolean value)
+	{
+		reusing = value;
 	}
 
 	protected void layoutNativeView(boolean informParent)
