@@ -217,30 +217,26 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         *resultResizing |= UIViewAutoresizingFlexibleHeight;
     }
     
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
-    {
-        width = [autoSizer verifyWidth:width];
-    }
     
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyHeight:)])
-    {
-        height = [autoSizer verifyHeight:height];
-    }
     
 	// when you use negative top, you get into a situation where you get smaller
 	// then intended sizes when using auto.  this allows you to set a floor for
 	// the height/width so that it won't be smaller than specified - defaults to 0
 	height = MAX(constraint->minimumHeight,height);
 	width = MAX(constraint->minimumWidth,width);
+    CGSize result = CGSizeMake(width, height);
+    
+    //Should we always do this or only for auto
+    if ([autoSizer respondsToSelector:@selector(verifySize:)])
+    {
+        result = [(id)autoSizer verifySize:result];
+    }
 	
 	if ((resultResizing != NULL) && [autoSizer respondsToSelector:@selector(verifyAutoresizing:)])
 	{
 		*resultResizing = [autoSizer verifyAutoresizing:*resultResizing];
 	}
-	
-	return CGSizeMake(width, height);
+    return result;
 }
 
 
@@ -260,8 +256,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     
     BOOL ignoreMargins = NO;
     BOOL isSizeUndefined = TiDimensionIsUndefined(constraint->width);
-    sandboxSize = [viewProxy verifySize:sandboxSize];
-    referenceSize = [viewProxy verifySize:referenceSize];
+    
     CGSize parentSize = sandboxSize;
     if (!horizontal) parentSize = referenceSize;
     CGFloat frameLeft = 0.0;
