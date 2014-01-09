@@ -2075,7 +2075,7 @@ AndroidBuilder.prototype.createBuildDirs = function createBuildDirs(next) {
 	// Make sure we have an app.js. This used to be validated in validate(), but since plugins like
 	// Alloy generate an app.js, it may not have existed during validate(), but should exist now
 	// that build.pre.compile was fired.
-	ti.validateAppJsExists(this.projectDir, this.logger, 'android');
+	// ti.validateAppJsExists(this.projectDir, this.logger, 'android');
 
 	fs.existsSync(this.buildDir) || wrench.mkdirSyncRecursive(this.buildDir);
 
@@ -2339,29 +2339,21 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		}, this);
 	}
 
-	var tasks = [
-		// first task is to copy all files in the Resources directory, but ignore
-		// any directory that is the name of a known platform
-		function (cb) {
-			var src = path.join(this.projectDir, 'Resources');
-			warnDupeDrawableFolders.call(this, src);
-			copyDir.call(this, {
-				src: src,
-				dest: this.buildBinAssetsResourcesDir,
-				ignoreRootDirs: ti.availablePlatformsNames
-			}, cb);
-		},
+	var tasks = [];
+	var resourcesPaths = [path.join(this.projectDir, 'Resources'), path.join(this.projectDir, 'Resources', 'android')];
 
-		// next copy all files from the Android specific Resources directory
-		function (cb) {
-			var src = path.join(this.projectDir, 'Resources', 'android');
-			warnDupeDrawableFolders.call(this, src);
-			copyDir.call(this, {
-				src: src,
-				dest: this.buildBinAssetsResourcesDir
-			}, cb);
-		}
-	];
+	this.cli.createHook('build.android.resourcesPaths', this, function (resourcesPaths) {
+		resourcesPaths.forEach(function (dir) {
+			tasks.push(function (cb) {
+				warnDupeDrawableFolders.call(this, dir);
+				copyDir.call(this, {
+					src: dir,
+					dest: this.buildBinAssetsResourcesDir,
+					ignoreRootDirs: ti.availablePlatformsNames
+				}, cb);
+			});
+		}, this);
+	})(resourcesPaths, function () {});
 
 	// copy all commonjs modules
 	this.commonJsModules.forEach(function (module) {
@@ -2395,16 +2387,20 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 	this.modules.forEach(function (module) {
 		platformPaths.push(path.join(module.modulePath, 'platform', 'android'));
 	});
-	platformPaths.forEach(function (dir) {
-		if (fs.existsSync(dir)) {
-			tasks.push(function (cb) {
-				copyDir.call(this, {
-					src: dir,
-					dest: this.buildDir
-				}, cb);
-			});
-		}
-	}, this);
+
+	this.cli.createHook('build.android.platformsPaths', this, function (resourcesPaths) {
+		platformPaths.forEach(function (dir) {
+			if (fs.existsSync(dir)) {
+				tasks.push(function (cb) {
+					copyDir.call(this, {
+						src: dir,
+						dest: this.buildDir
+					}, cb);
+				});
+			}
+		}, this);
+	})(resourcesPaths, function () {});
+	
 
 	appc.async.series(this, tasks, function (err, results) {
 		var templateDir = path.join(this.platformPath, 'templates', 'app', 'default', 'Resources', 'android');

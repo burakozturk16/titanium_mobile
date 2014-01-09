@@ -1212,13 +1212,13 @@ iOSBuilder.prototype.run = function (logger, config, cli, finished) {
 			cli.emit('build.pre.compile', this, next);
 		},
 
-		function (next) {
-			// Make sure we have an app.js. This used to be validated in validate(), but since plugins like
-			// Alloy generate an app.js, it may not have existed during validate(), but should exist now
-			// that build.pre.compile was fired.
-			ti.validateAppJsExists(this.projectDir, this.logger, ['iphone', 'ios']);
-			next();
-		},
+		// function (next) {
+		// 	// Make sure we have an app.js. This used to be validated in validate(), but since plugins like
+		// 	// Alloy generate an app.js, it may not have existed during validate(), but should exist now
+		// 	// that build.pre.compile was fired.
+		// 	ti.validateAppJsExists(this.projectDir, this.logger, ['iphone', 'ios']);
+		// 	next();
+		// },
 
 		'createInfoPlist',
 		'createEntitlementsPlist',
@@ -2806,32 +2806,20 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 		);
 	}
 
-	var tasks = [
-		// first task is to copy all files in the Resources directory, but ignore
-		// any directory that is the name of a known platform
-		function (cb) {
-			copyDir.call(this, {
-				src: path.join(this.projectDir, 'Resources'),
-				dest: this.xcodeAppDir,
-				ignoreRootDirs: ti.availablePlatformsNames
-			}, cb);
-		},
+	var tasks = [];
+	var resourcesPaths = [path.join(this.projectDir, 'Resources'), path.join(this.projectDir, 'Resources', 'iphone'), path.join(this.projectDir, 'Resources', 'ios')];
 
-		// next copy all files from the iOS specific Resources directory
-		function (cb) {
-			copyDir.call(this, {
-				src: path.join(this.projectDir, 'Resources', 'iphone'),
-				dest: this.xcodeAppDir
-			}, cb);
-		},
-
-		function (cb) {
-			copyDir.call(this, {
-				src: path.join(this.projectDir, 'Resources', 'ios'),
-				dest: this.xcodeAppDir
-			}, cb);
-		}
-	];
+	this.cli.createHook('build.ios.resourcesPaths', this, function (resourcesPaths) {
+		resourcesPaths.forEach(function (dir) {
+			tasks.push(function (cb) {
+				copyDir.call(this, {
+					src: dir,
+					dest: this.xcodeAppDir,
+					ignoreRootDirs: ti.availablePlatformsNames
+				}, cb);
+			});
+		}, this);
+	})(resourcesPaths, function () {});
 
 	// copy all commonjs modules
 	this.commonJsModules.forEach(function (module) {
@@ -2872,16 +2860,19 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 			path.join(module.modulePath, 'platform', 'ios')
 		);
 	});
-	platformPaths.forEach(function (dir) {
-		if (fs.existsSync(dir)) {
-			tasks.push(function (cb) {
-				copyDir.call(this, {
-					src: dir,
-					dest: this.xcodeAppDir
-				}, cb);
-			});
-		}
-	}, this);
+
+	this.cli.createHook('build.ios.platformsPaths', this, function (resourcesPaths) {
+		platformPaths.forEach(function (dir) {
+			if (fs.existsSync(dir)) {
+				tasks.push(function (cb) {
+					copyDir.call(this, {
+						src: dir,
+						dest: this.xcodeAppDir
+					}, cb);
+				});
+			}
+		}, this);
+	})(resourcesPaths, function () {});
 
 	series(this, tasks, function (err, results) {
 		// copy js files into assets directory and minify if needed
