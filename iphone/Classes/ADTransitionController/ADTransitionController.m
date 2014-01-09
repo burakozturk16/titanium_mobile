@@ -471,6 +471,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     if ([_viewControllers count] >= 2) {
         UIViewController * outViewController = _viewControllers[([_viewControllers count] - 2)];
         [outViewController.view removeFromSuperview];
+        [outViewController.view.layer removeAnimationForKey:kAdKey];
         [outViewController endAppearanceTransition];
     }
     UIViewController * inViewController = [_viewControllers lastObject];
