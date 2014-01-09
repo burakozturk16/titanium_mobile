@@ -46,7 +46,7 @@
 }
 @end
 
-#define IGNORE_IF_NOT_OPENED if (!windowOpened||[self viewAttached]==NO) return;
+#define IGNORE_IF_NOT_OPENED if (!windowOpened||[self viewAttached]==NO) {dirtyflags=0;return;}
 
 @implementation TiViewProxy
 
@@ -1021,7 +1021,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     if (!CGRectEqualToRect(rect, sandboxBounds))
     {
         sandboxBounds = rect;
-        [self dirtyItAll];
+//        [self dirtyItAll];
     }
 }
 
@@ -1419,9 +1419,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		pthread_rwlock_rdlock(&childrenLock);
 		NSArray * childrenArray = [[self children] retain];
 		pthread_rwlock_unlock(&childrenLock);
-        if([childrenArray count] > 0) {
-            OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
-        }
         
 		for (id child in childrenArray)
 		{
@@ -1431,6 +1428,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		[childrenArray release];
 		[self viewDidAttach];
 
+		viewInitialized = YES;
 		// If parent has a non absolute layout signal the parent that
 		//contents will change else just lay ourselves out
 //		if (parent != nil && ![parent absoluteLayout]) {
@@ -1448,7 +1446,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
             [self refreshView];
             [self handlePendingAnimation];
         }
-		viewInitialized = YES;
 	}
 
 	CGRect bounds = [view bounds];
@@ -1744,7 +1741,6 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 -(BOOL)viewReady
 {
 	return view!=nil &&
-			CGRectIsEmpty(view.bounds)==NO &&
 			CGRectIsNull(view.bounds)==NO &&
 			[view superview] != nil;
 }
@@ -2191,7 +2187,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 #pragma mark Layout events, internal and external
 
 #define SET_AND_PERFORM(flagBit,action)	\
-if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
+if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(flagBit, &dirtyflags)) { \
 {	\
 	action;	\
 }
@@ -2276,7 +2272,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willShow;
 {
-	SET_AND_PERFORM(TiRefreshViewZIndex,);
+//	SET_AND_PERFORM(TiRefreshViewZIndex,);
     
     pthread_rwlock_rdlock(&childrenLock);
     if (allowContentChange)
@@ -2298,7 +2294,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willHide;
 {
-	SET_AND_PERFORM(TiRefreshViewZIndex,);
+//	SET_AND_PERFORM(TiRefreshViewZIndex,);
+    dirtyflags = 0;
     
 	pthread_rwlock_rdlock(&childrenLock);
 	[children makeObjectsPerformSelector:@selector(parentWillHide)];
@@ -2314,6 +2311,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 -(void)willChangeLayout
 {
+    if (!viewInitialized)return;
     BOOL alreadySet = OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
 
 	[self willEnqueueIfVisible];
@@ -2647,6 +2645,11 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
     if (childrenCount > 0) OSAtomicTestAndSet(TiRefreshViewChildrenPosition, &dirtyflags);
 }
 
+-(void)clearItAll
+{
+    dirtyflags = 0;
+}
+
 -(BOOL)isDirty
 {
     return [self willBeRelaying];
@@ -2683,7 +2686,8 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
         {
             [self determineSandboxBounds];
         }
-        if ([self relayout] || relayout || animation || OSAtomicTestAndClearBarrier(NEEDS_LAYOUT_CHILDREN, &dirtyflags)) {
+        if ([self relayout] || relayout || animation || OSAtomicTestAndClear(TiRefreshViewChildrenPosition, &dirtyflags)) {
+            OSAtomicTestAndClear(TiRefreshViewChildrenPosition, &dirtyflags);
             [self layoutChildren:NO];
         }
 		if (!CGRectEqualToRect(oldFrame, [[self view] frame])) {
@@ -2765,14 +2769,13 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 	int childZindex = [childProxy vzIndex];
 	BOOL earlierSibling = YES;
 	UIView * ourView = [self parentViewForChild:childProxy];
-	if (ourView == nil)
-
-    if (![self optimizeSubviewInsertion]) {
-        for (UIView* subview in [ourView subviews]) 
-        {
-            if (![subview isKindOfClass:[TiUIView class]]) {
-                result++;
-            }
+	if (ourView == nil) return;
+    BOOL optimizeInsertion = [childProxy optimizeSubviewInsertion];
+    
+    for (UIView* subview in [ourView subviews])
+    {
+        if (!optimizeInsertion || ![subview isKindOfClass:[TiUIView class]]) {
+            result++;
         }
     }
 	pthread_rwlock_rdlock(&childrenLock);
@@ -3501,6 +3504,7 @@ if(OSAtomicTestAndSetBarrier(flagBit, &dirtyflags))	\
 
 	if (ourView==nil || [child isHidden])
 	{
+        [child clearItAll];
 		return;
 	}
 	
