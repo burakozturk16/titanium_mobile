@@ -712,6 +712,8 @@ public class ListSectionProxy extends ViewProxy{
 			Log.e(TAG, "Cell is not TiListItem. Something is wrong..", Log.DEBUG_MODE);
 			return;
 		}
+		boolean reusing = !cellContent.isItemAtIndex(sectionIndex, itemIndex);
+		cellContent.setCurrentItem(sectionIndex, itemIndex);
 		
 		TiListItem listItem = (TiListItem) cell;
 		KrollDict listItemProperties;
@@ -750,13 +752,16 @@ public class ListSectionProxy extends ViewProxy{
 			DataItem dataItem = template.getDataItem(binding);
 			ViewItem viewItem = views.get(binding);
 			TiUIView view = viewItem.getView();
+			if (view == null) continue;
 			view.setTouchDelegate((TiTouchDelegate)listItem);
 			//update extra event data for views
-			if (view != null) {
-				appendExtraEventData(view, itemIndex, sectionIndex, binding, itemId);
-			}
+			appendExtraEventData(view, itemIndex, sectionIndex, binding, itemId);
 			//if binding is contain in data given to us, process that data, otherwise
 			//apply default properties.
+			if (reusing)
+			{
+				view.setReusing(true);
+			}
 			if (data.containsKey(binding) && view != null) {
 				KrollDict properties = new KrollDict((HashMap)data.get(binding));
 				KrollDict diffProperties = viewItem.generateDiffProperties(properties);
@@ -772,8 +777,11 @@ public class ListSectionProxy extends ViewProxy{
 			} else {
 				Log.w(TAG, "Sorry, " + binding + " isn't a valid binding. Perhaps you made a typo?", Log.DEBUG_MODE);
 			}
-			
-		}
+			if (reusing)
+			{
+				view.setReusing(false);
+			}
+		}	
 		
 		//process listItem properties
 		KrollDict listItemDiff = cellContent.getViewItem().generateDiffProperties(listItemProperties);
@@ -881,6 +889,19 @@ public class ListSectionProxy extends ViewProxy{
 			return listItemData.get(filterIndices.get(position)).getProperties();
 		} else if (position >= 0 && position < listItemData.size()) {
 			return listItemData.get(position).getProperties();
+		} 
+		return null;
+	}
+	
+	public ListItemData getListItem(int position) {
+		if (headerTitle != null || headerView != null) {
+			position -= 1;
+		}
+		
+		if (isFilterOn()) {
+			return listItemData.get(filterIndices.get(position));
+		} else if (position >= 0 && position < listItemData.size()) {
+			return listItemData.get(position);
 		} 
 		return null;
 	}

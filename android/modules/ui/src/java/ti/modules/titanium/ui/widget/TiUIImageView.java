@@ -1027,8 +1027,11 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 			if (changeImage) {
-				view.setImageBitmap(null);
-				view.setImageDrawable(null);
+				if (reusing)
+				{
+					view.setImageBitmap(null);
+					view.setImageDrawable(null);
+				}
 				// Check for orientation and decodeRetries only if an image is specified
 				Object autoRotate = d.get(TiC.PROPERTY_AUTOROTATE);
 				if (autoRotate != null && TiConvert.toBoolean(autoRotate)) {

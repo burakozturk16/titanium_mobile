@@ -13,6 +13,8 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
+import ti.modules.titanium.ui.widget.listview.TiListViewTemplate.DataItem;
+
 import android.content.Context;
 import android.util.AttributeSet;
 
@@ -20,6 +22,8 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 
 	private HashMap<String, ViewItem> viewsMap;
 	private ViewItem viewItem;
+	private int sectionIndex = -1;
+	private int itemIndex = -1;
 	public TiBaseListViewItem(Context context) {
 		super(context);
 		viewsMap = new HashMap<String, ViewItem>();
@@ -51,5 +55,15 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 		}
 		return null;
 	}
-
+	
+	public void setCurrentItem(int sectionIndex, int itemIndex)
+	{
+		this.sectionIndex = sectionIndex;
+		this.itemIndex = itemIndex;
+	}
+	
+	public boolean isItemAtIndex(int sectionIndex, int itemIndex)
+	{
+		return this.sectionIndex == sectionIndex && this.itemIndex == itemIndex;
+	}
 }
