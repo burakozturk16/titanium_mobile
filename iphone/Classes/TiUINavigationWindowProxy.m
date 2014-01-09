@@ -406,6 +406,7 @@
 	}
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
+    if ([props isKindOfClass:[NSNull class]]) props = nil;
 	BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
