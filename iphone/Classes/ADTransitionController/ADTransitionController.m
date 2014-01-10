@@ -110,15 +110,22 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     
     // Create and add navigation bar to the view
     id vcbasedStatHidden = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"UIViewControllerBasedStatusBarAppearance"];
-
+    
+    CGFloat toolbarHeight = AD_TOOLBAR_HEIGHT;
     CGFloat navigationBarHeight = AD_NAVIGATION_BAR_HEIGHT;
+    // Create and add the container view that will hold the controller views
+    _containerView = [[ADTransitionView alloc] initWithFrame:CGRectMake(0, navigationBarHeight, bounds.size.width, bounds.size.height - navigationBarHeight - toolbarHeight)];
+    _containerView.autoresizesSubviews = YES;
+    _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    [self.view addSubview:_containerView];
+    [_containerView release];
+
     _realStatusBarDecale = _statusBarDecale = (_ios7OrGreater && (!vcbasedStatHidden || [vcbasedStatHidden boolValue]))?20:0;
     _navigationBar = [[UINavigationBar alloc] initWithFrame:CGRectMake(0, _statusBarDecale, bounds.size.width, navigationBarHeight)];
     _navigationBar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleBottomMargin;
     _navigationBar.delegate = self;
     [self.view addSubview:_navigationBar];
     
-    CGFloat toolbarHeight = AD_TOOLBAR_HEIGHT;
     // Create and add toolbar to the view
     _toolbar = [[UIToolbar alloc] initWithFrame:CGRectMake(0, bounds.size.height - toolbarHeight, bounds.size.width, toolbarHeight)];
     _toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
@@ -126,12 +133,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     _toolbar.hidden = YES;
     [self.view addSubview:_toolbar];
     
-    // Create and add the container view that will hold the controller views
-    _containerView = [[ADTransitionView alloc] initWithFrame:CGRectMake(0, navigationBarHeight, bounds.size.width, bounds.size.height - navigationBarHeight - toolbarHeight)];
-    _containerView.autoresizesSubviews = YES;
-    _containerView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-    [self.view addSubview:_containerView];
-    [_containerView release];
+    
     
     [self updateLayout];
 
