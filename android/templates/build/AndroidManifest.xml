@@ -33,9 +33,6 @@
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" 
 			android:configChanges="keyboardHidden|orientation" />
 
-		<service android:name="org.appcelerator.titanium.analytics.TiAnalyticsService"
-			android:exported="false" />
-
 	</application>
 
 </manifest>

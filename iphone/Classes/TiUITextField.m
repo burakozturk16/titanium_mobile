@@ -84,27 +84,29 @@
 
 -(BOOL)resignFirstResponder
 {
-	becameResponder = NO;
-	
 	if ([super resignFirstResponder])
 	{
 //		[self repaintMode];
-		return YES;
+        if (becameResponder) {
+            becameResponder = NO;
+            [touchHandler makeRootViewFirstResponder];
+        }
+        return YES;
 	}
 	return NO;
 }
 
 -(BOOL)becomeFirstResponder
 {
-	if (self.canBecomeFirstResponder) {
-		if ([super becomeFirstResponder])
-		{
-			becameResponder = YES;
-//			[self repaintMode];
-			return YES;
-		}
-	}
-	return NO;
+    if (self.isEnabled) {
+        if ([super becomeFirstResponder])
+        {
+            becameResponder = YES;
+            [self repaintMode];
+            return YES;
+        }
+    }
+    return NO;
 }
 
 
@@ -369,12 +371,10 @@
 {
 	NSString *curText = [[tf text] stringByReplacingCharactersInRange:range withString:string];
    
-	if ( (maxLength > -1) && ([curText length] > maxLength) ) {
-		[self setValue_:curText];
-		return NO;
-	}
-
-	[(TiUITextFieldProxy *)self.proxy noteValueChange:curText];
+    if ( (maxLength > -1) && ([curText length] > maxLength) ) {
+        [self setValue_:curText];
+        return NO;
+    }
 	return YES;
 }
 

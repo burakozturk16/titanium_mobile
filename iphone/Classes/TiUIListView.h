@@ -23,6 +23,7 @@
 - (void)deselectAll:(BOOL)animated;
 -(void)scrollToTop:(NSInteger)top animated:(BOOL)animated;
 -(void)scrollToBottom:(NSInteger)bottom animated:(BOOL)animated;
+- (void)updateIndicesForVisibleRows;
 
 + (UITableViewRowAnimation)animationStyleForProperties:(NSDictionary*)properties;
 
