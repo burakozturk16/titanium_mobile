@@ -86,7 +86,6 @@
 {
 	if ([super resignFirstResponder])
 	{
-//		[self repaintMode];
         if (becameResponder) {
             becameResponder = NO;
             [touchHandler makeRootViewFirstResponder];
@@ -102,7 +101,6 @@
         if ([super becomeFirstResponder])
         {
             becameResponder = YES;
-            [self repaintMode];
             return YES;
         }
     }
