@@ -681,7 +681,8 @@ public class TiCompositeLayout extends FreeLayout implements
 						params.optionBottom, childMeasuredHeight, top, bottom,
 						vertical);
 			}
-			
+			//we dont need to use AnimationLayoutParams as the fraction has already been applied in
+			// the onMeasure
 			if (params instanceof AnimationLayoutParams) {
 				float fraction = ((AnimationLayoutParams) params).animationFraction;
 				if (fraction < 1.0f) {
@@ -689,12 +690,11 @@ public class TiCompositeLayout extends FreeLayout implements
 					if (startRect != null) {
 						horizontal[0] = (int) (horizontal[0] * fraction + (1 - fraction)
 								* startRect.left);
-						horizontal[1] = (int) (horizontal[1] * fraction + (1 - fraction)
-								* startRect.right);
+						horizontal[1] = horizontal[0] + childMeasuredWidth;
+
 						vertical[0] = (int) (vertical[0] * fraction + (1 - fraction)
 								* startRect.top);
-						vertical[1] = (int) (vertical[1] * fraction + (1 - fraction)
-								* startRect.bottom);
+						vertical[1] = vertical[0] + childMeasuredHeight;
 					}
 				}
 			}
