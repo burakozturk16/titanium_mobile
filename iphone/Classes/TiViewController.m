@@ -206,6 +206,13 @@
         [_proxy setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
         [_proxy refreshViewIfNeeded];
     }
+    if ([_proxy respondsToSelector:@selector(isModal)])
+    {
+        if ([(id)_proxy isModal])
+        {
+            [[[[TiApp app] controller] topContainerController] willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
+        }
+    }
     [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
@@ -216,6 +223,13 @@
     else {
         [_proxy setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
     }
+    if ([_proxy respondsToSelector:@selector(isModal)])
+    {
+        if ([(id)_proxy isModal])
+        {
+            [[[[TiApp app] controller] topContainerController] willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
+        }
+    }
     [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
@@ -225,6 +239,13 @@
     }
     else {
         [_proxy removeFakeAnimation];
+    }
+    if ([_proxy respondsToSelector:@selector(isModal)])
+    {
+        if ([(id)_proxy isModal])
+        {
+            [[[[TiApp app] controller] topContainerController] didRotateFromInterfaceOrientation:fromInterfaceOrientation];
+        }
     }
     [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }
