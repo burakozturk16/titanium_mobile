@@ -437,7 +437,8 @@ static NSArray* handledKeys;
         CGRect newBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
         if (!CGRectEqualToRect(newBounds, currentbounds))
         {
-            [(TiViewProxy*)self.proxy setSandboxBounds:newBounds];
+//            [(TiViewProxy*)self.proxy setSandboxBounds:newBounds];
+            [(TiViewProxy*)self.proxy dirtyItAll];
         }
 	}
     [super setFrame:frame];
