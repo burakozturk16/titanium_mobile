@@ -243,6 +243,11 @@ static NSSet* transferableProps = nil;
 
 -(void)add:(id)arg
 {
+    [self addInternal:arg shouldRelayout:YES];
+}
+
+-(void)addInternal:(id)arg shouldRelayout:(BOOL)shouldRelayout
+{
 	// allow either an array of arrays or an array of single proxy
 	if ([arg isKindOfClass:[NSArray class]])
 	{
@@ -290,30 +295,28 @@ static NSSet* transferableProps = nil;
         
         if (!readyToCreateView || [arg isHidden]) return;
         [arg getOrCreateView];
+        if (!shouldRelayout) return;
+
+        [self contentsWillChange];
+        if(parentVisible && !hidden)
+        {
+            [arg parentWillShow];
+        }
         
-        //Turn on clipping because I have children
-//        if ([[self view] respondsToSelector:@selector(updateViewShadowPath)])
-//            [[self view] updateViewShadowPath];
-        
-		[self contentsWillChange];
-		if(parentVisible && !hidden)
-		{
-			[arg parentWillShow];
-		}
-        
-		//If layout is non absolute push this into the layout queue
-		//else just layout the child with current bounds
-		if (![self absoluteLayout]) {
-			[self contentsWillChange];
-		}
-		else {
-			[self layoutChild:arg optimize:NO withMeasuredBounds:[[self view] bounds]];
-		}
+        //If layout is non absolute push this into the layout queue
+        //else just layout the child with current bounds
+        if (![self absoluteLayout]) {
+            [self contentsWillChange];
+        }
+        else {
+            [self layoutChild:arg optimize:NO withMeasuredBounds:[[self view] bounds]];
+        }
+		
 	}
 	else
 	{
 		[self rememberProxy:arg];
-		if (windowOpened)
+		if (windowOpened && shouldRelayout)
 		{
 			TiThreadPerformOnMainThread(^{[self add:arg];}, NO);
 			return;
@@ -331,16 +334,6 @@ static NSSet* transferableProps = nil;
             childrenCount = [children count];
             pthread_rwlock_unlock(&childrenLock);
         }
-//		pthread_rwlock_wrlock(&childrenLock);
-//		if (pendingAdds==nil)
-//		{
-//			pendingAdds = [[NSMutableArray arrayWithObject:arg] retain];
-//		}
-//		else 
-//		{
-//			[pendingAdds addObject:arg];
-//		}
-//		pthread_rwlock_unlock(&childrenLock);
 		[arg setParent:self];
 	}
 }
@@ -3740,7 +3733,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 				[self rememberProxy:child];
 				[child forgetSelf];
 			}];
-			[self add:child];
+			[self addInternal:child shouldRelayout:NO];
 		}
 	}];
 }
@@ -3800,7 +3793,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 				[self rememberProxy:child];
 				[child forgetSelf];
 			}];
-			[self add:child];
+			[self addInternal:child shouldRelayout:NO];
 		}
 	}];
 }
