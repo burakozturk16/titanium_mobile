@@ -383,6 +383,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     UIViewController * inViewController = _viewControllers[([_viewControllers count] - 2)];
     inViewController.view.frame = _containerView.bounds;
     
+    [self updateLayoutForController:inViewController];
     [inViewController beginAppearanceTransition:YES animated:animated];
     
     if ([self.delegate respondsToSelector:@selector(transitionController:willPopToViewController:transition:)]) {
