@@ -16,7 +16,6 @@ import org.appcelerator.titanium.util.TiConvert;
 
 import android.graphics.LinearGradient;
 import android.graphics.RadialGradient;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Shader.TileMode;
@@ -42,6 +41,7 @@ public class TiGradientDrawable extends ShapeDrawable {
 	private int[] colors;
 	private float[] offsets;
 	private RectF gradientRect = null;
+	private TileMode tileMode = TileMode.CLAMP;
 
 	@SuppressWarnings("rawtypes")
 	public TiGradientDrawable(KrollDict properties) {
@@ -74,6 +74,18 @@ public class TiGradientDrawable extends ShapeDrawable {
 		}
 		if (properties.containsKey("rect")) {
 			gradientRect = TiConvert.toRect(properties, "rect");
+		}
+		if (properties.containsKey("tileMode")) {
+			String mode = TiConvert.toString(properties, "tileMode");
+			if (mode.equalsIgnoreCase("repeat")){
+				tileMode = tileMode.REPEAT;
+			}
+			else if(mode.equalsIgnoreCase("mirror")){
+				tileMode = tileMode.MIRROR;
+			}
+			else {
+				tileMode = tileMode.CLAMP;
+			}
 		}
 
 		Object colors = properties.get("colors");
@@ -151,12 +163,12 @@ public class TiGradientDrawable extends ShapeDrawable {
 	
 				switch (gradientType) {
 					case LINEAR_GRADIENT:
-						mCachedShader = new LinearGradient(x0, y0, x1, y1, colors, offsets, TileMode.REPEAT);
+						mCachedShader = new LinearGradient(x0, y0, x1, y1, colors, offsets, tileMode);
 						break;
 					case RADIAL_GRADIENT:
 						startRadius.setValueType((width>height)?TiDimension.TYPE_HEIGHT:TiDimension.TYPE_WIDTH);
 						float radius0 = startRadius.getAsPixels(null, width, height);
-						mCachedShader = (radius0 > 0)?(new RadialGradient(x0, y0, radius0, colors, offsets, TileMode.REPEAT)):null;
+						mCachedShader = (radius0 > 0)?(new RadialGradient(x0, y0, radius0, colors, offsets, tileMode)):null;
 						break;
 					case SWEEP_GRADIENT:
 						mCachedShader = new SweepGradient(x0, y0, colors, offsets);
