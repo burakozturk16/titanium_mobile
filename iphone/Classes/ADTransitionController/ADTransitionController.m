@@ -596,15 +596,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
     if (animated) {
         [UIView beginAnimations:nil context:NULL];
     }
-    CGRect frame = _containerView.frame;
-    if ([self isToolbarHidden] && !hidden) {
-        _toolbar.alpha = 1.0f;
-        frame.size.height = _containerView.frame.size.height - toolbarHeight;
-    } else if (![self isToolbarHidden] && hidden) {
-        _toolbar.alpha = 0.0f;
-        frame.size.height = _containerView.frame.size.height + toolbarHeight;
-    }
-    _containerView.frame = frame;
+    [self updateLayoutForController:self.viewControllers.lastObject];
     if (animated) {
         [UIView commitAnimations];
     }
