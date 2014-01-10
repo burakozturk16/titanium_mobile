@@ -436,6 +436,7 @@
     }
     
     NSDictionary* props = ([args count] > propsIndex)?[args objectAtIndex:propsIndex]:nil;
+    if ([props isKindOfClass:[NSNull class]]) props = nil;
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
