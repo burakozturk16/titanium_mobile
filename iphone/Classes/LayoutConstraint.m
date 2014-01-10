@@ -53,7 +53,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             //Sandbox with percent values is garbage
             ignorePercent = YES;
             UIView *parentView = [parent parentViewForChild:(TiViewProxy*)autoSizer];
-            CGSize parentSize = (parentView != nil) ? parentView.bounds.size : CGSizeZero;
+            parentSize = (parentView != nil) ? parentView.bounds.size : CGSizeZero;
             parentCanGrow = TiDimensionIsAutoSize([parent layoutProperties]->height);
         }
     }
