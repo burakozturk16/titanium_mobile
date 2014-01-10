@@ -52,8 +52,16 @@
     reversedTransition.delegate = self.delegate; // Pointer assignment
     reversedTransition.inAnimation.speed = -1.0 * reversedTransition.inAnimation.speed;
     reversedTransition.outAnimation.speed = -1.0 * reversedTransition.outAnimation.speed;
+    reversedTransition.inAnimation.timingFunction = [reversedTransition.outAnimation.timingFunction inverseFunction];
+    reversedTransition.outAnimation.timingFunction = [reversedTransition.outAnimation.timingFunction inverseFunction];
     [outAnimationCopy release];
     [inAnimationCopy release];
+    reversedTransition.type = ADTransitionTypeNull;
+    if (self.type == ADTransitionTypePush) {
+        reversedTransition.type = ADTransitionTypePop;
+    } else if (self.type == ADTransitionTypePop) {
+        reversedTransition.type = ADTransitionTypePush;
+    }
     return [reversedTransition autorelease];
 }
 
@@ -65,6 +73,11 @@
     [super startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
     [viewIn.layer addAnimation:self.inAnimation forKey:kAdKey];
     [viewOut.layer addAnimation:self.outAnimation forKey:kAdKey];
+}
+
+- (NSTimeInterval)duration {
+    NSTimeInterval result = MAX(self.inAnimation.duration, self.outAnimation.duration);
+    return result;
 }
 
 #pragma mark -

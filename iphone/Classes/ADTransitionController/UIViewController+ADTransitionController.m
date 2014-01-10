@@ -17,4 +17,12 @@ extern NSString * ADTransitionControllerAssociationKey;
     return (ADTransitionController *)objc_getAssociatedObject(self, ADTransitionControllerAssociationKey);
 }
 
+//- (void)setTransitioningDelegate:(id <UIViewControllerTransitioningDelegate>)delegate {
+//    NSAssert(FALSE, @"This setter shouldn't be used! You should set the transition property instead.");
+//}
+//
+//- (void)setTransition:(ADTransition *)transition {
+//    [super setTransitioningDelegate:[[[ADTransitioningDelegate alloc] initWithTransition:transition] autorelease]]; // don't call the setter of the current class
+//}
+
 @end

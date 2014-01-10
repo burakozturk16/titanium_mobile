@@ -10,8 +10,12 @@
 #import "TiUINavigationWindow.h"
 #import "TiApp.h"
 #import "TiTransition.h"
+#import "UIViewController+ADTransitionController.h"
 
 @interface TiUINavigationWindowProxy()
+{
+    ADNavigationControllerDelegate * _navigationDelegate;
+}
 @property(nonatomic,retain) NSDictionary *defaultTransition;
 
 @end
@@ -24,6 +28,7 @@
 -(void)dealloc
 {
 	RELEASE_TO_NIL_AUTORELEASE(rootWindow);
+    RELEASE_TO_NIL(_navigationDelegate);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
     RELEASE_TO_NIL(_defaultTransition);
@@ -42,7 +47,7 @@
 
 -(NSDictionary*)platformDefaultTransition
 {
-    if ([TiUtils isIOS7OrGreater]) {
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
         return @{ @"style" : [NSNumber numberWithInt:NWTransitionModernPush], @"duration" : @550 };
     }
     else {
@@ -127,16 +132,22 @@
     return [rootWindow hostingController];
 }
 
--(ADTransitionController*)controller
+
+-(id)controller
 {
     if (navController == nil) {
-        navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
-        navController.delegate = self;
+//        UIViewController * transitionController = nil;
+//        if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+//            navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
+//            [_navigationDelegate release], _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
+//            ((UINavigationController *)navController).delegate = _navigationDelegate;
+//            [[(UINavigationController *)navController interactivePopGestureRecognizer] addTarget:self action:@selector(popGestureStateHandler:)];
+//        } else {
+            navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
+            ((ADTransitionController*)navController).delegate = self;
+//        }
         [TiUtils configureController:navController withObject:self];
-        navController.navigationBar.translucent = YES;
-        if ([TiUtils isIOS7OrGreater]) {
-            [navController.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
-        }
+        [navController navigationBar].translucent = YES;
     }
     return navController;
 }
@@ -313,7 +324,7 @@
 -(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
 {
     if (!transition) return     ;
-    return @{@"duration": NUMINT([transition getDuration]*1000),
+    return @{@"duration": NUMINT([transition duration]*1000),
              @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
              @"substyle": NUMINT(transition.orientation),
              @"reverse": NUMBOOL(transition.isReversed)};
@@ -354,6 +365,64 @@
 {
     [self fireEvent:@"closeWindow" forController:viewController transition:transition];
 }
+
+- (void)_pushViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        [viewController setTransition:transition];
+    //        [navController pushViewController:viewController animated:YES];
+    //    } else {
+    [navController pushViewController:viewController withTransition:transition];
+    //    }
+}
+
+- (UIViewController *)popViewController {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popViewControllerAnimated:YES];
+    //    } else {
+    return [navController popViewController];
+    //    }
+}
+
+- (UIViewController *)_popViewControllerWithTransition:(ADTransition *)transition {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popViewControllerAnimated:YES];
+    //    } else {
+    return [navController popViewControllerWithTransition:transition];
+    //    }
+}
+
+- (NSArray *)_popToViewController:(UIViewController *)viewController {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popToViewController:viewController animated:YES];
+    //    } else {
+    return [navController popToViewController:viewController];
+    //    }
+}
+
+- (NSArray *)_popToViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popToViewController:viewController animated:YES];
+    //    } else {
+    return [navController popToViewController:viewController withTransition:transition];
+    //    }
+}
+
+- (NSArray *)_popToRootViewController {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popToRootViewControllerAnimated:YES];
+    //    } else {
+    return [navController popToRootViewController];
+    //    }
+}
+
+- (NSArray *)_popToRootViewControllerWithTransition:(ADTransition *)transition {
+    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+    //        return [navController popToRootViewControllerAnimated:YES];
+    //    } else {
+    return [navController popToRootViewControllerWithTransition:transition];
+    //    }
+}
+
 #pragma mark - Public API
 
 -(void)setTransition:(id)arg
@@ -415,7 +484,7 @@
     
     [window windowWillOpen];
     
-    [navController pushViewController:[window hostingController] withTransition:transition.adTransition];
+    [self _pushViewController:[window hostingController] withTransition:transition.adTransition];
 }
 
 -(void)popOnUIThread:(NSArray*)args
@@ -444,11 +513,11 @@
     }
     
     if (window == current) {
-        [navController popViewControllerWithTransition:transition.adTransition];
+        [self _popViewControllerWithTransition:transition.adTransition];
     }
     else {
         if (window == rootWindow) {
-            NSArray* outViewControllers = [navController popToRootViewControllerWithTransition:transition.adTransition];
+            NSArray* outViewControllers = [self _popToRootViewControllerWithTransition:transition.adTransition];
             if (outViewControllers) {
                 for (int i = 0; i < outViewControllers.count - 1; i++) {
                     TiWindowProxy* win = (TiWindowProxy *)[[outViewControllers objectAtIndex:i ] proxy];
@@ -461,7 +530,7 @@
         else {
             UIViewController* winController = [self controllerForWindow:window];
             if (winController) {
-                NSArray* outViewControllers = [navController popToViewController:winController withTransition:transition.adTransition];
+                NSArray* outViewControllers = [self _popToViewController:winController withTransition:transition.adTransition];
                 if (outViewControllers) {
                     for (int i = 0; i < outViewControllers.count - 1; i++) {
                         TiWindowProxy* win = (TiWindowProxy *)[[outViewControllers objectAtIndex:i ] proxy];
@@ -524,7 +593,7 @@
                 [win setParentOrientationController:nil];
                 [win close:nil];
             }
-            [navController.view removeFromSuperview];
+            [[navController view] removeFromSuperview];
             RELEASE_TO_NIL(navController);
             RELEASE_TO_NIL(current);
             RELEASE_TO_NIL(currentControllers);

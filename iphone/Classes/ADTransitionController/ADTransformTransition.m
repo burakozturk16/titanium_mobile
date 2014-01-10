@@ -51,6 +51,12 @@
     reversedTransition.isReversed = YES;
     reversedTransition.delegate = self.delegate; // Pointer assignment
     reversedTransition.animation.speed = - 1.0 * reversedTransition.animation.speed;
+    reversedTransition.type = ADTransitionTypeNull;
+    if (self.type == ADTransitionTypePush) {
+        reversedTransition.type = ADTransitionTypePop;
+    } else if (self.type == ADTransitionTypePop) {
+        reversedTransition.type = ADTransitionTypePush;
+    }
     return [reversedTransition autorelease];
 }
 
@@ -65,6 +71,10 @@
     viewContainer.layer.transform = CATransform3DInvert(viewIn.layer.transform);
     
     [viewContainer.layer addAnimation:self.animation forKey:nil];
+}
+
+- (NSTimeInterval)duration {
+    return self.animation.duration;
 }
 
 @end

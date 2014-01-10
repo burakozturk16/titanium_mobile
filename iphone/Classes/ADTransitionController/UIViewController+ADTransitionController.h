@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "ADTransitionController.h"
 
-@class ADTransitionController;
+@class ADTransitionController, ADTransition;
 @interface UIViewController (ADTransitionController)
 - (ADTransitionController *)transitionController;
+//- (void)setTransition:(ADTransition *)transition;
 @end

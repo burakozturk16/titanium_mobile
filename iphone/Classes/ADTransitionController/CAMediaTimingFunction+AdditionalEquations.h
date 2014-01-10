@@ -74,4 +74,5 @@
 +(CAMediaTimingFunction *)easeOutBack;
 +(CAMediaTimingFunction *)easeInOutBack;
 
+-(CAMediaTimingFunction *)inverseFunction;
 @end

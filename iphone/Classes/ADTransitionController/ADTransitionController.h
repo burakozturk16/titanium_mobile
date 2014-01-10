@@ -28,6 +28,9 @@
 #import "ADFoldTransition.h"
 #import "ADSlideTransition.h"
 #import "ADModernPushTransition.h"
+#import "ADTransitioningDelegate.h"
+#import "ADNavigationControllerDelegate.h"
+#import "ADTransitioningViewController.h"
 
 /**
  The class represent root controller in a view hierarchy.
@@ -68,7 +71,7 @@
 @property (nonatomic, readonly, retain) UIViewController * topViewController;
 @property (nonatomic, readonly, retain) UIViewController * visibleViewController;
 @property(nonatomic, readonly) UINavigationBar * navigationBar;
-@property(nonatomic, readonly) UIToolbar* toolbar;
+@property (nonatomic, readonly) UIToolbar * toolbar;
 @property (nonatomic, assign) id<ADTransitionControllerDelegate> delegate;
 @property(nonatomic, getter = isNavigationBarHidden, setter = setNavigationBarHidden:) BOOL navigationBarHidden;
 @property(nonatomic, getter = isToolbarHidden, setter = setToolbarHidden:) BOOL toolbarHidden;
