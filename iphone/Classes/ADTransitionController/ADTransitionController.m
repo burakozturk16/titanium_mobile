@@ -242,7 +242,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
             }
             if (!UIEdgeInsetsEqualToEdgeInsets(oldInset, inset)) {
                 scrollview.contentInset = scrollview.scrollIndicatorInsets = inset;
-                if (needsOffestChange) scrollview.contentOffset = CGPointMake(0,-inset.top);
+//                if (needsOffestChange) scrollview.contentOffset = CGPointMake(0,-inset.top);
             }
             continue;
         }
