@@ -73,14 +73,22 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     //we must not retain the item or we get a cyclic retain problem
 //    RELEASE_TO_NIL(_listItem);
     _listItem = newListItem;
-    view = _listItem.viewHolder;
-    [view initializeState];
-    viewInitialized = YES;
-    parentVisible = YES;
-    [self setReadyToCreateView:YES];
-    [self windowWillOpen];
-    [self windowDidOpen];
-    [self willShow];
+    if (newListItem)
+    {
+        view = _listItem.viewHolder;
+        [view initializeState];
+        viewInitialized = YES;
+        parentVisible = YES;
+        readyToCreateView = YES;
+        windowOpened = YES;
+    }
+    else {
+        view = nil;
+        viewInitialized = NO;
+        parentVisible = NO;
+        readyToCreateView = NO;
+        windowOpened = NO;
+    }
 }
 
 -(void)dealloc
