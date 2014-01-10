@@ -226,6 +226,8 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
             CGPoint oldOffset = scrollview.contentOffset;
             scrollviewRect.origin.y += oldOffset.y;
             
+            BOOL needsOffestChange = oldOffset.y == -oldInset.top;
+            
             UIEdgeInsets inset = UIEdgeInsetsMake(0, 0, 0, 0);
             if (!topCrop && navigationBarHeight > 0 && scrollviewRect.origin.y <= navigationBarHeight)
             {
@@ -240,7 +242,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
             }
             if (!UIEdgeInsetsEqualToEdgeInsets(oldInset, inset)) {
                 scrollview.contentInset = scrollview.scrollIndicatorInsets = inset;
-                scrollview.contentOffset = CGPointMake(0,-inset.top);
+                if (needsOffestChange) scrollview.contentOffset = CGPointMake(0,-inset.top);
             }
             continue;
         }
