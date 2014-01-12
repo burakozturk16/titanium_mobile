@@ -124,8 +124,8 @@ public abstract class TiUIView
 	protected boolean dispatchPressed = false;
 	protected boolean reusing = false;
 
-	protected KrollDict lastUpEvent = new KrollDict(2);
-	protected KrollDict lastDownEvent = new KrollDict(2);
+	protected MotionEvent lastUpEvent = null;
+	protected MotionEvent lastDownEvent = null;
 
 	// In the case of heavy-weight windows, the "nativeView" is null,
 	// so this holds a reference to the view which is used for touching,
@@ -336,7 +336,11 @@ public abstract class TiUIView
 	{
 		return nativeView;
 	}
-
+	
+	
+	protected boolean isClickable(){
+		return TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED), true);
+	}
 	/**
 	 * Sets the nativeView to view.
 	 * @param view the view to set
@@ -354,12 +358,8 @@ public abstract class TiUIView
 		}
 				
 		this.nativeView = view;
-		boolean clickable = true;
-		
-		if (proxy.hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
-			clickable = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_TOUCH_ENABLED), true);
-		}
-		doSetClickable(nativeView, clickable);
+
+		doSetClickable(getTouchView(), isClickable());
 		nativeView.setOnFocusChangeListener(this);
 		
 		
@@ -1357,31 +1357,38 @@ public abstract class TiUIView
 		DisplayMetrics metrics = TiDimension.getDisplayMetrics(getContext());
 		double density = metrics.density;
 		KrollDict data = new KrollDict();
-		data.put(TiC.EVENT_PROPERTY_X, (double)e.getX() / density);
-		data.put(TiC.EVENT_PROPERTY_Y, (double)e.getY() / density);
+		int[] coords = new int[2];
+		getTouchView().getLocationInWindow(coords);
+
+		final double rawx = e.getRawX();
+		final double rawy = e.getRawY();
+		final double x = (double) rawx - coords[0];
+		final double y = (double) rawy - coords[1];
+		data.put(TiC.EVENT_PROPERTY_X, x / density);
+		data.put(TiC.EVENT_PROPERTY_Y, y / density);
 		KrollDict globalPoint = new KrollDict();
-		globalPoint.put(TiC.EVENT_PROPERTY_X, (double)e.getRawX() / density);
-		globalPoint.put(TiC.EVENT_PROPERTY_Y, (double)e.getRawY() / density);
+		globalPoint.put(TiC.EVENT_PROPERTY_X, rawx / density);
+		globalPoint.put(TiC.EVENT_PROPERTY_Y, rawy / density);
 		data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
 		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 		return data;
 	}
 
-	protected KrollDict dictFromEvent(KrollDict dictToCopy){
-		KrollDict data = new KrollDict();
-		if (dictToCopy.containsKey(TiC.EVENT_PROPERTY_X)){
-			data.put(TiC.EVENT_PROPERTY_X, dictToCopy.get(TiC.EVENT_PROPERTY_X));
-		} else {
-			data.put(TiC.EVENT_PROPERTY_X, (double)0);
-		}
-		if (dictToCopy.containsKey(TiC.EVENT_PROPERTY_Y)){
-			data.put(TiC.EVENT_PROPERTY_Y, dictToCopy.get(TiC.EVENT_PROPERTY_Y));
-		} else {
-			data.put(TiC.EVENT_PROPERTY_Y, (double)0);
-		}
-		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
-		return data;
-	}
+//	protected KrollDict dictFromEvent(KrollDict dictToCopy){
+//		KrollDict data = new KrollDict();
+//		if (dictToCopy.containsKey(TiC.EVENT_PROPERTY_X)){
+//			data.put(TiC.EVENT_PROPERTY_X, dictToCopy.get(TiC.EVENT_PROPERTY_X));
+//		} else {
+//			data.put(TiC.EVENT_PROPERTY_X, (double)0);
+//		}
+//		if (dictToCopy.containsKey(TiC.EVENT_PROPERTY_Y)){
+//			data.put(TiC.EVENT_PROPERTY_Y, dictToCopy.get(TiC.EVENT_PROPERTY_Y));
+//		} else {
+//			data.put(TiC.EVENT_PROPERTY_Y, (double)0);
+//		}
+//		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
+//		return data;
+//	}
 
 	protected boolean allowRegisterForTouch()
 	{
@@ -1554,13 +1561,11 @@ public abstract class TiUIView
 					
 				}
 				if (event.getAction() == MotionEvent.ACTION_UP) {
-					lastUpEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
-					lastUpEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
+					lastUpEvent = event;
 				}
 
 				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
-					lastDownEvent.put(TiC.EVENT_PROPERTY_X, (double) event.getX());
-					lastDownEvent.put(TiC.EVENT_PROPERTY_Y, (double) event.getY());
+					lastDownEvent = event;
 				}
 
 				scaleDetector.onTouchEvent(event);
