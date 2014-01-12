@@ -2498,6 +2498,13 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     [self refreshViewOrParent];
 }
 
+-(void)contentsWillChangeAnimated:(NSTimeInterval)duration
+{
+    [UIView animateWithDuration:duration animations:^{
+        [self contentsWillChangeImmediate];
+    }];
+}
+
 -(void)parentSizeWillChange
 {
 //	if not dip, change size

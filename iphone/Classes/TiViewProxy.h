@@ -481,6 +481,7 @@ enum
  that it should layout immediately
  */
 -(void)contentsWillChangeImmediate;
+-(void)contentsWillChangeAnimated:(NSTimeInterval)duration;
 
 /**
  Tells the view proxy that the attached view's parent size will change.
