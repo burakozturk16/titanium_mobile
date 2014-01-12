@@ -51,9 +51,11 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextUtils.TruncateAt;
+import android.text.method.LinkMovementMethod;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.BulletSpan;
+import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.MaskFilterSpan;
@@ -209,7 +211,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			inTransition = true;
 			oldTextView = textView;
 			textView = newTextView;
+			doSetClickable(oldTextView, false);
 			newTextView.setVisibility(View.GONE);
+			doSetClickable(getTouchView(), isClickable());
 			TiUIHelper.addView(this, newTextView, (oldTextView != null)?oldTextView.getLayoutParams():getTextLayoutParams());
 			
 			transition.setTargets(this, newTextView, oldTextView);
@@ -826,6 +830,36 @@ public class TiUILabel extends TiUINonViewGroupView
 				Alignment.ALIGN_NORMAL, lineSpacingMultiplier,
 				lineAdditionalVerticalPadding, false /* includepad */);
 		}
+		
+		public int getOffsetForPosition(float x, float y) {
+	        if (getLayout() == null) return -1;
+	        final int line = getLineAtCoordinate(y);
+	        final int offset = getOffsetAtCoordinate(line, x);
+	        return offset;
+	    }
+
+	    float convertToLocalHorizontalCoordinate(float x) {
+	        x -= getTotalPaddingLeft();
+	        // Clamp the position to inside of the view.
+	        x = Math.max(0.0f, x);
+	        x = Math.min(getWidth() - getTotalPaddingRight() - 1, x);
+	        x += getScrollX();
+	        return x;
+	    }
+
+	    int getLineAtCoordinate(float y) {
+	        y -= getTotalPaddingTop();
+	        // Clamp the position to inside of the view.
+	        y = Math.max(0.0f, y);
+	        y = Math.min(getHeight() - getTotalPaddingBottom() - 1, y);
+	        y += getScrollY();
+	        return getLayout().getLineForVertical((int) y);
+	    }
+	    
+	    private int getOffsetAtCoordinate(int line, float x) {
+	        x = convertToLocalHorizontalCoordinate(x);
+	        return getLayout().getOffsetForHorizontal(line, x);
+	    }
 	}
 
 
@@ -872,6 +906,35 @@ public class TiUILabel extends TiUINonViewGroupView
 		);
 
 		tv.textView.setTextColor(colorStateList);
+	}
+	
+	protected void makeLinkClickable(SpannableStringBuilder strBuilder, URLSpan span)
+	{
+//	    int start = strBuilder.getSpanStart(span);
+//	    int end = strBuilder.getSpanEnd(span);
+//	    int flags = strBuilder.getSpanFlags(span);
+//	    URLSpan clickable = new URLSpan(span.getURL()) {
+//	          public void onClick(View view) {
+//	             if (hasListeners(TiC.EVENT_LINK)) {
+//	     			KrollDict data = new KrollDict();
+//	     			data.put(TiC.EVENT_PROPERTY_URL,  getURL());
+//	     			fireEvent(TiC.EVENT_LINK, data);
+//	     		}
+//	          }
+//	    };
+//	    strBuilder.setSpan(clickable, start, end, flags);
+//	    strBuilder.removeSpan(span);
+	}
+	
+	protected Spanned prepareHtml(String html)
+	{
+//	    CharSequence sequence = fromHtml(html);
+//	        SpannableStringBuilder strBuilder = new SpannableStringBuilder(sequence);
+//	        URLSpan[] urls = strBuilder.getSpans(0, sequence.length(), URLSpan.class);   
+//	        for(URLSpan span : urls) {
+//	            makeLinkClickable(strBuilder, span);
+//	        }
+	    return fromHtml(html);       
 	}
 
 	@Override
@@ -983,24 +1046,23 @@ public class TiUILabel extends TiUINonViewGroupView
 				transitionDict = null;
 			}
 		}
-		// This needs to be the last operation.
-		TiUIHelper.linkifyIfEnabled(textView, d.get(TiC.PROPERTY_AUTO_LINK));
 
-		
-		
 		// Only accept one, prefer text to title.
 		String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
 		String text = TiConvert.toString(d, TiC.PROPERTY_TEXT);
 		String title = TiConvert.toString(d, TiC.PROPERTY_TITLE);
 
 		if (html != null) {
-			tv.setText(fromHtml(html));
+			tv.setText(prepareHtml(html));
 		} else if (title != null) {
-			tv.setText(Html.fromHtml(title));
+			tv.setText(prepareHtml(title));
 		} else if (text != null) {
 			tv.setText(text);
 		}
+		TiUIHelper.linkifyIfEnabled(textView, d.get(TiC.PROPERTY_AUTO_LINK));
+//		textView.setMovementMethod(LinkMovementMethod.getInstance());
 		textView.SetReadyToEllipsize(true);
+		// This needs to be the last operation.
 		tv.requestLayout();
 	}
 	
@@ -1013,7 +1075,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			if (html == null) {
 				html = "";
 			}
-			tv.setText(fromHtml(html));
+			tv.setText(prepareHtml(html));
 			TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
@@ -1104,5 +1166,38 @@ public class TiUILabel extends TiUINonViewGroupView
 
 	public void setClickable(boolean clickable) {
 		tv.setClickable(clickable);
+	}
+	
+	@SuppressLint("NewApi")
+	@Override
+	protected KrollDict dictFromEvent(MotionEvent e)
+	{
+		KrollDict data = super.dictFromEvent(e);
+		CharSequence text = tv.textView.getText();
+		if (text instanceof Spanned)
+		{
+			int[] coords = new int[2];
+			getTouchView().getLocationInWindow(coords);
+
+			final double rawx = e.getRawX();
+			final double rawy = e.getRawY();
+			final double x = (double) rawx - coords[0];
+			final double y = (double) rawy - coords[1];
+			int offset = tv.textView.getOffsetForPosition((float)x, (float)y);
+	        URLSpan[] urls =((Spanned)text).getSpans(offset, offset + 1, URLSpan.class); 
+	        if (urls != null && urls.length > 0)
+	        {
+	        	data.put(TiC.PROPERTY_LINK, urls[0].getURL());
+	        }
+		}
+		 
+		return data;
+	}
+	protected View getTouchView()
+	{
+		if (tv != null) {
+			return tv.textView;
+		}
+		return null;
 	}
 }

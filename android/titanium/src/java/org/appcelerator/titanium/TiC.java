@@ -167,7 +167,7 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_ITEM_CLICK = "itemclick";
-
+	
 	/**
 	 * @module.api
 	 */
@@ -1639,6 +1639,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_LAYOUT_ID = "layoutId";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_LINK = "link";
+	
 	/**
 	 * @module.api
 	 */
