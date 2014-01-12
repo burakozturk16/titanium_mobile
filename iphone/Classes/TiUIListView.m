@@ -1457,6 +1457,11 @@ static NSDictionary* replaceKeysForRow;
         }
     }
     
+    if([tableView numberOfRowsInSection:section] == 0)
+    {
+        return nil;
+    }
+    
     return [self sectionView:section forLocation:@"headerView" section:nil];
 }
 
