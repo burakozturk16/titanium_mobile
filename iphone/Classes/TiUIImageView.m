@@ -404,12 +404,13 @@ DEFINE_EXCEPTIONS
     TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
     [(TiViewProxy*)[self proxy] contentsWillChange];
     if (transition != nil) {
-        UIImageView *iv = [self imageView];
-        UIImageView *newView = [self cloneView:iv];
+        UIImageView *oldView = [self imageView];
+        UIImageView *newView = [self cloneView:oldView];
         newView.image = image;
-        [TiTransitionHelper transitionfromView:iv toView:newView insideView:self withTransition:transition completionBlock:^{
+        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition completionBlock:^{
             placeholderLoading = NO;
             [self fireLoadEventWithState:@"image"];
+            [oldView release];
         }];
         imageView = [newView retain];
 	}
