@@ -15,6 +15,16 @@
 #import "TiUIiOSAttributedStringProxy.h"
 #endif
 #import "DTCoreText.h"
+#import "TiTransitionHelper.h"
+#import "TiTransition.h"
+
+@interface TiUILabel()
+{
+    BOOL _reusing;
+}
+@property(nonatomic,retain) NSDictionary *transition;
+@end
+
 
 @implementation TiUILabel
 
@@ -23,12 +33,14 @@
 -(id)init
 {
     if (self = [super init]) {
+        self.transition = nil;
     }
     return self;
 }
 
 -(void)dealloc
 {
+	RELEASE_TO_NIL(_transition);
     RELEASE_TO_NIL(label);
     [super dealloc];
 }
@@ -286,8 +298,34 @@
         return;
     }
     
-    id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
-    [[self label] setText:attr];
+    [self transitionToText:[(TiUILabelProxy*)[self proxy] getLabelContent]];
+}
+
+
+- (id) cloneView:(id)source {
+    NSData *archivedViewData = [NSKeyedArchiver archivedDataWithRootObject: source];
+    id clone = [NSKeyedUnarchiver unarchiveObjectWithData:archivedViewData];
+    return clone;
+}
+
+-(void) transitionToText:(id)text
+{
+    ENSURE_UI_THREAD(transitionToText,text);
+    TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
+    [(TiUILabelProxy*)[self proxy] contentsWillChange];
+    if (transition != nil) {
+        TDTTTAttributedLabel *oldView = [self label];
+        TDTTTAttributedLabel *newView = [self cloneView:oldView];
+        newView.text = text;
+        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition completionBlock:^{
+            [oldView release];
+        }];
+        label = [newView retain];
+//        [(TiUILabelProxy*)[self proxy] contentsWillChangeAnimated:transition.duration];
+	}
+    else {
+        [[self label] setText:text];
+    }
 }
 
 -(void)setHighlighted:(BOOL)newValue
@@ -505,6 +543,11 @@
     }
 }
 
+-(void)setTransition_:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
+    self.transition = arg;
+}
 
 #pragma mark -
 #pragma mark DTAttributedTextContentViewDelegate
@@ -554,6 +597,12 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
 //{
 //    [[UIApplication sharedApplication] openURL:url];
 //}
+
+
+-(void)setReusing:(BOOL)value
+{
+    _reusing = value;
+}
 
 @end
 

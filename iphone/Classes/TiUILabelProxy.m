@@ -123,7 +123,6 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (view!=nil) {
         [(TiUILabel*)view setAttributedTextViewContent];
     }
-    [self contentsWillChange];
     attributeTextNeedsUpdate = NO;
 }
 
@@ -137,11 +136,18 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 {
     configSet = YES;
     [(TiUILabel*)view setPadding:_padding];
+    [(TiUILabel *)[self view] setReusing:NO];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
     [super configurationSet:recursive];
 }
 
+
+- (void)prepareForReuse
+{
+    [(TiUILabel *)[self view] setReusing:YES];
+    [super prepareForReuse];
+}
 
 -(void)setPadding:(id)value
 {
@@ -223,7 +229,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(CGFloat) verifyWidth:(CGFloat)suggestedWidth
 {
 	int width = ceil(suggestedWidth);
-	if (width & 0x01)
+	if (width != suggestedWidth && width & 0x01)
 	{
 		width ++;
 	}
@@ -233,12 +239,13 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(CGFloat) verifyHeight:(CGFloat)suggestedHeight
 {
 	int height = ceil(suggestedHeight);
-	if (height & 0x01)
+	if (height != suggestedHeight && height & 0x01)
 	{
 		height ++;
 	}
 	return height;
 }
+
 
 -(NSArray *)keySequence
 {
