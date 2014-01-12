@@ -989,18 +989,13 @@ public class TiCompositeLayout extends FreeLayout implements
 		computePosition(this, params.optionTop, params.optionCenterY,
 				params.optionBottom, measuredHeight, layoutTop, layoutBottom,
 				vpos);
-//		if (params instanceof AnimationLayoutParams) {
-//			float fraction = ((AnimationLayoutParams) params).animationFraction;
-//			if (fraction < 1.0f) {
-//				Rect startRect = ((AnimationLayoutParams) params).startRect;
-//				if (startRect != null) {
-//					vpos[0] = (int) (vpos[0] * fraction + (1 - fraction)
-//							* startRect.top);
-//					vpos[1] = (int) (vpos[1] * fraction + (1 - fraction)
-//							* startRect.bottom);
-//				}
-//			}
-//		}
+		if (params.optionTop != null && !params.optionTop.isUnitUndefined() &&
+				params.optionBottom != null && !params.optionBottom.isUnitUndefined())
+		{
+			int height = vpos[1] - vpos[0];
+			vpos[0] = layoutTop + (layoutBottom - layoutTop)/2 - height/2;
+			vpos[1] = vpos[0] + height;
+		}
 		// account for moving the item "down" to later line(s) if there has been
 		// wrapping.
 		vpos[0] = vpos[0] + horizontalLayoutTopBuffer;
