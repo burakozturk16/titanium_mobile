@@ -69,11 +69,6 @@
     return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
 }
 
-//-(void)setCenter:(CGPoint)newCenter
-//{
-//	[super setCenter:CGPointMake(floorf(newCenter.x), floorf(newCenter.y))];
-//}
-
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
     [label setFrame:bounds];
@@ -114,170 +109,19 @@
 	return label;
 }
 
--(BOOL)proxyHasGestureListeners
+-(NSURL *)checkLinkAttributeForString:(NSAttributedString*)theString atPoint:(CGPoint)p
 {
-    return [super proxyHasGestureListeners] || [(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO];
-}
 
--(void)ensureGestureListeners
-{
-    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
-        [[self gestureRecognizerForEvent:@"link"] setEnabled:YES];
-    }
-    [super ensureGestureListeners];
-}
-
-- (UIGestureRecognizer *)gestureRecognizerForEvent:(NSString *)event
-{
-    if ([event isEqualToString:@"link"]) {
-        return [super gestureRecognizerForEvent:@"longpress"];
-    }
-    return [super gestureRecognizerForEvent:event];
-}
-
--(void)handleListenerRemovedWithEvent:(NSString *)event
-{
-	ENSURE_UI_THREAD_1_ARG(event);
-	// unfortunately on a remove, we have to check all of them
-	// since we might be removing one but we still have others
-    if ([event isEqualToString:@"link"] || [event isEqualToString:@"longpress"]) {
-        BOOL enableListener = [self.proxy _hasListeners:@"longpress"] || [self.proxy _hasListeners:@"link"];
-        [[self gestureRecognizerForEvent:event] setEnabled:enableListener];
-    } else {
-        [super handleListenerRemovedWithEvent:event];
-    }
-}
-
--(BOOL)checkLinkAttributeForString:(NSMutableAttributedString*)theString atPoint:(CGPoint)p
-{
-    CGPoint thePoint = [self convertPoint:p toView:label];
-    CGRect drawRect = [label textRectForBounds:[label bounds] limitedToNumberOfLines:label.numberOfLines];
-    drawRect.origin.y = (label.bounds.size.height - drawRect.size.height)/2;
-    thePoint = CGPointMake(thePoint.x - drawRect.origin.x, thePoint.y - drawRect.origin.y);
-    //Convert to CT point;
-    thePoint.y = (drawRect.size.height - thePoint.y);
-    CTFramesetterRef theRef = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)theString);
-    if (theRef == NULL) {
-        return;
-    }
-    
-    CGMutablePathRef path = CGPathCreateMutable();
-    
-    CGPathAddRect(path, NULL, drawRect);
-
-    CTFrameRef frame = CTFramesetterCreateFrame(theRef, CFRangeMake(0, [theString length]), path, NULL);
-    //Don't need this anymore
-    CFRelease(theRef);
-
-    if (frame == NULL) {
-        CFRelease(path);
-        return NO;
-    }
-    //Get Lines
-    CFArrayRef lines = CTFrameGetLines(frame);
-    if (lines == NULL) {
-        CFRelease(frame);
-        CFRelease(path);
-        return NO;
-    }
-    
-    NSInteger lineCount = CFArrayGetCount(lines);
-    if (lineCount == 0) {
-        CFRelease(frame);
-        CFRelease(path);
-        //CFRelease(lines);
-        return NO;
-    }
-    //Get Line Origins
-    CGPoint lineOrigins[lineCount];
-    CTFrameGetLineOrigins(frame, CFRangeMake(0, lineCount), lineOrigins);
-    
-    NSUInteger idx = NSNotFound;
-    for (CFIndex lineIndex = 0; (lineIndex < lineCount) && (idx == NSNotFound); lineIndex++) {
-        
-        CGPoint lineOrigin = lineOrigins[lineIndex];
-        CTLineRef line = CFArrayGetValueAtIndex(lines, lineIndex);
-        
-        // Get bounding information of line
-        CGRect lineRect = CTLineGetBoundsWithOptions(line,0);
-        CGFloat ymin = lineRect.origin.y + lineOrigin.y;
-        CGFloat ymax = ymin + lineRect.size.height;
-        
-        if (ymin <= thePoint.y && ymax >= thePoint.y) {
-            if (thePoint.x >= lineOrigin.x && thePoint.x <= lineOrigin.x + lineRect.size.width) {
-                // Convert CT coordinates to line-relative coordinates
-                CGPoint relativePoint = CGPointMake(thePoint.x - lineOrigin.x, thePoint.y - lineOrigin.y);
-                idx = CTLineGetStringIndexForPosition(line, relativePoint);
-            }
-        }
-    }
-    
-    //Don't need frame,path or lines now
-    CFRelease(frame);
-    CFRelease(path);
-    //CFRelease(lines);
-    
+    CFIndex idx = [label characterIndexAtPoint:p];
     if (idx != NSNotFound) {
         if(idx > theString.string.length) {
             return NO;
         }
         NSRange theRange = NSMakeRange(0, 0);
-        NSString *url = [theString attribute:NSLinkAttributeName atIndex:idx effectiveRange:&theRange];
-        if(url != nil && url.length) {
-            NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                       url, @"url",
-                                       [NSArray arrayWithObjects:NUMINT(theRange.location), NUMINT(theRange.length),nil],@"range",
-                                       nil];
-                                            
-            [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO reportSuccess:NO errorCode:0 message:nil];
-            return YES;
-        }
+        NSURL *url = [theString attribute:DTLinkAttribute atIndex:idx effectiveRange:&theRange];
+        return url;
     }
-    return NO;
-}
-
--(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer
-{
-    if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        CGPoint p = [recognizer locationInView:self];
-        if ([self.proxy _hasListeners:@"longpress"]) {
-            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   NUMFLOAT(p.x), @"x",
-                                   NUMFLOAT(p.y), @"y",
-                                   nil];
-            [self.proxy fireEvent:@"longpress" withObject:event];
-        }
-        if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO] && (label != nil) && [TiUtils isIOS7OrGreater]) {
-            NSMutableAttributedString* optimizedAttributedText = [label.attributedText mutableCopy];
-            if (optimizedAttributedText != nil) {
-                // use label's font and lineBreakMode properties in case the attributedText does not contain such attributes
-                [label.attributedText enumerateAttributesInRange:NSMakeRange(0, [label.attributedText length]) options:0 usingBlock:^(NSDictionary *attrs, NSRange range, BOOL *stop) {
-                    if (!attrs[(NSString*)kCTFontAttributeName]) {
-                        [optimizedAttributedText addAttribute:(NSString*)kCTFontAttributeName value:label.font range:range];
-                    }
-                    if (!attrs[(NSString*)kCTParagraphStyleAttributeName]) {
-                        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-                        [paragraphStyle setLineBreakMode:label.lineBreakMode];
-                        [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
-                        [paragraphStyle release];
-                    }
-                }];
-                
-                // modify kCTLineBreakByTruncatingTail lineBreakMode to kCTLineBreakByWordWrapping
-                [optimizedAttributedText enumerateAttribute:(NSString*)kCTParagraphStyleAttributeName inRange:NSMakeRange(0, [optimizedAttributedText length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop) {
-                    NSMutableParagraphStyle* paragraphStyle = [value mutableCopy];
-                    if ([paragraphStyle lineBreakMode] == kCTLineBreakByTruncatingTail) {
-                        [paragraphStyle setLineBreakMode:kCTLineBreakByWordWrapping];
-                    }
-                    [optimizedAttributedText removeAttribute:(NSString*)kCTParagraphStyleAttributeName range:range];
-                    [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
-                    [paragraphStyle release];
-                }];
-                [self checkLinkAttributeForString:optimizedAttributedText atPoint:p];
-                [optimizedAttributedText release];
-            }
-        }
-    }
+    return nil;
 }
 
 - (id)accessibilityElement
@@ -297,8 +141,8 @@
         }, NO);
         return;
     }
-    
-    [self transitionToText:[(TiUILabelProxy*)[self proxy] getLabelContent]];
+    id content = [(TiUILabelProxy*)[self proxy] getLabelContent];
+    [self transitionToText:content];
 }
 
 
@@ -310,9 +154,7 @@
 
 -(void) transitionToText:(id)text
 {
-    ENSURE_UI_THREAD(transitionToText,text);
     TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
-    [(TiUILabelProxy*)[self proxy] contentsWillChange];
     if (transition != nil) {
         TDTTTAttributedLabel *oldView = [self label];
         TDTTTAttributedLabel *newView = [self cloneView:oldView];
@@ -321,7 +163,6 @@
             [oldView release];
         }];
         label = [newView retain];
-//        [(TiUILabelProxy*)[self proxy] contentsWillChangeAnimated:transition.duration];
 	}
     else {
         [[self label] setText:text];
@@ -381,24 +222,6 @@
         newColor = [UIColor darkTextColor];
 	[[self label] setTextColor:newColor];
 }
-
-//-(void)setGradient_:(id)newGradientDict
-//{
-//    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-//	UIColor * newColor = [UIColor colorWithPatternImage: newGradient;
-//    if (newColor == nil)
-//        newColor = [UIColor darkTextColor];
-//	[[self label] setTextColor:newColor];
-//}
-//-(void)setText_:(id)value
-//{
-//	[self setAttributedTextViewContent];
-//}
-//
-//-(void)setHtml_:(id)value
-//{
-//	[self setAttributedTextViewContent];
-//}
 
 -(void)setText_:(id)value
 {
@@ -555,7 +378,13 @@
 - (void)attributedLabel:(TTTAttributedLabel *)label
    didSelectLinkWithURL:(NSURL *)url
 {
-    [[UIApplication sharedApplication] openURL:url];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   url, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:url];
 }
 
 - (void)attributedLabel:(TTTAttributedLabel *)label
@@ -574,36 +403,63 @@ didSelectLinkWithAddress:(NSDictionary *)addressComponents
     if((temp = [addressComponents objectForKey:NSTextCheckingCountryKey]))
         [address appendString:[NSString stringWithFormat:@"%@%@", ([address length] > 0) ? @", " : @"", temp]];
     NSString* urlString = [NSString stringWithFormat:@"http://maps.google.com/maps?q=%@", [address stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   urlString, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
 }
 
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
 {
     NSURL* url = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", phoneNumber]];
-    [[UIApplication sharedApplication] openURL:url];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   url, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:url];
 }
-
-//- (void)attributedLabel:(TTTAttributedLabel *)label
-//  didSelectLinkWithDate:(NSDate *)date
-//{
-//    [[UIApplication sharedApplication] openURL:url];
-//}
-//
-//- (void)attributedLabel:(TTTAttributedLabel *)label
-//  didSelectLinkWithDate:(NSDate *)date
-//               timeZone:(NSTimeZone *)timeZone
-//               duration:(NSTimeInterval)duration
-//{
-//    [[UIApplication sharedApplication] openURL:url];
-//}
-
 
 -(void)setReusing:(BOOL)value
 {
     _reusing = value;
 }
 
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch
+{
+    NSDictionary* event = [super dictionaryFromTouch:touch];
+    NSAttributedString* attString = label.attributedText;
+    if (attString != nil) {
+        CGPoint localPoint = [touch locationInView:label];
+        NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
+        if (url){
+            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            [(NSMutableDictionary*)event setObject:url forKey:@"link"];
+        }
+    }
+    return event;
+}
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture
+{
+    NSDictionary* event = [super dictionaryFromGesture:gesture];
+    
+    NSAttributedString* attString = label.attributedText;
+    if (attString != nil) {
+        CGPoint localPoint = [gesture locationInView:label];
+        NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
+        if (url){
+            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            [(NSMutableDictionary*)event setObject:url forKey:@"link"];
+        }
+    }
+    return event;
+}
 @end
 
 #endif

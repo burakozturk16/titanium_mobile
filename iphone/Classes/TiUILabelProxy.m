@@ -123,6 +123,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     if (view!=nil) {
         [(TiUILabel*)view setAttributedTextViewContent];
     }
+    [self contentsWillChange];
     attributeTextNeedsUpdate = NO;
 }
 
