@@ -1893,13 +1893,23 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     [self setHighlighted:highlighted];
 }
 
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch
+{
+    return [TiUtils dictionaryFromTouch:touch inView:self];
+}
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture
+{
+    return [TiUtils dictionaryFromGesture:gesture inView:self];
+}
+
 -(void)handleTouchEvent:(NSString*)event forTouch:(UITouch*)touch
 {
     if ([self interactionEnabled])
 	{
 		if ([proxy _hasListeners:event])
 		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+            NSDictionary *evt = [self dictionaryFromTouch:touch];
 			[proxy fireEvent:event withObject:evt checkForListener:NO];
 //			[self handleControlEvents:UIControlEventTouchDown];
 		}
@@ -1966,7 +1976,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         BOOL hasClick = [proxy _hasListeners:@"click"];
 		if (hasTouchEnd || hasDblclick || hasClick)
 		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+            NSDictionary *evt = [self dictionaryFromTouch:touch];
             if (hasTouchEnd) {
                 [proxy fireEvent:@"touchend" withObject:evt checkForListener:NO];
                 [self handleControlEvents:UIControlEventTouchCancel];

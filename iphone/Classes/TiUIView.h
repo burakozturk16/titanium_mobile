@@ -283,6 +283,10 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(UIView*)parentViewForChildren;
 -(void)onCreateCustomBackground;
 
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch;
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture;
+
 @end
 
 #pragma mark TO REMOVE, used only during transition.
