@@ -246,6 +246,7 @@ static NSDictionary* typeMap = nil;
 }
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container
 {
+    if (!arg) return nil;
     return [self transitionFromArg:arg defaultArg:nil defaultTransition:nil containerView:container];
 }
 
