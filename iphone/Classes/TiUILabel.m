@@ -114,7 +114,7 @@
 
     CFIndex idx = [label characterIndexAtPoint:p];
     if (idx != NSNotFound) {
-        if(idx > theString.string.length) {
+        if(idx >= theString.string.length) {
             return NO;
         }
         NSRange theRange = NSMakeRange(0, 0);
