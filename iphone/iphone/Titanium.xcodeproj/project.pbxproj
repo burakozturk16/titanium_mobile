@@ -5969,11 +5969,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6009,11 +6004,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-weak_framework",
@@ -6041,11 +6031,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6075,11 +6060,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6131,6 +6111,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
+					"\"$(SRCROOT)/../libexternals\"",
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
@@ -6177,6 +6158,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
+					"\"$(SRCROOT)/../libexternals\"",
 				);
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
@@ -6220,6 +6202,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
+					"\"$(SRCROOT)/../libexternals\"",
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
@@ -6249,11 +6232,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6290,11 +6268,6 @@
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6320,21 +6293,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6366,21 +6330,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6412,19 +6367,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/lib,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
