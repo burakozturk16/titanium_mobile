@@ -20,11 +20,13 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.Pair;
 
 public class OneStateDrawable extends Drawable {
 	
 	
+	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
 	private static final String TAG = "OneStateDrawable";
 	private RectF bounds = new RectF();
 	
@@ -73,6 +75,8 @@ public class OneStateDrawable extends Drawable {
 		boolean needsDrawing = (color != Color.TRANSPARENT || defaultColor != Color.TRANSPARENT ||
 				gradientDrawable != null || imageDrawable != null);
 		if (needsDrawing && cachedBitmap == null && !bounds.isEmpty()) {
+			if (cacheCanvas == null)
+				cacheCanvas = new Canvas();
 			cachedBitmap = Bitmap.createBitmap((int)bounds.width(), (int)bounds.height(), Bitmap.Config.ARGB_8888);
 			cacheCanvas.setBitmap(cachedBitmap);
 			Path path = parent.getPath();
@@ -115,7 +119,8 @@ public class OneStateDrawable extends Drawable {
 	                paint.setMaskFilter(null);
 				}
 			}
-			cacheCanvas.setBitmap(null);
+			if (ICE_CREAM_OR_GREATER && cacheCanvas != null)
+				cacheCanvas.setBitmap(null);
 		}
 		if (cachedBitmap != null) {
 			if (alpha != -1) paint.setAlpha(alpha);
