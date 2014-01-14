@@ -936,6 +936,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		return sections.get(sectionIndex).getItemAt(itemIndex);
 	}
 	
+	public ListSectionProxy getSectionAt(int sectionIndex) {
+		if (sectionIndex < 0 || sectionIndex >= sections.size()) {
+			Log.e(TAG, "getItem Invalid section index");
+			return null;
+		}
+		
+		return sections.get(sectionIndex);
+	}
+	
 	protected Pair<ListSectionProxy, Pair<Integer, Integer>> getSectionInfoByEntryIndex(int index) {
 		if (index < 0) {
 			return null;
