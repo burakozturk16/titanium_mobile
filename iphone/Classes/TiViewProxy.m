@@ -3262,6 +3262,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 {
+    CGRect originalBounds = bounds;
     BOOL followsFillWBehavior = TiDimensionIsAutoFill([child defaultAutoWidthBehavior:nil]);
     BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
     __block CGSize autoSize;
@@ -3451,8 +3452,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                 bounds.origin.x = horizontalLayoutBoundary;
                 bounds.origin.y = verticalLayoutBoundary;
                 
-                boundingWidth = bounds.size.width;
-                boundingHeight = bounds.size.height - verticalLayoutBoundary;
+                boundingWidth = originalBounds.size.width;
+                boundingHeight = originalBounds.size.height - verticalLayoutBoundary;
                 
                 if (!recalculateWidth) {
                     if (desiredWidth < boundingWidth) {
@@ -3465,7 +3466,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                     }
                 }
                 else if (followsFillBehavior) {
-
+                    
                     verticalLayoutBoundary += bounds.size.height;
                 }
                 else {
@@ -3478,6 +3479,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                         horizontalLayoutRowHeight = bounds.size.height;
                     }
                     else {
+                        //fill whole space, another row again
                         verticalLayoutBoundary += bounds.size.height;
                     }
                 }
@@ -3518,7 +3520,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
     }
     else {
-//        CGSize autoSize = [child minimumParentSizeForSize:bounds.size];
+        //        CGSize autoSize = [child minimumParentSizeForSize:bounds.size];
     }
     return bounds;
 }
