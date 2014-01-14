@@ -244,6 +244,7 @@ typedef enum
 {
 	if (self = [self init])
 	{
+        [super _initWithProperties:dict_];
         if ([dict_ objectForKey:@"anchorPoint"]!=nil)
 		{
             [_anchor setValues:[dict_ objectForKey:@"anchorPoint"]];
