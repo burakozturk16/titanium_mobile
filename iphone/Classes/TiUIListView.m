@@ -1644,6 +1644,10 @@ static NSDictionary* replaceKeysForRow;
 {
     NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
     
+    id visibleProp = [self valueWithKey:@"visible" atIndexPath:realIndexPath];
+    BOOL visible = realIndexPath?[visibleProp boolValue]:true;
+    if (!visible) return 0.0f;
+    
     id heightValue = [self valueWithKey:@"rowHeight" atIndexPath:realIndexPath];
     TiDimension height = _rowHeight;
     if (heightValue != nil) {
