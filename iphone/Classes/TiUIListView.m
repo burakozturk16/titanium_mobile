@@ -675,14 +675,6 @@ static NSDictionary* replaceKeysForRow;
 	}
 }
 
-- (void)setBackgroundColor_:(id)arg
-{
-	if (_tableView != nil) {
-		[[self class] setBackgroundColor:[UIColor clearColor] onTable:_tableView];
-	}
-    [super setBackgroundColor_:arg];
-}
-
 - (void)setHeaderTitle_:(id)args
 {
     [_headerWrapper removeAllChildren:nil];
