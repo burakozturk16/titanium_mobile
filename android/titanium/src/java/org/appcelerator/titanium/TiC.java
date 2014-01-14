@@ -1501,6 +1501,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_HINT_COLOR = "hintColor";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_HINT_TEXT = "hintText";
 	
 	/**

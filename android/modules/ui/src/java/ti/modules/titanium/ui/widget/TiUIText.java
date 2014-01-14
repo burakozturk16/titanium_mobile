@@ -19,6 +19,7 @@ import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
 import android.text.Editable;
@@ -392,6 +393,10 @@ public class TiUIText extends TiUIView
 
 		if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
 			realtv.setHint(d.getString(TiC.PROPERTY_HINT_TEXT));
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_HINT_COLOR)) {
+			realtv.setHintTextColor(d.optColor(TiC.PROPERTY_COLOR, Color.GRAY));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_ELLIPSIZE)) {
