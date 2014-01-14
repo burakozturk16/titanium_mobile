@@ -17,6 +17,9 @@ extern "C" {
 
 #define MEMORY_DEBUG 0
 #define VIEW_DEBUG 0
+    
+#define IOS_7 ([[[UIDevice currentDevice] systemVersion] compare:@"7" options:NSNumericSearch] == NSOrderedDescending)
+
 
 #ifndef __IPHONE_4_1
 #define __IPHONE_4_1 40100
