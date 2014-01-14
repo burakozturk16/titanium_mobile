@@ -1386,6 +1386,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     [coder encodeUIEdgeInsets:self.viewInsets forKey:NSStringFromSelector(@selector(viewInsets))];
     [coder encodeInteger:self.verticalAlignment forKey:NSStringFromSelector(@selector(verticalAlignment))];
     [coder encodeObject:self.truncationTokenString forKey:NSStringFromSelector(@selector(truncationTokenString))];
+    [coder encodeObject:self.strokeColorAttributeProperty forKey:NSStringFromSelector(@selector(strokeColorAttributeProperty))];
+    [coder encodeObject:self.strokeWidthAttributeProperty forKey:NSStringFromSelector(@selector(strokeWidthAttributeProperty))];
+    [coder encodeObject:self.cornerRadiusAttributeProperty forKey:NSStringFromSelector(@selector(cornerRadiusAttributeProperty))];
+    [coder encodeObject:self.paddingAttributeProperty forKey:NSStringFromSelector(@selector(paddingAttributeProperty))];
 //    [coder encodeObject:_attributedText forKey:NSStringFromSelector(@selector(attributedText))];
 }
 
@@ -1462,6 +1466,20 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     if ([coder containsValueForKey:NSStringFromSelector(@selector(attributedText))]) {
         self.attributedText = [coder decodeObjectForKey:NSStringFromSelector(@selector(attributedText))];
     }
+    
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(strokeColorAttributeProperty))]) {
+        self.strokeColorAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(strokeColorAttributeProperty))];
+    }
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(strokeWidthAttributeProperty))]) {
+        self.strokeWidthAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(strokeWidthAttributeProperty))];
+    }
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(cornerRadiusAttributeProperty))]) {
+        self.cornerRadiusAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(cornerRadiusAttributeProperty))];
+    }
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(paddingAttributeProperty))]) {
+        self.paddingAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(paddingAttributeProperty))];
+    }
+    
 
     return self;
 }
