@@ -13,7 +13,6 @@
 {
 	UITextFieldViewMode leftMode;
 	UITextFieldViewMode rightMode;
-	
 	BOOL becameResponder;
     TiUIView * touchHandler;
 }
@@ -21,6 +20,7 @@
 @property(nonatomic,readwrite,assign) UIEdgeInsets padding;
 
 @property(nonatomic,readonly) BOOL becameResponder;
+@property(nonatomic,retain) UIColor* hintColor;
 
 -(void)setTouchHandler:(TiUIView*)handler;
 

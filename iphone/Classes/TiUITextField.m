@@ -28,7 +28,8 @@
 {
     _padding = UIEdgeInsetsZero;
 	[super setLeftViewMode:UITextFieldViewModeAlways];
-	[super setRightViewMode:UITextFieldViewModeAlways];	
+	[super setRightViewMode:UITextFieldViewModeAlways];
+    _hintColor = nil;
 }
 
 -(void)dealloc
@@ -155,6 +156,51 @@
     return [super rightViewRectForBounds:bounds];
 }
 
+- (void)drawPlaceholderInRect:(CGRect)rect {
+    if (!_hintColor) {
+        [super drawPlaceholderInRect:rect];
+    }
+    else{
+        [_hintColor setFill];
+        // Get the size of placeholder text. We will use height to calculate frame Y position
+        CGSize size = [self.placeholder sizeWithFont:self.font];
+        
+        // Vertically centered frame
+        CGRect placeholderRect;
+        switch (self.contentVerticalAlignment) {
+            case UIControlContentVerticalAlignmentTop:
+                placeholderRect = rect;
+                break;
+            case UIControlContentVerticalAlignmentCenter:
+                placeholderRect = CGRectMake(rect.origin.x, (rect.size.height - size.height)/2, rect.size.width, size.height);
+                break;
+            case UIControlContentVerticalAlignmentBottom:
+                placeholderRect = CGRectMake(rect.origin.x, rect.size.height - size.height, rect.size.width, size.height);
+                break;
+            default:
+                break;
+        }
+        
+        // Check if OS version is 7.0+ and draw placeholder a bit differently
+        if (IOS_7) {
+            
+            NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+            style.lineBreakMode = NSLineBreakByTruncatingTail;
+            style.alignment = self.textAlignment;
+            NSDictionary *attr = [NSDictionary dictionaryWithObjectsAndKeys:style,NSParagraphStyleAttributeName, self.font, NSFontAttributeName, _hintColor, NSForegroundColorAttributeName, nil];
+            
+            [self.placeholder drawInRect:placeholderRect withAttributes:attr];
+            
+            
+        } else {
+            [self.placeholder drawInRect:placeholderRect
+                                withFont:self.font
+                           lineBreakMode:NSLineBreakByTruncatingTail
+                               alignment:self.textAlignment];
+        }
+    }
+}
+
 @end
 
 
@@ -231,6 +277,12 @@
 -(void)setHintText_:(id)value
 {
 	[[self textWidgetView] setPlaceholder:[TiUtils stringValue:value]];
+}
+
+
+-(void)setHintColor_:(id)value
+{
+	[self textWidgetView].hintColor = [[TiUtils colorValue:value] color];
 }
 
 -(void)setAttributedHintText_:(id)value
