@@ -933,7 +933,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			return null;
 		}
 		
-		return sections.get(itemIndex).getItemAt(itemIndex);
+		return sections.get(sectionIndex).getItemAt(itemIndex);
 	}
 	
 	protected Pair<ListSectionProxy, Pair<Integer, Integer>> getSectionInfoByEntryIndex(int index) {
