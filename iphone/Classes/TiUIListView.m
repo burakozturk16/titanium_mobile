@@ -680,7 +680,7 @@ static NSDictionary* replaceKeysForRow;
 	if (_tableView != nil) {
 		[[self class] setBackgroundColor:[UIColor clearColor] onTable:_tableView];
 	}
-    [super setBackgroundColor:arg];
+    [super setBackgroundColor_:arg];
 }
 
 - (void)setHeaderTitle_:(id)args
