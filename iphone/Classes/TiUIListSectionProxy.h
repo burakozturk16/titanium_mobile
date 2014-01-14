@@ -12,6 +12,7 @@
 @required
 
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block;
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated;
 - (id)dispatchBlockWithResult:(id(^)(void))block;
 
 @end

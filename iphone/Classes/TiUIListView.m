@@ -859,6 +859,10 @@ static NSDictionary* replaceKeysForRow;
     _scrollSuspendImageLoading = [TiUtils boolValue:value def:_scrollSuspendImageLoading];
 }
 
+-(void)setDisableBounce_:(id)value
+{
+	[[self tableView] setBounces:![TiUtils boolValue:value]];
+}
 
 #pragma mark - Search Support
 -(void)setCaseInsensitiveSearch_:(id)args

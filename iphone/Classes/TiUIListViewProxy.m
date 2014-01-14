@@ -103,8 +103,11 @@ static NSDictionary* listViewKeysToReplace;
     [super setValue:value forKey:key];
 }
 
-
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block
+{
+    [self dispatchUpdateAction:block animated:YES];
+}
+-(void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated
 {
 	if (view == nil) {
 		block(nil);
@@ -126,7 +129,15 @@ static NSDictionary* listViewKeysToReplace;
     pthread_mutex_unlock(&_operationQueueMutex);
 	if (triggerMainThread) {
 		TiThreadPerformOnMainThread(^{
-			[self processUpdateActions];
+            if (animated)
+            {
+                [self processUpdateActions];
+            }
+            else {
+                [UIView setAnimationsEnabled:NO];
+                [self processUpdateActions];
+                [UIView setAnimationsEnabled:YES];
+            }
 		}, NO);
 	}
 }
@@ -295,13 +306,22 @@ static NSDictionary* listViewKeysToReplace;
 	}
 	NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
-	[appendedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
-		ENSURE_TYPE(section, TiUIListSectionProxy);
-		[self rememberProxy:section];
-	}];
+    NSMutableArray *insertedSections = [NSMutableArray arrayWithCapacity:[appendedSections count]];
+    for (int i = 0; i < [appendedSections count]; i++) {
+        id section = [appendedSections objectAtIndex:i];
+        if ([section isKindOfClass:[NSDictionary class]]) {
+            //wer support directly sending a dictionnary
+            section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
+        }
+        else {
+            ENSURE_TYPE(section, TiUIListSectionProxy);
+        }
+        [self rememberProxy:section];
+        [insertedSections addObject:section];
+    }
 	[self dispatchUpdateAction:^(UITableView *tableView) {
 		NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] init];
-		[appendedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
+		[insertedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
 			if (![_sections containsObject:section]) {
 				NSUInteger insertIndex = [_sections count];
 				[_sections addObject:section];
@@ -316,7 +336,7 @@ static NSDictionary* listViewKeysToReplace;
 			[tableView insertSections:indexSet withRowAnimation:animation];
 		}
 		[indexSet release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)deleteSectionAt:(id)args
@@ -338,7 +358,7 @@ static NSDictionary* listViewKeysToReplace;
 		}];
 		[tableView deleteSections:[NSIndexSet indexSetWithIndex:deleteIndex] withRowAnimation:animation];
 		[self forgetProxy:section];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)insertSectionAt:(id)args
@@ -381,7 +401,7 @@ static NSDictionary* listViewKeysToReplace;
 		}];
 		[tableView insertSections:indexSet withRowAnimation:animation];
 		[indexSet release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)replaceSectionAt:(id)args
@@ -412,7 +432,7 @@ static NSDictionary* listViewKeysToReplace;
 		[tableView deleteSections:indexSet withRowAnimation:animation];
 		[tableView insertSections:indexSet withRowAnimation:animation];
 		[self forgetProxy:prevSection];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)scrollToItem:(id)args

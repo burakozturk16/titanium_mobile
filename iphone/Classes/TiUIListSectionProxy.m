@@ -126,7 +126,7 @@
 	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
 		[_items setArray:items];
 		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:animation];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)appendItems:(id)args
@@ -149,7 +149,7 @@
 		}
 		[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)insertItemsAt:(id)args
@@ -177,7 +177,7 @@
 		}
 		[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)replaceItemsAt:(id)args
@@ -213,7 +213,7 @@
 			[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		}
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)deleteItemsAt:(id)args
@@ -243,7 +243,7 @@
 		}
 		[tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)updateItemAt:(id)args
@@ -276,14 +276,26 @@
 			[tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		}
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 #pragma mark - TiUIListViewDelegate
 
-- (void)dispatchUpdateAction:(void (^)(UITableView *))block
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block
 {
-	block(nil);
+    [self dispatchUpdateAction:block animated:YES];
+}
+-(void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated
+{
+    if (animated)
+    {
+        block(nil);
+    }
+    else {
+        [UIView setAnimationsEnabled:NO];
+        block(nil);
+        [UIView setAnimationsEnabled:YES];
+    }
 }
 
 - (id)dispatchBlockWithResult:(id (^)(void))block
