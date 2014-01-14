@@ -26,6 +26,13 @@
 - (void) deleteItemAtIndex:(NSUInteger)index;
 - (void) addItem:(NSDictionary*)item atIndex:(NSUInteger)index;
 
+- (void)appendItems:(id)args;
+- (void)insertItemsAt:(id)args;
+- (void)replaceItemsAt:(id)args;
+- (void)deleteItemsAt:(id)args;
+- (void)updateItemAt:(id)args;
+- (id)getItemAt:(id)args;
+
 // Public API
 @property (nonatomic, readonly) NSUInteger itemCount;
 @property (nonatomic, readonly) NSArray *items;

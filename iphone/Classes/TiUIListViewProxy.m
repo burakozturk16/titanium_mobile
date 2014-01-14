@@ -556,6 +556,87 @@ static NSDictionary* listViewKeysToReplace;
     }, NO);
 }
 
+- (TiUIListSectionProxy *)getSectionAt:(id)args
+{
+    NSNumber *sectionIndex = nil;
+	ENSURE_ARG_AT_INDEX(sectionIndex, args, 0, NSNumber);
+	return [_sections objectAtIndex:[sectionIndex integerValue]];
+}
+
+
+- (TiUIListSectionProxy *)getItemAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 2);
+    TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        return [section getItemAt:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+    }
+    else {
+        DebugLog(@"[WARN] getItemAt item index is out of range");
+    }
+}
+
+- (void)appendItems:(id)args
+{
+	ENSURE_ARG_COUNT(args, 2);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section appendItems:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+    }
+    else {
+        DebugLog(@"[WARN] appendItems:section item index is out of range");
+    }
+}
+
+- (void)insertItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section insertItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] insertItemsAt item index is out of range");
+    }
+}
+
+- (void)replaceItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 4);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section replaceItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], [args objectAtIndex:3], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] replaceItemsAt item index is out of range");
+    }
+}
+
+- (void)deleteItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section deleteItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] deleteItemsAt item index is out of range");
+    }
+}
+
+- (void)updateItemAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section updateItemAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] updateItemAt item index is out of range");
+    }
+}
+
 -(void)showPullView:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args,NSNumber);
