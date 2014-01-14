@@ -227,25 +227,25 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     return [self suggestedSizeForSize:size];
 }
 
--(CGFloat) verifyWidth:(CGFloat)suggestedWidth
-{
-	int width = ceil(suggestedWidth);
-	if (width != suggestedWidth && width & 0x01)
-	{
-		width ++;
-	}
-	return width;
-}
-
--(CGFloat) verifyHeight:(CGFloat)suggestedHeight
-{
-	int height = ceil(suggestedHeight);
-	if (height != suggestedHeight && height & 0x01)
-	{
-		height ++;
-	}
-	return height;
-}
+//-(CGFloat) verifyWidth:(CGFloat)suggestedWidth
+//{
+//	int width = ceil(suggestedWidth);
+//	if (width != suggestedWidth && width & 0x01)
+//	{
+//		width ++;
+//	}
+//	return width;
+//}
+//
+//-(CGFloat) verifyHeight:(CGFloat)suggestedHeight
+//{
+//	int height = ceil(suggestedHeight);
+//	if (height != suggestedHeight && height & 0x01)
+//	{
+//		height ++;
+//	}
+//	return height;
+//}
 
 
 -(NSArray *)keySequence

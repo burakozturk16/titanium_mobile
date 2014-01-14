@@ -18,6 +18,16 @@
 #import "TiTransitionHelper.h"
 #import "TiTransition.h"
 
+@implementation TiLabel
+
+-(void)setFrame:(CGRect)frame
+{
+    [super setFrame:CGRectIntegral(frame)];
+}
+
+@end
+
+
 @interface TiUILabel()
 {
     BOOL _reusing;
@@ -91,7 +101,7 @@
 {
 	if (label==nil)
 	{
-        label = [[TDTTTAttributedLabel alloc] initWithFrame:CGRectZero];
+        label = [[TiLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
@@ -146,9 +156,18 @@
 }
 
 
-- (id) cloneView:(id)source {
+- (TiLabel*) cloneView:(TiLabel*)source {
     NSData *archivedViewData = [NSKeyedArchiver archivedDataWithRootObject: source];
-    id clone = [NSKeyedUnarchiver unarchiveObjectWithData:archivedViewData];
+    TiLabel* clone = [NSKeyedUnarchiver unarchiveObjectWithData:archivedViewData];
+    
+    //seems to be duplicated < ios7
+    clone.font = source.font;
+    clone.textColor = source.textColor;
+    clone.highlightedTextColor = source.highlightedTextColor;
+    //
+    
+    clone.touchDelegate = source.touchDelegate;
+    clone.delegate = source.delegate;
     return clone;
 }
 
@@ -156,8 +175,8 @@
 {
     TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
     if (transition != nil) {
-        TDTTTAttributedLabel *oldView = [self label];
-        TDTTTAttributedLabel *newView = [self cloneView:oldView];
+        TiLabel *oldView = [self label];
+        TiLabel *newView = [self cloneView:oldView];
         newView.text = text;
         [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition completionBlock:^{
             [oldView release];
