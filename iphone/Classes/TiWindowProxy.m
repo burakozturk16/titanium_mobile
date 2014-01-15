@@ -687,6 +687,7 @@
     } else if (sender == closeAnimation) {
         [self windowDidClose];
     }
+    [super animationDidComplete:sender];
 }
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
 -(TiUIiOSTransitionAnimationProxy*)transitionAnimation
