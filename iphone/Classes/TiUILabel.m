@@ -178,7 +178,10 @@
         TiLabel *oldView = [self label];
         TiLabel *newView = [self cloneView:oldView];
         newView.text = text;
-        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition completionBlock:^{
+        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition prepareBlock:^{
+            [self sendSubviewToBack:newView];
+            [self sendSubviewToBack:oldView];
+        } completionBlock:^{
             [oldView release];
         }];
         label = [newView retain];

@@ -252,6 +252,10 @@ static NSDictionary* typeMap = nil;
 
 + (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
 {
+    [self transitionfromView:viewOut toView:viewIn insideView:holder withTransition:transition prepareBlock:nil completionBlock:block];
+}
++ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition prepareBlock:(void (^)(void))prepareBlock completionBlock:(void (^)(void))block
+{
     ADTransition* adTransition = transition.adTransition ;
     
     BOOL needsTransformFix = [adTransition isKindOfClass:[ADTransformTransition class]] && ![holder.layer isKindOfClass:[CATransformLayer class]];
@@ -267,6 +271,10 @@ static NSDictionary* typeMap = nil;
     }
     if (viewIn) {
         [workingView addSubview:viewIn];
+    }
+    
+    if (prepareBlock != nil) {
+        prepareBlock();
     }
     
     adTransition.type = ADTransitionTypePush;

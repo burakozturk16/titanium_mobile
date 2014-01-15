@@ -334,9 +334,9 @@ DEFINE_EXCEPTIONS
 -(UIViewContentMode)contentModeForImageView
 {
     LayoutConstraint* constraints = [(TiViewProxy*)[self proxy] layoutProperties];
-    if (((TiDimensionIsAuto(width) || TiDimensionIsAutoSize(width) || TiDimensionIsUndefined(width)) &&
+    if (((TiDimensionIsAuto(width) || TiDimensionIsAutoSize(width)) &&
          (TiDimensionIsUndefined(constraints->left) || TiDimensionIsUndefined(constraints->right))) ||
-        ((TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height) || TiDimensionIsUndefined(height)) &&
+        ((TiDimensionIsAuto(height) || TiDimensionIsAutoSize(height)) &&
          (TiDimensionIsUndefined(constraints->top) || TiDimensionIsUndefined(constraints->bottom)))) {
         return UIViewContentModeScaleAspectFit;
     }
@@ -407,7 +407,10 @@ DEFINE_EXCEPTIONS
         UIImageView *oldView = [self imageView];
         UIImageView *newView = [self cloneView:oldView];
         newView.image = image;
-        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition completionBlock:^{
+        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition prepareBlock:^{
+            [self sendSubviewToBack:newView];
+            [self sendSubviewToBack:oldView];
+        } completionBlock:^{
             placeholderLoading = NO;
             [self fireLoadEventWithState:@"image"];
             [oldView release];
