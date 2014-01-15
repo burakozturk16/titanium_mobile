@@ -43,18 +43,7 @@
 
 -(void)clearPendingAnimations
 {
-    pthread_rwlock_rdlock(&runningLock);
-    for (TiAnimation* animation in _runningAnimations) {
-        [self forgetProxy:animation];
-    }
-    [_runningAnimations removeAllObjects];
-	pthread_rwlock_unlock(&runningLock);
-    pthread_rwlock_rdlock(&pendingLock);
-    for (TiAnimation* animation in _pendingAnimations) {
-        [self forgetProxy:animation];
-    }
-    [_pendingAnimations removeAllObjects];
-	pthread_rwlock_unlock(&pendingLock);
+    [self cancelAllAnimations:nil];
 }
 
 -(void)removePendingAnimation:(TiAnimation *)animation
