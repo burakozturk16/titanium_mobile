@@ -41,7 +41,7 @@
     return (_animating || [_runningAnimations count] > 0);
 }
 
--(void)clearPendingAnimations
+-(void)clearAnimations
 {
     [self cancelAllAnimations:nil];
 }

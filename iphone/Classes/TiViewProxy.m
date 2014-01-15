@@ -1631,6 +1631,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(void)windowDidClose
 {
+    [self clearAnimations];
     if (controller) {
         [controller removeFromParentViewController];
         RELEASE_TO_NIL_AUTORELEASE(controller);
@@ -1994,7 +1995,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         self.modelDelegate = nil;
     }
 	[destroyLock unlock];
-    [self clearPendingAnimations];
+    [self clearAnimations];
     [self resetDefaultValues];
 
 }
