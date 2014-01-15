@@ -179,6 +179,11 @@ static NSArray *animProps;
 -(float) getDuration {
     return duration/1000;
 }
+
+-(float) delay {
+    return delay/1000;
+}
+
 -(NSUInteger) repeatCount {
     if ([repeat doubleValue] != HUGE_VALF) {
         return [repeat intValue];
