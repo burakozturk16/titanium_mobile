@@ -109,6 +109,9 @@ static NSArray *animProps;
 			cb = [args objectAtIndex:1];
 			ENSURE_TYPE(cb,KrollCallback);
 		}
+        
+        BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
+        if (!animated) return nil;
 		
 		return [[[TiAnimation alloc] initWithDictionary:properties context:context callback:cb] autorelease];
 	}
