@@ -668,6 +668,7 @@
 
 -(void)animationDidComplete:(TiAnimation *)sender
 {
+    [super animationDidComplete:sender];
     if (sender == openAnimation) {
         if (animatedOver != nil) {
             if ([animatedOver isKindOfClass:[TiUIView class]]) {
@@ -687,7 +688,6 @@
     } else if (sender == closeAnimation) {
         [self windowDidClose];
     }
-    [super animationDidComplete:sender];
 }
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
 -(TiUIiOSTransitionAnimationProxy*)transitionAnimation
