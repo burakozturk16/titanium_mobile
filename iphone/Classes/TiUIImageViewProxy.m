@@ -122,11 +122,13 @@ static NSArray* imageKeySequence;
 
 -(void)viewWillDetach
 {
+    [self cancelPendingImageLoads];
 	[super viewWillDetach];
 }
 
 -(void)windowWillClose
 {
+    [self cancelPendingImageLoads];
 	[super windowWillClose];
 }
 
