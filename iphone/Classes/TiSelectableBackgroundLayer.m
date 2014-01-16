@@ -228,12 +228,14 @@
 
 -(void)setBounds:(CGRect)bounds
 {
+    
     bounds = CGRectIntegral(bounds);
-    
     CGRect currentRect = [self bounds];
-    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
-    
 	[super setBounds:bounds];
+    if (CGRectIsEmpty(bounds)) return;
+    
+    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
+    
     if (needsToUpdate) {
         if (readyToCreateDrawables)
         {
@@ -436,7 +438,7 @@
 
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
-    if (value && self.bounds.size.width == 0 && self.bounds.size.height == 0) {
+    if (value && CGRectIsEmpty(self.bounds)) {
         _needsToSetAllDrawablesOnNextSize = YES;
         return;
     }
