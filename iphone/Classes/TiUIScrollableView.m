@@ -286,7 +286,7 @@
             result = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
         }
     }
-    [pageControl setCurrentPage:result];
+//    [pageControl setCurrentPage:result];
     return result;
 }
 
@@ -665,9 +665,9 @@
     }
     else{
         [self setContentOffsetForPage:pageNum animated:NO];
+        [self updateCurrentPage:pageNum andPageControl:YES];
     }
-	currentPage = pageNum;
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
+//
 }
 
 -(void)moveNext:(id)args
@@ -693,6 +693,27 @@
 	}
 }
 
+-(void)updateCurrentPage:(int)newPage
+{
+    [self updateCurrentPage:newPage andPageControl:YES];
+}
+
+-(void)updateCurrentPage:(int)newPage andPageControl:(BOOL)updatePageControl
+{
+    if (newPage == currentPage) return;
+    currentPage = newPage;
+    if (updatePageControl) {
+        [pageControl setCurrentPage:newPage];
+    }
+    [self.proxy replaceValue:NUMINT(newPage) forKey:@"currentPage" notification:NO];
+    if ([self.proxy _hasListeners:@"change"])
+	{
+		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                   NUMINT(newPage),@"currentPage",
+                                                   [[self proxy] viewAtIndex:newPage],@"view",nil]];
+	}
+}
+
 -(void)addView:(id)viewproxy
 {
 	[self refreshScrollView:YES];
@@ -704,9 +725,7 @@
 	int pageCount = [[self proxy] viewCount];
 	if (page==pageCount)
 	{
-		currentPage = lastPage = pageCount-1;
-		[pageControl setCurrentPage:currentPage];
-		[self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
+        [self updateCurrentPage:pageCount-1];
 	}
 	[self refreshScrollView:YES];
 }
@@ -720,13 +739,12 @@
 	if (newPage >=0 && newPage < viewsCount)
 	{
         [self setContentOffsetForPage:newPage animated:NO];
-		currentPage = lastPage = newPage;
-		pageControl.currentPage = newPage;
+		lastPage = newPage;
+		[self updateCurrentPage:newPage];
 		
         [self manageCache:newPage];
         [self didScroll];
         
-		[self.proxy replaceValue:NUMINT(newPage) forKey:@"currentPage" notification:NO];
 	}
 }
 
@@ -781,11 +799,10 @@
     [self setContentOffsetForPage:pageNum animated:YES];
 	handlingPageControlEvent = YES;
 	
-	currentPage = lastPage = pageNum;
-	[self manageCache:currentPage];
-	
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
-	
+    lastPage = pageNum;
+//    [self updateCurrentPage:pageNum andPageControl:NO];
+	[self manageCache:pageNum];
+		
 	if ([self.proxy _hasListeners:@"click"])
 	{
 		[self.proxy fireEvent:@"click" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
@@ -865,9 +882,7 @@
         }
         pageChanged = YES;
         cacheSize = minCacheSize;
-        [pageControl setCurrentPage:nextPage];
-        currentPage = nextPage;
-        [self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
+        [self updateCurrentPage:nextPage];
         cacheSize = curCacheSize;
     }
     [self didScroll];
@@ -906,8 +921,9 @@
 	// At the end of scroll animation, reset the boolean used when scrolls originate from the UIPageControl
 	int pageNum = [self currentPage];
 	handlingPageControlEvent = NO;
-
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
+    
+    lastPage = pageNum;
+    [self updateCurrentPage:pageNum];
 	
 	if ([self.proxy _hasListeners:@"scrollEnd"])
 	{	//TODO: Deprecate old event.
@@ -921,8 +937,6 @@
 													   NUMINT(pageNum),@"currentPage",
 													   [[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
 	}
-	currentPage = lastPage = pageNum;
-	[pageControl setCurrentPage:currentPage];
 	[self manageCache:currentPage];
 	pageChanged = NO;
 	[scrollview setUserInteractionEnabled:YES];
