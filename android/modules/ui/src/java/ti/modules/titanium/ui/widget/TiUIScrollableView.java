@@ -247,6 +247,14 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	}
 	
 	
+	private void setCurrentPageIndex(int newPage)
+	{
+		if (newPage == mCurIndex) return;
+		mCurIndex = newPage;
+		proxy.setProperty(TiC.PROPERTY_CURRENT_PAGE, mCurIndex);
+		((ScrollableViewProxy)proxy).firePageChange(mCurIndex, mViews.get(mCurIndex));
+	}
+	
 
 	@Override
 	public void onPageScrollStateChanged(int scrollState) {
@@ -265,15 +273,15 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 				((ScrollableViewProxy)proxy).fireScrollEnd(mCurIndex, mViews.get(mCurIndex));
 			}
 			if (mCurIndex >= 0) {
-				if (oldIndex >=0 && oldIndex != mCurIndex && oldIndex < mViews.size()) {
-					// Don't know what these focused and unfocused
-					// events are good for, but they were in our previous
-					// scrollable implementation.
-					// cf. https://github.com/appcelerator/titanium_mobile/blob/20335d8603e2708b59a18bafbb91b7292278de8e/android/modules/ui/src/ti/modules/titanium/ui/widget/TiScrollableView.java#L260
-					TiEventHelper.fireFocused(mViews.get(oldIndex));
-				}
-
-				TiEventHelper.fireUnfocused(mViews.get(mCurIndex));
+//				if (oldIndex >=0 && oldIndex != mCurIndex && oldIndex < mViews.size()) {
+//					// Don't know what these focused and unfocused
+//					// events are good for, but they were in our previous
+//					// scrollable implementation.
+//					// cf. https://github.com/appcelerator/titanium_mobile/blob/20335d8603e2708b59a18bafbb91b7292278de8e/android/modules/ui/src/ti/modules/titanium/ui/widget/TiScrollableView.java#L260
+//					TiEventHelper.fireFocused(mViews.get(oldIndex));
+//				}
+//
+//				TiEventHelper.fireUnfocused(mViews.get(mCurIndex));
 				if (oldIndex >= 0) {
 					// oldIndex will be -1 if the view has just
 					// been created and is setting currentPage
@@ -350,8 +358,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		// the current index. We add 0.5 so that positionFloat will be rounded
 		// half up; ie, if it has a value of 1.5, it will be rounded up to 2; if
 		// it has a value of 1.4, it will be rounded down to 1.
-		mCurIndex = (int) Math.floor(positionFloat + 0.5);
-		mCurIndex = Math.min(Math.max(mCurIndex, 0), mViews.size() - 1);
+		setCurrentPageIndex(Math.min(Math.max((int) Math.floor(positionFloat + 0.5), 0), mViews.size() - 1));
 		((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
 
 		// Note that we didn't just fire a `dragend`.  See the above comment
@@ -663,7 +670,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.");
 			return;
 		}
-		mCurIndex = index;
+		if (!animated)setCurrentPageIndex(index);
 		updateCacheSize();
 		mPager.setCurrentItem(index, animated);
 	}
