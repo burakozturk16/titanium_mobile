@@ -33,7 +33,7 @@ public class TiBackgroundDrawable extends Drawable {
 	
 	private RectF bounds = new RectF();
 	private float[] radius = null;
-	Path path;
+	Path path = null;
 	private float pathWidth = 0;
 	private RectF mPadding;
 	
@@ -107,10 +107,11 @@ public class TiBackgroundDrawable extends Drawable {
 	
 	private void updatePath(){
 		if (bounds.isEmpty()) return;
-		path = new Path();
-		path.setFillType(FillType.EVEN_ODD);
+		path = null;
 		RectF outerRect = TiUIHelper.insetRect(bounds, mPadding);
 		if (radius != null) {
+			path = new Path();
+			path.setFillType(FillType.EVEN_ODD);
 			path.addRoundRect(outerRect, radius, Direction.CW);
 			if (pathWidth > 0) {
 				float padding = 0;
@@ -123,8 +124,10 @@ public class TiBackgroundDrawable extends Drawable {
 			}
 		}
 		else {
-			path.addRect(outerRect, Direction.CW);
 			if (pathWidth > 0) {
+				path = new Path();
+				path.setFillType(FillType.EVEN_ODD);
+				path.addRect(outerRect, Direction.CW);
 				int padding = 0;
 				int maxPadding = 0;
 				RectF innerRect = new RectF();
