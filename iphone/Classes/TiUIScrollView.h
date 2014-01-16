@@ -48,7 +48,8 @@
 -(void)setZoomScale_:(id)value withObject:(id)property;
 -(UIView *)wrapperView;
 -(void)scrollToBottom;
-
+-(BOOL)flexibleContentWidth;
+-(BOOL)flexibleContentHeight;
 @end
 
 #endif
