@@ -172,10 +172,6 @@ DEFINE_EXCEPTIONS
         imageView.image = [_svg imageForSize:bounds.size];
     }
 
-	for (UIView *child in [self subviews])
-	{
-		[TiUtils setView:child positionRect:bounds];
-	}
 	if (container!=nil)
 	{
 		for (UIView *child in [container subviews])
