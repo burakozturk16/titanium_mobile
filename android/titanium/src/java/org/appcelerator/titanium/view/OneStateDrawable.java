@@ -20,20 +20,21 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
 import android.util.Pair;
 
 public class OneStateDrawable extends Drawable {
 	
 	
-	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
+//	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
 	private static final String TAG = "OneStateDrawable";
+    public static final int DENSITY_NONE = 0;
 	private RectF bounds = new RectF();
 	
-	private WeakHashMap<String, Pair<Canvas, Bitmap>> canvasStore;
+	private static WeakHashMap<String, Pair<Canvas, Bitmap>> canvasStore;
     
     private Canvas tempCanvas;
     private Bitmap tempBitmap;
+    
 			
 	int color = Color.TRANSPARENT;
 	Drawable imageDrawable; //BitmapDrawable or NinePatchDrawable
@@ -43,15 +44,17 @@ public class OneStateDrawable extends Drawable {
 	Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	TiBackgroundDrawable parent;
 	
-	Bitmap cachedBitmap = null;
-	Canvas cacheCanvas = new Canvas();
-	
+//	Bitmap cachedBitmap = null;
+//	Canvas cacheCanvas = null;
+//	
 	private int alpha = 255;
 	
 	public OneStateDrawable(TiBackgroundDrawable parent) 
 	{
 		this.parent = parent;
 	}
+
+
 	
 	private void generateTempCanvas(){
 		if(canvasStore == null){
@@ -74,29 +77,38 @@ public class OneStateDrawable extends Drawable {
 
 		boolean needsDrawing = (color != Color.TRANSPARENT || defaultColor != Color.TRANSPARENT ||
 				gradientDrawable != null || imageDrawable != null);
-		if (needsDrawing && cachedBitmap == null && !bounds.isEmpty()) {
-			if (cacheCanvas == null)
-				cacheCanvas = new Canvas();
-			cachedBitmap = Bitmap.createBitmap((int)bounds.width(), (int)bounds.height(), Bitmap.Config.ARGB_8888);
-			cacheCanvas.setBitmap(cachedBitmap);
+		if (needsDrawing && !bounds.isEmpty()) {
+//			if (cacheCanvas == null)
+//			{
+//				cacheCanvas = new Canvas();
+//			}
+//			Log.d(TAG, "Bitmap.createBitmap " + (int)bounds.width() + ", " + (int)bounds.height());
+//			cachedBitmap = Bitmap.createBitmap((int)bounds.width(), (int)bounds.height(), Bitmap.Config.ARGB_8888);
+//			cacheCanvas.setBitmap(cachedBitmap);
 			Path path = parent.getPath();
+			if (path != null){
+				canvas.clipPath(path);
+			}
 			if (color != Color.TRANSPARENT) {
-				paint.setColor(color);
-				cacheCanvas.drawPath(path, paint);
+//				paint.setColor(color);
+//				canvas.drawPath(path, paint);
+				canvas.drawColor(color);
 			}
 			else if(defaultColor != Color.TRANSPARENT) { 
 				paint.setColor(defaultColor);
-				cacheCanvas.drawPath(path, paint);
+//				canvas.drawPath(path, paint);
+				canvas.drawColor(defaultColor);
 			}
 			if (gradientDrawable != null) 
 			{
-				paint.setColor(Color.WHITE);
-				paint.setShader(((TiGradientDrawable)gradientDrawable).getShaderFactory().resize((int)bounds.width(), (int)bounds.height()));
-				cacheCanvas.drawPath(path, paint);
+				gradientDrawable.draw(canvas);
+//				paint.setColor(Color.WHITE);
+//				paint.setShader(((TiGradientDrawable)gradientDrawable).getShaderFactory().resize((int)bounds.width(), (int)bounds.height()));
+//				canvas.drawPath(path, paint);
 			}
 			if (imageDrawable != null) {
-				cacheCanvas.clipPath(path);
-				imageDrawable.draw(cacheCanvas);
+//				canvas.clipPath(path);
+				imageDrawable.draw(canvas);
 			}
             paint.setShader(null);
             paint.setColor(0);
@@ -112,20 +124,20 @@ public class OneStateDrawable extends Drawable {
 					paint.setColor(Color.WHITE);
 					tempCanvas.drawPath(path, paint);
 	                tempCanvas.restore();
-	                cacheCanvas.drawBitmap(tempBitmap, 0, 0, null);
+	                canvas.drawBitmap(tempBitmap, 0, 0, null);
 	                tempCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 	                
 	                paint.setXfermode(null);
 	                paint.setMaskFilter(null);
 				}
 			}
-			if (ICE_CREAM_OR_GREATER && cacheCanvas != null)
-				cacheCanvas.setBitmap(null);
+//			if (ICE_CREAM_OR_GREATER && cacheCanvas != null)
+//				cacheCanvas.setBitmap(null);
 		}
-		if (cachedBitmap != null) {
-			if (alpha != -1) paint.setAlpha(alpha);
-			canvas.drawBitmap(cachedBitmap, 0, 0, null);
-		}
+//		if (cachedBitmap != null) {
+//			if (alpha != -1) paint.setAlpha(alpha);
+//			canvas.drawBitmap(cachedBitmap, 0, 0, null);
+//		}
 	}
 
 	@Override
@@ -148,10 +160,10 @@ public class OneStateDrawable extends Drawable {
 	
 	private void clearBitmap()
 	{
-		if (cachedBitmap != null) {
-			cachedBitmap.recycle();
-			cachedBitmap = null;
-		}
+//		if (cachedBitmap != null) {
+//			cachedBitmap.recycle();
+//			cachedBitmap = null;
+//		}
 	}
 
 	@Override
@@ -175,8 +187,8 @@ public class OneStateDrawable extends Drawable {
 	public void setBounds (Rect bounds) {
 		this.bounds = new RectF(bounds);
 		clearBitmap();
-//		if (gradientDrawable != null)
-//			gradientDrawable.setBounds(bounds);
+		if (gradientDrawable != null)
+			gradientDrawable.setBounds(bounds);
 		if (imageDrawable != null) 
 			imageDrawable.setBounds(bounds);
 	}
