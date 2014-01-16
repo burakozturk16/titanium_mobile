@@ -1067,29 +1067,104 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	CGRect sandBox = CGRectZero;
     CGSize thisSize = CGSizeZero;
     
-	pthread_rwlock_rdlock(&childrenLock);
-	NSArray* subproxies = [self visibleChildren];
-	for (TiViewProxy * thisChildProxy in subproxies)
-	{
-        if ([thisChildProxy isHidden]) continue;
-        if (!isAbsolute) {
-            sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
-            thisSize = CGSizeMake(sandBox.origin.x + sandBox.size.width, sandBox.origin.y + sandBox.size.height);
+    if (childrenCount > 0)
+    {
+        pthread_rwlock_rdlock(&childrenLock);
+        NSArray* childArray = [self visibleChildren];
+        pthread_rwlock_unlock(&childrenLock);
+        if (isAbsolute)
+        {
+            for (TiViewProxy* thisChildProxy in childArray)
+            {
+                thisSize = [thisChildProxy minimumParentSizeForSize:size];
+                if(result.width<thisSize.width)
+                {
+                    result.width = thisSize.width;
+                }
+                if(result.height<thisSize.height)
+                {
+                    result.height = thisSize.height;
+                }
+            }
         }
         else {
-            thisSize = [thisChildProxy minimumParentSizeForSize:size];
+            BOOL horizontal =  TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle);
+            BOOL vertical =  TiLayoutRuleIsVertical(layoutProperties.layoutStyle);
+            BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+            BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+            
+            NSMutableArray * widthFillChildren = horizontal?[NSMutableArray array]:nil;
+            NSMutableArray * heightFillChildren = (vertical || horizontalWrap)?[NSMutableArray array]:nil;
+            CGFloat widthNonFill = 0;
+            CGFloat heightNonFill = 0;
+            
+            //First measure the sandbox bounds
+            for (TiViewProxy* thisChildProxy in childArray)
+            {
+                BOOL horizontalFill = [thisChildProxy wantsToFillHorizontalLayout];
+                BOOL verticalFill = [thisChildProxy wantsToFillVerticalLayout];
+                if (!horizontalWrap)
+                {
+                    if (widthFillChildren && horizontalFill)
+                    {
+                        [widthFillChildren addObject:thisChildProxy];
+                        continue;
+                    }
+                    else if (heightFillChildren && verticalFill)
+                    {
+                        [heightFillChildren addObject:thisChildProxy];
+                        continue;
+                    }
+                }
+                sandBox = [self computeChildSandbox:thisChildProxy withBounds:bounds];
+                thisSize = CGSizeMake(sandBox.origin.x + sandBox.size.width, sandBox.origin.y + sandBox.size.height);
+                if(result.width<thisSize.width)
+                {
+                    result.width = thisSize.width;
+                }
+                if(result.height<thisSize.height)
+                {
+                    result.height = thisSize.height;
+                }
+            }
+            
+            int nbWidthAutoFill = [widthFillChildren count];
+            if (nbWidthAutoFill > 0) {
+                CGFloat usableWidth = ceilf((size.width - result.width) / nbWidthAutoFill);
+                CGRect usableRect = CGRectMake(0,0,usableWidth, size.height);
+                for (TiViewProxy* thisChildProxy in widthFillChildren) {
+                    sandBox = [self computeChildSandbox:thisChildProxy withBounds:usableRect];
+                    thisSize = CGSizeMake(sandBox.origin.x + sandBox.size.width, sandBox.origin.y + sandBox.size.height);
+                    if(result.width<thisSize.width)
+                    {
+                        result.width = thisSize.width;
+                    }
+                    if(result.height<thisSize.height)
+                    {
+                        result.height = thisSize.height;
+                    }
+                }
+            }
+            
+            int nbHeightAutoFill = [heightFillChildren count];
+            if (nbHeightAutoFill > 0) {
+                CGFloat usableHeight = ceilf((size.height - result.height) / nbHeightAutoFill);
+                CGRect usableRect = CGRectMake(0,0,size.width, usableHeight);
+                for (TiViewProxy* thisChildProxy in heightFillChildren) {
+                    sandBox = [self computeChildSandbox:thisChildProxy withBounds:usableRect];
+                    thisSize = CGSizeMake(sandBox.origin.x + sandBox.size.width, sandBox.origin.y + sandBox.size.height);
+                    if(result.width<thisSize.width)
+                    {
+                        result.width = thisSize.width;
+                    }
+                    if(result.height<thisSize.height)
+                    {
+                        result.height = thisSize.height;
+                    }
+                }
+            }
         }
-        if(result.width<thisSize.width)
-        {
-            result.width = thisSize.width;
-        }
-        if(result.height<thisSize.height)
-        {
-            result.height = thisSize.height;
-        }
-	}
-	pthread_rwlock_unlock(&childrenLock);
-	//result += currentRowHeight;
+    }
 	
     if (result.width < contentSize.width) {
         result.width = contentSize.width;
@@ -1097,9 +1172,10 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     if (result.height < contentSize.height) {
         result.height = contentSize.height;
     }
-
+    
 	return [self verifySize:result];
 }
+
 -(CGSize)sizeForAutoSize:(CGSize)size
 {
     CGFloat suggestedWidth = size.width;
@@ -2316,12 +2392,15 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)willHide;
 {
-//	SET_AND_PERFORM(TiRefreshViewZIndex,);
+    //	SET_AND_PERFORM(TiRefreshViewZIndex,);
     dirtyflags = 0;
     
 	pthread_rwlock_rdlock(&childrenLock);
 	[children makeObjectsPerformSelector:@selector(parentWillHide)];
 	pthread_rwlock_unlock(&childrenLock);
+    
+    if (parent && ![parent absoluteLayout])
+        [parent contentsWillChange];
 }
 
 -(void)willResizeChildren
@@ -3083,7 +3162,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(BOOL)wantsToFillVerticalLayout
 {
-    if (TiDimensionIsAutoFill(layoutProperties.height)) return YES;
+    if ([self heightIsAutoFill]) return YES;
     if (TiDimensionIsDip(layoutProperties.height) || TiDimensionIsPercent(layoutProperties.height))return NO;
     NSArray* subproxies = [self visibleChildren];
     for (TiViewProxy* child in subproxies) {
@@ -3094,7 +3173,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(BOOL)wantsToFillHorizontalLayout
 {
-    if (TiDimensionIsAutoFill(layoutProperties.width)) return YES;
+    if ([self widthIsAutoFill]) return YES;
     if (TiDimensionIsDip(layoutProperties.width) || TiDimensionIsPercent(layoutProperties.width))return NO;
     NSArray* subproxies = [self visibleChildren];
     for (TiViewProxy* child in subproxies) {
@@ -3102,6 +3181,14 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     }
     return NO;
 }
+
+-(CGRect)boundsForMeasureForChild:(TiViewProxy*)child
+{
+    UIView * ourView = [self parentViewForChild:child];
+    if (!ourView) return CGRectZero;
+    return [ourView bounds];
+}
+
 -(NSArray*)measureChildren:(NSArray*)childArray
 {
     if ([childArray count] == 0) {
@@ -3124,42 +3211,39 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     //First measure the sandbox bounds
     for (id child in childArray)
     {
+        CGRect bounds = [self boundsForMeasureForChild:child];
         TiRect * childRect = [[TiRect alloc] init];
         CGRect childBounds = CGRectZero;
-        UIView * ourView = [self parentViewForChild:child];
-        if (ourView != nil)
+        
+        if(![self absoluteLayout])
         {
-            CGRect bounds = [ourView bounds];
-			
-            if(![self absoluteLayout])
-            {
-                bounds = [self computeChildSandbox:child withBounds:bounds];
-            }
             if (horizontalNoWrap) {
-				maxHeight = MAX(maxHeight, bounds.size.height);
                 if ([child wantsToFillHorizontalLayout])
                 {
                     [widthFillChildren addObject:child];
                 }
                 else{
-                    widthNonFill += bounds.size.width;
+                    childBounds = [self computeChildSandbox:child withBounds:bounds];
+                    maxHeight = MAX(maxHeight, childBounds.size.height);
+                    widthNonFill += childBounds.size.width;
                 }
-			}
-            
-            if (vertical) {
+            }
+            else if (vertical) {
                 if ([child wantsToFillVerticalLayout])
                 {
                     [heightFillChildren addObject:child];
                 }
                 else{
-                    heightNonFill += bounds.size.height;
+                    childBounds = [self computeChildSandbox:child withBounds:bounds];
+                    heightNonFill += childBounds.size.height;
                 }
-			}
-            
-            childBounds.origin.x = bounds.origin.x;
-            childBounds.origin.y = bounds.origin.y;
-            childBounds.size.width = bounds.size.width;
-            childBounds.size.height = bounds.size.height;
+            }
+            else {
+                childBounds = [self computeChildSandbox:child withBounds:bounds];
+            }
+        }
+        else {
+            childBounds = bounds;
         }
         [childRect setRect:childBounds];
         [measuredBounds addObject:childRect];
@@ -3170,28 +3254,39 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     
     int nbWidthAutoFill = [widthFillChildren count];
     if (nbWidthAutoFill > 0) {
-        UIView * ourView = [self parentViewForChild:[childArray objectAtIndex:0]];
-        if (ourView != nil)
-        {
-            CGRect bounds = [ourView bounds];
+        //it is horizontalNoWrap
+        horizontalLayoutBoundary = 0;
+        for (int i =0; i < [childArray count]; i++) {
+            id child = [childArray objectAtIndex:i];
+            CGRect bounds = [self boundsForMeasureForChild:child];
             CGFloat width = ceilf((bounds.size.width - widthNonFill) / nbWidthAutoFill);
-            for (id child in widthFillChildren) {
-                int index = [childArray indexOfObject:child];
-                [(TiRect*)[measuredBounds objectAtIndex:index] setWidth:[NSNumber numberWithFloat:width]];
+            if ([widthFillChildren containsObject:child]){
+                CGRect usableRect = CGRectMake(0,0,width + horizontalLayoutBoundary, bounds.size.height);
+                CGRect result = [self computeChildSandbox:child withBounds:usableRect];
+                maxHeight = MAX(maxHeight, result.size.height);
+                [(TiRect*)[measuredBounds objectAtIndex:i] setRect:result];
+            }
+            else {
+                horizontalLayoutBoundary += [[(TiRect*)[measuredBounds objectAtIndex:i] width] floatValue];
             }
         }
     }
     
     int nbHeightAutoFill = [heightFillChildren count];
     if (nbHeightAutoFill > 0) {
-        UIView * ourView = [self parentViewForChild:[childArray objectAtIndex:0]];
-        if (ourView != nil)
-        {
-            CGRect bounds = [ourView bounds];
+        //it is vertical
+        verticalLayoutBoundary = 0;
+        for (int i =0; i < [childArray count]; i++) {
+            id child = [childArray objectAtIndex:i];
+            CGRect bounds = [self boundsForMeasureForChild:child];
             CGFloat height = ceilf((bounds.size.height - heightNonFill) / nbHeightAutoFill);
-            for (id child in heightFillChildren) {
-                int index = [childArray indexOfObject:child];
-                [(TiRect*)[measuredBounds objectAtIndex:index] setHeight:[NSNumber numberWithFloat:height]];
+            if ([heightFillChildren containsObject:child]){
+                CGRect usableRect = CGRectMake(0,0,bounds.size.width, height + verticalLayoutBoundary);
+                CGRect result = [self computeChildSandbox:child withBounds:usableRect];
+                [(TiRect*)[measuredBounds objectAtIndex:i] setRect:result];
+            }
+            else {
+                verticalLayoutBoundary += [[(TiRect*)[measuredBounds objectAtIndex:i] height] floatValue];
             }
         }
     }
@@ -3426,7 +3521,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         }
         else if(TiDimensionIsAutoFill(constraint) || (TiDimensionIsAuto(constraint) && followsFillWBehavior)){
             followsFillBehavior = YES;
-            desiredWidth = bounds.size.width;
+            desiredWidth = boundingWidth;
         }
         else {
             //This block takes care of auto,SIZE and FILL. If it is size ensure followsFillBehavior is set to false
