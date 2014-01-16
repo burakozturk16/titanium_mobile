@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.widget.EdgeEffectCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.FocusFinder;
@@ -22,7 +23,6 @@ import android.view.ViewParent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.animation.AnimationUtils;
-import android.widget.EdgeEffect;
 import android.widget.FrameLayout;
 import android.widget.OverScroller;
 
@@ -47,8 +47,6 @@ import java.util.List;
  * within a larger container.
  *
  */
-@SuppressLint("NewApi")
-@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 public class DualScrollView extends FrameLayout {
 	
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
@@ -65,10 +63,10 @@ public class DualScrollView extends FrameLayout {
 
     private final Rect mTempRect = new Rect();
     private OverScroller mScroller;
-    private EdgeEffect mEdgeGlowTop;
-    private EdgeEffect mEdgeGlowBottom;
-    private EdgeEffect mEdgeGlowLeft;
-    private EdgeEffect mEdgeGlowRight;
+    private EdgeEffectCompat mEdgeGlowTop;
+    private EdgeEffectCompat mEdgeGlowBottom;
+    private EdgeEffectCompat mEdgeGlowLeft;
+    private EdgeEffectCompat mEdgeGlowRight;
 
 	private boolean shouldClampScroll = true;
 	
@@ -631,7 +629,6 @@ public class DualScrollView extends FrameLayout {
     	}
     }
     
-    @SuppressWarnings({"UnusedParameters"})
     protected boolean overScrollBy(int deltaX, int deltaY,
             int scrollX, int scrollY,
             int scrollRangeX, int scrollRangeY,
@@ -1948,6 +1945,14 @@ public class DualScrollView extends FrameLayout {
         }
     }
 
+    public void setScrollX(int value) {
+        scrollTo(value, getScrollY());
+    }
+
+    public void setScrollY(int value) {
+        scrollTo(getScrollX(), value);
+    }
+
     @Override
     public void scrollTo(int x, int y) {
 //      shouldClampScroll = false;
@@ -1964,10 +1969,10 @@ public class DualScrollView extends FrameLayout {
 	        if (mode != OVER_SCROLL_NEVER) {
 	            if (mEdgeGlowTop == null) {
 	                Context context = getContext();
-	                mEdgeGlowTop = new EdgeEffect(context);
-	                mEdgeGlowBottom = new EdgeEffect(context);
-	                mEdgeGlowLeft = new EdgeEffect(context);
-	                mEdgeGlowRight = new EdgeEffect(context);
+	                mEdgeGlowTop = new EdgeEffectCompat(context);
+	                mEdgeGlowBottom = new EdgeEffectCompat(context);
+	                mEdgeGlowLeft = new EdgeEffectCompat(context);
+	                mEdgeGlowRight = new EdgeEffectCompat(context);
 	            }
 	        } else {
 	            mEdgeGlowTop = null;
