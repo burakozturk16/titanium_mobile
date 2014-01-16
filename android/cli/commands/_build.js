@@ -2402,7 +2402,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		platformPaths.push(path.join(module.modulePath, 'platform', 'android'));
 	});
 
-	this.cli.createHook('build.android.platformsPaths', this, function (resourcesPaths) {
+	this.cli.createHook('build.android.platformsPaths', this, function (platformPaths) {
 		platformPaths.forEach(function (dir) {
 			if (fs.existsSync(dir)) {
 				tasks.push(function (cb) {
@@ -2413,7 +2413,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 				});
 			}
 		}, this);
-	})(resourcesPaths, function () {});
+	})(platformPaths, function () {});
 	
 
 	appc.async.series(this, tasks, function (err, results) {

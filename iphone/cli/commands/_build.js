@@ -2879,7 +2879,7 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 		);
 	});
 
-	this.cli.createHook('build.ios.platformsPaths', this, function (resourcesPaths) {
+	this.cli.createHook('build.ios.platformsPaths', this, function (platformPaths) {
 		platformPaths.forEach(function (dir) {
 			if (fs.existsSync(dir)) {
 				tasks.push(function (cb) {
@@ -2890,7 +2890,7 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 				});
 			}
 		}, this);
-	})(resourcesPaths, function () {});
+	})(platformPaths, function () {});
 
 	series(this, tasks, function (err, results) {
 		// copy js files into assets directory and minify if needed
