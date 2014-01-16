@@ -282,6 +282,7 @@ public class RefreshableListView extends ListView {
 			isLastViewBottom();
 			break;
 		case MotionEvent.ACTION_MOVE:
+		{
 			if (mActivePointerId == INVALID_POINTER_ID) {
 				break;
 			}
@@ -290,14 +291,16 @@ public class RefreshableListView extends ListView {
 				isFirstViewTop();
 				isLastViewBottom();
 			}
+			
+			final int activePointerId = mActivePointerId;
+			final int activePointerIndex = MotionEventCompat
+					.findPointerIndex(ev, activePointerId);
+			final float y = MotionEventCompat.getY(ev, activePointerIndex);
+			final int deltaY = (int) (y - mLastY);
+			mLastY = y;
 
 			if (mState == STATE_READY && mListHeaderView != null) {
-				final int activePointerId = mActivePointerId;
-				final int activePointerIndex = MotionEventCompat
-						.findPointerIndex(ev, activePointerId);
-				final float y = MotionEventCompat.getY(ev, activePointerIndex);
-				final int deltaY = (int) (y - mLastY);
-				mLastY = y;
+				
 				if (deltaY <= 0 || Math.abs(y) < mTouchSlop) {
 					mState = STATE_NORMAL;
 				} else {
@@ -306,12 +309,7 @@ public class RefreshableListView extends ListView {
 					super.dispatchTouchEvent(ev);
 				}
 			} else if (mState == UP_STATE_READY && mListBottomView != null) {
-				final int activePointerId = mActivePointerId;
-				final int activePointerIndex = MotionEventCompat
-						.findPointerIndex(ev, activePointerId);
-				final float y = MotionEventCompat.getY(ev, activePointerIndex);
-				final int deltaY = (int) (y - mLastY);
-				mLastY = y;
+
 				if (deltaY >= 0 || Math.abs(y) < mTouchSlop) {
 					mState = STATE_NORMAL;
 				} else {
@@ -322,12 +320,7 @@ public class RefreshableListView extends ListView {
 			}
 
 			if (mState == STATE_PULL) {
-				final int activePointerId = mActivePointerId;
-				final int activePointerIndex = MotionEventCompat
-						.findPointerIndex(ev, activePointerId);
-				final float y = MotionEventCompat.getY(ev, activePointerIndex);
-				final int deltaY = (int) (y - mLastY);
-				mLastY = y;
+
 
 				final int headerHeight = mListHeaderView.getHeight();
 				setHeaderHeight(headerHeight + deltaY * 5 / 9);
@@ -336,18 +329,13 @@ public class RefreshableListView extends ListView {
 				}
 				return true;
 			} else if (mState == UP_STATE_PULL) {
-				final int activePointerId = mActivePointerId;
-				final int activePointerIndex = MotionEventCompat
-						.findPointerIndex(ev, activePointerId);
-				final float y = MotionEventCompat.getY(ev, activePointerIndex);
-				final int deltaY = (int) (y - mLastY);
-				mLastY = y;
 				final int headerHeight = mListBottomView.getHeight();
 				setBottomHeight(headerHeight - deltaY * 5 / 9);
 				return true;
 			}
 
 			break;
+		}
 		case MotionEvent.ACTION_CANCEL:
 		case MotionEvent.ACTION_UP:
 			mActivePointerId = INVALID_POINTER_ID;
