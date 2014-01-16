@@ -775,7 +775,7 @@ public class ListSectionProxy extends ViewProxy {
 
 		existingData.put(TiC.PROPERTY_SECTION, this);
 		existingData.put(TiC.PROPERTY_SECTION_INDEX, sectionIndex);
-		existingData.put(TiC.PROPERTY_ITEM_INDEX, itemIndex);
+		existingData.put(TiC.PROPERTY_ITEM_INDEX, getRealPosition(itemIndex));
 
 		if (!bindId.startsWith(TiListViewTemplate.GENERATED_BINDING)
 				&& !bindId.equals(TiC.PROPERTY_PROPERTIES)) {
@@ -838,7 +838,7 @@ public class ListSectionProxy extends ViewProxy {
 		}
 
 		// update extra event data for list item
-		appendExtraEventData(listItem, getRealPosition(itemIndex), sectionIndex,
+		appendExtraEventData(listItem, itemIndex, sectionIndex,
 				TiC.PROPERTY_PROPERTIES, itemId);
 
 		HashMap<String, ViewItem> views = (HashMap<String, ViewItem>) cellContent
