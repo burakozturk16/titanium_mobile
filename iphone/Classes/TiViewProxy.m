@@ -1723,6 +1723,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(BOOL)viewLayedOut
 {
+    if (parent) return !CGRectIsEmpty(sizeCache);
 	return !CGRectIsEmpty([[self view] bounds]);
 }
 
