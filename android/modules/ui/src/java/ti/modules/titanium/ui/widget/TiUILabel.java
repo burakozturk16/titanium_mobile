@@ -31,6 +31,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.RectF;
 import android.text.Html;
 import android.text.InputType;
 import android.text.TextUtils;
@@ -86,7 +87,7 @@ public class TiUILabel extends TiUINonViewGroupView
 	private float shadowY = -1f; // to have the same value as ios
 	private int shadowColor = Color.TRANSPARENT;
 
-	private Rect textPadding;
+	private RectF textPadding;
 	private String ELLIPSIZE_CHAR = "...";
 
 	private TiLabelView tv;
@@ -100,6 +101,19 @@ public class TiUILabel extends TiUINonViewGroupView
 		private Transition  queuedTransition = null;
 		private boolean  inTransition = false;
 		private CharSequence  queuedText = null;
+		
+		
+		@Override
+		protected void drawableStateChanged() {
+		
+		}
+		
+		@Override
+		public void childDrawableStateChanged(View child) {
+			if (child == textView) {
+				propagateChildDrawableState(child);
+			}
+		}
 		
 		public TiLabelView(Context context) {
 			super(context);
@@ -722,7 +736,7 @@ public class TiUILabel extends TiUINonViewGroupView
 							SpannableStringBuilder newText = new SpannableStringBuilder();
 							newText.append(fullText.subSequence(0, end1));
 							// We have more lines of text than we are allowed to display.
-							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, start2 + end2), ellipsize, width));
+							newText.append(getEllipsedTextForOneLine(fullText.subSequence(start2, end2), ellipsize, width));
 							workingText = newText;
 						} else {
 							workingText = getEllipsedTextForOneLine(fullText.subSequence(0, layout.getLineEnd(linesCount - 1)), ellipsize, width);
@@ -875,7 +889,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				TiUIHelper.firePostLayoutEvent(TiUILabel.this);
 			}
 		};
-		textPadding = new Rect();
+		textPadding = new RectF();
 		
 		tv.setFocusable(false);
 		color = disabledColor = selectedColor = tv.textView.getCurrentTextColor();
@@ -1014,8 +1028,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
 			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
-					textPadding.bottom);
+			TiUIHelper.setPadding(textView, textPadding);
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
@@ -1136,8 +1149,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			Linkify.addLinks(textView, TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
 			textPadding = TiConvert.toPaddingRect(newValue);
-			tv.setPadding(textPadding.left, textPadding.top, textPadding.right,
-					textPadding.bottom);
+			TiUIHelper.setPadding(textView, textPadding);
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {

@@ -39,7 +39,7 @@ public class TiBorderWrapperView extends MaskableView
 	private RectF clipRect;
 	private Path clipPath;
 	private boolean clipChildren = true;
-	private Rect mBorderPadding = null;
+	private RectF mBorderPadding = null;
 	private TiViewProxy proxy;
 	private boolean mDrawableSizeChanged = false;
 	
@@ -283,9 +283,9 @@ public class TiBorderWrapperView extends MaskableView
             child.setPressed(pressed);
         }
 	}
-
-	public void setBorderPadding(Rect borderPadding) {
-		mBorderPadding  = borderPadding;
+	
+	public void setBorderPadding(RectF mBorderPadding) {
+		this.mBorderPadding  = mBorderPadding;
 		if (mDrawable != null) 
 		{
 			mDrawable.setPadding(mBorderPadding);

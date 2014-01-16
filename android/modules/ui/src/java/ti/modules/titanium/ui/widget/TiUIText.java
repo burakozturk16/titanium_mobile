@@ -21,6 +21,7 @@ import org.appcelerator.titanium.view.TiCompositeLayout;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
@@ -430,8 +431,8 @@ public class TiUIText extends TiUIView
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_PADDING)) {
-			Rect padding = TiConvert.toPaddingRect(d, TiC.PROPERTY_PADDING);
-			realtv.setPadding(padding.left, padding.top, padding.right, padding.bottom);
+			RectF padding = TiConvert.toPaddingRect(d, TiC.PROPERTY_PADDING);
+			TiUIHelper.setPadding(realtv, padding);
 		}
 
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
@@ -512,8 +513,8 @@ public class TiUIText extends TiUIView
 		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
 			tv.setRightView(newValue);
 		} else if (key.equals(TiC.PROPERTY_PADDING)) {
-			Rect padding = TiConvert.toPaddingRect(newValue);
-			realtv.setPadding(padding.left, padding.top, padding.right, padding.bottom);
+			RectF padding = TiConvert.toPaddingRect(newValue);
+			TiUIHelper.setPadding(realtv, padding);
 			realtv.requestLayout();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);

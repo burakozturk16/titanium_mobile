@@ -55,6 +55,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.Bitmap.Config;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -148,7 +149,7 @@ public abstract class TiUIView
 	protected boolean exclusiveTouch = false;
 	public boolean hardwareAccEnabled = true;
 	protected TiTouchDelegate mTouchDelegate;
-	private Rect mBorderPadding;
+	private RectF mBorderPadding;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.

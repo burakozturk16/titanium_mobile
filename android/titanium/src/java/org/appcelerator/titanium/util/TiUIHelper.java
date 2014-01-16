@@ -79,6 +79,7 @@ import android.view.ViewGroup;
 import android.view.View.MeasureSpec;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.TextView;
 
 /**
@@ -457,6 +458,11 @@ public class TiUIHelper
 		return desc;
 	}
 	
+	public static void setPadding(View view, RectF padding) {
+		view.setPadding((int)padding.left, (int)padding.top, (int)padding.right,
+				(int)padding.bottom);
+	}
+
 	public static void styleText(TextView tv, HashMap<String, Object> d) {
 		FontDesc desc = getFontStyle(tv.getContext(), d);
 		tv.setTypeface(desc.typeface, desc.style);
@@ -1283,7 +1289,7 @@ public class TiUIHelper
 		return d;
 	}
 	
-	public static RectF insetRect(RectF source, Rect inset) {
+	public static RectF insetRect(RectF source, RectF inset) {
 		if (inset == null) return source;
 		return new RectF(source.left + inset.left, 
 				source.top + inset.top, 

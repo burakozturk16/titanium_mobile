@@ -35,7 +35,7 @@ public class TiBackgroundDrawable extends Drawable {
 	private float[] radius = null;
 	Path path;
 	private float pathWidth = 0;
-	private Rect mPadding;
+	private RectF mPadding;
 	
 
 	public TiBackgroundDrawable()
@@ -173,7 +173,7 @@ public class TiBackgroundDrawable extends Drawable {
 		invalidateSelf();
 	}
 	
-	public void setPadding(Rect padding) {
+	public void setPadding(RectF padding) {
 		this.mPadding = padding;
 		updatePath();
 		invalidateSelf();
