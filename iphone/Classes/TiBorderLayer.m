@@ -136,6 +136,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         self.cornerRadius = radii?radii[0]:0;
         return;
     }
+    if (!readyToCreateDrawables) return;
     CGPathRef path = self.shadowPath = [self borderPath:radii forBounds:bounds];
     CGPathRelease(path);
 }
