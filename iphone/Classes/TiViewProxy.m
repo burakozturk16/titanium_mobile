@@ -2334,7 +2334,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	[self willEnqueueIfVisible];
     if (allowContentChange == NO && [parent allowContentChange])
     {
-        [self performBlockWithoutLayout:^{
+        [parent performBlockWithoutLayout:^{
             [parent contentsWillChange];
         }];
     }
