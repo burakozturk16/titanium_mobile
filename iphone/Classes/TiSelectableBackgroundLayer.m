@@ -234,7 +234,7 @@
 	[super setBounds:bounds];
     if (CGRectIsEmpty(bounds)) return;
     
-    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
+    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && (!CGSizeEqualToSize(bounds.size, currentRect.size) || _needsToSetDrawables));
     
     if (needsToUpdate) {
         if (readyToCreateDrawables)
