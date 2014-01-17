@@ -2689,6 +2689,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             [parent setRunningAnimation:nil];
         }
         else {
+            
             [parent refreshViewOrParent];
         }
     }
@@ -2699,21 +2700,24 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)refreshViewIfNeeded:(BOOL)recursive
 {
+    BOOL needsRefresh = OSAtomicTestAndClear(TiRefreshViewEnqueued, &dirtyflags);
     if (parent && [parent willBeRelaying] && ![parent absoluteLayout]) {
         return;
     }
-    if (CGRectIsEmpty(sandboxBounds) && (!view || ![view superview])) {
-        //we have no way to get our size yet. May be we need to be added to a superview
-        //let s keep our flags set
-        return;
-    }
-    if (!OSAtomicTestAndClearBarrier(TiRefreshViewEnqueued, &dirtyflags))
+    
+    if (!needsRefresh)
     {
+        //even if our sandbox is null and we are not ready (next test) let s still call refresh our our children. They wont refresh but at least they will clear their TiRefreshViewEnqueued flags !
         if (recursive){
             [self makeChildrenPerformSelector:@selector(refreshViewIfNeeded:) withObject:recursive];
         }
         return;
 	}
+    if (CGRectIsEmpty(sandboxBounds) && (!view || ![view superview])) {
+        //we have no way to get our size yet. May be we need to be added to a superview
+        //let s keep our flags set
+        return;
+    }
     
 	if(parent && !parentVisible)
 	{
