@@ -48,8 +48,12 @@
 
 -(void)removePendingAnimation:(TiAnimation *)animation
 {
-    [self forgetProxy:animation];
 	pthread_rwlock_rdlock(&pendingLock);
+    if ([_pendingAnimations containsObject:animation])
+    {
+        [self forgetProxy:animation];
+        [_pendingAnimations removeObject:animation];
+    }
     [_pendingAnimations removeObject:animation];
 	pthread_rwlock_unlock(&pendingLock);
 }
@@ -62,17 +66,25 @@
 }
 -(void)removeRunningAnimation:(TiAnimation *)animation
 {
-    [self forgetProxy:animation];
 	pthread_rwlock_rdlock(&runningLock);
-    [_runningAnimations removeObject:animation];
+    if ([_runningAnimations containsObject:animation])
+    {
+        [self forgetProxy:animation];
+        [_runningAnimations removeObject:animation];
+    }
 	pthread_rwlock_unlock(&runningLock);
 }
 
 -(void)cancelAllAnimations:(id)arg
 {
     pthread_rwlock_rdlock(&pendingLock);
+    NSArray* pending = [[NSArray alloc] initWithArray:_pendingAnimations];
     [_pendingAnimations removeAllObjects];
     pthread_rwlock_unlock(&pendingLock);
+    for (TiAnimation* animation in pending) {
+        [self removePendingAnimation:animation];
+    }
+    
 	pthread_rwlock_rdlock(&runningLock);
     NSArray* running = [[NSArray alloc] initWithArray:_runningAnimations];
     [_runningAnimations removeAllObjects];
