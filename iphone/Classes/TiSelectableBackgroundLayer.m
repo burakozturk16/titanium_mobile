@@ -188,7 +188,6 @@
     BOOL _needsToSetDrawables;
     CGFloat _clipWidth;
     CGPathRef _clippingPath;
-    BOOL _needsToSetAllDrawablesOnNextSize;
 }
 @end
 
@@ -232,7 +231,6 @@
     bounds = CGRectIntegral(bounds);
     CGRect currentRect = [self bounds];
 	[super setBounds:bounds];
-    if (CGRectIsEmpty(bounds)) return;
     
     BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && (!CGSizeEqualToSize(bounds.size, currentRect.size) || _needsToSetDrawables));
     
@@ -438,7 +436,8 @@
 
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
-    if (value && CGRectIsEmpty(self.bounds)) {
+    CGRect bounds = self.bounds;
+    if (value && bounds.size.width == 0 && bounds.size.height == 0) {
         _needsToSetAllDrawablesOnNextSize = YES;
         return;
     }

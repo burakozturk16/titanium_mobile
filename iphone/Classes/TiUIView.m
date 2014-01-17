@@ -617,7 +617,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [self updatePathForClipping:bounds];
     }
     if (_borderLayer) {
-        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
+        _borderLayer.frame = bounds;
     }
     if (_bgLayer) {
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
@@ -771,8 +771,9 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         _borderLayer.cornerRadius = self.layer.cornerRadius;
     }
     [_borderLayer setRadii:radii];
+    [_borderLayer setBorderPadding:_borderPadding];
     [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    CGRect bounds = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
+    CGRect bounds = [[self backgroundWrapperView] layer].bounds;
     if (!CGRectIsEmpty(bounds)) {
         _borderLayer.frame = bounds;
     }
@@ -1179,10 +1180,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     _borderPadding = [TiUtils insetValue:value];
     if (_borderLayer) {
-        CGRect bounds = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _borderPadding);
-        if (!CGRectIsEmpty(bounds)) {
-            _borderLayer.frame = bounds;
-        }
+        [_borderLayer setBorderPadding:_borderPadding];
     }
 }
 

@@ -27,6 +27,7 @@
     NSMutableArray* stateLayers;
     BOOL _imageRepeat;
     BOOL readyToCreateDrawables;
+    BOOL _needsToSetAllDrawablesOnNextSize;
 }
 @property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;

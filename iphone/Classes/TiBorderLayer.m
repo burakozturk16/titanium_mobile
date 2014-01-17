@@ -23,6 +23,12 @@ CGFloat* innerRadiusFromPadding(const CGFloat* radii, const CGRect  rect, float 
     return result;
 }
 
+
+CGRect invertInsetRect(CGRect rect, UIEdgeInsets inset)
+{
+    return CGRectMake(rect.origin.x - inset.left, rect.origin.y - inset.top, rect.size.width + inset.left + inset.right, rect.size.width + inset.top + inset.bottom);
+}
+
 CGFloat* decaleRadius(const CGFloat* radii, float _decale)
 {
     CGFloat* result = malloc(8 * sizeof(CGFloat *));
@@ -35,7 +41,8 @@ CGFloat* decaleRadius(const CGFloat* radii, float _decale)
 CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* radii, CGFloat _decale)
 {
     if (radii == NULL) {
-        return CGPathCreateWithRect(CGRectInset(rect, _decale, _decale), NULL);
+        CGRect result = CGRectInset(rect, _decale, _decale);
+        return CGPathCreateWithRect(result, NULL);
     }
     radii = innerRadiusFromPadding(radii, rect, _decale);
     // create a mutable path
@@ -107,6 +114,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 {
     BOOL _usingDefaultBorderStyle;
     CGFloat* _radii;//we do not hold that value!
+    UIEdgeInsets _borderPadding;
 }
 
 -(id)init
@@ -115,6 +123,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     {
         self.clipWidth = 1;
         _usingDefaultBorderStyle = YES;
+        _borderPadding = UIEdgeInsetsZero;
     }
     return self;
 }
@@ -125,9 +134,11 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     [super dealloc];
 }
 
+
+
 -(CGPathRef)borderPath:(const CGFloat*)radii forBounds:(CGRect)bounds
 {
-    return CGPathCreateRoundiiRectWithDecale(bounds, radii, self.clipWidth/2);
+    return CGPathCreateRoundiiRectWithDecale(UIEdgeInsetsInsetRect(bounds, _borderPadding), radii, self.clipWidth/2);
 }
 
 -(void)updateBorderPath:(const CGFloat*)radii inBounds:(CGRect)bounds
@@ -136,9 +147,14 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         self.cornerRadius = radii?radii[0]:0;
         return;
     }
-    if (!readyToCreateDrawables) return;
+    if (!readyToCreateDrawables && !_needsToSetAllDrawablesOnNextSize) return;
     CGPathRef path = self.shadowPath = [self borderPath:radii forBounds:bounds];
     CGPathRelease(path);
+}
+
+-(void)updateBorderPath
+{
+    [self updateBorderPath:_radii inBounds:self.bounds];
 }
 
 -(void)swithToContentBorder
@@ -151,7 +167,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         [self setColor:[UIColor colorWithCGColor:self.borderColor] forState:UIControlStateNormal];
         self.borderWidth = 0;
         self.cornerRadius = 0.0f;
-        [self updateBorderPath:_radii inBounds:[self bounds]];
+        [self updateBorderPath];
     }
 }
 
@@ -162,7 +178,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         return;
     }
     if (width == self.clipWidth) return;
-    [self updateBorderPath:_radii inBounds:[self bounds]];
+    [self updateBorderPath];
     [super setClipWidth:width];
 }
 
@@ -178,16 +194,17 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 {
     if (radii == _radii) return;
     _radii = radii;
-    
-    CGRect bounds = self.bounds;
-    if (!CGRectIsEmpty(bounds)) {
-        [self updateBorderPath:_radii inBounds:bounds];
-    }
+    [self updateBorderPath];
 }
 
 -(void)setFrame:(CGRect)frame
 {
-    [super setFrame:frame];
+    if (_usingDefaultBorderStyle){
+        [super setFrame:UIEdgeInsetsInsetRect(frame, _borderPadding)];
+    }
+    else {
+        [super setFrame:frame];
+    }
 }
 
 -(void)setBounds:(CGRect)bounds
@@ -210,6 +227,13 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         
     }
 }
+
+-(void)setBorderPadding:(UIEdgeInsets)padding
+{
+    _borderPadding = padding;
+    [self updateBorderPath];
+}
+
 
 -(TiDrawable*) getOrCreateDrawableForState:(UIControlState)state
 {
