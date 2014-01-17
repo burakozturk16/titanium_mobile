@@ -1799,8 +1799,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(BOOL)viewLayedOut
 {
-    if (parent) return !CGRectIsEmpty(sizeCache);
-	return !CGRectIsEmpty([[self view] bounds]);
+    CGRect rectToTest = parent?sizeCache:[[self view] bounds];
+    return (rectToTest.size.width != 0 || rectToTest.size.height != 0);
 }
 
 //TODO: When swapping about proxies, views are uninitialized, aren't they?

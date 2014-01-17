@@ -649,7 +649,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)checkBounds
 {
     CGRect newBounds = [self bounds];
-    if(!CGRectIsEmpty(newBounds) && !CGSizeEqualToSize(oldSize, newBounds.size)) {
+    if(!CGSizeEqualToSize(oldSize, newBounds.size)) {
         [self updateBounds:newBounds];
         oldSize = newBounds.size;
     }
