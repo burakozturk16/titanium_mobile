@@ -667,9 +667,8 @@
     }
     else{
         [self setContentOffsetForPage:pageNum animated:NO];
-        [self updateCurrentPage:pageNum andPageControl:YES];
     }
-//
+    [self updateCurrentPage:pageNum andPageControl:YES];
 }
 
 -(void)moveNext:(id)args
