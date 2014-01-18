@@ -543,14 +543,23 @@ DEFINE_EXCEPTIONS
 	placeholderLoading = NO;
 }
 
--(void)loadDefaultImage:(CGSize)_imagesize
+-(void)loadDefaultImage
 {
-    if (_preventDefaultImage) return;
-    if (_defaultImageUrl!=nil)
+    if (!_preventDefaultImage && _defaultImageUrl!=nil)
     {
+        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+                                       TiDimensionCalculateValue(height,0.0));
+        if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
+        {
+            _imagesize.width *= 2;
+            _imagesize.height *= 2;
+        }
         UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:_defaultImageUrl withSize:_imagesize];
         
         [self imageView].image = [self prepareImage:poster];
+    }
+    else {
+        [self imageView].image = nil;
     }
 }
 
@@ -819,9 +828,8 @@ DEFINE_EXCEPTIONS
     }
     
     if (_reusing) {
-        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-                                       TiDimensionCalculateValue(height,0.0));
-        [self loadDefaultImage:_imagesize];
+        
+        [self loadDefaultImage];
     }
 	
     
@@ -1017,15 +1025,7 @@ DEFINE_EXCEPTIONS
 {
 	NSLog(@"[ERROR] Failed to load image: %@, Error: %@",[request url], error);
     // NOTE: Loading from URL means we can't pre-determine any % value.
-    CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-                                   TiDimensionCalculateValue(height,0.0));
-    
-    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
-    {
-        _imagesize.width *= 2;
-        _imagesize.height *= 2;
-    }
-    [self loadDefaultImage:_imagesize];
+    [self loadDefaultImage];
 }
 
 @end
