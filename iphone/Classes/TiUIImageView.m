@@ -428,10 +428,7 @@ DEFINE_EXCEPTIONS
     else if([image isKindOfClass:[TiSVGImage class]]) {
         autoHeight = _svg.size.height;
         autoWidth = _svg.size.width;
-            // NOTE: Loading from URL means we can't pre-determine any % value.
-        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-                                       TiDimensionCalculateValue(height,0.0));
-        return [_svg imageForSize:_imagesize];
+        return [_svg imageForSize:[self imageSize]];
     }
     else {
         autoHeight = autoWidth = 0;
@@ -543,18 +540,22 @@ DEFINE_EXCEPTIONS
 	placeholderLoading = NO;
 }
 
+-(CGSize) imageSize {
+    CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
+                                   TiDimensionCalculateValue(height,0.0));
+    if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
+    {
+        _imagesize.width *= 2;
+        _imagesize.height *= 2;
+    }
+    return _imagesize;
+}
+
 -(void)loadDefaultImage
 {
     if (!_preventDefaultImage && _defaultImageUrl!=nil)
     {
-        CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-                                       TiDimensionCalculateValue(height,0.0));
-        if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
-        {
-            _imagesize.width *= 2;
-            _imagesize.height *= 2;
-        }
-        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:_defaultImageUrl withSize:_imagesize];
+        UIImage *poster = [[ImageLoader sharedLoader] loadImmediateImage:_defaultImageUrl withSize:[self imageSize]];
         
         [self imageView].image = [self prepareImage:poster];
     }
@@ -569,15 +570,6 @@ DEFINE_EXCEPTIONS
 	{
 		NSURL *url_ = [TiUtils toURL:[img absoluteString] proxy:self.proxy];
         
-        // NOTE: Loading from URL means we can't pre-determine any % value.
-		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0), 
-									  TiDimensionCalculateValue(height,0.0));
-        
-		if ([TiUtils boolValue:[[self proxy] valueForKey:@"hires"]])
-		{
-			_imagesize.width *= 2;
-			_imagesize.height *= 2;
-		}
         UIImage *image = nil;
         if (localLoadSync)
         {
@@ -592,7 +584,6 @@ DEFINE_EXCEPTIONS
         
 		if (image==nil)
 		{
-//            [self loadDefaultImage:_imagesize];
 			placeholderLoading = YES;
 			[(TiUIImageViewProxy *)[self proxy] startImageLoad:url_];
 			return;
@@ -640,19 +631,6 @@ DEFINE_EXCEPTIONS
 		// called within this class
         image = (TiSVGImage*)arg;
     }
-    
-//	if ([image isKindOfClass:[UIImage class]]) {
-//        imageToUse = [self rotatedImage:image];
-//    }
-//    else if([image isKindOfClass:[TiSVGImage class]]) {
-//        // NOTE: Loading from URL means we can't pre-determine any % value.
-//		CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(width, 0.0),
-//									  TiDimensionCalculateValue(height,0.0));
-//        imageToUse = [_svg imageForSize:_imagesize] ;
-//    }
-//    
-//    [self prepareImage:imageToUse];
-
     return image;
 }
 #pragma mark Public APIs
