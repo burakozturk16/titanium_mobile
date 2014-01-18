@@ -206,6 +206,7 @@
         _needsToSetDrawables = NO;
         _needsToSetAllDrawablesOnNextSize = NO;
         _animateTransition = NO;
+        self.zPosition = -0.01;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
         _clipWidth = 0.0f;
     }

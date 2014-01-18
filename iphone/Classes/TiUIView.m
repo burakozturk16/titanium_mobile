@@ -749,7 +749,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.shadowPath = self.layer.shadowPath;
-    _bgLayer.zPosition = -1000;
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     [self onCreateCustomBackground];
@@ -1341,6 +1340,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return [NSArray arrayWithArray:childViews];
 }
 
+-(void)verifyZOrder
+{
+    [_bgLayer sendToBack];
+    [_borderLayer bringToFront];
+}
+
 -(void)didAddSubview:(UIView*)view
 {
     if ([view isKindOfClass:[TiUIView class]])
@@ -1349,13 +1354,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
-    [_borderLayer bringToFront];
-    [_bgLayer sendToBack];
+//    [self verifyZOrder];
 }
 
 - (void)willRemoveSubview:(UIView *)subview
 {
-    
     if ([subview isKindOfClass:[TiUIView class]] && childViews)
     {
         [childViews removeObject:subview];

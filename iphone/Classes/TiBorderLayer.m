@@ -122,6 +122,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     if (self = [super init])
     {
         self.clipWidth = 1;
+        self.zPosition = 0.01;
         _usingDefaultBorderStyle = YES;
         _borderPadding = UIEdgeInsetsZero;
     }
