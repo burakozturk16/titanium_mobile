@@ -13,4 +13,5 @@
 -(void)updateBorderPath:(const CGFloat*)radii inBounds:(CGRect)bounds;
 -(void)setRadii:(CGFloat*)radii;
 -(void)swithToContentBorder;
+-(void)setBorderPadding:(UIEdgeInsets)padding;
 @end
