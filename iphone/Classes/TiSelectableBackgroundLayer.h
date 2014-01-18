@@ -45,4 +45,5 @@
 - (void)setImage:(id)image forState:(UIControlState)state;
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
 - (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state;
+-(void)setNonRetina:(BOOL)value;
 @end

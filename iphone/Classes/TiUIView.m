@@ -209,6 +209,7 @@ NSArray* listenerArray = nil;
     UIEdgeInsets _borderPadding;
     CGFloat* radii;
     BOOL usePathAsBorder;
+    BOOL _nonRetina;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -330,6 +331,7 @@ DEFINE_EXCEPTIONS
     viewState = -1;
     radii = NULL;
     usePathAsBorder = NO;
+    _nonRetina = NO;
 }
 
 
@@ -749,6 +751,9 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
     _bgLayer.shadowPath = self.layer.shadowPath;
+    if (_nonRetina){
+        [_bgLayer setNonRetina:_nonRetina];
+    }
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
     [self onCreateCustomBackground];
@@ -775,6 +780,9 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     CGRect bounds = [[self backgroundWrapperView] layer].bounds;
     if (!CGRectIsEmpty(bounds)) {
         _borderLayer.frame = bounds;
+    }
+    if (_nonRetina){
+        [_borderLayer setNonRetina:_nonRetina];
     }
     _borderLayer.readyToCreateDrawables = configurationSet;
     _borderLayer.opacity = backgroundOpacity;
@@ -1182,6 +1190,18 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [_borderLayer setBorderPadding:_borderPadding];
     }
 }
+
+-(void)setRetina_:(id)value
+{
+    _nonRetina = ![TiUtils boolValue:value];
+    if (_bgLayer) {
+        [_bgLayer setNonRetina:_nonRetina];
+    }
+    if (_borderLayer) {
+        [_borderLayer setNonRetina:_nonRetina];
+    }
+}
+
 
 -(void)setAnchorPoint_:(id)point
 {

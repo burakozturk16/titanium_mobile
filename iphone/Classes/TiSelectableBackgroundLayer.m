@@ -9,8 +9,23 @@
     BOOL _needsUpdate;
 }
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate;
+@end
+
+@interface TiSelectableBackgroundLayer()
+{
+    TiDrawable* currentDrawable;
+    UIControlState currentState;
+    BOOL _animateTransition;
+    BOOL _needsToSetDrawables;
+    CGFloat _clipWidth;
+    CGPathRef _clippingPath;
+    BOOL _nonRetina;
+}
+@property(nonatomic,assign) BOOL nonRetina;
 
 @end
+
+
 @implementation TiDrawable
 @synthesize gradient, color, image, svg, imageRepeat, shadow = _shadow, innerShadows = _innerShadows;
 
@@ -87,7 +102,7 @@
 -(void)drawBufferFromLayer:(TiSelectableBackgroundLayer*)layer
 {
     CGRect rect = layer.bounds;
-    UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
+    UIGraphicsBeginImageContextWithOptions(rect.size, NO, layer.nonRetina?1.0:0.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     if (ctx == 0) {
         UIGraphicsEndImageContext();
@@ -177,22 +192,10 @@
     RELEASE_TO_NIL(_bufferImage);
     [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
 }
-
-@end
-
-@interface TiSelectableBackgroundLayer()
-{
-    TiDrawable* currentDrawable;
-    UIControlState currentState;
-    BOOL _animateTransition;
-    BOOL _needsToSetDrawables;
-    CGFloat _clipWidth;
-    CGPathRef _clippingPath;
-}
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, clippingPath = _clippingPath;
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, clippingPath = _clippingPath, nonRetina = _nonRetina;
 
 - (id)init {
     if (self = [super init])
@@ -208,6 +211,7 @@
         _animateTransition = NO;
         self.zPosition = -0.01;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
+        _nonRetina = YES;
         _clipWidth = 0.0f;
     }
     return self;
@@ -225,6 +229,13 @@
     }
 	[super dealloc];
 }
+
+
+-(void)setRetina:(BOOL)value
+{
+    _nonRetina = !value;
+}
+
 
 -(void)setBounds:(CGRect)bounds
 {
