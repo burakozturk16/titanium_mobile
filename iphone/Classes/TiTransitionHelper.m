@@ -258,19 +258,30 @@ static NSDictionary* typeMap = nil;
 {
     ADTransition* adTransition = transition.adTransition ;
     
-    BOOL needsTransformFix = [adTransition isKindOfClass:[ADTransformTransition class]] && ![holder.layer isKindOfClass:[CATransformLayer class]];
+    BOOL needsTransformFix = ([transition isKindOfClass:[TiTransitionPerspective class]] ||
+                              [adTransition isKindOfClass:[ADTransformTransition class]]) && ![holder.layer isKindOfClass:[CATransformLayer class]];
     UIView* workingView = holder;
+    UIView* workingView2 = holder;
+    int index = [[holder subviews] indexOfObject:viewOut];
     
     if (needsTransformFix) {
+        if([transition isKindOfClass:[TiTransitionPerspective class]]) {
+            workingView2 = [[UIView alloc] initWithFrame: holder.bounds];
+            CATransform3D sublayerTransform = CATransform3DIdentity;
+            sublayerTransform.m34 = 1.0 / kPerspective;
+            workingView2.layer.sublayerTransform = sublayerTransform;
+            [holder insertSubview:workingView2 atIndex:index];
+            [workingView2 release];
+        }
         workingView = [[TransitionView alloc] initWithFrame: holder.bounds];
-        [holder addSubview:workingView];
+        [workingView2 insertSubview:workingView atIndex:index];
         if (viewOut) {
             [workingView addSubview:viewOut];
         }
         [workingView release];
     }
     if (viewIn) {
-        [workingView addSubview:viewIn];
+        [workingView insertSubview:viewIn aboveSubview:viewOut];
     }
     
     if (prepareBlock != nil) {
@@ -278,16 +289,20 @@ static NSDictionary* typeMap = nil;
     }
     
     adTransition.type = ADTransitionTypePush;
-    [transition prepareViewHolder:holder];
+//    [transition prepareViewHolder:workingView2];
     [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
     
     void (^completionBlock)(void) = ^void(void) {
         [viewOut removeFromSuperview];
         if (needsTransformFix) {
             if (viewIn) {
-                [holder addSubview:viewIn];
+                [holder insertSubview:viewIn atIndex:index];
             }
-            [workingView removeFromSuperview];
+            if (workingView2 != holder)
+                [workingView2 removeFromSuperview];
+            else {
+                [workingView removeFromSuperview];
+            }
         }
         if (block != nil) {
             block();
@@ -301,7 +316,6 @@ static NSDictionary* typeMap = nil;
     }
     [CATransaction setCompletionBlock:^{
         [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
-        [transition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
         completionBlock();
     }];
     

@@ -408,8 +408,6 @@ DEFINE_EXCEPTIONS
         [self fireLoadEventWithState:@"image"];
         placeholderLoading = NO;
         [TiTransitionHelper transitionfromView:oldView toView:imageView insideView:self withTransition:transition prepareBlock:^{
-            [self sendSubviewToBack:imageView];
-            [self sendSubviewToBack:oldView];
         } completionBlock:^{
             [oldView release];
         }];
