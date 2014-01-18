@@ -34,19 +34,29 @@ NSString * const kTiUIViewKey = @"kTiView";
 	return objc_getAssociatedObject(self, kTiUIViewKey);
 }
 
+-(void)setSelected:(BOOL)highlighted animated:(BOOL)animated
+{
+    [self setSelected:highlighted];
+}
+
 -(void)setSelectedCustom:(BOOL)selected
 {
-    //WARNING: this is the swizzle trick, will actually call [UIButton setSelected:]
+    //WARNING: this is the swizzle trick, will actually call [UIControl setSelected:]
     [self setSelectedCustom:selected];
     TiUIView* tiView = [self tiUIView];
     if (tiView)
         [tiView setSelected:selected];
 }
 
+-(void)setHighlighted:(BOOL)highlighted animated:(BOOL)animated
+{
+    [self setHighlighted:highlighted];
+}
+
 -(void)setHighlightedCustom:(BOOL)highlighted
 {
     
-    //WARNING: this is the swizzle trick, will actually call [UIButton setHighlighted:]
+    //WARNING: this is the swizzle trick, will actually call [UIControl setHighlighted:]
     [self setHighlightedCustom:highlighted];
     TiUIView* tiView = [self tiUIView];
     if (tiView)
@@ -56,7 +66,7 @@ NSString * const kTiUIViewKey = @"kTiView";
 -(void)setEnabledCustom:(BOOL)highlighted
 {
     
-    //WARNING: this is the swizzle trick, will actually call [UIButton setHighlighted:]
+    //WARNING: this is the swizzle trick, will actually call [UIControl setHighlighted:]
     [self setEnabledCustom:highlighted];
     TiUIView* tiView = [self tiUIView];
     if (tiView)

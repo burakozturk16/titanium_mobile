@@ -191,9 +191,9 @@
     }
 }
 
--(void)setHighlighted:(BOOL)newValue
+-(void)setHighlighted:(BOOL)newValue animated:(BOOL)animated
 {
-    [super setHighlighted:newValue];
+    [super setHighlighted:newValue animated:animated];
     [[self label] setHighlighted:newValue];
 }
 

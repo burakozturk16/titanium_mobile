@@ -352,16 +352,29 @@ static NSArray* handledKeys;
     }
 }
 
+-(void)unHighlight
+{
+    if (_viewHolder)
+    {
+        [self unHighlight:[_viewHolder subviews]];
+    }
+    else {
+        [self unHighlight:[self subviews]];
+    }
+}
+
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
-    [self unHighlight:[self subviews]];
+    [_viewHolder setSelected:yn animated:animated];
+    [self unHighlight];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
-    [self unHighlight:[self subviews]];
+    [_viewHolder setHighlighted:yn animated:animated];
+    [self unHighlight];
 }
 
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped

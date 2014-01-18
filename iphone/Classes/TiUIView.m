@@ -1233,6 +1233,16 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	}
 }
 
+-(void)setAnimatedTransition:(BOOL)animated
+{
+    if (_bgLayer != nil) {
+        [_bgLayer setAnimateTransition:animated];
+    }
+    if (_borderLayer != nil) {
+        [_borderLayer setAnimateTransition:animated];
+    }
+}
+
 -(void)setBgState:(UIControlState)state
 {
     state = [self realStateForState:state];
@@ -2148,46 +2158,62 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
+    [self setHighlighted:isHiglighted animated:NO];
+}
+
+-(void)setHighlighted:(BOOL)isHiglighted animated:(BOOL)animated
+{
+    [self setAnimatedTransition:animated];
     [self setBgState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:animated:)])
             {
-                [firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
+                [firstChild setHighlighted:isHiglighted animated:animated];//swizzle will call setHighlighted on the view
             }
             else {
-                [(id)thisView setHighlighted:isHiglighted];
+                [(id)thisView setHighlighted:isHiglighted animated:animated];
             }
         }
         else {
-			[(id)thisView setHighlighted:isHiglighted];
+			[(id)thisView setHighlighted:isHiglighted animated:animated];
 		}
 	}
+    [self setAnimatedTransition:NO];
 }
 
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:isSelected?UIControlStateSelected:UIControlStateNormal];
+    [self setSelected:isSelected animated:NO];
+}
+
+-(void)setSelected:(BOOL)isSelected animated:(BOOL)animated
+{
+    [self setAnimatedTransition:animated];
+    
+    //we dont really support Selected for background as it is not necessary
+    [self setBgState:isSelected?UIControlStateHighlighted:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:animated:)])
             {
-                [firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
+                [firstChild setSelected:isSelected animated:animated]; //swizzle will call setSelected on the view
             }
             else {
-                [(id)thisView setSelected:isSelected];
+                [(id)thisView setSelected:isSelected animated:animated];
             }
         }
         else {
-			[(id)thisView setSelected:isSelected];
+			[(id)thisView setSelected:isSelected animated:animated];
 		}
 	}
+    [self setAnimatedTransition:NO];
 }
 
 - (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{

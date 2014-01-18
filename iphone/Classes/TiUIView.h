@@ -273,7 +273,9 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)detach;
 
 -(void)setHighlighted:(BOOL)isHiglighted;
+-(void)setHighlighted:(BOOL)isHiglighted animated:(BOOL)animated;
 -(void)setSelected:(BOOL)isSelected;
+-(void)setSelected:(BOOL)isSelected animated:(BOOL)animated;
 - (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block;
 - (void)blurBackground:(id)args;
 -(UIControlState)realStateForState:(UIControlState)state;

@@ -19,8 +19,6 @@
     BOOL needsSetText;
 }
 
-@property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
-
 -(void)setAttributedTextViewContent;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
 -(TiLabel*)label;
