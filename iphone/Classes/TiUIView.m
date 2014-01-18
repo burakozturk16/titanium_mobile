@@ -796,7 +796,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void) setBackgroundSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
     [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
 }
 
@@ -845,7 +845,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void) setBackgroundSelectedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
 }
 
@@ -927,7 +927,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     id image = [self loadImageOrSVG:arg];
     [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateHighlighted];
-    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
 }
 
 -(void) setBackgroundHighlightedImage_:(id)image
@@ -945,7 +945,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         needsToSetBackgroundDisabledImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateDisabled];
 }
 
 -(void) setBackgroundInnerShadows_:(id)value
@@ -973,7 +973,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }];
     }
     
-    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateSelected];
     [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
 }
 
@@ -1130,7 +1130,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void) setBorderSelectedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateSelected];
+//    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateSelected];
     [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
 }
 
@@ -1155,7 +1155,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void) setBorderSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateSelected];
+//    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateSelected];
     [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
 }
 
