@@ -62,7 +62,7 @@
 
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
-    CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
+    CGSize maxSize = CGSizeMake(size.width<=0 ? 10000 : size.width, 10000);
     maxSize.width -= label.viewInsets.left + label.viewInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
