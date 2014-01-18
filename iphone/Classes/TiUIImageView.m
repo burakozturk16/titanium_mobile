@@ -390,28 +390,28 @@ DEFINE_EXCEPTIONS
 -(void) transitionToImage:(UIImage*)image
 {
     ENSURE_UI_THREAD(transitionToImage,image);
-    image = [self prepareImage:image];
 	if (self.proxy==nil)
 	{
 		// this can happen after receiving an async callback for loading the image
 		// but after we've detached our view.  In which case, we need to just ignore this
 		return;
 	}
+    image = [self prepareImage:image];
     TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
     [(TiViewProxy*)[self proxy] contentsWillChange];
     if (transition != nil) {
-        UIImageView *oldView = [self imageView];
-        UIImageView *newView = [self cloneView:oldView];
-        newView.image = image;
-        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition prepareBlock:^{
-            [self sendSubviewToBack:newView];
+        UIImageView *oldView = [[self imageView] retain];
+        RELEASE_TO_NIL(imageView);
+        imageView = [[self cloneView:oldView] retain];
+        imageView.image = image;
+        [self fireLoadEventWithState:@"image"];
+        placeholderLoading = NO;
+        [TiTransitionHelper transitionfromView:oldView toView:imageView insideView:self withTransition:transition prepareBlock:^{
+            [self sendSubviewToBack:imageView];
             [self sendSubviewToBack:oldView];
         } completionBlock:^{
-            placeholderLoading = NO;
-            [self fireLoadEventWithState:@"image"];
             [oldView release];
         }];
-        imageView = [newView retain];
 	}
     else {
         [[self imageView] setImage:image];
