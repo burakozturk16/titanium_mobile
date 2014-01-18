@@ -164,6 +164,7 @@ DEFINE_EXCEPTIONS
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    imageView.frame = bounds;
     if (imageView.layer.mask != nil) {
         [imageView.layer.mask setFrame:bounds];
     }
