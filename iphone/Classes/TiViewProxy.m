@@ -3644,60 +3644,11 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		TiUIView *parentView = (TiUIView*)[childView superview];
 		if (parentView!=ourView)
 		{
-			//TODO: Optimize!
-			int insertPosition = 0;
-			int childZIndex = [child vzIndex];
-			
-			pthread_rwlock_rdlock(&childrenLock);
-			int childProxyIndex = [children indexOfObject:child];
-            
-			BOOL optimizeInsertion = [self optimizeSubviewInsertion];
-
-			for (TiUIView * thisView in [ourView subviews])
-			{
-				if ( (!optimizeInsertion) || (![thisView isKindOfClass:[TiUIView class]]) )
-				{
-					insertPosition ++;
-					continue;
-				}
-                
-				int thisZIndex=[(TiViewProxy *)[thisView proxy] vzIndex];
-				if (childZIndex < thisZIndex) //We've found our stop!
-				{
-					break;
-				}
-				if (childZIndex == thisZIndex)
-				{
-					TiProxy * thisProxy = [thisView proxy];
-					if (childProxyIndex <= [children indexOfObject:thisProxy])
-					{
-						break;
-					}
-				}
-				insertPosition ++;
-			}
-			
-//            [childView removeFromSuperview];
-			[ourView insertSubview:childView atIndex:insertPosition];
-			pthread_rwlock_unlock(&childrenLock); // must release before calling resize
-			
-//            TIMOB-14488. This is a bad message. We should not be signalling a child
-//            resize to the parent when the parent is laying out the child.
-//            if ( !CGSizeEqualToSize(child.sandboxBounds.size, bounds.size) ) {
-//                //Child will not resize if sandbox size does not change
-//                [self childWillResize:child];
-//            }
+            [self insertSubview:childView forProxy:child];
 		}
 	}
 	[child setSandboxBounds:bounds];
     [child dirtyItAll]; //for multileve recursion we need to make sure the child resizes itself
-	// if ([[child view] animating])
-	// {
- //        // changing the layout while animating is bad, ignore for now
- //        DebugLog(@"[WARN] New layout set while view %@ animating: Will relayout after animation.", child);
-	// }
-	// else
-	// {
     if ([view runningAnimation]){
 		[child setRunningAnimation:[self runningAnimation]];
 		[child relayout];
@@ -3706,7 +3657,6 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     else {
 		[child relayout];
     }
-	// }
 
 	// tell our children to also layout
 	[child layoutChildren:optimize];
