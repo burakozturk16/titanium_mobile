@@ -64,11 +64,11 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 -(void)cleanup
 {
-    if (_listViewProxy) {
-        [_listViewProxy forgetProxy:self];
-        [self.pageContext unregisterProxy:self];
-        _listViewProxy = nil;
-    }
+//    if (_listViewProxy) {
+//        [_listViewProxy forgetProxy:self];
+//        [self.pageContext unregisterProxy:self];
+//        _listViewProxy = nil;
+//    }
     _listItem = nil;
 }
 
