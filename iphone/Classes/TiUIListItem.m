@@ -63,6 +63,15 @@ DEFINE_EXCEPTIONS
     if (self) {
 		_templateStyle = TiUIListItemTemplateStyleCustom;
 		_proxy = [proxy retain];
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+        _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
+        _viewHolder.proxy = _proxy;
+        _viewHolder.shouldHandleSelection = NO;
+        [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+        [_viewHolder setClipsToBounds: YES];
+        [_viewHolder.layer setMasksToBounds: YES];
+        //    [_viewHolder selectableLayer].animateTransition = YES;
+        [self.contentView addSubview:_viewHolder];
         [self initialize];
         [self setGrouped:grouped];
         _positionMask = position;
@@ -77,13 +86,7 @@ DEFINE_EXCEPTIONS
         self.backgroundColor = [UIColor clearColor];
     }
     self.contentView.opaque = NO;
-    _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
-    _viewHolder.proxy = _proxy;
-    _viewHolder.shouldHandleSelection = NO;
-    [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [_viewHolder setClipsToBounds: YES];
-    [_viewHolder.layer setMasksToBounds: YES];
-    [self.contentView addSubview:_viewHolder];
+    
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
     configurationSet = NO;
@@ -321,10 +324,11 @@ static NSArray* handledKeys;
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-	if ([[self handledKeys] indexOfObject:key] != NSNotFound) {
-        DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
-    } else {
+    if (_templateStyle == TiUIListItemTemplateStyleCustom || [[self handledKeys] indexOfObject:key] == NSNotFound)
+    {
         DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
+    } else {
+        DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
     }
 }
 
