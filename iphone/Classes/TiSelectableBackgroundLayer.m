@@ -43,9 +43,9 @@
 
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
-    
+    layer.backgroundColor = (color && !layer.shadowPath)?color.CGColor:nil;
     if ((_needsUpdate || _bufferImage == nil) && (gradient != nil ||
-                                color != nil ||
+                                (color != nil && layer.shadowPath) ||
                                 image != nil ||
                                 _innerShadows != nil ||
                                 svg != nil)) {
