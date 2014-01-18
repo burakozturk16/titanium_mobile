@@ -211,7 +211,7 @@
         _animateTransition = NO;
         self.zPosition = -0.01;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
-        _nonRetina = YES;
+        _nonRetina = NO;
         _clipWidth = 0.0f;
     }
     return self;
