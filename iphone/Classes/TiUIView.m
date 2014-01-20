@@ -1232,9 +1232,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if (newVal == oldVal) return;
     
     self.hidden = newVal;
-	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
+    
     TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
-	
 	if(viewProxy.parentVisible)
 	{
 		if (newVal)
@@ -1247,7 +1246,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
                 [viewProxy willChangeSize];
                 [viewProxy willChangePosition];
             }];
-            [viewProxy refreshViewOrParent];
+            if (configurationSet) [viewProxy refreshViewOrParent];
 		}
 	}
 }
