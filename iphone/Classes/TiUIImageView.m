@@ -226,10 +226,10 @@ DEFINE_EXCEPTIONS
 	
 	previous = [view retain];
     
-	if ([self.proxy _hasListeners:@"change"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
 		NSDictionary *evt = [NSDictionary dictionaryWithObject:[NSNumber numberWithInt:position] forKey:@"index"];
-		[self.proxy fireEvent:@"change" withObject:evt];
+		[self.proxy fireEvent:@"change" withObject:evt propagate:NO checkForListener:NO];
 	}
 	
 	if (repeatCount > 0 && ((reverse==NO && nextIndex == loadTotal) || (reverse && nextIndex==0)))

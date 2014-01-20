@@ -711,7 +711,7 @@
 	{
 		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
                                                    NUMINT(newPage),@"currentPage",
-                                                   [[self proxy] viewAtIndex:newPage],@"view",nil] propagate:NO];
+                                                   [[self proxy] viewAtIndex:newPage],@"view",nil] propagate:NO checkForListener:NO];
 	}
 }
 

@@ -277,9 +277,9 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 	NSNumber * newValue = [NSNumber numberWithFloat:[(UISlider *)sender value]];
 	[self.proxy replaceValue:newValue forKey:@"value" notification:NO];
 	
-	if ([self.proxy _hasListeners:@"change"])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
+		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
 	}
 }
 

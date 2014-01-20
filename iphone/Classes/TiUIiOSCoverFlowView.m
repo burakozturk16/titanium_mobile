@@ -12,6 +12,7 @@
 #import "ImageLoader.h"
 #import "TiBlob.h"
 #import "AFOpenFlow/UIImageExtras.h"
+#import "TiViewProxy.h"
 
 @implementation TiUIiOSCoverFlowView
 
@@ -219,10 +220,10 @@
 
 - (void)openFlowView:(AFOpenFlowView *)openFlowView selectionDidChange:(int)index
 {
-	if ([self.proxy _hasListeners:@"change"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
 		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:NUMINT(index),@"index",NUMINT(previous),@"previous",nil];
-		[self.proxy fireEvent:@"change" withObject:event];
+		[self.proxy fireEvent:@"change" withObject:event propagate:NO checkForListener:NO];
 	}
 	[self.proxy replaceValue:NUMINT(index) forKey:@"selected" notification:NO];
 	previous = index;

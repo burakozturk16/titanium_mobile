@@ -81,7 +81,10 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
 	{
 		[self replaceValue:newValue forKey:@"value" notification:NO];
 		[self contentsWillChange];
-		[self fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
+        if ([self _hasListeners:@"change" checkParent:NO])
+        {
+            [self fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
+        }
         TiThreadPerformOnMainThread(^{
             //Make sure the text widget is in view when editing.
             [(TiUITextWidget*)[self view] updateKeyboardStatus];
