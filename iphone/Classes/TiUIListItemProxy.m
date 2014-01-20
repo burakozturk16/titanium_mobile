@@ -21,6 +21,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 @implementation TiUIListItemProxy {
 	TiUIListViewProxy *_listViewProxy; // weak
 	NSDictionary *_bindings;
+	NSDictionary *_templateProperties;
     NSMutableDictionary *_initialValues;
 	NSMutableDictionary *_currentValues;
 	NSMutableSet *_resetKeys;
@@ -64,18 +65,18 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 -(void)cleanup
 {
-//    if (_listViewProxy) {
-//        [_listViewProxy forgetProxy:self];
-//        [self.pageContext unregisterProxy:self];
-//        _listViewProxy = nil;
-//    }
+    //    if (_listViewProxy) {
+    //        [_listViewProxy forgetProxy:self];
+    //        [self.pageContext unregisterProxy:self];
+    //        _listViewProxy = nil;
+    //    }
     _listItem = nil;
 }
 
 -(void) setListItem:(TiUIListItem *)newListItem
 {
     //we must not retain the item or we get a cyclic retain problem
-//    RELEASE_TO_NIL(_listItem);
+    //    RELEASE_TO_NIL(_listItem);
     _listItem = newListItem;
     if (newListItem)
     {
@@ -103,6 +104,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     RELEASE_TO_NIL(_resetKeys)
     RELEASE_TO_NIL(_indexPath)
     RELEASE_TO_NIL(_bindings)
+    RELEASE_TO_NIL(_templateProperties)
 	[super dealloc];
 }
 
@@ -127,6 +129,8 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 - (void)unarchiveFromTemplate:(id)viewTemplate withEvents:(BOOL)withEvents
 {
 	[super unarchiveFromTemplate:viewTemplate withEvents:withEvents];
+    //lets store the default template props
+    _templateProperties = [[NSDictionary dictionaryWithDictionary:[self allProperties]] retain];
 	if (withEvents) SetEventOverrideDelegateRecursive(self.children, self);
     unarchived = YES;
 }
@@ -209,14 +213,20 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 		default:
 			break;
 	}
+    
+    NSMutableDictionary* listProps = [NSMutableDictionary dictionaryWithDictionary:[_listViewProxy propertiesForItems]];
+    if (_templateProperties) {
+        [listProps removeObjectsForKeys:[_templateProperties allKeys]];
+    }
+    if ([dataItem objectForKey:@"properties"])
+    {
+        [listProps removeObjectsForKeys:[[dataItem objectForKey:@"properties"] allKeys]];
+    }
+    [self setValuesForKeysWithDictionary:listProps];
+    
     [dataItem enumerateKeysAndObjectsUsingBlock:^(id key, id obj, BOOL *stop) {
         [self setValue:obj forKeyPath:key];
     }];
-    
-    NSDictionary* listViewProps = [_listViewProxy propertiesForItems];
-    if ([listViewProps count] > 0) {
-        [self setValuesForKeysWithDictionary:listViewProps];
-    }
     
     enumeratingResetKeys = YES;
 	[_resetKeys enumerateObjectsUsingBlock:^(NSString *keyPath, BOOL *stop) {
@@ -371,3 +381,4 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 }
 
 #endif
+
