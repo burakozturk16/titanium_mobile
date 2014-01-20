@@ -265,8 +265,9 @@ doReposition = YES;\
     
         if (backgroundColor!=nil)
         {
-            TiColor *color_ = [TiUtils colorValue:backgroundColor];
-            [uiview setBackgroundColor:[color_ _color]];
+            //we have to use setBackgroundColor_ because setBackgroundColor has been overriden
+            // on purpose
+            [_view setBackgroundColor_:[backgroundColor _color]];
         }
         
         if (color!=nil && [uiview respondsToSelector:@selector(setColor_:)])
