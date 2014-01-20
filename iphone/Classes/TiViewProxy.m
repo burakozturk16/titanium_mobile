@@ -2314,6 +2314,19 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     allowContentChange = YES;
 }
 
+-(void)parentContentWillChange
+{
+    if (allowContentChange == NO && [parent allowContentChange])
+    {
+        [parent performBlockWithoutLayout:^{
+            [parent contentsWillChange];
+        }];
+    }
+    else {
+        [parent contentsWillChange];
+    }
+}
+
 -(void)willChangeSize
 {
 	SET_AND_PERFORM(TiRefreshViewSize,return);
@@ -2332,15 +2345,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	}
 
 	[self willEnqueueIfVisible];
-    if (allowContentChange == NO && [parent allowContentChange])
-    {
-        [parent performBlockWithoutLayout:^{
-            [parent contentsWillChange];
-        }];
-    }
-    else {
-        [parent contentsWillChange];
-    }
+    [self parentContentWillChange];
 	
     if (!allowContentChange) return;
 	pthread_rwlock_rdlock(&childrenLock);
@@ -2358,7 +2363,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		[self willChangeSize];
 	}
 	[self willEnqueueIfVisible];
-	[parent contentsWillChange];
+    [self parentContentWillChange];
 }
 
 -(void)willChangeZIndex
@@ -2383,7 +2388,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     pthread_rwlock_unlock(&childrenLock);
     
     if (parent && ![parent absoluteLayout])
-        [parent contentsWillChange];
+        [self parentContentWillChange];
     else {
         [self contentsWillChange];
     }
@@ -2400,7 +2405,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	pthread_rwlock_unlock(&childrenLock);
     
     if (parent && ![parent absoluteLayout])
-        [parent contentsWillChange];
+        [self parentContentWillChange];
 }
 
 -(void)willResizeChildren
