@@ -223,6 +223,11 @@
 
 #pragma mark Public APIs
 
+-(void)setEnabled_:(id)value
+{
+	[[self label] setEnabled:[TiUtils boolValue:value]];
+}
+
 -(void)setVerticalAlign_:(id)value
 {
     UIControlContentVerticalAlignment verticalAlign = [TiUtils contentVerticalAlignmentValue:value];
