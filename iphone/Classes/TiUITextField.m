@@ -403,7 +403,7 @@
         NSString* theText = [ourProxy valueForKey:@"value"];
         [tf setText:theText];
     }
-    [self setViewState:UIControlStateSelected];
+    [self setViewState:UIControlStateHighlighted];
     
 	[self textWidget:tf didFocusWithText:[tf text]];
 	[self performSelector:@selector(textFieldDidChange:) onThread:[NSThread currentThread] withObject:nil waitUntilDone:NO];
@@ -431,7 +431,6 @@
 - (void)textFieldDidEndEditing:(UITextField *)tf
 {
     [self setViewState:-1];
-    [self setBgState:UIControlStateNormal];
 	[self textWidget:tf didBlurWithText:[tf text]];
 }
 
