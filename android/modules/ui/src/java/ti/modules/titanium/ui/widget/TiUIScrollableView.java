@@ -318,6 +318,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	public void onPageSelected(int page)
 	{
 
+		setCurrentPageIndex(page, true);
 		updateCurrentPageDuringScroll = false;
 		// If we didn't just fire a `dragend` event then this is the case
 		// where a user drags the view and settles it on a different view.
