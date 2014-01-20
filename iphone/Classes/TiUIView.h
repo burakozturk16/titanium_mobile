@@ -157,6 +157,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 
 -(void)setTransform_:(id)matrix;
 -(void) setBackgroundColor_:(id)color;
+-(void)setEnabled_:(id)arg;
 
 /*
  Tells the view to load an image.

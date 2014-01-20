@@ -225,7 +225,8 @@
 
 -(void)setEnabled_:(id)value
 {
-	[[self label] setEnabled:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[[self label] setEnabled:[self interactionEnabled]];
 }
 
 -(void)setVerticalAlign_:(id)value

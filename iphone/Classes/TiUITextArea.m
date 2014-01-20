@@ -133,7 +133,8 @@
 
 -(void)setEnabled_:(id)value
 {
-	[(UITextView *)[self textWidgetView] setEditable:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[(UITextView *)[self textWidgetView] setEditable:[self interactionEnabled]];
 }
 
 -(void)setScrollable_:(id)value

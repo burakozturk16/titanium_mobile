@@ -153,7 +153,8 @@
 
 -(void)setEnabled_:(id)value
 {
-	[[self button] setEnabled:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[[self button] setEnabled:[self interactionEnabled]];
 }
 
 -(void)setExclusiveTouch:(BOOL)value
@@ -161,11 +162,6 @@
     [super setExclusiveTouch:value];
 	[[self button] setExclusiveTouch:value];
 }
-
--(BOOL) enabledForBgState {
-    return [self button].enabled && [super enabledForBgState];
-}
-
 
 -(void)setSelected_:(id)value
 {

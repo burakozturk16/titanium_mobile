@@ -270,8 +270,8 @@
 -(void)setEnabled_:(id)value
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
+    [super setEnabled_:_trulyEnabled];
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:UIControlStateNormal];
 }
 
 -(void)setHintText_:(id)value

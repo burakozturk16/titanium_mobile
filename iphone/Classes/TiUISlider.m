@@ -248,13 +248,10 @@
 	[self setValue_:value withObject:nil];
 }
 
--(BOOL) enabledForBgState {
-    return [self sliderView].enabled && [super enabledForBgState];
-}
-
 -(void)setEnabled_:(id)value
 {
-	[[self sliderView] setEnabled:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[[self sliderView] setEnabled:[self interactionEnabled]];
 }
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight
