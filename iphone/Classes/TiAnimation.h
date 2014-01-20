@@ -134,5 +134,6 @@ enum TiAnimCurve
 -(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim;
 -(void)cancelMyselfBeforeStarting;
 -(void)simulateFinish:(TiAnimatableProxy*)proxy;
+-(void)cancelWithReset:(BOOL)reset;
 
 @end

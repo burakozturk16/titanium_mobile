@@ -274,11 +274,16 @@ static NSArray *animProps;
 
 -(void)cancel:(id)args
 {
+    [self cancelWithReset:YES];
+}
+
+-(void)cancelWithReset:(BOOL)reset
+{
     TiAnimatableProxy* proxy = [animatedProxy retain];
     if (proxy != nil) {
         //animation will actually be cancelled in in animationDidComplete
         //we need to do this to make sure things are done in order
-        [proxy cancelAnimation:self];
+        [proxy cancelAnimation:self shouldReset:reset];
 	}
 	[proxy release];
 }
