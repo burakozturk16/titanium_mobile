@@ -91,7 +91,7 @@
 	pthread_rwlock_unlock(&runningLock);
     for (TiAnimation* animation in running) {
         [self removeRunningAnimation:animation];
-        [animation cancel:nil];
+        [animation cancelWithReset:animation.restartFromBeginning];
     }
     [running release];
 }
