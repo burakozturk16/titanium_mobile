@@ -32,7 +32,6 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.text.Html;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.text.util.Linkify;
@@ -41,9 +40,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.LinearLayout.LayoutParams;
-import android.graphics.Rect;
-
 import android.graphics.Typeface;
 import android.text.Layout;
 import android.text.Layout.Alignment;
@@ -52,11 +48,9 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextUtils.TruncateAt;
-import android.text.method.LinkMovementMethod;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.BulletSpan;
-import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.MaskFilterSpan;
@@ -976,7 +970,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			needsColors = true;
-			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, this.disabledColor);
 		}
 		if (needsColors) {
 			updateTextColors();
