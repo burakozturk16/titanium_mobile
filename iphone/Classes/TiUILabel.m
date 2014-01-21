@@ -148,7 +148,7 @@
     {
         TiThreadPerformOnMainThread(^{
             [self setAttributedTextViewContent];
-        }, NO);
+        }, YES);
         return;
     }
     id content = [(TiUILabelProxy*)[self proxy] getLabelContent];
