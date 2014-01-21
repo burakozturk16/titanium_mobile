@@ -319,6 +319,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     BOOL _needsFramesetter;
     CTFramesetterRef _framesetter;
     CTFramesetterRef _highlightFramesetter;
+    CTFramesetterRef _disabledFramesetter;
     NSString *_strokeColorAttributeProperty;
     NSString *_strokeWidthAttributeProperty;
     NSString *_cornerRadiusAttributeProperty;
@@ -398,6 +399,9 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     if (_highlightFramesetter) {
         CFRelease(_highlightFramesetter);
     }
+    if (_disabledFramesetter) {
+        CFRelease(_disabledFramesetter);
+    }
 }
 
 #pragma mark -
@@ -445,6 +449,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
             CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)self.renderedAttributedText);
             [self setFramesetter:framesetter];
             [self setHighlightFramesetter:nil];
+            [self setDisabledFramesetter:nil];
             _needsFramesetter = NO;
             
             if (framesetter) {
@@ -482,6 +487,23 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     }
     if (oldHighlightFramesetter) {
         CFRelease(oldHighlightFramesetter);
+    }
+}
+
+- (CTFramesetterRef)disabledFramesetter
+{
+    return _disabledFramesetter;
+}
+
+- (void)setDisabledFramesetter:(CTFramesetterRef)framesetter
+{
+    CTFramesetterRef oldDisabledFramesetter = _disabledFramesetter;
+    _disabledFramesetter = framesetter;
+    if (_disabledFramesetter) {
+        CFRetain(_disabledFramesetter);
+    }
+    if (oldDisabledFramesetter) {
+        CFRelease(oldDisabledFramesetter);
     }
 }
 
@@ -680,6 +702,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     [self drawBackground:frame inRect:rect textRect:textRect context:c];
 
     CFArrayRef lines = CTFrameGetLines(frame);
+    if (lines == nil) return;
     NSInteger numberOfLines = self.numberOfLines > 0 ? MIN(self.numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
     BOOL truncateLastLine = (self.lineBreakMode == TTTLineBreakByTruncatingHead || self.lineBreakMode == TTTLineBreakByTruncatingMiddle || self.lineBreakMode == TTTLineBreakByTruncatingTail);
 	
@@ -1152,6 +1175,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
 
 - (void)drawTextInRect:(CGRect)rect {
+    BOOL highlighted = self.highlighted && self.enabled;
     if (_attributedText == nil) {
         CGRect rectWithPadding = UIEdgeInsetsInsetRect(rect, _viewInsets);
         CGRect textRect = [super textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
@@ -1173,7 +1197,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         CGContextRef c = UIGraphicsGetCurrentContext();
         CGContextSaveGState(c); {
             CGContextTranslateCTM(c, 0.0f, yOffset);
+            
             [super drawTextInRect:rectWithPadding];
+            
         } CGContextRestoreGState(c);
         return;
     }
@@ -1216,7 +1242,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         CGContextTranslateCTM(c, textRect.origin.x, rect.size.height - textRect.origin.y - textRect.size.height);
 
         // Second, trace the shadow before the actual text, if we have one
-        if (self.highlightedShadowColor && self.highlighted) {
+        if (highlighted && self.highlightedShadowColor) {
             CGContextSetShadowWithColor(c, self.highlightedShadowOffset, self.highlightedShadowRadius, [self.highlightedShadowColor CGColor]);
         }
         else if (self.shadowColor) {
@@ -1224,7 +1250,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         }
         
         // Finally, draw the text or highlighted text itself (on top of the shadow, if there is one)
-        if (self.highlightedTextColor && self.highlighted) {
+        if (highlighted && self.highlightedTextColor) {
             NSMutableAttributedString *highlightAttributedString = [self.renderedAttributedText mutableCopy];
             [highlightAttributedString addAttribute:(__bridge NSString *)kCTForegroundColorAttributeName value:(id)[self.highlightedTextColor CGColor] range:NSMakeRange(0, highlightAttributedString.length)];
             
@@ -1235,6 +1261,17 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
             }
             
             [self drawFramesetter:[self highlightFramesetter] attributedString:highlightAttributedString textRange:textRange inRect:rect textRect:textRect context:c];
+        } else if (!self.enabled && self.disabledColor){
+            NSMutableAttributedString *disabledAttributedString = [self.renderedAttributedText mutableCopy];
+            [disabledAttributedString addAttribute:(__bridge NSString *)kCTForegroundColorAttributeName value:(id)[self.disabledColor CGColor] range:NSMakeRange(0, disabledAttributedString.length)];
+            
+            if (![self disabledFramesetter]) {
+                CTFramesetterRef disabledFramesetter = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)disabledAttributedString);
+                [self setDisabledFramesetter:disabledFramesetter];
+                CFRelease(disabledFramesetter);
+            }
+            
+            [self drawFramesetter:[self disabledFramesetter] attributedString:disabledAttributedString textRange:textRange inRect:rect textRect:textRect context:c];
         } else {
             [self drawFramesetter:[self framesetter] attributedString:self.renderedAttributedText textRange:textRange inRect:rect textRect:textRect context:c];
         }  
@@ -1379,6 +1416,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     [coder  encodeFloat:self.highlightedShadowRadius forKey:NSStringFromSelector(@selector(highlightedShadowRadius))];
     [coder encodeCGSize:self.highlightedShadowOffset forKey:NSStringFromSelector(@selector(highlightedShadowOffset))];
     [coder encodeObject:self.highlightedShadowColor forKey:NSStringFromSelector(@selector(highlightedShadowColor))];
+    [coder encodeObject:self.disabledColor forKey:NSStringFromSelector(@selector(disabledColor))];
     [coder encodeFloat:self.firstLineIndent forKey:NSStringFromSelector(@selector(firstLineIndent))];
     [coder encodeFloat:self.leading forKey:NSStringFromSelector(@selector(leading))];
     [coder  encodeFloat:self.lineHeightMultiple forKey:NSStringFromSelector(@selector(lineHeightMultiple))];
@@ -1433,6 +1471,10 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
     if ([coder containsValueForKey:NSStringFromSelector(@selector(highlightedShadowColor))]) {
         self.highlightedShadowColor = [coder decodeObjectForKey:NSStringFromSelector(@selector(highlightedShadowColor))];
+    }
+    
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(disabledColor))]) {
+        self.disabledColor = [coder decodeObjectForKey:NSStringFromSelector(@selector(disabledColor))];
     }
 
     if ([coder containsValueForKey:NSStringFromSelector(@selector(firstLineIndent))]) {

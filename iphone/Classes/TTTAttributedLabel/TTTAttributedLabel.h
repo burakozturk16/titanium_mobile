@@ -155,6 +155,11 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  The shadow color for the label when the label's `highlighted` property is `YES`. The default value is `nil` (no shadow color).
  */
 @property (nonatomic, strong) UIColor *highlightedShadowColor;
+/**
+ The  color for the label when the label is disabled. The default value is `nil` .
+ */
+@property (nonatomic, strong) UIColor *disabledColor;
+
 
 ///--------------------------------------------
 /// @name Acccessing Paragraph Style Attributes
