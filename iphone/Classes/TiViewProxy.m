@@ -1132,7 +1132,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
             
             int nbWidthAutoFill = [widthFillChildren count];
             if (nbWidthAutoFill > 0) {
-                CGFloat usableWidth = ceilf((size.width - result.width) / nbWidthAutoFill);
+                CGFloat usableWidth = floorf((size.width - result.width) / nbWidthAutoFill);
                 CGRect usableRect = CGRectMake(0,0,usableWidth, size.height);
                 for (TiViewProxy* thisChildProxy in widthFillChildren) {
                     sandBox = [self computeChildSandbox:thisChildProxy withBounds:usableRect];
@@ -1150,7 +1150,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
             
             int nbHeightAutoFill = [heightFillChildren count];
             if (nbHeightAutoFill > 0) {
-                CGFloat usableHeight = ceilf((size.height - result.height) / nbHeightAutoFill);
+                CGFloat usableHeight = floorf((size.height - result.height) / nbHeightAutoFill);
                 CGRect usableRect = CGRectMake(0,0,size.width, usableHeight);
                 for (TiViewProxy* thisChildProxy in heightFillChildren) {
                     sandBox = [self computeChildSandbox:thisChildProxy withBounds:usableRect];
@@ -3270,7 +3270,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         for (int i =0; i < [childArray count]; i++) {
             id child = [childArray objectAtIndex:i];
             CGRect bounds = [self boundsForMeasureForChild:child];
-            CGFloat width = ceilf((bounds.size.width - widthNonFill) / nbWidthAutoFill);
+            CGFloat width = floorf((bounds.size.width - widthNonFill) / nbWidthAutoFill);
             if ([widthFillChildren containsObject:child]){
                 CGRect usableRect = CGRectMake(0,0,width + horizontalLayoutBoundary, bounds.size.height);
                 CGRect result = [self computeChildSandbox:child withBounds:usableRect];
@@ -3290,7 +3290,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         for (int i =0; i < [childArray count]; i++) {
             id child = [childArray objectAtIndex:i];
             CGRect bounds = [self boundsForMeasureForChild:child];
-            CGFloat height = ceilf((bounds.size.height - heightNonFill) / nbHeightAutoFill);
+            CGFloat height = floorf((bounds.size.height - heightNonFill) / nbHeightAutoFill);
             if ([heightFillChildren containsObject:child]){
                 CGRect usableRect = CGRectMake(0,0,bounds.size.width, height + verticalLayoutBoundary);
                 CGRect result = [self computeChildSandbox:child withBounds:usableRect];
