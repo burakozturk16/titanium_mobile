@@ -373,7 +373,7 @@ public abstract class TiUIView
 				handler.sendEmptyMessage(MSG_SET_BACKGROUND);
 			}
 		}
-		
+		nativeView.setTag(this);
 		if (borderView != null)
 		{
 			addBorderView();
@@ -623,14 +623,20 @@ public abstract class TiUIView
 			}
 			layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
-			registerForKeyPress(nativeView, TiConvert.toBoolean(newValue, false));
+			isFocusable = TiConvert.toBoolean(newValue, false);
+			registerForKeyPress(nativeView, isFocusable);
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			doSetClickable(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
 			newValue = (newValue == null) ? false : newValue;
 			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE : View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
-			nativeView.setEnabled(TiConvert.toBoolean(newValue));
+			boolean oldEnabled = isEnabled;
+			isEnabled = TiConvert.toBoolean(newValue, true);
+			if (oldEnabled != isEnabled)
+			{
+				setEnabled(isEnabled, true);
+			}
 		} else if (key.equals(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
 			exclusiveTouch = TiConvert.toBoolean(newValue);
 		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PADDING)) {
@@ -802,6 +808,29 @@ public abstract class TiUIView
 			}			
 		}
 	}
+	
+	protected void setEnabled(View view, boolean enabled, boolean focusable, boolean setChildren) {
+		view.setEnabled(enabled);
+		view.setFocusable(focusable);
+		if (setChildren && view instanceof ViewGroup) {
+			ViewGroup group = (ViewGroup) view;
+			for (int i = 0; i < group.getChildCount(); i++) {
+				View child = group.getChildAt(i);
+				Object tag = child.getTag();
+				if (tag != null && tag instanceof TiUIView) {
+					((TiUIView) tag).setEnabled(enabled, setChildren);
+				} else {
+					setEnabled(child, enabled, focusable, setChildren);
+				}
+			}
+		}
+	}
+	
+	private boolean isEnabled = true;
+	private boolean isFocusable = true;
+	protected void setEnabled(boolean enabled, boolean setChildren){
+        setEnabled(getOuterView(), enabled && isEnabled, enabled && isFocusable, setChildren);
+    }
 
 	public void processProperties(KrollDict d)
 	{
@@ -822,9 +851,13 @@ public abstract class TiUIView
 				((ViewGroup) parentViewForChild).setClipChildren(value);
 			}
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_FOCUSABLE)) {
+			isFocusable = TiConvert.toBoolean(d, TiC.PROPERTY_FOCUSABLE);
+		}
 
 		if (d.containsKey(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			touchPassThrough = TiConvert.toBoolean(TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH));
+			touchPassThrough = TiConvert.toBoolean(d, TiC.PROPERTY_TOUCH_PASSTHROUGH);
 		}
 
 		if (d.containsKey(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
@@ -991,7 +1024,12 @@ public abstract class TiUIView
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_ENABLED) && !nativeViewNull) {
-			nativeView.setEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED, true));
+			boolean oldValue = isEnabled;
+			isEnabled = TiConvert.toBoolean(d, TiC.PROPERTY_ENABLED, true);
+			if (oldValue != isEnabled)
+			{
+				setEnabled(isEnabled, true);
+			}
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
@@ -1250,6 +1288,8 @@ public abstract class TiUIView
 				savedParent.removeView(rootView);
 			}
 		}
+		nativeView.setTag(null);
+		borderView.setTag(this);
 		borderView.addView(rootView, params);
 		if (savedParent != null) {
 			savedParent.addView(borderView, savedIndex,getLayoutParams());
@@ -1656,11 +1696,8 @@ public abstract class TiUIView
 		if (v == null) {
 			return;
 		}
-
-		Object focusable = proxy.getProperty(TiC.PROPERTY_FOCUSABLE);
-		if (focusable != null) {
-			registerForKeyPress(v, TiConvert.toBoolean(focusable, false));
-		}
+		
+		registerForKeyPress(v, isFocusable);
 	}
 
 	protected void registerForKeyPress(final View v, boolean focusable)
