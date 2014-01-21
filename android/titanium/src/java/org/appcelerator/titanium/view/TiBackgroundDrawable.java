@@ -90,6 +90,9 @@ public class TiBackgroundDrawable extends Drawable {
 			currentDrawable.draw(canvas);
 		}
 		else if(defaultColor != Color.TRANSPARENT) {
+			if (path != null){
+				canvas.clipPath(path);
+			}
 			canvas.drawColor(defaultColor);
 		}
 
