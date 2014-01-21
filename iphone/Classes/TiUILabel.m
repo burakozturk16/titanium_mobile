@@ -271,6 +271,12 @@
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
 }
 
+-(void)setDisabledColor_:(id)color
+{
+	UIColor * newColor = [[TiUtils colorValue:color] _color];
+	[[self label] setDisabledColor:newColor];
+}
+
 -(void)setFont_:(id)fontValue
 {
     UIFont * font;
