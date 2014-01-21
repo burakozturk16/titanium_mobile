@@ -296,7 +296,9 @@ static NSSet* transferableProps = nil;
 		[arg setParent:self];
         
         if (!readyToCreateView || [arg isHidden]) return;
-        [arg getOrCreateView];
+        [arg performBlockWithoutLayout:^{
+            [arg getOrCreateView];
+        }];
         if (!shouldRelayout) return;
 
         [self contentsWillChange];
@@ -481,6 +483,12 @@ static NSSet* transferableProps = nil;
     if (parent)
         return [parent animationDelegate];
     return nil;
+}
+
+-(void)handlePendingAnimation
+{
+    if (![self viewInitialized] || !allowContentChange)return;
+    [super handlePendingAnimation];
 }
 
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
