@@ -3853,8 +3853,15 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	}
 	NSArray* childTemplates = (NSArray*)[dictionary objectForKey:@"childTemplates"];
 	
-	[childTemplates enumerateObjectsUsingBlock:^(NSDictionary *childTemplate, NSUInteger idx, BOOL *stop) {
-		TiViewProxy *child = [[self class] unarchiveFromDictionary:childTemplate rootProxy:rootProxy inContext:context];
+	[childTemplates enumerateObjectsUsingBlock:^(id childTemplate, NSUInteger idx, BOOL *stop) {
+        TiViewProxy *child = nil;
+        if ([childTemplate isKindOfClass:[NSDictionary class]]) {
+            child = [[self class] unarchiveFromDictionary:childTemplate rootProxy:rootProxy inContext:context];
+        }
+        else if(([childTemplate isKindOfClass:[TiViewProxy class]]))
+        {
+            child = (TiViewProxy *)childTemplate;
+        }
 		if (child != nil) {
 			[context.krollContext invokeBlockOnThread:^{
 				[self rememberProxy:child];
