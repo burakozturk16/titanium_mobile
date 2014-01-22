@@ -197,11 +197,12 @@ static NSSet* transferableProps = nil;
 
 -(void)applyProperties:(id)args
 {
-    ENSURE_UI_THREAD_1_ARG(args)
-    [self configurationStart];
-    [super applyProperties:args];
-    [self configurationSet];
-    [self refreshViewOrParent];
+    TiThreadPerformOnMainThread(^{
+        [self configurationStart];
+        [super applyProperties:args];
+        [self configurationSet];
+        [self refreshViewOrParent];
+    }, YES);
 }
 
 -(void)startLayout:(id)arg
