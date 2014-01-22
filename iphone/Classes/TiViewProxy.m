@@ -3034,9 +3034,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
         if (layoutChanged) {
             [self fireEvent:@"postlayout" propagate:NO];
-            [self handlePendingAnimation];
-
         }
+        [self handlePendingAnimation];
         repositioning = NO;
         return layoutChanged;
 	}
