@@ -340,6 +340,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		super.closeFromActivity(activityIsFinishing);
+		windowActivity = null;
 	}
 
 	@Override
