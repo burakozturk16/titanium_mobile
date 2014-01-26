@@ -96,6 +96,14 @@ public class TiUILabel extends TiUINonViewGroupView
 		private boolean  inTransition = false;
 		private CharSequence  queuedText = null;
 		
+		@Override
+		public void dispatchSetPressed(boolean pressed) {
+			int count = getChildCount();
+			for (int i = 0; i < count; i++) {
+	            final View child = getChildAt(i);
+	            child.setPressed(pressed);
+	        }
+		}
 		
 		@Override
 		protected void drawableStateChanged() {
