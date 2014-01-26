@@ -646,44 +646,58 @@ public abstract class TiUIView
 				int color = TiConvert.toColor(newValue);
 				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
 				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
 			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_SELECTED_STATE, TiConvert.toColor(newValue));
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)) {
 			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, TiConvert.toColor(newValue));
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR)) {
 			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_DISABLED_STATE, TiConvert.toColor(newValue));
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
 			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
 			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
 			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
 			Drawable drawable =  TiUIHelper.buildGradientDrawable((KrollDict)newValue);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
 			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1, TiUIHelper.BACKGROUND_DEFAULT_STATE_2});
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_SELECTED_STATE});
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)) {
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_FOCUSED_STATE});
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE)) {
 			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
 			if (background != null)
 				background.setImageRepeat(TiConvert.toBoolean(newValue));
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
 			if (background != null)
 				TiUIHelper.setDrawableOpacity(background, ViewHelper.getAlpha(getNativeView())*TiConvert.toFloat(newValue, 1f));
+			getOuterView().postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
 			TiBackgroundDrawable drawable = view.getBorderDrawable();
