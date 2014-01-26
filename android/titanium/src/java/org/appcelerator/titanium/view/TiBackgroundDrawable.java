@@ -12,6 +12,7 @@ import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -36,6 +37,7 @@ public class TiBackgroundDrawable extends Drawable {
 	Path path = null;
 	private float pathWidth = 0;
 	private RectF mPadding;
+	private Paint paint = new Paint();
 	
 
 	public TiBackgroundDrawable()
@@ -91,9 +93,13 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 		else if(defaultColor != Color.TRANSPARENT) {
 			if (path != null){
-				canvas.clipPath(path);
+				
+                paint.setColor(defaultColor);
+				canvas.drawPath(path, paint);
 			}
-			canvas.drawColor(defaultColor);
+			else {
+				canvas.drawColor(defaultColor);
+			}
 		}
 
 		canvas.restore();
@@ -108,6 +114,15 @@ public class TiBackgroundDrawable extends Drawable {
 		return result;
 	}
 	
+	private float[] insetRadius(float[] radius, float inset)
+	{
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = radius[i] + inset;
+		}
+		return result;
+	}
+	
 	private void updatePath(){
 		if (bounds.isEmpty()) return;
 		path = null;
@@ -115,8 +130,8 @@ public class TiBackgroundDrawable extends Drawable {
 		if (radius != null) {
 			path = new Path();
 			path.setFillType(FillType.EVEN_ODD);
-			path.addRoundRect(outerRect, radius, Direction.CW);
 			if (pathWidth > 0) {
+				path.addRoundRect(outerRect, radius, Direction.CW);
 				float padding = 0;
 				float maxPadding = 0;
 				RectF innerRect = new RectF(); 
@@ -124,6 +139,10 @@ public class TiBackgroundDrawable extends Drawable {
 				padding = Math.min(pathWidth, maxPadding);
 				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
 				path.addRoundRect(innerRect, innerRadiusFromPadding(outerRect, padding), Direction.CCW);
+			}
+			else {
+				//adjustment not see background under border because of antialias
+				path.addRoundRect(TiUIHelper.insetRect(outerRect, 0.3f), radius, Direction.CW);
 			}
 		}
 		else {
