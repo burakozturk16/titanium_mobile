@@ -200,6 +200,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 		}
 		opened = false;
 		activity = null;
+		parent = null;
 
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
