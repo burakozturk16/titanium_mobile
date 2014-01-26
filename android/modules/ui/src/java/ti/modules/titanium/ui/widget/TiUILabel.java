@@ -1092,7 +1092,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 			tv.setText(prepareHtml(html));
 			TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
-			tv.requestLayout();
+			textView.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
 			String text = TiConvert.toString(newValue);
 			if (text == null) {
@@ -1100,7 +1100,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			}
 			tv.setText(text);
 			TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
-			tv.requestLayout();
+			textView.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
 			this.color = TiConvert.toColor(newValue);
 			updateTextColors();
@@ -1152,7 +1152,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
 			textPadding = TiConvert.toPaddingRect(newValue);
 			TiUIHelper.setPadding(textView, textPadding);
-			tv.requestLayout();
+			textView.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {
 				HashMap dict = (HashMap) newValue;
