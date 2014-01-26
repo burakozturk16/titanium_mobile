@@ -789,7 +789,12 @@ public abstract class TiUIView
 				ViewGroup parent =  (ViewGroup)getOuterView().getParent();
 				parent.setClipChildren(clipChildren);
 			}
-			
+		} else if (key.equals(TiC.PROPERTY_DISABLE_HW)) {
+			boolean value = TiConvert.toBoolean(newValue);
+			if (value) 
+				disableHWAcceleration();
+			else
+				enableHWAcceleration();
 		} else if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
@@ -1048,6 +1053,10 @@ public abstract class TiUIView
 		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
 			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
 		}
+
+		if (d.containsKey(TiC.PROPERTY_TRANSFORM)) {
+			applyTransform((Ti2DMatrix)d.get(TiC.PROPERTY_TRANSFORM));
+		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
 			nativeView.setKeepScreenOn(TiConvert.toBoolean(d, TiC.PROPERTY_KEEP_SCREEN_ON, false));
@@ -1058,7 +1067,13 @@ public abstract class TiUIView
 				|| d.containsKey(TiC.PROPERTY_ACCESSIBILITY_VALUE) || d.containsKey(TiC.PROPERTY_ACCESSIBILITY_HIDDEN)) {
 			applyAccessibilityProperties();
 		}
-		
+		 if (d.containsKey(TiC.PROPERTY_DISABLE_HW)) {
+			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_DISABLE_HW, false);
+			if (value) 
+				disableHWAcceleration();
+			else
+				enableHWAcceleration();
+		}
 	}
 
 	// TODO dead code? @Override
@@ -1312,9 +1327,9 @@ public abstract class TiUIView
 			savedParent.addView(borderView, savedIndex,getLayoutParams());
 		}
 		
-		if ((borderView.getRadius() != null || hardwareAccEnabled == false) && HONEYCOMB_OR_GREATER) {
-			disableHWAcceleration(borderView);
-		}
+//		if ((borderView.getRadius() != null || hardwareAccEnabled == false) && HONEYCOMB_OR_GREATER) {
+//			disableHWAcceleration(borderView);
+//		}
 	}
 	
 	protected TiBorderWrapperView getOrCreateBorderView()
@@ -1335,6 +1350,7 @@ public abstract class TiUIView
 			
 			if(mBorderPadding != null) borderView.setBorderPadding(mBorderPadding);
 			addBorderView();
+//			disableHWAcceleration();
 		}
 		return borderView;
 	}
@@ -1351,7 +1367,6 @@ public abstract class TiUIView
 			background.setRadius(result);
 		}
 		getOrCreateBorderView().setRadius(result);
-		disableHWAcceleration();
 	}
 	private float[] getBorderRadius(float radius){
 		float realRadius =  radius * TiDimension.getDisplayMetrics(proxy.getActivity()).density;
