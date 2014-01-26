@@ -1248,6 +1248,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_DISABLE_HW = "disableHW";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_DISPATCH_PRESSED = "dispatchPressed";
 
 	/**
