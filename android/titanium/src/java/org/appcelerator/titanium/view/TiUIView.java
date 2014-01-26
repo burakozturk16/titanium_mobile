@@ -1412,8 +1412,8 @@ public abstract class TiUIView
 			}
 		}
 		
-		disableHWAcceleration();
 		getOrCreateBorderView().setMask(bitmap);
+		disableHWAcceleration();
 	}
 
 	protected static SparseArray<String> motionEvents = new SparseArray<String>();
