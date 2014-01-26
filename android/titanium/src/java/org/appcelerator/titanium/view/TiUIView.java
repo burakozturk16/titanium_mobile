@@ -1412,22 +1412,25 @@ public abstract class TiUIView
 
 	protected KrollDict dictFromEvent(MotionEvent e)
 	{
-		DisplayMetrics metrics = TiDimension.getDisplayMetrics(getContext());
-		double density = metrics.density;
 		KrollDict data = new KrollDict();
-		int[] coords = new int[2];
-		getTouchView().getLocationInWindow(coords);
+		if (e != null) 
+		{
+			DisplayMetrics metrics = TiDimension.getDisplayMetrics(getContext());
+			double density = metrics.density;
+			int[] coords = new int[2];
+			getTouchView().getLocationInWindow(coords);
 
-		final double rawx = e.getRawX();
-		final double rawy = e.getRawY();
-		final double x = (double) rawx - coords[0];
-		final double y = (double) rawy - coords[1];
-		data.put(TiC.EVENT_PROPERTY_X, x / density);
-		data.put(TiC.EVENT_PROPERTY_Y, y / density);
-		KrollDict globalPoint = new KrollDict();
-		globalPoint.put(TiC.EVENT_PROPERTY_X, rawx / density);
-		globalPoint.put(TiC.EVENT_PROPERTY_Y, rawy / density);
-		data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
+			final double rawx = e.getRawX();
+			final double rawy = e.getRawY();
+			final double x = (double) rawx - coords[0];
+			final double y = (double) rawy - coords[1];
+			data.put(TiC.EVENT_PROPERTY_X, x / density);
+			data.put(TiC.EVENT_PROPERTY_Y, y / density);
+			KrollDict globalPoint = new KrollDict();
+			globalPoint.put(TiC.EVENT_PROPERTY_X, rawx / density);
+			globalPoint.put(TiC.EVENT_PROPERTY_Y, rawy / density);
+			data.put(TiC.EVENT_PROPERTY_GLOBALPOINT, globalPoint);
+		}
 		data.put(TiC.EVENT_PROPERTY_SOURCE, proxy);
 		return data;
 	}
