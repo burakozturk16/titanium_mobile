@@ -971,10 +971,7 @@ public abstract class TiUIView
 		// 		TiUIHelper.setDrawableOpacity(background, TiConvert.toFloat(d, TiC.PROPERTY_BACKGROUND_OPACITY, 1f));
 		// } 
 		
-		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
-			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
-		}
-
+		
 		if (d.containsKey(TiC.PROPERTY_BORDER_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
 			TiBackgroundDrawable drawable = view.getBorderDrawable();
@@ -1046,6 +1043,10 @@ public abstract class TiUIView
 			{
 				setEnabled(isEnabled, true);
 			}
+		}
+
+		if (d.containsKey(TiC.PROPERTY_OPACITY)) {
+			setOpacity(TiConvert.toFloat(d, TiC.PROPERTY_OPACITY, 1f));
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_KEEP_SCREEN_ON) && !nativeViewNull) {
@@ -1780,28 +1781,29 @@ public abstract class TiUIView
 			Log.w(TAG, "Ignoring invalid value for opacity: " + opacity);
 			return;
 		}
-		View view = getRootView();
-		View parentForChildren = getParentViewForChild();
-		ViewHelper.setAlpha(view, opacity);
-		if (parentForChildren != view) {
-			ViewHelper.setAlpha(parentForChildren, opacity);
-		}
-		if (borderView != null) {
-			ViewHelper.setAlpha(borderView, opacity);
+		View view = getOuterView();
+//		View parentForChildren = getParentViewForChild();
+//		if (parentForChildren != view) {
+//			ViewHelper.setAlpha(parentForChildren, opacity);
+//		}
+//		if (borderView != null) {
+//			ViewHelper.setAlpha(borderView, opacity);
+			if(view != null) {
+			ViewHelper.setAlpha(view, opacity);			
 		}
 
 	}
 	
 	public float getOpacity() {
-		return ViewHelper.getAlpha(getRootView());
+		return ViewHelper.getAlpha(getOuterView());
 	}
 
 
-	public void clearOpacity(View view)
-	{
-		if (background != null)
-			background.clearColorFilter();
-	}
+//	public void clearOpacity(View view)
+//	{
+//		if (background != null)
+//			background.clearColorFilter();
+//	}
 
 	public TiBlob toImage(Number scale)
 	{
