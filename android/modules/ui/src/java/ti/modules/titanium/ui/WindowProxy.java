@@ -158,6 +158,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			}
 		}
 
+		if (hasProperty(TiC.PROPERTY_LIGHTWEIGHT))
+		{
+			lightweight = TiConvert.toBoolean(getProperty(TiC.PROPERTY_LIGHTWEIGHT), false);
+		}
+
 		// When we open a window using tab.open(win), we treat it as opening a HW window on top of the tab.
 		if (hasProperty("tabOpen")) {
 			lightweight = false;
