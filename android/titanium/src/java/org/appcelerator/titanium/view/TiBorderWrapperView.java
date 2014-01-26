@@ -59,6 +59,9 @@ public class TiBorderWrapperView extends MaskableView
 	{
 		if (mDrawable == null)
 		{
+			if (this.borderWidth == 0) {
+				this.borderWidth = TiUIHelper.getRawSize(1, null);
+			}
 			mDrawable = new TiBackgroundDrawable();
 			if (alpha < 1.0)
 				mDrawable.setAlpha(Math.round(alpha * 255));
@@ -216,13 +219,7 @@ public class TiBorderWrapperView extends MaskableView
 	public TiBackgroundDrawable getBorderDrawable()
 	{
 		TiBackgroundDrawable drawable = getOrCreateDrawable();
-		if (this.borderWidth == 0) {
-			this.borderWidth = TiUIHelper.getRawSize(1, null);
-			if (drawable != null) 
-			{
-				drawable.setPathWidth(borderWidth);
-			}
-		}
+		
 		return drawable;
 	}
 
