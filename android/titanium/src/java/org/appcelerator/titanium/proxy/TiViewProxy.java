@@ -1050,6 +1050,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	public void handlePendingAnimation(boolean forceQueue)
 	{
+		if (view == null) return;
 		if (pendingAnimations.size() > 0) {
 			if (forceQueue || !(TiApplication.isUIThread())) {
 				if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
