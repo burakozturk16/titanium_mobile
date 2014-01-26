@@ -124,6 +124,8 @@ public abstract class TiUIView
 	protected boolean touchPassThrough = false;
 	protected boolean dispatchPressed = false;
 	protected boolean reusing = false;
+	
+	private boolean clipChildren = true;
 
 	protected MotionEvent lastUpEvent = null;
 	protected MotionEvent lastDownEvent = null;
@@ -775,17 +777,17 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_DISPATCH_PRESSED)) {
 			dispatchPressed = TiConvert.toBoolean(newValue);
 		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
-			boolean value = TiConvert.toBoolean(newValue);
+			clipChildren = TiConvert.toBoolean(newValue);
 			View parentViewForChild = getParentViewForChild();
 			if (parentViewForChild instanceof ViewGroup) {
-				((ViewGroup)parentViewForChild).setClipChildren(value);
+				((ViewGroup)parentViewForChild).setClipChildren(clipChildren);
 			}
 			if (borderView != null) {
-				borderView.setClipChildren(value);
+				borderView.setClipChildren(clipChildren);
 			}
-			if (!value) {
+			if (!clipChildren) {
 				ViewGroup parent =  (ViewGroup)getOuterView().getParent();
-				parent.setClipChildren(value);
+				parent.setClipChildren(clipChildren);
 			}
 			
 		} else if (Log.isDebugModeEnabled()) {
@@ -859,10 +861,10 @@ public abstract class TiUIView
 		updateLayoutForChildren(d);
 		
 		if (d.containsKey(TiC.PROPERTY_CLIP_CHILDREN)) {
-			boolean value = TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN);
+			clipChildren = TiConvert.toBoolean(d, TiC.PROPERTY_CLIP_CHILDREN);
 			View parentViewForChild = getParentViewForChild();
 			if (parentViewForChild instanceof ViewGroup) {
-				((ViewGroup) parentViewForChild).setClipChildren(value);
+				((ViewGroup) parentViewForChild).setClipChildren(clipChildren);
 			}
 		}
 		
