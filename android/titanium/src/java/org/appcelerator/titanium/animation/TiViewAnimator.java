@@ -134,8 +134,8 @@ public class TiViewAnimator extends TiAnimatorSet
 	
 	public void simulateFinish(TiViewProxy proxy)
 	{
-		this.viewProxy = proxy;
+		this.proxy = this.viewProxy = proxy;
 		handleFinish();
-		this.viewProxy = null;
+		this.proxy = this.viewProxy = null;
 	}
 }
