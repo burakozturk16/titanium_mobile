@@ -120,7 +120,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 - (void)setDisableNetworkActivityIndicator:(BOOL)value
 {
 	disableNetworkActivityIndicator = value;
-	[ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: !disableNetworkActivityIndicator];
+//	[ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: !disableNetworkActivityIndicator];
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(!disableNetworkActivityIndicator && (networkActivityCount > 0))];
 }
 
@@ -349,6 +349,8 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 	// preload font matching table
 	[DTCoreTextFontDescriptor asyncPreloadFontLookupTable];
 
+    [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: NO];
+    
 	// nibless window
 	window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 
