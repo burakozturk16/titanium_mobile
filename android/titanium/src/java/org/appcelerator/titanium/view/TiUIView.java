@@ -1883,7 +1883,9 @@ public abstract class TiUIView
 		{
 			public void onClick(View view)
 			{
-				fireEvent(TiC.EVENT_CLICK, dictFromEvent(lastUpEvent));
+				if (hierarchyHasListener(TiC.EVENT_CLICK)) {
+					fireEventNoCheck(TiC.EVENT_CLICK, dictFromEvent(lastUpEvent));
+				}
 			}
 		});
 	}
