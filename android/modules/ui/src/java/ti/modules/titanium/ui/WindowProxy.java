@@ -39,6 +39,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.view.Window;
+import android.view.WindowManager;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors={
 	TiC.PROPERTY_MODAL,
@@ -354,6 +355,41 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		windowActivity = new WeakReference<TiBaseActivity>((TiBaseActivity) activity);
 		super.setActivity(activity);
+		if (activity == null) return;
+		if (hasProperty(TiC.PROPERTY_TOUCH_ENABLED)) {
+			boolean active = TiConvert.toBoolean(getProperty(TiC.PROPERTY_TOUCH_ENABLED), true);
+			if (active)
+			{
+				activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+			}
+			else {
+				activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+			}
+		}
+		if (hasProperty(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
+			boolean active = TiConvert.toBoolean(getProperty(TiC.PROPERTY_TOUCH_PASSTHROUGH), true);
+			if (active)
+			{
+				activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+			}
+			else {
+				activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+			}
+		}
+		if (hasProperty(TiC.PROPERTY_FOCUSABLE)) {
+			boolean active = TiConvert.toBoolean(getProperty(TiC.PROPERTY_FOCUSABLE), true);
+			if (active)
+			{
+				activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+			}
+			else {
+				activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+			}
+		}
 	}
 
 	private void fillIntent(Activity activity, Intent intent)
@@ -391,6 +427,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	public void onPropertyChanged(String name, Object value)
 	{
 		if ((opening || opened) && !lightweight) {
+			Activity activity = getWindowActivity();
 			if (TiC.PROPERTY_WINDOW_PIXEL_FORMAT.equals(name)) {
 				getMainHandler().obtainMessage(MSG_SET_PIXEL_FORMAT, value).sendToTarget();
 			} else if (TiC.PROPERTY_TITLE.equals(name)) {
@@ -399,9 +436,30 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 				|| TiC.PROPERTY_RIGHT.equals(name)) {
 				// The "top", "bottom", "left" and "right" properties do not work for heavyweight windows.
 				return;
+			} else if (TiC.PROPERTY_TOUCH_ENABLED.equals(name) && activity != null)
+			{
+				boolean active = TiConvert.toBoolean(value, true);
+				if (active)
+				{
+					activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+	                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+				}
+				else {
+					activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                        | WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+				}
+			} else if (TiC.PROPERTY_FOCUSABLE.equals(name) && activity != null)
+			{
+				boolean active = TiConvert.toBoolean(value, true);
+				if (active)
+				{
+					activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+				}
+				else {
+					activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+				}
 			}
 		}
-
 		super.onPropertyChanged(name, value);
 	}
 
