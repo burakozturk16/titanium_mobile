@@ -2077,9 +2077,11 @@ public abstract class TiUIView
 		int currentColor = getTiBackgroundColor();
 		if (currentColor != color) {
 			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			bgdDrawable.setDefaultColor(color);
 			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
 			bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
-			bgdDrawable.invalidateSelf();
+			View outerView =  getOuterView();
+			outerView.postInvalidate();
 		}
 	}
 	
