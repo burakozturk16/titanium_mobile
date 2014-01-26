@@ -160,12 +160,8 @@ public class FreeLayout extends FrameLayout {
 	
     @Override
     protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
-		 transformedMatrix = null;
+//		 transformedMatrix = null;
 		 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-//        measureChildren(widthMeasureSpec,heightMeasureSpec);
-//        setMeasuredDimension(
-//            resolveSize(getSuggestedMinimumWidth(),widthMeasureSpec),
-//            resolveSize(getSuggestedMinimumWidth(),heightMeasureSpec));
     }
 
     @Override
@@ -175,8 +171,8 @@ public class FreeLayout extends FrameLayout {
 
     @Override
     protected void onLayout(boolean changed,int l,int t,int r,int b) {
-		 transformedMatrix = null;
 		 super.onLayout(changed, l, t, r, b);
+		 if (changed) transformedMatrix = null;
     }
 
     @Override
