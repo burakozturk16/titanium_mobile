@@ -1297,6 +1297,14 @@ public class TiUIHelper
 				source.bottom - inset.bottom);
 	}
 	
+	public static RectF insetRect(RectF source, float inset) {
+		if (inset == 0.0) return source;
+		return new RectF(source.left + inset, 
+				source.top + inset, 
+				source.right - inset, 
+				source.bottom - inset);
+	}
+	
 	public static Shadow getShadow(KrollDict dict) {
 		Shadow result = new Shadow();
 		if (dict == null) return result;
