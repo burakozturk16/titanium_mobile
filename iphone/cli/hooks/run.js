@@ -76,6 +76,7 @@ exports.init = function (logger, config, cli) {
 					],
 					findLogTimer,
 					simProcess,
+					readChangesTimer,
 					simErr = [],
 					stripLogLevelRE = new RegExp('\\[(?:' + logger.getLevels().join('|') + ')\\] '),
 					simStarted = false,
@@ -116,21 +117,24 @@ exports.init = function (logger, config, cli) {
 					}, this);
 				}.bind(this));
 
-				simProcess.on('exit', function (code, signal) {
+				setTimeout(function(){
+					simProcess.on('exit', function(code, signal) {
 
-					if (simStarted) {
-						var endLogTxt = __('End simulator log');
-						logger.log(('-- ' + endLogTxt + ' ' + (new Array(75 - endLogTxt.length)).join('-')).grey);
-					} else return
-					clearTimeout(findLogTimer);
+						if (simStarted) {
+							var endLogTxt = __('End simulator log');
+							logger.log(('-- ' + endLogTxt + ' ' + (new Array(75 - endLogTxt.length)).join('-')).grey);
+						} else return;
+						clearTimeout(findLogTimer);
+						clearTimeout(readChangesTimer);
 
-					if (code || simErr.length) {
-						finished(new appc.exception(__('An error occurred running the iOS Simulator'), simErr));
-					} else {
-						logger.info(__('Application has exited from iOS Simulator'));
-						finished();
-					}
-				}.bind(this));
+						if (code || simErr.length) {
+							finished(new appc.exception(__('An error occurred running the iOS Simulator'), simErr));
+						} else {
+							logger.info(__('Application has exited from iOS Simulator'));
+							finished();
+						}
+					}.bind(this));
+				}, 10000);
 
 				// focus the simulator
 				logger.info(__('Focusing the iOS Simulator'));
@@ -169,7 +173,6 @@ exports.init = function (logger, config, cli) {
 							var position = 0,
 								buf = new Buffer(16),
 								buffer = '',
-								readChangesTimer,
 								lastLogger = 'debug';
 
 							(function readChanges () {
@@ -218,10 +221,6 @@ exports.init = function (logger, config, cli) {
 									throw ex;
 								}
 							}());
-
-							simProcess.on('exit', function() {
-								clearTimeout(readChangesTimer);
-							});
 
 							// we found the log file, no need to keep searching for it
 							return;
