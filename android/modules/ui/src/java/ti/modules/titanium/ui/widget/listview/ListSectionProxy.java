@@ -45,7 +45,8 @@ public class ListSectionProxy extends ViewProxy {
 	private ArrayList<Object> itemProperties;
 	private ArrayList<Integer> filterIndices;
 	private boolean preload;
-	boolean[] hidden = null;
+	boolean[] hiddenItems = null;
+	boolean hidden = false;
 
 	private String headerTitle;
 	private String footerTitle;
@@ -162,9 +163,7 @@ public class ListSectionProxy extends ViewProxy {
 	@Kroll.setProperty
 	public void setHeaderView(TiViewProxy headerView) {
 		this.headerView = headerView;
-		if (adapter != null) {
-			notifyDataChange();
-		}
+		notifyDataChange();
 	}
 
 	@Kroll.method
@@ -177,9 +176,7 @@ public class ListSectionProxy extends ViewProxy {
 	@Kroll.setProperty
 	public void setFooterView(TiViewProxy footerView) {
 		this.footerView = footerView;
-		if (adapter != null) {
-			notifyDataChange();
-		}
+		notifyDataChange();
 	}
 
 	@Kroll.method
@@ -192,9 +189,7 @@ public class ListSectionProxy extends ViewProxy {
 	@Kroll.setProperty
 	public void setHeaderTitle(String headerTitle) {
 		this.headerTitle = headerTitle;
-		if (adapter != null) {
-			notifyDataChange();
-		}
+		notifyDataChange();
 	}
 
 	@Kroll.method
@@ -207,9 +202,7 @@ public class ListSectionProxy extends ViewProxy {
 	@Kroll.setProperty
 	public void setFooterTitle(String headerTitle) {
 		this.footerTitle = headerTitle;
-		if (adapter != null) {
-			notifyDataChange();
-		}
+		notifyDataChange();
 	}
 
 	@Kroll.method
@@ -219,6 +212,7 @@ public class ListSectionProxy extends ViewProxy {
 	}
 
 	public void notifyDataChange() {
+		if (adapter == null) return;
 		getMainHandler().post(new Runnable() {
 			@Override
 			public void run() {
@@ -313,7 +307,6 @@ public class ListSectionProxy extends ViewProxy {
 			result.setResult(null);
 			return true;
 		}
-
 		default: {
 			return super.handleMessage(msg);
 		}
@@ -344,7 +337,7 @@ public class ListSectionProxy extends ViewProxy {
 		int diff = 0;
 		for (int i = 0; i < hElements; i++) {
 			diff++;
-			if (hidden[position + diff])
+			if (hiddenItems[position + diff])
 				i--;
 		}
 		return (position + diff);
@@ -355,7 +348,7 @@ public class ListSectionProxy extends ViewProxy {
 		int diff = 0;
 		for (int i = 0; i < hElements; i++) {
 			diff++;
-			if (hidden[position + diff])
+			if (hiddenItems[position + diff])
 				i--;
 		}
 		return (position - diff);
@@ -365,7 +358,7 @@ public class ListSectionProxy extends ViewProxy {
 	private int getHiddenCountUpTo(int location) {
 		int count = 0;
 		for (int i = 0; i <= location; i++) {
-			if (hidden[i])
+			if (hiddenItems[i])
 				count++;
 		}
 		return count;
@@ -478,7 +471,36 @@ public class ListSectionProxy extends ViewProxy {
 					getMainHandler().obtainMessage(MSG_UPDATE_ITEM_AT), d);
 		}
 	}
+	
+	@Kroll.method
+	public void hide() {
+		if (hidden) return;
+		notifyDataChange();
+		hidden = true;
+	}
+	
+	@Kroll.method
+	public void show() {
+		if (!hidden) return;
+		notifyDataChange();
+		hidden = false;
+	}
+	
+	@Kroll.method
+	@Kroll.setProperty
+	public void setVisible(boolean value) {
+		if (hidden == !value) return;
+		notifyDataChange();
+		hidden = !value;
+	}
+	
+	@Kroll.method
+	@Kroll.getProperty
+	public boolean getVisible() {
+		return !hidden;
+	}
 
+	
 	public void processPreloadData() {
 		if (itemProperties != null && preload) {
 			handleSetItems(itemProperties.toArray());
@@ -519,7 +541,7 @@ public class ListSectionProxy extends ViewProxy {
 				ListItemData itemD = new ListItemData(d, template);
 				d.remove(TiC.PROPERTY_TEMPLATE);
 				listItemData.add(i + offset, itemD);
-				hidden[i + offset] = !itemD.isVisible();
+				hiddenItems[i + offset] = !itemD.isVisible();
 			}
 		}
 		// Notify adapter that data has changed.
@@ -538,7 +560,7 @@ public class ListSectionProxy extends ViewProxy {
 				return;
 			}
 			itemCount = items.length;
-			hidden = new boolean[itemCount];
+			hiddenItems = new boolean[itemCount];
 			processData(items, 0);
 
 		} else {
@@ -726,7 +748,7 @@ public class ListSectionProxy extends ViewProxy {
 		TiListItem item = new TiListItem(itemProxy, itemContent, item_layout);
 		// Connect native view with TiUIView so we can get it from recycled
 		// view.
-		itemContent.setTag(item);
+		itemContent.setListItem(item);
 
 		if (data != null && template != null) {
 			generateChildContentViews(template.getRootItem(), null,
@@ -906,7 +928,7 @@ public class ListSectionProxy extends ViewProxy {
 		int totalCount = 0;
 		if (isFilterOn()) {
 			totalCount = filterIndices.size();
-		} else {
+		} else if (!hidden) {
 			totalCount = itemCount;
 		}
 		return totalCount - getHiddenCount();
@@ -920,7 +942,7 @@ public class ListSectionProxy extends ViewProxy {
 
 		if (isFilterOn()) {
 			totalCount = filterIndices.size();
-		} else {
+		} else if (!hidden) {
 			totalCount = itemCount;
 		}
 
@@ -937,8 +959,9 @@ public class ListSectionProxy extends ViewProxy {
 
 	private int getHiddenCount() {
 		int count = 0;
-		for (int i = 0; i < hidden.length; i++)
-			if (hidden[i])
+		if (hidden) return count;
+		for (int i = 0; i < hiddenItems.length; i++)
+			if (hiddenItems[i])
 				count++;
 		return count;
 	}
