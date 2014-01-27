@@ -670,34 +670,35 @@ public class TiCompositeLayout extends FreeLayout implements
 			computePosition(this, params.optionLeft, params.optionCenterX,
 					params.optionRight, childMeasuredWidth, left, right,
 					horizontal);
-			if (isVerticalArrangement()) {
+			if (verticalArr) {
 				computeVerticalLayoutPosition(currentHeight, params.optionTop,
 						childMeasuredHeight, top, vertical, bottom, params);
 				// Include bottom in height calculation for vertical layout
 				// (used as padding)
-				currentHeight += getLayoutOptionAsPixels(params.optionBottom, TiDimension.TYPE_BOTTOM, params, this);
+				currentHeight +=  (params.optionBottom != null)?params.optionBottom.getAsPixels(this):0;
 			} else {
 				computePosition(this, params.optionTop, params.optionCenterY,
 						params.optionBottom, childMeasuredHeight, top, bottom,
 						vertical);
-			}
-			//we dont need to use AnimationLayoutParams as the fraction has already been applied in
-			// the onMeasure
-			if (params instanceof AnimationLayoutParams) {
-				float fraction = ((AnimationLayoutParams) params).animationFraction;
-				if (fraction < 1.0f) {
-					Rect startRect = ((AnimationLayoutParams) params).startRect;
-					if (startRect != null) {
-						horizontal[0] = (int) (horizontal[0] * fraction + (1 - fraction)
-								* startRect.left);
-						horizontal[1] = horizontal[0] + childMeasuredWidth;
+				//we dont need to use AnimationLayoutParams as the fraction has already been applied in
+				// the onMeasure
+				if (params instanceof AnimationLayoutParams) {
+					float fraction = ((AnimationLayoutParams) params).animationFraction;
+					if (fraction < 1.0f) {
+						Rect startRect = ((AnimationLayoutParams) params).startRect;
+						if (startRect != null) {
+							horizontal[0] = (int) (horizontal[0] * fraction + (1 - fraction)
+									* startRect.left);
+							horizontal[1] = horizontal[0] + childMeasuredWidth;
 
-						vertical[0] = (int) (vertical[0] * fraction + (1 - fraction)
-								* startRect.top);
-						vertical[1] = vertical[0] + childMeasuredHeight;
+							vertical[0] = (int) (vertical[0] * fraction + (1 - fraction)
+									* startRect.top);
+							vertical[1] = vertical[0] + childMeasuredHeight;
+						}
 					}
 				}
 			}
+			
 			
 		}
 
@@ -867,7 +868,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			TiDimension optionTop, int measuredHeight, int layoutTop,
 			int[] pos, int maxBottom, LayoutParams params) {
 		int top = layoutTop + currentHeight;
-		top += getLayoutOptionAsPixels(optionTop, TiDimension.TYPE_TOP, params, this);
+		top += (optionTop != null)?optionTop.getAsPixels(this):0;
 		// cap the bottom to make sure views don't go off-screen when user
 		// supplies a height value that is >= screen
 		// height and this view is below another view in vertical layout.
