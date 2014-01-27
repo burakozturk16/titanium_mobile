@@ -367,7 +367,7 @@ static NSDictionary* replaceKeysForRow;
 	}
 }
 
--(TiUIView*)sectionView:(NSInteger)section forLocation:(NSString*)location section:(TiUIListSectionProxy**)sectionResult
+-(TiViewProxy*)sectionViewProxy:(NSInteger)section forLocation:(NSString*)location section:(TiUIListSectionProxy**)sectionResult
 {
     TiUIListSectionProxy *proxy = [self.listViewProxy sectionForIndex:section];
     //In the event that proxy is nil, this all flows out to returning nil safely anyways.
@@ -390,21 +390,29 @@ static NSDictionary* replaceKeysForRow;
             [viewproxy forgetSelf];
         }];
     }
-    
+    return viewproxy;
+}
+
+-(UIView*)sectionView:(NSInteger)section forLocation:(NSString*)location section:(TiUIListSectionProxy**)sectionResult
+{
+    TiViewProxy* viewproxy = [self sectionViewProxy:section forLocation:location section:sectionResult];
     if (viewproxy!=nil) {
         LayoutConstraint *viewLayout = [viewproxy layoutProperties];
         //If height is not dip, explicitly set it to SIZE
         if (viewLayout->height.type != TiDimensionTypeDip) {
             viewLayout->height = TiDimensionAutoSize;
         }
-        
-        TiUIView* theView = [viewproxy getOrCreateView];
-        if (![viewproxy viewAttached]) {
-            [viewproxy windowWillOpen];
-            [viewproxy willShow];
-            [viewproxy windowDidOpen];
+        if (viewLayout->width.type == TiDimensionTypeUndefined) {
+            viewLayout->width = TiDimensionAutoFill;
         }
-        return theView;
+        
+        if (viewproxy.parent == nil)
+        {
+            
+            TiViewProxy* proxy = [self initWrapperProxy];
+            [proxy add:viewproxy];
+        }
+        return [viewproxy.parent getAndPrepareViewForOpening:self.tableView.bounds];
     }
     return nil;
 }
@@ -1493,16 +1501,17 @@ static NSDictionary* replaceKeysForRow;
     }
     
     TiUIListSectionProxy *sectionProxy = [self.listViewProxy sectionForIndex:realSection];
-    TiUIView *view = [self sectionView:realSection forLocation:@"headerView" section:nil];
+    TiViewProxy* viewProxy = [self sectionViewProxy:realSection forLocation:@"headerView" section:nil];
 	
     CGFloat size = 0.0;
-    if (view!=nil) {
-        TiViewProxy* viewProxy = (TiViewProxy*) [view proxy];
+    if (viewProxy!=nil) {
+        [viewProxy getAndPrepareViewForOpening:[self.tableView bounds]]; //to make sure it is setup
         LayoutConstraint *viewLayout = [viewProxy layoutProperties];
-        switch (viewLayout->height.type)
+        TiDimension constraint =  TiDimensionIsUndefined(viewLayout->height)?[viewProxy defaultAutoHeightBehavior:nil]:viewLayout->height;
+        switch (constraint.type)
         {
             case TiDimensionTypeDip:
-                size += viewLayout->height.value;
+                size += constraint.value;
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
@@ -1551,18 +1560,19 @@ static NSDictionary* replaceKeysForRow;
             return 0.0;
         }
     }
-
+    
     TiUIListSectionProxy *sectionProxy = [self.listViewProxy sectionForIndex:realSection];
-    TiUIView *view = [self sectionView:realSection forLocation:@"footerView" section:nil];
+    TiViewProxy* viewProxy = [self sectionViewProxy:realSection forLocation:@"footerView" section:nil];
 	
     CGFloat size = 0.0;
-    if (view!=nil) {
-        TiViewProxy* viewProxy = (TiViewProxy*) [view proxy];
+    if (viewProxy!=nil) {
+        [viewProxy getAndPrepareViewForOpening:[self.tableView bounds]]; //to make sure it is setup
         LayoutConstraint *viewLayout = [viewProxy layoutProperties];
-        switch (viewLayout->height.type)
+        TiDimension constraint =  TiDimensionIsUndefined(viewLayout->height)?[viewProxy defaultAutoHeightBehavior:nil]:viewLayout->height;
+        switch (constraint.type)
         {
             case TiDimensionTypeDip:
-                size += viewLayout->height.value;
+                size += constraint.value;
                 break;
             case TiDimensionTypeAuto:
             case TiDimensionTypeAutoSize:
