@@ -193,6 +193,18 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		};
 		setNativeView(view);
 	}
+	
+	@Override
+	public void setReusing(boolean value)
+	{
+		super.setReusing(value);
+		if (value)
+		{
+			TiImageView view = getView();
+			if (view != null)
+				view.cancelCurrentTransition();
+		}
+	}
 
 	@Override
 	public void setProxy(TiViewProxy proxy)

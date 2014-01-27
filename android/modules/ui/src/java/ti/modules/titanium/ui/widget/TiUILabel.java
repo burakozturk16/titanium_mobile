@@ -93,7 +93,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		private EllipsizingTextView oldTextView = null;
 
 		private Transition  queuedTransition = null;
-		private boolean  inTransition = false;
+		private AnimatorSet  currentTransitionSet = null;
 		private CharSequence  queuedText = null;
 		
 		@Override
@@ -204,7 +204,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				setText(textView, text);
 			}
 			else {
-				if (inTransition) {
+				if (currentTransitionSet != null) {
 					queuedTransition = transition;
 					queuedText = text;
 					return;
@@ -215,16 +215,27 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 		
 		private void onTransitionEnd() {
-			inTransition = false;
+			currentTransitionSet = null;
 			if (queuedText != null) {
 				setTextWithTransition(queuedText, queuedTransition);
 				queuedTransition = null;
 				queuedText = null;
 			}
 		}
+		
+		public void cancelCurrentTransition()
+		{
+//			if (currentTransitionSet != null)
+//			{
+//				currentTransitionSet.cancel();
+				queuedTransition = null;
+				queuedText = null;
+				currentTransitionSet = null;
+//			}
+		}
+		
 
 		public void transitionToTextView(EllipsizingTextView newTextView, Transition transition) {
-			inTransition = true;
 			oldTextView = textView;
 			textView = newTextView;
 			doSetClickable(oldTextView, false);
@@ -234,7 +245,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			
 			transition.setTargets(this, newTextView, oldTextView);
 
-			AnimatorSet set = transition.getSet(new AnimatorListener() {
+			currentTransitionSet = transition.getSet(new AnimatorListener() {
 				public void onAnimationEnd(Animator arg0) {	
 						removeView(oldTextView);
 						oldTextView = null;
@@ -253,7 +264,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				public void onAnimationStart(Animator arg0) {
 				}
 			});
-			set.start();
+			currentTransitionSet.start();
 			newTextView.setVisibility(View.VISIBLE);
 			requestLayout();
 			newTextView.invalidate();
@@ -1078,7 +1089,7 @@ public class TiUILabel extends TiUINonViewGroupView
 //		textView.setMovementMethod(LinkMovementMethod.getInstance());
 		textView.SetReadyToEllipsize(true);
 		// This needs to be the last operation.
-		tv.requestLayout();
+		textView.requestLayout();
 	}
 	
 	@Override
@@ -1207,11 +1218,26 @@ public class TiUILabel extends TiUINonViewGroupView
 		 
 		return data;
 	}
+	
+	@Override
 	protected View getTouchView()
 	{
 		if (tv != null) {
 			return tv.textView;
 		}
 		return null;
+	}
+	
+	
+	@Override
+	public void setReusing(boolean value)
+	{
+		super.setReusing(value);
+		if (value)
+		{
+			if (tv != null) {
+				tv.cancelCurrentTransition();
+			}
+		}
 	}
 }

@@ -70,7 +70,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	private Drawable  queuedDrawable = null;
 	private Bitmap  queuedBitmap = null;
 	private Transition  queuedTransition = null;
-	private boolean  inTransition = false;
+	private AnimatorSet currentTransitionSet = null;
 	
 	private ScaleType wantedScaleType = ScaleType.FIT_CENTER;
 	
@@ -317,7 +317,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			setImageBitmap(bitmap);
 		}
 		else {
-			if (inTransition) {
+			if (currentTransitionSet != null) {
 				queuedTransition = transition;
 				queuedBitmap = bitmap;
 				return;
@@ -338,7 +338,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	
 	
 	private void onTransitionEnd() {
-		inTransition = false;
+		currentTransitionSet = null;
 		if (queuedBitmap != null) {
 			setImageBitmapWithTransition(queuedBitmap, queuedTransition);
 			queuedTransition = null;
@@ -361,7 +361,6 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 	 * @param bitmap The bitmap to set. If it is null, it will clear the previous image.
 	 */
 	public void transitionToImageView(ImageView newImageView, Transition transition) {
-		inTransition = true;
 		oldImageView = imageView;
 		imageView = newImageView;
 		newImageView.setVisibility(View.GONE);
@@ -369,7 +368,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 		TiUIHelper.addView(this, newImageView, (oldImageView != null)?oldImageView.getLayoutParams():getImageLayoutParams());
 		transition.setTargets(this, newImageView, oldImageView);
 
-		AnimatorSet set = transition.getSet(new AnimatorListener() {
+		currentTransitionSet = transition.getSet(new AnimatorListener() {
 			public void onAnimationEnd(Animator arg0) {	
 					removeView(oldImageView);
 					oldImageView = null;
@@ -388,8 +387,19 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			public void onAnimationStart(Animator arg0) {
 			}
 		});
-		set.start();
+		currentTransitionSet.start();
 		newImageView.setVisibility(View.VISIBLE);
+	}
+	
+	public void cancelCurrentTransition()
+	{
+//		if (currentTransitionSet != null)
+//		{
+//			currentTransitionSet.cancel();
+			queuedTransition = null;
+			queuedBitmap = null;
+			currentTransitionSet = null;
+//		}
 	}
 	
 	/**
@@ -401,7 +411,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			setImageDrawable(drawable);
 		}
 		else {
-			if (inTransition) {
+			if (currentTransitionSet != null) {
 				queuedTransition = transition;
 				queuedDrawable = drawable;
 				return;
