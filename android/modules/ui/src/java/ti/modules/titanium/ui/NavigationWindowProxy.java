@@ -253,7 +253,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		return false;
 	}
 	
-	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, TiWindowProxy winToFocus, Object arg)
+	public boolean transitionFromWindowToWindow(final TiWindowProxy toRemove, final TiWindowProxy winToFocus, Object arg)
 	{
 		Transition transition = null;
 		if (animations.containsKey(toRemove)) {
@@ -303,11 +303,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					@Override
 					public void onAnimationEnd(Animator arg0) {	
 						handleWindowClosed(toRemove);
+						winToFocus.sendOpenEvent();
 					}
 
 					@Override
 					public void onAnimationCancel(Animator arg0) {		
 						handleWindowClosed(toRemove);
+						winToFocus.sendOpenEvent();
 					}
 				});
 				set.start();
