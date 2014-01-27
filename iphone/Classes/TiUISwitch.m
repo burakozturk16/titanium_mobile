@@ -81,6 +81,7 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    [self switchView];
 	[super frameSizeChanged:frame bounds:bounds];
 	[self setCenter:[self center]];
 }
