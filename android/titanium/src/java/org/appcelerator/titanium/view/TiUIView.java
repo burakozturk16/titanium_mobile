@@ -1339,8 +1339,9 @@ public abstract class TiUIView
 			if (currentActivity == null) {
 				currentActivity = TiApplication.getAppCurrentActivity();
 			}
+			float oldAlpha = getOpacity();
 			borderView = new TiBorderWrapperView(currentActivity, proxy);
-			ViewHelper.setAlpha(borderView, ViewHelper.getAlpha(nativeView));
+			ViewHelper.setAlpha(borderView, oldAlpha);
 			borderView.setVisibility(this.visibility);
 
 			if (proxy.hasProperty(TiC.PROPERTY_CLIP_CHILDREN)) {
