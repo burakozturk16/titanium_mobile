@@ -17,6 +17,7 @@
 
 @implementation TiUIListSectionProxy {
 	NSMutableArray *_items;
+    BOOL _hidden;
 }
 
 @synthesize delegate = _delegate;
@@ -29,6 +30,7 @@
     self = [super init];
     if (self) {
 		_items = [[NSMutableArray alloc] initWithCapacity:20];
+        _hidden = false;
     }
     return self;
 }
@@ -90,6 +92,36 @@
 
 #pragma mark - Public API
 
+- (void)setVisible:(NSNumber *)newVisible
+{
+    BOOL value = [TiUtils boolValue:newVisible def:YES];
+    if (_hidden == !value) return;
+    _hidden = !value;
+	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
+		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:UITableViewRowAnimationNone];
+	} animated:YES];
+}
+
+- (id)visible
+{
+    return NUMBOOL(!_hidden);
+}
+
+- (BOOL)isHidden
+{
+    return _hidden;
+}
+
+- (void)show:(id)arg
+{
+	[self setVisible:YES];
+}
+
+-(void)hide:(id)arg
+{
+	[self setVisible:NO];
+}
+
 - (NSArray *)items
 {
 	return [self.dispatcher dispatchBlockWithResult:^() {
@@ -100,7 +132,7 @@
 - (NSUInteger)itemCount
 {
 	return [[self.dispatcher dispatchBlockWithResult:^() {
-		return [NSNumber numberWithUnsignedInteger:[_items count]];
+		return _hidden?0:[NSNumber numberWithUnsignedInteger:[_items count]];
 	}] unsignedIntegerValue];
 }
 

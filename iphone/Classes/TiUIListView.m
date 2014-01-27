@@ -310,7 +310,7 @@ static NSDictionary* replaceKeysForRow;
             [footerView setFrame:[footerView bounds]];
             [[self tableView] setTableFooterView:footerView];
         } else if (sender == _pullViewProxy) {
-            pullThreshhold = ([_pullViewProxy view].frame.origin.y - _pullViewWrapper.bounds.size.height);
+            pullThreshhold = -[self tableView].contentInset.top + ([_pullViewProxy view].frame.origin.y - _pullViewWrapper.bounds.size.height);
         }
     },NO);
 }
@@ -411,7 +411,7 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)scrollToTop:(NSInteger)top animated:(BOOL)animated
 {
-	[_tableView setContentOffset:CGPointMake(0,top) animated:animated];
+	[_tableView setContentOffset:CGPointMake(0,top - _tableView.contentInset.top) animated:animated];
 }
 
 
@@ -429,7 +429,8 @@ static NSDictionary* replaceKeysForRow;
     BOOL animated = YES;
 	if (anim != nil)
 		animated = [anim boolValue];
-	[_tableView setContentOffset:CGPointMake(0,0) animated:animated];
+    
+	[_tableView setContentOffset:CGPointMake(0,-_tableView.contentInset.top) animated:animated];
 }
 
 -(void)showPullView:(NSNumber*)anim
@@ -1453,7 +1454,8 @@ static NSDictionary* replaceKeysForRow;
         }
     }
     
-    if([tableView numberOfRowsInSection:section] == 0)
+    TiUIListSectionProxy *sectionProxy = [self.listViewProxy sectionForIndex:section];
+    if(![sectionProxy isHidden] &&  [tableView numberOfRowsInSection:section] == 0)
     {
         return nil;
     }

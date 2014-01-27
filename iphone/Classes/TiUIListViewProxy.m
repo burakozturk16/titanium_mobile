@@ -174,6 +174,7 @@ static NSDictionary* listViewKeysToReplace;
 	UITableView *tableView = self.listView.tableView;
 	BOOL removeHead = NO;
 	BOOL begin = YES;
+    CGPoint offset;
 	while (YES) {
 		void (^block)(UITableView *) = nil;
 		pthread_mutex_lock(&_operationQueueMutex);
@@ -185,9 +186,9 @@ static NSDictionary* listViewKeysToReplace;
 			removeHead = YES;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
-        CGPoint offset = [tableView contentOffset];
 		if (block != nil) {
 			if (begin) {
+                offset = [tableView contentOffset];
 				[tableView beginUpdates];
 				begin = NO;
 			}

@@ -26,6 +26,7 @@
 - (NSDictionary *)itemAtIndex:(NSUInteger)index;
 - (void) deleteItemAtIndex:(NSUInteger)index;
 - (void) addItem:(NSDictionary*)item atIndex:(NSUInteger)index;
+- (BOOL)isHidden;
 
 - (void)appendItems:(id)args;
 - (void)insertItemsAt:(id)args;
