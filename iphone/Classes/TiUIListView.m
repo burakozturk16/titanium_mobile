@@ -712,16 +712,9 @@ static NSDictionary* replaceKeysForRow;
 -(void)setFooterView_:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
-    if (IS_NULL_OR_NIL(args)) {
-        [_footerViewProxy setProxyObserver:nil];
-        [_footerViewProxy windowWillClose];
-        [self.tableView setTableFooterView:nil];
-        [_footerViewProxy windowDidClose];
-        RELEASE_TO_NIL(_footerViewProxy);
-    } else {
-        [self configureFooter];
-        [_footerViewProxy removeAllChildren:nil];
-        [_footerViewProxy add:(TiViewProxy*) args];
+    [_footerViewProxy removeAllChildren:nil];
+    if (args!=nil) {
+        [[self getOrCreateFooterHolder] add:(TiViewProxy*) args];
     }
 }
 
