@@ -198,6 +198,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			if (viewToRemove != null) {
 				viewToRemoveFrom.removeView(window.getOuterView());
 			}
+			window.setWindowManager(null);
 			window.closeFromActivity(false);
 			window.setActivity(null);
 			animations.remove(window);
