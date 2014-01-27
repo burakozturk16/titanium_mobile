@@ -20,7 +20,6 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -30,7 +29,6 @@ public class TiUIActivityIndicator extends TiUIView
 	private static final String TAG = "TiUIActivityIndicator";
 
 	protected int currentStyle;
-	protected boolean visible = true;
 	private TextView label;
 	private ProgressBar progress;
 	private LinearLayout view;
@@ -114,26 +112,6 @@ public class TiUIActivityIndicator extends TiUIView
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
-	}
-
-	@Override
-	public void show()
-	{
-		if (visible) {
-			return;
-		}
-		super.show();
-		visible = true;
-	}
-
-	@Override
-	public void hide()
-	{
-		if (!visible) {
-			return;
-		}
-		super.hide();
-		visible = false;
 	}
 
 	protected int getStyle()

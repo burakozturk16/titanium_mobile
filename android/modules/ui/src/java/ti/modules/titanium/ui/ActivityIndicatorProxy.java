@@ -31,9 +31,7 @@ public class ActivityIndicatorProxy extends ViewProxy
 {
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SHOW = MSG_FIRST_ID + 100;
-	
-	boolean visible = false;
-	
+		
 	public ActivityIndicatorProxy()
 	{
 		super();
@@ -76,11 +74,8 @@ public class ActivityIndicatorProxy extends ViewProxy
 	@Override
 	protected void handleShow(KrollDict options)
 	{
-		visible = true;
 		if (view == null) {
-			TiUIActivityIndicator ai = (TiUIActivityIndicator) getOrCreateView();
-			ai.show();
-			return;
+			getOrCreateView();
 		}
 		super.handleShow(options);
 	}
@@ -88,11 +83,8 @@ public class ActivityIndicatorProxy extends ViewProxy
 	@Override
 	protected void handleHide(KrollDict options)
 	{
-		visible = false;
 		if (view == null) {
-			TiUIActivityIndicator ai = (TiUIActivityIndicator) getOrCreateView();
-			ai.hide();
-			return;
+			 getOrCreateView();
 		}
 		super.handleHide(options);
 	}
