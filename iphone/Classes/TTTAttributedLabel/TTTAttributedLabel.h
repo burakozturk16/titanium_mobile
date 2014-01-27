@@ -221,6 +221,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 @property (nonatomic, strong) NSString *strokeWidthAttributeProperty;
 @property (nonatomic, strong) NSString *cornerRadiusAttributeProperty;
 @property (nonatomic, strong) NSString *paddingAttributeProperty;
+@property (nonatomic, strong) NSString *strikeOutAttributeProperty;
 
 
 ///--------------------------------------------

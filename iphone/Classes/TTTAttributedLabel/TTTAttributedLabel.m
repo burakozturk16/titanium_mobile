@@ -389,6 +389,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     self.strokeWidthAttributeProperty = kTTTBackgroundLineWidthAttributeName;
     self.cornerRadiusAttributeProperty = kTTTBackgroundCornerRadiusAttributeName;
     self.paddingAttributeProperty = kTTTBackgroundFillPaddingAttributeName;
+    self.strikeOutAttributeProperty = kTTTStrikeOutAttributeName;
 }
 
 - (void)dealloc {
@@ -922,7 +923,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
         
         for (id glyphRun in (__bridge NSArray *)CTLineGetGlyphRuns((__bridge CTLineRef)line)) {
             NSDictionary *attributes = (__bridge NSDictionary *)CTRunGetAttributes((__bridge CTRunRef) glyphRun);
-            BOOL strikeOut = [[attributes objectForKey:kTTTStrikeOutAttributeName] boolValue];
+            BOOL strikeOut = [[attributes objectForKey:self.strikeOutAttributeProperty] boolValue];
             NSInteger superscriptStyle = [[attributes objectForKey:(id)kCTSuperscriptAttributeName] integerValue];
             
             if (strikeOut) {
@@ -954,7 +955,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 
 				switch (superscriptStyle) {
 					case 1:
-						runBounds.origin.y -= runAscent * 0.47f;
+						runBounds.origin.y -= runAscent * 0.5f;
 						break;
 					case -1:
 						runBounds.origin.y += runAscent * 0.25f;
@@ -976,10 +977,11 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
                 }
                 
                 CTFontRef font = CTFontCreateWithName((__bridge CFStringRef)self.font.fontName, self.font.pointSize, NULL);
-                CGContextSetLineWidth(c, CTFontGetUnderlineThickness(font));
+                CGFloat lineWidth  = CTFontGetUnderlineThickness(font)*2.0f;
+                CGContextSetLineWidth(c, lineWidth);
                 CFRelease(font);
 
-                CGFloat y = CGFloat_round(runBounds.origin.y + runBounds.size.height / 2.0f);
+                CGFloat y = CGFloat_round(runBounds.origin.y + runBounds.size.height / 2.0f + lineWidth/2.0f);
                 CGContextMoveToPoint(c, runBounds.origin.x, y);
                 CGContextAddLineToPoint(c, runBounds.origin.x + runBounds.size.width, y);
                 
@@ -1428,6 +1430,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     [coder encodeObject:self.strokeWidthAttributeProperty forKey:NSStringFromSelector(@selector(strokeWidthAttributeProperty))];
     [coder encodeObject:self.cornerRadiusAttributeProperty forKey:NSStringFromSelector(@selector(cornerRadiusAttributeProperty))];
     [coder encodeObject:self.paddingAttributeProperty forKey:NSStringFromSelector(@selector(paddingAttributeProperty))];
+    [coder encodeObject:self.strikeOutAttributeProperty forKey:NSStringFromSelector(@selector(strikeOutAttributeProperty))];
 //    [coder encodeObject:_attributedText forKey:NSStringFromSelector(@selector(attributedText))];
 }
 
@@ -1520,6 +1523,9 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
     }
     if ([coder containsValueForKey:NSStringFromSelector(@selector(paddingAttributeProperty))]) {
         self.paddingAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(paddingAttributeProperty))];
+    }
+    if ([coder containsValueForKey:NSStringFromSelector(@selector(strikeOutAttributeProperty))]) {
+        self.strikeOutAttributeProperty = [coder decodeObjectForKey:NSStringFromSelector(@selector(strikeOutAttributeProperty))];
     }
     
 
