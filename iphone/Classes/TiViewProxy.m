@@ -1443,6 +1443,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 
 -(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds
 {
+    if([self viewAttached]) return view;
     [self setSandboxBounds:bounds];
     [self parentWillShow];
     [self windowWillOpen];
