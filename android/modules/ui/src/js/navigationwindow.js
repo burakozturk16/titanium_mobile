@@ -55,35 +55,38 @@ exports.bootstrap = function(Titanium) {
 		if (!options) {
 			options = {};
 		}
+		var that = this;
+		var index = that._windows.indexOf(window);
+		if (index == -1) { //already opened window
+				that._windows.splice(index, 1);
+				var handle = new PersistentHandle(window);
+				this._windows.push(window);
+				// Retain the window until it has closed.
+				window.on("close", function(e) {
+					if (e._closeFromActivityForcedToDestroy) {
+						if (kroll.DBG) {
+							kroll.log(TAG, "Window is closed because the activity is forced to destroy by Android OS.");
+						}
+						return;
+					}
+					var index = that._windows.indexOf(window);
+					if (index > -1) {
+						that._windows.splice(index, 1);
+					}
+					// Dispose the URL context if the window's activity is destroyed.
+					if (window._urlContext) {
+						Script.disposeContext(window._urlContext);
+						window._urlContext = null;
+					}
+					handle.dispose();
+
+					if (kroll.DBG) {
+						kroll.log(TAG, "Window is closed normally.");
+					}
+				});
+			}
 
 		kroll.log(TAG, "openWindow");
-		// Retain the window until it has closed.
-		var handle = new PersistentHandle(window);
-		var that = this;
-		window.on("close", function(e) {
-			if (e._closeFromActivityForcedToDestroy) {
-				if (kroll.DBG) {
-					kroll.log(TAG, "Window is closed because the activity is forced to destroy by Android OS.");
-				}
-				return;
-			}
-			var index = that._windows.indexOf(window);
-			if (index > -1) {
-				that._windows.splice(index, 1);
-			}
-			// Dispose the URL context if the window's activity is destroyed.
-			if (window._urlContext) {
-				Script.disposeContext(window._urlContext);
-				window._urlContext = null;
-			}
-			handle.dispose();
-
-			if (kroll.DBG) {
-				kroll.log(TAG, "Window is closed normally.");
-			}
-		});
-
-		this._windows.push(window);
 		_openWindow.call(this, window, options);
 	}
 
