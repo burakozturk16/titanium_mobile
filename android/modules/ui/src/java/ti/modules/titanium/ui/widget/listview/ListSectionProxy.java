@@ -795,17 +795,14 @@ public class ListSectionProxy extends ViewProxy {
 	public void populateViews(KrollDict data, TiBaseListViewItem cellContent,
 			TiListViewTemplate template, int itemIndex, int sectionIndex,
 			View item_layout) {
-		Object cell = cellContent.getTag();
+		TiListItem listItem = cellContent.getListItem();
 		// Handling root item, since that is not in the views map.
-		if (!(cell instanceof TiListItem)) {
-			Log.e(TAG, "Cell is not TiListItem. Something is wrong..",
-					Log.DEBUG_MODE);
+		if (listItem == null) {
 			return;
 		}
 		boolean reusing = !cellContent.isItemAtIndex(sectionIndex, itemIndex);
 		cellContent.setCurrentItem(sectionIndex, itemIndex);
 
-		TiListItem listItem = (TiListItem) cell;
 		KrollDict listItemProperties;
 		KrollDict templateProperties = template.getProperties();
 		KrollDict listViewProperties = getListView().getProxy().getProperties();
