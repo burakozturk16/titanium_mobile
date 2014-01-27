@@ -2189,14 +2189,16 @@ public abstract class TiUIView
 				options.containsKey(TiC.PROPERTY_RIGHT) ||
 				options.containsKey(TiC.PROPERTY_CENTER)) {
 			AnimationLayoutParams animParams;
-			if (layoutParams instanceof AnimationLayoutParams) {
-				animParams = (AnimationLayoutParams)layoutParams;
-			}
-			else {
+//			if (layoutParams instanceof AnimationLayoutParams) {
+//				animParams = (AnimationLayoutParams)layoutParams;
+////				animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+//				animParams.animationFraction = 0.0f;
+//			}
+//			else {
 				animParams = new AnimationLayoutParams(layoutParams);
 				animParams.startRect = new Rect(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
 				animParams.animationFraction = 0.0f;
-			}
+//			}
 			//fillLayout will try to reset animationFraction, here we dont want that
 			float oldAnimationFraction = animParams.animationFraction;
 			TiConvert.fillLayout(options, animParams, false);
