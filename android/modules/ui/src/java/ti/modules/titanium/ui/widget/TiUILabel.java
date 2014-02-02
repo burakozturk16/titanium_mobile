@@ -209,7 +209,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					queuedText = text;
 					return;
 				}
-				EllipsizingTextView newTextView = cloneTextView(textView, text);
+				EllipsizingTextView newTextView = textView.clone(text);
 				transitionToTextView(newTextView, transition);
 			}
 		}
@@ -238,10 +238,10 @@ public class TiUILabel extends TiUINonViewGroupView
 		public void transitionToTextView(EllipsizingTextView newTextView, Transition transition) {
 			oldTextView = textView;
 			textView = newTextView;
-			doSetClickable(oldTextView, false);
 			newTextView.setVisibility(View.GONE);
-			doSetClickable(getTouchView(), isClickable());
-			TiUIHelper.addView(this, newTextView, (oldTextView != null)?oldTextView.getLayoutParams():getTextLayoutParams());
+			TiUIHelper.addView(this, newTextView, getTextLayoutParams());
+			registerForTouch();
+			registerForKeyPress();
 			
 			transition.setTargets(this, newTextView, oldTextView);
 
@@ -266,8 +266,8 @@ public class TiUILabel extends TiUINonViewGroupView
 			});
 			currentTransitionSet.start();
 			newTextView.setVisibility(View.VISIBLE);
-			requestLayout();
 			newTextView.invalidate();
+			requestLayout();
 		}
 	}
 
@@ -348,6 +348,34 @@ public class TiUILabel extends TiUINonViewGroupView
 			minTextSize = 20;
 			needsResizing = false;
 			super.setSingleLine(false);
+		}
+		
+		public EllipsizingTextView clone(CharSequence text) {
+			EllipsizingTextView newView = new EllipsizingTextView(getContext());
+			newView.setInputType(getInputType());
+			newView.setGravity(getGravity());
+			newView.setKeyListener(getKeyListener());
+			TiUIHelper.styleText(newView, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
+			newView.setEllipsize(ellipsize);
+			newView.singleline = this.singleline;
+			newView.maxLines = this.maxLines;
+			newView.maxTextSize = this.maxTextSize;
+			newView.minTextSize = this.minTextSize;
+			newView.lineAdditionalVerticalPadding = this.lineAdditionalVerticalPadding;
+			newView.lineSpacingMultiplier = this.lineSpacingMultiplier;
+			newView.multiLineEllipsize = this.multiLineEllipsize;
+			newView.setTextColor(getTextColors());
+			newView.setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
+			newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+			if (text instanceof Spannable)
+			{
+				newView.setText(text, TextView.BufferType.SPANNABLE);
+			}
+			else {
+				newView.setText(text);
+			}
+			newView.SetReadyToEllipsize(true);
+			return newView;
 		}
 		
 
@@ -453,6 +481,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		@Override
 		public void setSingleLine (boolean singleLine) {
+			if (this.singleline == singleLine) return;
 			this.singleline = singleLine;
 			if (this.maxLines == 1 && singleLine == false){
 				//we were at maxLines==1 and singleLine==true
