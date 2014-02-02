@@ -460,7 +460,7 @@
 
 -(BOOL)textFieldShouldReturn:(UITextField *)tf 
 {
-    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"return" checkParent:NO])
 	{
 		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"] propagate:NO checkForListener:NO];
 	}
