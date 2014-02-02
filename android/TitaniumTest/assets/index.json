@@ -1,6 +1,7 @@
 {
 	"Resources/app.js": 1,
 	"Resources/lib/underscore.js": 1,
+	"Resources/lib/underscore.string.js": 1,
 	"Resources/lib/moment/moment.js": 1,
 	"Resources/lib/moment/lang/fr.js": 1,
 	"Resources/rjss/common.rjss": 1
