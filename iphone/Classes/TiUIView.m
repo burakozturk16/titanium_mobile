@@ -1243,8 +1243,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 		else
 		{
             [viewProxy performBlockWithoutLayout:^{
-                [viewProxy willChangeSize];
-                [viewProxy willChangePosition];
+                [viewProxy willShow];
             }];
             if (configurationSet) [viewProxy refreshViewOrParent];
 		}
