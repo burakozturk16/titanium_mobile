@@ -619,14 +619,16 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			preAddedWindows.clear();
 			return;
 		}
-		TiWindowProxy window = windows.get(0);
-		poping = true;
-		if (TiApplication.isUIThread()) {
-			handlePop(window, arg);
-			return;
+		if (windows.size() > 1) {
+			TiWindowProxy window = windows.get(1);
+			poping = true;
+			if (TiApplication.isUIThread()) {
+				handlePop(window, arg);
+				return;
+			}
+	
+			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(window, arg));
 		}
-
-		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_POP), new Pair<TiWindowProxy, Object>(window, arg));
 	}
 	
 	@Override
