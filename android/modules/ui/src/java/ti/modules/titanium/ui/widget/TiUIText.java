@@ -137,6 +137,25 @@ public class TiUIText extends TiUIView
 			}
 			return true;
 		}
+		
+		@Override
+	    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
+			
+			//there is something really weird in the TextView where when using AT_MOST,
+			//it would size to Math.min(widthSize, width); which is NOT what we want
+			int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+	        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+	        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+	        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+	        
+	        if (widthMode == MeasureSpec.AT_MOST) {
+	        	widthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
+	        }
+	        if (heightMode == MeasureSpec.AT_MOST) {
+	        	heightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
+	        }
+			 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	    }
 
 		@Override
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
