@@ -48,6 +48,7 @@ public class TiResponseCache extends ResponseCache
 	private static final int CLEANUP_DELAY = 60000;
 	private static HashMap<String, ArrayList<CompleteListener>> completeListeners = new HashMap<String, ArrayList<CompleteListener>>();
 	private static long maxCacheSize = 0;
+	private static HashMap<String, String> redirectionMap = new HashMap<String, String>();
 
 	private static ScheduledExecutorService cleanupExecutor = null;
 	
@@ -339,6 +340,12 @@ public class TiResponseCache extends ResponseCache
 		if (!cacheDir.exists()) {
 			cacheDir.mkdirs();
 		}
+		String location = conn.getHeaderField( "Location" ); //redirection URL
+		if (location != null && !location.equals(uri.toString())) {
+			redirectionMap.put(location, uri.toString());
+			return null;
+		}
+		
 		
 		// Gingerbread 2.3 bug: getHeaderField tries re-opening the InputStream
 		// getHeaderFields() just checks the response itself
@@ -376,9 +383,14 @@ public class TiResponseCache extends ResponseCache
 		try {
 			uri = conn.getURL().toURI();
 		} catch (URISyntaxException e) {}
+		String url = uri.toString();
+		if (redirectionMap.containsKey(url)) {
+			url = redirectionMap.remove(url);
+			
+		}
 		
 		// Get our key, which is a hash of the URI
-		String hash = DigestUtils.shaHex(uri.toString());
+		String hash = DigestUtils.shaHex(url.toString());
 		
 		// Make our cache files
 		File hFile = new File(cacheDir, hash + HEADER_SUFFIX); 
