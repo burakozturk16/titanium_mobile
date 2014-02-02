@@ -175,7 +175,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			super.handleCreationDict(options);
 		}
 		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
-			initFromTemplate(options, this);
+			initFromTemplate(options, this, true);
 			needsToUpdateProps = true;
 		}
 		if (needsToUpdateProps) {
@@ -740,14 +740,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
-			TiViewProxy rootProxy) {
+			TiViewProxy rootProxy, boolean recursive) {
 		if (rootProxy != null
 				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
 			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
 			rootProxy.setProperty(bindId,this);
 			rootProxy.addPropToUpdateNativeSide(bindId,this);
 		}
-		if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+		if (recursive && template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			Object childProperties = template_
 					.get(TiC.PROPERTY_CHILD_TEMPLATES);
 			if (childProperties instanceof Object[]) {
@@ -783,10 +783,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 	}
-
-	@SuppressWarnings("unchecked")
-	public TiViewProxy createViewFromTemplate(HashMap template_,
+	
+	public static TiViewProxy createViewFromTemplate(HashMap template_,
 			TiViewProxy rootProxy, boolean updateRootProperties) {
+		return createViewFromTemplate(template_, rootProxy, updateRootProperties, true);
+	}
+	@SuppressWarnings("unchecked")
+	public static TiViewProxy createViewFromTemplate(HashMap template_,
+			TiViewProxy rootProxy, boolean updateRootProperties, boolean recursive) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				"Ti.UI.View");
 		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
@@ -798,7 +802,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					new Object[] { properties }, null);
 			if (proxy == null)
 				return null;
-			proxy.initFromTemplate(template_, rootProxy);
+			proxy.initFromTemplate(template_, rootProxy, recursive);
 			if (updateRootProperties) {
 				rootProxy.updatePropertiesNativeSide();
 			}
