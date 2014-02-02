@@ -77,7 +77,7 @@ public class TiUIText extends TiUIView
 	private static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
 	private static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
 
-	private int defaultColor, selectedColor, color, disabledColor;
+	private int selectedColor, color, disabledColor;
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
@@ -405,7 +405,7 @@ public class TiUIText extends TiUIView
 		}
 		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			needsColors = true;
-			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, this.disabledColor);
 		}
 		if (needsColors) {
 			updateTextColors();
@@ -416,7 +416,7 @@ public class TiUIText extends TiUIView
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_HINT_COLOR)) {
-			realtv.setHintTextColor(d.optColor(TiC.PROPERTY_COLOR, Color.GRAY));
+			realtv.setHintTextColor(d.optColor(TiC.PROPERTY_HINT_COLOR, Color.GRAY));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_ELLIPSIZE)) {
