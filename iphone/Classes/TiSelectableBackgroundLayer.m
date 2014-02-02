@@ -289,7 +289,12 @@
     }
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
-        if (readyToCreateDrawables) [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        if (readyToCreateDrawables) {
+            [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        }
+        else {
+            _needsToSetDrawables = YES;
+        }
         if (currentDrawable.shadow) {
             self.shadowOpacity = 1.0f;
             self.shadowColor = ((UIColor*)currentDrawable.shadow.shadowColor).CGColor;
