@@ -35,7 +35,6 @@ public class ActivityIndicatorProxy extends ViewProxy
 	public ActivityIndicatorProxy()
 	{
 		super();
-		defaultValues.put(TiC.PROPERTY_VISIBLE, false);
 	}
 
 	public ActivityIndicatorProxy(TiContext tiContext)
