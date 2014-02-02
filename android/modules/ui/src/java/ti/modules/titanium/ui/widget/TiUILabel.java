@@ -613,7 +613,7 @@ public class TiUILabel extends TiUINonViewGroupView
 					newText = TextUtils.concat(newText, ELLIPSIZE_CHAR);
 				}
 				newText = TextUtils.ellipsize(newText, getPaint(), width, where);
-				if (newText.length() == 0) return newText;
+				if (newText.length() <= length) return newText;
 				String textStr = newText.toString();
 				if (where == TruncateAt.START && !textStr.startsWith(ELLIPSIZE_CHAR)) {
 					newText = TextUtils.concat(ELLIPSIZE_CHAR, newText.subSequence(length, textStr.length()));
