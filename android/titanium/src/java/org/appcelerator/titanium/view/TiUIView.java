@@ -362,7 +362,7 @@ public abstract class TiUIView
 				
 		this.nativeView = view;
 
-		doSetClickable(getTouchView(), isClickable());
+		doSetClickable();
 		nativeView.setOnFocusChangeListener(this);
 		
 		
@@ -1701,7 +1701,7 @@ public abstract class TiUIView
 			return;
 		}
 		
-		boolean clickable = proxy.getProperties().optBoolean(TiC.PROPERTY_TOUCH_ENABLED, true);
+		boolean clickable = isClickable();
 
 		if (clickable) {
 			if (touchView == null || touchView.get() != touchable) registerTouchEvents(touchable);
@@ -1715,7 +1715,7 @@ public abstract class TiUIView
 			// that info. However, an "up" seems to always occur before the click listener gets invoked,
 			// so we store the last up event's x,y coordinates (see onTouch above) and use them here.
 			// Note: AdapterView throws an exception if you try to put a click listener on it.
-			doSetClickable(touchable);
+			doSetClickable(touchable, clickable);
 		}
 	}
 
@@ -1877,10 +1877,15 @@ public abstract class TiUIView
 		doSetClickable(getTouchView(), clickable);
 	}
 
+	protected void doSetClickable()
+	{
+		doSetClickable(getTouchView(), isClickable());
+	}
+
 	/*
 	 * Used just to setup the click listener if applicable.
 	 */
-	private void doSetClickable(View view)
+	protected void doSetClickable(View view)
 	{
 		if (view == null) {
 			return;
