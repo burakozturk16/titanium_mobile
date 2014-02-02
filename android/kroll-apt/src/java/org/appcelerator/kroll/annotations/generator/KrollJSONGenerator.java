@@ -304,16 +304,15 @@ public class KrollJSONGenerator extends AbstractProcessor {
 					proxyProperties.put("superPackageName", utils.getPackage(superType));
 					proxyProperties.put("superProxyClassName", superTypeName);
 					if (proxyClassName.indexOf("Module") == -1) {
-						String superApiName = "";
-						String[] superApiNames = ((String) proxyProperties.get("superPackageName")).split("\\.");
-						for (int i = superApiNames.length - 1; i > 0 ; i--) {
-							String superApi = superApiNames[i];
-							superApiName = superApi + superApiName;
-							if (superApi.equalsIgnoreCase("titanium"))
-								break;
-							superApiName = "." + superApiName;
-						}
-						if (superApiName.length() > 0) proxyProperties.put("superApiName", superApiName);
+//						String superApiName = "";
+//						String[] superApiNames = ((String) proxyProperties.get("superPackageName")).replace("org.appcelerator.", "").split("\\.");
+//						for (int i = superApiNames.length - 1; i >= 0 ; i--) {
+//							String superApi = superApiNames[i];
+//							superApiName = superApi + superApiName;
+//							if (i != 0)
+//								superApiName = "." + superApiName;
+//						}
+//						if (superApiName.length() > 0) proxyProperties.put("superApiName", superApiName);
 					}
 				}
 
