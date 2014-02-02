@@ -1129,10 +1129,20 @@ public abstract class TiUIView
 		}
 		return false;
 	}
-	
+		
 	protected void handleClearFocus(View view)
 	{
-		view.clearFocus();
+		if (view instanceof ViewGroup)
+		{
+			ViewGroup group = (ViewGroup)view;
+			group.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+			group.clearFocus();
+			group.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+		}
+		else {
+			view.clearFocus();
+		}
+		
 		TiUIHelper.hideSoftKeyboard(view);
 	}
 	
