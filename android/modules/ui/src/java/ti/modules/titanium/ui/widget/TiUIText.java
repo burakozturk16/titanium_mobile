@@ -348,7 +348,7 @@ public class TiUIText extends TiUIView
 		} else {
 			realtv.setGravity(Gravity.TOP | Gravity.LEFT);
 		}
-		color = disabledColor = selectedColor = defaultColor = realtv.getCurrentTextColor();
+		color = disabledColor = selectedColor = realtv.getCurrentTextColor();
 		setNativeView(tv);
 	}
 
