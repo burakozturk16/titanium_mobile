@@ -55,6 +55,7 @@
     if (maxLength > -1 && [string length] > maxLength) {
         string = [string substringToIndex:maxLength];
     }
+    if ([string isEqualToString:[(id)[self textWidgetView] text]]) return;
     [(id)[self textWidgetView] setText:string];
     [(TiUITextWidgetProxy*)[self proxy] noteValueChange:string];
 }
