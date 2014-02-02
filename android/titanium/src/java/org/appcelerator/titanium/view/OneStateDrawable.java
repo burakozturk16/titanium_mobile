@@ -2,6 +2,7 @@ package org.appcelerator.titanium.view;
 
 import java.util.WeakHashMap;
 
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 
@@ -12,7 +13,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
-import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
@@ -85,7 +85,11 @@ public class OneStateDrawable extends Drawable {
 		if (needsDrawing && !bounds.isEmpty()) {
 			Path path = parent.getPath();
 			if (path != null){
-				canvas.clipPath(path);
+				try {
+					canvas.clipPath(path);
+				} catch (Exception e) {
+					Log.w(TAG, "clipPath failed on canvas: " + e.getMessage(), Log.DEBUG_MODE);
+				}
 				if (color != Color.TRANSPARENT) {
 					paint.setColor(color);
 					canvas.drawPath(path, paint);		
