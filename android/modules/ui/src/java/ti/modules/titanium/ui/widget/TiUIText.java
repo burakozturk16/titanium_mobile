@@ -182,7 +182,7 @@ public class TiUIText extends TiUIView
 
 		private LinearLayout.LayoutParams createBaseParams()
 		{
-			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT);
+			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 		}
 		
 		
@@ -217,7 +217,7 @@ public class TiUIText extends TiUIView
 
 			editText = new TiEditText(context);
 			editText.setId(200);
-			params = new LinearLayout.LayoutParams(0, LayoutParams.FILL_PARENT, 1.0f);
+			params = new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
 			this.addView(editText, params);
 
 			rightPane = new TiCompositeLayout(context);
