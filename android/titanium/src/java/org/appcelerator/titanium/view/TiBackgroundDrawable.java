@@ -224,7 +224,7 @@ public class TiBackgroundDrawable extends Drawable {
 //		setState(stateSet);
 		int key = keyOfBestMatchingStateSet(stateSet);
         if (key < 0) {
-        	key = keyOfBestMatchingStateSet(StateSet.WILD_CARD);
+        	key = keyOfBestMatchingStateSet(TiUIHelper.BACKGROUND_DEFAULT_STATE_2);
         }
 		OneStateDrawable newdrawable = null;
 		if (key != -1)
