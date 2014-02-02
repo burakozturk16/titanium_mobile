@@ -2387,7 +2387,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)willShow;
 {
-//	SET_AND_PERFORM(TiRefreshViewZIndex,);
+    [self willChangeZIndex];
     
     pthread_rwlock_rdlock(&childrenLock);
     if (allowContentChange)
@@ -2672,6 +2672,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)determineSandboxBounds
 {
     if (controller) return;
+    if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
+        [parent insertSubview:view forProxy:self];
+    }
     UIView * ourSuperview = [[self view] superview];
     if(ourSuperview != nil)
     {
