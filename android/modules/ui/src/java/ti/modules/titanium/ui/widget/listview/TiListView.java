@@ -48,6 +48,7 @@ import android.support.v4.view.ViewPager;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -172,7 +173,6 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				}
 			}
 		}
-		
 	}
 	
 	public class TiBaseAdapter extends BaseAdapter {
@@ -346,11 +346,18 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		
 		final KrollProxy fProxy = proxy;
 		//initializing listView and adapter
-		ListViewWrapper wrapper = new ListViewWrapper(activity);
+		final ListViewWrapper wrapper = new ListViewWrapper(activity);
 		wrapper.setFocusable(false);
 		wrapper.setFocusableInTouchMode(false);
-		wrapper.setAddStatesFromChildren(true);
-		listView = new CustomListView(activity);
+		listView = new CustomListView(activity) {
+
+			@Override
+			public boolean onTouchEvent(MotionEvent event) {
+		        wrapper.onTouchEvent(event);
+		        return super.onTouchEvent(event);
+		    }
+		};
+		listView.setDuplicateParentStateEnabled(true);
 		
 		TiCompositeLayout.LayoutParams params = new TiCompositeLayout.LayoutParams();
 		params.autoFillsHeight = true;
@@ -434,6 +441,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 		
 		listView.setCacheColorHint(Color.TRANSPARENT);
+		listView.setEnabled(true);
 		getLayoutParams().autoFillsHeight = true;
 		getLayoutParams().autoFillsWidth = true;
 		listView.setFocusable(true);
