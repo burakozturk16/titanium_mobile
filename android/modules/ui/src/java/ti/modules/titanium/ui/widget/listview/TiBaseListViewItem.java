@@ -13,8 +13,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiUIView;
 
-import ti.modules.titanium.ui.widget.TiUILabel;
-
 import android.content.Context;
 import android.util.AttributeSet;
 
