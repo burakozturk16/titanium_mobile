@@ -32,7 +32,8 @@ public class TiBackgroundDrawable extends Drawable {
 	private int defaultColor = Color.TRANSPARENT;
 	private SparseArray<int[]> mStateSets;
 	
-	private RectF bounds = new RectF();
+	private RectF boundsF = new RectF();
+	private Rect bounds = new Rect();
 	private float[] radius = null;
 	Path path = null;
 	private float pathWidth = 0;
@@ -126,7 +127,7 @@ public class TiBackgroundDrawable extends Drawable {
 	private void updatePath(){
 		if (bounds.isEmpty()) return;
 		path = null;
-		RectF outerRect = TiUIHelper.insetRect(bounds, mPadding);
+		RectF outerRect = TiUIHelper.insetRect(boundsF, mPadding);
 		if (radius != null) {
 			path = new Path();
 			path.setFillType(FillType.EVEN_ODD);
@@ -167,7 +168,8 @@ public class TiBackgroundDrawable extends Drawable {
 	@Override
 	protected void onBoundsChange(Rect bounds)
 	{
-		this.bounds = new RectF(bounds);
+		this.boundsF = new RectF(bounds);
+		this.bounds = bounds;
 		super.onBoundsChange(bounds);
 		updatePath();
 		int length = drawables.size();
@@ -256,7 +258,13 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable = new OneStateDrawable(this);
 			drawable.setAlpha(this.alpha);
 			drawable.setDefaultColor(defaultColor);
+			drawable.setBounds(bounds);
 			drawables.append(key, drawable);
+			
+			int currentKey = keyOfBestMatchingStateSet(getState());
+			if (currentKey == key) {
+				currentDrawable = drawable;
+			}
 		}
 		else
 		{
