@@ -113,12 +113,28 @@ static NSDictionary* replaceKeysForRow;
     RELEASE_TO_NIL(_defaultItemTemplate);
     RELEASE_TO_NIL(_searchResults);
     RELEASE_TO_NIL(_pullViewWrapper);
-    RELEASE_TO_NIL(_pullViewProxy);
-    RELEASE_TO_NIL(_headerViewProxy);
     RELEASE_TO_NIL(_searchWrapper);
     RELEASE_TO_NIL(_headerWrapper)
-    RELEASE_TO_NIL(_footerViewProxy);
-    RELEASE_TO_NIL(searchViewProxy);
+    if (_pullViewProxy)
+    {
+        [_pullViewProxy detachView];
+        RELEASE_TO_NIL(_pullViewProxy);
+    }
+    if (_headerViewProxy)
+    {
+        [_headerViewProxy detachView];
+        RELEASE_TO_NIL(_headerViewProxy);
+    }
+    if (_footerViewProxy)
+    {
+        [_footerViewProxy detachView];
+        RELEASE_TO_NIL(_footerViewProxy);
+    }
+    if (searchViewProxy)
+    {
+        [searchViewProxy detachView];
+        RELEASE_TO_NIL(searchViewProxy);
+    }
     RELEASE_TO_NIL(tableController);
     RELEASE_TO_NIL(searchController);
     RELEASE_TO_NIL(sectionTitles);
@@ -300,7 +316,7 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)proxyDidRelayout:(id)sender
 {
-    TiThreadPerformOnMainThread(^{
+//    TiThreadPerformOnMainThread(^{
         if (sender == _headerViewProxy) {
             UIView* headerView = [[self tableView] tableHeaderView];
             [headerView setFrame:[headerView bounds]];
@@ -312,7 +328,7 @@ static NSDictionary* replaceKeysForRow;
         } else if (sender == _pullViewProxy) {
             pullThreshhold = -[self tableView].contentInset.top + ([_pullViewProxy view].frame.origin.y - _pullViewWrapper.bounds.size.height);
         }
-    },NO);
+//    },YES);
 }
 
 -(void)setContentInsets_:(id)value withObject:(id)props
