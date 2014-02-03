@@ -86,28 +86,6 @@ public class TiUIText extends TiUIView
 	protected FocusFixedEditText tv;
 	protected TiEditText realtv;
 
-	public static void requestSoftInputChange(KrollProxy proxy, View view) 
-	{
-		int focusState = TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS;
-		
-		if (proxy.hasProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
-			focusState = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS));
-		}
-
-		if (focusState > TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS) {
-			if (focusState == TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS) {
-				TiUIHelper.showSoftKeyboard(view, true);
-			} else if (focusState == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
-				TiUIHelper.showSoftKeyboard(view, false);
-			} else {
-				Log.w(TAG, "Unknown onFocus state: " + focusState);
-			}
-		}
-		else {
-			TiUIHelper.showSoftKeyboard(view, true);
-		}
-	}
-	
 	public class TiEditText extends EditText 
 	{
 		public TiEditText(Context context) 
