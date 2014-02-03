@@ -51,6 +51,7 @@ public class TextFieldProxy extends ViewProxy
 		super();
 		defaultValues.put(TiC.PROPERTY_VALUE, "");
 		defaultValues.put(TiC.PROPERTY_MAX_LENGTH, -1);
+		defaultValues.put(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS, TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS);
 
 	}
 
