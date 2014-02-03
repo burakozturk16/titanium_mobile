@@ -605,11 +605,11 @@ public class TiUIText extends TiUIView
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
 	}
-	// @Override
-	// public View getFocusView()
-	// {
-	// 	return realtv;
-	// }
+	 @Override
+	 public View getFocusView()
+	 {
+	 	return realtv;
+	 }
 
 	@Override
 	public void setVisibility(int visibility)
