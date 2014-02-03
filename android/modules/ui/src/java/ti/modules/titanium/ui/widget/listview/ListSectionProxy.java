@@ -959,7 +959,7 @@ public class ListSectionProxy extends ViewProxy {
 
 	private int getHiddenCount() {
 		int count = 0;
-		if (hidden) return count;
+		if (hidden || hiddenItems == null) return count;
 		for (int i = 0; i < hiddenItems.length; i++)
 			if (hiddenItems[i])
 				count++;
