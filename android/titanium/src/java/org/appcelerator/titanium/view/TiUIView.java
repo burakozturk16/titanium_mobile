@@ -1135,9 +1135,10 @@ public abstract class TiUIView
 		if (view instanceof ViewGroup)
 		{
 			ViewGroup group = (ViewGroup)view;
+			int oldValue = group.getDescendantFocusability();
 			group.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
 			group.clearFocus();
-			group.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			group.setDescendantFocusability(oldValue);
 		}
 		else {
 			view.clearFocus();
