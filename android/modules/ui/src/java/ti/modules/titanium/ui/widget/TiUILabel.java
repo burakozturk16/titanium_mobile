@@ -128,28 +128,28 @@ public class TiUILabel extends TiUINonViewGroupView
 			addView(textView, getTextLayoutParams());
 		}
 		
-		@SuppressLint("NewApi")
-		private EllipsizingTextView cloneTextView(EllipsizingTextView original, CharSequence text){
-			EllipsizingTextView newView = new EllipsizingTextView(getContext());
-			newView.setInputType(original.getInputType());
-			newView.setGravity(original.getGravity());
-			newView.setKeyListener(original.getKeyListener());
-			TiUIHelper.styleText(newView, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
-			newView.setEllipsize(original.ellipsize);
-			newView.setSingleLine(original.singleline); //the order is important as setSingleLine also set Maxlines
-			newView.setMaxLines(original.maxLines);
-			newView.setMaxTextSize(original.getMaxTextSize());
-			newView.setMinTextSize(original.getMinTextSize());
-			newView.lineAdditionalVerticalPadding = original.lineAdditionalVerticalPadding;
-			newView.lineSpacingMultiplier = original.lineSpacingMultiplier;
-			newView.setMultiLineEllipsize(original.getMultiLineEllipsize());
-			newView.setTextColor(original.getTextColors());
-			newView.setPadding(original.getPaddingLeft(), original.getPaddingTop(), original.getPaddingRight(), original.getPaddingBottom());
-			newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
-			setText(newView, text);
-			newView.SetReadyToEllipsize(true);
-			return newView;
-		}
+//		@SuppressLint("NewApi")
+//		private EllipsizingTextView cloneTextView(EllipsizingTextView original, CharSequence text){
+//			EllipsizingTextView newView = new EllipsizingTextView(getContext());
+//			newView.setInputType(original.getInputType());
+//			newView.setGravity(original.getGravity());
+//			newView.setKeyListener(original.getKeyListener());
+////			TiUIHelper.styleText(newView, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
+//			newView.setEllipsize(original.ellipsize);
+//			newView.setSingleLine(original.singleline); //the order is important as setSingleLine also set Maxlines
+//			newView.setMaxLines(original.maxLines);
+//			newView.setMaxTextSize(original.getMaxTextSize());
+//			newView.setMinTextSize(original.getMinTextSize());
+//			newView.lineAdditionalVerticalPadding = original.lineAdditionalVerticalPadding;
+//			newView.lineSpacingMultiplier = original.lineSpacingMultiplier;
+//			newView.setMultiLineEllipsize(original.getMultiLineEllipsize());
+//			newView.setTextColor(original.getTextColors());
+//			newView.setPadding(original.getPaddingLeft(), original.getPaddingTop(), original.getPaddingRight(), original.getPaddingBottom());
+//			newView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+//			setText(newView, text);
+//			newView.SetReadyToEllipsize(true);
+//			return newView;
+//		}
 		
 		private ViewGroup.LayoutParams getTextLayoutParams() {
 			ViewGroup.LayoutParams params  = new ViewGroup.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
@@ -201,21 +201,18 @@ public class TiUILabel extends TiUINonViewGroupView
 		}
 		
 		public void setTextWithTransition(CharSequence text, Transition transition) {
-			if (transition == null) {
-				setText(textView, text);
+			if (currentTransitionSet != null) {
+				queuedTransition = transition;
+				queuedText = text;
+				return;
 			}
-			else {
-				if (currentTransitionSet != null) {
-					queuedTransition = transition;
-					queuedText = text;
-					return;
-				}
-				EllipsizingTextView newTextView = textView.clone(text);
-				transitionToTextView(newTextView, transition);
-			}
+			EllipsizingTextView newTextView = textView.clone(text);
+			transitionToTextView(newTextView, transition);
 		}
 		
 		private void onTransitionEnd() {
+			removeView(oldTextView);
+			oldTextView = null;
 			currentTransitionSet = null;
 			if (queuedText != null) {
 				setTextWithTransition(queuedText, queuedTransition);
@@ -226,13 +223,9 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		public void cancelCurrentTransition()
 		{
-//			if (currentTransitionSet != null)
-//			{
-//				currentTransitionSet.cancel();
-				queuedTransition = null;
-				queuedText = null;
-				currentTransitionSet = null;
-//			}
+			queuedTransition = null;
+			queuedText = null;
+			currentTransitionSet = null;
 		}
 		
 
@@ -248,14 +241,10 @@ public class TiUILabel extends TiUINonViewGroupView
 
 			currentTransitionSet = transition.getSet(new AnimatorListener() {
 				public void onAnimationEnd(Animator arg0) {	
-						removeView(oldTextView);
-						oldTextView = null;
 						onTransitionEnd();
 				}
 
 				public void onAnimationCancel(Animator arg0) {
-						removeView(oldTextView);
-						oldTextView = null;
 						onTransitionEnd();
 				}
 
@@ -267,7 +256,6 @@ public class TiUILabel extends TiUINonViewGroupView
 			});
 			currentTransitionSet.start();
 			newTextView.setVisibility(View.VISIBLE);
-			newTextView.invalidate();
 			requestLayout();
 		}
 	}
