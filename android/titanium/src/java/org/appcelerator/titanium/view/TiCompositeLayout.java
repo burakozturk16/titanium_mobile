@@ -636,7 +636,9 @@ public class TiCompositeLayout extends FreeLayout implements
 
 		if (child.getVisibility() == View.GONE
 				|| child.getVisibility() == View.INVISIBLE)
+		{
 			return currentHeight;
+		}
 
 		int i = indexOfChild(child);
 		// Dimension is required from Measure. Positioning is determined here.
@@ -645,14 +647,6 @@ public class TiCompositeLayout extends FreeLayout implements
 		int childMeasuredWidth = child.getMeasuredWidth();
 
 		if (isHorizontalArrangement()) {
-			if (i == 0) {
-				horizontalLayoutCurrentLeft = left;
-				horizontalLayoutLineHeight = 0;
-				horizontalLayoutTopBuffer = 0;
-				horizontalLayoutLastIndexBeforeWrap = 0;
-				horiztonalLayoutPreviousRight = 0;
-				updateRowForHorizontalWrap(right, i);
-			}
 			computeHorizontalLayoutPosition(params, childMeasuredWidth,
 					childMeasuredHeight, right, top, bottom, horizontal,
 					vertical, i);
@@ -710,41 +704,13 @@ public class TiCompositeLayout extends FreeLayout implements
 		return currentHeight;
 	}
 
-	public void simulateLayoutToGetChildSize(View targetChild,
-			TiCompositeLayout.LayoutParams params, int[] childH, int[] childV) {
-		int count = getChildCount();
-		int left = getLeft();
-		int top = getTop();
-		int right = getRight();
-		int bottom = getBottom();
-		int currentHeight = 0; // Used by vertical arrangement calcs
-
-		for (int i = 0; i < count; i++) {
-			int[] horizontal = new int[2];
-			int[] vertical = new int[2];
-			View child = getChildAt(i);
-
-			if (targetChild == child) {
-				currentHeight = getChildSize(child, params, left, top, bottom,
-						right, currentHeight, horizontal, vertical);
-				childH[0] = horizontal[0];
-				childH[1] = horizontal[1];
-				childV[0] = vertical[0];
-				childV[1] = vertical[1];
-				return;
-			} else {
-				currentHeight = getChildSize(child,
-						(TiCompositeLayout.LayoutParams) child
-								.getLayoutParams(), left, top, bottom, right,
-						currentHeight, horizontal, vertical);
-			}
-			int newWidth = horizontal[1] - horizontal[0];
-			int newHeight = vertical[1] - vertical[0];
-
-			currentHeight += newHeight;
-			currentHeight += getLayoutOptionAsPixels(params.optionTop, TiDimension.TYPE_TOP, params, this);
-			
-		}
+	private void resetHorizontalLayout(int left, int right) {
+		horizontalLayoutCurrentLeft = left;
+		horizontalLayoutLineHeight = 0;
+		horizontalLayoutTopBuffer = 0;
+		horizontalLayoutLastIndexBeforeWrap = 0;
+		horiztonalLayoutPreviousRight = 0;
+		updateRowForHorizontalWrap(right, 0);
 	}
 
 	@Override
@@ -761,6 +727,9 @@ public class TiCompositeLayout extends FreeLayout implements
 			if (count > 1) { // No need to sort one item.
 				for (int i = 0; i < count; i++) {
 					View child = getChildAt(i);
+					if (child == null || child.getVisibility() == View.GONE
+							|| child.getVisibility() == View.INVISIBLE)
+						continue;
 					TiCompositeLayout.LayoutParams params = (TiCompositeLayout.LayoutParams) child
 							.getLayoutParams();
 					params.index = i;
@@ -783,7 +752,8 @@ public class TiCompositeLayout extends FreeLayout implements
 		int[] vertical = new int[2];
 
 		int currentHeight = 0; // Used by vertical arrangement calcs
-
+		
+		resetHorizontalLayout(left, right);
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
 			if (child == null || child.getVisibility() == View.GONE
