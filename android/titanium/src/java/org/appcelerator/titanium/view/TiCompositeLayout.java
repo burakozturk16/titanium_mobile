@@ -1218,6 +1218,11 @@ public class TiCompositeLayout extends FreeLayout implements
 	public void setView(TiUIView view) {
 		this.view = new WeakReference<TiUIView>(view);
 	}
+	
+	public TiUIView getView() {
+		if (view != null) return view.get();
+		return null;
+	}
 	@Override
 	public void dispatchSetPressed(boolean pressed) {
 		TiUIView view = (this.view == null ? null : this.view.get());

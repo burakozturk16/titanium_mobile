@@ -20,7 +20,6 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 
 	private HashMap<String, ViewItem> viewsMap;
 	private ViewItem viewItem;
-	private TiListItem item = null;
 	private int sectionIndex = -1;
 	private int itemIndex = -1;
 	public TiBaseListViewItem(Context context) {
@@ -53,16 +52,6 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 			return viewItem.getView();
 		}
 		return null;
-	}
-	
-	public void setListItem(TiListItem item)
-	{
-		this.item = item;
-	}
-	
-	public TiListItem getListItem()
-	{
-		return item;
 	}
 	
 	public void setCurrentItem(int sectionIndex, int itemIndex)

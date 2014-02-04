@@ -746,9 +746,7 @@ public class ListSectionProxy extends ViewProxy {
 		TiViewProxy itemProxy = template.getRootItem().getViewProxy();
 		// Create corresponding TiUIView for item proxy
 		TiListItem item = new TiListItem(itemProxy, itemContent, item_layout);
-		// Connect native view with TiUIView so we can get it from recycled
-		// view.
-		itemContent.setListItem(item);
+		itemContent.setView(item);
 
 		if (data != null && template != null) {
 			generateChildContentViews(template.getRootItem(), null,
@@ -817,7 +815,7 @@ public class ListSectionProxy extends ViewProxy {
 	public void populateViews(KrollDict data, TiBaseListViewItem cellContent,
 			TiListViewTemplate template, int itemIndex, int sectionIndex,
 			View item_layout) {
-		TiListItem listItem = cellContent.getListItem();
+		TiListItem listItem = (TiListItem)cellContent.getView();
 		// Handling root item, since that is not in the views map.
 		if (listItem == null) {
 			return;
