@@ -142,7 +142,7 @@ public class ListViewProxy extends TiViewProxy {
 		}
 	}
 	
-	@Kroll.method @Kroll.getProperty
+	@Kroll.method
 	public ListSectionProxy getSectionAt(int sectionIndex) {
 		TiListView listView = (TiListView)peekView();
 		if (listView != null) {
