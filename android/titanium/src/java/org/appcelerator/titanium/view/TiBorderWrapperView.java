@@ -130,6 +130,7 @@ public class TiBorderWrapperView extends MaskableView
         if (mDrawable != null && mDrawable.isStateful()) {
         	mDrawable.setState(getDrawableState());
         }
+        invalidate();
     }
 	@Override
 	public void childDrawableStateChanged(View child) {
