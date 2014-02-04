@@ -33,6 +33,7 @@
     TiDimension rightCap;
     BOOL _needsLayout;
     BOOL configurationSet;
+    BOOL _unHighlightOnSelect;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -86,6 +87,7 @@ DEFINE_EXCEPTIONS
         self.backgroundColor = [UIColor clearColor];
     }
     self.contentView.opaque = NO;
+    _unHighlightOnSelect = YES;
     
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
@@ -316,21 +318,22 @@ static NSArray* handledKeys;
 {
     if (handledKeys == nil)
     {
-        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font", @"opacity", @"backgroundGradient", @"backgroundImage", @"backgroundOpacity", @"backgroundColor"
-                         , @"backgroundSelectedGradient", @"backgroundSelectedImage", @"backgroundSelectedColor"] retain];
+        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font"
+                         , @"unHighlightOnSelect"] retain];
     }
     return handledKeys;
 }
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-    if (_templateStyle == TiUIListItemTemplateStyleCustom || [[self handledKeys] indexOfObject:key] == NSNotFound)
+    if (_templateStyle == TiUIListItemTemplateStyleCustom && [[self handledKeys] indexOfObject:key] == NSNotFound)
     {
         DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
     } else {
         DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
     }
 }
+
 
 #pragma mark - Background Support
 -(BOOL) selectedOrHighlighted
@@ -367,14 +370,14 @@ static NSArray* handledKeys;
 {
     [super setSelected:yn animated:animated];
     [_viewHolder setSelected:yn animated:animated];
-    [self unHighlight];
+    if (_unHighlightOnSelect)[self unHighlight];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
     [_viewHolder setHighlighted:yn animated:animated];
-    [self unHighlight];
+    if (_unHighlightOnSelect)[self unHighlight];
 }
 
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped
@@ -403,6 +406,11 @@ static NSArray* handledKeys;
 {
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
+}
+
+-(void)setUnHighlightOnSelect_:(id)newValue
+{
+    _unHighlightOnSelect = [TiUtils boolValue:newValue def:YES];
 }
 
 -(void)setAccessoryType_:(id)newValue
