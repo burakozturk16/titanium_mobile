@@ -443,6 +443,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void handlePostOpen()
 	{
 		opening = false;
+		opened = true;
 		if (postOpenListener != null)
 		{
 			getMainHandler().post(new Runnable() {
