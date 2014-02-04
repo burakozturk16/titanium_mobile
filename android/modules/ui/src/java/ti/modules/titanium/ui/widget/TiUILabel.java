@@ -308,6 +308,13 @@ public class TiUILabel extends TiUINonViewGroupView
 			int height =getMeasuredHeight();
 			int width =getMeasuredWidth();
 		}
+		
+//		@Override
+//		protected void onLayout(boolean changed, int l, int t, int r, int b) {
+//			int decaleX =  (int)Math.max(0, -shadowX);
+//			int decaleY =  (int)Math.max(0, -shadowY);
+//			super.onLayout(changed, l + decaleX, t + decaleY, r + decaleX, b + decaleY);
+//		}
 
 		@Override
 		public void setPressed(boolean pressed) {
@@ -462,10 +469,11 @@ public class TiUILabel extends TiUINonViewGroupView
 //			super.onSizeChanged(w, h, oldw, oldh);
 //			// updateEllipsize();
 //		}
-
-//		public void setPadding(int left, int top, int right, int bottom) {
-//			super.setPadding(left, top, right, bottom);
-//		}
+		
+		@Override
+		public void setPadding(int left, int top, int right, int bottom) {
+			super.setPadding(left + (int)Math.max(0, -shadowX), top + (int)Math.max(0, -shadowY), right, bottom);
+		}
 		
 		
 		@Override
@@ -1057,10 +1065,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_MAX_LINES)) {
 			textView.setMaxLines(TiConvert.toInt(d, TiC.PROPERTY_MAX_LINES));
 		}
-		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
-			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
-			TiUIHelper.setPadding(textView, textPadding);
-		}
+		
 		if (d.containsKey(TiC.PROPERTY_SHADOW_OFFSET)) {
 			Object value = d.get(TiC.PROPERTY_SHADOW_OFFSET);
 			if (value instanceof HashMap) {
@@ -1081,6 +1086,9 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (needShadow) {
 			textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 		}
+		if (d.containsKey(TiC.PROPERTY_TEXT_PADDING)) {
+			textPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TEXT_PADDING);
+		}
 		if(d.containsKey(TiC.PROPERTY_TRANSITION)) {
 			Object value = d.get(TiC.PROPERTY_TRANSITION);
 			if (value instanceof HashMap) {
@@ -1090,6 +1098,8 @@ public class TiUILabel extends TiUINonViewGroupView
 				transitionDict = null;
 			}
 		}
+		//always set padding as shadowlayer is also using it
+		TiUIHelper.setPadding(textView, textPadding);
 
 		// Only accept one, prefer text to title.
 		String html = TiConvert.toString(d, TiC.PROPERTY_HTML);
@@ -1188,6 +1198,7 @@ public class TiUILabel extends TiUINonViewGroupView
 				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
 				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
 				textView.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
+				TiUIHelper.setPadding(textView, textPadding);
 			}
 		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {
 			shadowRadius = TiConvert.toFloat(newValue, DEFAULT_SHADOW_RADIUS);

@@ -71,6 +71,10 @@
     //padding
     result.width += label.viewInsets.left+ label.viewInsets.right;
     result.height += label.viewInsets.top + label.viewInsets.bottom;
+    
+    CGSize shadowOffset = [label shadowOffset];
+    result.width += abs(shadowOffset.width);
+    result.height += abs(shadowOffset.height);
     return result;
 }
 
