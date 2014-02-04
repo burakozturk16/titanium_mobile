@@ -321,7 +321,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			}
 			viewToFocus.setVisibility(View.VISIBLE);
 			if (!viewWasOpened) winToFocus.onWindowActivityCreated();
-ien		}
+		}
 		
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) activity.setWindowProxy(winToFocus);
