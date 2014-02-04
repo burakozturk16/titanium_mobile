@@ -125,20 +125,20 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	private void updateHomeButton(TiWindowProxy proxy){
 		boolean canGoBack = (windows.size() > 1);
-	    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
-	    	ActionBar actionBar = ((TiBaseActivity)getActivity()).getSupportActionBar();
-	    	if (actionBar == null) return;
-	    	if (proxy == null) {
-	    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
-	    		actionBar.setHomeButtonEnabled(canGoBack);
-	    	}
-	    	else {
-	    		KrollDict props = actionBarProxy.getProperties();
-	    		if (props == null) props = new KrollDict();
-	    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
-	    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
-	    		
-	    	}
+    	ActionBarProxy actionBarProxy = getActivityProxy().getActionBar();
+    	ActionBar actionBar = ((TiBaseActivity)getActivity()).getSupportActionBar();
+    	if (actionBar == null) return;
+    	if (proxy == null) {
+    		actionBar.setDisplayHomeAsUpEnabled(canGoBack);
+    		actionBar.setHomeButtonEnabled(canGoBack);
+    	}
+    	else {
+    		KrollDict props = actionBarProxy.getProperties();
+    		if (props == null) props = new KrollDict();
+    		actionBar.setDisplayHomeAsUpEnabled(props.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, canGoBack));
+    		actionBar.setHomeButtonEnabled(canGoBack || props.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
+    		
+    	}
 	}
 	
 	private void removeWindow(TiWindowProxy proxy) {
@@ -230,7 +230,6 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	{
 		poping = false;
 		if (toRemove == this) return;
-		removeWindow(toRemove);
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) {
 			activity.removeWindowFromStack(toRemove);
@@ -278,6 +277,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 			fireEvent("closeWindow", options, false, false);
 		}
 		
+		removeWindow(toRemove);
 		if (!opened || opening) {
 			handleWindowClosed(toRemove);
 			return true;
@@ -285,8 +285,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
+		final boolean viewWasOpened = winToFocus.isOpenedOrOpening();
 		if (viewToRemoveFrom != null) {
-			final boolean viewWasOpened = winToFocus.isOpenedOrOpening();
 			final View viewToRemove = toRemove.getOuterView();
 			final View viewToFocus = winToFocus.getOrCreateView().getOuterView();
 			viewToFocus.setVisibility(View.GONE);
@@ -320,11 +320,11 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				handleWindowClosed(toRemove);
 			}
 			viewToFocus.setVisibility(View.VISIBLE);
-			if (!viewWasOpened) winToFocus.onWindowActivityCreated();
 		}
 		
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) activity.setWindowProxy(winToFocus);
+		if (!viewWasOpened) winToFocus.onWindowActivityCreated();
     	updateHomeButton(winToFocus);
     	toRemove.blur();
 		winToFocus.focus();
