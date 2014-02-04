@@ -324,6 +324,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) activity.setWindowProxy(winToFocus);
     	updateHomeButton(winToFocus);
+    	toRemove.blur();
 		winToFocus.focus();
 
 		return true;
