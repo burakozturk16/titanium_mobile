@@ -286,6 +286,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		final ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
 		
 		if (viewToRemoveFrom != null) {
+			final boolean viewWasOpened = winToFocus.isOpenedOrOpening();
 			final View viewToRemove = toRemove.getOuterView();
 			final View viewToFocus = winToFocus.getOrCreateView().getOuterView();
 			viewToFocus.setVisibility(View.GONE);
@@ -304,13 +305,13 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 					@Override
 					public void onAnimationEnd(Animator arg0) {	
 						handleWindowClosed(toRemove);
-						winToFocus.sendOpenEvent();
+						if (!viewWasOpened) winToFocus.sendOpenEvent();
 					}
 
 					@Override
 					public void onAnimationCancel(Animator arg0) {		
 						handleWindowClosed(toRemove);
-						winToFocus.sendOpenEvent();
+						if (!viewWasOpened) winToFocus.sendOpenEvent();
 					}
 				});
 				set.start();
@@ -319,7 +320,8 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				handleWindowClosed(toRemove);
 			}
 			viewToFocus.setVisibility(View.VISIBLE);
-		}
+			if (!viewWasOpened) winToFocus.onWindowActivityCreated();
+ien		}
 		
 		TiBaseActivity activity = ((TiBaseActivity) getActivity());	
 		if (activity != null) activity.setWindowProxy(winToFocus);
