@@ -18,7 +18,6 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.UIModule;
 import ti.modules.titanium.ui.widget.TiUIButton;
-import ti.modules.titanium.ui.widget.TiUIProgressBar;
 import ti.modules.titanium.ui.widget.TiUISlider;
 import ti.modules.titanium.ui.widget.TiUISwitch;
 import ti.modules.titanium.ui.widget.TiUIText;
