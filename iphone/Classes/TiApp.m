@@ -146,6 +146,11 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     return [window isKeyWindow];
 }
 
+-(UIWindow *) topMostWindow
+{
+    return [[UIApplication sharedApplication] keyWindow];
+}
+
 -(UIView *) topMostView
 {
     UIWindow  *currentKeyWindow_ = [[UIApplication sharedApplication] keyWindow];
