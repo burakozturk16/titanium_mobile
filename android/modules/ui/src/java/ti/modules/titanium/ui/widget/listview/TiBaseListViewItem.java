@@ -20,8 +20,8 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 
 	private HashMap<String, ViewItem> viewsMap;
 	private ViewItem viewItem;
-	private int sectionIndex = -1;
-	private int itemIndex = -1;
+	public int sectionIndex = -1;
+	public int itemIndex = -1;
 	public TiBaseListViewItem(Context context) {
 		super(context);
 		viewsMap = new HashMap<String, ViewItem>();
@@ -58,10 +58,5 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	{
 		this.sectionIndex = sectionIndex;
 		this.itemIndex = itemIndex;
-	}
-	
-	public boolean isItemAtIndex(int sectionIndex, int itemIndex)
-	{
-		return this.sectionIndex == sectionIndex && this.itemIndex == itemIndex;
 	}
 }

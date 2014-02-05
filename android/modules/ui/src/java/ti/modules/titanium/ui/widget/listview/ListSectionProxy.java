@@ -752,7 +752,7 @@ public class ListSectionProxy extends ViewProxy {
 			generateChildContentViews(template.getRootItem(), null,
 					itemContent, true);
 			populateViews(data, itemContent, template, itemPosition,
-					sectionIndex, item_layout);
+					sectionIndex, item_layout, false);
 		}
 	}
 
@@ -814,13 +814,12 @@ public class ListSectionProxy extends ViewProxy {
 
 	public void populateViews(KrollDict data, TiBaseListViewItem cellContent,
 			TiListViewTemplate template, int itemIndex, int sectionIndex,
-			View item_layout) {
+			View item_layout, boolean reusing) {
 		TiListItem listItem = (TiListItem)cellContent.getView();
 		// Handling root item, since that is not in the views map.
 		if (listItem == null) {
 			return;
 		}
-		boolean reusing = !cellContent.isItemAtIndex(sectionIndex, itemIndex);
 		cellContent.setCurrentItem(sectionIndex, itemIndex);
 
 		KrollDict listItemProperties;
