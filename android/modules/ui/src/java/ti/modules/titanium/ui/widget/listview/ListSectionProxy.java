@@ -153,6 +153,9 @@ public class ListSectionProxy extends ViewProxy {
 		if (dict.containsKey(TiC.PROPERTY_ITEMS)) {
 			handleSetItems(dict.get(TiC.PROPERTY_ITEMS));
 		}
+		if (dict.containsKey(TiC.PROPERTY_VISIBLE)) {
+			setVisible(dict.optBoolean(TiC.PROPERTY_VISIBLE, true));
+		}
 	}
 
 	public void setAdapter(TiBaseAdapter a) {
