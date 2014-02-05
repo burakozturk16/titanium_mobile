@@ -127,14 +127,16 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			}
 			OnFocusChangeListener focusListener = null;
 			View focusedView = listView.findFocus();
-			int cursorPosition = -1;
+			int cursorPositionStart = -1;
+			int cursorPositionEnd = -1;
 			if (focusedView != null) {
 				OnFocusChangeListener listener = focusedView.getOnFocusChangeListener();
 				if (listener != null && listener instanceof TiUIView) {
 					//Before unfocus the current editText, store cursor position so
 					//we can restore it later
 					if (focusedView instanceof EditText) {
-						cursorPosition = ((EditText)focusedView).getSelectionStart();
+						cursorPositionStart = ((EditText)focusedView).getSelectionStart();
+						cursorPositionEnd = ((EditText)focusedView).getSelectionEnd();
 					}
 					focusedView.setOnFocusChangeListener(null);
 					focusListener = listener;
