@@ -308,13 +308,6 @@ public class TiUILabel extends TiUINonViewGroupView
 			int height =getMeasuredHeight();
 			int width =getMeasuredWidth();
 		}
-		
-//		@Override
-//		protected void onLayout(boolean changed, int l, int t, int r, int b) {
-//			int decaleX =  (int)Math.max(0, -shadowX);
-//			int decaleY =  (int)Math.max(0, -shadowY);
-//			super.onLayout(changed, l + decaleX, t + decaleY, r + decaleX, b + decaleY);
-//		}
 
 		@Override
 		public void setPressed(boolean pressed) {
@@ -472,7 +465,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		@Override
 		public void setPadding(int left, int top, int right, int bottom) {
-			super.setPadding(left + (int)Math.max(0, -shadowX), top + (int)Math.max(0, -shadowY), right, bottom);
+			super.setPadding(left + (int)Math.max(0, -shadowX), top + (int)Math.max(0, -shadowY), right + (int)Math.max(0, shadowX), bottom + (int)Math.max(0, shadowY));
 		}
 		
 		
