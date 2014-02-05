@@ -169,8 +169,11 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 					focusedView.requestFocus();
 					focusedView.setOnFocusChangeListener(focusListener);
 					//Restore cursor position
-					if (cursorPosition != -1) {
-						((EditText)focusedView).setSelection(cursorPosition);
+					if (cursorPositionStart != -1) {
+						try {
+							((EditText)focusedView).setSelection(cursorPositionStart, cursorPositionEnd);
+						} catch (Exception e) {
+						}
 					}
 				}
 			}
