@@ -32,6 +32,7 @@ import android.text.style.ParagraphStyle;
 import android.text.style.QuoteSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.ReplacementSpan;
+import android.text.style.StrikethroughSpan;
 import android.text.style.StyleSpan;
 import android.text.style.SubscriptSpan;
 import android.text.style.SuperscriptSpan;
@@ -312,6 +313,7 @@ public class TiHtml {
         private static class Sub { }
         private static class Span { }
         private static class Div { }
+        private static class Strike { }
 
         private static class Font {
             public String mColor;
@@ -424,6 +426,8 @@ public class TiHtml {
                 start(mSpannableStringBuilder, new Super());
             } else if (tag.equalsIgnoreCase("sub")) {
                 start(mSpannableStringBuilder, new Sub());
+            } else if (tag.equalsIgnoreCase("strike")) {
+                start(mSpannableStringBuilder, new Strike());
             } else if (tag.equalsIgnoreCase("span")) {
                 start(mSpannableStringBuilder, new Span());
             } else if (tag.length() == 2 &&
@@ -512,6 +516,8 @@ public class TiHtml {
                 end(mSpannableStringBuilder, Super.class, new SuperscriptSpan());
             } else if (tag.equalsIgnoreCase("sub")) {
                 end(mSpannableStringBuilder, Sub.class, new SubscriptSpan());
+            } else if (tag.equalsIgnoreCase("strike")) {
+                end(mSpannableStringBuilder, Strike.class, new StrikethroughSpan());
             } else if (tag.equalsIgnoreCase("span")) {
                 end(mSpannableStringBuilder, Span.class, getStyleSpan(attributes));
             } else if (tag.length() == 2 &&
