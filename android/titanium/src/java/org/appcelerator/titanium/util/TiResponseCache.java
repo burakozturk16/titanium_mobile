@@ -341,7 +341,7 @@ public class TiResponseCache extends ResponseCache
 			cacheDir.mkdirs();
 		}
 		String location = conn.getHeaderField( "Location" ); //redirection URL
-		if (location != null && !location.equals(uri.toString())) {
+		if (location != null && !location.equals(uri.toString()) && !redirectionMap.containsKey(location)) {
 			redirectionMap.put(location, uri.toString());
 			return null;
 		}
