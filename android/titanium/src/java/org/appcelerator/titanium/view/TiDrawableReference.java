@@ -358,6 +358,8 @@ public class TiDrawableReference
 						} catch (InterruptedException ie) {
 							// Ignore
 						}
+						is = getInputStream();
+						continue;
 					} catch (OutOfMemoryError e) { // Decode fails because of out of memory
 						oomOccurred = true;
 						Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage(), e);
