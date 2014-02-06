@@ -8,7 +8,9 @@ package org.appcelerator.titanium.util;
 
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
+import java.net.HttpURLConnection;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +19,8 @@ import java.util.concurrent.Executors;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.util.KrollStreamHelper;
+
+import com.squareup.okhttp.OkHttpClient;
 
 import android.os.Handler;
 import android.os.Message;
@@ -130,9 +134,10 @@ public class TiDownloadManager implements Handler.Callback
 		public void run()
 		{
 			try {
-				// all we want to do is instigate putting this into the cache, and this
-				// is enough for that:
-				InputStream stream = uri.toURL().openStream();
+				OkHttpClient client = new OkHttpClient();
+				URL url = uri.toURL();
+				HttpURLConnection http = client.open(url);
+				InputStream stream = http.getInputStream();
 				KrollStreamHelper.pump(stream, null);
 				stream.close();
 
