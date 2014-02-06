@@ -16,7 +16,6 @@ import java.util.concurrent.Executors;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.view.TiDrawableReference;
 
-import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -169,7 +168,7 @@ public class TiLoadImageManager implements Handler.Callback
 					Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FAILED);
 					msg.obj = this;
 					msg.arg1 = imageref.hashCode();
-					msg.arg2 = 1;
+					msg.arg2 = 0;
 					msg.sendToTarget();
 				}
 				if (d instanceof BitmapDrawable) {
@@ -178,7 +177,7 @@ public class TiLoadImageManager implements Handler.Callback
 						Message msg = handler.obtainMessage(MSG_FIRE_LOAD_FAILED);
 						msg.obj = this;
 						msg.arg1 = imageref.hashCode();
-						msg.arg2 = 1;
+						msg.arg2 = 0;
 						msg.sendToTarget();
 						return;
 					}
