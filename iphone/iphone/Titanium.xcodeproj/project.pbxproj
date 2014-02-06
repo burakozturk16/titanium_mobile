@@ -868,6 +868,9 @@
 		D5E75A7B187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
 		D5E75A7C187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
 		D5E75A7D187C59060016542B /* icon_120@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D5E75A7A187C59060016542B /* icon_120@2x.png */; };
+		D5E897B118A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
+		D5E897B218A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
+		D5E897B318A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
 		D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
@@ -2378,6 +2381,8 @@
 		D5E75A6E187C58F00016542B /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = icon.png; path = ../../demos/KitchenSink/icons/icon.png; sourceTree = "<group>"; };
 		D5E75A70187C58F00016542B /* icon@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon@2x.png"; path = "../../demos/KitchenSink/icons/icon@2x.png"; sourceTree = "<group>"; };
 		D5E75A7A187C59060016542B /* icon_120@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon_120@2x.png"; path = "../../demos/KitchenSink/icons/icon_120@2x.png"; sourceTree = "<group>"; };
+		D5E897AF18A3FA0B00E565E1 /* NSDictionary+Merge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+Merge.h"; sourceTree = "<group>"; };
+		D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Merge.m"; sourceTree = "<group>"; };
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
 		D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasShapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/AkylasShapes.xcodeproj; sourceTree = "<group>"; };
@@ -2933,6 +2938,8 @@
 				D58DCBCC17FEF0F50011FE0E /* TiSVGImage.m */,
 				D5E999101869C8A2005B3664 /* TiBorderLayer.h */,
 				D5E999111869C8A2005B3664 /* TiBorderLayer.m */,
+				D5E897AF18A3FA0B00E565E1 /* NSDictionary+Merge.h */,
+				D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -4983,6 +4990,7 @@
 				24CA8BCA111161FE0084E2DE /* TiContactsPerson.m in Sources */,
 				D5C8C97617EF45C900F54C19 /* ADFadeTransition.m in Sources */,
 				24CA8BCB111161FE0084E2DE /* TiComplexValue.m in Sources */,
+				D5E897B118A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */,
 				24CA8BCC111161FE0084E2DE /* TiColor.m in Sources */,
 				D59DD42718096186002FDCDF /* ADModernPushTransition.m in Sources */,
 				84E00A9C17B646EE00B6DCE2 /* TiUINavigationWindowProxy.m in Sources */,
@@ -5276,6 +5284,7 @@
 				D5C8C96817EF45C900F54C19 /* ADBackFadeTransition.m in Sources */,
 				24D8E3F8119B9D8A00F8CAA6 /* TiUITextFieldProxy.m in Sources */,
 				D58DCBCE17FEF0F50011FE0E /* TiSVGImage.m in Sources */,
+				D5E897B218A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */,
 				24D8E3F9119B9D8A00F8CAA6 /* TiUITextField.m in Sources */,
 				24D8E3FA119B9D8A00F8CAA6 /* TiUITextAreaProxy.m in Sources */,
 				24D8E3FB119B9D8A00F8CAA6 /* TiUITextArea.m in Sources */,
@@ -5637,6 +5646,7 @@
 				D5C8C96917EF45C900F54C19 /* ADBackFadeTransition.m in Sources */,
 				DABB36D312E8CB280026A6EA /* TiUITextFieldProxy.m in Sources */,
 				D58DCBCF17FEF0F50011FE0E /* TiSVGImage.m in Sources */,
+				D5E897B318A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */,
 				DABB36D412E8CB280026A6EA /* TiUITextField.m in Sources */,
 				DABB36D512E8CB280026A6EA /* TiUITextAreaProxy.m in Sources */,
 				DABB36D612E8CB280026A6EA /* TiUITextArea.m in Sources */,
