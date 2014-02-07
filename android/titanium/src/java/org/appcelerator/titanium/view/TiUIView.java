@@ -486,31 +486,25 @@ public abstract class TiUIView
 	protected void layoutNativeView(boolean informParent)
 	{
 		if (parent != null) {
-			TiUIView uiv = parent.peekView();
-			if (uiv != null) {
-				View v = uiv.getNativeView();
-				if (v.getVisibility() == View.INVISIBLE || v.getVisibility() == View.GONE) {
+			View outerView = getOuterView();
+			ViewParent nativeParent = null;
+			if (outerView != null) {
+				nativeParent = outerView.getParent();
+			}
+			if (nativeParent != null) {
+				if (((View) nativeParent).getVisibility() == View.INVISIBLE || ((View) nativeParent).getVisibility() == View.GONE) {
 					//if we have a parent which is hidden, we are hidden, so no need to layout
 					return;
 				}
-			}
-		}
-		if (nativeView != null) {
-			if (informParent) {				
-				if (parent != null) {
-					TiUIView uiv = parent.peekView();
-					if (uiv != null) {
-						View v = uiv.getParentViewForChild();
-						if (v instanceof TiCompositeLayout) {
-							((TiCompositeLayout) v).resort();
-						}
-					}
+				if (informParent && nativeParent instanceof TiCompositeLayout) {
+					((TiCompositeLayout) nativeParent).resort();
 				}
 			}
-			View childHolder = getParentViewForChild();
-			if (childHolder != null) {
-				childHolder.requestLayout();
-			}
+		}
+		
+		View childHolder = getParentViewForChild();
+		if (childHolder != null) {
+			childHolder.requestLayout();
 		}
 	}
 
@@ -1215,22 +1209,22 @@ public abstract class TiUIView
 
 	public void setVisibility(int visibility)
 	{
-		if (this.visibility != visibility)
+		if (this.visibility == visibility) return;
 			forceLayoutNativeView(true);
 		this.visibility = visibility;
 		proxy.setProperty(TiC.PROPERTY_VISIBLE, (visibility == View.VISIBLE));
-
-		View view = getOuterView();
+		
+		View view = getRootView();
+		if (view != null) {
+			view.clearAnimation();
+			view.setVisibility(this.visibility);
+		}
+		view = getOuterView();
 		if (view != null) {
 			view.clearAnimation();
 			view.setVisibility(this.visibility);
 		}
 		
-		view = getRootView();
-		if (view != null) {
-			view.clearAnimation();
-			view.setVisibility(this.visibility);
-		}
 	}
 
 	/**
