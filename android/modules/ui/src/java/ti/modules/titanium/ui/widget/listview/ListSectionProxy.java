@@ -45,7 +45,7 @@ public class ListSectionProxy extends ViewProxy {
 	private ArrayList<Object> itemProperties;
 	private ArrayList<Integer> filterIndices;
 	private boolean preload;
-	boolean[] hiddenItems = null;
+	private ArrayList<Boolean> hiddenItems;
 	boolean hidden = false;
 
 	private String headerTitle;
@@ -132,6 +132,7 @@ public class ListSectionProxy extends ViewProxy {
 		}
 		listItemData = new ArrayList<ListItemData>();
 		filterIndices = new ArrayList<Integer>();
+		hiddenItems = new ArrayList<Boolean>();
 		itemCount = 0;
 		preload = false;
 	}
@@ -340,7 +341,7 @@ public class ListSectionProxy extends ViewProxy {
 		int diff = 0;
 		for (int i = 0; i < hElements; i++) {
 			diff++;
-			if (hiddenItems[position + diff])
+			if (hiddenItems.get(position + diff))
 				i--;
 		}
 		return (position + diff);
@@ -351,7 +352,7 @@ public class ListSectionProxy extends ViewProxy {
 		int diff = 0;
 		for (int i = 0; i < hElements; i++) {
 			diff++;
-			if (hiddenItems[position + diff])
+			if (hiddenItems.get(position + diff))
 				i--;
 		}
 		return (position - diff);
@@ -361,7 +362,7 @@ public class ListSectionProxy extends ViewProxy {
 	private int getHiddenCountUpTo(int location) {
 		int count = 0;
 		for (int i = 0; i <= location; i++) {
-			if (hiddenItems[i])
+			if (hiddenItems.get(i))
 				count++;
 		}
 		return count;
@@ -544,7 +545,7 @@ public class ListSectionProxy extends ViewProxy {
 				ListItemData itemD = new ListItemData(d, template);
 				d.remove(TiC.PROPERTY_TEMPLATE);
 				listItemData.add(i + offset, itemD);
-				hiddenItems[i + offset] = !itemD.isVisible();
+				hiddenItems.add(i + offset, !itemD.isVisible());
 			}
 		}
 		// Notify adapter that data has changed.
@@ -557,13 +558,13 @@ public class ListSectionProxy extends ViewProxy {
 			Object[] items = (Object[]) data;
 			itemProperties = new ArrayList<Object>(Arrays.asList(items));
 			listItemData.clear();
+			hiddenItems.clear();
 			// only process items when listview's properties is processed.
 			if (getListView() == null) {
 				preload = true;
 				return;
 			}
 			itemCount = items.length;
-			hiddenItems = new boolean[itemCount];
 			processData(items, 0);
 
 		} else {
@@ -639,6 +640,9 @@ public class ListSectionProxy extends ViewProxy {
 			}
 			if (index < listItemData.size()) {
 				listItemData.remove(index);
+			}
+			if (index < hiddenItems.size()) {
+				hiddenItems.remove(index);
 			}
 			count--;
 		}
@@ -960,8 +964,8 @@ public class ListSectionProxy extends ViewProxy {
 	private int getHiddenCount() {
 		int count = 0;
 		if (hidden || hiddenItems == null) return count;
-		for (int i = 0; i < hiddenItems.length; i++)
-			if (hiddenItems[i])
+		for (int i = 0; i < hiddenItems.size(); i++)
+			if (hiddenItems.get(i) == true)
 				count++;
 		return count;
 	}
@@ -1075,6 +1079,11 @@ public class ListSectionProxy extends ViewProxy {
 		if (listItemData != null) {
 			listItemData.clear();
 			listItemData = null;
+		}
+		
+		if (hiddenItems != null) {
+			hiddenItems.clear();
+			hiddenItems = null;
 		}
 
 		if (itemProperties != null) {
