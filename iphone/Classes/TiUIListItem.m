@@ -348,10 +348,13 @@ static NSArray* handledKeys;
         {
             [(id)subview setHighlighted:NO];
         }
+        else {
+            NSArray *subviews = [subview subviews];
+            if ([subviews count] > 0)
+                [self unHighlight:subviews];
+        }
         // Get the subviews of the view
-        NSArray *subviews = [subview subviews];
-        if ([subviews count] > 0)
-            [self unHighlight:subviews];
+    
     }
 }
 
@@ -370,14 +373,14 @@ static NSArray* handledKeys;
 {
     [super setSelected:yn animated:animated];
     [_viewHolder setSelected:yn animated:animated];
-    if (_unHighlightOnSelect)[self unHighlight];
+    if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
     [_viewHolder setHighlighted:yn animated:animated];
-    if (_unHighlightOnSelect)[self unHighlight];
+    if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped
