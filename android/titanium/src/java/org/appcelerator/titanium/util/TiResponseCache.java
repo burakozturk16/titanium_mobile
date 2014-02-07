@@ -208,6 +208,20 @@ public class TiResponseCache extends ResponseCache
 		if (bFile.exists()) bFile.delete();
 		if (hFile.exists()) hFile.delete();
 	}
+	
+	public static void clearCache()
+	{
+		TiResponseCache rc = (TiResponseCache) TiResponseCache.getDefault();
+		if (rc == null || rc.cacheDir == null) {
+			return;
+		}
+		File f = rc.cacheDir;
+		if (f.isDirectory()) {
+	        for (File c : f.listFiles()) {
+	            c.delete();
+	        }
+	    }
+	}
 
 	public static InputStream openCachedStream(URI uri)
 	{

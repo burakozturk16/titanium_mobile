@@ -17,6 +17,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
+import org.appcelerator.titanium.util.TiResponseCache;
 
 import android.app.Application;
 import android.content.Intent;
@@ -188,6 +189,12 @@ public class AppModule extends KrollModule
 		} else {
 			Log.w(TAG, "Unknown system event: " + eventName);
 		}
+	}
+	
+	@Kroll.method
+	public void clearImageCache()
+	{
+		TiResponseCache.clearCache();
 	}
 
 	@Override
