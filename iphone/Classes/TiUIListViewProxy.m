@@ -32,7 +32,7 @@ static NSArray* keysToGetFromListView;
 {
 	if (keysToGetFromListView == nil)
 	{
-		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", nil] retain];
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
 	}
 	return keysToGetFromListView;
 }
@@ -98,7 +98,12 @@ static NSDictionary* listViewKeysToReplace;
         {
             _propertiesForItems = [[NSMutableDictionary alloc] init];
         }
-        [_propertiesForItems setValue:value forKey:[[self listViewKeysToReplace] valueForKey:key]];
+        if ([[self listViewKeysToReplace] valueForKey:key]) {
+            [_propertiesForItems setValue:value forKey:[[self listViewKeysToReplace] valueForKey:key]];
+        }
+        else {
+            [_propertiesForItems setValue:value forKey:key];
+        }
     }
     [super setValue:value forKey:key];
 }
