@@ -239,13 +239,9 @@ public class OneStateDrawable extends Drawable {
 	public void setColor(int color)
 	{
 		clearBitmap();
-		if (colorDrawable == null)
-		{
-			colorDrawable = new ColorDrawable();
-			applyAlphaToDrawable(colorDrawable);
-		}
+		colorDrawable = new ColorDrawable(color);
+		applyAlphaToDrawable(colorDrawable);
 		this.color = color;
-		colorDrawable.setColor(color);
 		updateNeedsDrawing();
 	}
 	
@@ -282,13 +278,9 @@ public class OneStateDrawable extends Drawable {
 	
 	public void setDefaultColor(int color) {
 		clearBitmap();
-		if (defaultColorDrawable == null)
-		{
-			defaultColorDrawable = new ColorDrawable();
-			applyAlphaToDrawable(defaultColorDrawable);
-		}
 		defaultColor = color;
-		defaultColorDrawable.setColor(color);
+		defaultColorDrawable = new ColorDrawable(color);
+		applyAlphaToDrawable(defaultColorDrawable);
 		updateNeedsDrawing();
 	}
 	
