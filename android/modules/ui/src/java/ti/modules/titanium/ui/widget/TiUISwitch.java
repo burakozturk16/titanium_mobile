@@ -19,6 +19,7 @@ import ti.modules.titanium.ui.android.AndroidModule;
 import android.annotation.SuppressLint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -34,6 +35,7 @@ public class TiUISwitch extends TiUIView
 	
 	private boolean oldValue = false;
 	private int style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
+	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
 	
 	public TiUISwitch(TiViewProxy proxy) {
 		super(proxy);
@@ -214,7 +216,11 @@ public class TiUISwitch extends TiUIView
 	{
 		CompoundButton currentButton = (CompoundButton) getNativeView();
 		CompoundButton button = null;
+		if  (!ICE_CREAM_OR_GREATER && style == AndroidModule.SWITCH_STYLE_SWITCH) {
+			style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
+		}
 		this.style = style;
+		
 
 		switch (style) {
 			case AndroidModule.SWITCH_STYLE_CHECKBOX:
