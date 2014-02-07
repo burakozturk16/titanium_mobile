@@ -133,6 +133,13 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
     _templateProperties = [[NSDictionary dictionaryWithDictionary:[self allProperties]] retain];
 	if (withEvents) SetEventOverrideDelegateRecursive(self.children, self);
     unarchived = YES;
+    [self.bindings enumerateKeysAndObjectsUsingBlock:^(id binding, id bindObject, BOOL *stop) {
+        [[bindObject allProperties] enumerateKeysAndObjectsUsingBlock:^(id key, id prop, BOOL *stop) {
+            [_initialValues setValue:prop forKey:[NSString stringWithFormat:@"%@.%@",binding, key]];
+        }];
+    }];
+    [_initialValues addEntriesFromDictionary:[self allProperties]];
+
 }
 
 - (NSDictionary *)bindings
@@ -250,15 +257,14 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 - (void)recordChangeValue:(id)value forKeyPath:(NSString *)keyPath withBlock:(void(^)(void))block
 {
+//	if ([_initialValues objectForKey:keyPath] == nil) {
+//		id initialValue = [self valueForKeyPath:keyPath];
+//		[_initialValues setObject:(initialValue != nil ? initialValue : [NSNull null]) forKey:keyPath];
+//	}
+	block();
     if (!unarchived) {
-        block();
         return;
     }
-	if ([_initialValues objectForKey:keyPath] == nil) {
-		id initialValue = [self valueForKeyPath:keyPath];
-		[_initialValues setObject:(initialValue != nil ? initialValue : [NSNull null]) forKey:keyPath];
-	}
-	block();
 	if (value != nil) {
 		[_currentValues setObject:value forKey:keyPath];
 	} else {
