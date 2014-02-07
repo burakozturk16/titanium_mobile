@@ -75,7 +75,12 @@
         }
     }
     if (onlyCreate) return;
-    layer.backgroundColor = (color && !layer.shadowPath)?color.CGColor:nil;
+    if (color && !layer.shadowPath) {
+        layer.backgroundColor = color.CGColor;
+    }
+    else {
+        layer.backgroundColor =nil;
+    }
 
     if (_bufferImage == nil) {
         if (layer.contents != nil) {
