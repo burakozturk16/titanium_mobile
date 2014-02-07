@@ -18,6 +18,7 @@
 #import <UIKit/UILocalNotification.h>
 #import <unistd.h>
 #import "TiLayoutQueue.h"
+#import "ImageLoader.h"
 
 extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 extern NSString * const TI_APPLICATION_ID;
@@ -592,6 +593,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     [self replaceValue:args forKey:@"forceSplashAsSnapshot" notification:NO];
     BOOL flag = [TiUtils boolValue:args def:NO];
     [[TiApp app] setForceSplashAsSnapshot:flag];
+}
+
+-(void)clearImageCache:(id)args
+{
+    [[ImageLoader sharedLoader] clearCache];
 }
 
 #if defined(USE_TI_APPIOS)
