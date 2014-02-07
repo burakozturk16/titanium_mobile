@@ -826,9 +826,8 @@ DEFINE_EXCEPTIONS
 	{
         NSURL* imageURL = [[self proxy] sanitizeURL:arg];
         if (![imageURL isKindOfClass:[NSURL class]]) {
-            [self throwException:@"invalid image type" 
-                       subreason:[NSString stringWithFormat:@"expected TiBlob, String, TiFile, was: %@",[arg class]] 
-                        location:CODELOCATION];
+            NSLog(@"[ERROR] invalid image type: \"%@\" is not a TiBlob, URL, TiFile",imageURL);
+            return;
         }
         
         [self loadUrl:imageURL];
