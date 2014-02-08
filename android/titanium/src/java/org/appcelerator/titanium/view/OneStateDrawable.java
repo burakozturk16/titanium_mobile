@@ -30,7 +30,7 @@ public class OneStateDrawable extends Drawable {
 //	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
 	private static final String TAG = "OneStateDrawable";
     public static final int DENSITY_NONE = 0;
-	private RectF bounds = new RectF();
+	private Rect bounds = new Rect();
 	
 	private static WeakHashMap<String, Pair<Canvas, Bitmap>> canvasStore;
     
@@ -94,7 +94,7 @@ public class OneStateDrawable extends Drawable {
 					paint.setColor(color);
 					canvas.drawPath(path, paint);		
 				}
-				else if(defaultColor != Color.TRANSPARENT) { 
+				else { 
 					paint.setColor(defaultColor);
 					canvas.drawPath(path, paint);		
 				}
@@ -216,7 +216,7 @@ public class OneStateDrawable extends Drawable {
 	
 	@Override
 	public void setBounds (Rect bounds) {
-		this.bounds = new RectF(bounds);
+		this.bounds = bounds;
 		clearBitmap();
 		if (gradientDrawable != null)
 			gradientDrawable.setBounds(bounds);
@@ -240,6 +240,7 @@ public class OneStateDrawable extends Drawable {
 	{
 		clearBitmap();
 		colorDrawable = new ColorDrawable(color);
+		colorDrawable.setBounds(bounds);
 		applyAlphaToDrawable(colorDrawable);
 		this.color = color;
 		updateNeedsDrawing();
@@ -280,6 +281,7 @@ public class OneStateDrawable extends Drawable {
 		clearBitmap();
 		defaultColor = color;
 		defaultColorDrawable = new ColorDrawable(color);
+		defaultColorDrawable.setBounds(bounds);
 		applyAlphaToDrawable(defaultColorDrawable);
 		updateNeedsDrawing();
 	}
