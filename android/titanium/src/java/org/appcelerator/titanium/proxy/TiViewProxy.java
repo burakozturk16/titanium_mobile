@@ -154,10 +154,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	{
 		pendingTransitionLock = new Object();
 		pendingTransitions = new ArrayList<HashMap>();
-		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
-		defaultValues.put(TiC.PROPERTY_KEEP_SCREEN_ON, false);
-		defaultValues.put(TiC.PROPERTY_ENABLED, true);
+//		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+//		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
+		setProperty(TiC.PROPERTY_VISIBLE, true);
+		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
+		setProperty(TiC.PROPERTY_ENABLED, true);
 	}
 
 	@Override
@@ -642,6 +643,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	{
 		return handleGetView(true);
 	}
+	
+	public void realizeViews()
+	{
+		realizeViews(view, true, true);
+	}
 
 	public void realizeViews(TiUIView view, boolean enableModelListener)
 	{
@@ -738,14 +744,20 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 	
+	
+	protected void addBinding(String bindId, TiViewProxy bindingProxy)
+	{
+		setProperty(bindId, bindingProxy);
+		addPropToUpdateNativeSide(bindId, bindingProxy);
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
 			TiViewProxy rootProxy, boolean recursive) {
 		if (rootProxy != null
 				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
 			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
-			rootProxy.setProperty(bindId,this);
-			rootProxy.addPropToUpdateNativeSide(bindId,this);
+			rootProxy.addBinding(bindId,this);
 		}
 		if (recursive && template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			Object childProperties = template_
@@ -806,6 +818,25 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (updateRootProperties) {
 				rootProxy.updatePropertiesNativeSide();
 			}
+			return proxy;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static TiViewProxy createTypeViewFromDict(HashMap template_,
+			String type) {
+		Object properties = template_.get(TiC.PROPERTY_PROPERTIES);
+		try {
+			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+					.forName(APIMap.getProxyClass(type));
+			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
+					new Object[] { properties }, null);
+			if (proxy == null)
+				return null;
+			proxy.initFromTemplate(template_, proxy, true);
 			return proxy;
 		} catch (Exception e) {
 			e.printStackTrace();
