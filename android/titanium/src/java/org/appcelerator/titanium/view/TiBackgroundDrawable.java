@@ -285,7 +285,7 @@ public class TiBackgroundDrawable extends Drawable {
 	public void setColorForState(int[] stateSet, int color)
 	{
 		getOrCreateDrawableForState(stateSet).setColor(color);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 
 	
@@ -295,7 +295,7 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setBounds(this.getBounds());
 		}
 		getOrCreateDrawableForState(stateSet).setBitmapDrawable(drawable);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 	
 	public void setGradientDrawableForState(int[] stateSet, Drawable drawable)
@@ -304,13 +304,13 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setBounds(this.getBounds());
 		}
 		getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 	
 	public void setInnerShadowsForState(int[] stateSet, Shadow[] shadows)
 	{
 		getOrCreateDrawableForState(stateSet).setInnerShadows(shadows);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 	
 //	protected void setNativeView(View view)
