@@ -74,12 +74,13 @@ public class TiUILabel extends TiUINonViewGroupView
 	private static final String TAG = "TiUILabel";
 	private static final float DEFAULT_SHADOW_RADIUS = 0.5f;
 
-	private int selectedColor, color, disabledColor;
+	private int selectedColor, color, disabledColor, widgetDefaultColor;
 	private boolean wordWrap = true;
 	private float shadowRadius = DEFAULT_SHADOW_RADIUS;
 	private float shadowX = 0f;
 	private float shadowY = -1f; // to have the same value as ios
 	private int shadowColor = Color.TRANSPARENT;
+	
 
 	private RectF textPadding;
 	private String ELLIPSIZE_CHAR = "...";
@@ -924,7 +925,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		textPadding = new RectF();
 		
 		tv.setFocusable(false);
-		color = disabledColor = selectedColor = tv.textView.getCurrentTextColor();
+		widgetDefaultColor = color = disabledColor = selectedColor = tv.textView.getCurrentTextColor();
 		setNativeView(tv);
 
 	}
@@ -1000,15 +1001,15 @@ public class TiUILabel extends TiUINonViewGroupView
 		boolean needsColors = false;
 		if(d.containsKey(TiC.PROPERTY_COLOR)) {
 			needsColors = true;
-			color = selectedColor = disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.color);
+			color = selectedColor = disabledColor = d.optColor(TiC.PROPERTY_COLOR, widgetDefaultColor);
 		}
 		if(d.containsKey(TiC.PROPERTY_SELECTED_COLOR)) {
 			needsColors = true;
-			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, this.selectedColor);
+			selectedColor = d.optColor(TiC.PROPERTY_SELECTED_COLOR, widgetDefaultColor);
 		}
 		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			needsColors = true;
-			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, this.disabledColor);
+			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, widgetDefaultColor);
 		}
 		if (needsColors) {
 			updateTextColors();
