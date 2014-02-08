@@ -882,9 +882,10 @@ public abstract class TiUIView
 		if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
 			getOuterView().setLayoutParams(layoutParams);
 		}
-		
-		registerForTouch();
-		registerForKeyPress();
+		if (touchView == null || touchView.get() != getTouchView()) {
+			registerForTouch();
+			registerForKeyPress();
+		}
 		
 		if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
 			mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
