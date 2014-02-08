@@ -1610,7 +1610,8 @@ public abstract class TiUIView
 					} else {
 						data.put(TiC.EVENT_PROPERTY_DIRECTION, velocityY > 0 ? "down" : "up");
 					}
-					return fireEventNoCheck(TiC.EVENT_SWIPE, data);
+					fireEventNoCheck(TiC.EVENT_SWIPE, data);
+					return false;
 				}
 				return false;
 			}
