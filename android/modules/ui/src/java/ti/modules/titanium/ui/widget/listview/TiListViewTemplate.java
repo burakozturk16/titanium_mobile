@@ -7,12 +7,9 @@
 
 package ti.modules.titanium.ui.widget.listview;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
@@ -39,35 +36,13 @@ public class TiListViewTemplate {
 	private KrollDict properties;
 	
 	public class DataItem {
-		//proxy for the item
-		TiViewProxy vProxy;
 		//binding id
 		String bindId;
-		DataItem parent;
-		ArrayList<DataItem> children;
 		KrollDict defaultProperties;
 
-		public DataItem(TiViewProxy proxy, String id, DataItem parent) {
-			vProxy = proxy;
+		public DataItem(String id) {
 			bindId = id;
-			this.parent = parent;
-			setProxyParent();
-			children = new ArrayList<DataItem>();
 			defaultProperties = new KrollDict();
-		}
-		
-		private void setProxyParent() {
-			
-			if (vProxy != null && parent != null) {
-				TiViewProxy parentProxy = parent.getViewProxy();
-				if (parentProxy != null) {
-					vProxy.setParent(parentProxy);
-				}
-			}
-		}
-		
-		public TiViewProxy getViewProxy() {
-			return vProxy;
 		}
 		
 		public String getBindingId() {
@@ -81,25 +56,8 @@ public class TiListViewTemplate {
 			return defaultProperties;
 		}
 
-		public DataItem getParent() {
-			return parent;
-		}
-		
-		public ArrayList<DataItem> getChildren() {
-			return children;
-		}
-		
-		public void addChild(DataItem child) {
-			children.add(child);
-		}
 		
 		public void release() {
-			if (vProxy != null) {
-				vProxy.release();
-				vProxy = null;
-			}
-			children.clear();
-			parent = null;
 		}
 	}
 
@@ -118,38 +76,29 @@ public class TiListViewTemplate {
 		} else {
 			this.properties = new KrollDict();
 		}
-	
 	}
 
-	private DataItem bindProxiesAndProperties(KrollDict properties, boolean isRootTemplate, DataItem parent) {
-		Object proxy = null;
+	private void bindProxiesAndProperties(KrollDict properties, boolean isRootTemplate) {
 		String id = null;
 		Object props = null;
 		DataItem item = null;
-		if (properties.containsKey(TiC.PROPERTY_TI_PROXY)) {
-			proxy = properties.get(TiC.PROPERTY_TI_PROXY);
-		}
+
 
 		//Get/generate random bind id
 		if (isRootTemplate) {
 			id = itemID;	
 		} else if (properties.containsKey(TiC.PROPERTY_BIND_ID)) {
 			id = TiConvert.toString(properties, TiC.PROPERTY_BIND_ID);
-		} else {
-			id = GENERATED_BINDING + Math.random();
-		}
-		
+		} 
 
-		if (proxy instanceof TiViewProxy) {
-			TiViewProxy viewProxy = (TiViewProxy) proxy;
-			if (isRootTemplate) {
-				rootItem = item = new DataItem(viewProxy, TiC.PROPERTY_PROPERTIES, null);
-			} else {
-				item = new DataItem(viewProxy, id, parent);
-				parent.addChild(item);
-			}
-			dataItems.put(id, item);
+		if (id == null) return;
+
+		if (isRootTemplate) {
+			rootItem = item = new DataItem(TiC.PROPERTY_PROPERTIES);
+		} else {
+			item = new DataItem(id);
 		}
+		dataItems.put(id, item);
 
 		if (properties.containsKey(TiC.PROPERTY_PROPERTIES)) {
 			props = properties.get(TiC.PROPERTY_PROPERTIES);
@@ -158,31 +107,26 @@ public class TiListViewTemplate {
 		if (props instanceof HashMap) {
 			item.setDefaultProperties(new KrollDict((HashMap)props));
 		}
-
-		return item;
 	}
 
 	private void processProperties(KrollDict properties) {
-		bindProxiesAndProperties(properties, true, null);
+		bindProxiesAndProperties(properties, true);
 		if (properties.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
-			processChildProperties(properties.get(TiC.PROPERTY_CHILD_TEMPLATES), rootItem);
+			processChildProperties(properties.get(TiC.PROPERTY_CHILD_TEMPLATES));
 		}
 
 	}
 	
-	private void processChildProperties(Object childProperties, DataItem parent) {
+	private void processChildProperties(Object childProperties) {
 		if (childProperties instanceof Object[]) {
 			Object[] propertiesArray = (Object[])childProperties;
 			for (int i = 0; i < propertiesArray.length; i++) {
 				HashMap<String, Object> properties = (HashMap<String, Object>) propertiesArray[i];
 				//bind proxies and default properties
-				DataItem item = bindProxiesAndProperties(new KrollDict(properties), false, parent);
+				bindProxiesAndProperties(new KrollDict(properties), false);
 				//Recursively calls for all childTemplates
 				if (properties.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
-					if(item == null) {
-						Log.e(TAG, "Unable to generate valid data from child view", Log.DEBUG_MODE);
-					}
-					processChildProperties(properties.get(TiC.PROPERTY_CHILD_TEMPLATES), item);
+					processChildProperties(properties.get(TiC.PROPERTY_CHILD_TEMPLATES));
 				}
 			}
 		}
@@ -199,18 +143,7 @@ public class TiListViewTemplate {
 	public int getType() {
 		return templateType;
 	}
-	
-	public String getItemID() {
-		return itemID;
-	}
-	
-	public void setRootParent(TiViewProxy listView) {
-		ListItemProxy rootProxy = (ListItemProxy) rootItem.getViewProxy();
-		if (rootProxy != null && rootProxy.getListProxy() == null) {
-			rootProxy.setListProxy(listView);
-		}
-	}
-	
+
 	/**
 	 * Returns the bound view proxy if exists.
 	 */
@@ -225,29 +158,27 @@ public class TiListViewTemplate {
 	public KrollDict getProperties() {
 		return properties;
 	}
+	
+	
+	public ListItemProxy generateCellProxy(KrollDict data)
+	{
+		ListItemProxy proxy = (ListItemProxy) TiViewProxy.createTypeViewFromDict(properties, "Ti.UI.ListItem");
+		proxy.setTemplate(this);
+		return proxy;
+	}
 
-	public void updateOrMergeWithDefaultProperties(KrollDict data, boolean update) {
-		for (String binding: data.keySet()) {
+	public void updateOrMergeWithDefaultProperties(KrollDict data) {
+		for (String binding: dataItems.keySet()) {
 			DataItem dataItem = dataItems.get(binding);
 			if (dataItem == null) continue;
 
 			KrollDict defaultProps = dataItem.getDefaultProperties();
-			KrollDict props = new KrollDict((HashMap)data.get(binding));
 			if (defaultProps != null) {
-				if (update) {
-					//update default properties
-					Set<String> existingKeys = defaultProps.keySet();
-					for (String key:  props.keySet()) {
-						if (!existingKeys.contains(key)) {
-							defaultProps.put(key, null);
-						}
-					}
-				} else {
-					//merge default properties with new properties and update data
-					HashMap<String, Object> newData = ((HashMap<String, Object>)defaultProps.clone());
-					newData.putAll(props);
-					data.put(binding, newData);
-				}
+				KrollDict props = data.containsKey(binding)?new KrollDict((HashMap)data.get(binding)):new KrollDict();
+				//merge default properties with new properties and update data
+				HashMap<String, Object> newData = ((HashMap<String, Object>)defaultProps.clone());
+				newData.putAll(props);
+				data.put(binding, newData);
 			}
 		}
 
@@ -265,5 +196,11 @@ public class TiListViewTemplate {
 			rootItem.release();
 			rootItem = null;
 		}
+	}
+	
+	public KrollDict prepareDataDict(KrollDict dict)
+	{
+		KrollDict result = (KrollDict)dict.clone();
+		return result;
 	}
 }

@@ -36,7 +36,6 @@ exports.bootstrap = function(Titanium) {
 	require("window").bootstrap(Titanium);
 	require("tabgroup").bootstrap(Titanium);
 	require("tab").bootstrap(Titanium);
-	require("listview").bootstrap(Titanium);
 	require("webview").bootstrap(Titanium);
 	require("navigationwindow").bootstrap(Titanium);
 

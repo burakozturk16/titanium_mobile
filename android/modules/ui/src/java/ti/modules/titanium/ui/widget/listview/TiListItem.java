@@ -46,6 +46,7 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 	}
 	
 	public void processProperties(KrollDict d) {
+		ListItemProxy itemProxy = (ListItemProxy)getProxy();
 
 		if (d.containsKey(TiC.PROPERTY_ACCESSORY_TYPE)) {
 			int accessory = TiConvert.toInt(d.get(TiC.PROPERTY_ACCESSORY_TYPE), -1);
@@ -57,6 +58,7 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 		if (d.containsKey(TiC.PROPERTY_SELECTED_BACKGROUND_IMAGE)) {
 			d.put(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE, d.get(TiC.PROPERTY_SELECTED_BACKGROUND_IMAGE));
 		}
+
 		super.processProperties(d);
 	}
 

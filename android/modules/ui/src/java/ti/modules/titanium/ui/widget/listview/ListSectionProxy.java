@@ -55,7 +55,6 @@ public class ListSectionProxy extends ViewProxy {
 	private Object footerView;
 
 	private WeakReference<TiListView> listView;
-	public TiDefaultListViewTemplate builtInTemplate;
 
 	private static final int MSG_FIRST_ID = TiViewProxy.MSG_LAST_ID + 1;
 
@@ -72,13 +71,18 @@ public class ListSectionProxy extends ViewProxy {
 
 	public class ListItemData {
 		private KrollDict properties;
-		private TiListViewTemplate template;
 		private String searchableText;
+		private String template = null;
 		private boolean visible = true;
 
-		public ListItemData(KrollDict properties, TiListViewTemplate template) {
+		public ListItemData(KrollDict properties) {
 			this.properties = properties;
-			this.template = template;
+			if (properties.containsKey(TiC.PROPERTY_TEMPLATE)) {
+				this.template = properties.getString(TiC.PROPERTY_TEMPLATE);
+			}
+			else {
+				this.template = getListView().getDefaultTemplateBinding();
+			}
 			// set searchableText
 			if (properties.containsKey(TiC.PROPERTY_PROPERTIES)) {
 				Object props = properties.get(TiC.PROPERTY_PROPERTIES);
@@ -111,7 +115,7 @@ public class ListSectionProxy extends ViewProxy {
 		}
 
 
-		public TiListViewTemplate getTemplate() {
+		public String getTemplate() {
 			return template;
 		}
 	}
@@ -521,29 +525,12 @@ public class ListSectionProxy extends ViewProxy {
 			return;
 		}
 
-		TiListViewTemplate[] temps = new TiListViewTemplate[items.length];
-		// First pass through data, we process template and update
-		// default properties based data given
-		for (int i = 0; i < items.length; i++) {
-			Object itemData = items[i];
-			if (itemData instanceof HashMap) {
-				KrollDict d = new KrollDict((HashMap) itemData);
-				TiListViewTemplate template = processTemplate(d, i + offset);
-				template.updateOrMergeWithDefaultProperties(d, true);
-				temps[i] = template;
-			}
-		}
 		// Second pass we would merge properties
 		for (int i = 0; i < items.length; i++) {
 			Object itemData = items[i];
 			if (itemData instanceof HashMap) {
 				KrollDict d = new KrollDict((HashMap) itemData);
-				TiListViewTemplate template = temps[i];
-				if (template != null) {
-					template.updateOrMergeWithDefaultProperties(d, false);
-				}
-				ListItemData itemD = new ListItemData(d, template);
-				d.remove(TiC.PROPERTY_TEMPLATE);
+				ListItemData itemD = new ListItemData(d);
 				listItemData.add(i + offset, itemD);
 				hiddenItems.add(i + offset, !itemD.isVisible());
 			}
@@ -669,74 +656,6 @@ public class ListSectionProxy extends ViewProxy {
 		setProperty(TiC.PROPERTY_ITEMS, itemProperties.toArray());
 	}
 
-	private TiListViewTemplate processTemplate(KrollDict itemData, int index) {
-
-		TiListView listView = getListView();
-		String defaultTemplateBinding = null;
-		if (listView != null) {
-			defaultTemplateBinding = listView.getDefaultTemplateBinding();
-		}
-		// if template is specified in data, we look it up and if one exists, we
-		// use it.
-		// Otherwise we check if a default template is specified in ListView. If
-		// not, we use builtInTemplate.
-		String binding = TiConvert
-				.toString(itemData.get(TiC.PROPERTY_TEMPLATE));
-		if (binding != null) {
-			// check if template is default
-			if (binding.equals(UIModule.LIST_ITEM_TEMPLATE_DEFAULT)) {
-				return processDefaultTemplate(itemData, index);
-			}
-
-			TiListViewTemplate template = listView
-					.getTemplateByBinding(binding);
-			// if template is successfully retrieved, bind it to the index. This
-			// is b/c
-			// each row can have a different template.
-			if (template == null) {
-				Log.e(TAG, "Template undefined");
-			}
-
-			return template;
-
-		} else {
-			// if a valid default template is specify, use that one
-			if (defaultTemplateBinding != null
-					&& !defaultTemplateBinding
-							.equals(UIModule.LIST_ITEM_TEMPLATE_DEFAULT)) {
-				TiListViewTemplate defTemplate = listView
-						.getTemplateByBinding(defaultTemplateBinding);
-				if (defTemplate != null) {
-					return defTemplate;
-				}
-			}
-			return processDefaultTemplate(itemData, index);
-		}
-
-	}
-
-	private TiListViewTemplate processDefaultTemplate(KrollDict data, int index) {
-
-		if (builtInTemplate == null) {
-
-			// Create template and generate default properties
-			builtInTemplate = new TiDefaultListViewTemplate(
-					UIModule.LIST_ITEM_TEMPLATE_DEFAULT, null, getActivity());
-			// Each template is treated as an item type, so we can reuse views
-			// efficiently.
-			// Section templates are given a type in
-			// TiListView.processSections(). Here we
-			// give default template a type if possible.
-			TiListView listView = getListView();
-			if (listView != null) {
-				builtInTemplate.setType(TiListView.BUILT_IN_TEMPLATE_ITEM_TYPE);
-				builtInTemplate.setRootParent(listView.getProxy());
-			}
-		}
-
-		return builtInTemplate;
-	}
-
 	/**
 	 * This method creates a new cell and fill it with content. getView() calls
 	 * this method when a view needs to be created.
@@ -746,43 +665,17 @@ public class ListSectionProxy extends ViewProxy {
 	 * @return
 	 */
 	public void generateCellContent(int sectionIndex, KrollDict data,
-			TiListViewTemplate template, TiBaseListViewItem itemContent,
+			ListItemProxy itemProxy, TiBaseListViewItem itemContent, TiListViewTemplate template,
 			int itemPosition, View item_layout) {
-		// Here we create an item content and populate it with data
-		// Get item proxy
-		TiViewProxy itemProxy = template.getRootItem().getViewProxy();
 		// Create corresponding TiUIView for item proxy
 		TiListItem item = new TiListItem(itemProxy, itemContent, item_layout);
+		itemProxy.setView(item);
 		itemContent.setView(item);
+		itemProxy.realizeViews();
 
 		if (data != null && template != null) {
-			generateChildContentViews(template.getRootItem(), null,
-					itemContent, true);
 			populateViews(data, itemContent, template, itemPosition,
 					sectionIndex, item_layout, false);
-		}
-	}
-
-	public void generateChildContentViews(DataItem item,
-			TiUIView parentContent, TiBaseListViewItem rootItem, boolean root) {
-
-		ArrayList<DataItem> childrenItem = item.getChildren();
-		for (int i = 0; i < childrenItem.size(); i++) {
-			DataItem child = childrenItem.get(i);
-			TiViewProxy proxy = child.getViewProxy();
-			TiUIView view = proxy.createView(proxy.getActivity());
-			generateChildContentViews(child, view, rootItem, false);
-			// Bind view to root.
-
-			ViewItem viewItem = new ViewItem(view, new KrollDict());
-			rootItem.bindView(child.getBindingId(), viewItem);
-			// Add it to view hierarchy
-			if (root) {
-				rootItem.addView(view.getOuterView(), view.getLayoutParams());
-			} else {
-				parentContent.add(view);
-			}
-
 		}
 	}
 
@@ -819,8 +712,7 @@ public class ListSectionProxy extends ViewProxy {
 
 	}
 
-	public void populateViews(KrollDict data, TiBaseListViewItem cellContent,
-			TiListViewTemplate template, int itemIndex, int sectionIndex,
+	public void populateViews(KrollDict data, TiBaseListViewItem cellContent, TiListViewTemplate template, int itemIndex, int sectionIndex,
 			View item_layout, boolean reusing) {
 		TiListItem listItem = (TiListItem)cellContent.getView();
 		// Handling root item, since that is not in the views map.
@@ -828,6 +720,8 @@ public class ListSectionProxy extends ViewProxy {
 			return;
 		}
 		cellContent.setCurrentItem(sectionIndex, itemIndex);
+		
+		data = template.prepareDataDict(data);
 
 		KrollDict listItemProperties;
 		KrollDict templateProperties = template.getProperties();
@@ -864,13 +758,13 @@ public class ListSectionProxy extends ViewProxy {
 		appendExtraEventData(listItem, itemIndex, sectionIndex,
 				TiC.PROPERTY_PROPERTIES, itemId);
 
-		HashMap<String, ViewItem> views = (HashMap<String, ViewItem>) cellContent
-				.getViewsMap();
+		ListItemProxy itemProxy = (ListItemProxy) cellContent.getView().getProxy();
+		HashMap<String, ViewItem> views = itemProxy.getViewsMap();
 		// Loop through all our views and apply default properties
 		for (String binding : views.keySet()) {
 			DataItem dataItem = template.getDataItem(binding);
 			ViewItem viewItem = views.get(binding);
-			TiUIView view = viewItem.getView();
+			TiUIView view = viewItem.getViewProxy().peekView();
 			if (view == null)
 				continue;
 			view.setTouchDelegate((TiTouchDelegate) listItem);
@@ -908,7 +802,7 @@ public class ListSectionProxy extends ViewProxy {
 		}
 
 		// process listItem properties
-		KrollDict listItemDiff = cellContent.getViewItem()
+		KrollDict listItemDiff = itemProxy.getViewItem()
 				.generateDiffProperties(listItemProperties);
 		if (!listItemDiff.isEmpty()) {
 			listItem.processProperties(listItemDiff);
@@ -916,7 +810,7 @@ public class ListSectionProxy extends ViewProxy {
 
 	}
 
-	public TiListViewTemplate getTemplateByIndex(int index) {
+	public String getTemplateByIndex(int index) {
 		if (headerTitle != null || headerView != null) {
 			index -= 1;
 		}
@@ -1002,20 +896,6 @@ public class ListSectionProxy extends ViewProxy {
 		return null;
 	}
 
-	/**
-	 * Attempt to give each existing template a type, if possible
-	 */
-	public void setTemplateType() {
-
-		for (int i = 0; i < listItemData.size(); i++) {
-			TiListViewTemplate temp = listItemData.get(i).getTemplate();
-			TiListView listView = getListView();
-			if (temp.getType() == -1) {
-				temp.setType(listView.getItemType());
-			}
-		}
-	}
-	
 	private ListItemData getItemDataAt(int position)
 	{
 		return listItemData.get(getRealPosition(position));
@@ -1091,10 +971,6 @@ public class ListSectionProxy extends ViewProxy {
 			itemProperties = null;
 		}
 
-		if (builtInTemplate != null) {
-			builtInTemplate.release();
-			builtInTemplate = null;
-		}
 		super.release();
 	}
 

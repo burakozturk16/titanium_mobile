@@ -10,21 +10,23 @@ package ti.modules.titanium.ui.widget.listview;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.titanium.view.TiUIView;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 
 public class ViewItem {
-	TiUIView view;
-	KrollDict properties;
+	TiViewProxy viewProxy;
+	KrollDict initialProperties;
+	KrollDict currentProperties;
 	KrollDict diffProperties;
 	
-	public ViewItem(TiUIView view, KrollDict props) {
-		properties = new KrollDict((HashMap<String, Object>)props.clone());
-		this.view = view;
+	public ViewItem(TiViewProxy viewProxy, KrollDict props) {
+		initialProperties = new KrollDict((HashMap<String, Object>)props.clone());
+		this.viewProxy = viewProxy;
 		diffProperties = new KrollDict();
+		currentProperties = new KrollDict();
 	}
 	
-	public TiUIView getView() {
-		return view;
+	public TiViewProxy getViewProxy() {
+		return viewProxy;
 	}
 	
 	/**
@@ -36,20 +38,16 @@ public class ViewItem {
 	public KrollDict generateDiffProperties(KrollDict properties) {
 		diffProperties.clear();
 
-		for (String appliedProp : this.properties.keySet()) {
+		for (String appliedProp : currentProperties.keySet()) {
 			if (!properties.containsKey(appliedProp)) {
-				applyProperty(appliedProp, null);
+				applyProperty(appliedProp, initialProperties.get(appliedProp));
 			}
 		}
 		
 		for (String property : properties.keySet()) {
 			Object value = properties.get(property);
-			if (TiListView.MUST_SET_PROPERTIES.contains(property)) {
-				applyProperty(property, value);
-				continue;
-			}
 
-			Object existingVal = this.properties.get(property);			
+			Object existingVal = currentProperties.get(property);			
 			if (existingVal == null || value == null || !existingVal.equals(value)) {
 				applyProperty(property, value);
 			}
@@ -60,7 +58,7 @@ public class ViewItem {
 	
 	private void applyProperty(String key, Object value) {
 		diffProperties.put(key, value);
-		properties.put(key, value);
+		currentProperties.put(key, value);
 	}
 	
 	

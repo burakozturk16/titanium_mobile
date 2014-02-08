@@ -34,6 +34,7 @@ import ti.modules.titanium.ui.UIModule;
 import android.annotation.SuppressLint;
 import ti.modules.titanium.ui.android.SearchViewProxy;
 import ti.modules.titanium.ui.widget.CustomListView;
+import ti.modules.titanium.ui.widget.listview.ListSectionProxy.ListItemData;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar;
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
 import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
@@ -87,6 +88,9 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	private boolean caseInsensitive;
 	private RelativeLayout searchLayout;
 	private static final String TAG = "TiListView";
+	
+	private static final String defaultTemplateKey = UIModule.LIST_ITEM_TEMPLATE_DEFAULT;
+	private static final TiListViewTemplate defaultTemplate = new TiDefaultListViewTemplate(defaultTemplateKey);
 
 	
 	/* We cache properties that already applied to the recycled list tiem in ViewItem.java
@@ -212,7 +216,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		//One type for header/footer title, one for header/footer view, one for built-in template, and one type per custom template.
 		@Override
 		public int getViewTypeCount() {
-			return 3 + templatesByBinding.size();
+			return itemTypeCount.get();
 			
 		}
 		@Override
@@ -225,7 +229,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			if (section.isHeaderView(sectionItemIndex) || section.isFooterView(sectionItemIndex)) {
 				return HEADER_FOOTER_VIEW_TYPE;
 			}
-			return section.getTemplateByIndex(sectionItemIndex).getType();			
+			return getTemplate(section.getTemplateByIndex(sectionItemIndex)).getType();			
 		}
 
 		@Override
@@ -257,8 +261,9 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			}
 			
 			//Handling templates
-			KrollDict data = section.getListItemData(sectionItemIndex);
-			TiListViewTemplate template = section.getTemplateByIndex(sectionItemIndex);
+			ListItemData item = section.getListItem(sectionItemIndex);
+			KrollDict data = item.getProperties();
+			TiListViewTemplate template = getTemplate(item.getTemplate());
 
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
@@ -274,7 +279,9 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				LayoutParams params = new LayoutParams();
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
-				section.generateCellContent(sectionIndex, data, template, itemContent, sectionItemIndex, content);
+				ListItemProxy itemProxy = template.generateCellProxy(data);
+				itemProxy.setListProxy(getProxy());
+				section.generateCellContent(sectionIndex, data, itemProxy, itemContent, template, sectionItemIndex, content);
 			}
 			return content;
 
@@ -341,7 +348,9 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		sections = new ArrayList<ListSectionProxy>();
 		itemTypeCount = new AtomicInteger(CUSTOM_TEMPLATE_ITEM_TYPE);
 		templatesByBinding = new HashMap<String, TiListViewTemplate>();
-		defaultTemplateBinding = UIModule.LIST_ITEM_TEMPLATE_DEFAULT;
+		defaultTemplateBinding = defaultTemplateKey;
+		templatesByBinding.put(defaultTemplateKey, defaultTemplate);
+		defaultTemplate.setType(BUILT_IN_TEMPLATE_ITEM_TYPE);
 		caseInsensitive = true;
 		
 		//handling marker
@@ -560,10 +569,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	public void processProperties(KrollDict d) {
 		
 		if (d.containsKey(TiC.PROPERTY_TEMPLATES)) {
-			Object templates = d.get(TiC.PROPERTY_TEMPLATES);
-			if (templates != null) {
-				processTemplates(new KrollDict((HashMap)templates));
-			}
+			processTemplates((HashMap)d.get(TiC.PROPERTY_TEMPLATES));
 		} 
 		
 		if (d.containsKey(TiC.PROPERTY_SEARCH_TEXT)) {
@@ -778,7 +784,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	}
 	
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-		if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
+		if (key.equals(TiC.PROPERTY_TEMPLATES)) {
+			processTemplates((HashMap)newValue);
+			if (adapter != null) {
+				adapter.notifyDataSetChanged();
+			}
+		}
+		else if (key.equals(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			setSeparatorColor(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_SEPARATOR_STYLE)) {
 			setSeparatorStyle(TiConvert.toInt(newValue));
@@ -856,17 +868,29 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			section.refreshItems();
 		}
 	}
+	
+	
+	private TiListViewTemplate getTemplate(String template)
+	{
+		if (template == null) template = defaultTemplateBinding;
+		if (templatesByBinding.containsKey(template))
+		{
+			return templatesByBinding.get(template);
+		}
+		return templatesByBinding.get(UIModule.LIST_ITEM_TEMPLATE_DEFAULT);
+	}
 
-	protected void processTemplates(KrollDict templates) {
-		for (String key : templates.keySet()) {
-			//Here we bind each template with a key so we can use it to look up later
-			KrollDict properties = new KrollDict((HashMap)templates.get(key));
-			TiListViewTemplate template = new TiListViewTemplate(key, properties);
-			//Set type to template, for recycling purposes.
-			template.setType(getItemType());
-			templatesByBinding.put(key, template);
-			//set parent of root item
-			template.setRootParent(proxy);
+	protected void processTemplates(HashMap<String,Object> templates) {
+		templatesByBinding = new HashMap<String, TiListViewTemplate>();
+		templatesByBinding.put(defaultTemplateKey, defaultTemplate);
+		if(templates != null) {
+			for (String key : templates.keySet()) {
+				//Here we bind each template with a key so we can use it to look up later
+				KrollDict properties = new KrollDict((HashMap)templates.get(key));
+				TiListViewTemplate template = new TiListViewTemplate(key, properties);
+				template.setType(getItemType());
+				templatesByBinding.put(key, template);
+			}
 		}
 	}
 	
@@ -930,7 +954,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			section.setAdapter(adapter);
 			section.setListView(this);
 			//Attempts to set type for existing templates.
-			section.setTemplateType();
+//			section.setTemplateType();
 			//Process preload data if any
 			section.processPreloadData();
 			//Apply filter if necessary
@@ -1170,10 +1194,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
 				if (itemContent != null) {
-					TiUIView tiView = itemContent.getViewFromBinding(bindId);
-					if (tiView != null) {
-						return tiView.getProxy();
-					}
+					return itemContent.getViewProxyFromBinding(bindId);
 				}
 			}
 		}

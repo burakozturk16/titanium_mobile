@@ -24,6 +24,21 @@ import android.app.Activity;
 public class ListItemProxy extends TiViewProxy
 {
 	protected WeakReference<TiViewProxy> listProxy;
+	
+	private HashMap<String, ViewItem> viewsMap;
+	private ViewItem viewItem;
+	private TiListViewTemplate template;
+	
+	public ListItemProxy()
+	{
+		viewsMap = new HashMap<String, ViewItem>();
+	}
+	
+	@Override
+	public void handleCreationDict(KrollDict options)
+	{
+		super.handleCreationDict(options);
+	}
 
 	public TiUIView createView(Activity activity)
 	{
@@ -42,7 +57,7 @@ public class ListItemProxy extends TiViewProxy
 		}
 		return null;
 	}
-
+	
 	@Override
 	public KrollProxy getParentForBubbling()
 	{
@@ -92,5 +107,37 @@ public class ListItemProxy extends TiViewProxy
 	public String getApiName()
 	{
 		return "Ti.UI.ListItem";
+	}
+	
+
+	public TiViewProxy getViewProxyFromBinding(String binding) {
+		ViewItem viewItem = viewsMap.get(binding);
+		if (viewItem != null) {
+			return viewItem.getViewProxy();
+		}
+		return null;
+	}
+	
+	@Override
+	protected void addBinding(String bindId, TiViewProxy bindingProxy)
+	{
+		super.addBinding(bindId, bindingProxy);
+		ViewItem viewItem = new ViewItem(bindingProxy, bindingProxy.getProperties());
+		viewsMap.put(bindId, viewItem);
+	}
+	
+	public HashMap<String, ViewItem> getViewsMap() {
+		return viewsMap;
+	}
+	
+	public ViewItem getViewItem() {
+		if (viewItem == null) {
+			viewItem = new ViewItem(this, getProperties());
+		}
+		return viewItem;
+	}
+
+	public void setTemplate(TiListViewTemplate template) {
+		this.template = template;
 	}
 }

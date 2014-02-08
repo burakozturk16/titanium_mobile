@@ -6,120 +6,77 @@
  */
 package ti.modules.titanium.ui.widget.listview;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
-import org.appcelerator.titanium.util.TiConvert;
-
-import ti.modules.titanium.ui.ImageViewProxy;
-import ti.modules.titanium.ui.LabelProxy;
-import android.app.Activity;
 
 public class TiDefaultListViewTemplate extends TiListViewTemplate {
+	private static final KrollDict TEMPLATE_DICT = createTemplateDict();
 
-	public TiDefaultListViewTemplate(String id, KrollDict properties, Activity activity) {
-		super(id, properties);
-		generateDefaultProps(activity);
+    private static KrollDict createTemplateDict() {
+    	KrollDict result = new KrollDict();
+    	KrollDict imageDict = new KrollDict();
+    	imageDict.put(TiC.PROPERTY_TYPE, "Ti.UI.ImageView");
+    	imageDict.put(TiC.PROPERTY_BIND_ID, "imageView");
+    	KrollDict props = new KrollDict();
+    	props.put(TiC.PROPERTY_TOUCH_ENABLED, false);
+    	props.put(TiC.PROPERTY_RIGHT, "25dp");
+    	props.put(TiC.PROPERTY_WIDTH, "15%");
+    	imageDict.put(TiC.PROPERTY_PROPERTIES, props);
+    	
+    	KrollDict labelDict = new KrollDict();
+    	labelDict.put(TiC.PROPERTY_TYPE, "Ti.UI.Label");
+    	labelDict.put(TiC.PROPERTY_BIND_ID, "titleView");
+    	props = new KrollDict();
+    	props.put(TiC.PROPERTY_TOUCH_ENABLED, false);
+    	props.put(TiC.PROPERTY_LEFT, "2dp");
+    	props.put(TiC.PROPERTY_WIDTH, "55%");
+    	props.put(TiC.PROPERTY_TEXT, "label");
+    	labelDict.put(TiC.PROPERTY_PROPERTIES, props);
+    	
+    	result.put(TiC.PROPERTY_CHILD_TEMPLATES, new Object[]{imageDict, labelDict});
+        return result;
+    }
+
+	public TiDefaultListViewTemplate(String id) {
+		super(id, TEMPLATE_DICT);
 	}
 	
-	public void generateDefaultProps(Activity activity) {
-		
-		//Generate root item data proxy
-		ListItemProxy proxy = new ListItemProxy();
-		proxy.setActivity(activity);
-		rootItem = new DataItem(proxy, TiC.PROPERTY_PROPERTIES, null);
-		dataItems.put(itemID, rootItem);
-
-		//Init default properties for our proxies
-		KrollDict defaultLabelProperties = new KrollDict();
-		KrollDict defaultImageProperties = new KrollDict();
-
-		//Generate label proxy
-		LabelProxy labelProxy = new LabelProxy();
-		labelProxy.getProperties().put(TiC.PROPERTY_TOUCH_ENABLED, false);
-		labelProxy.setActivity(activity);
-		//Generate properties
-		defaultLabelProperties.put(TiC.PROPERTY_LEFT, "2dp");
-		defaultLabelProperties.put(TiC.PROPERTY_WIDTH, "55%");
-		defaultLabelProperties.put(TiC.PROPERTY_TEXT, "label");
-		//bind the proxy and default propertiess
-		DataItem labelItem = new DataItem(labelProxy, TiC.PROPERTY_TITLE, rootItem);
-		dataItems.put(TiC.PROPERTY_TITLE, labelItem);
-		//set default properties
-		labelItem.setDefaultProperties(defaultLabelProperties);
-		//add child
-		rootItem.addChild(labelItem);
-		
-		//Generate image proxy
-		ImageViewProxy imageProxy = new ImageViewProxy();
-		imageProxy.getProperties().put(TiC.PROPERTY_TOUCH_ENABLED, false);
-		imageProxy.setActivity(activity);
-		//Generate properties
-		defaultImageProperties.put(TiC.PROPERTY_RIGHT, "25dp");
-		defaultImageProperties.put(TiC.PROPERTY_WIDTH, "15%");
-		//bind the proxy and default properties
-		DataItem imageItem = new DataItem (imageProxy, TiC.PROPERTY_IMAGE, rootItem);
-		dataItems.put(TiC.PROPERTY_IMAGE, imageItem);
-		//set default properties
-		imageItem.setDefaultProperties(defaultImageProperties);
-		//add child
-		rootItem.addChild(imageItem);
-		
-
+	@Override
+	public KrollDict prepareDataDict(KrollDict dict)
+	{
+		KrollDict result = super.prepareDataDict(dict);
+		if (!result.containsKey(TiC.PROPERTY_PROPERTIES)) return dict;
+		KrollDict properties = result.getKrollDict(TiC.PROPERTY_PROPERTIES);
+		if (properties.containsKey(TiC.PROPERTY_TITLE) || properties.containsKey(TiC.PROPERTY_FONT) || properties.containsKey(TiC.PROPERTY_COLOR))
+		{
+			KrollDict labelDict = result.getKrollDict("titleView");
+			if (labelDict == null)
+			{
+				labelDict = new KrollDict();
+				result.put("titleView", labelDict);
+			}
+			if (properties.containsKey(TiC.PROPERTY_TITLE)) {
+				labelDict.put(TiC.PROPERTY_TEXT, properties.get(TiC.PROPERTY_TITLE));
+			}
+			if (properties.containsKey(TiC.PROPERTY_FONT)) {
+				labelDict.put(TiC.PROPERTY_FONT, properties.get(TiC.PROPERTY_FONT));
+			}
+			if (properties.containsKey(TiC.PROPERTY_COLOR)) {
+				labelDict.put(TiC.PROPERTY_COLOR, properties.get(TiC.PROPERTY_COLOR));
+			}
+		}
+		if (properties.containsKey(TiC.PROPERTY_IMAGE))
+		{
+			KrollDict imageDict = result.getKrollDict("imageView");
+			if (imageDict == null)
+			{
+				imageDict = new KrollDict();
+				result.put("imageView", imageDict);
+			}
+			if (properties.containsKey(TiC.PROPERTY_IMAGE)) {
+				imageDict.put(TiC.PROPERTY_IMAGE, properties.get(TiC.PROPERTY_IMAGE));
+			}
+		}
+		return result;
 	}
-	private void parseDefaultData(KrollDict data) {
-		//for built-in template, we only process 'properties' key
-		Iterator<String> bindings = data.keySet().iterator();
-		while (bindings.hasNext()) {
-			String binding = bindings.next();
-			if (!binding.equals(TiC.PROPERTY_PROPERTIES) && !binding.equals(TiC.PROPERTY_TEMPLATE)) {
-//				Log.e(TAG, "Please only use 'properties' key for built-in template: " + binding, Log.DEBUG_MODE);
-				bindings.remove();
-			}
-		}
-
-		KrollDict properties = data.getKrollDict(TiC.PROPERTY_PROPERTIES);
-		KrollDict clone_properties = new KrollDict((HashMap)properties);
-		if (clone_properties.containsKey(TiC.PROPERTY_TITLE)) {
-			KrollDict text = new KrollDict();
-			text.put(TiC.PROPERTY_TEXT, TiConvert.toString(clone_properties, TiC.PROPERTY_TITLE));
-			data.put(TiC.PROPERTY_TITLE, text);
-			if (clone_properties.containsKey(TiC.PROPERTY_FONT)) {
-				text.put(TiC.PROPERTY_FONT, clone_properties.getKrollDict(TiC.PROPERTY_FONT).clone());
-				clone_properties.remove(TiC.PROPERTY_FONT);
-			}
-			if (clone_properties.containsKey(TiC.PROPERTY_COLOR)) {
-				text.put(TiC.PROPERTY_COLOR, clone_properties.get(TiC.PROPERTY_COLOR));
-				clone_properties.remove(TiC.PROPERTY_COLOR);
-			}
-			clone_properties.remove(TiC.PROPERTY_TITLE);
-		}
-		
-		if (clone_properties.containsKey(TiC.PROPERTY_IMAGE)) {
-			KrollDict image = new KrollDict();
-			image.put(TiC.PROPERTY_IMAGE, TiConvert.toString(clone_properties, TiC.PROPERTY_IMAGE));
-			data.put(TiC.PROPERTY_IMAGE, image);
-			clone_properties.remove(TiC.PROPERTY_IMAGE);
-		}
-		
-		data.put(TiC.PROPERTY_PROPERTIES, clone_properties);
-	}
-	
-	public void updateOrMergeWithDefaultProperties(KrollDict data, boolean update) {
-
-		if (!data.containsKey(TiC.PROPERTY_PROPERTIES)) {
-//			Log.e(TAG, "Please use 'properties' binding for builtInTemplate");
-			if (!update) {
-				//apply default behavior
-				data.clear();
-			}
-			return;
-		}
-		parseDefaultData(data);
-		super.updateOrMergeWithDefaultProperties(data, update);
-	}
-	
 }
