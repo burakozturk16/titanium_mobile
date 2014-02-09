@@ -1252,7 +1252,11 @@ public abstract class TiUIView
 	
 	public void propagateChildDrawableState(View child)
 	{
-		int[] state = child.getDrawableState();
+		propagateDrawableState(child.getDrawableState());
+	}
+	
+	public void propagateDrawableState(int[] state)
+	{
 		if (background != null)
 		{
 			background.setState(state);

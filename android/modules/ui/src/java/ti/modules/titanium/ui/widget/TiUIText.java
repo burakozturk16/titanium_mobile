@@ -94,6 +94,12 @@ public class TiUIText extends TiUIView
 		}
 		
 		@Override
+		protected void drawableStateChanged() {
+			if (hasFocus()) propagateDrawableState(TiUIHelper.BACKGROUND_SELECTED_STATE);
+			else propagateChildDrawableState(this);
+		}
+		
+		@Override
 		public View focusSearch(int direction) {
 			View result = super.focusSearch(direction);
 	        return result;
@@ -161,19 +167,6 @@ public class TiUIText extends TiUIView
 		private LinearLayout.LayoutParams createBaseParams()
 		{
 			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
-		}
-		
-		
-		@Override
-		protected void drawableStateChanged() {
-		
-		}
-		
-		@Override
-		public void childDrawableStateChanged(View child) {
-			if (child == editText) {
-				propagateChildDrawableState(child);
-			}
 		}
 
 		private void init(Context context) {
