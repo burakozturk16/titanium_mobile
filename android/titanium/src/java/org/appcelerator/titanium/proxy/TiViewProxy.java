@@ -176,8 +176,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			super.handleCreationDict(options);
 		}
 		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
-			initFromTemplate(options, this, true);
-			needsToUpdateProps = true;
+			initFromTemplate(options, this, true, true);
+			if (needsToUpdateProps) {
+				updateKrollObjectProperties();
+				needsToUpdateProps = false;
+			}
+			else {
+				updatePropertiesNativeSide();
+			}
 		}
 		if (needsToUpdateProps) {
 			updateKrollObjectProperties();
@@ -753,7 +759,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean recursive) {
+			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
 		if (rootProxy != null
 				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
 			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
@@ -772,7 +778,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						TiViewProxy childProxy = createViewFromTemplate(
 								(HashMap) childDict, rootProxy, false);
 						if (childProxy != null){
-							childProxy.updateKrollObjectProperties();
+							if (updateKrollProperties) childProxy.updateKrollObjectProperties();
 							this.add(childProxy);
 						}
 					}
@@ -797,12 +803,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	public static TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateRootProperties) {
-		return createViewFromTemplate(template_, rootProxy, updateRootProperties, true);
+			TiViewProxy rootProxy, boolean updateKrollProperties) {
+		return createViewFromTemplate(template_, rootProxy, updateKrollProperties, true);
 	}
 	@SuppressWarnings("unchecked")
 	public static TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateRootProperties, boolean recursive) {
+			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				"Ti.UI.View");
 		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
@@ -814,8 +820,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					new Object[] { properties }, null);
 			if (proxy == null)
 				return null;
-			proxy.initFromTemplate(template_, rootProxy, recursive);
-			if (updateRootProperties) {
+			proxy.initFromTemplate(template_, rootProxy, updateKrollProperties, recursive);
+			if (updateKrollProperties) {
 				rootProxy.updatePropertiesNativeSide();
 			}
 			return proxy;
@@ -836,7 +842,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					new Object[] { properties }, null);
 			if (proxy == null)
 				return null;
-			proxy.initFromTemplate(template_, proxy, true);
+			proxy.initFromTemplate(template_, proxy, false, true);
 			return proxy;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -876,7 +882,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
 					this, true);
 			if (childProxy != null) {
-				childProxy.updateKrollObjectProperties();
+//				childProxy.updateKrollObjectProperties();
 				add(childProxy);
 			}
 		} else {
