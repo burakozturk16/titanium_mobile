@@ -187,14 +187,6 @@ public class TiConvert
 		Object width = null;
 		Object height = null;
 
-		if (hashMap.containsKey(TiC.PROPERTY_SIZE)) {
-			HashMap<String, Object> size = (HashMap<String, Object>) hashMap.get(TiC.PROPERTY_SIZE);
-			if (size != null) {
-				width = size.get(TiC.PROPERTY_WIDTH);
-				height = size.get(TiC.PROPERTY_HEIGHT);
-			}
-		}
-
 		if (hashMap.containsKey(TiC.PROPERTY_LEFT)) {
 			layoutParams.optionLeft = toTiDimension(hashMap, TiC.PROPERTY_LEFT, TiDimension.TYPE_LEFT);
 			dirty = true;
