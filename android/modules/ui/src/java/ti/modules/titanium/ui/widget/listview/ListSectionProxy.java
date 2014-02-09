@@ -722,9 +722,10 @@ public class ListSectionProxy extends ViewProxy {
 		cellContent.setCurrentItem(sectionIndex, itemIndex);
 		
 		data = template.prepareDataDict(data);
+		ListItemProxy itemProxy = (ListItemProxy) cellContent.getView().getProxy();
 
 		KrollDict listItemProperties;
-		KrollDict templateProperties = template.getProperties();
+//		KrollDict templateProperties = template.getProperties();
 		KrollDict listViewProperties = getListView().getProxy().getProperties();
 		String itemId = null;
 
@@ -734,16 +735,12 @@ public class ListSectionProxy extends ViewProxy {
 		} else {
 			listItemProperties = template.getRootItem().getDefaultProperties();
 		}
-
+		ViewItem rootItem = itemProxy.getViewItem();
+		
 		for (Map.Entry<String, String> entry : toPassProps.entrySet()) {
 			String inProp = entry.getKey();
 			String outProp = entry.getValue();
-			if (listItemProperties.get(outProp) != null)
-				continue;
-			if (templateProperties.containsKey(outProp)) {
-				listItemProperties
-						.put(outProp, templateProperties.get(outProp));
-			} else if (listViewProperties.containsKey(inProp)) {
+			if (!listItemProperties.containsKey(outProp) && !rootItem.containsKey(outProp) && listViewProperties.containsKey(inProp)) {
 				listItemProperties.put(outProp, listViewProperties.get(inProp));
 			}
 		}
@@ -758,7 +755,6 @@ public class ListSectionProxy extends ViewProxy {
 		appendExtraEventData(listItem, itemIndex, sectionIndex,
 				TiC.PROPERTY_PROPERTIES, itemId);
 
-		ListItemProxy itemProxy = (ListItemProxy) cellContent.getView().getProxy();
 		HashMap<String, ViewItem> views = itemProxy.getViewsMap();
 		// Loop through all our views and apply default properties
 		for (String binding : views.keySet()) {
