@@ -7,6 +7,7 @@ import yaochangwei.pulltorefreshlistview.widget.RefreshableListView;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -16,6 +17,7 @@ import android.view.View;
 public class CustomListView extends RefreshableListView {
 	private int mPosition;
 	private boolean mScrollingEnabled = true;
+    private boolean canRequestFocus = true;
 	
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB_MR1)
@@ -102,5 +104,20 @@ public class CustomListView extends RefreshableListView {
         }
  
         return super.dispatchTouchEvent(ev);
+    }
+    
+    @Override
+	protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+    	canRequestFocus = false;
+    	super.onLayout(changed, left, top, right, bottom);
+    	canRequestFocus = true;
+    }
+    
+    @Override
+    public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
+        if (!canRequestFocus) {
+        	return false;
+        }
+        return super.requestFocus(direction, previouslyFocusedRect);
     }
 }

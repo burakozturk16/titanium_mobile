@@ -55,7 +55,6 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -111,76 +110,8 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	public static final int CUSTOM_TEMPLATE_ITEM_TYPE = 3;
 
 	class ListViewWrapper extends TiCompositeLayout {
-		private boolean viewFocused = false;
 		public ListViewWrapper(Context context) {
 			super(context);
-		}
-		
-		@Override
-		protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-			// To prevent undesired "focus" and "blur" events during layout caused
-			// by ListView temporarily taking focus, we will disable focus events until
-			// layout has finished.
-			// First check for a quick exit. listView can be null, such as if window closing.
-			// Starting with API 18, calling requestFocus() will trigger another layout pass of the listview,
-			// resulting in an infinite loop. Here we check if the view is already focused, and stop the loop.
-			if (listView == null || (Build.VERSION.SDK_INT >= 18 && listView != null && !changed && viewFocused)) {
-				viewFocused = false;
-				super.onLayout(changed, left, top, right, bottom);
-				return;
-			}
-			OnFocusChangeListener focusListener = null;
-			View focusedView = listView.findFocus();
-			int cursorPositionStart = -1;
-			int cursorPositionEnd = -1;
-			if (focusedView != null) {
-				OnFocusChangeListener listener = focusedView.getOnFocusChangeListener();
-				if (listener != null && listener instanceof TiUIView) {
-					//Before unfocus the current editText, store cursor position so
-					//we can restore it later
-					if (focusedView instanceof EditText) {
-						cursorPositionStart = ((EditText)focusedView).getSelectionStart();
-						cursorPositionEnd = ((EditText)focusedView).getSelectionEnd();
-					}
-					focusedView.setOnFocusChangeListener(null);
-					focusListener = listener;
-				}
-			}
-			
-			//We are temporarily going to block focus to descendants 
-			//because LinearLayout on layout will try to find a focusable descendant
-			if (focusedView != null) {
-				listView.setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
-			}
-			super.onLayout(changed, left, top, right, bottom);
-			//Now we reset the descendant focusability
-			listView.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-
-			TiViewProxy viewProxy = proxy;
-			if (viewProxy != null && viewProxy.hasListeners(TiC.EVENT_POST_LAYOUT)) {
-				viewProxy.fireEvent(TiC.EVENT_POST_LAYOUT, null);
-			}
-
-			// Layout is finished, re-enable focus events.
-			if (focusListener != null) {
-				// If the configuration changed, we manually fire the blur event
-				if (changed) {
-					focusedView.setOnFocusChangeListener(focusListener);
-					focusListener.onFocusChange(focusedView, false);
-				} else {
-					//Ok right now focus is with listView. So set it back to the focusedView
-					viewFocused = true;
-					focusedView.requestFocus();
-					focusedView.setOnFocusChangeListener(focusListener);
-					//Restore cursor position
-					if (cursorPositionStart != -1) {
-						try {
-							((EditText)focusedView).setSelection(cursorPositionStart, cursorPositionEnd);
-						} catch (Exception e) {
-						}
-					}
-				}
-			}
 		}
 	}
 	
