@@ -79,7 +79,6 @@ import android.view.ViewGroup;
 import android.view.View.MeasureSpec;
 import android.view.ViewParent;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.TextView;
 
 /**
