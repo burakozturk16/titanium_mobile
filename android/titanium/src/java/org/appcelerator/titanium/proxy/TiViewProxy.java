@@ -188,89 +188,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (needsToUpdateProps) {
 			updateKrollObjectProperties();
 		}
-//		options = handleStyleOptions(options);
-//		super.handleCreationDict(options);
-
-		//TODO eventManager.addOnEventChangeListener(this);
 	}
-	
-//	private static HashMap<TiUrl,String> styleSheetUrlCache = new HashMap<TiUrl,String>(5);
-//	protected String getBaseUrlForStylesheet()
-//	{
-//		TiUrl creationUrl = getCreationUrl();
-//		if (styleSheetUrlCache.containsKey(creationUrl)) {
-//			return styleSheetUrlCache.get(creationUrl);
-//		}
-//
-//		String baseUrl = creationUrl.baseUrl;
-//		if (baseUrl == null || (baseUrl.equals("app://") && creationUrl.url.equals(""))) {
-//			baseUrl = "app://app.js";
-//		} else {
-//			baseUrl = creationUrl.resolve();
-//		}
-//
-//		int idx = baseUrl.lastIndexOf("/");
-//		if (idx != -1) {
-//			baseUrl = baseUrl.substring(idx + 1).replace(".js", "");
-//		}
-//		
-//		styleSheetUrlCache.put(creationUrl,baseUrl);
-//		return baseUrl;
-//	}
 
-//	protected KrollDict handleStyleOptions(KrollDict options)
-//	{
-//		String viewId = getProxyId();
-//		TreeSet<String> styleClasses = new TreeSet<String>();
-//		// TODO styleClasses.add(getShortAPIName().toLowerCase());
-//
-//		if (options.containsKey(TiC.PROPERTY_ID)) {
-//			viewId = TiConvert.toString(options, TiC.PROPERTY_ID);
-//		}
-//		if (options.containsKey(TiC.PROPERTY_CLASS_NAME)) {
-//			String className = TiConvert.toString(options, TiC.PROPERTY_CLASS_NAME);
-//			for (String clazz : className.split(" ")) {
-//				styleClasses.add(clazz);
-//			}
-//		}
-//		if (options.containsKey(TiC.PROPERTY_CLASS_NAMES)) {
-//			Object c = options.get(TiC.PROPERTY_CLASS_NAMES);
-//			if (c.getClass().isArray()) {
-//				int length = Array.getLength(c);
-//				for (int i = 0; i < length; i++) {
-//					Object clazz = Array.get(c, i);
-//					if (clazz != null) {
-//						styleClasses.add(clazz.toString());
-//					}
-//				}
-//			}
-//		}
-//
-//		String baseUrl = getBaseUrlForStylesheet();
-//		KrollDict dict = TiApplication.getInstance().getStylesheet(baseUrl, styleClasses, viewId);
-//		if (dict == null || dict.isEmpty()) {
-//			return options;
-//		}
-//		
-//		extend(dict);
-//		if (Log.isDebugModeEnabled()) {
-//			Log.d(TAG, "trying to get stylesheet for base:" + baseUrl + ",classes:" + styleClasses + ",id:" + viewId + ",dict:"
-//				+ dict, Log.DEBUG_MODE);
-//		}
-//		// merge in our stylesheet details to the passed in dictionary
-//		// our passed in dictionary takes precedence over the stylesheet
-//		dict.putAll(options);
-//		return dict;
-//	}
-
-//	public TiViewAnimator getPendingAnimation()
-//	{
-//		synchronized(pendingAnimationLock) {
-//			return (TiViewAnimator) pendingAnimation;
-//		}
-//	}
-
-	
 
 	//This handler callback is tied to the UI thread.
 	public boolean handleMessage(Message msg)
