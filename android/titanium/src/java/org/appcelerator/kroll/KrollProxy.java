@@ -401,7 +401,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		handleLocaleProperties();
 
 		if (modelListener != null) {
-			modelListener.processProperties(properties);
+			modelListener.processProperties(dict);
 		}
 	}
 
@@ -1276,7 +1276,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 			case MSG_MODEL_PROCESS_PROPERTIES: {
 				if (modelListener != null) {
-					modelListener.processProperties(properties);
+					modelListener.processProperties((KrollDict) properties.clone());
 				}
 				return true;
 			}
@@ -1404,7 +1404,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		this.modelListener = modelListener;
 		if (modelListener != null && applyProps) {
 			if (TiApplication.isUIThread()) {
-				modelListener.processProperties(properties);
+				modelListener.processProperties((KrollDict) properties.clone());
 			} else {
 				getMainHandler().sendEmptyMessage(MSG_MODEL_PROCESS_PROPERTIES);
 			}
