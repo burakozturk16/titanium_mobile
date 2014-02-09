@@ -19,10 +19,10 @@ public class ViewItem {
 	KrollDict diffProperties;
 	
 	public ViewItem(TiViewProxy viewProxy, KrollDict props) {
-		initialProperties = new KrollDict((HashMap<String, Object>)props.clone());
+		initialProperties = (KrollDict)props.clone();
 		this.viewProxy = viewProxy;
 		diffProperties = new KrollDict();
-		currentProperties = new KrollDict((HashMap<String, Object>)props.clone());
+		currentProperties = new KrollDict();
 	}
 	
 	public TiViewProxy getViewProxy() {
@@ -39,17 +39,18 @@ public class ViewItem {
 		diffProperties.clear();
 
 		for (String appliedProp : currentProperties.keySet()) {
-			if (!properties.containsKey(appliedProp)) {
+			if (properties == null || !properties.containsKey(appliedProp)) {
 				applyProperty(appliedProp, initialProperties.get(appliedProp));
 			}
 		}
-		
-		for (String property : properties.keySet()) {
-			Object value = properties.get(property);
-
-			Object existingVal = currentProperties.get(property);			
-			if (existingVal == null || value == null || !existingVal.equals(value)) {
-				applyProperty(property, value);
+		if (properties != null) { 
+			for (String property : properties.keySet()) {
+				Object value = properties.get(property);
+	
+				Object existingVal = currentProperties.get(property);			
+				if (existingVal != value && (existingVal == null || value == null || !existingVal.equals(value))) {
+					applyProperty(property, value);
+				}
 			}
 		}
 		return diffProperties;

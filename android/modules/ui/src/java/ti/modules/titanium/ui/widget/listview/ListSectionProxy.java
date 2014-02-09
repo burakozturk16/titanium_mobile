@@ -733,7 +733,7 @@ public class ListSectionProxy extends ViewProxy {
 			listItemProperties = new KrollDict(
 					(HashMap) data.get(TiC.PROPERTY_PROPERTIES));
 		} else {
-			listItemProperties = template.getRootItem().getDefaultProperties();
+			listItemProperties = new KrollDict();
 		}
 		ViewItem rootItem = itemProxy.getViewItem();
 		
@@ -783,7 +783,7 @@ public class ListSectionProxy extends ViewProxy {
 
 			} else if (dataItem != null && view != null) {
 				KrollDict diffProperties = viewItem
-						.generateDiffProperties(dataItem.getDefaultProperties());
+						.generateDiffProperties(null);
 				if (!diffProperties.isEmpty()) {
 					view.processProperties(diffProperties);
 				}
