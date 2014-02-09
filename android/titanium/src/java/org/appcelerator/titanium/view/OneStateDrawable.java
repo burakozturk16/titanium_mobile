@@ -62,7 +62,7 @@ public class OneStateDrawable extends Drawable {
 		if(canvasStore == null){
             canvasStore = new WeakHashMap<String, Pair<Canvas, Bitmap>>();
         }
-        String key = String.format("%fx%f", bounds.width(), bounds.height());
+        String key = String.format("%dx%d", bounds.width(), bounds.height());
         Pair<Canvas, Bitmap> stored = canvasStore.get(key);
         if(stored != null){
             tempCanvas = stored.first;
