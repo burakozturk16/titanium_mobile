@@ -22,7 +22,7 @@ public class ViewItem {
 		initialProperties = new KrollDict((HashMap<String, Object>)props.clone());
 		this.viewProxy = viewProxy;
 		diffProperties = new KrollDict();
-		currentProperties = new KrollDict();
+		currentProperties = new KrollDict((HashMap<String, Object>)props.clone());
 	}
 	
 	public TiViewProxy getViewProxy() {
@@ -59,6 +59,10 @@ public class ViewItem {
 	private void applyProperty(String key, Object value) {
 		diffProperties.put(key, value);
 		currentProperties.put(key, value);
+	}
+
+	public boolean containsKey(String key) {
+		return initialProperties.containsKey(key);
 	}
 	
 	
