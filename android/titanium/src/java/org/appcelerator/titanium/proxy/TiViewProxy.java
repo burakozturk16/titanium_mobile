@@ -695,7 +695,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						this.add((TiViewProxy) childDict);
 					} else {
 						TiViewProxy childProxy = createViewFromTemplate(
-								(HashMap) childDict, rootProxy, false);
+								(HashMap) childDict, rootProxy, updateKrollProperties);
 						if (childProxy != null){
 							if (updateKrollProperties) childProxy.updateKrollObjectProperties();
 							this.add(childProxy);
