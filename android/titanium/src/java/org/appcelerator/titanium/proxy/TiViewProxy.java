@@ -745,7 +745,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			return proxy;
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e(TAG, "Error creating view from template: " + e.toString());
 			return null;
 		}
 	}
