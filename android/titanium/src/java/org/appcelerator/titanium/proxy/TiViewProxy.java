@@ -764,7 +764,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			proxy.initFromTemplate(template_, proxy, false, true);
 			return proxy;
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e(TAG, "Error creating view from dict: " + e.toString());
 			return null;
 		}
 	}
