@@ -27,6 +27,7 @@
 
 @interface TiUIListView ()
 @property (nonatomic, readonly) TiUIListViewProxy *listViewProxy;
+@property (nonatomic,copy,readwrite) NSString * searchString;
 @end
 
 static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point);
@@ -66,7 +67,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     BOOL pruneSections;
 
     BOOL caseInsensitiveSearch;
-    NSString* searchString;
+    NSString* _searchString;
     BOOL searchActive;
     BOOL keepSectionsInSearch;
     NSMutableArray* _searchResults;
@@ -111,6 +112,7 @@ static NSDictionary* replaceKeysForRow;
     RELEASE_TO_NIL(_tableView);
     RELEASE_TO_NIL(_templates);
     RELEASE_TO_NIL(_defaultItemTemplate);
+    RELEASE_TO_NIL(_searchString);
     RELEASE_TO_NIL(_searchResults);
     RELEASE_TO_NIL(_pullViewWrapper);
     RELEASE_TO_NIL(_searchWrapper);
@@ -526,7 +528,7 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)buildResultsForSearchText
 {
-    searchActive = ([searchString length] > 0);
+    searchActive = ([self.searchString length] > 0);
     RELEASE_TO_NIL(filteredIndices);
     RELEASE_TO_NIL(filteredTitles);
     if (searchActive) {
@@ -548,7 +550,7 @@ static NSDictionary* replaceKeysForRow;
             for (int j = 0; j < maxItems; j++) {
                 NSIndexPath* thePath = [NSIndexPath indexPathForRow:j inSection:i];
                 id theValue = [self valueWithKey:@"searchableText" atIndexPath:thePath];
-                if (theValue!=nil && [[TiUtils stringValue:theValue] rangeOfString:searchString options:searchOpts].location != NSNotFound) {
+                if (theValue!=nil && [[TiUtils stringValue:theValue] rangeOfString:self.searchString options:searchOpts].location != NSNotFound) {
                     (thisSection != nil) ? [thisSection addObject:thePath] : [singleSection addObject:thePath];
                 }
             }
@@ -903,7 +905,7 @@ static NSDictionary* replaceKeysForRow;
         DebugLog(@"Can not use searchText with searchView. Ignoring call.");
         return;
     }
-    searchString = [TiUtils stringValue:args];
+    self.searchString = [TiUtils stringValue:args];
     [self buildResultsForSearchText];
     [_tableView reloadData];
 }
@@ -1904,7 +1906,7 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)searchBarTextDidBeginEditing:(UISearchBar *)searchBar
 {
-    searchString = (searchBar.text == nil) ? @"" : searchBar.text;
+    self.searchString = (searchBar.text == nil) ? @"" : searchBar.text;
     [self buildResultsForSearchText];
     [[searchController searchResultsTableView] reloadData];
 }
@@ -1912,7 +1914,7 @@ static NSDictionary* replaceKeysForRow;
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
 {
     if ([searchBar.text length] == 0) {
-        searchString = @"";
+        self.searchString = @"";
         [self buildResultsForSearchText];
         if ([searchController isActive]) {
             [searchController setActive:NO animated:YES];
@@ -1922,7 +1924,7 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText
 {
-    searchString = (searchText == nil) ? @"" : searchText;
+    self.searchString = (searchText == nil) ? @"" : searchText;
     [self buildResultsForSearchText];
 }
 
@@ -1934,8 +1936,8 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)searchBarCancelButtonClicked:(UISearchBar *) searchBar
 {
-    searchString = @"";
-    [searchBar setText:searchString];
+    self.searchString = @"";
+    [searchBar setText:self.searchString];
     [self buildResultsForSearchText];
 }
 
@@ -1943,7 +1945,7 @@ static NSDictionary* replaceKeysForRow;
 
 - (void) searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller
 {
-    searchString = @"";
+    self.searchString = @"";
     [self buildResultsForSearchText];
     if ([searchController isActive]) {
         [searchController setActive:NO animated:YES];

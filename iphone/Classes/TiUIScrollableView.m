@@ -347,12 +347,6 @@
 		{
 			[view removeFromSuperview];
 		}
-        [_wrappers removeAllObjects];
-        
-		for (TiViewProxy* theView in [[self proxy] views]) {
-			[theView windowWillClose];
-			[theView windowDidClose];
-		}
 	}
 	
 	int viewsCount = [[self proxy] viewCount];

@@ -228,7 +228,7 @@
     if (handleLinksSet) {
         return handleLinks;
     } else {
-        return [[UIApplication sharedApplication] canOpenURL:URL];
+        return YES;
     }
 }
 

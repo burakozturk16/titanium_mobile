@@ -36,7 +36,7 @@
 -(TiUITableViewRowProxy*)rowForIndex:(NSInteger)index section:(NSInteger*)section;
 -(NSIndexPath *)indexPathFromInt:(NSInteger)index;
 -(NSInteger)indexForIndexPath:(NSIndexPath *)path;
-
+-(TiUITableViewSectionProxy*)sectionForIndex:(NSInteger)index row:(TiUITableViewRowProxy**)rowOut;
 -(void)rememberSection:(TiUITableViewSectionProxy *)section;
 -(void)forgetSection:(TiUITableViewSectionProxy *)section;
 

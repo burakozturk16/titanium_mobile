@@ -2411,6 +2411,13 @@ return result;	\
 	return result;
 }
 
+- (void)tableView:(UITableView*)tableView didEndEditingRowAtIndexPath:(NSIndexPath *)indexPath{
+    TiUITableViewRowProxy *row = nil;
+    TiUITableViewSectionProxy  *section = nil;
+    section = [(TiUITableViewProxy *)[self proxy] sectionForIndex:indexPath row:&row];
+    [row.section reorderRows];
+}
+
 - (void)tableView:(UITableView *)ourTableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
 	BOOL search = NO;

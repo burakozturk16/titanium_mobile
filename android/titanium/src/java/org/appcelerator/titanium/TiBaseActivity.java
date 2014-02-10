@@ -44,6 +44,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -724,6 +725,14 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		getSupportHelper().launchActivityForResult(intent, code, resultHandler);
 	}
+	
+	/**
+	 * See TiActivitySupport.launchIntentSenderForResult for more details.
+	 */
+	public void launchIntentSenderForResult(IntentSender intent, int requestCode, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options, TiActivityResultHandler resultHandler)
+	{
+		getSupportHelper().launchIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options, resultHandler);
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -1386,7 +1395,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		fireOnDestroy();
 
 		if (layout instanceof TiCompositeLayout) {
-			Log.e(TAG, "Layout cleanup.", Log.DEBUG_MODE);
+			Log.d(TAG, "Layout cleanup.", Log.DEBUG_MODE);
 			((TiCompositeLayout) layout).removeAllViews();
 		}
 		layout = null;

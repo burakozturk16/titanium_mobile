@@ -1,6 +1,7 @@
 {
+	"No valid Android SDK targets found.": "No valid Android SDK targets found.",
 	"No Android SDK targets found.": "No Android SDK targets found.",
-	"Please download SDK targets (api level %s or newer) via Android SDK Manager and try again.": "Please download SDK targets (api level %s or newer) via Android SDK Manager and try again.",
+	"Please download an Android SDK target API level %s or newer from the Android SDK Manager and try again.": "Please download an Android SDK target API level %s or newer from the Android SDK Manager and try again.",
 	"Unable to locate the Java Development Kit": "Unable to locate the Java Development Kit",
 	"You can specify the location by setting the %s environment variable.": "You can specify the location by setting the %s environment variable.",
 	"JDK version %s detected, but only version %s is supported": "JDK version %s detected, but only version %s is supported",
@@ -240,6 +241,9 @@
 	"Generating i18n files": "Generating i18n files",
 	"Merging %s strings => %s": "Merging %s strings => %s",
 	"Writing %s strings => %s": "Writing %s strings => %s",
+	"Found invalid i18n string names:": "Found invalid i18n string names:",
+	"Android does not allow i18n string names with spaces.": "Android does not allow i18n string names with spaces.",
+	"To exclude invalid i18n strings from the build, run:": "To exclude invalid i18n strings from the build, run:",
 	"Generating %s": "Generating %s",
 	"Writing unmerged custom AndroidManifest.xml": "Writing unmerged custom AndroidManifest.xml",
 	"Detected %s call which requires Google APIs, however the selected emulator %s may or may not support Google APIs": "Detected %s call which requires Google APIs, however the selected emulator %s may or may not support Google APIs",
