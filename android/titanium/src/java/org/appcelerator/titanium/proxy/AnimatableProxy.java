@@ -140,7 +140,7 @@ public class AnimatableProxy extends KrollProxy {
 		List<Animator> list = new ArrayList<Animator>();
 		List<Animator> listReverse = tiSet.autoreverse?new ArrayList<Animator>():null;
 		
-		prepareAnimatorSet(tiSet, list, listReverse, options);
+		prepareAnimatorSet(tiSet, list, listReverse, (HashMap) options.clone());
 		
 		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
 		tiSet.setRepeatCount(repeatCount);
