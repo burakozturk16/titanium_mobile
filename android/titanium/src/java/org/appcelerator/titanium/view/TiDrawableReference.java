@@ -318,7 +318,7 @@ public class TiDrawableReference
 		try {
 			is = getInputStream();
 		} catch (FileNotFoundException e) {
-			throw e;
+			return null;
 		}
 		Bitmap b = null;
 		BitmapFactory.Options opts = new BitmapFactory.Options();
