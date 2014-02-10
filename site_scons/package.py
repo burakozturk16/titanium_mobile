@@ -601,7 +601,7 @@ class Packager(object):
 			version_tag = version
 
 		# get all SDK level npm dependencies
-		# resolve_npm_deps(top_dir, version, node_appc_branch)()
+		resolve_npm_deps(top_dir, version, node_appc_branch)()
 
 		zip_mobilesdk(dist_dir, os_names[platform.system()], version, module_apiversion, android, iphone, ipad, mobileweb, blackberry, tizen, ivi, version_tag, self.build_jsca)
 

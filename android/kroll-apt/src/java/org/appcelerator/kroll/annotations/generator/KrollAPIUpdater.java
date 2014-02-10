@@ -211,9 +211,9 @@ public class KrollAPIUpdater
 			modulesJSON.put(name, moduleNames);
 		}
 		//Hack in the appcompat module for now. revisit later.
-		ArrayList<String> appCompatHack = new ArrayList<String>();
-		appCompatHack.add("appcompat");
-		modulesJSON.put("titanium-appcompat.jar", appCompatHack);
+		// ArrayList<String> appCompatHack = new ArrayList<String>();
+		// appCompatHack.add("appcompat");
+		// modulesJSON.put("titanium-appcompat.jar", appCompatHack);
 		
 		File modules = new File(modulesDestDir, "modules.json");
 
