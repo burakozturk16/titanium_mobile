@@ -33,6 +33,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiRect;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.appcelerator.titanium.TiBlob;
@@ -528,23 +529,27 @@ public abstract class TiUIView
 		propertySet(key, newValue, oldValue, true);
 	}
 		
-	public void propertySet(String key, Object newValue, Object oldValue, boolean changedProperty) {
+	public void propertySet(String key, Object newValue, Object oldValue,
+			boolean changedProperty) {
 		if (key.equals(TiC.PROPERTY_LAYOUT)) {
 			String layout = TiConvert.toString(newValue);
 			View parentViewForChild = getParentViewForChild();
 			if (parentViewForChild instanceof TiCompositeLayout) {
-				((TiCompositeLayout)parentViewForChild).setLayoutArrangement(layout);
+				((TiCompositeLayout) parentViewForChild)
+						.setLayoutArrangement(layout);
 			}
 		} else if (key.equals(TiC.PROPERTY_LEFT)) {
 			if (newValue != null) {
-				layoutParams.optionLeft = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
+				layoutParams.optionLeft = TiConvert.toTiDimension(
+						TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
 			} else {
 				layoutParams.optionLeft = null;
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_TOP)) {
 			if (newValue != null) {
-				layoutParams.optionTop = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_TOP);
+				layoutParams.optionTop = TiConvert.toTiDimension(
+						TiConvert.toString(newValue), TiDimension.TYPE_TOP);
 			} else {
 				layoutParams.optionTop = null;
 			}
@@ -554,14 +559,16 @@ public abstract class TiUIView
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_RIGHT)) {
 			if (newValue != null) {
-				layoutParams.optionRight = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
+				layoutParams.optionRight = TiConvert.toTiDimension(
+						TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
 			} else {
 				layoutParams.optionRight = null;
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_BOTTOM)) {
 			if (newValue != null) {
-				layoutParams.optionBottom = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
+				layoutParams.optionBottom = TiConvert.toTiDimension(
+						TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
 			} else {
 				layoutParams.optionBottom = null;
 			}
@@ -575,8 +582,9 @@ public abstract class TiUIView
 				} else if (newValue.equals(TiC.LAYOUT_FILL)) {
 					layoutParams.autoFillsHeight = true;
 				} else if (!newValue.equals(TiC.SIZE_AUTO)) {
-					layoutParams.optionHeight = TiConvert.toTiDimension(TiConvert.toString(newValue),
-						TiDimension.TYPE_HEIGHT);
+					layoutParams.optionHeight = TiConvert.toTiDimension(
+							TiConvert.toString(newValue),
+							TiDimension.TYPE_HEIGHT);
 					layoutParams.sizeOrFillHeightEnabled = false;
 				}
 			} else {
@@ -585,7 +593,9 @@ public abstract class TiUIView
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
-				((TiCompositeLayout) getParentViewForChild()).setEnableHorizontalWrap(TiConvert.toBoolean(newValue,true));
+				((TiCompositeLayout) getParentViewForChild())
+						.setEnableHorizontalWrap(TiConvert.toBoolean(newValue,
+								true));
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_WIDTH)) {
@@ -597,7 +607,9 @@ public abstract class TiUIView
 				} else if (newValue.equals(TiC.LAYOUT_FILL)) {
 					layoutParams.autoFillsWidth = true;
 				} else if (!newValue.equals(TiC.SIZE_AUTO)) {
-					layoutParams.optionWidth = TiConvert.toTiDimension(TiConvert.toString(newValue), TiDimension.TYPE_WIDTH);
+					layoutParams.optionWidth = TiConvert.toTiDimension(
+							TiConvert.toString(newValue),
+							TiDimension.TYPE_WIDTH);
 					layoutParams.sizeOrFillWidthEnabled = false;
 				}
 			} else {
@@ -613,123 +625,189 @@ public abstract class TiUIView
 			layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
 			isFocusable = TiConvert.toBoolean(newValue, false);
-			if (changedProperty) registerForKeyPress(nativeView, isFocusable);
+			if (changedProperty)
+				registerForKeyPress(nativeView, isFocusable);
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			doSetClickable(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
 			newValue = (newValue == null) ? false : newValue;
-			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE : View.INVISIBLE);
+			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE
+					: View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
 			boolean oldEnabled = isEnabled;
 			isEnabled = TiConvert.toBoolean(newValue, true);
-			if (oldEnabled != isEnabled)
-			{
+			if (oldEnabled != isEnabled) {
 				setEnabled(isEnabled, true);
 			}
+		
 		} else if (key.equals(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
 			exclusiveTouch = TiConvert.toBoolean(newValue);
-		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PADDING)) {
-			Log.i(TAG, key + " not yet implemented.");
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
-				TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX)) {
+			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
+			if (key.equals(TiC.PROPERTY_BACKGROUND_COLOR)) {
 				int color = TiConvert.toColor(newValue);
 				bgdDrawable.setDefaultColor(color);
-				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
-				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
-				if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
-			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_SELECTED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)) {
-			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR)) {
-			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_DISABLED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			getOrCreateBackground().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
-			TiBackgroundDrawable bgdDrawable = getOrCreateBackground();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
-			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
-			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DEFAULT_STATE_1, TiUIHelper.BACKGROUND_DEFAULT_STATE_2});
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
-			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_SELECTED_STATE});
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)) {
-			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_FOCUSED_STATE});
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE)) {
-			boolean repeat = proxy.getProperties().optBoolean(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-			setBackgroundImageDrawable(newValue, repeat, new int[][]{TiUIHelper.BACKGROUND_DISABLED_STATE});
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
-			if (background != null)
-				background.setImageRepeat(TiConvert.toBoolean(newValue));
-			if (changedProperty) getOuterView().postInvalidate();
-		} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
-			if (background != null)
-				TiUIHelper.setDrawableOpacity(background, ViewHelper.getAlpha(getNativeView())*TiConvert.toFloat(newValue, 1f));
-			if (changedProperty) getOuterView().postInvalidate();
+				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1,
+						color);
+				bgdDrawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2,
+						color);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_COLOR)) {
+				bgdDrawable.setColorForState(
+						TiUIHelper.BACKGROUND_SELECTED_STATE,
+						TiConvert.toColor(newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_COLOR)) {
+				bgdDrawable.setColorForState(
+						TiUIHelper.BACKGROUND_FOCUSED_STATE,
+						TiConvert.toColor(newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_COLOR)) {
+				bgdDrawable.setColorForState(
+						TiUIHelper.BACKGROUND_DISABLED_STATE,
+						TiConvert.toColor(newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT)) {
+				Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+						.toKrollDict(newValue));
+				bgdDrawable.setGradientDrawableForState(
+						TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_GRADIENT)) {
+				Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+						.toKrollDict(newValue));
+				bgdDrawable.setGradientDrawableForState(
+						TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_GRADIENT)) {
+				Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+						.toKrollDict(newValue));
+				bgdDrawable.setGradientDrawableForState(
+						TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_GRADIENT)) {
+				Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+						.toKrollDict(newValue));
+				bgdDrawable.setGradientDrawableForState(
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+				bgdDrawable.setGradientDrawableForState(
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_IMAGE)) {
+				boolean repeat = proxy.getProperties().optBoolean(
+						TiC.PROPERTY_BACKGROUND_REPEAT, false);
+				setBackgroundImageDrawable(newValue, repeat, new int[][] {
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_1,
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_2 });
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_IMAGE)) {
+				boolean repeat = proxy.getProperties().optBoolean(
+						TiC.PROPERTY_BACKGROUND_REPEAT, false);
+				setBackgroundImageDrawable(newValue, repeat,
+						new int[][] { TiUIHelper.BACKGROUND_SELECTED_STATE });
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_IMAGE)) {
+				boolean repeat = proxy.getProperties().optBoolean(
+						TiC.PROPERTY_BACKGROUND_REPEAT, false);
+				setBackgroundImageDrawable(newValue, repeat,
+						new int[][] { TiUIHelper.BACKGROUND_FOCUSED_STATE });
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_IMAGE)) {
+				boolean repeat = proxy.getProperties().optBoolean(
+						TiC.PROPERTY_BACKGROUND_REPEAT, false);
+				setBackgroundImageDrawable(newValue, repeat,
+						new int[][] { TiUIHelper.BACKGROUND_DISABLED_STATE });
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_REPEAT)) {
+				if (background != null)
+					background.setImageRepeat(TiConvert.toBoolean(newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_SELECTED_INNERSHADOWS)) {
+				Shadow[] shadows = TiConvert.toShadowArray((Object[]) newValue);
+				bgdDrawable.setInnerShadowsForState(
+						TiUIHelper.BACKGROUND_SELECTED_STATE, shadows);
+				bgdDrawable.setInnerShadowsForState(
+						TiUIHelper.BACKGROUND_FOCUSED_STATE, shadows);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_FOCUSED_INNERSHADOWS)) {
+				bgdDrawable.setInnerShadowsForState(
+								TiUIHelper.BACKGROUND_FOCUSED_STATE,
+								TiConvert.toShadowArray((Object[]) newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_DISABLED_INNERSHADOWS)) {
+				bgdDrawable.setInnerShadowsForState(
+								TiUIHelper.BACKGROUND_DISABLED_STATE,
+								TiConvert.toShadowArray((Object[]) newValue));
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_INNERSHADOWS)) {
+				Shadow[] shadows = TiConvert.toShadowArray((Object[]) newValue);
+				bgdDrawable.setInnerShadowsForState(
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_1, shadows);
+				bgdDrawable.setInnerShadowsForState(
+						TiUIHelper.BACKGROUND_DEFAULT_STATE_2, shadows);
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_OPACITY)) {
+				if (background != null)
+					TiUIHelper.setDrawableOpacity(
+							background,
+							ViewHelper.getAlpha(getNativeView())
+									* TiConvert.toFloat(newValue, 1f));
+				
+			} else if (key.equals(TiC.PROPERTY_BACKGROUND_PADDING)) {
+				Log.i(TAG, key + " not yet implemented.");
+			} 
+			if (changedProperty)
+				bgdDrawable.invalidateSelf();
 		} else if (key.equals(TiC.PROPERTY_BORDER_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
 			TiBackgroundDrawable drawable = view.getBorderDrawable();
 			int color = TiConvert.toColor(newValue);
 			drawable.setDefaultColor(color);
-			drawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, color);
-			drawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, color);
-			if (changedProperty) view.postInvalidate();
+			drawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1,
+					color);
+			drawable.setColorForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2,
+					color);
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_SELECTED_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			view.getBorderDrawable().setColorForState(TiUIHelper.BACKGROUND_SELECTED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) view.postInvalidate();
+			view.getBorderDrawable().setColorForState(
+					TiUIHelper.BACKGROUND_SELECTED_STATE,
+					TiConvert.toColor(newValue));
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_FOCUSED_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			view.getBorderDrawable().setColorForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) view.postInvalidate();
+			view.getBorderDrawable().setColorForState(
+					TiUIHelper.BACKGROUND_FOCUSED_STATE,
+					TiConvert.toColor(newValue));
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_DISABLED_COLOR)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			view.getBorderDrawable().setColorForState(TiUIHelper.BACKGROUND_DISABLED_STATE, TiConvert.toColor(newValue));
-			if (changedProperty) view.postInvalidate();
+			view.getBorderDrawable().setColorForState(
+					TiUIHelper.BACKGROUND_DISABLED_STATE,
+					TiConvert.toColor(newValue));
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_SELECTED_GRADIENT)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			view.getBorderDrawable().setGradientDrawableForState(TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
-			if (changedProperty) view.postInvalidate();
+			Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+					.toKrollDict(newValue));
+			view.getBorderDrawable().setGradientDrawableForState(
+					TiUIHelper.BACKGROUND_SELECTED_STATE, drawable);
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_FOCUSED_GRADIENT)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			view.getBorderDrawable().setGradientDrawableForState(TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
-			if (changedProperty) view.postInvalidate();
+			Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+					.toKrollDict(newValue));
+			view.getBorderDrawable().setGradientDrawableForState(
+					TiUIHelper.BACKGROUND_FOCUSED_STATE, drawable);
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_DISABLED_GRADIENT)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			view.getBorderDrawable().setGradientDrawableForState(TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
-			if (changedProperty) view.postInvalidate();
+			Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+					.toKrollDict(newValue));
+			view.getBorderDrawable().setGradientDrawableForState(
+					TiUIHelper.BACKGROUND_DISABLED_STATE, drawable);
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_GRADIENT)) {
 			TiBorderWrapperView view = getOrCreateBorderView();
 			TiBackgroundDrawable bgdDrawable = view.getBorderDrawable();
-			Drawable drawable =  TiUIHelper.buildGradientDrawable(TiConvert.toKrollDict(newValue));
-			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
-			bgdDrawable.setGradientDrawableForState(TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
-			if (changedProperty) view.postInvalidate();
+			Drawable drawable = TiUIHelper.buildGradientDrawable(TiConvert
+					.toKrollDict(newValue));
+			bgdDrawable.setGradientDrawableForState(
+					TiUIHelper.BACKGROUND_DEFAULT_STATE_1, drawable);
+			bgdDrawable.setGradientDrawableForState(
+					TiUIHelper.BACKGROUND_DEFAULT_STATE_2, drawable);
+			if (changedProperty)
+				view.postInvalidate();
 		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
 			setBorderRadius(newValue);
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
@@ -744,10 +822,10 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_OPACITY)) {
 			setOpacity(TiConvert.toFloat(newValue, 1f));
 		} else if (key.equals(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
-			Log.w(TAG, "Focus state changed to " + TiConvert.toString(newValue) + " not honored until next focus event.",
-				Log.DEBUG_MODE);
+			Log.w(TAG, "Focus state changed to " + TiConvert.toString(newValue)
+					+ " not honored until next focus event.", Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
-			applyTransform((Ti2DMatrix)newValue);
+			applyTransform((Ti2DMatrix) newValue);
 		} else if (key.equals(TiC.PROPERTY_ANCHOR_POINT)) {
 			applyAnchorPoint(newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
@@ -755,7 +833,8 @@ public abstract class TiUIView
 				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
 			}
 
-		} else if (key.indexOf("accessibility") == 0 && !key.equals(TiC.PROPERTY_ACCESSIBILITY_HIDDEN)) {
+		} else if (key.indexOf("accessibility") == 0
+				&& !key.equals(TiC.PROPERTY_ACCESSIBILITY_HIDDEN)) {
 			applyContentDescription();
 
 		} else if (key.equals(TiC.PROPERTY_ACCESSIBILITY_HIDDEN)) {
@@ -769,18 +848,19 @@ public abstract class TiUIView
 			clipChildren = TiConvert.toBoolean(newValue);
 			View parentViewForChild = getParentViewForChild();
 			if (parentViewForChild instanceof ViewGroup) {
-				((ViewGroup)parentViewForChild).setClipChildren(clipChildren);
+				((ViewGroup) parentViewForChild).setClipChildren(clipChildren);
 			}
 			if (borderView != null) {
 				borderView.setClipChildren(clipChildren);
 			}
 			if (!clipChildren) {
-				ViewGroup parent =  (ViewGroup)getOuterView().getParent();
-				if (parent != null) parent.setClipChildren(clipChildren);
+				ViewGroup parent = (ViewGroup) getOuterView().getParent();
+				if (parent != null)
+					parent.setClipChildren(clipChildren);
 			}
 		} else if (key.equals(TiC.PROPERTY_DISABLE_HW)) {
 			boolean value = TiConvert.toBoolean(newValue);
-			if (value) 
+			if (value)
 				disableHWAcceleration();
 			else
 				enableHWAcceleration();
@@ -1172,8 +1252,10 @@ public abstract class TiUIView
 			}
 			
 			if(mBorderPadding != null) borderView.setBorderPadding(mBorderPadding);
+			if (hardwareAccEnabled == false) {
+				disableHWAcceleration(borderView);
+			}
 			addBorderView();
-//			disableHWAcceleration();
 		}
 		return borderView;
 	}
