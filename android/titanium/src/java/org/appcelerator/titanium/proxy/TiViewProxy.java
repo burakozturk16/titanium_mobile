@@ -672,6 +672,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	
 	protected void addBinding(String bindId, TiViewProxy bindingProxy)
 	{
+		if (bindId == null) return;
 		setProperty(bindId, bindingProxy);
 		addPropToUpdateNativeSide(bindId, bindingProxy);
 	}
@@ -679,10 +680,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
 			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
-		if (rootProxy != null
-				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
-			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
-			rootProxy.addBinding(bindId,this);
+		if (rootProxy != null) {
+			rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),this);
 		}
 		if (recursive && template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			Object childProperties = template_
