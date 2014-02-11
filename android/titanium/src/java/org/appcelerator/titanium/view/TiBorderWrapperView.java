@@ -19,7 +19,11 @@ import android.graphics.Path.Direction;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.FrameLayout;
 
 /**
  * This class is a wrapper for Titanium Views with borders. Any view that specifies a border
@@ -41,6 +45,8 @@ public class TiBorderWrapperView extends MaskableView
 	private TiViewProxy proxy;
 	private boolean mDrawableSizeChanged = false;
 	
+	private View borderDrawableHoldingView = null;
+	
 	protected TiBackgroundDrawable mDrawable;
 
 	public TiBorderWrapperView(Context context, TiViewProxy proxy)
@@ -57,6 +63,12 @@ public class TiBorderWrapperView extends MaskableView
 	{
 		if (mDrawable == null)
 		{
+			borderDrawableHoldingView = new FrameLayout(getContext()){
+				@Override
+				public boolean dispatchTouchEvent(MotionEvent event) {
+					return false;
+				}
+			};
 			if (this.borderWidth == 0) {
 				this.borderWidth = TiUIHelper.getRawSize(1, null);
 			}
@@ -72,7 +84,9 @@ public class TiBorderWrapperView extends MaskableView
 			if (mDrawable.isStateful()) {
 				mDrawable.setState(getDrawableState());
             }
-			mDrawable.setVisible(getVisibility() == VISIBLE, false);
+//			mDrawable.setVisible(getVisibility() == VISIBLE, false);
+			TiUIView. setBackgroundDrawable(borderDrawableHoldingView, mDrawable);
+			addView(borderDrawableHoldingView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 			invalidate();
 		}
 		return mDrawable;
@@ -108,12 +122,13 @@ public class TiBorderWrapperView extends MaskableView
 
 	@Override
 	protected void onSizeChanged (int w, int h, int oldw, int oldh) {
-		mDrawableSizeChanged = true;
+//		mDrawableSizeChanged = true;
 		updateBorderPath();
 	}
 	
 	@Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
+		if (changed) updateBorderPath();
         int parentLeft = 0;
 		int parentRight = r - l;
 		int parentTop = 0;
@@ -147,11 +162,11 @@ public class TiBorderWrapperView extends MaskableView
         	invalidate();
         }
 	}
-	@Override
-	public void setVisibility(int visibility) {
-        super.setVisibility(visibility);
-        if (mDrawable != null) mDrawable.setVisible(visibility == VISIBLE, false);
-    }
+//	@Override
+//	public void setVisibility(int visibility) {
+//        super.setVisibility(visibility);
+//        if (mDrawable != null) mDrawable.setVisible(visibility == VISIBLE, false);
+//    }
 	
 	@Override
 	protected void dispatchDraw(Canvas canvas)
@@ -206,21 +221,27 @@ public class TiBorderWrapperView extends MaskableView
 
 	private void drawBorder(Canvas canvas)
 	{
-		if (mDrawable != null) {
-			if (mDrawableSizeChanged) {
-				mDrawable.setBounds(0, 0,  getWidth(), getHeight());
-                mDrawableSizeChanged = false; 
-            }
-			mDrawable.draw(canvas);
-		}
+//		if (mDrawable != null) {
+//			if (mDrawableSizeChanged) {
+//				mDrawable.setBounds(0, 0,  getWidth(), getHeight());
+//                mDrawableSizeChanged = false; 
+//            }
+//			mDrawable.draw(canvas);
+//		}
 	}
 	
 	public TiBackgroundDrawable getBorderDrawable()
-	{
-		TiBackgroundDrawable drawable = getOrCreateDrawable();
-		
-		return drawable;
+	{		
+		return getOrCreateDrawable();
 	}
+	
+	@Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        super.addView(child, index, params);
+        if (borderDrawableHoldingView != null) {
+        	borderDrawableHoldingView.bringToFront();
+        }
+    }
 
 	public void setColor(int color)
 	{
@@ -286,7 +307,6 @@ public class TiBorderWrapperView extends MaskableView
 		{
 			mDrawable.setPadding(mBorderPadding);
 		}
-//		updateBorderPath();
 		postInvalidate();
 	};
 }
