@@ -796,6 +796,12 @@ public class ListSectionProxy extends ViewProxy {
 				view.setReusing(false);
 			}
 		}
+		
+		for (TiViewProxy viewProxy : itemProxy.getNonBindedViews()) {
+			TiUIView view = viewProxy.peekView();
+			view.setTouchDelegate((TiTouchDelegate) listItem);
+			appendExtraEventData(view, itemIndex, sectionIndex, null, itemId);
+		}
 
 		// process listItem properties
 		KrollDict listItemDiff = itemProxy.getViewItem()

@@ -8,7 +8,9 @@
 package ti.modules.titanium.ui.widget.listview;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollDict;
@@ -26,11 +28,13 @@ public class ListItemProxy extends TiViewProxy
 	protected WeakReference<TiViewProxy> listProxy;
 	
 	private HashMap<String, ViewItem> viewsMap;
+	private List<TiViewProxy> nonBindingViews;
 	private ViewItem viewItem;
 	
 	public ListItemProxy()
 	{
 		viewsMap = new HashMap<String, ViewItem>();
+		nonBindingViews = new ArrayList();
 	}
 	
 	@Override
@@ -97,6 +101,8 @@ public class ListItemProxy extends TiViewProxy
 	public void release()
 	{
 		super.release();
+		viewsMap.clear();
+		nonBindingViews.clear();
 		if (listProxy != null) {
 			listProxy = null;
 		}
@@ -121,12 +127,22 @@ public class ListItemProxy extends TiViewProxy
 	protected void addBinding(String bindId, TiViewProxy bindingProxy)
 	{
 		super.addBinding(bindId, bindingProxy);
-		ViewItem viewItem = new ViewItem(bindingProxy, bindingProxy.getProperties());
-		viewsMap.put(bindId, viewItem);
+		if (bindId != null) {
+			ViewItem viewItem = new ViewItem(bindingProxy, bindingProxy.getProperties());
+			viewsMap.put(bindId, viewItem);
+		}
+		else {
+			nonBindingViews.add(bindingProxy);
+		}
+		
 	}
 	
 	public HashMap<String, ViewItem> getViewsMap() {
 		return viewsMap;
+	}
+	
+	public List<TiViewProxy> getNonBindedViews() {
+		return nonBindingViews;
 	}
 	
 	public ViewItem getViewItem() {
