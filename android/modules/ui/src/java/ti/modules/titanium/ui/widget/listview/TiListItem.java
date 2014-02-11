@@ -90,10 +90,13 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 		{
 			public void onClick(View view)
 			{
-				KrollDict data = dictFromEvent(lastUpEvent);
-				handleFireItemClick(new KrollDict(data));
-				if (shouldFireClick) fireEvent(TiC.EVENT_CLICK, data);
-				shouldFireClick = true;
+				
+				if (shouldFireClick) {
+					KrollDict data = dictFromEvent(lastUpEvent);
+					handleFireItemClick(new KrollDict(data));
+					fireEvent(TiC.EVENT_CLICK, data);
+					shouldFireClick = true;
+				}
 			}
 		});
 	}
@@ -130,14 +133,14 @@ public class TiListItem extends TiUIView implements TiTouchDelegate {
 
 	@Override
 	public void onTouchEvent(MotionEvent event, TiUIView fromView) {
-		if (fromView != this) {
-			shouldFireClick = false;
-		}
+		if (fromView == this) return;
+		shouldFireClick = false;
 		if (fromView instanceof TiUIButton || 
 				fromView instanceof TiUISwitch ||
 				fromView instanceof TiUISlider ||
 				fromView instanceof TiUIText) return;
 		mClickDelegate = fromView;
+		
 		if (nativeView != null) {
 			nativeView.onTouchEvent(event);
 		}
