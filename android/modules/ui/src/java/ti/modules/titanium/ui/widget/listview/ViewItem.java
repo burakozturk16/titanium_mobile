@@ -7,7 +7,7 @@
 
 package ti.modules.titanium.ui.widget.listview;
 
-import java.util.HashMap;
+import java.util.Iterator;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -37,19 +37,23 @@ public class ViewItem {
 	 */
 	public KrollDict generateDiffProperties(KrollDict properties) {
 		diffProperties.clear();
-
-		for (String appliedProp : currentProperties.keySet()) {
+		Iterator<String> it = currentProperties.keySet().iterator();
+		while (it.hasNext())
+		{
+			String appliedProp = it.next();
 			if (properties == null || !properties.containsKey(appliedProp)) {
-				applyProperty(appliedProp, initialProperties.get(appliedProp));
+				applyProperty(appliedProp, initialProperties.get(appliedProp), it);
 			}
 		}
 		if (properties != null) { 
-			for (String property : properties.keySet()) {
+			it = properties.keySet().iterator();
+			while (it.hasNext())
+			{
+				String property = it.next();
 				Object value = properties.get(property);
-	
 				Object existingVal = currentProperties.get(property);			
 				if (existingVal != value && (existingVal == null || value == null || !existingVal.equals(value))) {
-					applyProperty(property, value);
+					applyProperty(property, value, it);
 				}
 			}
 		}
@@ -57,9 +61,12 @@ public class ViewItem {
 		
 	}
 	
-	private void applyProperty(String key, Object value) {
+	private void applyProperty(String key, Object value, Iterator<String> it) {
 		diffProperties.put(key, value);
-		currentProperties.put(key, value);
+		if (value == null)
+			it.remove();
+		else
+			currentProperties.put(key, value);
 	}
 
 	public boolean containsKey(String key) {
