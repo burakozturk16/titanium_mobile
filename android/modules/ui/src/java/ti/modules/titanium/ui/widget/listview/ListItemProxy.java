@@ -27,7 +27,6 @@ public class ListItemProxy extends TiViewProxy
 	
 	private HashMap<String, ViewItem> viewsMap;
 	private ViewItem viewItem;
-	private TiListViewTemplate template;
 	
 	public ListItemProxy()
 	{
@@ -135,9 +134,5 @@ public class ListItemProxy extends TiViewProxy
 			viewItem = new ViewItem(this, getProperties());
 		}
 		return viewItem;
-	}
-
-	public void setTemplate(TiListViewTemplate template) {
-		this.template = template;
 	}
 }

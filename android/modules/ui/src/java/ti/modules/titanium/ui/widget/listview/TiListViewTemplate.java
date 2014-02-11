@@ -163,7 +163,6 @@ public class TiListViewTemplate {
 	public ListItemProxy generateCellProxy(KrollDict data)
 	{
 		ListItemProxy proxy = (ListItemProxy) TiViewProxy.createTypeViewFromDict(properties, "Ti.UI.ListItem");
-		proxy.setTemplate(this);
 		return proxy;
 	}
 
