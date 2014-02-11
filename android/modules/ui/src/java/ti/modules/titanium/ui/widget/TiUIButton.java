@@ -139,7 +139,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			Object value = d.get(TiC.PROPERTY_IMAGE);
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), value);
 
-			if (drawableRef != null) {
+			if (drawableRef != null && !drawableRef.isTypeNull()) {
 				try {
 					imageDrawable = drawableRef.getDrawable();
 				} catch (FileNotFoundException e) {
