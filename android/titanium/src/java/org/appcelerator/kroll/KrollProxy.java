@@ -845,7 +845,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		if (bubbleParent) {
 			KrollProxy parentProxy = getParentForBubbling();
 			if (parentProxy != null) {
-				return parentProxy.fireEvent(eventName, data);
+				return parentProxy.fireEvent(eventName, data, true, false);
 			}
 		}
 		return false;
