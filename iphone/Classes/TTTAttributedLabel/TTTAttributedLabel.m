@@ -268,7 +268,12 @@ static inline NSAttributedString * NSAttributedStringBySettingColorFromContext(N
     [mutableAttributedString enumerateAttribute:(NSString *)kCTForegroundColorFromContextAttributeName inRange:NSMakeRange(0, [mutableAttributedString length]) options:0 usingBlock:^(id value, NSRange range, __unused BOOL *stop) {
         BOOL usesColorFromContext = (BOOL)value;
         if (usesColorFromContext) {
-            [mutableAttributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:color range:range];
+            if (IOS_6) {
+                [mutableAttributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:color range:range];
+            }
+            else {
+                [mutableAttributedString addAttribute:(NSString *)kCTForegroundColorAttributeName value:(id)color.CGColor range:range];
+            }
             [mutableAttributedString removeAttribute:(NSString *)kCTForegroundColorFromContextAttributeName range:range];
         }
     }];
@@ -325,6 +330,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     NSString *_strokeWidthAttributeProperty;
     NSString *_cornerRadiusAttributeProperty;
     NSString *_paddingAttributeProperty;
+    NSString *_backgroundColorAttributeProperty;
 }
 
 @dynamic text;
@@ -393,6 +399,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     self.cornerRadiusAttributeProperty = kTTTBackgroundCornerRadiusAttributeName;
     self.paddingAttributeProperty = kTTTBackgroundFillPaddingAttributeName;
     self.strikeOutAttributeProperty = kTTTStrikeOutAttributeName;
+    self.backgroundColorAttributeProperty = kTTTBackgroundFillColorAttributeName;
 }
 
 - (void)dealloc {
@@ -851,7 +858,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
         for (id glyphRun in (__bridge NSArray *)CTLineGetGlyphRuns((__bridge CTLineRef)line)) {
             NSDictionary *attributes = (__bridge NSDictionary *)CTRunGetAttributes((__bridge CTRunRef) glyphRun);
            CGColorRef strokeColor = (__bridge CGColorRef)[attributes objectForKey:_strokeColorAttributeProperty];
-            CGColorRef fillColor = ((UIColor*)[attributes objectForKey:NSBackgroundColorAttributeName]).CGColor;
+            CGColorRef fillColor = ((UIColor*)[attributes objectForKey:_backgroundColorAttributeProperty]).CGColor;
             UIEdgeInsets fillPadding = [[attributes objectForKey:_paddingAttributeProperty] UIEdgeInsetsValue];
             CGFloat cornerRadius = [[attributes objectForKey:_cornerRadiusAttributeProperty] floatValue];
             CGFloat lineWidth = [self NSNumberFloat:[attributes objectForKey:_strokeWidthAttributeProperty] withDefault:0.0f];
@@ -1237,7 +1244,7 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
         CGContextTranslateCTM(c, 0.0f, rect.size.height);
         CGContextScaleCTM(c, 1.0f, -1.0f);
         
-        CFRange textRange = CFRangeMake(0, (CFIndex)[self.attributedText length]);
+        CFRange textRange = CFRangeMake(0, (CFIndex)[_attributedText length]);
 
         // First, get the text rect (which takes vertical centering into account)
         CGRect textRect = [self textRectForBounds:rectWithPadding limitedToNumberOfLines:self.numberOfLines];
