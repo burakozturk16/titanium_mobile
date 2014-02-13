@@ -2627,9 +2627,9 @@ return result;	\
 }
 
 - (void)fireScrollEvent:(UIScrollView *)scrollView {
-	if ([self.proxy _hasListeners:@"scroll"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"scroll" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"scroll" withObject:[self eventObjectForScrollView:scrollView]];
+		[self.proxy fireEvent:@"scroll" withObject:[self eventObjectForScrollView:scrollView] propagate:NO checkForListener:NO];
 	}
 }
 
@@ -2653,13 +2653,9 @@ return result;	\
 {
 	// suspend image loader while we're scrolling to improve performance
 	[[ImageLoader sharedLoader] suspend];
-    if([self.proxy _hasListeners:@"dragStart"])
-    {	//TODO: Deprecate old event.
-        [self.proxy fireEvent:@"dragStart" withObject:nil];
-    }
-    if([self.proxy _hasListeners:@"dragstart"])
+    if([(TiViewProxy*)self.proxy _hasListeners:@"dragstart" checkParent:NO])
 	{
-        [self.proxy fireEvent:@"dragstart" withObject:nil];
+        [self.proxy fireEvent:@"dragstart" propagate:NO checkForListener:NO];
     }
 }
 
@@ -2670,13 +2666,10 @@ return result;	\
 		// resume image loader when we're done scrolling
 		[[ImageLoader sharedLoader] resume];
 	}
-	if ([self.proxy _hasListeners:@"dragEnd"])
-	{	//TODO: Deprecate old event
-		[self.proxy fireEvent:@"dragEnd" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
-	}
-	if ([self.proxy _hasListeners:@"dragend"])
+
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"dragend" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
+		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil] propagate:NO checkForListener:NO]	;
 	}
     
     //This section of code now moved to [TiUITextWidgetView updateKeyboardStatus]
@@ -2691,13 +2684,10 @@ return result;	\
 {
 	// resume image loader when we're done scrolling
 	[[ImageLoader sharedLoader] resume];
-	if ([self.proxy _hasListeners:@"scrollEnd"])
-	{	//TODO: Deprecate old event.
-		[self.proxy fireEvent:@"scrollEnd" withObject:[self eventObjectForScrollView:scrollView]];
-	}
-	if ([self.proxy _hasListeners:@"scrollend"])
+
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"scrollend" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView]];
+		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView] propagate:NO checkForListener:NO];
 	}
 }
 

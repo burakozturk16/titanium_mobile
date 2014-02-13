@@ -1737,7 +1737,7 @@ static NSDictionary* replaceKeysForRow;
 }
 
 - (void)fireScrollEvent:(UIScrollView *)scrollView {
-	if ([self.proxy _hasListeners:@"scroll"])
+	if ([self.proxy _hasListeners:@"scroll" checkParent:NO])
 	{
         NSArray* visibles = [_tableView indexPathsForVisibleRows];
         NSMutableDictionary* event = [self eventObjectForScrollView:scrollView];
@@ -1762,10 +1762,10 @@ static NSDictionary* replaceKeysForRow;
             pullActive = NO;
             pullChanged = YES;
         }
-        if (pullChanged && [self.proxy _hasListeners:@"pullchanged"]) {
+        if (pullChanged && [(TiViewProxy*)self.proxy _hasListeners:@"pullchanged" checkParent:NO]) {
             [self.proxy fireEvent:@"pullchanged" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] propagate:NO checkForListener:NO];
         }
-        if (scrollView.contentOffset.y <= 0 && [self.proxy _hasListeners:@"pull"]) {
+        if (scrollView.contentOffset.y <= 0 && [(TiViewProxy*)self.proxy _hasListeners:@"pull" checkParent:NO]) {
             [self.proxy fireEvent:@"pull" withObject:[NSDictionary dictionaryWithObjectsAndKeys:NUMBOOL(pullActive),@"active",nil] propagate:NO checkForListener:NO];
         }
     }
@@ -1776,7 +1776,7 @@ static NSDictionary* replaceKeysForRow;
 {
 	// suspend image loader while we're scrolling to improve performance
 	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] suspend];
-    [self.proxy fireEvent:@"dragstart" withObject:nil];
+    [self.proxy fireEvent:@"dragstart" propagate:NO];
 }
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
@@ -1786,15 +1786,15 @@ static NSDictionary* replaceKeysForRow;
 		// resume image loader when we're done scrolling
 		[[ImageLoader sharedLoader] resume];
 	}
-	if ([self.proxy _hasListeners:@"dragend"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"dragend" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil] checkForListener:NO];
+		[self.proxy fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil] propagate:NO checkForListener:NO];
 	}
     
     
     if ( (_pullViewProxy != nil) && (pullActive == YES) ) {
         pullActive = NO;
-        [self.proxy fireEvent:@"pullend" withObject:nil propagate:NO];
+        [self.proxy fireEvent:@"pullend" propagate:NO];
     }
 }
 
@@ -1802,9 +1802,9 @@ static NSDictionary* replaceKeysForRow;
 {
 	// resume image loader when we're done scrolling
 	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] resume];
-	if ([self.proxy _hasListeners:@"scrollend"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"scrollend" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView] checkForListener:NO];
+		[self.proxy fireEvent:@"scrollend" withObject:[self eventObjectForScrollView:scrollView] propagate:NO checkForListener:NO];
 	}
 }
 

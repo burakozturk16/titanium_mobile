@@ -182,23 +182,23 @@ static NSArray* scrollViewKeySequence;
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView_               // scrolling has ended
 {
-	if ([self _hasListeners:@"scrollend"])
+	if ([self _hasListeners:@"scrollend" checkParent:NO])
 	{
-		[self fireEvent:@"scrollend" withObject:nil];
+		[self fireEvent:@"scrollend" propagate:NO checkForListener:NO];
 	}
 }
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
 	CGPoint offset = [scrollView contentOffset];
-	if ([self _hasListeners:@"scroll"])
+	if ([self _hasListeners:@"scroll" checkParent:NO])
 	{
 		[self fireEvent:@"scroll" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
 				NUMFLOAT(offset.x),@"x",
 				NUMFLOAT(offset.y),@"y",
 				NUMBOOL([scrollView isDecelerating]),@"decelerating",
 				NUMBOOL([scrollView isDragging]),@"dragging",
-				nil]];
+				nil] propagate:NO checkForListener:NO];
 	}
 }
 
@@ -206,19 +206,19 @@ static NSArray* scrollViewKeySequence;
 {
 	[self replaceValue:NUMFLOAT(scale) forKey:@"zoomScale" notification:NO];
 	
-	if ([self _hasListeners:@"scale"])
+	if ([self _hasListeners:@"scale" checkParent:NO])
 	{
 		[self fireEvent:@"scale" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
 											  NUMFLOAT(scale),@"scale",
-											  nil]];
+											  nil] propagate:NO checkForListener:NO];
 	}
 }
 
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
-	if([self _hasListeners:@"dragstart"])
+	if([self _hasListeners:@"dragstart" checkParent:NO])
 	{
-		[self fireEvent:@"dragstart" withObject:nil];
+		[self fireEvent:@"dragstart" propagate:NO checkForListener:NO];
 	}
 }
 
@@ -226,9 +226,9 @@ static NSArray* scrollViewKeySequence;
 
 -(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
-	if([self _hasListeners:@"dragend"])
+	if([self _hasListeners:@"dragend" checkParent:NO])
 	{
-		[self fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil]]	;
+		[self fireEvent:@"dragend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:decelerate],@"decelerate",nil] propagate:NO checkForListener:NO];
 	}
 }
 
