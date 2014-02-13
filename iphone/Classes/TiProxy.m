@@ -916,8 +916,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 		type = (NSString*)args;
 	}
 	id bubbleObject = [params objectForKey:@"bubbles"];
-	//TODO: Yes is the historical default. Is this the right thing to do, given the expense?
-	BOOL bubble = [TiUtils boolValue:bubbleObject def:YES];
+	BOOL bubble = [TiUtils boolValue:bubbleObject def:NO];
 	if((bubbleObject != nil) && ([params count]==1)){
 		params = nil; //No need to propagate when we already have this information
 	}
