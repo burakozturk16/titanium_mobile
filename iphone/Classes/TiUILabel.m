@@ -120,9 +120,11 @@
         if ([TiUtils isIOS6OrGreater])
         {
             label.strikeOutAttributeProperty = NSStrikethroughStyleAttributeName;
+            label.backgroundColorAttributeProperty = NSBackgroundColorAttributeName;
         }
         else {
             label.strikeOutAttributeProperty = DTStrikeOutAttribute;
+            label.backgroundColorAttributeProperty = DTBackgroundColorAttribute;
         }
         label.delegate = self;
         [self addSubview:label];
