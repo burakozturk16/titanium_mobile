@@ -117,7 +117,13 @@
         label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
         label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;
         label.paddingAttributeProperty = DTPaddingAttribute;
-        label.strikeOutAttributeProperty = NSStrikethroughStyleAttributeName;
+        if ([TiUtils isIOS6OrGreater])
+        {
+            label.strikeOutAttributeProperty = NSStrikethroughStyleAttributeName;
+        }
+        else {
+            label.strikeOutAttributeProperty = DTStrikeOutAttribute;
+        }
         label.delegate = self;
         [self addSubview:label];
 	}
