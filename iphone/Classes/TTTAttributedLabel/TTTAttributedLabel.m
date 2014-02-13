@@ -25,6 +25,7 @@
 #import <Availability.h>
 
 #define kTTTLineBreakWordWrapTextWidthScalingFactor (M_PI / M_E)
+#define IOS_6 ([[[UIDevice currentDevice] systemVersion] compare:@"6" options:NSNumericSearch] == NSOrderedDescending)
 
 static CGFloat const TTTFLOAT_MAX = 100000;
 
@@ -349,8 +350,10 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     
     self.links = [NSArray array];
     
-    //without this encoding fails on ios7
-    [super setAttributedText:[[NSAttributedString alloc] initWithString:@""]];
+    if (IOS_6) {
+        //without this encoding fails on ios7
+        [super setAttributedText:[[NSAttributedString alloc] initWithString:@""]];
+    }
 
     NSMutableDictionary *mutableLinkAttributes = [NSMutableDictionary dictionary];
     [mutableLinkAttributes setObject:[NSNumber numberWithBool:YES] forKey:(NSString *)kCTUnderlineStyleAttributeName];
