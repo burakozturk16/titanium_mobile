@@ -10,50 +10,7 @@
 #import "TiViewTemplate.h"
 #import <pthread.h>
 #import "TiAnimatableProxy.h"
-
-/**
- Protocol for views that can receive keyboard focus.
- */
-@protocol TiKeyboardFocusableView
-
-#pragma mark Public Titanium APIs.
-
-/**
- Tells the view to focus.
- @param args Unused.
- */
-- (void)focus:(id)args;
-
-/**
- Tells the view to stop generating focus/blur events. This should not be
- JS-accessable, and is meant to handle tableview and layout issues.
- */
-@property(nonatomic,readwrite,assign)	BOOL suppressFocusEvents;
-
-/**
- Tells the view to blur.
- @param args Unused.
- */
-- (void)blur:(id)args;
-/**
- Tells if this proxy is currently focused
- */
-- (BOOL)focused:(id)unused;
-
-#pragma mark Private internal APIs.
-
-/**
- Returns keyboard accessory view.
- */
-@property(nonatomic,readonly) UIView * keyboardAccessoryView;
-
-/**
- Returns keyboard accessory height.
- */
-@property(nonatomic,readonly) CGFloat keyboardAccessoryHeight;
-
-@end
-
+#import "TiViewController.h"
 /*
  This Protocol will be implemented by objects that want to
  monitor views not in the normal view heirarchy. 
@@ -86,7 +43,7 @@ enum
 	TiRefreshViewEnqueued,
 };
 
-@class TiAction, TiBlob, TiViewAnimationStep;
+@class TiAction, TiBlob, TiViewAnimationStep, TiViewController;
 //For TableRows, we need to have minimumParentHeightForWidth:
 
 /**
@@ -153,9 +110,11 @@ enum
     
     id observer;
 	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
+    TiViewController* controller;
 }
 
 #pragma mark public API
+@property(nonatomic, readwrite, retain) TiViewController* controller;
 
 @property(nonatomic,readonly) TiRect * size;
 @property(nonatomic,readonly) TiRect * rect;
@@ -401,6 +360,11 @@ enum
  */
 -(void)viewDidDetach;
 
+-(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
+
+-(void)viewWillAppear:(BOOL)animated;
+-(void)viewWillDisappear:(BOOL)animated;
+
 #pragma mark Housecleaning state accessors
 //TODO: Sounds like the redundancy department of redundancy was here.
 /**
@@ -420,6 +384,8 @@ enum
  @return _YES_ if the view proxy has been initialized and its view has a superview and non-empty bounds, _NO_ otherwise.
  */
 -(BOOL)viewReady;
+
+-(BOOL)viewLayedOut;
 
 /**
  Whether or not a window attached to the view proxy has been opened.
@@ -511,6 +477,13 @@ enum
 -(void)contentsWillChange;
 
 /**
+ Tells the view proxy that the attached view contents will change and
+ that it should layout immediately
+ */
+-(void)contentsWillChangeImmediate;
+-(void)contentsWillChangeAnimated:(NSTimeInterval)duration;
+
+/**
  Tells the view proxy that the attached view's parent size will change.
  */
 -(void)parentSizeWillChange;
@@ -572,11 +545,12 @@ enum
 -(void)layoutChild:(TiViewProxy*)child optimize:(BOOL)optimize withMeasuredBounds:(CGRect)bounds;
 -(NSArray*)measureChildren:(NSArray*)childArray;
 -(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds;
+-(CGRect)computeBoundsForParentBounds:(CGRect)parentBounds;
 
 /**
  Tells the view to adjust its size and position according to the current layout constraints.
  */
--(void)relayout;
+-(BOOL)relayout;
 
 -(void)reposition;	//Todo: Replace
 -(void)repositionWithinAnimation:(TiViewAnimationStep*)animation;
@@ -620,21 +594,80 @@ enum
 //+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 /**
- Performs view's configuration procedure.
+ Performs view's configuration procedure. Used during proxy creation and listview item update
  */
 -(void)configurationStart;
 -(void)configurationStart:(BOOL)recursive;
 -(void)configurationSet;
 -(void)configurationSet:(BOOL)recursive;
+
+
 -(BOOL) widthIsAutoSize;
 -(BOOL) heightIsAutoSize;
 
+/**
+ foucs methods
+ */
 - (void)focus:(id)args;
 - (void)blur:(id)args;
 - (BOOL)focused:(id)unused;
+
+/**
+ Method to simulate the layout of child even if not really a child
+ */
 -(void)layoutNonRealChild:(TiViewProxy*)child withParent:(UIView*)parentView;
+
+/**
+ Verify size
+ */
 -(CGSize)verifySize:(CGSize)size;
 
+/**
+ Set a fake animation (used by windows during rotation)
+ */
+-(void)setFakeAnimationOfDuration:(NSTimeInterval)duration andCurve:(CAMediaTimingFunction*)curve;
+/**
+ remove the fake animation
+ */
+-(void)removeFakeAnimation;
+
+/**
+ The current running animation
+ */
+-(TiViewAnimationStep*)runningAnimation;
+
+/**
+ Update the view if necessary
+ */
+-(void)refreshViewIfNeeded;
+-(void)refreshViewIfNeeded:(BOOL)recursive;
+-(void)refreshViewOrParent;
+
+/**
+ Perform a block while preventing relayout
+ */
+-(void)performBlockWithoutLayout:(void (^)(void))block;
+
+/**
+ Make the view dirty so that it will get refreshed on the next run
+ */
+-(void)dirtyItAll;
+
+/**
+Set the animation on its view and all it's children
+ */
+-(void)setRunningAnimationRecursive:(TiViewAnimationStep*)animation;
+
+/**
+ Tells if the view is currently in the process of being rotated
+ */
+-(BOOL)isRotating;
+
+/**
+ Create or access a managing controller. Only call if you want a controller!
+ */
+-(UIViewController*) hostingController;
+-(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds;
 @end
 
 

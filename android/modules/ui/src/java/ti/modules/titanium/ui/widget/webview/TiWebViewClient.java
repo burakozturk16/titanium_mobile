@@ -84,7 +84,7 @@ public class TiWebViewClient extends WebViewClient
 		data.put("errorCode", errorCode);
 		data.putCodeAndMessage(errorCode, description);
 		data.put("message", description);
-		webView.getProxy().fireEvent("error", data);
+		webView.getProxy().fireEvent(TiC.EVENT_ERROR, data);
 
 	}
 

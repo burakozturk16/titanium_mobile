@@ -22,9 +22,8 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiPoint;
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
 import org.appcelerator.titanium.view.Ti2DMatrix;
-import org.appcelerator.titanium.view.TiCompositeLayout;
-import org.appcelerator.titanium.view.TiCompositeLayout.AnimationLayoutParams;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutParams;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -182,137 +181,135 @@ public class TiConvert
 	}
 
 	// Layout
-	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams, boolean withMatrix)
+	public static boolean fillLayout(KrollDict hashMap, LayoutParams layoutParams, boolean withMatrix)
 	{
 		boolean dirty = false;
 		Object width = null;
 		Object height = null;
-
-		if (hashMap.containsKey(TiC.PROPERTY_SIZE)) {
-			HashMap<String, Object> size = (HashMap<String, Object>) hashMap.get(TiC.PROPERTY_SIZE);
-			if (size != null) {
-				width = size.get(TiC.PROPERTY_WIDTH);
-				height = size.get(TiC.PROPERTY_HEIGHT);
-			}
-		}
-
-		if (hashMap.containsKey(TiC.PROPERTY_LEFT)) {
-			layoutParams.optionLeft = toTiDimension(hashMap, TiC.PROPERTY_LEFT, TiDimension.TYPE_LEFT);
-			dirty = true;
-		}
-
-		if (hashMap.containsKey(TiC.PROPERTY_TOP)) {
-			layoutParams.optionTop = toTiDimension(hashMap, TiC.PROPERTY_TOP, TiDimension.TYPE_TOP);
-			dirty = true;
-		}
-
-		if (hashMap.containsKey(TiC.PROPERTY_CENTER)) {
-			updateLayoutCenter(hashMap.get(TiC.PROPERTY_CENTER), layoutParams);
-			dirty = true;
-		}
-
-		if (hashMap.containsKey(TiC.PROPERTY_RIGHT)) {
-			layoutParams.optionRight = toTiDimension(hashMap, TiC.PROPERTY_RIGHT, TiDimension.TYPE_RIGHT);
-			dirty = true;
-		}
-
-		if (hashMap.containsKey(TiC.PROPERTY_BOTTOM)) {
-			layoutParams.optionBottom = toTiDimension(hashMap, TiC.PROPERTY_BOTTOM, TiDimension.TYPE_BOTTOM);
-			dirty = true;
-		}
-
-		if (width != null || hashMap.containsKey(TiC.PROPERTY_WIDTH)) {
-			if (width == null) {
-				width = hashMap.get(TiC.PROPERTY_WIDTH);
+		Iterator it = hashMap.entrySet().iterator();
+		boolean handled = false;
+		while (it.hasNext())
+		{
+			handled = false;
+			Map.Entry pairs = (Map.Entry)it.next();
+			String key = (String) pairs.getKey();
+			if (key.equals(TiC.PROPERTY_LEFT)) {
+				layoutParams.optionLeft = toTiDimension(hashMap, TiC.PROPERTY_LEFT, TiDimension.TYPE_LEFT);
+				handled = dirty = true;
 			}
 
-			if (width == null) {
-				layoutParams.optionWidth = null;
-				layoutParams.sizeOrFillWidthEnabled = false;
-
-			} else if (width.equals(TiC.SIZE_AUTO)) {
-				layoutParams.optionWidth = null;
-				layoutParams.sizeOrFillWidthEnabled = true;
-
-			} else if (width.equals(TiC.LAYOUT_FILL)) {
-				// fill
-				layoutParams.optionWidth = null;
-				layoutParams.sizeOrFillWidthEnabled = true;
-				layoutParams.autoFillsWidth = true;
-
-			} else if (width.equals(TiC.LAYOUT_SIZE)) {
-				// size
-				layoutParams.optionWidth = null;
-				layoutParams.sizeOrFillWidthEnabled = true;
-				layoutParams.autoFillsWidth = false;
-			} else {
-				layoutParams.optionWidth = toTiDimension(width, TiDimension.TYPE_WIDTH);
-				layoutParams.sizeOrFillWidthEnabled = false;
-			}
-			dirty = true;
-		}
-
-		if (height != null || hashMap.containsKey(TiC.PROPERTY_HEIGHT)) {
-			if (height == null) {
-				height = hashMap.get(TiC.PROPERTY_HEIGHT);
+			else if (key.equals(TiC.PROPERTY_TOP)) {
+				layoutParams.optionTop = toTiDimension(hashMap, TiC.PROPERTY_TOP, TiDimension.TYPE_TOP);
+				handled = dirty = true;
 			}
 
-			if (height == null) {
-				layoutParams.optionHeight = null;
-				layoutParams.sizeOrFillHeightEnabled = false;
-
-			} else if (height.equals(TiC.SIZE_AUTO)) {
-				layoutParams.optionHeight = null;
-				layoutParams.sizeOrFillHeightEnabled = true;
-
-			} else if (height.equals(TiC.LAYOUT_FILL)) {
-				// fill
-				layoutParams.optionHeight = null;
-				layoutParams.sizeOrFillHeightEnabled = true;
-				layoutParams.autoFillsHeight = true;
-
-			} else if (height.equals(TiC.LAYOUT_SIZE)) {
-				// size
-				layoutParams.optionHeight = null;
-				layoutParams.sizeOrFillHeightEnabled = true;
-				layoutParams.autoFillsHeight = false;
-			} else {
-				layoutParams.optionHeight = toTiDimension(height, TiDimension.TYPE_HEIGHT);
-				layoutParams.sizeOrFillHeightEnabled = false;
+			else if (key.equals(TiC.PROPERTY_CENTER)) {
+				updateLayoutCenter(hashMap.get(TiC.PROPERTY_CENTER), layoutParams);
+				handled = dirty = true;
 			}
-			dirty = true;
-		}
-		
-		if (withMatrix) {
-			if (hashMap.containsKey(TiC.PROPERTY_TRANSFORM)) {
+
+			else if (key.equals(TiC.PROPERTY_RIGHT)) {
+				layoutParams.optionRight = toTiDimension(hashMap, TiC.PROPERTY_RIGHT, TiDimension.TYPE_RIGHT);
+				handled = dirty = true;
+			}
+
+			else if (key.equals(TiC.PROPERTY_BOTTOM)) {
+				layoutParams.optionBottom = toTiDimension(hashMap, TiC.PROPERTY_BOTTOM, TiDimension.TYPE_BOTTOM);
+				handled = dirty = true;
+			}
+
+			else if (key.equals(TiC.PROPERTY_WIDTH)) {
+				if (width == null) {
+					width = hashMap.get(TiC.PROPERTY_WIDTH);
+				}
+
+				if (width == null) {
+					layoutParams.optionWidth = null;
+					layoutParams.sizeOrFillWidthEnabled = false;
+
+				} else if (width.equals(TiC.SIZE_AUTO)) {
+					layoutParams.optionWidth = null;
+					layoutParams.sizeOrFillWidthEnabled = true;
+
+				} else if (width.equals(TiC.LAYOUT_FILL)) {
+					// fill
+					layoutParams.optionWidth = null;
+					layoutParams.sizeOrFillWidthEnabled = true;
+					layoutParams.autoFillsWidth = true;
+
+				} else if (width.equals(TiC.LAYOUT_SIZE)) {
+					// size
+					layoutParams.optionWidth = null;
+					layoutParams.sizeOrFillWidthEnabled = true;
+					layoutParams.autoFillsWidth = false;
+				} else {
+					layoutParams.optionWidth = toTiDimension(width, TiDimension.TYPE_WIDTH);
+					layoutParams.sizeOrFillWidthEnabled = false;
+				}
+				handled = dirty = true;
+			}
+
+			else if (key.equals(TiC.PROPERTY_HEIGHT)) {
+				if (height == null) {
+					height = hashMap.get(TiC.PROPERTY_HEIGHT);
+				}
+
+				if (height == null) {
+					layoutParams.optionHeight = null;
+					layoutParams.sizeOrFillHeightEnabled = false;
+
+				} else if (height.equals(TiC.SIZE_AUTO)) {
+					layoutParams.optionHeight = null;
+					layoutParams.sizeOrFillHeightEnabled = true;
+
+				} else if (height.equals(TiC.LAYOUT_FILL)) {
+					// fill
+					layoutParams.optionHeight = null;
+					layoutParams.sizeOrFillHeightEnabled = true;
+					layoutParams.autoFillsHeight = true;
+
+				} else if (height.equals(TiC.LAYOUT_SIZE)) {
+					// size
+					layoutParams.optionHeight = null;
+					layoutParams.sizeOrFillHeightEnabled = true;
+					layoutParams.autoFillsHeight = false;
+				} else {
+					layoutParams.optionHeight = toTiDimension(height, TiDimension.TYPE_HEIGHT);
+					layoutParams.sizeOrFillHeightEnabled = false;
+				}
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_ZINDEX)) {
+				Object zIndex = hashMap.get(TiC.PROPERTY_ZINDEX);
+				if (zIndex != null) {
+					layoutParams.optionZIndex = toInt(zIndex);
+
+				} else {
+					layoutParams.optionZIndex = 0;
+				}
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_TRANSFORM) && withMatrix) {
 				layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
-				dirty = true;
+				handled = dirty = true;
 			}
-			if (hashMap.containsKey(TiC.PROPERTY_ANCHOR_POINT)) {
+			else if (key.equals(TiC.PROPERTY_ANCHOR_POINT) && withMatrix) {
 				Object anchorPoint = hashMap.get(TiC.PROPERTY_ANCHOR_POINT);
 				if (anchorPoint instanceof HashMap) {
 					HashMap point = (HashMap) anchorPoint;
 					layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
 					layoutParams.anchorY = TiConvert.toFloat(point, TiC.PROPERTY_Y);
-					dirty = true;
+					handled = dirty = true;
 				}
 			}
+		    if (handled) it.remove();
 		}
-		
-		if (hashMap.containsKey(TiC.PROPERTY_ZINDEX)) {
-			Object zIndex = hashMap.get(TiC.PROPERTY_ZINDEX);
-			if (zIndex != null) {
-				layoutParams.optionZIndex = toInt(zIndex);
 
-			} else {
-				layoutParams.optionZIndex = 0;
-			}
-			dirty = true;
-		}
+		
 
 		return dirty;
 	}
-	public static boolean fillLayout(HashMap<String, Object> hashMap, LayoutParams layoutParams)
+	public static boolean fillLayout(KrollDict hashMap, LayoutParams layoutParams)
 	{
 		return fillLayout(hashMap, layoutParams, true);
 	}
@@ -1032,36 +1029,28 @@ public class TiConvert
 		return toRect(hashMap.get(key));
 	}
 	
-	public static Rect toPaddingRect(Object value)
+	public static RectF toPaddingRect(Object value)
 	{
-		if (value instanceof Rect) {
-			return (Rect)value;
+		if (value instanceof RectF) {
+			return (RectF)value;
 
 		} else if (value instanceof HashMap<?,?>) {
 			KrollDict dict = new KrollDict((HashMap<String, Object>)value);
-			Rect result = new Rect();
-			if (dict.containsKey(TiC.PROPERTY_LEFT)) {
-				result.left = (int) TiUIHelper.getRawSizeOrZero(dict,
+			RectF result = new RectF();
+				result.left = TiUIHelper.getRawSizeOrZero(dict,
 						TiC.PROPERTY_LEFT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_RIGHT)) {
-				result.right = (int) TiUIHelper.getRawSizeOrZero(dict,
+				result.right = TiUIHelper.getRawSizeOrZero(dict,
 						TiC.PROPERTY_RIGHT);
-			}
-			if (dict.containsKey(TiC.PROPERTY_TOP)) {
-				result.top = (int) TiUIHelper.getRawSizeOrZero(dict,
+				result.top = TiUIHelper.getRawSizeOrZero(dict,
 						TiC.PROPERTY_TOP);
-			}
-			if (dict.containsKey(TiC.PROPERTY_BOTTOM)) {
-				result.bottom = (int) TiUIHelper.getRawSizeOrZero(dict,
+				result.bottom = TiUIHelper.getRawSizeOrZero(dict,
 						TiC.PROPERTY_BOTTOM);
-			}
 			return result;
 		}
 
 		return null;
 	}
-	public static Rect toPaddingRect(HashMap<String, Object> hashMap, String key)
+	public static RectF toPaddingRect(HashMap<String, Object> hashMap, String key)
 	{
 		return toPaddingRect(hashMap.get(key));
 	}
@@ -1080,6 +1069,32 @@ public class TiConvert
 
 		} else if (value instanceof HashMap || value instanceof KrollDict) {
 			return new TiPoint((HashMap)value);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * Converts an array of boxed objects into a primitive Shadow array.
+	 * @param inArray array that contains HashMap objects
+	 * @return a primitive Shadow array
+	 * @throws ClassCastException if a non-Hashmap object is found in the array.
+	 */
+	public static Shadow[] toShadowArray(Object[] inArray) {
+		Shadow[] outArray = new Shadow[inArray.length];
+		for (int i = 0; i < inArray.length; i++) {
+			outArray[i] = TiUIHelper.getShadow(new KrollDict((HashMap) inArray[i]));
+		}
+		return outArray;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static KrollDict toKrollDict(Object value)
+	{
+		if (value instanceof KrollDict) {
+			return (KrollDict)value;
+		} else if (value instanceof HashMap) {
+			return new KrollDict((HashMap)value);
 		}
 
 		return null;

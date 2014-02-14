@@ -6,11 +6,13 @@
     NSMutableArray* _runningAnimations;
 	pthread_rwlock_t runningLock;
 	pthread_rwlock_t pendingLock;
+    BOOL _animating;
 }
 
 @end
 
 @implementation TiAnimatableProxy
+@synthesize animating = _animating;
 
 -(id)init
 {
@@ -20,6 +22,7 @@
 		pthread_rwlock_init(&pendingLock, NULL);
         _pendingAnimations = [[NSMutableArray alloc] init];
         _runningAnimations = [[NSMutableArray alloc] init];
+        _animating = NO;
     }
     return self;
 }
@@ -35,7 +38,24 @@
 
 -(BOOL)animating
 {
-    return ([_runningAnimations count] > 0);
+    return (_animating || [_runningAnimations count] > 0);
+}
+
+-(void)clearAnimations
+{
+    [self cancelAllAnimations:nil];
+}
+
+-(void)removePendingAnimation:(TiAnimation *)animation
+{
+	pthread_rwlock_rdlock(&pendingLock);
+    if ([_pendingAnimations containsObject:animation])
+    {
+        [self forgetProxy:animation];
+        [_pendingAnimations removeObject:animation];
+    }
+    [_pendingAnimations removeObject:animation];
+	pthread_rwlock_unlock(&pendingLock);
 }
 
 -(void)addRunningAnimation:(TiAnimation *)animation
@@ -46,24 +66,32 @@
 }
 -(void)removeRunningAnimation:(TiAnimation *)animation
 {
-    [self forgetProxy:animation];
 	pthread_rwlock_rdlock(&runningLock);
-    [_runningAnimations removeObject:animation];
+    if ([_runningAnimations containsObject:animation])
+    {
+        [self forgetProxy:animation];
+        [_runningAnimations removeObject:animation];
+    }
 	pthread_rwlock_unlock(&runningLock);
 }
 
 -(void)cancelAllAnimations:(id)arg
 {
     pthread_rwlock_rdlock(&pendingLock);
+    NSArray* pending = [[NSArray alloc] initWithArray:_pendingAnimations];
     [_pendingAnimations removeAllObjects];
     pthread_rwlock_unlock(&pendingLock);
+    for (TiAnimation* animation in pending) {
+        [self removePendingAnimation:animation];
+    }
+    
 	pthread_rwlock_rdlock(&runningLock);
     NSArray* running = [[NSArray alloc] initWithArray:_runningAnimations];
     [_runningAnimations removeAllObjects];
 	pthread_rwlock_unlock(&runningLock);
     for (TiAnimation* animation in running) {
         [self removeRunningAnimation:animation];
-        [animation cancel:nil];
+        [animation cancelWithReset:animation.restartFromBeginning];
     }
     [running release];
 }
@@ -101,7 +129,13 @@
 
 -(void)animationDidComplete:(TiAnimation*)animation
 {
-    animation.animation = nil;
+    if (animation.animation)
+    {
+        TiThreadPerformOnMainThread(^{
+            [animation.animation cancel];
+        }, YES);
+        animation.animation = nil;
+    }
     [self removeRunningAnimation:animation];
 }
 
@@ -179,6 +213,7 @@
 -(void)animate:(id)arg
 {
 	TiAnimation * newAnimation = [TiAnimation animationFromArg:arg context:[self executionContext] create:NO];
+    if (newAnimation == nil) return;
     [self rememberProxy:newAnimation];
 	pthread_rwlock_rdlock(&pendingLock);
     [_pendingAnimations addObject:newAnimation];
@@ -192,9 +227,8 @@
     id<NSFastEnumeration> keySeq = props;
 
     for (NSString* key in keySeq) {
-        if ([self valueForKey:key]) {
-            [self setValue:[self valueForKey:key] forKey:key];
-        }
+        id value = [self valueForKey:key];
+        [self setValue:value?value:[NSNull null] forKey:key];
     }
 }
 

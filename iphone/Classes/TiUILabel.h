@@ -9,18 +9,21 @@
 #import "TiUIView.h"
 #import "TTTAttributedLabel.h"
 
+@interface TiLabel : TDTTTAttributedLabel
+
+@end
 
 @interface TiUILabel : TiUIView<LayoutAutosizing, TTTAttributedLabelDelegate> {
 @private
-	TDTTTAttributedLabel *label;
+	TiLabel *label;
     BOOL needsSetText;
 }
 
-@property(nonatomic,getter=isHighlighted) BOOL     highlighted;          // default is NO
-
 -(void)setAttributedTextViewContent;
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size;
--(TDTTTAttributedLabel*)label;
+-(TiLabel*)label;
+-(void)setPadding:(UIEdgeInsets)inset;
+-(void)setReusing:(BOOL)value;
 @end
 
 

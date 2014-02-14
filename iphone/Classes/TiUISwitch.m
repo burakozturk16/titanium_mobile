@@ -50,14 +50,10 @@
 
 #pragma mark View controller stuff
 
--(BOOL) enabledForBgState {
-    return [self switchView].enabled && [super enabledForBgState];
-}
-
 -(void)setEnabled_:(id)value
 {
-	[[self switchView] setEnabled:[TiUtils boolValue:value]];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [super setEnabled_:value];
+	[[self switchView] setEnabled:[self interactionEnabled]];
 }
 
 -(void)setValue_:(id)value
@@ -77,14 +73,15 @@
 	
 	// Don't rely on switchChanged: - isOn can report erroneous values immediately after the value is changed!  
 	// This only seems to happen in 4.2+ - could be an Apple bug.
-	if ((reproxying == NO) && configurationSet && [self.proxy _hasListeners:@"change"])
+    if ((reproxying == NO) && configurationSet && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:value forKey:@"value"]];
+		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:value forKey:@"value"] propagate:NO checkForListener:NO];
 	}
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    [self switchView];
 	[super frameSizeChanged:frame bounds:bounds];
 	[self setCenter:[self center]];
 }
@@ -109,9 +106,9 @@
     [self.proxy replaceValue:newValue forKey:@"value" notification:NO];
 	
 	//No need to setValue, because it's already been set.
-	if ([self.proxy _hasListeners:@"change"] && (current != newValue) && ![current isEqual:newValue])
+    if ((current != newValue) && ![current isEqual:newValue] && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"]];
+		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
 	}
 }
 

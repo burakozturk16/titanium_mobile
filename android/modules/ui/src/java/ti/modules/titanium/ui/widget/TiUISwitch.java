@@ -19,6 +19,7 @@ import ti.modules.titanium.ui.android.AndroidModule;
 import android.annotation.SuppressLint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -34,6 +35,7 @@ public class TiUISwitch extends TiUIView
 	
 	private boolean oldValue = false;
 	private int style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
+	private static final boolean ICE_CREAM_OR_GREATER = (Build.VERSION.SDK_INT >= 14);
 	
 	public TiUISwitch(TiViewProxy proxy) {
 		super(proxy);
@@ -107,8 +109,7 @@ public class TiUISwitch extends TiUIView
 			TiUIHelper.setAlignment(cb, null, verticalAlign);
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_COLOR)) {
-			ColorDrawable colorDrawable = TiUIHelper.buildColorDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));		
-			getOrCreateBackground().setColorDrawableForState(TiUIHelper.BACKGROUND_CHECKED_STATE, colorDrawable);
+			getOrCreateBackground().setColorForState(TiUIHelper.BACKGROUND_CHECKED_STATE, TiConvert.toColor(d, TiC.PROPERTY_BACKGROUND_CHECKED_COLOR));
 		}
 		if (d.containsKey(TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE)) {
 			Drawable drawable =  TiUIHelper.buildImageDrawable(TiConvert.toString(d, TiC.PROPERTY_BACKGROUND_CHECKED_IMAGE), backgroundRepeat, proxy);
@@ -198,14 +199,16 @@ public class TiUISwitch extends TiUIView
 
 	@Override
 	public void onCheckedChanged(CompoundButton btn, boolean value) {
-		KrollDict data = new KrollDict();
 
 		proxy.setProperty(TiC.PROPERTY_VALUE, value);
 		//if user triggered change, we fire it.
 		if (oldValue != value) {
-			data.put(TiC.PROPERTY_VALUE, value);
-			fireEvent(TiC.EVENT_CHANGE, data);
 			oldValue = value;
+			if (hasListeners(TiC.EVENT_CHANGE)) {
+				KrollDict data = new KrollDict();
+				data.put(TiC.PROPERTY_VALUE, value);
+				fireEvent(TiC.EVENT_CHANGE, data, false, false);
+			}
 		}
 	}
 	
@@ -213,7 +216,11 @@ public class TiUISwitch extends TiUIView
 	{
 		CompoundButton currentButton = (CompoundButton) getNativeView();
 		CompoundButton button = null;
+		if  (!ICE_CREAM_OR_GREATER && style == AndroidModule.SWITCH_STYLE_SWITCH) {
+			style = AndroidModule.SWITCH_STYLE_TOGGLEBUTTON;
+		}
 		this.style = style;
+		
 
 		switch (style) {
 			case AndroidModule.SWITCH_STYLE_CHECKBOX:

@@ -10,10 +10,12 @@
 #import "TiWindowProxy.h"
 #import "ADTransitionController.h"
 
+#define AD_SYSTEM_VERSION_GREATER_THAN_7 ([[[UIDevice currentDevice] systemVersion] compare:@"7" options:NSNumericSearch] == NSOrderedDescending)
+
 
 @interface TiUINavigationWindowProxy : TiWindowProxy<ADTransitionControllerDelegate,TiOrientationController,TiTab> {
 @private
-    ADTransitionController *navController;
+    id navController;
     TiWindowProxy *rootWindow;
     TiWindowProxy *current;
     BOOL transitionIsAnimating;

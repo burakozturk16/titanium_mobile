@@ -227,7 +227,7 @@ public class KrollJSONGenerator extends AbstractProcessor {
 				if (checkTiContext) {
 					checkProxyConstructor(element);
 				}
-
+				
 				String genClassName = proxyClassName + "BindingGen";
 				String sourceName = String.format("%s.%s", packageName, genClassName);
 				String apiName = proxyClassName;
@@ -303,6 +303,17 @@ public class KrollJSONGenerator extends AbstractProcessor {
 						"superProxyBindingClassName", String.format("%s.%sBindingGen", utils.getPackage(superType), superTypeName));
 					proxyProperties.put("superPackageName", utils.getPackage(superType));
 					proxyProperties.put("superProxyClassName", superTypeName);
+					if (proxyClassName.indexOf("Module") == -1) {
+//						String superApiName = "";
+//						String[] superApiNames = ((String) proxyProperties.get("superPackageName")).replace("org.appcelerator.", "").split("\\.");
+//						for (int i = superApiNames.length - 1; i >= 0 ; i--) {
+//							String superApi = superApiNames[i];
+//							superApiName = superApi + superApiName;
+//							if (i != 0)
+//								superApiName = "." + superApiName;
+//						}
+//						if (superApiName.length() > 0) proxyProperties.put("superApiName", superApiName);
+					}
 				}
 
 				proxyProperties.put("isModule", isModule);

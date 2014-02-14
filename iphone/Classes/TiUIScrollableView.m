@@ -19,6 +19,7 @@
     TiTransition* _transition;
     BOOL _reverseDrawOrder;
     NSMutableArray* _wrappers;
+    BOOL _updatePageDuringScroll;
 }
 @property(nonatomic,readonly)	TiUIScrollableViewProxy * proxy;
 @end
@@ -40,6 +41,7 @@
 -(id)init
 {
 	if (self = [super init]) {
+        _updatePageDuringScroll = NO;
         _reverseDrawOrder = NO;
         pageDimension = TiDimensionFromObject(@"100%");
         pageOffset = TiDimensionFromObject(@"50%");
@@ -159,6 +161,13 @@
 	}	
 }
 
+-(void)layoutSubviews
+{
+////	[super layoutSubviews];
+////	[self checkBounds];
+}
+
+
 -(void)renderView:(TiViewProxy*)viewProxy forIndex:(int)index withRefresh:(BOOL)refresh
 {
 	int svSubviewsCount = [_wrappers count];
@@ -172,13 +181,10 @@
 	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
     if (![viewproxy viewAttached]) {
         if ([[viewproxy view] superview] != wrapper) {
-            [wrapper addSubview:[viewproxy getOrCreateView]];
+            [wrapper addSubview:[viewproxy getAndPrepareViewForOpening:[wrapper bounds]]];
         }
-        [viewproxy windowWillOpen];
-        [viewproxy windowDidOpen];
-        [viewproxy layoutChildrenIfNeeded];
     } else if (!CGRectEqualToRect([viewproxy sandboxBounds], [wrapper bounds])) {
-        [viewproxy parentSizeWillChange];
+        [self.proxy layoutChild:viewproxy optimize:NO withMeasuredBounds:[wrapper bounds]];
     }
 }
 
@@ -250,14 +256,26 @@
 
 -(void)listenerAdded:(NSString*)event count:(int)count
 {
-	[super listenerAdded:event count:count];
-	[[self proxy] lockViews];
-	for (TiViewProxy* viewProxy in [[self proxy] viewProxies]) {
-		if ([viewProxy viewAttached]) {
-			[[viewProxy view] updateTouchHandling];
-		}
-	}
-	[[self proxy] unlockViews];
+    [super listenerAdded:event count:count];
+    NSArray * childrenArray = [[[self proxy] views] retain];
+    for (id child in childrenArray) {
+        if ([child respondsToSelector:@selector(parentListenersChanged)]) {
+            [child performSelector:@selector(parentListenersChanged)];
+        }
+    }
+    [childrenArray release];
+}
+
+-(void)listenerRemoved:(NSString*)event count:(int)count
+{
+    [super listenerRemoved:event count:count];
+    NSArray * childrenArray = [[[self proxy] views] retain];
+    for (id child in childrenArray) {
+        if ([child respondsToSelector:@selector(parentListenersChanged)]) {
+            [child performSelector:@selector(parentListenersChanged)];
+        }
+    }
+    [childrenArray release];
 }
 
 -(int)currentPage
@@ -270,7 +288,7 @@
             result = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
         }
     }
-    [pageControl setCurrentPage:result];
+//    [pageControl setCurrentPage:result];
     return result;
 }
 
@@ -328,12 +346,6 @@
 		for (UIView *view in _wrappers)
 		{
 			[view removeFromSuperview];
-		}
-        [_wrappers removeAllObjects];
-        
-		for (TiViewProxy* theView in [[self proxy] views]) {
-			[theView windowWillClose];
-			[theView windowDidClose];
 		}
 	}
 	
@@ -430,11 +442,9 @@
 
 -(void)setBounds:(CGRect)bounds_
 {
-    lastPage = [self currentPage];
+    lastPage = currentPage;
     enforceCacheRecalculation = YES;
     [super setBounds:bounds_];
-    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
-    enforceCacheRecalculation = NO;
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)visibleBounds
@@ -442,17 +452,19 @@
     if (CGSizeEqualToSize(visibleBounds.size, CGSizeZero)) return;
 	
     [self updateScrollViewFrame:visibleBounds];
+    [self setCurrentPage_:[NSNumber numberWithInt:lastPage]];
+    enforceCacheRecalculation = NO;
     [self refreshScrollView:NO];
     [self setContentOffsetForPage:currentPage animated:NO];
     [self manageCache:[self currentPage]];
 	
     //To make sure all subviews are properly resized.
-    UIScrollView *sv = [self scrollview];
-    for(UIView *view in _wrappers){
-        for (TiUIView *sView in [view subviews]) {
-                [sView checkBounds];
-        }
-    }
+//    UIScrollView *sv = [self scrollview];
+//    for(UIView *view in _wrappers){
+//        for (TiUIView *sView in [view subviews]) {
+//                [sView checkBounds];
+//        }
+//    }
     
     [super frameSizeChanged:frame bounds:visibleBounds];
 }
@@ -650,8 +662,7 @@
     else{
         [self setContentOffsetForPage:pageNum animated:NO];
     }
-	currentPage = pageNum;
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
+    [self updateCurrentPage:pageNum andPageControl:YES];
 }
 
 -(void)moveNext:(id)args
@@ -677,6 +688,27 @@
 	}
 }
 
+-(void)updateCurrentPage:(int)newPage
+{
+    [self updateCurrentPage:newPage andPageControl:YES];
+}
+
+-(void)updateCurrentPage:(int)newPage andPageControl:(BOOL)updatePageControl
+{
+    if (newPage == currentPage) return;
+    currentPage = newPage;
+    if (updatePageControl) {
+        [pageControl setCurrentPage:newPage];
+    }
+    [self.proxy replaceValue:NUMINT(newPage) forKey:@"currentPage" notification:NO];
+    if ([self.proxy _hasListeners:@"change" checkParent:NO])
+	{
+		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                   NUMINT(newPage),@"currentPage",
+                                                   [[self proxy] viewAtIndex:newPage],@"view",nil] propagate:NO checkForListener:NO];
+	}
+}
+
 -(void)addView:(id)viewproxy
 {
 	[self refreshScrollView:YES];
@@ -688,9 +720,7 @@
 	int pageCount = [[self proxy] viewCount];
 	if (page==pageCount)
 	{
-		currentPage = lastPage = pageCount-1;
-		[pageControl setCurrentPage:currentPage];
-		[self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
+        [self updateCurrentPage:pageCount-1];
 	}
 	[self refreshScrollView:YES];
 }
@@ -704,13 +734,12 @@
 	if (newPage >=0 && newPage < viewsCount)
 	{
         [self setContentOffsetForPage:newPage animated:NO];
-		currentPage = lastPage = newPage;
-		pageControl.currentPage = newPage;
+		lastPage = newPage;
+		[self updateCurrentPage:newPage];
 		
         [self manageCache:newPage];
         [self didScroll];
         
-		[self.proxy replaceValue:NUMINT(newPage) forKey:@"currentPage" notification:NO];
 	}
 }
 
@@ -739,7 +768,7 @@
     UIScrollView* sv = [self scrollview];
     ENSURE_SINGLE_ARG_OR_NIL(value, NSDictionary)
     RELEASE_TO_NIL(_transition);
-    _transition = [TiTransitionHelper transitionFromArg:value containerView:sv];
+    _transition = [[TiTransitionHelper transitionFromArg:value containerView:sv] retain];
     if (_transition) {
         _reverseDrawOrder = [_transition needsReverseDrawOrder];
         [_transition prepareViewHolder:sv];
@@ -765,18 +794,11 @@
     [self setContentOffsetForPage:pageNum animated:YES];
 	handlingPageControlEvent = YES;
 	
-	currentPage = lastPage = pageNum;
-	[self manageCache:currentPage];
-	
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
-	
-	if ([self.proxy _hasListeners:@"click"])
-	{
-		[self.proxy fireEvent:@"click" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
-													NUMINT(pageNum),@"currentPage",
-													[[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
-	}
-	
+    lastPage = pageNum;
+    [self updateCurrentPage:pageNum];
+	[self manageCache:pageNum];
+    
+    [self fireEventWithData:@"click" propagate:YES];
 }
 
 
@@ -824,20 +846,39 @@
     }
 }
 
+-(void)fireEventWithData:(NSString*)event andPageAsFloat:(CGFloat)pageAsFloat propagate:(BOOL)propagate
+{
+    if ([self.proxy _hasListeners:event checkParent:propagate])
+	{
+		[self.proxy fireEvent:event withObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                                                    NUMINT(currentPage), @"currentPage",
+                                                    NUMFLOAT(pageAsFloat), @"currentPageAsFloat",
+                                                    [[self proxy] viewAtIndex:currentPage], @"view", nil] propagate:propagate];
+        
+	}
+}
+
+-(void)fireEventWithData:(NSString*)event andPageAsFloat:(CGFloat)pageAsFloat
+{
+    [self fireEventWithData:event andPageAsFloat:pageAsFloat propagate:NO];
+}
+
+-(void)fireEventWithData:(NSString*)event propagate:(BOOL)propagate
+{
+    [self fireEventWithData:event andPageAsFloat:currentPage propagate:propagate];
+}
+
+-(void)fireEventWithData:(NSString*)event
+{
+    [self fireEventWithData:event propagate:NO];
+}
+
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
 	//switch page control at 50% across the center - this visually looks better
     int page = currentPage;
     float nextPageAsFloat = [self getPageFromOffset:scrollview.contentOffset];
     int nextPage = MIN(floor(nextPageAsFloat - 0.5) + 1, [[self proxy] viewCount] - 1);
-	if ([self.proxy _hasListeners:@"scroll"])
-	{
-		[self.proxy fireEvent:@"scroll" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
-                                                       NUMINT(nextPage), @"currentPage",
-                                                       NUMFLOAT(nextPageAsFloat), @"currentPageAsFloat",
-                                                       [[self proxy] viewAtIndex:nextPage], @"view", nil]]; 
-
-	}
     if (page != nextPage) {
         int curCacheSize = cacheSize;
         int minCacheSize = cacheSize;
@@ -849,16 +890,17 @@
         }
         pageChanged = YES;
         cacheSize = minCacheSize;
-        [pageControl setCurrentPage:nextPage];
-        currentPage = nextPage;
-        [self.proxy replaceValue:NUMINT(currentPage) forKey:@"currentPage" notification:NO];
+        if (_updatePageDuringScroll) [self updateCurrentPage:nextPage];
         cacheSize = curCacheSize;
     }
+	[self fireEventWithData:@"scroll" andPageAsFloat:nextPageAsFloat];
     [self didScroll];
 }
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    _updatePageDuringScroll = YES;
+	[self fireEventWithData:@"scrollstart"];
     if (pageChanged) {
         [self manageCache:currentPage];
     }
@@ -866,6 +908,7 @@
 
 - (void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate
 {
+    _updatePageDuringScroll = NO;
     //Since we are now managing cache at end of scroll, ensure quick scroll is disabled to avoid blank screens.
     if (pageChanged) {
         [scrollview setUserInteractionEnabled:!decelerate];
@@ -874,6 +917,7 @@
 
 -(void)scrollViewDidEndScrollingAnimation:(UIScrollView *)scrollView
 {
+    _updatePageDuringScroll = NO;
 	// called when setContentOffset/scrollRectVisible:animated: finishes. not called if not animating
 	[self scrollViewDidEndDecelerating:scrollView];
     [self didScroll];
@@ -882,6 +926,7 @@
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
+    _updatePageDuringScroll = NO;
     if (rotatedWhileScrolling) {
         [self setContentOffsetForPage:[self currentPage] animated:YES];
         rotatedWhileScrolling = NO;
@@ -890,23 +935,11 @@
 	// At the end of scroll animation, reset the boolean used when scrolls originate from the UIPageControl
 	int pageNum = [self currentPage];
 	handlingPageControlEvent = NO;
+    
+    lastPage = pageNum;
+    [self updateCurrentPage:pageNum];
 
-	[self.proxy replaceValue:NUMINT(pageNum) forKey:@"currentPage" notification:NO];
-	
-	if ([self.proxy _hasListeners:@"scrollEnd"])
-	{	//TODO: Deprecate old event.
-		[self.proxy fireEvent:@"scrollEnd" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
-											  NUMINT(pageNum),@"currentPage",
-											  [[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
-	}
-	if ([self.proxy _hasListeners:@"scrollend"])
-	{
-		[self.proxy fireEvent:@"scrollend" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
-													   NUMINT(pageNum),@"currentPage",
-													   [[self proxy] viewAtIndex:pageNum],@"view",nil]]; 
-	}
-	currentPage = lastPage = pageNum;
-	[pageControl setCurrentPage:currentPage];
+	[self fireEventWithData:@"scrollend"];
 	[self manageCache:currentPage];
 	pageChanged = NO;
 	[scrollview setUserInteractionEnabled:YES];

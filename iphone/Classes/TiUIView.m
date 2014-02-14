@@ -24,6 +24,44 @@
 #import "TiImageHelper.h"
 #import "TiTransition.h"
 #import "TiViewAnimationStep.h"
+#import "TiBorderLayer.h"
+
+@interface CALayer (Additions)
+- (void)bringToFront;
+- (void)sendToBack;
+@end
+
+@implementation CALayer (Additions)
+
+- (void)bringToFront {
+    CALayer *superlayer = self.superlayer;
+    [self removeFromSuperlayer];
+    [superlayer addSublayer:self];
+}
+
+- (void)sendToBack {
+    CALayer *superlayer = self.superlayer;
+    [self removeFromSuperlayer];
+    [superlayer insertSublayer:self atIndex:0];
+}
+@end
+
+
+@interface UntouchableView : UIView
+
+@end
+
+@implementation UntouchableView
+
+- (UIView *)hitTest:(CGPoint) point withEvent:(UIEvent *)event
+{
+    UIView* result = [super hitTest:point withEvent:event];
+    if (result == self)
+        return nil;
+    return result;
+}
+
+@end
 
 
 void InsetScrollViewForKeyboard(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight)
@@ -156,7 +194,8 @@ NSArray* listenerArray = nil;
 
 @interface TiUIView () {
     TiSelectableBackgroundLayer* _bgLayer;
-    CALayer* _borderLayer;
+    UntouchableView* _childrenHolder;
+    TiBorderLayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
     BOOL _touchEnabled;
@@ -168,6 +207,9 @@ NSArray* listenerArray = nil;
     BOOL needsUpdateBackgroundImageFrame;
     UIEdgeInsets _backgroundPadding;
     UIEdgeInsets _borderPadding;
+    CGFloat* radii;
+    BOOL usePathAsBorder;
+    BOOL _nonRetina;
 }
 -(void)setBackgroundDisabledImage_:(id)value;
 -(void)setBackgroundSelectedImage_:(id)value;
@@ -188,6 +230,11 @@ DEFINE_EXCEPTIONS
 
 #pragma mark Internal Methods
 
+//+(Class)layerClass
+//{
+//    return [CAShapeLayer class];
+//}
+
 #if VIEW_DEBUG
 -(id)retain
 {
@@ -204,6 +251,7 @@ DEFINE_EXCEPTIONS
 
 -(void)dealloc
 {
+    [_childrenHolder release];
     [childViews release];
     [transferLock release];
 	[transformMatrix release];
@@ -221,6 +269,10 @@ DEFINE_EXCEPTIONS
 	proxy = nil;
 	touchDelegate = nil;
 	childViews = nil;
+    if (radii != NULL) {
+        free(radii);
+        radii = NULL;
+    }
 	[super dealloc];
 }
 
@@ -267,7 +319,7 @@ DEFINE_EXCEPTIONS
     transferLock = [[NSRecursiveLock alloc] init];
     touchPassThrough = NO;
     _shouldHandleSelection = YES;
-    self.clipsToBounds = clipChildren = YES;
+    self.clipsToBounds = self.layer.masksToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     backgroundOpacity = 1.0f;
@@ -275,16 +327,19 @@ DEFINE_EXCEPTIONS
     _touchEnabled = YES;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
-    _backgroundPadding = UIEdgeInsetsZero;
-    self.layer.borderColor = [UIColor clearColor].CGColor;
+    _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
+    viewState = -1;
+    radii = NULL;
+    usePathAsBorder = NO;
+    _nonRetina = NO;
 }
+
 
 - (id) init
 {
 	self = [super init];
 	if (self != nil)
 	{
-        [self initialize];
 	}
 	return self;
 }
@@ -357,13 +412,19 @@ DEFINE_EXCEPTIONS
 	
 	[self updateTouchHandling];
 	 
-	super.backgroundColor = [UIColor clearColor];
+	super.backgroundColor = nil;
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
 -(void)configurationStart
 {
     configurationSet = needsToSetBackgroundImage = needsToSetBackgroundDisabledImage = needsToSetBackgroundSelectedImage = NO;
+    if (_bgLayer) {
+        _bgLayer.readyToCreateDrawables = configurationSet;
+    }
+    if (_borderLayer) {
+        _borderLayer.readyToCreateDrawables = configurationSet;
+    }
 }
 
 -(void)configurationSet
@@ -377,7 +438,10 @@ DEFINE_EXCEPTIONS
     if (needsToSetBackgroundSelectedImage)
         [self setBackgroundSelectedImage_:[[self proxy] valueForKey:@"backgroundSelectedImage"]];
     if (_bgLayer) {
-        _bgLayer.readyToCreateDrawables = YES;
+        _bgLayer.readyToCreateDrawables = configurationSet;
+    }
+    if (_borderLayer) {
+        _borderLayer.readyToCreateDrawables = configurationSet;
     }
 }
 
@@ -432,41 +496,140 @@ DEFINE_EXCEPTIONS
     self.accessibilityElementsHidden = [TiUtils boolValue:accessibilityHidden def:NO];
 }
 
-#pragma mark Layout 
+#pragma mark Layout
+
+-(void)applyPathToLayersMask:(CALayer*)layer path:(CGPathRef)path
+{
+    if (layer == nil) return;
+    if (path == nil) {
+        layer.mask = nil;
+    }
+    else {
+        if (layer.mask == nil) {
+            layer.mask = [CAShapeLayer layer];
+        }
+        if (runningAnimation) {
+            CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
+            pathAnimation.fromValue = (id)((CAShapeLayer*)layer.mask).path;
+            pathAnimation.duration = [runningAnimation duration];
+            pathAnimation.timingFunction = [runningAnimation curve];
+            pathAnimation.fillMode = kCAFillModeBoth;
+            pathAnimation.toValue = (id)path;
+            [layer.mask addAnimation:pathAnimation forKey:@"clippingpath"];
+        }
+        ((CAShapeLayer*)layer.mask).path = path;
+    }
+}
+
+CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
+{
+    if (radii == NULL) {
+        return nil;
+    }
+    // create a mutable path
+    CGMutablePathRef path = CGPathCreateMutable();
+    
+    // get the 4 corners of the rect
+    CGPoint topLeft = CGPointMake(rect.origin.x, rect.origin.y);
+    CGPoint topRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y);
+    CGPoint bottomRight = CGPointMake(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height);
+    CGPoint bottomLeft = CGPointMake(rect.origin.x, rect.origin.y + rect.size.height);
+    
+    // move to top left
+    CGPathMoveToPoint(path, NULL, topLeft.x + radii[0], topLeft.y);
+    
+    if (radii[2] == radii[3]) {
+        CGFloat radius = radii[2];
+        CGPathAddRelativeArc(path, NULL, topRight.x - radius, topRight.y + radius, radius, -M_PI_2, M_PI_2);
+    }
+    else {
+        // add top line
+        CGPathAddLineToPoint(path, NULL, topRight.x - radii[2], topRight.y);
+        // add top right curve
+        CGPathAddQuadCurveToPoint(path, NULL, topRight.x, topRight.y, topRight.x, topRight.y + radii[3]);
+    }
+    
+    
+    if (radii[4] == radii[5]) {
+        CGFloat radius = radii[4];
+        CGPathAddRelativeArc(path, NULL, bottomRight.x - radius, bottomRight.y - radius, radius, 0, M_PI_2);
+    }
+    else {
+        // add right line
+        CGPathAddLineToPoint(path, NULL, bottomRight.x, bottomRight.y - radii[4]);
+        
+        // add bottom right curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomRight.x, bottomRight.y, bottomRight.x - radii[5], bottomRight.y);
+    }
+    
+    if (radii[6] == radii[7]) {
+        CGFloat radius = radii[6];
+        CGPathAddRelativeArc(path, NULL, bottomLeft.x + radius, bottomLeft.y - radius, radius, M_PI_2, M_PI_2);
+    }
+    else {
+        // add bottom line
+        CGPathAddLineToPoint(path, NULL, bottomLeft.x + radii[6], bottomLeft.y);
+        
+        // add bottom left curve
+        CGPathAddQuadCurveToPoint(path, NULL, bottomLeft.x, bottomLeft.y, bottomLeft.x, bottomLeft.y - radii[7]);
+    }
+    if (radii[0] == radii[1]) {
+        CGFloat radius = radii[0];
+        CGPathAddRelativeArc(path, NULL, topLeft.x + radius, topLeft.y + radius, radius, M_PI, M_PI_2);
+    }
+    else {
+        // add left line
+        CGPathAddLineToPoint(path, NULL, topLeft.x, topLeft.y + radii[0]);
+        
+        // add top left curve
+        CGPathAddQuadCurveToPoint(path, NULL, topLeft.x, topLeft.y, topLeft.x + radii[1], topLeft.y);
+    }
+    
+    // return the path
+    return path;
+}
+
+-(void)updatePathForClipping:(CGRect)bounds
+{
+    //the 0.5f is there to have a clean border where you don't see the background
+    CGPathRef path = self.layer.shadowPath = CGPathCreateRoundiiRect(bounds, radii);
+    if (clipChildren && usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
+    {
+        [self applyPathToLayersMask:self.layer path:path];
+        
+    }
+    else if (!usePathAsBorder) {
+        CGFloat radius = radii[0];
+        self.layer.cornerRadius = radius;
+        if (_bgLayer) _bgLayer.cornerRadius = radius;
+    }
+    if (_bgLayer)
+    {
+        _bgLayer.shadowPath = path;
+    }
+
+    CGPathRelease(path);
+}
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    
+    if (![(TiViewProxy*)proxy viewLayedOut]) return;
+    if (radii != NULL)
+    {
+        [self updatePathForClipping:bounds];
+    }
+    if (_borderLayer) {
+        _borderLayer.frame = bounds;
+    }
     if (_bgLayer) {
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
     }
-    if (_borderLayer) {
-        _borderLayer.frame = UIEdgeInsetsInsetRect(bounds, _borderPadding);
-    }
+
     if (self.layer.mask != nil) {
         [self.layer.mask setFrame:bounds];
     }
     [self updateTransform];
-    [self updateViewShadowPath];
 }
-
-
--(void)setFrame:(CGRect)frame
-{
-	[super setFrame:frame];
-	
-	// this happens when a view is added to another view but not
-	// through the framework (such as a tableview header) and it
-	// means we need to force the layout of our children
-	if (childrenInitialized==NO && 
-		CGRectIsEmpty(frame)==NO &&
-		[self.proxy isKindOfClass:[TiViewProxy class]])
-	{
-		childrenInitialized=YES;
-		[(TiViewProxy*)self.proxy layoutChildren:NO];
-	}
-}
-
 
 -(void)updateBounds:(CGRect)newBounds
 {
@@ -476,9 +639,8 @@ DEFINE_EXCEPTIONS
         [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
     }
     else {
-//        TiAnimation* anim = (TiViewAnimation*)[_runningAnimation animation];
         [CATransaction setAnimationDuration:[runningAnimation duration]];
-        [CATransaction setAnimationTimingFunction:[TiAnimation timingFunctionForCurve:[runningAnimation curve]]];
+        [CATransaction setAnimationTimingFunction:[runningAnimation curve]];
     }
     
     [self frameSizeChanged:[TiUtils viewPositionRect:self] bounds:newBounds];
@@ -559,42 +721,71 @@ DEFINE_EXCEPTIONS
     }
 }
 
+-(UIView*)parentViewForChildren
+{
+//    if (_childrenHolder == nil) {
+//        _childrenHolder = [[UntouchableView alloc] initWithFrame:self.bounds];
+//        _childrenHolder.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+//        _childrenHolder.layer.masksToBounds = YES;
+//        _childrenHolder.layer.cornerRadius = self.layer.cornerRadius;
+//
+//        [self addSubview:_childrenHolder];
+//    }
+    return self;
+}
+
+-(void)onCreateCustomBackground
+{
+    
+}
+
 -(TiSelectableBackgroundLayer*)getOrCreateCustomBackgroundLayer
 {
     if (_bgLayer != nil) {
         return _bgLayer;
     }
-
-    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
-    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-    if (_borderLayer)
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    else
-    _bgLayer.frame = [[self backgroundWrapperView] layer].bounds;
     
+    _bgLayer = [[TiSelectableBackgroundLayer alloc] init];
+    
+    [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
+    _bgLayer.frame = UIEdgeInsetsInsetRect([[self backgroundWrapperView] layer].bounds, _backgroundPadding);
     _bgLayer.opacity = backgroundOpacity;
-    _bgLayer.cornerRadius = self.layer.cornerRadius;
+    _bgLayer.shadowPath = self.layer.shadowPath;
+    if (_nonRetina){
+        [_bgLayer setNonRetina:_nonRetina];
+    }
     _bgLayer.readyToCreateDrawables = configurationSet;
     _bgLayer.animateTransition = animateBgdTransition;
+    [self onCreateCustomBackground];
     return _bgLayer;
 }
 
 
--(CALayer*)getOrCreateBorderLayer
+-(TiBorderLayer*)getOrCreateBorderLayer
 {
     if (_borderLayer != nil) {
         return _borderLayer;
     }
     
-    _borderLayer = [[CALayer alloc] init];
-    if (_bgLayer)
-        [[[self backgroundWrapperView] layer] insertSublayer:_borderLayer above:_bgLayer];
-    else
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    _borderLayer.frame = [[self backgroundWrapperView] layer].bounds;
-    
+    _borderLayer = [[TiBorderLayer alloc] init];
+    if (usePathAsBorder) {
+        [_borderLayer swithToContentBorder];
+    }
+    else {
+        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    }
+    [_borderLayer setRadii:radii];
+    [_borderLayer setBorderPadding:_borderPadding];
+    [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
+    CGRect bounds = [[self backgroundWrapperView] layer].bounds;
+    if (!CGRectIsEmpty(bounds)) {
+        _borderLayer.frame = bounds;
+    }
+    if (_nonRetina){
+        [_borderLayer setNonRetina:_nonRetina];
+    }
+    _borderLayer.readyToCreateDrawables = configurationSet;
     _borderLayer.opacity = backgroundOpacity;
-    _borderLayer.cornerRadius = self.layer.cornerRadius;
     return _borderLayer;
 }
 
@@ -612,7 +803,7 @@ DEFINE_EXCEPTIONS
 -(void) setBackgroundSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
     [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
 }
 
@@ -648,13 +839,20 @@ DEFINE_EXCEPTIONS
         float alpha = CGColorGetAlpha(uicolor.CGColor) * backgroundOpacity;
         uicolor = [UIColor colorWithRed:components[0] green:components[1] blue:components[2] alpha:alpha];
     }
-    super.backgroundColor = uicolor;
+    if (clipChildren || radii == nil)
+    {
+        super.backgroundColor = uicolor;
+    }
+    else
+    {
+        [[self getOrCreateCustomBackgroundLayer] setColor:uicolor forState:UIControlStateNormal];
+    }
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
     [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
 }
 
@@ -736,7 +934,7 @@ DEFINE_EXCEPTIONS
     }
     id image = [self loadImageOrSVG:arg];
     [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateHighlighted];
-    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
+//    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
 }
 
 -(void) setBackgroundHighlightedImage_:(id)image
@@ -754,8 +952,66 @@ DEFINE_EXCEPTIONS
         needsToSetBackgroundDisabledImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateDisabled];
 }
+
+-(void) setBackgroundInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateNormal];
+}
+
+-(void) setBackgroundSelectedInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+//    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateSelected];
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundHighlightedInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+}
+
+-(void) setBackgroundDisabledInnerShadows_:(id)value
+{
+    ENSURE_TYPE_OR_NIL(value, NSArray);
+    NSArray* result = nil;
+    if ([value count] >0) {
+        result = [NSMutableArray arrayWithCapacity:[value count]];
+        [value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+            [(id)result addObject:[TiUIHelper getShadow:obj]];
+        }];
+    }
+    
+    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateDisabled];
+}
+
 
 -(void)setOpacity_:(id)opacity
 {
@@ -782,61 +1038,6 @@ DEFINE_EXCEPTIONS
     }
 }
 
-
-//-(void)setBackgroundImageLayerBounds:(CGRect)bounds
-//{
-//    if ([self backgroundLayer] != nil)
-//    {
-//        CGRect backgroundFrame = CGRectMake(bounds.origin.x - padding.origin.x,
-//                                            bounds.origin.y - padding.origin.y,
-//                                            bounds.size.width + padding.origin.x + padding.size.width,
-//                                            bounds.size.height + padding.origin.y + padding.size.height);
-//        [self backgroundLayer].frame = backgroundFrame;
-//    }
-//}
-
-//-(void) updateBackgroundImageFrameWithPadding
-//{
-//    if (!configurationSet){
-//        needsUpdateBackgroundImageFrame = YES;
-//        return; // lazy init
-//    }
-//    [self setBackgroundImageLayerBounds:self.bounds];
-//}
-
-//-(void)setBackgroundImage_:(id)url
-//{
-//    [super setBackgroundImage_:url];
-//    //if using padding we must not mask to bounds.
-//    [self backgroundLayer].masksToBounds = CGRectEqualToRect(padding, CGRectZero) ;
-////    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingLeft_:(id)left
-//{
-//    padding.origin.x = [TiUtils floatValue:left];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingRight_:(id)right
-//{
-//    padding.size.width = [TiUtils floatValue:right];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingTop_:(id)top
-//{
-//    padding.origin.y = [TiUtils floatValue:top];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-//
-//-(void)setBackgroundPaddingBottom_:(id)bottom
-//{
-//    padding.size.height = [TiUtils floatValue:bottom];
-//    [self updateBackgroundImageFrameWithPadding];
-//}
-
-
 -(void)setBackgroundPadding_:(id)value
 {
     _backgroundPadding = [TiUtils insetValue:value];
@@ -845,13 +1046,6 @@ DEFINE_EXCEPTIONS
     }
 }
 
--(void)setBorderPadding_:(id)value
-{
-    _borderPadding = [TiUtils insetValue:value];
-    if (_borderLayer) {
-        _borderLayer.frame = UIEdgeInsetsInsetRect(self.bounds, _borderPadding);
-    }
-}
 
 -(void)setImageCap_:(id)arg
 {
@@ -871,53 +1065,149 @@ DEFINE_EXCEPTIONS
     }
 }
 
-
--(void)setBorderRadius_:(id)radius
+-(void)setusePathAsBorder:(BOOL)value
 {
-    self.layer.cornerRadius = [TiUtils floatValue:radius];
-    if (_borderLayer) {
-        _borderLayer.cornerRadius = self.layer.cornerRadius;
+    if (value != usePathAsBorder)
+    {
+        usePathAsBorder = value;
+        if (usePathAsBorder) {
+            [_borderLayer swithToContentBorder];
+            self.layer.cornerRadius = 0;
+            if (_bgLayer) _bgLayer.cornerRadius = 0;
+            if (self.backgroundColor)
+            {
+                [[self getOrCreateCustomBackgroundLayer] setColor:super.backgroundColor forState:UIControlStateNormal];
+                super.backgroundColor = nil;
+            }
+        }
+        else {
+            CGFloat radius = radii[0];
+            self.layer.cornerRadius = radius;
+            if (_bgLayer) _bgLayer.cornerRadius = radius;
+        }
     }
-    if (_bgLayer) {
-        _bgLayer.cornerRadius = self.layer.cornerRadius;
+    else if(!usePathAsBorder)
+    {
+        CGFloat radius = radii[0];
+        self.layer.cornerRadius = radius;
+        if (_bgLayer) _bgLayer.cornerRadius = radius;
     }
-    [self updateViewShadowPath];
 }
 
+-(void)setBorderRadius_:(id)value
+{
+    if ([value isKindOfClass:[NSArray class]]) {
+        radii =(CGFloat*)malloc(8*sizeof(CGFloat));
+        NSArray* array = (NSArray*)value;
+        int count = [array count];
+        if (count == 4)
+        {
+            for (int i = 0; i < count; ++i){
+                radii[2*i] = radii[2*i+1] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
+            }
+        } else  if (count == 8)
+        {
+            for (int i = 0; i < count; ++i){
+                radii[i] = [TiUtils floatValue:[array objectAtIndex:i] def:0.0f];
+            }
+        }
+        [self setusePathAsBorder:YES];
+    }
+    else
+    {
+        radii = (CGFloat*)malloc(8*sizeof(CGFloat));
+        CGFloat radius = [TiUtils floatValue:value def:0.0f];
+        for (int i = 0; i < 8; ++i){
+            radii[i] = radius;
+        }
+        [self setusePathAsBorder:!clipChildren];
+    }
+    if (_borderLayer)
+    {
+        [_borderLayer setRadii:radii];
+    }
+}
 
 -(void)setBorderColor_:(id)color
 {
-	TiColor *ticolor = [TiUtils colorValue:color];
-    CALayer* bgdLayer = [self getOrCreateBorderLayer];
-	bgdLayer.borderWidth = MAX(bgdLayer.borderWidth,1);
-	bgdLayer.borderColor = [ticolor _color].CGColor;
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateNormal];
+}
+
+-(void) setBorderSelectedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+//    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateSelected];
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderHighlightedColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderDisabledColor_:(id)color
+{
+    UIColor* uiColor = [TiUtils colorValue:color].color;
+    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateDisabled];
+}
+
+-(void) setBorderGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateNormal];
+}
+
+-(void) setBorderSelectedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+//    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateSelected];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderHighlightedGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+}
+
+-(void) setBorderDisabledGradient_:(id)newGradientDict
+{
+    TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
+    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateDisabled];
 }
 
 -(void)setBorderWidth_:(id)w
 {
-    
-	[self getOrCreateBorderLayer].borderWidth = TiDimensionCalculateValueFromString([TiUtils stringValue:w]);
+	[[self getOrCreateBorderLayer] setClipWidth:TiDimensionCalculateValueFromString([TiUtils stringValue:w])];
 }
+
+-(void)setBorderPadding_:(id)value
+{
+    _borderPadding = [TiUtils insetValue:value];
+    if (_borderLayer) {
+        [_borderLayer setBorderPadding:_borderPadding];
+    }
+}
+
+-(void)setRetina_:(id)value
+{
+    _nonRetina = ![TiUtils boolValue:value];
+    if (_bgLayer) {
+        [_bgLayer setNonRetina:_nonRetina];
+    }
+    if (_borderLayer) {
+        [_borderLayer setNonRetina:_nonRetina];
+    }
+}
+
 
 -(void)setAnchorPoint_:(id)point
 {
 	CGPoint anchorPoint = [TiUtils pointValue:point];
-	CGPoint newPoint = CGPointMake(self.bounds.size.width * anchorPoint.x, self.bounds.size.height * anchorPoint.y);
-    CGPoint oldPoint = CGPointMake(self.bounds.size.width * self.layer.anchorPoint.x, self.bounds.size.height * self.layer.anchorPoint.y);
-    
-    newPoint = CGPointApplyAffineTransform(newPoint, self.transform);
-    oldPoint = CGPointApplyAffineTransform(oldPoint, self.transform);
-    
-    CGPoint position = self.layer.position;
-    
-    position.x -= oldPoint.x;
-    position.x += newPoint.x;
-    
-    position.y -= oldPoint.y;
-    position.y += newPoint.y;
-    
-    self.layer.position = position;
     self.layer.anchorPoint = anchorPoint;
+    [(TiViewProxy*)[self proxy] willChangePosition];
 }
 
 -(void)setTransform_:(id)transform_
@@ -942,34 +1232,42 @@ DEFINE_EXCEPTIONS
     if (newVal == oldVal) return;
     
     self.hidden = newVal;
-	//TODO: If we have an animated show, hide, or setVisible, here's the spot for it.
+    
     TiViewProxy* viewProxy = (TiViewProxy*)[self proxy];
-	
 	if(viewProxy.parentVisible)
 	{
 		if (newVal)
 		{
 			[viewProxy willHide];
-            [viewProxy refreshView:nil];
 		}
 		else
 		{
-            [viewProxy refreshView:nil];
-			[viewProxy willShow];
-            //Redraw ourselves if changing from invisible to visible, to handle any changes made
+            [viewProxy performBlockWithoutLayout:^{
+                [viewProxy willShow];
+            }];
+            if (configurationSet) [viewProxy refreshViewOrParent];
 		}
 	}
-    
-//    //Redraw ourselves if changing from invisible to visible, to handle any changes made
-//	if (!self.hidden && oldVal) {
-//        [viewProxy willEnqueue];
-//    }
+}
+
+-(void)setAnimatedTransition:(BOOL)animated
+{
+    if (_bgLayer != nil) {
+        [_bgLayer setAnimateTransition:animated];
+    }
+    if (_borderLayer != nil) {
+        [_borderLayer setAnimateTransition:animated];
+    }
 }
 
 -(void)setBgState:(UIControlState)state
 {
+    state = [self realStateForState:state];
     if (_bgLayer != nil) {
         [_bgLayer setState:state];
+    }
+    if (_borderLayer != nil) {
+        [_borderLayer setState:state];
     }
 }
 
@@ -977,6 +1275,9 @@ DEFINE_EXCEPTIONS
 {
     if (_bgLayer != nil) {
         return [_bgLayer getState];
+    }
+    else if(_borderLayer != nil) {
+        return [_borderLayer getState];
     }
     return UIControlStateNormal;
 }
@@ -989,7 +1290,7 @@ DEFINE_EXCEPTIONS
 -(void)setEnabled_:(id)arg
 {
 	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
     changedInteraction = YES;
 }
 
@@ -1006,6 +1307,13 @@ DEFINE_EXCEPTIONS
 {
 	touchPassThrough = [TiUtils boolValue:arg];
 }
+
+
+-(void)setExclusiveTouch_:(id)arg
+{
+	self.exclusiveTouch = [TiUtils boolValue:arg];
+}
+
 
 -(BOOL)touchPassThrough {
     return touchPassThrough;
@@ -1026,7 +1334,6 @@ DEFINE_EXCEPTIONS
 -(BOOL)clipChildren
 {
     return (clipChildren && ([[self shadowLayer] shadowOpacity] == 0));
-
 }
 
 
@@ -1040,21 +1347,21 @@ DEFINE_EXCEPTIONS
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
-    [self updateViewShadowPath];
-}
-
--(void)updateViewShadowPath
-{
-    if ([[self shadowLayer] shadowOpacity] > 0.0f)
-    {
-        //to speedup things
-        [self shadowLayer].shadowPath =[UIBezierPath bezierPathWithRoundedRect:[self bounds] cornerRadius:self.layer.cornerRadius].CGPath;
-    }
+//    if ([[self shadowLayer] shadowOpacity] > 0.0f)
+//    {
+//        [self shadowLayer].shadowPath = [_borderLayer clippingPath];
+//    }
 }
 
 -(NSArray*) childViews
 {
     return [NSArray arrayWithArray:childViews];
+}
+
+-(void)verifyZOrder
+{
+    [_bgLayer sendToBack];
+    [_borderLayer bringToFront];
 }
 
 -(void)didAddSubview:(UIView*)view
@@ -1065,17 +1372,11 @@ DEFINE_EXCEPTIONS
     }
 	// So, it turns out that adding a subview places it beneath the gradient layer.
 	// Every time we add a new subview, we have to make sure the gradient stays where it belongs..
-    if (_borderLayer) {
-        [[[self backgroundWrapperView] layer] addSublayer:_borderLayer];
-    }
-    if (_bgLayer != nil) {
-        [[[self backgroundWrapperView] layer] insertSublayer:_bgLayer atIndex:0];
-    }
+//    [self verifyZOrder];
 }
 
 - (void)willRemoveSubview:(UIView *)subview
 {
-    
     if ([subview isKindOfClass:[TiUIView class]] && childViews)
     {
         [childViews removeObject:subview];
@@ -1086,7 +1387,9 @@ DEFINE_EXCEPTIONS
 {
     [CATransaction begin];
 	[[self layer] removeAllAnimations];
-    [[self backgroundLayer] removeAllAnimations];
+    for (CALayer* layer in [[self layer] sublayers]) {
+        [layer removeAllAnimations];
+    }
 	[CATransaction commit];
 }
 
@@ -1438,10 +1741,10 @@ DEFINE_EXCEPTIONS
 {
 	NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
     if ([recognizer numberOfTouchesRequired] == 2) {
-		[proxy fireEvent:@"twofingertap" withObject:event];
+		[proxy fireEvent:@"twofingertap" withObject:event checkForListener:NO];
 	}
     else
-        [proxy fireEvent:@"singletap" withObject:event];
+        [proxy fireEvent:@"singletap" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedDoubleTap:(UITapGestureRecognizer*)recognizer
@@ -1450,12 +1753,12 @@ DEFINE_EXCEPTIONS
     //Because double-tap suppresses touchStart and double-click, we must do this:
     if ([proxy _hasListeners:@"touchstart"])
     {
-        [proxy fireEvent:@"touchstart" withObject:event propagate:YES];
+        [proxy fireEvent:@"touchstart" withObject:event checkForListener:NO];
     }
     if ([proxy _hasListeners:@"dblclick"]) {
-        [proxy fireEvent:@"dblclick" withObject:event propagate:YES];
+        [proxy fireEvent:@"dblclick" withObject:event checkForListener:NO];
     }
-    [proxy fireEvent:@"doubletap" withObject:event];
+    [proxy fireEvent:@"doubletap" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedPinch:(UIPinchGestureRecognizer*)recognizer 
@@ -1464,7 +1767,7 @@ DEFINE_EXCEPTIONS
                            NUMDOUBLE(recognizer.scale), @"scale", 
                            NUMDOUBLE(recognizer.velocity), @"velocity", 
                            nil]; 
-    [self.proxy fireEvent:@"pinch" withObject:event]; 
+    [self.proxy fireEvent:@"pinch" withObject:event checkForListener:NO];
 }
 
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
@@ -1475,7 +1778,7 @@ DEFINE_EXCEPTIONS
                                NUMFLOAT(p.x), @"x",
                                NUMFLOAT(p.y), @"y",
                                nil];
-        [self.proxy fireEvent:@"longpress" withObject:event]; 
+        [self.proxy fireEvent:@"longpress" withObject:event checkForListener:NO];
     }
 }
 
@@ -1506,7 +1809,7 @@ DEFINE_EXCEPTIONS
 {
 	NSMutableDictionary *event = [[TiUtils dictionaryFromGesture:recognizer inView:self] mutableCopy];
 	[event setValue:[self swipeStringFromGesture:recognizer] forKey:@"direction"];
-	[proxy fireEvent:@"swipe" withObject:event];
+	[proxy fireEvent:@"swipe" withObject:event checkForListener:NO];
 	[event release];
 
 }
@@ -1583,10 +1886,52 @@ DEFINE_EXCEPTIONS
     return [self interactionEnabled];
 }
 
+-(void)setViewState:(UIControlState)state
+{
+    BOOL needsUpdate = viewState != state;
+    viewState = state;
+    if (needsUpdate)
+    {
+        [self setBgState:UIControlStateNormal];
+    }
+}
+
 -(UIControlState)realStateForState:(UIControlState)state
 {
-    if ([self enabledForBgState]) return state;
+    if ([self enabledForBgState]) {
+        if (viewState != -1)
+            state = viewState;
+        return state;
+    }
     return UIControlStateDisabled;
+}
+
+-(void)touchSetHighlighted:(BOOL)highlighted
+{
+    [self setHighlighted:highlighted];
+}
+
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch
+{
+    return [TiUtils dictionaryFromTouch:touch inView:self];
+}
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture
+{
+    return [TiUtils dictionaryFromGesture:gesture inView:self];
+}
+
+-(void)handleTouchEvent:(NSString*)event forTouch:(UITouch*)touch
+{
+    if ([self interactionEnabled])
+	{
+		if ([proxy _hasListeners:event])
+		{
+            NSDictionary *evt = [self dictionaryFromTouch:touch];
+			[proxy fireEvent:event withObject:evt checkForListener:NO];
+//			[self handleControlEvents:UIControlEventTouchDown];
+		}
+	}
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
@@ -1597,28 +1942,13 @@ DEFINE_EXCEPTIONS
     [super touchesBegan:touches withEvent:event];
 }
 
--(void)touchSetHighlighted:(BOOL)highlighted
-{
-    [self setHighlighted:highlighted];
-}
-
 - (void)processTouchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     
-    UITouch *touch = [touches anyObject];
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:YES];
     }
-	
-	if ([self interactionEnabled])
-	{
-		if ([proxy _hasListeners:@"touchstart"])
-		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchstart" withObject:evt propagate:YES];
-			[self handleControlEvents:UIControlEventTouchDown];
-		}
-	}
+	[self handleTouchEvent:@"touchstart" forTouch:[touches anyObject]];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
@@ -1640,14 +1970,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:!outside];
     }
-	if ([self interactionEnabled])
-	{
-		if ([proxy _hasListeners:@"touchmove"])
-		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-			[proxy fireEvent:@"touchmove" withObject:evt propagate:YES];
-		}
-	}
+	[self handleTouchEvent:@"touchmove" forTouch:touch];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
@@ -1671,9 +1994,9 @@ DEFINE_EXCEPTIONS
         BOOL hasClick = [proxy _hasListeners:@"click"];
 		if (hasTouchEnd || hasDblclick || hasClick)
 		{
-            NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
+            NSDictionary *evt = [self dictionaryFromTouch:touch];
             if (hasTouchEnd) {
-                [proxy fireEvent:@"touchend" withObject:evt propagate:YES];
+                [proxy fireEvent:@"touchend" withObject:evt checkForListener:NO];
                 [self handleControlEvents:UIControlEventTouchCancel];
             }
             
@@ -1681,7 +2004,7 @@ DEFINE_EXCEPTIONS
             // but DO invoke the touch delegate.
             // clicks should also be handled by any control the view is embedded in.
             if (hasDblclick && [touch tapCount] == 2) {
-                [proxy fireEvent:@"dblclick" withObject:evt propagate:YES];
+                [proxy fireEvent:@"dblclick" withObject:evt checkForListener:NO];
                 return;
             }
             if (hasClick)
@@ -1690,7 +2013,7 @@ DEFINE_EXCEPTIONS
                 BOOL outside = (localPoint.x < -kTOUCH_MAX_DIST || (localPoint.x - self.frame.size.width)  > kTOUCH_MAX_DIST ||
                                 localPoint.y < -kTOUCH_MAX_DIST || (localPoint.y - self.frame.size.height)  > kTOUCH_MAX_DIST);
                 if (!outside && touchDelegate == nil) {
-                    [proxy fireEvent:@"click" withObject:evt propagate:YES];
+                    [proxy fireEvent:@"click" withObject:evt checkForListener:NO];
                     return;
                 } 
             }
@@ -1700,7 +2023,7 @@ DEFINE_EXCEPTIONS
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event 
 {
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
     if ([[event touchesForView:self] count] > 0 || [self touchedContentViewWithEvent:event]) {
         [self processTouchesCancelled:touches withEvent:event];
     }
@@ -1712,15 +2035,7 @@ DEFINE_EXCEPTIONS
     if (_shouldHandleSelection) {
         [self touchSetHighlighted:NO];
     }
-	if ([self interactionEnabled])
-	{
-		UITouch *touch = [touches anyObject];
-		NSDictionary *evt = [TiUtils dictionaryFromTouch:touch inView:self];
-		if ([proxy _hasListeners:@"touchcancel"])
-		{
-			[proxy fireEvent:@"touchcancel" withObject:evt propagate:YES];
-		}
-	}
+	[self handleTouchEvent:@"touchcancel" forTouch:[touches anyObject]];
 }
 
 #pragma mark Listener management
@@ -1844,7 +2159,7 @@ DEFINE_EXCEPTIONS
         self.layer.mask = nil;
     }
     else {
-        if (self.layer.mask == nil) {
+        if (self.layer.mask == nil || [self.layer.mask isKindOfClass:[CAShapeLayer class]]) {
             self.layer.mask = [CALayer layer];
             self.layer.mask.frame = self.layer.bounds;
         }
@@ -1864,46 +2179,62 @@ DEFINE_EXCEPTIONS
 
 -(void)setHighlighted:(BOOL)isHiglighted
 {
-    [self setBgState:[self realStateForState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal]];
+    [self setHighlighted:isHiglighted animated:NO];
+}
+
+-(void)setHighlighted:(BOOL)isHiglighted animated:(BOOL)animated
+{
+    [self setAnimatedTransition:animated];
+    [self setBgState:isHiglighted?UIControlStateHighlighted:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setHighlighted:animated:)])
             {
-                [firstChild setHighlighted:isHiglighted];//swizzle will call setHighlighted on the view
+                [firstChild setHighlighted:isHiglighted animated:animated];//swizzle will call setHighlighted on the view
             }
             else {
-                [(id)thisView setHighlighted:isHiglighted];
+                [(id)thisView setHighlighted:isHiglighted animated:animated];
             }
         }
         else {
-			[(id)thisView setHighlighted:isHiglighted];
+			[(id)thisView setHighlighted:isHiglighted animated:animated];
 		}
 	}
+    [self setAnimatedTransition:NO];
 }
 
 -(void)setSelected:(BOOL)isSelected
 {
-    [self setBgState:[self realStateForState:isSelected?UIControlStateSelected:UIControlStateNormal]];
+    [self setSelected:isSelected animated:NO];
+}
+
+-(void)setSelected:(BOOL)isSelected animated:(BOOL)animated
+{
+    [self setAnimatedTransition:animated];
+    
+    //we dont really support Selected for background as it is not necessary
+    [self setBgState:isSelected?UIControlStateHighlighted:UIControlStateNormal];
     if (!_dispatchPressed) return;
 	for (TiUIView * thisView in [self childViews])
 	{
         if ([thisView.subviews count] > 0) {
             id firstChild = [thisView.subviews objectAtIndex:0];
-            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:)])
+            if ([firstChild isKindOfClass:[UIControl class]] && [firstChild respondsToSelector:@selector(setSelected:animated:)])
             {
-                [firstChild setSelected:isSelected]; //swizzle will call setSelected on the view
+                [firstChild setSelected:isSelected animated:animated]; //swizzle will call setSelected on the view
             }
             else {
-                [(id)thisView setSelected:isSelected];
+                [(id)thisView setSelected:isSelected animated:animated];
             }
         }
         else {
-			[(id)thisView setSelected:isSelected];
+			[(id)thisView setSelected:isSelected animated:animated];
 		}
 	}
+    [self setAnimatedTransition:NO];
 }
 
 - (void)transitionfromView:(TiUIView *)viewOut toView:(TiUIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block{
@@ -1923,6 +2254,7 @@ DEFINE_EXCEPTIONS
 {
     //get the visible rect
     CGRect visibleRect = [self.superview convertRect:self.frame toView:self];
+    if (CGRectIsEmpty(visibleRect)) return;
     visibleRect.origin.y += self.frame.origin.y;
     visibleRect.origin.x += self.frame.origin.x;
     

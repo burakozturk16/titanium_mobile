@@ -123,11 +123,18 @@
     }
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self textWidgetView] setExclusiveTouch:value];
+}
+
 #pragma mark Public APIs
 
 -(void)setEnabled_:(id)value
 {
-	[(UITextView *)[self textWidgetView] setEditable:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[(UITextView *)[self textWidgetView] setEditable:[self interactionEnabled]];
 }
 
 -(void)setScrollable_:(id)value
@@ -159,6 +166,13 @@
 {
 	[[self textWidgetView] setBackgroundColor:[Webcolor webColorNamed:color]];
 }
+
+
+-(void)setPadding:(UIEdgeInsets)inset
+{
+	[(UITextView *)[self textWidgetView] setTextContainerInset:inset];
+}
+
 
 #pragma mark Public Method
 
@@ -203,6 +217,7 @@
 
 - (BOOL)textView:(UITextView *)textView shouldInteractWithURL:(NSURL *)URL inRange:(NSRange)characterRange
 {
+    BOOL handleLinksSet = ([[self proxy] valueForUndefinedKey:@"handleLinks"] != nil);
     if([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
         NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
                                    [URL absoluteString], @"url",
@@ -210,7 +225,11 @@
                                    nil];
         [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO reportSuccess:NO errorCode:0 message:nil];
     }
-    return handleLinks;
+    if (handleLinksSet) {
+        return handleLinks;
+    } else {
+        return YES;
+    }
 }
 
 - (void)textViewDidBeginEditing:(UITextView *)tv
@@ -222,9 +241,9 @@
 {
 	NSString * text = [(UITextView *)textWidgetView text];
 
-	if (returnActive && [self.proxy _hasListeners:@"return"])
+    if (returnActive && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"]];
+		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:text forKey:@"value"] propagate:NO checkForListener:NO];
 	}	
 
 	returnActive = NO;
@@ -265,7 +284,10 @@
 	NSString *curText = [[tv text] stringByReplacingCharactersInRange:range withString:text];
 	if ([text isEqualToString:@"\n"])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[(UITextView *)textWidgetView text] forKey:@"value"]];
+        if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+        {
+            [self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[(UITextView *)textWidgetView text] forKey:@"value"] propagate:NO checkForListener:NO];
+        }
 		if (suppressReturn)
 		{
 			[tv resignFirstResponder];

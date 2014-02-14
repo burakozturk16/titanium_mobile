@@ -12,6 +12,9 @@ import org.appcelerator.titanium.animation.TiAnimation;
 import org.appcelerator.titanium.animation.TiAnimator;
 import org.appcelerator.titanium.animation.TiAnimatorListener;
 import org.appcelerator.titanium.animation.TiAnimatorSet;
+import org.appcelerator.titanium.animation.TiInterpolator;
+
+import android.view.animation.Interpolator;
 
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.AnimatorSet;
@@ -137,28 +140,34 @@ public class AnimatableProxy extends KrollProxy {
 		List<Animator> list = new ArrayList<Animator>();
 		List<Animator> listReverse = tiSet.autoreverse?new ArrayList<Animator>():null;
 		
-		prepareAnimatorSet(tiSet, list, listReverse, options);
+		prepareAnimatorSet(tiSet, list, listReverse, (HashMap) options.clone());
 		
 		int repeatCount = (tiSet.repeat == ValueAnimator.INFINITE ? tiSet.repeat : tiSet.repeat - 1);
 		tiSet.setRepeatCount(repeatCount);
-		
+		Interpolator interpolator = tiSet.curve;
+
 		for (int i = 0; i < list.size(); i++) {
 			ValueAnimator anim = (ValueAnimator) list.get(i);
 			if (tiSet.delay != null)
 				anim.setStartDelay(tiSet.delay.longValue());
 			if (tiSet.duration != null)
 				anim.setDuration(tiSet.duration.longValue());
+			if (interpolator != null)
+				anim.setInterpolator(interpolator);
 		}
 		set.playTogether(list);
 		
 		//reverse set
 		if (listReverse != null) {
 			AnimatorSet reverseSet = tiSet.getOrCreateReverseSet();
+			Interpolator reverseInterpolator = (interpolator != null)?new TiInterpolator.ReverseInterpolator(interpolator):null;
 			for (int i = 0; i < listReverse.size(); i++) {
 				ValueAnimator anim = (ValueAnimator) listReverse.get(i);
 				//no startdelay for the reversed animation
 				if (tiSet.duration != null)
 					anim.setDuration(tiSet.duration.longValue());
+				if (reverseInterpolator != null)
+					anim.setInterpolator(reverseInterpolator);
 			}
 			reverseSet.playTogether(listReverse);
 		}

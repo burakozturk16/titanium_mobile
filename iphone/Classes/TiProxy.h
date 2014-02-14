@@ -102,7 +102,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 @interface TiProxy : NSObject<KrollTargetable> {
 @public
 	BOOL _bubbleParent;
-
+	BOOL _bubbleParentDefined;
+    
 @private
 	NSMutableDictionary *listeners;
 	BOOL destroyed;
@@ -303,23 +304,20 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 -(void)fireEvent:(id)args;
 -(void)fireEvent:(NSString*)type withObject:(id)obj;
+-(void)fireEvent:(NSString*)type withObject:(id)obj checkForListener:(BOOL)checkForListener;
 
 //For UI events:
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn;
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn;
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn checkForListener:(BOOL)checkForListener;
 
 //For events that report an error or success
 -(void)fireEvent:(NSString*)type withObject:(id)obj errorCode:(int)code message:(NSString*)message;
 
 //What classes should actually override:
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-
-//Temporary override point during the transition. Both the one below AND the one above should be overridden if needed.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-
-//** Deprecated: bubbling is done at a lower point so source is always 'self' at this point.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source;
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)yn;
-
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message checkForListener:(BOOL)checkForListener;
 
 /**
  Returns a dictionary of all properties set on the proxy object.

@@ -19,34 +19,26 @@
 #endif
 
 @implementation TiTextField
-
-@synthesize leftButtonPadding, rightButtonPadding, paddingLeft, paddingRight, becameResponder;
+{
+    UIEdgeInsets _padding;
+}
+@synthesize padding = _padding, becameResponder;
 
 -(void)configure
 {
-	// defaults
-	leftMode = UITextFieldViewModeAlways;
-	rightMode = UITextFieldViewModeAlways;
-	leftButtonPadding = 0;
-	rightButtonPadding = 0;
-	paddingLeft = 0;
-	paddingRight = 0;
+    _padding = UIEdgeInsetsZero;
 	[super setLeftViewMode:UITextFieldViewModeAlways];
-	[super setRightViewMode:UITextFieldViewModeAlways];	
+	[super setRightViewMode:UITextFieldViewModeAlways];
+    _hintColor = nil;
 }
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(left);
-	RELEASE_TO_NIL(right);
-	RELEASE_TO_NIL(leftView);
-	RELEASE_TO_NIL(rightView);
 	[super dealloc];
 }
 
 -(void)setTouchHandler:(TiUIView*)handler
 {
-	//Assign only. No retain
 	touchHandler = handler;
 }
 
@@ -80,118 +72,10 @@
 	return view;
 }
 
--(void)updateLeftView
+-(void)setPadding:(UIEdgeInsets)value
 {
-	if (left == nil)
-	{
-		left = [self newPadView:leftButtonPadding + paddingLeft height:10];
-		left.frame = CGRectMake(0, 0, left.frame.size.width, left.frame.size.height);
-		[super setLeftView:left];
-	}
-	else 
-	{
-		CGFloat width = leftButtonPadding + paddingLeft;
-		CGFloat height = 10;
-		if (leftView!=nil)
-		{
-			width += leftView.frame.size.width;
-			height = leftView.frame.size.height;
-		}
-		left.frame = CGRectMake(leftButtonPadding, 0, width, height);
-	}
-}
-
--(void)updateRightView
-{
-	if (right == nil)
-	{
-		right = [self newPadView:rightButtonPadding + paddingRight height:10];
-		right.frame = CGRectMake(0, 0, right.frame.size.width, right.frame.size.height);
-		[super setRightView:right];
-	}
-	else 
-	{
-		CGFloat width = rightButtonPadding + paddingRight;
-		CGFloat height = 10;
-		if (rightView!=nil)
-		{
-			width += rightView.frame.size.width;
-			height = rightView.frame.size.height;
-		}
-		right.frame = CGRectMake(rightButtonPadding, 0, width, height);
-	}
-}
-
--(void)setPaddingLeft:(CGFloat)left_
-{
-	paddingLeft = left_;
-	[self updateLeftView];
-}
-
--(void)setPaddingRight:(CGFloat)right_
-{
-	paddingRight = right_;
-	[self updateRightView];
-}
-
--(void)setLeftButtonPadding:(CGFloat)left_
-{
-	leftButtonPadding = left_;
-	[self updateLeftView];
-}
-
--(void)setRightButtonPadding:(CGFloat)right_
-{
-	rightButtonPadding = right_;
-	[self updateRightView];
-}
-
--(void)setSubviewVisibility:(UIView*)view hidden:(BOOL)hidden
-{
-	for (UIView *v in [view subviews])
-	{
-		v.hidden = hidden;
-	}	
-}
-
--(void)updateMode:(UITextFieldViewMode)mode forView:(UIView*)view
-{
-	switch(mode)
-	{
-		case UITextFieldViewModeNever:
-		{
-			[self setSubviewVisibility:view hidden:YES];
-			break;
-		}
-		case UITextFieldViewModeWhileEditing:
-		{
-			[self setSubviewVisibility:view hidden:![self isEditing]];
-			break;
-		}
-		case UITextFieldViewModeUnlessEditing:
-		{
-			[self setSubviewVisibility:view hidden:[self isEditing]];
-			break;
-		}
-		case UITextFieldViewModeAlways:
-		default:
-		{
-			[self setSubviewVisibility:view hidden:NO];
-			break;
-		}
-	}
-}
-
--(void)repaintMode
-{
-	if (left!=nil)
-	{
-		[self updateMode:leftMode forView:left];
-	}
-	if (right!=nil)
-	{
-		[self updateMode:rightMode forView:right];
-	}
+    _padding = value;
+    [self setNeedsLayout];
 }
 
 -(BOOL)canBecomeFirstResponder
@@ -201,27 +85,27 @@
 
 -(BOOL)resignFirstResponder
 {
-	becameResponder = NO;
-	
 	if ([super resignFirstResponder])
 	{
-		[self repaintMode];
-		return YES;
+        if (becameResponder) {
+            becameResponder = NO;
+            [touchHandler makeRootViewFirstResponder];
+        }
+        return YES;
 	}
 	return NO;
 }
 
 -(BOOL)becomeFirstResponder
 {
-	if (self.canBecomeFirstResponder) {
-		if ([super becomeFirstResponder])
-		{
-			becameResponder = YES;
-			[self repaintMode];
-			return YES;
-		}
-	}
-	return NO;
+    if (self.isEnabled) {
+        if ([super becomeFirstResponder])
+        {
+            becameResponder = YES;
+            return YES;
+        }
+    }
+    return NO;
 }
 
 
@@ -231,42 +115,91 @@
 	return [super isFirstResponder];
 }
 
--(void)setLeftView:(UIView*)value
+- (CGRect)textRectForBounds:(CGRect)bounds
 {
-	if ((value != nil) && (paddingLeft > 0.5))
-	{
-		CGRect wrapperFrame = [value bounds];
-		wrapperFrame.size.width += paddingLeft;
-		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-		
-		CGPoint valueCenter = [value center];
-		valueCenter.x += paddingLeft;
-		[value setCenter:valueCenter];
-		
-		[wrapperView addSubview:value];
-		value = wrapperView;
-		[wrapperView autorelease];
-	}
-
-	[super setLeftView:value];
+    CGRect result = UIEdgeInsetsInsetRect(bounds, _padding);
+    if ([self leftView]){
+        CGRect rect = [self leftViewRectForBounds:result];
+        CGFloat width = rect.origin.x - rect.size.width;
+        result.origin.y +=width;
+        result.size.width -= width;
+    }
+    if ([self rightView]){
+        CGRect rect = [self rightViewRectForBounds:result];
+        CGFloat width = result.size.width - rect.origin.x;
+        result.size.width -= width;
+    }
+    return result;
+}
+- (CGRect)editingRectForBounds:(CGRect)bounds
+{
+    return [self textRectForBounds:bounds];
 }
 
--(void)setRightView:(UIView*)value
+- (CGRect)leftViewRectForBounds:(CGRect)bounds
 {
-	if ((value != nil) && (paddingRight > 0.5))
-	{
-		CGRect wrapperFrame = [value bounds];
-		wrapperFrame.size.width += paddingRight;
-		UIView * wrapperView = [[UIView alloc] initWithFrame:wrapperFrame];
-
-		[wrapperView addSubview:value];
-		value = wrapperView;
-		[wrapperView autorelease];
-	}
-
-	[super setRightView:value];
+    if ([[self leftView] isKindOfClass:[TiUIView class]]){
+        TiViewProxy* proxy  = (TiViewProxy*)[((TiUIView*)[self leftView]) proxy];
+        CGRect frame = [proxy computeBoundsForParentBounds:bounds];
+        return frame;
+    }
+    return [super rightViewRectForBounds:bounds];
 }
 
+- (CGRect)rightViewRectForBounds:(CGRect)bounds
+{
+    if ([[self rightView] isKindOfClass:[TiUIView class]]){
+        TiViewProxy* proxy  = (TiViewProxy*)[((TiUIView*)[self rightView]) proxy];
+        CGRect frame = [proxy computeBoundsForParentBounds:bounds];
+        return frame;
+    }
+    return [super rightViewRectForBounds:bounds];
+}
+
+- (void)drawPlaceholderInRect:(CGRect)rect {
+    if (!_hintColor) {
+        [super drawPlaceholderInRect:rect];
+    }
+    else{
+        [_hintColor setFill];
+        // Get the size of placeholder text. We will use height to calculate frame Y position
+        CGSize size = [self.placeholder sizeWithFont:self.font];
+        
+        // Vertically centered frame
+        CGRect placeholderRect;
+        switch (self.contentVerticalAlignment) {
+            case UIControlContentVerticalAlignmentTop:
+                placeholderRect = rect;
+                break;
+            case UIControlContentVerticalAlignmentCenter:
+                placeholderRect = CGRectMake(rect.origin.x, (rect.size.height - size.height)/2, rect.size.width, size.height);
+                break;
+            case UIControlContentVerticalAlignmentBottom:
+                placeholderRect = CGRectMake(rect.origin.x, rect.size.height - size.height, rect.size.width, size.height);
+                break;
+            default:
+                break;
+        }
+        
+        // Check if OS version is 7.0+ and draw placeholder a bit differently
+        if (IOS_7) {
+            
+            NSMutableParagraphStyle *style = [[NSMutableParagraphStyle alloc] init];
+            style.lineBreakMode = NSLineBreakByTruncatingTail;
+            style.alignment = self.textAlignment;
+            NSDictionary *attr = [NSDictionary dictionaryWithObjectsAndKeys:style,NSParagraphStyleAttributeName, self.font, NSFontAttributeName, _hintColor, NSForegroundColorAttributeName, nil];
+            
+            [self.placeholder drawInRect:placeholderRect withAttributes:attr];
+            
+            
+        } else {
+            [self.placeholder drawInRect:placeholderRect
+                                withFont:self.font
+                           lineBreakMode:NSLineBreakByTruncatingTail
+                               alignment:self.textAlignment];
+        }
+    }
+}
 
 @end
 
@@ -310,34 +243,24 @@
 	return textWidgetView;
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self textWidgetView] setExclusiveTouch:value];
+}
 
 #pragma mark Public APIs
 
--(void)setPaddingLeft_:(id)value
+-(void)setPadding:(UIEdgeInsets)inset
 {
-	[self textWidgetView].paddingLeft = [TiUtils floatValue:value];
-}
-
--(void)setLeftButtonPadding_:(id)value
-{
-	[self textWidgetView].leftButtonPadding = [TiUtils floatValue:value];
-}
-
--(void)setPaddingRight_:(id)value
-{
-	[self textWidgetView].paddingRight = [TiUtils floatValue:value];
-}
-
--(void)setRightButtonPadding_:(id)value
-{
-	[self textWidgetView].rightButtonPadding = [TiUtils floatValue:value];
+    [self textWidgetView].padding = inset;
 }
 
 -(void)setEditable_:(id)value
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"enabled"] def:YES]);
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
+    [self setBgState:UIControlStateNormal];
 }
 
 -(BOOL) enabledForBgState {
@@ -347,13 +270,19 @@
 -(void)setEnabled_:(id)value
 {
 	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
+    [super setEnabled_:_trulyEnabled];
 	[[self textWidgetView] setEnabled:_trulyEnabled];
-    [self setBgState:[self realStateForState:UIControlStateNormal]];
 }
 
 -(void)setHintText_:(id)value
 {
 	[[self textWidgetView] setPlaceholder:[TiUtils stringValue:value]];
+}
+
+
+-(void)setHintColor_:(id)value
+{
+	[self textWidgetView].hintColor = [[TiUtils colorValue:value] color];
 }
 
 -(void)setAttributedHintText_:(id)value
@@ -400,11 +329,16 @@
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		[[self textWidgetView] setLeftView:[vp getOrCreateView]];
+        LayoutConstraint* constraint = [vp layoutProperties];
+        if (TiDimensionIsUndefined(constraint->left))
+        {
+            constraint->left = TiDimensionDip(0);
+        }
+		[[self textWidgetView] setLeftView:[vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds]];
 	}
 	else
 	{
-		UIView* leftView = [[self textWidgetView] rightView];
+		UIView* leftView = [[self textWidgetView] leftView];
         if ([leftView isKindOfClass:[TiUIView class]]){
             [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
             [[self textWidgetView] setLeftView:nil];
@@ -417,25 +351,17 @@
 	[[self textWidgetView] setLeftViewMode:[TiUtils intValue:value]];
 }
 
--(void)updateBounds:(CGRect)newBounds
-{
-    [super updateBounds:newBounds];
-    UIView* rightView = [[self textWidgetView] rightView];
-    if ([rightView isKindOfClass:[TiUIView class]]){
-        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)rightView) proxy]) withParent:self];
-    }
-    UIView* leftView = [[self textWidgetView] rightView];
-    if ([leftView isKindOfClass:[TiUIView class]]){
-        [(TiViewProxy*)[self proxy] layoutNonRealChild:((TiViewProxy*)[((TiUIView*)leftView) proxy]) withParent:self];
-    }
-}
-
 -(void)setRightButton_:(id)value
 {
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
 		TiViewProxy *vp = (TiViewProxy*)value;
-		[[self textWidgetView] setRightView:[vp getOrCreateView]];
+        LayoutConstraint* constraint = [vp layoutProperties];
+        if (TiDimensionIsUndefined(constraint->right))
+        {
+            constraint->right = TiDimensionDip(0);
+        }
+		[[self textWidgetView] setRightView:[vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds]];
 	}
 	else
 	{
@@ -454,25 +380,8 @@
 
 -(void)setVerticalAlign_:(id)value
 {
-	if ([value isKindOfClass:[NSString class]])
-	{
-		if ([value isEqualToString:@"top"])
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentTop];
-		}
-		else if ([value isEqualToString:@"middle"] || [value isEqualToString:@"center"])
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
-		}
-		else 
-		{
-			[[self textWidgetView] setContentVerticalAlignment:UIControlContentVerticalAlignmentBottom];
-		}
-	}
-	else
-	{
-		[[self textWidgetView] setContentVerticalAlignment:[TiUtils intValue:value]];
-	}
+    UIControlContentVerticalAlignment verticalAlign = [TiUtils contentVerticalAlignmentValue:value];
+    [[self textWidgetView] setContentVerticalAlignment:verticalAlign];
 }
 
 #pragma mark Public Method
@@ -494,6 +403,7 @@
         NSString* theText = [ourProxy valueForKey:@"value"];
         [tf setText:theText];
     }
+    [self setViewState:UIControlStateHighlighted];
     
 	[self textWidget:tf didFocusWithText:[tf text]];
 	[self performSelector:@selector(textFieldDidChange:) onThread:[NSThread currentThread] withObject:nil waitUntilDone:NO];
@@ -511,17 +421,16 @@
 {
 	NSString *curText = [[tf text] stringByReplacingCharactersInRange:range withString:string];
    
-	if ( (maxLength > -1) && ([curText length] > maxLength) ) {
-		[self setValue_:curText];
-		return NO;
-	}
-
-	[(TiUITextFieldProxy *)self.proxy noteValueChange:curText];
+    if ( (maxLength > -1) && ([curText length] > maxLength) ) {
+        [self setValue_:curText];
+        return NO;
+    }
 	return YES;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)tf
 {
+    [self setViewState:-1];
 	[self textWidget:tf didBlurWithText:[tf text]];
 }
 
@@ -529,7 +438,8 @@
 {
     TiUITextWidgetProxy * ourProxy = (TiUITextWidgetProxy *)[self proxy];
     
-    //TIMOB-14563. This is incorrect when passowrd mark is used. Just ignore.
+    
+   //TIMOB-14563. This is incorrect when passowrd mark is used. Just ignore.
     if ([ourProxy suppressFocusEvents]) {
         return;
     }
@@ -550,9 +460,9 @@
 
 -(BOOL)textFieldShouldReturn:(UITextField *)tf 
 {
-	if ([self.proxy _hasListeners:@"return"])
+    if ([(TiViewProxy*)self.proxy _hasListeners:@"return" checkParent:NO])
 	{
-		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"]];
+		[self.proxy fireEvent:@"return" withObject:[NSDictionary dictionaryWithObject:[tf text] forKey:@"value"] propagate:NO checkForListener:NO];
 	}
     
     if ([self textWidgetView].returnKeyType == UIReturnKeyNext)
@@ -565,9 +475,6 @@
 		[tf resignFirstResponder];
 		return NO;
 	}
-    
-    
-
 	return YES;
 }
 
@@ -576,8 +483,6 @@
 	return [[self textWidgetView] sizeThatFits:size];
 }
 
-
-	
 @end
 
 #endif

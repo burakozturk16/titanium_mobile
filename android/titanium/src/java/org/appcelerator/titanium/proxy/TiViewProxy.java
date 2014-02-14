@@ -144,17 +144,21 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
 	
 	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
+	protected ArrayList<HashMap> pendingTransitions;
+	protected Object pendingTransitionLock;
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
 	 */
 	public TiViewProxy()
 	{
-		pendingAnimationLock = new Object();
-		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
-		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
-		defaultValues.put(TiC.PROPERTY_KEEP_SCREEN_ON, false);
-		defaultValues.put(TiC.PROPERTY_ENABLED, true);
+		pendingTransitionLock = new Object();
+		pendingTransitions = new ArrayList<HashMap>();
+//		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
+//		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
+		setProperty(TiC.PROPERTY_VISIBLE, true);
+		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
+		setProperty(TiC.PROPERTY_ENABLED, true);
 	}
 
 	@Override
@@ -172,95 +176,20 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			super.handleCreationDict(options);
 		}
 		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
-			initFromTemplate(options, this);
-			needsToUpdateProps = true;
+			initFromTemplate(options, this, true, true);
+			if (needsToUpdateProps) {
+				updateKrollObjectProperties();
+				needsToUpdateProps = false;
+			}
+			else {
+				updatePropertiesNativeSide();
+			}
 		}
 		if (needsToUpdateProps) {
 			updateKrollObjectProperties();
 		}
-//		options = handleStyleOptions(options);
-//		super.handleCreationDict(options);
-
-		//TODO eventManager.addOnEventChangeListener(this);
 	}
-	
-//	private static HashMap<TiUrl,String> styleSheetUrlCache = new HashMap<TiUrl,String>(5);
-//	protected String getBaseUrlForStylesheet()
-//	{
-//		TiUrl creationUrl = getCreationUrl();
-//		if (styleSheetUrlCache.containsKey(creationUrl)) {
-//			return styleSheetUrlCache.get(creationUrl);
-//		}
-//
-//		String baseUrl = creationUrl.baseUrl;
-//		if (baseUrl == null || (baseUrl.equals("app://") && creationUrl.url.equals(""))) {
-//			baseUrl = "app://app.js";
-//		} else {
-//			baseUrl = creationUrl.resolve();
-//		}
-//
-//		int idx = baseUrl.lastIndexOf("/");
-//		if (idx != -1) {
-//			baseUrl = baseUrl.substring(idx + 1).replace(".js", "");
-//		}
-//		
-//		styleSheetUrlCache.put(creationUrl,baseUrl);
-//		return baseUrl;
-//	}
 
-//	protected KrollDict handleStyleOptions(KrollDict options)
-//	{
-//		String viewId = getProxyId();
-//		TreeSet<String> styleClasses = new TreeSet<String>();
-//		// TODO styleClasses.add(getShortAPIName().toLowerCase());
-//
-//		if (options.containsKey(TiC.PROPERTY_ID)) {
-//			viewId = TiConvert.toString(options, TiC.PROPERTY_ID);
-//		}
-//		if (options.containsKey(TiC.PROPERTY_CLASS_NAME)) {
-//			String className = TiConvert.toString(options, TiC.PROPERTY_CLASS_NAME);
-//			for (String clazz : className.split(" ")) {
-//				styleClasses.add(clazz);
-//			}
-//		}
-//		if (options.containsKey(TiC.PROPERTY_CLASS_NAMES)) {
-//			Object c = options.get(TiC.PROPERTY_CLASS_NAMES);
-//			if (c.getClass().isArray()) {
-//				int length = Array.getLength(c);
-//				for (int i = 0; i < length; i++) {
-//					Object clazz = Array.get(c, i);
-//					if (clazz != null) {
-//						styleClasses.add(clazz.toString());
-//					}
-//				}
-//			}
-//		}
-//
-//		String baseUrl = getBaseUrlForStylesheet();
-//		KrollDict dict = TiApplication.getInstance().getStylesheet(baseUrl, styleClasses, viewId);
-//		if (dict == null || dict.isEmpty()) {
-//			return options;
-//		}
-//		
-//		extend(dict);
-//		if (Log.isDebugModeEnabled()) {
-//			Log.d(TAG, "trying to get stylesheet for base:" + baseUrl + ",classes:" + styleClasses + ",id:" + viewId + ",dict:"
-//				+ dict, Log.DEBUG_MODE);
-//		}
-//		// merge in our stylesheet details to the passed in dictionary
-//		// our passed in dictionary takes precedence over the stylesheet
-//		dict.putAll(options);
-//		return dict;
-//	}
-
-//	public TiViewAnimator getPendingAnimation()
-//	{
-//		synchronized(pendingAnimationLock) {
-//			return (TiViewAnimator) pendingAnimation;
-//		}
-//	}
-
-	
 
 	//This handler callback is tied to the UI thread.
 	public boolean handleMessage(Message msg)
@@ -507,6 +436,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		return null;
 	}
 	
+	public View getFocusView()
+	{
+		if (view  != null)
+			return view.getFocusView();
+		return null;
+	}
+	
+	
 	public View getOuterView()
 	{
 		if (view  != null)
@@ -631,6 +568,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	{
 		return handleGetView(true);
 	}
+	
+	public void realizeViews()
+	{
+		realizeViews(view, true, true);
+	}
 
 	public void realizeViews(TiUIView view, boolean enableModelListener)
 	{
@@ -727,16 +669,21 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 	
+	
+	protected void addBinding(String bindId, TiViewProxy bindingProxy)
+	{
+		if (bindId == null) return;
+		setProperty(bindId, bindingProxy);
+		addPropToUpdateNativeSide(bindId, bindingProxy);
+	}
+	
 	@SuppressWarnings("unchecked")
 	protected void initFromTemplate(HashMap template_,
-			TiViewProxy rootProxy) {
-		if (rootProxy != null
-				&& template_.containsKey(TiC.PROPERTY_BIND_ID)) {
-			String bindId = TiConvert.toString(template_, TiC.PROPERTY_BIND_ID);
-			rootProxy.setProperty(bindId,this);
-			rootProxy.addPropToUpdateNativeSide(bindId,this);
+			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
+		if (rootProxy != null) {
+			rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),this);
 		}
-		if (template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
+		if (recursive && template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
 			Object childProperties = template_
 					.get(TiC.PROPERTY_CHILD_TEMPLATES);
 			if (childProperties instanceof Object[]) {
@@ -747,9 +694,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 						this.add((TiViewProxy) childDict);
 					} else {
 						TiViewProxy childProxy = createViewFromTemplate(
-								(HashMap) childDict, rootProxy, false);
+								(HashMap) childDict, rootProxy, updateKrollProperties);
 						if (childProxy != null){
-							childProxy.updateKrollObjectProperties();
+							if (updateKrollProperties) childProxy.updateKrollObjectProperties();
 							this.add(childProxy);
 						}
 					}
@@ -772,10 +719,14 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 	}
-
+	
+	public static TiViewProxy createViewFromTemplate(HashMap template_,
+			TiViewProxy rootProxy, boolean updateKrollProperties) {
+		return createViewFromTemplate(template_, rootProxy, updateKrollProperties, true);
+	}
 	@SuppressWarnings("unchecked")
-	public TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateRootProperties) {
+	public static TiViewProxy createViewFromTemplate(HashMap template_,
+			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
 		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
 				"Ti.UI.View");
 		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
@@ -787,13 +738,32 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 					new Object[] { properties }, null);
 			if (proxy == null)
 				return null;
-			proxy.initFromTemplate(template_, rootProxy);
-			if (updateRootProperties) {
+			proxy.initFromTemplate(template_, rootProxy, updateKrollProperties, recursive);
+			if (updateKrollProperties) {
 				rootProxy.updatePropertiesNativeSide();
 			}
 			return proxy;
 		} catch (Exception e) {
-			e.printStackTrace();
+			Log.e(TAG, "Error creating view from template: " + e.toString());
+			return null;
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static TiViewProxy createTypeViewFromDict(HashMap template_,
+			String type) {
+		Object properties = template_.get(TiC.PROPERTY_PROPERTIES);
+		try {
+			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+					.forName(APIMap.getProxyClass(type));
+			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
+					new Object[] { properties }, null);
+			if (proxy == null)
+				return null;
+			proxy.initFromTemplate(template_, proxy, false, true);
+			return proxy;
+		} catch (Exception e) {
+			Log.e(TAG, "Error creating view from dict: " + e.toString());
 			return null;
 		}
 	}
@@ -830,7 +800,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
 					this, true);
 			if (childProxy != null) {
-				childProxy.updateKrollObjectProperties();
+//				childProxy.updateKrollObjectProperties();
 				add(childProxy);
 			}
 		} else {
@@ -1039,6 +1009,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	public void handlePendingAnimation(boolean forceQueue)
 	{
+		if (view == null) return;
 		if (pendingAnimations.size() > 0) {
 			if (forceQueue || !(TiApplication.isUIThread())) {
 				if (Build.VERSION.SDK_INT < TiC.API_LEVEL_HONEYCOMB) {
@@ -1056,6 +1027,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	ViewSwitcher flipper = null;
+
+	private boolean transitioning;
 	@SuppressLint("NewApi")
 	protected void handleAnimate()
 	{
@@ -1193,44 +1166,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		return view.toImage(scale);
 	}
-
-
-	/**
-	 * Fires an event that can optionally be "bubbled" to the parent view.
-	 *
-	 * @param eventName event to get dispatched to listeners
-	 * @param data data to include in the event
-	 * @param bubbles if true will send the event to the parent view after it has been dispatched to this view's listeners.
-	 * @return true if the event was handled
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public boolean fireEvent(String eventName, Object data, boolean bubbles)
-	{
-		if (data == null) {
-			data = new KrollDict();
-		}
-
-		// Set the "bubbles" property to indicate if the event needs to be bubbled.
-		if (data instanceof HashMap) {
-			((HashMap)data).put(TiC.PROPERTY_BUBBLES, bubbles);
-		}
-
-		// Dispatch the event to JavaScript which takes care of the bubbling.
-		return super.fireEvent(eventName, data);
-	}
-
-	/**
-	 * Fires an event that will be bubbled to the parent view.
-	 */
-	@Override
-	public boolean fireEvent(String eventName, Object data)
-	{
-		// To remain compatible this override of fireEvent will always
-		// bubble the event to the parent view. It should eventually be deprecated
-		// in favor of using the fireEvent(String, Object, boolean) method.
-		return fireEvent(eventName, data, true);
-	}
-
+	
 	/**
 	 * @return The parent view proxy of this view proxy.
 	 * @module.api
@@ -1557,8 +1493,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 	
 	private void handleTransitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg) {
-		Log.w(TAG, "handleTransitionViews "  + viewOut + " " + viewIn);
-		if (viewOut != null && !children.contains(viewOut)) return;
+		if ((viewOut == null && viewIn == null) || (viewOut != null && !children.contains(viewOut))){
+			transitioning = false;
+			handlePendingTransition();
+			return;
+		}
 
 		final ViewGroup viewToAddTo = (ViewGroup) getParentViewForChild();
 		
@@ -1582,6 +1521,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
 						}
+						transitioning = false;
+						handlePendingTransition();
 					}
 
 					public void onAnimationCancel(Animator arg0) {
@@ -1590,6 +1531,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 							viewToAddTo.removeView(viewToHide);
 							remove(viewOut);
 						}
+						transitioning = false;
+						handlePendingTransition();
 					}
 
 					public void onAnimationRepeat(Animator arg0) {
@@ -1605,6 +1548,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				if (viewOut!=null) {
 					viewToAddTo.removeView(viewToHide);
 					remove(viewOut);
+					transitioning = false;
+					handlePendingTransition();
 				}
 			}
 			if (viewIn!=null) viewToAdd.setVisibility(View.VISIBLE);
@@ -1612,12 +1557,39 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		else {
 			if (viewIn!=null) add(viewIn);
 			if (viewOut!=null) remove(viewOut);
+			transitioning = false;
+			handlePendingTransition();
 		}
+	}
+	
+	protected void handlePendingTransition()
+	{
+		HashMap<String, Object> pendingTransition = null;
+		synchronized (pendingTransitionLock) {
+			if (pendingTransitions.size() == 0) {
+				return;
+			}
+			pendingTransition = pendingTransitions.remove(0);
+		}
+		
+		transitionViews((TiViewProxy)pendingTransition.get("viewOut"), 
+				(TiViewProxy)pendingTransition.get("viewIn"), pendingTransition.get("arg"));
 	}
 	
 	@Kroll.method
 	public void transitionViews(final TiViewProxy viewOut, final TiViewProxy viewIn, Object arg)
 	{
+		if (transitioning) {
+			synchronized (pendingTransitionLock) {
+				HashMap<String, Object> pending = new HashMap<String, Object>();
+				pending.put("viewOut", viewOut);
+				pending.put("viewIn", viewIn);
+				pending.put("arg", arg);
+				pendingTransitions.add(pending);
+			}
+			return;
+		}
+		transitioning = true;
 		if (TiApplication.isUIThread()) {
 			handleTransitionViews(viewOut, viewIn, arg);
 		} else {

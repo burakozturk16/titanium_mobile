@@ -22,7 +22,6 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
-import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -250,11 +249,12 @@ public class TiCompositeLayout extends FreeLayout implements
 	{
 		if (params.sizeOrFillWidthEnabled == false) return false;
 		if (params.autoFillsWidth) return true;
+		boolean borderView = (view instanceof TiBorderWrapperView);
 		if (view instanceof ViewGroup) {
 			ViewGroup viewGroup = (ViewGroup)view;
 	        for (int i=0; i<viewGroup.getChildCount(); i++) {
 	            View child = viewGroup.getChildAt(i);
-	        	ViewGroup.LayoutParams childParams = child.getLayoutParams();
+	        	ViewGroup.LayoutParams childParams = borderView?params:child.getLayoutParams();
 	        	if (childParams instanceof LayoutParams && viewShouldFillHorizontalLayout(child, (LayoutParams) childParams)) {
 	        		return true;
 	        	}
@@ -632,7 +632,7 @@ public class TiCompositeLayout extends FreeLayout implements
 
 	public int getChildSize(View child, TiCompositeLayout.LayoutParams params,
 			int left, int top, int bottom, int right, int currentHeight,
-			int[] horizontal, int[] vertical) {
+			int[] horizontal, int[] vertical, boolean firstVisibleChild) {
 
 		if (child.getVisibility() == View.GONE
 				|| child.getVisibility() == View.INVISIBLE)
@@ -645,7 +645,7 @@ public class TiCompositeLayout extends FreeLayout implements
 		int childMeasuredWidth = child.getMeasuredWidth();
 
 		if (isHorizontalArrangement()) {
-			if (i == 0) {
+			if (firstVisibleChild) {
 				horizontalLayoutCurrentLeft = left;
 				horizontalLayoutLineHeight = 0;
 				horizontalLayoutTopBuffer = 0;
@@ -671,34 +671,35 @@ public class TiCompositeLayout extends FreeLayout implements
 			computePosition(this, params.optionLeft, params.optionCenterX,
 					params.optionRight, childMeasuredWidth, left, right,
 					horizontal);
-			if (isVerticalArrangement()) {
+			if (verticalArr) {
 				computeVerticalLayoutPosition(currentHeight, params.optionTop,
 						childMeasuredHeight, top, vertical, bottom, params);
 				// Include bottom in height calculation for vertical layout
 				// (used as padding)
-				currentHeight += getLayoutOptionAsPixels(params.optionBottom, TiDimension.TYPE_BOTTOM, params, this);
+				currentHeight +=  (params.optionBottom != null)?params.optionBottom.getAsPixels(this):0;
 			} else {
 				computePosition(this, params.optionTop, params.optionCenterY,
 						params.optionBottom, childMeasuredHeight, top, bottom,
 						vertical);
-			}
-			
-			if (params instanceof AnimationLayoutParams) {
-				float fraction = ((AnimationLayoutParams) params).animationFraction;
-				if (fraction < 1.0f) {
-					Rect startRect = ((AnimationLayoutParams) params).startRect;
-					if (startRect != null) {
-						horizontal[0] = (int) (horizontal[0] * fraction + (1 - fraction)
-								* startRect.left);
-						horizontal[1] = (int) (horizontal[1] * fraction + (1 - fraction)
-								* startRect.right);
-						vertical[0] = (int) (vertical[0] * fraction + (1 - fraction)
-								* startRect.top);
-						vertical[1] = (int) (vertical[1] * fraction + (1 - fraction)
-								* startRect.bottom);
+				//we dont need to use AnimationLayoutParams as the fraction has already been applied in
+				// the onMeasure
+				if (params instanceof AnimationLayoutParams) {
+					float fraction = ((AnimationLayoutParams) params).animationFraction;
+					if (fraction < 1.0f) {
+						Rect startRect = ((AnimationLayoutParams) params).startRect;
+						if (startRect != null) {
+							horizontal[0] = (int) (horizontal[0] * fraction + (1 - fraction)
+									* startRect.left);
+							horizontal[1] = horizontal[0] + childMeasuredWidth;
+
+							vertical[0] = (int) (vertical[0] * fraction + (1 - fraction)
+									* startRect.top);
+							vertical[1] = vertical[0] + childMeasuredHeight;
+						}
 					}
 				}
 			}
+			
 			
 		}
 
@@ -707,43 +708,6 @@ public class TiCompositeLayout extends FreeLayout implements
 				Log.DEBUG_MODE);
 
 		return currentHeight;
-	}
-
-	public void simulateLayoutToGetChildSize(View targetChild,
-			TiCompositeLayout.LayoutParams params, int[] childH, int[] childV) {
-		int count = getChildCount();
-		int left = getLeft();
-		int top = getTop();
-		int right = getRight();
-		int bottom = getBottom();
-		int currentHeight = 0; // Used by vertical arrangement calcs
-
-		for (int i = 0; i < count; i++) {
-			int[] horizontal = new int[2];
-			int[] vertical = new int[2];
-			View child = getChildAt(i);
-
-			if (targetChild == child) {
-				currentHeight = getChildSize(child, params, left, top, bottom,
-						right, currentHeight, horizontal, vertical);
-				childH[0] = horizontal[0];
-				childH[1] = horizontal[1];
-				childV[0] = vertical[0];
-				childV[1] = vertical[1];
-				return;
-			} else {
-				currentHeight = getChildSize(child,
-						(TiCompositeLayout.LayoutParams) child
-								.getLayoutParams(), left, top, bottom, right,
-						currentHeight, horizontal, vertical);
-			}
-			int newWidth = horizontal[1] - horizontal[0];
-			int newHeight = vertical[1] - vertical[0];
-
-			currentHeight += newHeight;
-			currentHeight += getLayoutOptionAsPixels(params.optionTop, TiDimension.TYPE_TOP, params, this);
-			
-		}
 	}
 
 	@Override
@@ -782,7 +746,7 @@ public class TiCompositeLayout extends FreeLayout implements
 		int[] vertical = new int[2];
 
 		int currentHeight = 0; // Used by vertical arrangement calcs
-
+		boolean firstVisibleChild = true;
 		for (int i = 0; i < count; i++) {
 			View child = getChildAt(i);
 			if (child == null || child.getVisibility() == View.GONE
@@ -793,8 +757,10 @@ public class TiCompositeLayout extends FreeLayout implements
 					.getLayoutParams();
 
 			currentHeight = getChildSize(child, params, left, top, bottom,
-					right, currentHeight, horizontal, vertical);
-
+					right, currentHeight, horizontal, vertical, firstVisibleChild);
+			
+			firstVisibleChild = false;
+			
 			if (!TiApplication.getInstance().isRootActivityAvailable()) {
 				Activity currentActivity = TiApplication
 						.getAppCurrentActivity();
@@ -868,7 +834,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			TiDimension optionTop, int measuredHeight, int layoutTop,
 			int[] pos, int maxBottom, LayoutParams params) {
 		int top = layoutTop + currentHeight;
-		top += getLayoutOptionAsPixels(optionTop, TiDimension.TYPE_TOP, params, this);
+		top += (optionTop != null)?optionTop.getAsPixels(this):0;
 		// cap the bottom to make sure views don't go off-screen when user
 		// supplies a height value that is >= screen
 		// height and this view is below another view in vertical layout.
@@ -990,18 +956,13 @@ public class TiCompositeLayout extends FreeLayout implements
 		computePosition(this, params.optionTop, params.optionCenterY,
 				params.optionBottom, measuredHeight, layoutTop, layoutBottom,
 				vpos);
-//		if (params instanceof AnimationLayoutParams) {
-//			float fraction = ((AnimationLayoutParams) params).animationFraction;
-//			if (fraction < 1.0f) {
-//				Rect startRect = ((AnimationLayoutParams) params).startRect;
-//				if (startRect != null) {
-//					vpos[0] = (int) (vpos[0] * fraction + (1 - fraction)
-//							* startRect.top);
-//					vpos[1] = (int) (vpos[1] * fraction + (1 - fraction)
-//							* startRect.bottom);
-//				}
-//			}
-//		}
+		if (params.optionTop != null && !params.optionTop.isUnitUndefined() &&
+				params.optionBottom != null && !params.optionBottom.isUnitUndefined())
+		{
+			int height = vpos[1] - vpos[0];
+			vpos[0] = layoutTop + (layoutBottom - layoutTop)/2 - height/2;
+			vpos[1] = vpos[0] + height;
+		}
 		// account for moving the item "down" to later line(s) if there has been
 		// wrapping.
 		vpos[0] = vpos[0] + horizontalLayoutTopBuffer;
@@ -1251,6 +1212,10 @@ public class TiCompositeLayout extends FreeLayout implements
 
 	public void setView(TiUIView view) {
 		this.view = new WeakReference<TiUIView>(view);
+	}
+	public TiUIView getView() {
+		if (view != null) return view.get();
+		return null;
 	}
 	@Override
 	public void dispatchSetPressed(boolean pressed) {

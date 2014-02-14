@@ -197,6 +197,21 @@
 <@closeModuleNamespace/>
 </#macro>
 
+<#macro superNamespaceApi>
+<@compress single_line=true>
+	<#list superApiName?split(".") as ns>
+		<#compress>
+		<#if ns_has_next>
+			${ns?lower_case}::
+		<#else>
+			${ns?lower_case}
+		</#if>
+		</#compress>
+	</#list>
+</@compress>
+</#macro>
+
+
 <#macro namespace apiName>
 <#compress>
 	<#list apiName?split(".") as ns>

@@ -19,7 +19,9 @@ import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
@@ -75,7 +77,7 @@ public class TiUIText extends TiUIView
 	private static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
 	private static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
 
-	private int defaultColor, selectedColor, color, disabledColor;
+	private int selectedColor, color, disabledColor;
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
@@ -84,34 +86,24 @@ public class TiUIText extends TiUIView
 	protected FocusFixedEditText tv;
 	protected TiEditText realtv;
 
-	public static void requestSoftInputChange(KrollProxy proxy, View view) 
-	{
-		int focusState = TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS;
-		
-		if (proxy.hasProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
-			focusState = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS));
-		}
-
-		if (focusState > TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS) {
-			if (focusState == TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS) {
-				TiUIHelper.showSoftKeyboard(view, true);
-			} else if (focusState == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
-				TiUIHelper.showSoftKeyboard(view, false);
-			} else {
-				Log.w(TAG, "Unknown onFocus state: " + focusState);
-			}
-		}
-		else {
-			TiUIHelper.showSoftKeyboard(view, true);
-		}
-	}
-	
 	public class TiEditText extends EditText 
 	{
 		public TiEditText(Context context) 
 		{
 			super(context);
 		}
+		
+		@Override
+		protected void drawableStateChanged() {
+			if (hasFocus()) propagateDrawableState(TiUIHelper.BACKGROUND_SELECTED_STATE);
+			else propagateChildDrawableState(this);
+		}
+		
+		@Override
+		public View focusSearch(int direction) {
+			View result = super.focusSearch(direction);
+	        return result;
+	    }
 		
 		/** 
 		 * Check whether the called view is a text editor, in which case it would make sense to 
@@ -129,6 +121,25 @@ public class TiUIText extends TiUIView
 			}
 			return true;
 		}
+		
+		@Override
+	    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
+			
+			//there is something really weird in the TextView where when using AT_MOST,
+			//it would size to Math.min(widthSize, width); which is NOT what we want
+			int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+	        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+	        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+	        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+	        
+	        if (widthMode == MeasureSpec.AT_MOST) {
+	        	widthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
+	        }
+	        if (heightMode == MeasureSpec.AT_MOST) {
+	        	heightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
+	        }
+			 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+	    }
 
 		@Override
 		protected void onLayout(boolean changed, int left, int top, int right, int bottom)
@@ -155,7 +166,7 @@ public class TiUIText extends TiUIView
 
 		private LinearLayout.LayoutParams createBaseParams()
 		{
-			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.FILL_PARENT);
+			return new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT);
 		}
 
 		private void init(Context context) {
@@ -177,7 +188,7 @@ public class TiUIText extends TiUIView
 
 			editText = new TiEditText(context);
 			editText.setId(200);
-			params = new LinearLayout.LayoutParams(0, LayoutParams.FILL_PARENT, 1.0f);
+			params = new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
 			this.addView(editText, params);
 
 			rightPane = new TiCompositeLayout(context);
@@ -195,7 +206,6 @@ public class TiUIText extends TiUIView
 		}
 
 		public void setLeftView(Object leftView) {
-			Log.i(TAG, "setLeftView ");
 			leftPane.removeAllViews();
 			if (leftView == null){
 				leftPane.setVisibility(View.GONE);
@@ -224,7 +234,6 @@ public class TiUIText extends TiUIView
 		}
 
 		public void setRightView(Object rightView) {
-			Log.i(TAG, "setRightView ");
 			rightPane.removeAllViews();
 			if (rightView == null){
 				rightPane.setVisibility(View.GONE);
@@ -284,29 +293,6 @@ public class TiUIText extends TiUIView
 			return editText.hasFocus();
 		}
 
-		public void focus() {
-			if (this.getVisibility() == View.INVISIBLE) return;
-			if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
-					&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
-				editText.clearFocus();
-				this.requestFocus();
-				TiUIHelper.hideSoftKeyboard(editText);
-			}
-			else {
-				editText.requestFocus();
-				TiUIText.requestSoftInputChange(proxy, editText);
-			}
-		}
-
-		public void blur() {
-			if (editText.hasFocus()) {
-				editText.clearFocus();
-				this.requestFocus();
-				TiUIHelper.hideSoftKeyboard(editText);
-			}
-
-		}
-
 		public void setOnFocusChangeListener(OnFocusChangeListener l) {
 			editText.setOnFocusChangeListener(l);
 		}
@@ -333,7 +319,7 @@ public class TiUIText extends TiUIView
 		} else {
 			realtv.setGravity(Gravity.TOP | Gravity.LEFT);
 		}
-		color = disabledColor = selectedColor = defaultColor = realtv.getCurrentTextColor();
+		color = disabledColor = selectedColor = realtv.getCurrentTextColor();
 		setNativeView(tv);
 	}
 
@@ -390,7 +376,7 @@ public class TiUIText extends TiUIView
 		}
 		if(d.containsKey(TiC.PROPERTY_DISABLED_COLOR)) {
 			needsColors = true;
-			disabledColor = d.optColor(TiC.PROPERTY_COLOR, this.disabledColor);
+			disabledColor = d.optColor(TiC.PROPERTY_DISABLED_COLOR, this.disabledColor);
 		}
 		if (needsColors) {
 			updateTextColors();
@@ -398,6 +384,10 @@ public class TiUIText extends TiUIView
 
 		if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
 			realtv.setHint(d.getString(TiC.PROPERTY_HINT_TEXT));
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_HINT_COLOR)) {
+			realtv.setHintTextColor(d.optColor(TiC.PROPERTY_HINT_COLOR, Color.GRAY));
 		}
 
 		if (d.containsKey(TiC.PROPERTY_ELLIPSIZE)) {
@@ -413,19 +403,9 @@ public class TiUIText extends TiUIView
 		}
 
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String textAlign = null;
-			String verticalAlign = null;
-			if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN)) {
-				textAlign = d.getString(TiC.PROPERTY_TEXT_ALIGN);
-			}
-			if (d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
-				verticalAlign = d.getString(TiC.PROPERTY_VERTICAL_ALIGN);
-			}
-			handleTextAlign(textAlign, verticalAlign);
-		}
-
-		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
-			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
+			String textAlign = d.optString(TiC.PROPERTY_TEXT_ALIGN, "left");
+			String verticalAlign = d.optString(TiC.PROPERTY_VERTICAL_ALIGN, "middle");
+			TiUIHelper.setAlignment(realtv, textAlign, verticalAlign);
 		}
 
 		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT)
@@ -434,6 +414,16 @@ public class TiUIText extends TiUIView
 			handleKeyboard(d);
 		}
 		
+		//the order is important because returnKeyType must overload keyboard return key defined
+		// by keyboardType
+		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
+			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_PADDING)) {
+			RectF padding = TiConvert.toPaddingRect(d, TiC.PROPERTY_PADDING);
+			TiUIHelper.setPadding(realtv, padding);
+		}
 
 		if (d.containsKey(TiC.PROPERTY_AUTO_LINK)) {
 			TiUIHelper.linkifyIfEnabled(realtv, d.get(TiC.PROPERTY_AUTO_LINK));
@@ -491,20 +481,12 @@ public class TiUIText extends TiUIView
 			} else {
 				realtv.setEllipsize(null);
 			}
-		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN) || key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-			String textAlign = null;
-			String verticalAlign = null;
-			if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
-				textAlign = TiConvert.toString(newValue);
-			} else if (proxy.hasProperty(TiC.PROPERTY_TEXT_ALIGN)){
-				textAlign = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_TEXT_ALIGN));
-			}
-			if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
-				verticalAlign = TiConvert.toString(newValue);
-			} else if (proxy.hasProperty(TiC.PROPERTY_VERTICAL_ALIGN)){
-				verticalAlign = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VERTICAL_ALIGN));
-			}
-			handleTextAlign(textAlign, verticalAlign);
+		} else if (key.equals(TiC.PROPERTY_TEXT_ALIGN)) {
+			TiUIHelper.setAlignment(realtv, TiConvert.toString(newValue), null);
+			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
+			TiUIHelper.setAlignment(realtv, null, TiConvert.toString(newValue));
+			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_KEYBOARD_TYPE)
 			|| (key.equals(TiC.PROPERTY_AUTOCORRECT) || key.equals(TiC.PROPERTY_AUTOCAPITALIZATION)
 				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
@@ -520,6 +502,10 @@ public class TiUIText extends TiUIView
 			tv.setLeftView(newValue);
 		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
 			tv.setRightView(newValue);
+		} else if (key.equals(TiC.PROPERTY_PADDING)) {
+			RectF padding = TiConvert.toPaddingRect(newValue);
+			TiUIHelper.setPadding(realtv, padding);
+			realtv.requestLayout();
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
@@ -555,13 +541,13 @@ public class TiUIText extends TiUIView
 		//Since Jelly Bean, pressing the 'return' key won't trigger onEditorAction callback
 		//http://stackoverflow.com/questions/11311790/oneditoraction-is-not-called-after-enter-key-has-been-pressed-on-jelly-bean-em
 		//So here we need to handle the 'return' key manually
-		if (Build.VERSION.SDK_INT >= 16 && before == 0 && s.length() > start && s.charAt(start) == '\n') {
+		if (Build.VERSION.SDK_INT >= 16 && before == 0 && s.length() > start && s.charAt(start) == '\n' && hasListeners(TiC.EVENT_RETURN)) {
 			//We use the previous value to make it consistent with pre Jelly Bean behavior (onEditorAction is called before 
 			//onTextChanged.
 			String value = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_VALUE));
 			KrollDict data = new KrollDict();
 			data.put(TiC.PROPERTY_VALUE, value);
-			fireEvent(TiC.EVENT_RETURN, data);
+			fireEvent(TiC.EVENT_RETURN, data, false, false);
 		}
 		/**
 		 * There is an Android bug regarding setting filter on EditText that impacts auto completion.
@@ -575,11 +561,11 @@ public class TiUIText extends TiUIView
 		}
 		String newText = realtv.getText().toString();
 		if (!disableChangeEvent
-			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText)))) {
+			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText) && hasListeners(TiC.EVENT_CHANGE)))) {
 			KrollDict data = new KrollDict();
 			data.put(TiC.PROPERTY_VALUE, newText);
 			proxy.setProperty(TiC.PROPERTY_VALUE, newText);
-			fireEvent(TiC.EVENT_CHANGE, data);
+			fireEvent(TiC.EVENT_CHANGE, data, false, false);
 		}
 	}
 
@@ -590,6 +576,11 @@ public class TiUIText extends TiUIView
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
 	}
+	 @Override
+	 public View getFocusView()
+	 {
+	 	return realtv;
+	 }
 
 	@Override
 	public void setVisibility(int visibility)
@@ -602,7 +593,7 @@ public class TiUIText extends TiUIView
 	@Override
 	public void onFocusChange(View v, boolean hasFocus)
 	{
-		tv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+		
 		if (v == realtv)
 			Log.d(TAG, "onFocusChange "  + hasFocus + "  for FocusFixedEditText with text " + realtv.getText(), Log.DEBUG_MODE);
 		else
@@ -616,6 +607,10 @@ public class TiUIText extends TiUIView
 			nativeView.getFocusedRect(r);
 			nativeView.requestRectangleOnScreen(r);
 
+		}
+		else {
+			tv.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+			tv.requestFocus();
 		}
 		super.onFocusChange(v, hasFocus);
 	}
@@ -632,8 +627,7 @@ public class TiUIText extends TiUIView
 	public boolean onEditorAction(TextView v, int actionId, KeyEvent keyEvent)
 	{
 		String value = realtv.getText().toString();
-		KrollDict data = new KrollDict();
-		data.put(TiC.PROPERTY_VALUE, value);
+		
 
 		proxy.setProperty(TiC.PROPERTY_VALUE, value);
 		Log.d(TAG, "ActionID: " + actionId + " KeyEvent: " + (keyEvent != null ? keyEvent.getKeyCode() : null),
@@ -644,28 +638,25 @@ public class TiUIText extends TiUIView
 		//this callback is triggered twice (except for keys that are mapped to EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_ACTION_DONE). The first check is to deal with those keys - filter out
 		//one of the two callbacks, and the next checks deal with 'Next' and 'Done' callbacks, respectively.
 		//Refer to TiUIText.handleReturnKeyType(int) for a list of return keys that are mapped to EditorInfo.IME_ACTION_NEXT and EditorInfo.IME_ACTION_DONE.
-		if ((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
+		if (((actionId == EditorInfo.IME_NULL && keyEvent != null) || 
 				actionId == EditorInfo.IME_ACTION_NEXT || 
-				actionId == EditorInfo.IME_ACTION_DONE ) {
-			fireEvent(TiC.EVENT_RETURN, data);
+				actionId == EditorInfo.IME_ACTION_DONE )) {
+			if (hasListeners(TiC.EVENT_RETURN)) 
+			{
+				KrollDict data = new KrollDict();
+				data.put(TiC.PROPERTY_VALUE, value);
+				fireEvent(TiC.EVENT_RETURN, data, false, false);
+			}
+			
+			if (actionId != EditorInfo.IME_ACTION_NEXT) blur();
 		}
 
 		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
 		if (enableReturnKey != null && enableReturnKey && v.getText().length() == 0) {
 			return true;
 		}
+		tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
 		return false;
-	}
-
-	public void handleTextAlign(String textAlign, String verticalAlign)
-	{
-		if (verticalAlign == null) {
-			verticalAlign = field ? "middle" : "top";
-		}
-		if (textAlign == null) {
-			textAlign = "left";
-		}
-		TiUIHelper.setAlignment(realtv, textAlign, verticalAlign);
 	}
 
 	public void handleKeyboard(KrollDict d) 
@@ -724,9 +715,7 @@ public class TiUIText extends TiUIView
 		if ((autocorrect != InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS || passwordMask) && type != KEYBOARD_DECIMAL_PAD) {
 			textTypeAndClass = textTypeAndClass | InputType.TYPE_CLASS_TEXT;
 		}
-		if (!field) {
-			realtv.setSingleLine(false);
-		}
+
 		realtv.setCursorVisible(true);
 		switch(type) {
 			case KEYBOARD_DEFAULT:
@@ -796,6 +785,12 @@ public class TiUIText extends TiUIView
 			realtv.setKeyListener(null);
 			realtv.setCursorVisible(false);
 		}
+		
+		//setSingleLine() append the flag TYPE_TEXT_FLAG_MULTI_LINE to the current inputType, so we want to call this
+		//after we set inputType.
+		if (!field) {
+			realtv.setSingleLine(false);
+		}
 
 	}
 
@@ -847,13 +842,27 @@ public class TiUIText extends TiUIView
 				break;
 		}
 		
-		int currentInputType = realtv.getInputType();
-		//FLAG_MULTI_LINE will display enter key, therefore disables our ime options.
-		if (!field && (currentInputType & InputType.TYPE_TEXT_FLAG_MULTI_LINE) != 0) {
-			currentInputType &= ~InputType.TYPE_TEXT_FLAG_MULTI_LINE;
-		}
 		//Set input type caches ime options, so whenever we change ime options, we must reset input type
-		realtv.setInputType(currentInputType);
+		realtv.setInputType(realtv.getInputType());
 	}
 
+	@Override
+	public void focus()
+	{
+		if (tv != null && tv.getVisibility() == View.INVISIBLE) return;
+		if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
+				&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
+			return;
+		}
+		super.focus();
+	}
+
+//	@Override
+//	public boolean blur()
+//	{
+//		if (tv != null) {
+//			return tv.blur();
+//		}
+//		return false;
+//	}
 }

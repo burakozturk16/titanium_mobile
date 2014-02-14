@@ -267,7 +267,16 @@ if __name__ == '__main__':
 	sdk = find_sdk(config)
 	sys.path.insert(0,os.path.join(sdk,'iphone'))
 	sys.path.append(os.path.join(sdk, "common"))
-
+	args = sys.argv
+	if (len(args) > 1):
+		command = args[1]
+		if (command == 'compilejs'):
+			compile_js(manifest,config)
+			sys.exit(0)
+		elif(command == 'build'):
+			compile_js(manifest,config)
+			build_module(manifest,config)
+			sys.exit(0)
 	compile_js(manifest,config)
 	build_module(manifest,config)
 	package_module(manifest,mf,config)

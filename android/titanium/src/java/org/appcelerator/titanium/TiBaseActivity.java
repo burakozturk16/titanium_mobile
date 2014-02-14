@@ -44,8 +44,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.res.Configuration;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Message;
@@ -106,7 +108,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	private boolean defaultFullscreen = false;
 	private boolean navBarHidden = false;
 	private boolean defaultNavBarHidden = false;
-	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
+	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN |  WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
 	private int softInputMode = defaultSoftInputMode;
 
 	public class DialogWrapper {
@@ -486,7 +488,18 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		// set to null for now, this will get set correctly in setWindowProxy()
-		return new TiCompositeLayout(this, arrangement, null);
+		return new TiCompositeLayout(this, arrangement, null) {
+			private boolean firstFocusRequest = true;
+			
+			@Override
+		    public boolean requestFocus(int direction, Rect previouslyFocusedRect) {
+		        if (firstFocusRequest) {
+		        	firstFocusRequest = false;
+		        	return false;
+		        }
+		        return super.requestFocus(direction, previouslyFocusedRect);
+		    }
+		};
 	}
 
 	protected void setFullscreen(boolean fullscreen)
@@ -712,6 +725,14 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		getSupportHelper().launchActivityForResult(intent, code, resultHandler);
 	}
+	
+	/**
+	 * See TiActivitySupport.launchIntentSenderForResult for more details.
+	 */
+	public void launchIntentSenderForResult(IntentSender intent, int requestCode, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options, TiActivityResultHandler resultHandler)
+	{
+		getSupportHelper().launchIntentSenderForResult(intent, requestCode, fillInIntent, flagsMask, flagsValues, extraFlags, options, resultHandler);
+	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -738,7 +759,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			if (topWindow != null && topWindow.hierarchyHasListener(TiC.EVENT_ANDROID_BACK)) {
 				proxy = topWindow;
 			}
-			else {
+			else if(window != null) {
 				proxy = window.firstHierarchyListener(TiC.EVENT_ANDROID_BACK);
 			}
 		}
@@ -1374,7 +1395,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		fireOnDestroy();
 
 		if (layout instanceof TiCompositeLayout) {
-			Log.e(TAG, "Layout cleanup.", Log.DEBUG_MODE);
+			Log.d(TAG, "Layout cleanup.", Log.DEBUG_MODE);
 			((TiCompositeLayout) layout).removeAllViews();
 		}
 		layout = null;

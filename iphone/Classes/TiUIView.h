@@ -51,6 +51,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 @protected
     BOOL configurationSet;
     NSMutableArray* childViews;
+    UIControlState viewState;
 @private
 	TiProxy *proxy;
 		
@@ -155,6 +156,8 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)configurationSet;
 
 -(void)setTransform_:(id)matrix;
+-(void) setBackgroundColor_:(id)color;
+-(void)setEnabled_:(id)arg;
 
 /*
  Tells the view to load an image.
@@ -244,7 +247,6 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)updateBounds:(CGRect)newBounds;
 
 -(BOOL)clipChildren;
--(void)updateViewShadowPath;
 
 @property (nonatomic, readonly) id accessibilityElement;
 
@@ -273,12 +275,21 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)detach;
 
 -(void)setHighlighted:(BOOL)isHiglighted;
+-(void)setHighlighted:(BOOL)isHiglighted animated:(BOOL)animated;
 -(void)setSelected:(BOOL)isSelected;
+-(void)setSelected:(BOOL)isSelected animated:(BOOL)animated;
 - (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block;
 - (void)blurBackground:(id)args;
 -(UIControlState)realStateForState:(UIControlState)state;
 -(BOOL) enabledForBgState;
+-(void)setViewState:(UIControlState)state;
 -(void)touchSetHighlighted:(BOOL)highlighted;
+-(UIView*)parentViewForChildren;
+-(void)onCreateCustomBackground;
+
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch;
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture;
 
 @end
 

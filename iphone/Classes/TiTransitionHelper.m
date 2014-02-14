@@ -221,7 +221,7 @@ static NSDictionary* typeMap = nil;
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg defaultArg:(NSDictionary*)defaultArg defaultTransition:(TiTransition*)transition containerView:(UIView*)container
 {
     TiTransition* result = transition;
-    if (arg != nil || defaultArg != nil) {
+    if ((arg != nil && [arg isKindOfClass:[NSDictionary class]]) || defaultArg != nil) {
         float duration = [TiUtils floatValue:@"duration" properties:arg def:[TiUtils floatValue:@"duration" properties:defaultArg def:300]]/1000;
         BOOL reversed =  [TiUtils boolValue:@"reverse" properties:arg def:(transition && [transition.adTransition isReversed])];
         
@@ -246,39 +246,63 @@ static NSDictionary* typeMap = nil;
 }
 +(TiTransition*)transitionFromArg:(NSDictionary*)arg containerView:(UIView*)container
 {
+    if (!arg) return nil;
     return [self transitionFromArg:arg defaultArg:nil defaultTransition:nil containerView:container];
 }
 
 + (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition completionBlock:(void (^)(void))block
 {
+    [self transitionfromView:viewOut toView:viewIn insideView:holder withTransition:transition prepareBlock:nil completionBlock:block];
+}
++ (void)transitionfromView:(UIView *)viewOut toView:(UIView *)viewIn insideView:(UIView*)holder withTransition:(TiTransition *)transition prepareBlock:(void (^)(void))prepareBlock completionBlock:(void (^)(void))block
+{
     ADTransition* adTransition = transition.adTransition ;
     
-    BOOL needsTransformFix = [adTransition isKindOfClass:[ADTransformTransition class]] && ![holder.layer isKindOfClass:[CATransformLayer class]];
+    BOOL needsTransformFix = ([transition isKindOfClass:[TiTransitionPerspective class]] ||
+                              [adTransition isKindOfClass:[ADTransformTransition class]]) && ![holder.layer isKindOfClass:[CATransformLayer class]];
     UIView* workingView = holder;
+    UIView* workingView2 = holder;
+    int index = [[holder subviews] indexOfObject:viewOut];
     
     if (needsTransformFix) {
+        if([transition isKindOfClass:[TiTransitionPerspective class]]) {
+            workingView2 = [[UIView alloc] initWithFrame: holder.bounds];
+            CATransform3D sublayerTransform = CATransform3DIdentity;
+            sublayerTransform.m34 = 1.0 / kPerspective;
+            workingView2.layer.sublayerTransform = sublayerTransform;
+            [holder insertSubview:workingView2 atIndex:index];
+            [workingView2 release];
+        }
         workingView = [[TransitionView alloc] initWithFrame: holder.bounds];
-        [holder addSubview:workingView];
+        [workingView2 insertSubview:workingView atIndex:index];
         if (viewOut) {
             [workingView addSubview:viewOut];
         }
         [workingView release];
     }
     if (viewIn) {
-        [workingView addSubview:viewIn];
+        [workingView insertSubview:viewIn aboveSubview:viewOut];
+    }
+    
+    if (prepareBlock != nil) {
+        prepareBlock();
     }
     
     adTransition.type = ADTransitionTypePush;
-    [transition prepareViewHolder:holder];
+//    [transition prepareViewHolder:workingView2];
     [adTransition prepareTransitionFromView:viewOut toView:viewIn inside:workingView];
     
     void (^completionBlock)(void) = ^void(void) {
         [viewOut removeFromSuperview];
         if (needsTransformFix) {
             if (viewIn) {
-                [holder addSubview:viewIn];
+                [holder insertSubview:viewIn atIndex:index];
             }
-            [workingView removeFromSuperview];
+            if (workingView2 != holder)
+                [workingView2 removeFromSuperview];
+            else {
+                [workingView removeFromSuperview];
+            }
         }
         if (block != nil) {
             block();
@@ -292,7 +316,6 @@ static NSDictionary* typeMap = nil;
     }
     [CATransaction setCompletionBlock:^{
         [adTransition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
-        [transition finishedTransitionFromView:viewOut toView:viewIn inside:workingView];
         completionBlock();
     }];
     

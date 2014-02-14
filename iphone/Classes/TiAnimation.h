@@ -12,6 +12,39 @@
 
 #import "HLSAnimation.h"
 
+enum TiAnimCurve
+{
+	kTiAnimCurveEaseInOut,
+	kTiAnimCurveEaseIn,
+	kTiAnimCurveEaseOut,
+	kTiAnimCurveLinear,
+	kTiAnimCurveEaseInCirc,
+    kTiAnimCurveEaseOutCirc,
+    kTiAnimCurveEaseInOutCirc,
+    kTiAnimCurveEaseInCubic,
+    kTiAnimCurveEaseOutCubic,
+    kTiAnimCurveEaseInOutCubic,
+    kTiAnimCurveEaseInExpo,
+    kTiAnimCurveEaseOutExpo,
+    kTiAnimCurveEaseInOutExpo,
+    kTiAnimCurveEaseInQuad,
+    kTiAnimCurveEaseOutQuad,
+    kTiAnimCurveEaseInOutQuad,
+    kTiAnimCurveEaseInQuart,
+    kTiAnimCurveEaseOutQuart,
+    kTiAnimCurveEaseInOutQuart,
+    kTiAnimCurveEaseInQuint,
+    kTiAnimCurveEaseOutQuint,
+    kTiAnimCurveEaseInOutQuint,
+    kTiAnimCurveEaseInSine,
+    kTiAnimCurveEaseOutSine,
+    kTiAnimCurveEaseInOutSine,
+    kTiAnimCurveEaseInBack,
+    kTiAnimCurveEaseOutBack,
+    kTiAnimCurveEaseInOutBack
+};
+
+
 @class TiAnimation;
 /**
  Protocol for animation delegate.
@@ -73,7 +106,7 @@
 @property(nonatomic,readonly) ListenerEntry* callback;
 
 // properties that control the animation 
-@property(nonatomic,retain) NSNumber	*curve;
+@property(nonatomic,retain) CAMediaTimingFunction* curve;
 @property(nonatomic,retain) NSNumber* repeat;
 @property(nonatomic,assign) BOOL autoreverse;
 @property(nonatomic,assign) BOOL restartFromBeginning;
@@ -97,8 +130,10 @@
 -(NSTimeInterval)getAnimationDuration;
 -(NSUInteger) repeatCount;
 +(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_;
-+(int)reverseCurve:(int)curve_;
++(CAMediaTimingFunction*)reverseCurve:(CAMediaTimingFunction*)curve_;
 -(NSDictionary*)propertiesForAnimation:(TiHLSAnimation*)anim;
 -(void)cancelMyselfBeforeStarting;
+-(void)simulateFinish:(TiAnimatableProxy*)proxy;
+-(void)cancelWithReset:(BOOL)reset;
 
 @end

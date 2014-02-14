@@ -133,6 +133,7 @@
 				D2AAC07A0554694100DB518D /* Headers */,
 				D2AAC07B0554694100DB518D /* Sources */,
 				D2AAC07C0554694100DB518D /* Frameworks */,
+				D58E73DF1861908C00E56FAE /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -148,6 +149,8 @@
 /* Begin PBXProject section */
 		0867D690FE84028FC02AAC07 /* Project object */ = {
 			isa = PBXProject;
+			attributes = {
+			};
 			buildConfigurationList = 1DEB922208733DC00010E9CD /* Build configuration list for PBXProject "___PROJECTNAME___" */;
 			compatibilityVersion = "Xcode 3.1";
 			developmentRegion = English;
@@ -182,6 +185,19 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# shell script goes here\n\npython \"${TITANIUM_SDK}/titanium.py\" run --dir=\"${PROJECT_DIR}\"\nexit $?\n";
+		};
+		D58E73DF1861908C00E56FAE /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$PROJECT_DIR/build.py\" compilejs";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -228,6 +244,10 @@
 				GCC_WARN_UNUSED_PARAMETER = NO;
 				GCC_WARN_UNUSED_VALUE = NO;
 				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(TITANIUM_BASE_SDK)/**",
+					"$(TITANIUM_BASE_SDK2)",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_CFLAGS = (
@@ -265,6 +285,10 @@
 				GCC_WARN_UNUSED_PARAMETER = NO;
 				GCC_WARN_UNUSED_VALUE = NO;
 				GCC_WARN_UNUSED_VARIABLE = NO;
+				HEADER_SEARCH_PATHS = (
+					"$(TITANIUM_BASE_SDK)/**",
+					"$(TITANIUM_BASE_SDK2)",
+				);
 				INSTALL_PATH = /usr/local/lib;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.0;
 				LIBRARY_SEARCH_PATHS = "";

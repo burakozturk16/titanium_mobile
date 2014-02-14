@@ -88,7 +88,7 @@
 		[self updateOptionDialogNow];
 		return;
 	}
-	[actionSheet showInView:[[TiApp app] topMostView]];
+	[actionSheet showInView:[[TiApp app] topMostWindow]];
 }
 
 -(void)completeWithButton:(int)buttonIndex

@@ -12,6 +12,9 @@
 #import "TiUtils.h"
 
 @implementation TiUIButtonProxy
+{
+    UIEdgeInsets _padding;
+}
 
 +(NSSet*)transferableProperties
 {
@@ -28,6 +31,14 @@
                                               @"shadowOffset", @"shadowRadius", @"shadowColor",
                                               @"padding",
                                               @"wordWrap", @"borderWidth", nil]];
+}
+
+-(id)init
+{
+    if (self = [super init]) {
+        _padding = UIEdgeInsetsZero;
+    }
+    return self;
 }
 
 -(void)_destroy
@@ -158,17 +169,6 @@
 	return toolbar!=nil;
 }
 
-//TODO: Remove when deprecated
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-{
-	if (![TiUtils boolValue:[self valueForKey:@"enabled"] def:YES])
-	{
-		//Rogue event. We're supposed to be disabled!
-		return;
-	}
-	[super fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:report errorCode:code message:message];
-}
-
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
 {
 	if (![TiUtils boolValue:[self valueForKey:@"enabled"] def:YES])
@@ -188,7 +188,52 @@
     return TiDimensionAutoSize;
 }
 
-USE_VIEW_FOR_CONTENT_SIZE
+-(void)setPadding:(id)value
+{
+    _padding = [TiUtils insetValue:value];
+    if (view != nil)
+        [(TiUIButton*)view setPadding:_padding];
+    [self contentsWillChange];
+}
+
+-(void)configurationSet
+{
+    [super configurationSet];
+    [(TiUIButton*)view setPadding:_padding];
+}
+
+-(CGSize)contentSizeForSize:(CGSize)size
+{
+    if (view != nil)
+        return [(TiUIButton*)view contentSizeForSize:size];
+    else
+    {
+        NSString* text = [TiUtils stringValue:[self valueForKey:@"title"]];
+        CGSize resultSize = CGSizeZero;
+        CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
+        maxSize.width -= _padding.left + _padding.right;
+        
+        UILineBreakMode breakMode = UILineBreakModeWordWrap;
+        id fontValue = [self valueForKey:@"font"];
+        UIFont * font;
+        if (fontValue!=nil)
+        {
+            font = [[TiUtils fontValue:fontValue] font];
+        }
+        else
+        {
+            font = [UIFont systemFontOfSize:17];
+        }
+        resultSize = [text sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+        resultSize.width = roundf(resultSize.width);
+        resultSize.height = roundf(resultSize.height);
+        resultSize.width += _padding.left + _padding.right;
+        resultSize.height += _padding.top + _padding.bottom;
+        return resultSize;
+    }
+    return CGSizeZero;
+}
+
 @end
 
 #endif

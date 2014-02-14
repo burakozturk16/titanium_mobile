@@ -68,6 +68,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	protected static final int MSG_UPDATE_KROLL_PROPERTIES = KrollObject.MSG_LAST_ID + 112;
 	protected static final int MSG_LAST_ID = MSG_UPDATE_KROLL_PROPERTIES;
 	protected static final String PROPERTY_NAME = "name";
+	protected static final String PROPERTY_BUBBLES = "checkParent";
 	protected static final String PROPERTY_HAS_JAVA_LISTENER = "_hasJavaListener";
 
 	protected static AtomicInteger proxyCounter = new AtomicInteger();
@@ -400,7 +401,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		handleLocaleProperties();
 
 		if (modelListener != null) {
-			modelListener.processProperties(properties);
+			modelListener.processProperties(dict);
 		}
 	}
 
@@ -815,13 +816,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireEvent(String event)
 	{
-		if (hierarchyHasListener(event)) {
-			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT);
-			message.getData().putString(PROPERTY_NAME, event);
-			message.sendToTarget();
-			return true;
-		}
-		return false;
+		return fireEvent(event, null, true, true);
 	}
 	
 	/**
@@ -833,15 +828,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireEvent(String event, Object data)
 	{
-		if (hierarchyHasListener(event)) {
-			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT, data);
-			message.getData().putString(PROPERTY_NAME, event);
-			message.sendToTarget();
-			return true;
-		}
-
-		return false;
+		return fireEvent(event, data, true, true);
 	}
+	
 
 	/**
 	 * Send an event to the view who is next to receive the event.
@@ -856,7 +845,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		if (bubbleParent) {
 			KrollProxy parentProxy = getParentForBubbling();
 			if (parentProxy != null) {
-				return parentProxy.fireEvent(eventName, data);
+				return parentProxy.fireEvent(eventName, data, true, false);
 			}
 		}
 		return false;
@@ -871,6 +860,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireSyncEvent(String event, Object data)
 	{
+		if (!hasListeners(event, true))
+		{
+			return false;
+		}
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
 			return doFireEvent(event, data);
 
@@ -892,6 +885,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireSyncEvent(String event, Object data, long maxTimeout)
 	{
+		if (!hasListeners(event, true))
+		{
+			return false;
+		}
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
 			return doFireEvent(event, data);
 
@@ -903,14 +900,47 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			return TiConvert.toBoolean(result, false);
 		}
 	}
-
-	public boolean doFireEvent(String event, Object data)
+	
+	/**
+	 * Fires an event that can optionally be "bubbled" to the parent view.
+	 *
+	 * @param eventName event to get dispatched to listeners
+	 * @param data data to include in the event
+	 * @param bubbles if true will send the event to the parent view after it has been dispatched to this view's listeners.
+	 * @return true if the event was handled
+	 */
+	public boolean fireEvent(String event, Object data, boolean bubbles)
 	{
-		if (!hierarchyHasListener(event)) {
+		return fireEvent(event, data, bubbles, true);
+	}
+
+	/**
+	 * Fires an event asynchronously via KrollRuntime thread, which can be intercepted on JS side.
+	 * @param event the event to be fired.
+	 * @param data  the data to be sent.
+	 * @param bubbles  should bubble to parent.
+	 * @param checkListeners  should check for Listeners. Optimisation if the check was already done
+	 * @return whether the message is sent.
+	 * @module.api
+	 */
+	public boolean fireEvent(String event, Object data, boolean bubbles, boolean checkListeners)
+	{
+		if (checkListeners && !hasListeners(event, bubbles))
+		{
 			return false;
 		}
+		if (hasProperty(TiC.PROPERTY_BUBBLE_PARENT)) {
+			bubbles = TiConvert.toBoolean(getProperty(TiC.PROPERTY_BUBBLE_PARENT), bubbles);
+		}
+		Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_EVENT, data);
+		message.getData().putString(PROPERTY_NAME, event);
+		message.getData().putBoolean(PROPERTY_BUBBLES, bubbles);
+		message.sendToTarget();
+		return true;
+	}
 
-		boolean bubbles = false;
+	public boolean doFireEvent(String event, Object data, boolean bubbles)
+	{
 		boolean reportSuccess = false;
 		int code = 0;
 		KrollObject source = null;
@@ -955,7 +985,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		if (krollData != null) {
 			Object hashValue = krollData.get(TiC.PROPERTY_BUBBLES);
 			if (hashValue != null) {
-				bubbles = TiConvert.toBoolean(hashValue);
+				bubbles &= TiConvert.toBoolean(hashValue);
 				krollData.remove(TiC.PROPERTY_BUBBLES);
 			}
 			hashValue = krollData.get(TiC.PROPERTY_SUCCESS);
@@ -1001,6 +1031,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		
 		return getKrollObject().fireEvent(source, event, krollData, bubbles, reportSuccess, code, message);
 	}
+	
+	public boolean doFireEvent(String event, Object data)
+	{
+		return doFireEvent(event, data, true);
+	}
 
 	public void firePropertyChanged(String name, Object oldValue, Object newValue)
 	{
@@ -1021,7 +1056,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		msg.obj = event;
 		TiMessenger.getMainMessenger().sendMessage(msg);
 	}
-
+	
 	/**
 	 * @param event the event to check
 	 * @return whether the associated KrollObject has an event listener for the passed in event.
@@ -1029,7 +1064,34 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean hasListeners(String event)
 	{
+		return hasListeners(event, true);
+	}
+	
+	public boolean _hasListeners(String event)
+	{
 		return hasNonJSEventListener(event) || getKrollObject().hasListeners(event);
+	}
+	
+	/**
+	 * @param event the event to check
+	 * @return whether the associated KrollObject has an event listener for the passed in event.
+	 * @module.api
+	 */
+	public boolean hasListeners(String event, boolean checkParent)
+	{
+		boolean hasListener = _hasListeners(event);
+		if (hasProperty(TiC.PROPERTY_BUBBLE_PARENT)) {
+			checkParent = TiConvert.toBoolean(getProperty(TiC.PROPERTY_BUBBLE_PARENT), checkParent);
+		}
+		// Checks whether the parent has the listener or not
+		if (checkParent && !hasListener) {
+			KrollProxy parentProxy = getParentForBubbling();
+			if (parentProxy != null && bubbleParent) {
+				return parentProxy.hasListeners(event, true);
+			}
+		}
+
+		return hasListener;
 	}
 
 	/**
@@ -1037,17 +1099,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean hierarchyHasListener(String event)
 	{
-		boolean hasListener = hasListeners(event);
-
-		// Checks whether the parent has the listener or not
-		if (!hasListener) {
-			KrollProxy parentProxy = getParentForBubbling();
-			if (parentProxy != null && bubbleParent) {
-				return parentProxy.hierarchyHasListener(event);
-			}
-		}
-
-		return hasListener;
+		return hasListeners(event, true);
 	}
 	
 	/**
@@ -1224,7 +1276,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 			case MSG_MODEL_PROCESS_PROPERTIES: {
 				if (modelListener != null) {
-					modelListener.processProperties(properties);
+					modelListener.processProperties((KrollDict) properties.clone());
 				}
 				return true;
 			}
@@ -1264,7 +1316,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			case MSG_FIRE_EVENT: {
 				Object data = msg.obj;
 				String event = msg.getData().getString(PROPERTY_NAME);
-				doFireEvent(event, data);
+				boolean checkParent = msg.getData().getBoolean(PROPERTY_BUBBLES);
+				doFireEvent(event, data, checkParent);
 
 				return true;
 			}
@@ -1351,7 +1404,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		this.modelListener = modelListener;
 		if (modelListener != null && applyProps) {
 			if (TiApplication.isUIThread()) {
-				modelListener.processProperties(properties);
+				modelListener.processProperties((KrollDict) properties.clone());
 			} else {
 				getMainHandler().sendEmptyMessage(MSG_MODEL_PROCESS_PROPERTIES);
 			}

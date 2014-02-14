@@ -52,7 +52,8 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         if (parent != nil && (!TiLayoutRuleIsAbsolute([parent layoutProperties]->layoutStyle))) {
             //Sandbox with percent values is garbage
             ignorePercent = YES;
-            parentSize = [parent size].rect.size;
+            UIView *parentView = [parent parentViewForChild:(TiViewProxy*)autoSizer];
+            parentSize = (parentView != nil) ? parentView.bounds.size : CGSizeZero;
             parentCanGrow = TiDimensionIsAutoSize([parent layoutProperties]->height);
         }
     }
@@ -64,13 +65,14 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
 	}
     
     TiDimension dimension = constraint->width;
-    
+    BOOL flexibleWidth = NO;
     switch (dimension.type)
     {
         case TiDimensionTypeDip:
             width = TiDimensionCalculateValue(dimension, referenceSize.width);
             break;
         case TiDimensionTypePercent:
+            flexibleWidth = YES;
             if (ignorePercent) {
                 width = roundf(TiDimensionCalculateValue(dimension, parentSize.width));
             }
@@ -79,6 +81,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             }
             break;
         case TiDimensionTypeUndefined:
+            flexibleWidth = YES;
             if (!TiDimensionIsUndefined(constraint->left) && !TiDimensionIsUndefined(constraint->centerX) ) {
                 width = 2 * ( TiDimensionCalculateValue(constraint->centerX, referenceSize.width) - TiDimensionCalculateValue(constraint->left, referenceSize.width) );
                 break;
@@ -91,6 +94,9 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
                 width = 2 * ( referenceSize.width - TiDimensionCalculateValue(constraint->right, referenceSize.width) - TiDimensionCalculateValue(constraint->centerX, referenceSize.width));
                 break;
             }
+            else {
+                flexibleWidth = NO;
+            }
         case TiDimensionTypeAutoSize:
         {
             needsWidthAutoCompute = YES;
@@ -99,12 +105,12 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
         case TiDimensionTypeAuto:
         {
-            needsWidthAutoCompute =  !TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil]);
             width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
             break;
         }
         case TiDimensionTypeAutoFill:
         {
+            flexibleWidth = YES;
             width = TiDimensionCalculateMargins(constraint->left, constraint->right, referenceSize.width);
             break;
         }
@@ -112,12 +118,14 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
     
     
     dimension = constraint->height;
+    BOOL flexibleHeight = NO;
     switch (dimension.type)
     {
         case TiDimensionTypeDip:
             height = TiDimensionCalculateValue(dimension, referenceSize.height);
             break;
         case TiDimensionTypePercent:
+            flexibleHeight = YES;
             if (ignorePercent) {
                 height = roundf(TiDimensionCalculateValue(dimension, parentSize.height));
             }
@@ -126,6 +134,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
             }
             break;
         case TiDimensionTypeUndefined:
+            flexibleHeight = YES;
             if (!TiDimensionIsUndefined(constraint->top) && !TiDimensionIsUndefined(constraint->centerY) ) {
                 height = 2 * ( TiDimensionCalculateValue(constraint->centerY, referenceSize.height) - TiDimensionCalculateValue(constraint->top, referenceSize.height) );
                 break;
@@ -138,6 +147,9 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
                 height = 2 * ( referenceSize.height - TiDimensionCalculateValue(constraint->centerY, referenceSize.height) - TiDimensionCalculateValue(constraint->bottom, referenceSize.height) );
                 break;
             }
+            else {
+                flexibleHeight = NO;
+            }
         case TiDimensionTypeAutoSize:
         {
             needsHeightAutoCompute = YES;
@@ -146,12 +158,12 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
         case TiDimensionTypeAuto:
         {
-            needsHeightAutoCompute =  !TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil]);
             height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
 			break;
         }
         case TiDimensionTypeAutoFill:
         {
+            flexibleHeight = YES;
             height = TiDimensionCalculateMargins(constraint->top, constraint->bottom, referenceSize.height);
 			break;
         }
@@ -161,98 +173,71 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
     
     CGSize autoSize;
     
-    if (needsWidthAutoCompute) {
-        BOOL autoFill = NO;
-        //Undefined falls to auto behavior
-        if ( TiDimensionIsUndefined(constraint->width) || TiDimensionIsAuto(constraint->width) )
-        {
-            //Check if default auto behavior is fill
-            if ([autoSizer respondsToSelector:@selector(defaultAutoWidthBehavior:)]) {
-                if (TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil])) {
-                    autoFill = YES;
-                }
-            }
-        }
-        if ((TiDimensionIsAutoFill(constraint->width) || autoFill) && resultResizing != NULL) {
-            *resultResizing |= UIViewAutoresizingFlexibleWidth;
-        }
-        else {
-            //If it comes here it has to follow SIZE behavior
-            if ([autoSizer respondsToSelector:@selector(autoSizeForSize:)])
-            {
-                if (autoSizeComputed == NO) {
-                    autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
-                    autoSizeComputed = YES;
-                }
-                CGFloat desiredWidth = autoSize.width;
-                width = width < desiredWidth?width:desiredWidth;
-            }
-            else if(resultResizing != NULL)
-            {
-                *resultResizing |= UIViewAutoresizingFlexibleWidth;
-            }
-        }
-    }
-
-    
-    if (needsHeightAutoCompute) {
-        BOOL autoFill = NO;
-        //Undefined falls to auto behavior
-        if ( TiDimensionIsUndefined(constraint->height) || TiDimensionIsAuto(constraint->height) )
-        {
-            //Check if default auto behavior is fill
-            if ([autoSizer respondsToSelector:@selector(defaultAutoHeightBehavior:)]) {
-                if (TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil])) {
-                    autoFill = YES;
-                }
-            }
-        }
-        if ((TiDimensionIsAutoFill(constraint->height) || autoFill) && resultResizing != NULL) {
-            *resultResizing |= UIViewAutoresizingFlexibleHeight;
-        }
-        else {
-            //If it comes here it has to follow size behavior
-            if ([autoSizer respondsToSelector:@selector(autoSizeForSize:)])
-            {
-                if (autoSizeComputed == NO) {
-                    autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
-                    autoSizeComputed = YES;
-                }
-                 height = parentCanGrow?autoSize.height:(height < autoSize.height?height:autoSize.height);
-                
-            }
-            else if(resultResizing != NULL)
-            {
-                *resultResizing |= UIViewAutoresizingFlexibleHeight;
-            }
-        }
-    }
-    
-    
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyWidth:)])
+    //Undefined falls to auto behavior
+    if (!flexibleWidth && TiDimensionIsUndefined(constraint->width) || TiDimensionIsAuto(constraint->width) )
     {
-        width = [autoSizer verifyWidth:width];
+        //Check if default auto behavior is fill
+        if ([autoSizer respondsToSelector:@selector(defaultAutoWidthBehavior:)]) {
+            flexibleWidth = TiDimensionIsAutoFill([autoSizer defaultAutoWidthBehavior:nil]);
+            needsWidthAutoCompute = !flexibleWidth;
+        }
     }
     
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifyHeight:)])
-    {
-        height = [autoSizer verifyHeight:height];
+    if (needsWidthAutoCompute && [autoSizer respondsToSelector:@selector(autoSizeForSize:)]) {
+        //If it comes here it has to follow size behavior
+        if (autoSizeComputed == NO) {
+            autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
+            autoSizeComputed = YES;
+        }
+        CGFloat desiredWidth = autoSize.width;
+        width = width < desiredWidth?width:desiredWidth;
     }
+    else if(flexibleWidth && resultResizing != NULL){
+        *resultResizing |= UIViewAutoresizingFlexibleWidth;
+    }
+    
+    //Undefined falls to auto behavior
+    if (!flexibleHeight && TiDimensionIsUndefined(constraint->height) || TiDimensionIsAuto(constraint->height) )
+    {
+        //Check if default auto behavior is fill
+        if ([autoSizer respondsToSelector:@selector(defaultAutoHeightBehavior:)]) {
+            flexibleHeight = TiDimensionIsAutoFill([autoSizer defaultAutoHeightBehavior:nil]);
+            needsHeightAutoCompute = !flexibleHeight;
+        }
+    }
+    
+    if (needsHeightAutoCompute && [autoSizer respondsToSelector:@selector(autoSizeForSize:)]) {
+        //If it comes here it has to follow size behavior
+        if (autoSizeComputed == NO) {
+            autoSize = [autoSizer autoSizeForSize:CGSizeMake(width, height)];
+            autoSizeComputed = YES;
+        }
+        height = parentCanGrow?autoSize.height:(height < autoSize.height?height:autoSize.height);
+    }
+    else if(flexibleHeight && resultResizing != NULL){
+        *resultResizing |= UIViewAutoresizingFlexibleHeight;
+    }
+    
+    
     
 	// when you use negative top, you get into a situation where you get smaller
 	// then intended sizes when using auto.  this allows you to set a floor for
 	// the height/width so that it won't be smaller than specified - defaults to 0
 	height = MAX(constraint->minimumHeight,height);
 	width = MAX(constraint->minimumWidth,width);
+    CGSize result = CGSizeMake(width, height);
+    
+    //Should we always do this or only for auto
+    if ([autoSizer respondsToSelector:@selector(verifySize:)])
+    {
+        result = [(id)autoSizer verifySize:result];
+    }
 	
 	if ((resultResizing != NULL) && [autoSizer respondsToSelector:@selector(verifyAutoresizing:)])
 	{
 		*resultResizing = [autoSizer verifyAutoresizing:*resultResizing];
 	}
-	
-	return CGSizeMake(width, height);
+    return result;
 }
 
 
@@ -268,12 +253,11 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     BOOL horizontal = parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle);
     BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(parentConstraint);
     BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(parentConstraint);
-    BOOL vertical = parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle);
+    BOOL vertical = parentConstraint && TiLayoutRuleIsVertical(parentConstraint->layoutStyle);
     
     BOOL ignoreMargins = NO;
     BOOL isSizeUndefined = TiDimensionIsUndefined(constraint->width);
-    sandboxSize = [viewProxy verifySize:sandboxSize];
-    referenceSize = [viewProxy verifySize:referenceSize];
+    
     CGSize parentSize = sandboxSize;
     if (!horizontal) parentSize = referenceSize;
     CGFloat frameLeft = 0.0;
@@ -309,7 +293,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
                 marginSuggestions++;
                 frameLeft += parentSize.width - viewSize.width - frameRight;
             }
-            else if (!flexibleSize)
+            else if (!horizontal && !flexibleSize)
             {
                 *resultResizing |= UIViewAutoresizingFlexibleRightMargin;
             }
@@ -332,7 +316,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     ignoreMargins = NO;
     CGFloat frameTop = 0.0;
     parentSize = sandboxSize;
-    if (vertical || horizontalNoWrap) parentSize = referenceSize;
+    if (horizontalNoWrap) parentSize = referenceSize;
     if(!flexibleSize) {
         if (TiDimensionIsUndefined(constraint->height)) {
             ignoreMargins = TiDimensionDidCalculateValue(constraint->centerY, referenceSize.height, &centerY);
@@ -349,22 +333,22 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         //Either the view has flexible height or pins were not defined for positioning
         int marginSuggestions=0;
         
-        if(TiDimensionDidCalculateValue(constraint->top, referenceSize.height, &frameTop))
+        if((!horizontal || TiDimensionIsUndefined(constraint->bottom) || flexibleSize) && TiDimensionDidCalculateValue(constraint->top, referenceSize.height, &frameTop))
         {
             marginSuggestions++;
         }
-        else if (!flexibleSize)
+        else if (!vertical && !flexibleSize)
         {
             *resultResizing |= UIViewAutoresizingFlexibleTopMargin;
         }
         if (isSizeUndefined || (marginSuggestions == 0) || flexibleSize) {
             CGFloat frameBottom;
-            if(TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom))
+            if((!horizontal || flexibleSize) && TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom) && TiDimensionIsUndefined(constraint->top))
             {
                 marginSuggestions++;
                 frameTop += parentSize.height - viewSize.height - frameBottom;
             }
-            else if (!flexibleSize)
+            else if (!vertical && !flexibleSize)
             {
                 *resultResizing |= UIViewAutoresizingFlexibleBottomMargin;
             }
@@ -383,7 +367,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
 }
 
 
-void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * subView, CGRect viewBounds)
+void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiUIView * subView, CGRect viewBounds)
 {
 	if(constraint == NULL)
 	{
@@ -396,7 +380,7 @@ void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, TiUIView * s
 	resultBounds.origin = CGPointZero;
 	resultBounds.size = SizeConstraintViewWithSizeAddingResizing(constraint,(TiViewProxy *)[subView proxy], viewBounds.size, &resultMask);
 	
-	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, nil, (TiViewProxy *)[subView proxy], resultBounds.size,
+	CGPoint resultCenter = PositionConstraintGivenSizeBoundsAddingResizing(constraint, parentConstraint, (TiViewProxy *)[subView proxy], resultBounds.size,
 			[[subView layer] anchorPoint], viewBounds.size, viewBounds.size, &resultMask);
 	
 	resultCenter.x += resultBounds.origin.x + viewBounds.origin.x;

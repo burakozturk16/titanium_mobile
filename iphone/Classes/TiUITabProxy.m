@@ -28,6 +28,9 @@
 
 -(void)_destroy
 {
+    if (rootWindow != nil) {
+        [self cleanNavStack:YES];
+    }
     RELEASE_TO_NIL(controllerStack);
     RELEASE_TO_NIL(rootWindow);
     RELEASE_TO_NIL(controller);
@@ -62,11 +65,11 @@
 {
     TiThreadPerformOnMainThread(^{
         UIViewController* rootController = [self rootController];
-        [controller setDelegate:nil];
-        if ([[controller viewControllers] count] > 1) {
-            NSMutableArray* doomedVcs = [[controller viewControllers] mutableCopy];
+        [_controller setDelegate:nil];
+        if ([[_controller viewControllers] count] > 1) {
+            NSMutableArray* doomedVcs = [[_controller viewControllers] mutableCopy];
             [doomedVcs removeObject:rootController];
-            [controller setViewControllers:[NSArray arrayWithObject:rootController]];
+            [_controller setViewControllers:[NSArray arrayWithObject:rootController]];
             if (current != nil) {
                 RELEASE_TO_NIL(current);
                 current = [(TiWindowProxy*)[(TiViewController*)rootController proxy] retain];
@@ -82,7 +85,7 @@
             RELEASE_TO_NIL(current);
         }
         else {
-            [controller setDelegate:self];
+            [_controller setDelegate:self];
         }
     },YES);
 }
@@ -194,8 +197,8 @@
 {
 	if (controller==nil)
 	{
-		controller = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
-		controller.delegate = self;
+		_controller = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
+		_controller.delegate = self;
 		[TiUtils configureController:controller withObject:tabGroup];
 		[self setTitle:[self valueForKey:@"title"]];
 		[self setIcon:[self valueForKey:@"icon"]];
@@ -203,10 +206,10 @@
 		controllerStack = [[NSMutableArray alloc] init];
 		[controllerStack addObject:[self rootController]];
 		if ([TiUtils isIOS7OrGreater]) {
-			[controller.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
+			[_controller.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
 		}
 	}
-	return controller;
+	return _controller;
 }
 
 -(TiProxy<TiTabGroup>*)tabGroup
@@ -401,9 +404,7 @@
             }
         }
     }
-    if ([self _hasListeners:@"blur"]) {
-        [self fireEvent:@"blur" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"blur" withObject:nil propagate:NO];
 }
 
 - (void)handleWillFocus
@@ -425,9 +426,7 @@
             }
         }
     }
-    if ([self _hasListeners:@"focus"]) {
-        [self fireEvent:@"focus" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
-    }
+    [self fireEvent:@"focus" withObject:nil propagate:NO];
 }
 
 -(void)setActive:(id)active
@@ -658,7 +657,7 @@
 	[super willChangeSize];
 	
 	//TODO: Shouldn't this be not through UI? Shouldn't we retain the windows ourselves?
-	for (UIViewController * thisController in [controller viewControllers])
+	for (UIViewController * thisController in [_controller viewControllers])
 	{
 		if ([thisController isKindOfClass:[TiViewController class]])
 		{

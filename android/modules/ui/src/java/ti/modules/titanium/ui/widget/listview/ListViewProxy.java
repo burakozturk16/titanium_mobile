@@ -142,6 +142,21 @@ public class ListViewProxy extends TiViewProxy {
 		}
 	}
 	
+	@Kroll.method
+	public ListSectionProxy getSectionAt(int sectionIndex) {
+		TiListView listView = (TiListView)peekView();
+		if (listView != null) {
+			return listView.getSectionAt(sectionIndex);
+		} else {
+			if (sectionIndex < 0 || sectionIndex >= preloadSections.size()) {
+				Log.e(TAG, "getItem Invalid section index");
+				return null;
+			}
+			
+			return preloadSections.get(sectionIndex);
+		}
+	}
+	
 	public int handleSectionCount () {
 		TiUIView listView = peekView();
 		if (listView != null) {
@@ -163,6 +178,31 @@ public class ListViewProxy extends TiViewProxy {
 			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SCROLL_TO_ITEM), d);
 		}
 	}
+	
+	@Kroll.method
+	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			return ((TiListView) listView).getChildByBindId(sectionIndex, itemIndex, bindId);
+		}
+		return null;
+	}
+	
+	@Kroll.method
+	public KrollDict getItemAt(int sectionIndex, int itemIndex) {
+		TiUIView listView = peekView();
+		if (listView != null) {
+			return ((TiListView) listView).getItem(sectionIndex, itemIndex);
+		} else {
+			if (sectionIndex < 0 || sectionIndex >= preloadSections.size()) {
+				Log.e(TAG, "getItem Invalid section index");
+				return null;
+			}
+			
+			return preloadSections.get(sectionIndex).getItemAt(itemIndex);
+		}
+	}
+	
 	
 	@Kroll.method
 	public void setMarker(Object marker) {
@@ -429,6 +469,62 @@ public class ListViewProxy extends TiViewProxy {
 		} else {
 			Handler handler = getMainHandler();
 			handler.sendMessage(handler.obtainMessage(MSG_CLOSE_PULL_VIEW, obj));
+		}
+	}
+	
+	
+	@Kroll.method
+	public void appendItems(int sectionIndex, Object data) {
+		ListSectionProxy section = getSectionAt(sectionIndex);
+		if (section != null){
+			section.appendItems(data);
+		}
+		else {
+			Log.e(TAG, "appendItems wrong section index");
+		}
+	}
+	
+	@Kroll.method
+	public void insertItemsAt(int sectionIndex, int index, Object data) {
+		ListSectionProxy section = getSectionAt(sectionIndex);
+		if (section != null){
+			section.insertItemsAt(index, data);
+		}
+		else {
+			Log.e(TAG, "insertItemsAt wrong section index");
+		}
+	}
+
+	@Kroll.method
+	public void deleteItemsAt(int sectionIndex, int index, int count) {
+		ListSectionProxy section = getSectionAt(sectionIndex);
+		if (section != null){
+			section.deleteItemsAt(index, count);
+		}
+		else {
+			Log.e(TAG, "deleteItemsAt wrong section index");
+		}
+	}
+
+	@Kroll.method
+	public void replaceItemsAt(int sectionIndex, int index, int count, Object data) {
+		ListSectionProxy section = getSectionAt(sectionIndex);
+		if (section != null){
+			section.replaceItemsAt(index, count, data);
+		}
+		else {
+			Log.e(TAG, "replaceItemsAt wrong section index");
+		}
+	}
+
+	@Kroll.method
+	public void updateItemAt(int sectionIndex, int index, Object data) {
+		ListSectionProxy section = getSectionAt(sectionIndex);
+		if (section != null){
+			section.updateItemAt(index, data);
+		}
+		else {
+			Log.e(TAG, "updateItemAt wrong section index");
 		}
 	}
 }

@@ -125,15 +125,6 @@
 
     _transitionContext = [transitionContext retain];
     
-//    if (toProxy) {
-//        TiUIView* view = [toProxy getOrCreateView];
-//        [toProxy windowWillOpen];
-//        [toProxy windowDidOpen];
-//        [toProxy layoutChildren:NO];
-//        LayoutConstraint *contraints = [toProxy layoutProperties];
-//        ApplyConstraintToViewWithBounds(contraints, view, toViewController.view.bounds);
-//    }
-    
     [fromProxy setParentVisible:YES];
     [toProxy setParentVisible:YES];
     

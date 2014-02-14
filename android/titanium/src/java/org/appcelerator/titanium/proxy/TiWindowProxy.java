@@ -64,6 +64,8 @@ public abstract class TiWindowProxy extends TiViewProxy
 	
 	private TiWindowManager winManager = null;
 	
+	protected boolean customHandleOpenEvent = false;
+	
 	/**
 	 * An interface to intercept OnBackPressed events.
 	 */
@@ -198,6 +200,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 		}
 		opened = false;
 		activity = null;
+		parent = null;
 
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
@@ -439,6 +442,8 @@ public abstract class TiWindowProxy extends TiViewProxy
 	 */
 	public void handlePostOpen()
 	{
+		opening = false;
+		opened = true;
 		if (postOpenListener != null)
 		{
 			getMainHandler().post(new Runnable() {
@@ -460,6 +465,18 @@ public abstract class TiWindowProxy extends TiViewProxy
 		if (nativeView != null) {
 			nativeView.postInvalidate();
 		}
+		if (!customHandleOpenEvent) {
+			sendOpenEvent();
+		}
+	}
+	
+	public void customHandleOpenEvent(boolean value){
+		this.customHandleOpenEvent = value;
+	}
+
+	
+	public void sendOpenEvent(){
+		fireEvent(TiC.EVENT_OPEN, null, false);
 	}
 
 	@Kroll.method @Kroll.getProperty

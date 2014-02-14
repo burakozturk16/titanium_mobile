@@ -240,6 +240,13 @@ doReposition = YES;\
 
 -(void)applyOnView:(UIView*)_view forStep:(TiViewAnimationStep*) step
 {
+    //that could be the future but for now it doesnt work because
+    //applyProperties will set the actual object props which we dont want
+    
+//    [m_tiViewProxy applyProperties:[m_animationProxy allProperties]];
+//    [m_tiViewProxy setRunningAnimationRecursive:step];
+//    [m_tiViewProxy refreshViewOrParent];
+//    [m_tiViewProxy setRunningAnimationRecursive:nil];
     if ([_view isKindOfClass:[TiUIView class]])
     {
         TiUIView *uiview = (TiUIView*)_view;
@@ -258,8 +265,9 @@ doReposition = YES;\
     
         if (backgroundColor!=nil)
         {
-            TiColor *color_ = [TiUtils colorValue:backgroundColor];
-            [uiview setBackgroundColor:[color_ _color]];
+            //we have to use setBackgroundColor_ because setBackgroundColor has been overriden
+            // on purpose
+            [_view setBackgroundColor_:[backgroundColor _color]];
         }
         
         if (color!=nil && [uiview respondsToSelector:@selector(setColor_:)])

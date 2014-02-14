@@ -35,14 +35,6 @@
       "external_child_modules": [],
       "on_app_create": null
     },
-
-    {
-      "class_name": "ti.modules.titanium.shape.ShapeModule",
-      "api_name": "Shape",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
     {
       "class_name": "ti.modules.titanium.filesystem.FilesystemModule",
       "api_name": "Filesystem",

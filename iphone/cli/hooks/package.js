@@ -103,11 +103,11 @@ exports.init = function (logger, config, cli) {
 					});
 					break;
 					
-				case 'device':
-					if (!cli.argv['build-only']) {
-						return finished();
-					}
+				// 	if (!cli.argv['build-only']) {
+				// 		return finished();
+				// 	}
 
+				case 'device':
 				case 'dist-adhoc':
 					logger.info('Packaging for Ad Hoc distribution');
 					var pkgapp = path.join(build.xcodeEnv.path, 'Platforms', 'iPhoneOS.platform', 'Developer', 'usr', 'bin', 'PackageApplication');

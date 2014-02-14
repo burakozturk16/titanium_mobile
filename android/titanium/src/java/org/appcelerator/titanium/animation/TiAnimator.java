@@ -22,6 +22,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import android.os.Build;
 import android.os.Looper;
 import android.os.MessageQueue;
+import android.view.animation.Interpolator;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class TiAnimator
@@ -34,6 +35,7 @@ public class TiAnimator
 	public Boolean autoreverse = false;
 	public Boolean restartFromBeginning = false;
 	public Boolean cancelRunningAnimations = false;
+	public Interpolator curve = null;
 	protected boolean animating;
 
 	public TiAnimation animationProxy;
@@ -123,6 +125,19 @@ public class TiAnimator
 		if (options.containsKey(TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS)) {
 			cancelRunningAnimations = TiConvert.toBoolean(options, TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS);
 		}
+		if (options.containsKey(TiC.PROPERTY_CURVE)) {
+			Object value = options.get(TiC.PROPERTY_CURVE);
+			if (value instanceof Number) {
+				curve = TiInterpolator.getInterpolator(TiConvert.toInt(value), duration);
+			}
+			
+			else if (value instanceof Object[]) {
+				double[] values = TiConvert.toDoubleArray((Object[]) value);
+				if (values.length == 4) {
+					curve =new CubicBezierInterpolator(values[0], values[1], values[2], values[3]);
+				}
+			}
+		}
 
 		this.options = options;
 	}
@@ -135,7 +150,8 @@ public class TiAnimator
 			TiC.PROPERTY_DURATION, TiC.PROPERTY_DELAY,
 			TiC.PROPERTY_AUTOREVERSE, TiC.PROPERTY_REPEAT,
 			TiC.PROPERTY_RESTART_FROM_BEGINNING,
-			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS);
+			TiC.PROPERTY_CANCEL_RUNNING_ANIMATIONS,
+			TiC.PROPERTY_CURVE);
 
 	protected List<String> animationProperties() {
 		return kAnimationProperties;

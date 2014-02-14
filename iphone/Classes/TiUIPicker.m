@@ -351,7 +351,7 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component
 {
-	if ([self.proxy _hasListeners:@"change"])
+	if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
 	{
 		TiUIPickerColumnProxy *proxy = [[self columns] objectAtIndex:component];
 		TiUIPickerRowProxy *rowproxy = [proxy rowAt:row];
@@ -389,7 +389,7 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 							   proxy,@"column",
 							   rowproxy,@"row",
 							   nil];
-		[self.proxy fireEvent:@"change" withObject:event];
+		[self.proxy fireEvent:@"change" withObject:event propagate:NO checkForListener:NO];
 	}
 }
 
@@ -397,21 +397,21 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 {
     if (sender == picker) {
         
-        if ([self.proxy _hasListeners:@"change"])
+        if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
         {
+            NSDictionary *event = nil;
             if ( [self isDatePicker] && [(UIDatePicker*)picker datePickerMode] == UIDatePickerModeCountDownTimer ) {
                 double val = [(UIDatePicker*)picker countDownDuration]*1000;
                 NSNumber* newDuration = [NSNumber numberWithDouble:val];
-                NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:newDuration,@"countDownDuration",nil];
+                event = [NSDictionary dictionaryWithObjectsAndKeys:newDuration,@"countDownDuration",nil];
                 [self.proxy replaceValue:newDuration forKey:@"countDownDuration" notification:NO];
-                [self.proxy fireEvent:@"change" withObject:event];
             }
             else {
                 NSDate *date = [(UIDatePicker*)picker date];
-                NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:date,@"value",nil];
+                event = [NSDictionary dictionaryWithObjectsAndKeys:date,@"value",nil];
                 [self.proxy replaceValue:date forKey:@"value" notification:NO];
-                [self.proxy fireEvent:@"change" withObject:event];
             }
+            [self.proxy fireEvent:@"change" withObject:event propagate:NO checkForListener:NO];
         }
     }
 }

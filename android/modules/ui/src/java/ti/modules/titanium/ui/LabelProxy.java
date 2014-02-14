@@ -36,7 +36,6 @@ public class LabelProxy extends ViewProxy
 {
 	public LabelProxy()
 	{
-		defaultValues.put(TiC.PROPERTY_TEXT, "");
 	}
 
 	public LabelProxy(TiContext tiContext)

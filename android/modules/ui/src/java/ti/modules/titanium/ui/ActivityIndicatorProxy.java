@@ -11,7 +11,6 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUIActivityIndicator;
@@ -32,13 +31,10 @@ public class ActivityIndicatorProxy extends ViewProxy
 {
 	private static final int MSG_FIRST_ID = KrollProxy.MSG_LAST_ID + 1;
 	private static final int MSG_SHOW = MSG_FIRST_ID + 100;
-	
-	boolean visible = false;
-	
+		
 	public ActivityIndicatorProxy()
 	{
 		super();
-		defaultValues.put(TiC.PROPERTY_VISIBLE, false);
 	}
 
 	public ActivityIndicatorProxy(TiContext tiContext)
@@ -50,9 +46,9 @@ public class ActivityIndicatorProxy extends ViewProxy
 	public TiUIView createView(Activity activity)
 	{
 		TiUIView view = new TiUIActivityIndicator(this);
-		if (visible) {
-			getMainHandler().obtainMessage(MSG_SHOW).sendToTarget();
-		}
+//		if (visible) {
+//			getMainHandler().obtainMessage(MSG_SHOW).sendToTarget();
+//		}
 		return view;
 	}
 
@@ -77,11 +73,8 @@ public class ActivityIndicatorProxy extends ViewProxy
 	@Override
 	protected void handleShow(KrollDict options)
 	{
-		visible = true;
 		if (view == null) {
-			TiUIActivityIndicator ai = (TiUIActivityIndicator) getOrCreateView();
-			ai.show();
-			return;
+			getOrCreateView();
 		}
 		super.handleShow(options);
 	}
@@ -89,11 +82,8 @@ public class ActivityIndicatorProxy extends ViewProxy
 	@Override
 	protected void handleHide(KrollDict options)
 	{
-		visible = false;
 		if (view == null) {
-			TiUIActivityIndicator ai = (TiUIActivityIndicator) getOrCreateView();
-			ai.hide();
-			return;
+			 getOrCreateView();
 		}
 		super.handleHide(options);
 	}

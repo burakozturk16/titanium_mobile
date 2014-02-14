@@ -505,18 +505,14 @@ typedef void (^PermissionBlock)(BOOL granted)
 		{
 			ENSURE_TYPE(cameraViewProxy,TiViewProxy);
             cameraView = [cameraViewProxy retain];
-			UIView *view = [cameraView getOrCreateView];
+			UIView *view = [cameraView getAndPrepareViewForOpening:[picker view].bounds];
 			if (editable)
 			{
 				// turn off touch enablement if image editing is enabled since it will
 				// interfere with editing
 				[view performSelector:@selector(setTouchEnabled_:) withObject:NUMBOOL(NO)];
 			}
-			[TiUtils setView:view positionRect:[picker view].bounds];
-			[cameraView windowWillOpen];
 			[picker setCameraOverlayView:view];
-			[cameraView windowDidOpen];
-			[cameraView layoutChildren:NO];
 			if (![TiUtils isIOS7OrGreater]) {
 				[picker setWantsFullScreenLayout:YES];
 			}

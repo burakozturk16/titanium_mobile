@@ -8,8 +8,8 @@ exports.cliVersion = '>=3.2';
 exports.init = function(logger, config, cli) {
 
 	cli.on('build.android.aapt', {
-		pre: function(data, next) {
-			var args = data.args[1];
+		pre: function(build, finished) {
+			var args = build.args[1];
 			args.push('--auto-add-overlay');
 
 			var externalLibraries = [{
@@ -21,7 +21,7 @@ exports.init = function(logger, config, cli) {
 				args.push('--extra-packages', lib.javaClass, '-S', lib.resPath);
 			});
 
-			next(data);
+			finished();
 		}
 	});
 };

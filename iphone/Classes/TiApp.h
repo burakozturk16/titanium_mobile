@@ -124,6 +124,7 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 -(BOOL)windowIsKeyWindow;
 
 -(UIView *) topMostView;
+-(UIWindow *) topMostWindow;
 
 -(void)attachXHRBridgeIfRequired;
 

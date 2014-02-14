@@ -74,7 +74,7 @@ public class TiUISearchBar extends TiUIText
 					e.printStackTrace();
 				}*/
 				tv.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL));
-				fireEvent("cancel", null);
+				fireEvent(TiC.EVENT_CANCEL, null, false, false);
 			}
 		});
 		fullTv.setRightView(cancelBtn);

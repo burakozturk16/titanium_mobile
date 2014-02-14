@@ -155,6 +155,11 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  The shadow color for the label when the label's `highlighted` property is `YES`. The default value is `nil` (no shadow color).
  */
 @property (nonatomic, strong) UIColor *highlightedShadowColor;
+/**
+ The  color for the label when the label is disabled. The default value is `nil` .
+ */
+@property (nonatomic, strong) UIColor *disabledColor;
+
 
 ///--------------------------------------------
 /// @name Acccessing Paragraph Style Attributes
@@ -216,6 +221,26 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 @property (nonatomic, strong) NSString *strokeWidthAttributeProperty;
 @property (nonatomic, strong) NSString *cornerRadiusAttributeProperty;
 @property (nonatomic, strong) NSString *paddingAttributeProperty;
+@property (nonatomic, strong) NSString *strikeOutAttributeProperty;
+@property (nonatomic, strong) NSString *backgroundColorAttributeProperty;
+
+
+///--------------------------------------------
+/// @name Calculating Size of Attributed String
+///--------------------------------------------
+
+/**
+ Calculate and return the size that best fits an attributed string, given the specified constraints on size and number of lines.
+
+ @param attributedString The attributed string.
+ @param size The maximum dimensions used to calculate size.
+ @param numberOfLines The maximum number of lines in the text to draw, if the constraining size cannot accomodate the full attributed string.
+ 
+ @return The size that fits the attributed string within the specified constraints.
+ */
++ (CGSize)sizeThatFitsAttributedString:(NSAttributedString *)attributedString
+                       withConstraints:(CGSize)size
+                limitedToNumberOfLines:(NSUInteger)numberOfLines;
 
 ///----------------------------------
 /// @name Setting the Text Attributes
@@ -241,6 +266,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 - (void)setText:(id)text
 afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString *(^)(NSMutableAttributedString *mutableAttributedString))block;
 
+- (CFIndex)characterIndexAtPoint:(CGPoint)p;
 ///----------------------------------
 /// @name Accessing the Text Attributes
 ///----------------------------------

@@ -34,11 +34,6 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     return nil;
 }
 
-- (float)getDuration {
-    return _duration;
-}
-
-
 - (void)dealloc {
     [super dealloc];
 }
@@ -53,6 +48,11 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     CAMediaTimingFunction *firstQuarterCircleApproximationFuction = [CAMediaTimingFunction functionWithControlPoints:kappa /(M_PI/2.0f) :kappa :1.0-kappa :1.0];
     CAMediaTimingFunction * secondQuarterCircleApproximationFuction = [CAMediaTimingFunction functionWithControlPoints:kappa :0.0 :1.0-(kappa /(M_PI/2.0f)) :1.0-kappa];
     return @[firstQuarterCircleApproximationFuction, secondQuarterCircleApproximationFuction];
+}
+
+- (NSTimeInterval)duration {
+    NSAssert(FALSE, @"This abstract method must be implemented!");
+    return 0.0;
 }
 
 #pragma mark -

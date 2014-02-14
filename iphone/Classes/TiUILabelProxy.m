@@ -47,7 +47,9 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 }
 
 @implementation TiUILabelProxy
-
+{
+    UIEdgeInsets _padding;
+}
 
 +(NSSet*)transferableProperties
 {
@@ -71,12 +73,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(id)init
 {
     if (self = [super init]) {
+        _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
-        UIColor* color = [UIColor darkTextColor];
         options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
                     [NSNumber numberWithInt:kCTLeftTextAlignment], DTDefaultTextAlignment,
-                    color, DTDefaultTextColor,
-                    color, DTDefaultLinkColor,
                     [NSNumber numberWithInt:0], DTDefaultFontStyle,
                     @"Helvetica", DTDefaultFontFamily,
                      [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
@@ -122,8 +122,8 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     }
     if (view!=nil) {
         [(TiUILabel*)view setAttributedTextViewContent];
-        [self contentsWillChange];
     }
+    [self contentsWillChange];
     attributeTextNeedsUpdate = NO;
 }
 
@@ -136,9 +136,26 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 -(void)configurationSet:(BOOL)recursive
 {
     configSet = YES;
+    [(TiUILabel*)view setPadding:_padding];
+    [(TiUILabel *)[self view] setReusing:NO];
     if (attributeTextNeedsUpdate)
         [self updateAttributeText];
     [super configurationSet:recursive];
+}
+
+
+- (void)prepareForReuse
+{
+    [(TiUILabel *)[self view] setReusing:YES];
+    [super prepareForReuse];
+}
+
+-(void)setPadding:(id)value
+{
+    _padding = [TiUtils insetValue:value];
+    if (view != nil)
+        [(TiUILabel*)view setPadding:_padding];
+    [self contentsWillChange];
 }
 
 -(CGSize) suggestedSizeForSize:(CGSize)size
@@ -149,36 +166,17 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     {
         if (_realLabelContent != nil)
         {
-            CGSize resultSize = CGSizeZero;
-            CGRect textPadding = CGRectZero;
-            if ([self valueForKey:@"padding"]) {
-                NSDictionary* paddingDict = (NSDictionary*)[self valueForKey:@"padding"];
-                if ([paddingDict objectForKey:@"left"]) {
-                    textPadding.origin.x = [TiUtils floatValue:[paddingDict objectForKey:@"left"]];
-                }
-                if ([paddingDict objectForKey:@"right"]) {
-                    textPadding.size.width = [TiUtils floatValue:[paddingDict objectForKey:@"right"]];
-                }
-                if ([paddingDict objectForKey:@"top"]) {
-                    textPadding.origin.y = [TiUtils floatValue:[paddingDict objectForKey:@"top"]];
-                }
-                if ([paddingDict objectForKey:@"bottom"]) {
-                    textPadding.size.height = [TiUtils floatValue:[paddingDict objectForKey:@"bottom"]];
-                };
-            }
+            CGSize result = CGSizeZero;
             CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, size.height<=0 ? 10000 : size.height);
-            maxSize.width -= textPadding.origin.x + textPadding.size.width;
+            maxSize.width -= _padding.left + _padding.right;
             if ([_realLabelContent isKindOfClass:[NSAttributedString class]])
             {
-                
-                if ([[NSAttributedString class] instancesRespondToSelector:@selector(boundingRectWithSize:options:context:)])
+                int numberOfLines = 0;
+                if ([self valueForKey:@"maxLines"])
                 {
-                    resultSize = [(NSAttributedString*)_realLabelContent boundingRectWithSize:maxSize options:(NSStringDrawingUsesLineFragmentOrigin|NSStringDrawingUsesFontLeading) context:nil].size;
-                }else {
-                    CTFramesetterRef framesetter = CTFramesetterCreateWithAttributedString((CFAttributedStringRef)_realLabelContent);
-                    resultSize = CTFramesetterSuggestFrameSizeWithConstraints(framesetter, CFRangeMake(0, [_realLabelContent length]), NULL, maxSize, NULL);
-                    CFRelease(framesetter);
+                    numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
                 }
+                result = [TDTTTAttributedLabel sizeThatFitsAttributedString:_realLabelContent withConstraints:maxSize limitedToNumberOfLines:numberOfLines];
             }
             else
             {
@@ -195,43 +193,60 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
                 {
                     font = [UIFont systemFontOfSize:17];
                 }
-                resultSize = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
-            }
-            resultSize.width = roundf(resultSize.width);
-            resultSize.height = roundf(resultSize.height);
-            resultSize.width += textPadding.origin.x + textPadding.size.width;
-            resultSize.height += textPadding.origin.y + textPadding.size.height;
-            return resultSize;
+                int numberOfLines = 0;
+                if ([self valueForKey:@"maxLines"])
+                {
+                    numberOfLines = [TiUtils intValue:[self valueForKey:@"maxLines"]];
+                }
+                font.lineHeight;
+                result = [(NSString*)_realLabelContent sizeWithFont:font constrainedToSize:maxSize lineBreakMode:breakMode];
+                if (numberOfLines > 0)
+                {
+                    CGFloat fontHeight = font.lineHeight;
+                    int currentNbLines = result.height / fontHeight;
+                    if (currentNbLines > numberOfLines)
+                    {
+                        result.height = numberOfLines * fontHeight;
+                    }
+                }
+           }
+            result.width = ceilf(result.width); //use ceilf to get same result as sizeThatFits
+            result.height = ceilf(result.height); //use ceilf to get same result as sizeThatFits
+            result.width += _padding.left + _padding.right;
+            result.height += _padding.top + _padding.bottom;
+            if (size.width > 0) result.width = MIN(result.width,  size.width);
+            if (size.height > 0) result.height = MIN(result.height,  size.height);
+            return result;
         }
     }
     return CGSizeZero;
 }
-
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     return [self suggestedSizeForSize:size];
 }
 
--(CGFloat) verifyWidth:(CGFloat)suggestedWidth
-{
-	int width = ceil(suggestedWidth);
-	if (width & 0x01)
-	{
-		width ++;
-	}
-	return width;
-}
+//-(CGFloat) verifyWidth:(CGFloat)suggestedWidth
+//{
+//	int width = ceil(suggestedWidth);
+//	if (width != suggestedWidth && width & 0x01)
+//	{
+//		width ++;
+//	}
+//	return width;
+//}
+//
+//-(CGFloat) verifyHeight:(CGFloat)suggestedHeight
+//{
+//	int height = ceil(suggestedHeight);
+//	if (height != suggestedHeight && height & 0x01)
+//	{
+//		height ++;
+//	}
+//	return height;
+//}
 
--(CGFloat) verifyHeight:(CGFloat)suggestedHeight
-{
-	int height = ceil(suggestedHeight);
-	if (height & 0x01)
-	{
-		height ++;
-	}
-	return height;
-}
 
 -(NSArray *)keySequence
 {
@@ -261,27 +276,18 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
 //we do it in the proxy for faster performances in tableviews
 -(void)setText:(id)value
 {
-    [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeText];
+    //the test is for listview measurement when a same template is used for text and html
+    if (value || _contentType == kContentTypeText)
+        [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeText];
 	[self replaceValue:value forKey:@"text" notification:NO];
 }
 
 -(void)setHtml:(id)value
 {
-    [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
+    //the test is for listview measurement when a same template is used for text and html
+    if (value || _contentType == kContentTypeHTML)
+        [self setAttributedTextViewContent:[TiUtils stringValue:value] ofType:kContentTypeHTML];
 	[self replaceValue:value forKey:@"html" notification:NO];
-}
-
--(void)setColor:(id)color
-{
-	UIColor * newColor = [[TiUtils colorValue:color] _color];
-    if (newColor == nil)
-        newColor = [UIColor darkTextColor];
-    [options setValue:newColor forKey:DTDefaultTextColor];
-    [options setValue:newColor forKey:DTDefaultLinkColor];
-    
-    //we need to reset the text to update default paragraph settings
-	[self replaceValue:color forKey:@"color" notification:YES];
-    [self updateAttributeText];
 }
 
 -(void)setFont:(id)font
@@ -331,6 +337,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         RELEASE_TO_NIL(contentString);
         RELEASE_TO_NIL(_realLabelContent);
         _contentHash = 0;
+        [self updateAttributeText];
         return;
     }
     

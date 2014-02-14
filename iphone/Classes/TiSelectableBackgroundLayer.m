@@ -5,17 +5,36 @@
 @interface TiDrawable()
 {
     UIImage* _bufferImage;
+    NSArray* _innerShadows;
+    BOOL _needsUpdate;
 }
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate;
+@end
+
+@interface TiSelectableBackgroundLayer()
+{
+    TiDrawable* currentDrawable;
+    UIControlState currentState;
+    BOOL _animateTransition;
+    BOOL _needsToSetDrawables;
+    CGFloat _clipWidth;
+    CGPathRef _clippingPath;
+    BOOL _nonRetina;
+}
+@property(nonatomic,assign) BOOL nonRetina;
 
 @end
+
+
 @implementation TiDrawable
-@synthesize gradient, color, image, svg, imageRepeat;
+@synthesize gradient, color, image, svg, imageRepeat, shadow = _shadow, innerShadows = _innerShadows;
 
 - (id)init {
     if (self = [super init])
     {
         imageRepeat = NO;
+        _innerShadows = nil;
+        _needsUpdate = YES;
     }
     return self;
 }
@@ -27,17 +46,25 @@
     RELEASE_TO_NIL(color)
     RELEASE_TO_NIL(image)
     RELEASE_TO_NIL(svg)
+    RELEASE_TO_NIL(_shadow)
+    RELEASE_TO_NIL(_innerShadows)
 	[super dealloc];
+}
+
+-(void)setNeedsUpdate
+{
+    _needsUpdate = YES;
 }
 
 -(void)setInLayer:(TiSelectableBackgroundLayer*)layer onlyCreateImage:(BOOL)onlyCreate animated:(BOOL)animated
 {
-    
-    if (_bufferImage == nil && (gradient != nil ||
-                                color != nil ||
+    if ((_needsUpdate || _bufferImage == nil) && (gradient != nil ||
+                                (color != nil && layer.shadowPath) ||
                                 image != nil ||
+                                _innerShadows != nil ||
                                 svg != nil)) {
-        if (gradient == nil && color == nil && image != nil) {
+        _needsUpdate = NO;
+        if (gradient == nil && color == nil && _innerShadows == nil && image != nil) {
             _bufferImage = [image retain];
         }
         else {
@@ -48,6 +75,12 @@
         }
     }
     if (onlyCreate) return;
+    if (color && !layer.shadowPath) {
+        layer.backgroundColor = color.CGColor;
+    }
+    else {
+        layer.backgroundColor =nil;
+    }
 
     if (_bufferImage == nil) {
         if (layer.contents != nil) {
@@ -71,25 +104,42 @@
         [layer setContents:(id)_bufferImage.CGImage];
     }
 }
--(void)drawBufferFromLayer:(CALayer*)layer
+-(void)drawBufferFromLayer:(TiSelectableBackgroundLayer*)layer
 {
     CGRect rect = layer.bounds;
-    UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
+    UIGraphicsBeginImageContextWithOptions(rect.size, NO, layer.nonRetina?1.0:0.0);
     CGContextRef ctx = UIGraphicsGetCurrentContext();
     if (ctx == 0) {
         UIGraphicsEndImageContext();
         return;
     }
-    [self drawInContext:UIGraphicsGetCurrentContext() inRect:rect];
+    [self drawInContext:ctx inRect:rect forLayer:layer];
+
     _bufferImage = [UIGraphicsGetImageFromCurrentImageContext() retain];
     UIGraphicsEndImageContext();
 }
 
--(void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect
+-(void)drawInContext:(CGContextRef)ctx inRect:(CGRect)rect forLayer:(TiSelectableBackgroundLayer*)layer
 {
-    CGContextSaveGState(ctx);
-    
     CGContextSetAllowsAntialiasing(ctx, true);
+    CGContextSetShouldAntialias(ctx, true);
+    if (layer.shadowPath) {
+        CGContextAddPath(ctx, layer.shadowPath);
+        if (layer.clipWidth > 0) {
+            CGContextSetLineWidth(ctx, layer.clipWidth);
+            CGContextReplacePathWithStrokedPath(ctx);
+        }
+        CGContextClip(ctx);
+    }
+    else if (layer.clipWidth > 0)
+    {
+        CGFloat halfWidth = layer.clipWidth / 2.0f;
+        CGContextAddRect(ctx, CGRectInset(rect, halfWidth, halfWidth));
+        CGContextSetLineWidth(ctx, layer.clipWidth);
+        CGContextReplacePathWithStrokedPath(ctx);
+        CGContextClip(ctx);
+    }
+
     if (color) {
         CGContextSetFillColorWithColor(ctx, [color CGColor]);
         CGContextFillRect(ctx, rect);
@@ -116,43 +166,41 @@
         CGContextScaleCTM( ctx, scale.width, scale.height );
         [svg.CALayerTree renderInContext:ctx];
     }
-    CGContextRestoreGState(ctx);
+    if(_innerShadows) {
+        UIBezierPath* path = [UIBezierPath bezierPathWithRect:CGRectInfinite];
+        if (layer.shadowPath) {
+            [path appendPath:[UIBezierPath bezierPathWithCGPath:layer.shadowPath]];
+        }
+        else {
+            [path appendPath:[UIBezierPath bezierPathWithRect:CGRectInset(rect, -1, -1)]];
+        }
+        path.usesEvenOddFillRule = YES;
+        for (NSShadow* shadow in _innerShadows) {
+            CGSize offset = shadow.shadowOffset;
+            CGFloat blur = shadow.shadowBlurRadius;
+            CGColorRef shadowColor = ((UIColor*)shadow.shadowColor).CGColor;
+            CGContextSetShadowWithColor(ctx, offset, blur, shadowColor);
+            CGContextSetFillColorWithColor(ctx, shadowColor);
+            [path fill]; // to get the shadow
+        }
+    }
 }
 
 -(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate
 {
-    RELEASE_TO_NIL(_bufferImage);
-    [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
+    [self updateInLayer:layer onlyCreateImage:onlyCreate forceChange:YES];
 }
 
-@end
-
-@interface TiSelectableBackgroundLayer()
+-(void)updateInLayer:(TiSelectableBackgroundLayer*)layer  onlyCreateImage:(BOOL)onlyCreate forceChange:(BOOL)force
 {
-    TiDrawable* currentDrawable;
-    UIControlState currentState;
-    BOOL _animateTransition;
-    BOOL _needsToSetDrawables;
+    if (!force && !layer.shadowPath && _bufferImage && (color || image) && gradient == nil && _innerShadows == nil) return;
+    RELEASE_TO_NIL(_bufferImage);
+    [self setInLayer:layer  onlyCreateImage:onlyCreate animated:NO];
 }
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition;
-
-//- (id) initWithLayer:(id)layer {
-//    if(self = [super initWithLayer:layer]) {
-//        if([layer isKindOfClass:[TiSelectableBackgroundLayer class]]) {
-//            TiSelectableBackgroundLayer *other = (TiSelectableBackgroundLayer*)layer;
-//            self.imageRepeat = other.imageRepeat;
-//            stateLayersMap = [[NSMutableDictionary dictionaryWithDictionary:other.stateLayersMap] retain];
-//            stateLayers = [[NSMutableArray arrayWithArray:other.stateLayers] retain];
-//            currentState = [other getState];
-//            readyToCreateDrawables = YES;
-//            currentDrawable = [self getOrCreateDrawableForState:currentState];
-//        }
-//    }
-//    return self;
-//}
+@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, clippingPath = _clippingPath, nonRetina = _nonRetina;
 
 - (id)init {
     if (self = [super init])
@@ -164,14 +212,12 @@
         _imageRepeat = NO;
         readyToCreateDrawables = NO;
         _needsToSetDrawables = NO;
+        _needsToSetAllDrawablesOnNextSize = NO;
         _animateTransition = NO;
-        self.masksToBounds=YES;
-//        self.needsDisplayOnBoundsChange = YES;
-        self.shouldRasterize = YES;
+        self.zPosition = -0.01;
         self.contentsScale = self.rasterizationScale = [UIScreen mainScreen].scale;
-//        self.actions = [NSDictionary dictionaryWithObjectsAndKeys:
-//                        [NSNull null], @"bounds",
-//                        nil];
+        _nonRetina = NO;
+        _clipWidth = 0.0f;
     }
     return self;
 }
@@ -181,37 +227,48 @@
     currentDrawable = nil;
 	[stateLayersMap release];
 	[stateLayers release];
+    if (_clippingPath)
+    {
+        CGPathRelease(_clippingPath);
+        _clippingPath = nil;
+    }
 	[super dealloc];
 }
 
-//-(void)setFrame:(CGRect)frame
-//{
-//    BOOL needsToUpdate = (frame.size.width != 0 && frame.size.height!= 0 && (!CGSizeEqualToSize(frame.size, self.frame.size) || _needsToSetDrawables));
-//    
-//	[super setFrame:frame];
-//    if (needsToUpdate) {
-//        CGSize size = self.frame.size;
-//        _needsToSetDrawables = NO;
-//        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-//            if (drawable != nil) {
-//                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
-//            }
-//        }];
-//    }
-//}
+
+-(void)setRetina:(BOOL)value
+{
+    _nonRetina = !value;
+}
+
 
 -(void)setBounds:(CGRect)bounds
 {
-    BOOL needsToUpdate = (bounds.size.width != 0 && bounds.size.height!= 0 && (!CGSizeEqualToSize(bounds.size, self.bounds.size) || _needsToSetDrawables));
     
+    bounds = CGRectIntegral(bounds);
+    CGRect currentRect = [self bounds];
 	[super setBounds:bounds];
+    if (bounds.size.width == 0 && bounds.size.height == 0) return;
+    
+    BOOL needsToUpdate = ((_needsToSetAllDrawablesOnNextSize || readyToCreateDrawables) && (!CGSizeEqualToSize(bounds.size, currentRect.size) || _needsToSetDrawables));
+    
     if (needsToUpdate) {
+        if (readyToCreateDrawables)
+        {
+            [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+                if (drawable != nil && drawable == currentDrawable) {
+                    [drawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+                }
+                else {
+                    [drawable setNeedsUpdate];
+                }
+            }];
+        }
+        else {
+            self.readyToCreateDrawables = YES;
+        }
+        
         _needsToSetDrawables = NO;
-        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
-            if (drawable != nil) {
-                [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
-            }
-        }];
     }
 }
 
@@ -237,8 +294,26 @@
     }
     if (newDrawable != nil && newDrawable != currentDrawable) {
         currentDrawable = newDrawable;
-        [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        if (readyToCreateDrawables) {
+            [currentDrawable setInLayer:self onlyCreateImage:NO animated:animated];
+        }
+        else {
+            _needsToSetDrawables = YES;
+        }
+        if (currentDrawable.shadow) {
+            self.shadowOpacity = 1.0f;
+            self.shadowColor = ((UIColor*)currentDrawable.shadow.shadowColor).CGColor;
+            self.shadowOffset = currentDrawable.shadow.shadowOffset;
+        }
+        else {
+            self.shadowOpacity = 0.0f;
+        }
     }
+    else {
+        self.shadowOpacity = 0.0f;
+    }
+//    self.shadowOpacity = 1.0f;
+//    self.shadowColor = [UIColor blackColor].CGColor;
     currentState = state;
 }
 
@@ -282,7 +357,10 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.color = color;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
+    }
+    else {
+        _needsToSetDrawables = YES;
     }
 }
 
@@ -296,7 +374,10 @@
         drawable.svg = image;
     else return;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
+    }
+    else {
+        _needsToSetDrawables = YES;
     }
 }
 
@@ -305,71 +386,134 @@
     TiDrawable* drawable = [self getOrCreateDrawableForState:state];
     drawable.gradient = gradient;
     if (readyToCreateDrawables) {
-        [drawable updateInLayer:self onlyCreateImage:(state != currentState)];
+        [self updateDrawable:drawable];
+    }
+    else {
+        _needsToSetDrawables = YES;
     }
 }
 
+
+- (void)setShadow:(NSShadow*)shadow forState:(UIControlState)state
+{
+    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    drawable.shadow = shadow;
+    if (readyToCreateDrawables) {
+        [self updateDrawable:drawable];
+    }
+    else {
+        _needsToSetDrawables = YES;
+    }
+}
+
+- (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state
+{
+    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    drawable.innerShadows = shadows;
+    if (readyToCreateDrawables) {
+        [self updateDrawable:drawable];
+    }
+    else {
+        _needsToSetDrawables = YES;
+    }
+}
+
+-(void)update
+{
+    if (currentDrawable != nil) {
+        [currentDrawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+    }
+}
+
+-(void)updateDrawable:(TiDrawable*)drawable
+{
+    if (drawable == currentDrawable) {
+        [currentDrawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+    }
+    else {
+        [drawable setNeedsUpdate];
+    }
+}
+
+-(void)setClipWidth:(CGFloat)width
+{
+    if (width == _clipWidth) return;
+    //the 0.5f compensate the 0.5f applied to the clippingPath
+    _clipWidth = width;
+    if (readyToCreateDrawables) {
+        [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
+            if (drawable != nil && drawable == currentDrawable) {
+                [drawable updateInLayer:self onlyCreateImage:NO forceChange:_needsToSetDrawables];
+            }
+            else {
+                [drawable setNeedsUpdate];
+            }
+        }];
+    }
+    else {
+        _needsToSetDrawables = YES;
+    }
+}
+
+
+
 - (void)setReadyToCreateDrawables:(BOOL)value
 {
+    CGRect bounds = self.bounds;
+    if (value && bounds.size.width == 0 && bounds.size.height == 0) {
+        _needsToSetAllDrawablesOnNextSize = YES;
+        return;
+    }
     if (value != readyToCreateDrawables) {
         readyToCreateDrawables = value;
         if (readyToCreateDrawables) {
-            if (self.frame.size.width != 0 && self.frame.size.height!= 0) {
+            if (_needsToSetDrawables) {
                 [stateLayersMap enumerateKeysAndObjectsUsingBlock: ^(id key, TiDrawable* drawable, BOOL *stop) {
                     if (drawable != nil) {
-                        [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable)];
+                        [drawable updateInLayer:self onlyCreateImage:(drawable != currentDrawable) forceChange:_needsToSetDrawables];
                     }
                 }];
+                _needsToSetDrawables = NO;
             }
-            else {
-                _needsToSetDrawables = YES;
-            }
-            
         }
     }
 }
 
-//
-//static NSArray *animationKeys;
-//+ (NSArray *)animationKeys
-//{
-//    if (!animationKeys)
-//        animationKeys = [[NSArray arrayWithObjects:@"bounds",@"contents",nil] retain];
-//    
-//    return animationKeys;
-//}
-//
-//+(BOOL)needsDisplayForKey:(NSString*)key
-//{
-//    if ([key isEqualToString:@"contents"] || [key isEqualToString:@"bounds"])
-//        return YES;
-//    return [super needsDisplayForKey:key];
-//}
+-(void)setFrame:(CGRect)frame
+{
+    [super setFrame:frame];
+    if (self.mask) {
+        self.mask.frame = frame;
+    }
+}
 
-//
-//- (void)drawInContext:(CGContextRef)ctx
-//{
-//    [currentDrawable drawInContext:ctx inRect:self.bounds];
-//}
-
-//
 - (id<CAAction>)actionForKey:(NSString *)event
 {
     id action  = [super actionForKey:event];
     if ([event isEqualToString:@"contents"])
     {
-        CATransition *transition = [CATransition animation];
-        if (_animateTransition && transition.duration == 0)
-        {
-            transition.duration = 0.2;
-            transition.type = kCATransitionReveal;
-            transition.subtype = kCATransitionFade;
+        if (_animateTransition) {
+            CATransition *transition = [CATransition animation];
+            if (transition.duration == 0)
+            {
+                transition.duration = 0.2;
+                transition.type = kCATransitionReveal;
+                transition.subtype = kCATransitionFade;
+            }
+            [self addAnimation:transition forKey:nil];
         }
-        [self addAnimation:transition forKey:nil];
+        else return  nil;
     }
 
     return action;
 }
 
+-(void)setClippingPath:(CGPathRef)newPath
+{
+    if ( newPath != _clippingPath ) {
+        CGPathRelease(_clippingPath);
+        _clippingPath = CGPathRetain(newPath);
+    }
+}
 
 @end

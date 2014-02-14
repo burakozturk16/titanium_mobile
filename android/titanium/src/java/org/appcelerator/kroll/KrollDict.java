@@ -211,7 +211,7 @@ public class KrollDict
 	public int optColor(String key, int defaultValue) {
 		int result = defaultValue;
 
-		if (containsKey(key)) {
+		if (get(key) != null) {
 			result = getColor(key);
 		}
 		return result;

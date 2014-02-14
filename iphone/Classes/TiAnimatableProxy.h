@@ -2,6 +2,7 @@
 #import "TiAnimation.h"
 
 @interface TiAnimatableProxy : TiProxy<TiAnimationDelegate>
+@property(nonatomic,assign) BOOL animating;
 
 -(void)animate:(id)arg;
 -(void)cancelAllAnimations:(id)arg;
@@ -25,5 +26,7 @@
 #pragma Public API
 -(void)cancelAllAnimations:(id)arg;
 -(void)resetProxyPropertiesForAnimation:(TiAnimation*)animation;
+-(void)clearAnimations;
+-(void)removePendingAnimation:(TiAnimation *)animation;
 
 @end

@@ -1,134 +1,68 @@
 package org.appcelerator.titanium.animation;
 
+import android.graphics.PointF;
 import android.view.animation.Interpolator;
 
-public class CubicBezierInterpolator implements Interpolator {
-	double cx, bx, ax, cy, by, ay, epsilon;
+public class CubicBezierInterpolator implements Interpolator{
 
-	private double sampleCurveX(double t) {
-		// `ax t^3 + bx t^2 + cx t' expanded using Horner's rule.
-		return ((ax * t + bx) * t + cx) * t;
-	};
+    protected PointF start;
+    protected PointF end;
+    protected PointF a = new PointF();
+    protected PointF b = new PointF();
+    protected PointF c = new PointF();
 
-	/**
-	 * @param t {number} parametric timing value
-	 * @return {number}
-	 */
-	private double sampleCurveY(double t) {
-		return ((ay * t + by) * t + cy) * t;
-	};
+    public CubicBezierInterpolator(PointF start, PointF end) throws IllegalArgumentException{
+        if(start.x <0 || start.x > 1){
+            throw new IllegalArgumentException("startX value must be in the range [0, 1]");
+        }
+        if(end.x <0 || end.x >1){
+            throw new IllegalArgumentException("endX value must be in the range [0, 1]");
+        }
+        this.start = start;
+        this.end = end;
+    }
 
-	/**
-	 * @param t {number} parametric timing value
-	 * @return {number}
-	 */
-	private double sampleCurveDerivativeX(double t) {
-		return (3.0 * ax * t + 2.0 * bx) * t + cx;
-	};
+    public CubicBezierInterpolator(float startX, float startY, float endX, float endY) {
+        this(new PointF(startX, startY), new PointF(endX, endY));
+    }
 
-	private double solveEpsilon(double d) {
-		return 1.0 / (200.0 * d);
-	};
+    public CubicBezierInterpolator(double startX, double startY, double endX, double endY) {
+        this((float) startX, (float) startY, (float) endX, (float) endY);
+    }
 
-	private double solveCurveX(double x) {
+    @Override
+    public float getInterpolation(float time) {
+        return getBezierCoordinateY(getXForTime(time));
+    }
 
-		double t0, t1, t2, x2, d2, i;
+    protected float getBezierCoordinateY(float time) {
+        c.y = 3 * start.y;
+        b.y = 3 * (end.y - start.y) - c.y;
+        a.y = 1 - c.y - b.y;
+        return time * (c.y + time * (b.y + time * a.y));
+    }
 
-		// First try a few iterations of Newton's method -- normally very fast.
-		for (t2 = x, i = 0; i < 8; i++) {
-			x2 = sampleCurveX(t2) - x;
-			if (Math.abs(x2) < epsilon) {
-				return t2;
-			}
-			d2 = sampleCurveDerivativeX(t2);
-			if (Math.abs(d2) < 1e-6) {
-				break;
-			}
-			t2 = t2 - x2 / d2;
-		}
+    protected float getXForTime(float time) {
+        float x = time;
+        float z;
+        for (int i = 1; i < 14; i++) {
+            z = getBezierCoordinateX(x) - time;
+            if (Math.abs(z) < 1e-3) {
+                break;
+            }
+            x -= z / getXDerivate(x);
+        }
+        return x;
+    }
 
-		// Fall back to the bisection method for reliability.
-		t0 = 0.0;
-		t1 = 1.0;
-		t2 = x;
+    private float getXDerivate(float t) {
+        return c.x + t * (2 * b.x + 3 * a.x * t);
+    }
 
-		if (t2 < t0) {
-			return t0;
-		}
-		if (t2 > t1) {
-			return t1;
-		}
-
-		while (t0 < t1) {
-			x2 = sampleCurveX(t2);
-			if (Math.abs(x2 - x) < epsilon) {
-				return t2;
-			}
-			if (x > x2) {
-				t0 = t2;
-			} else {
-				t1 = t2;
-			}
-			t2 = (t1 - t0) * 0.5 + t0;
-		}
-
-		// Failure.
-		return t2;
-	}
-
-	public float getInterpolation(float time) {
-		return (float) sampleCurveY(solveCurveX(time));
-	}
-
-	public CubicBezierInterpolator(final double p1, final double p2,
-			final double p3, final double p4, final double duration) {
-		this.epsilon = solveEpsilon(duration);
-		/**
-		 * X component of Bezier coefficient C
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		cx = 3.0 * p1;
-
-		/**
-		 * X component of Bezier coefficient B
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		bx = 3.0 * (p3 - p1) - cx;
-
-		/**
-		 * X component of Bezier coefficient A
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		ax = 1.0 - cx - bx;
-
-		/**
-		 * Y component of Bezier coefficient C
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		cy = 3.0 * p2;
-
-		/**
-		 * Y component of Bezier coefficient B
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		by = 3.0 * (p4 - p2) - cy;
-
-		/**
-		 * Y component of Bezier coefficient A
-		 * 
-		 * @const
-		 * @type {number}
-		 */
-		ay = 1.0 - cy - by;
-	}
+    private float getBezierCoordinateX(float time) {
+        c.x = 3 * start.x;
+        b.x = 3 * (end.x - start.x) - c.x;
+        a.x = 1 - c.x - b.x;
+        return time * (c.x + time * (b.x + time * a.x));
+    }
 }

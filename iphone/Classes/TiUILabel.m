@@ -15,6 +15,26 @@
 #import "TiUIiOSAttributedStringProxy.h"
 #endif
 #import "DTCoreText.h"
+#import "TiTransitionHelper.h"
+#import "TiTransition.h"
+
+@implementation TiLabel
+
+-(void)setFrame:(CGRect)frame
+{
+    [super setFrame:CGRectIntegral(frame)];
+}
+
+@end
+
+
+@interface TiUILabel()
+{
+    BOOL _reusing;
+}
+@property(nonatomic,retain) NSDictionary *transition;
+@end
+
 
 @implementation TiUILabel
 
@@ -23,12 +43,14 @@
 -(id)init
 {
     if (self = [super init]) {
+        self.transition = nil;
     }
     return self;
 }
 
 -(void)dealloc
 {
+	RELEASE_TO_NIL(_transition);
     RELEASE_TO_NIL(label);
     [super dealloc];
 }
@@ -40,25 +62,25 @@
 
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
-    CGSize maxSize = CGSizeMake(size.width<=0 ? 480 : size.width, 10000);
+    CGSize maxSize = CGSizeMake(size.width<=0 ? 10000 : size.width, 10000);
     maxSize.width -= label.viewInsets.left + label.viewInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
+    if (size.width > 0) result.width = MIN(result.width,  size.width);
     if (size.height > 0) result.height = MIN(result.height,  size.height);
     //padding
     result.width += label.viewInsets.left+ label.viewInsets.right;
     result.height += label.viewInsets.top + label.viewInsets.bottom;
+    
+    CGSize shadowOffset = [label shadowOffset];
+    result.width += abs(shadowOffset.width);
+    result.height += abs(shadowOffset.height);
     return result;
 }
 
 -(CGSize)contentSizeForSize:(CGSize)size
 {
     return [self suggestedFrameSizeToFitEntireStringConstraintedToSize:size];
-}
-
--(void)setCenter:(CGPoint)newCenter
-{
-	[super setCenter:CGPointMake(floorf(newCenter.x), floorf(newCenter.y))];
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -83,7 +105,7 @@
 {
 	if (label==nil)
 	{
-        label = [[TDTTTAttributedLabel alloc] initWithFrame:CGRectZero];
+        label = [[TiLabel alloc] initWithFrame:CGRectZero];
         label.backgroundColor = [UIColor clearColor];
         label.numberOfLines = 0;//default wordWrap to True
         label.lineBreakMode = UILineBreakModeWordWrap; //default ellipsis to none
@@ -95,176 +117,34 @@
         label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
         label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;
         label.paddingAttributeProperty = DTPaddingAttribute;
+        if ([TiUtils isIOS6OrGreater])
+        {
+            label.strikeOutAttributeProperty = NSStrikethroughStyleAttributeName;
+            label.backgroundColorAttributeProperty = NSBackgroundColorAttributeName;
+        }
+        else {
+            label.strikeOutAttributeProperty = DTStrikeOutAttribute;
+            label.backgroundColorAttributeProperty = DTBackgroundColorAttribute;
+        }
         label.delegate = self;
         [self addSubview:label];
 	}
 	return label;
 }
 
--(BOOL)proxyHasGestureListeners
+-(NSURL *)checkLinkAttributeForString:(NSAttributedString*)theString atPoint:(CGPoint)p
 {
-    return [super proxyHasGestureListeners] || [(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO];
-}
 
--(void)ensureGestureListeners
-{
-    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
-        [[self gestureRecognizerForEvent:@"link"] setEnabled:YES];
-    }
-    [super ensureGestureListeners];
-}
-
-- (UIGestureRecognizer *)gestureRecognizerForEvent:(NSString *)event
-{
-    if ([event isEqualToString:@"link"]) {
-        return [super gestureRecognizerForEvent:@"longpress"];
-    }
-    return [super gestureRecognizerForEvent:event];
-}
-
--(void)handleListenerRemovedWithEvent:(NSString *)event
-{
-	ENSURE_UI_THREAD_1_ARG(event);
-	// unfortunately on a remove, we have to check all of them
-	// since we might be removing one but we still have others
-    if ([event isEqualToString:@"link"] || [event isEqualToString:@"longpress"]) {
-        BOOL enableListener = [self.proxy _hasListeners:@"longpress"] || [self.proxy _hasListeners:@"link"];
-        [[self gestureRecognizerForEvent:event] setEnabled:enableListener];
-    } else {
-        [super handleListenerRemovedWithEvent:event];
-    }
-}
-
--(BOOL)checkLinkAttributeForString:(NSMutableAttributedString*)theString atPoint:(CGPoint)p
-{
-    CGPoint thePoint = [self convertPoint:p toView:label];
-    CGRect drawRect = [label textRectForBounds:[label bounds] limitedToNumberOfLines:label.numberOfLines];
-    drawRect.origin.y = (label.bounds.size.height - drawRect.size.height)/2;
-    thePoint = CGPointMake(thePoint.x - drawRect.origin.x, thePoint.y - drawRect.origin.y);
-    //Convert to CT point;
-    thePoint.y = (drawRect.size.height - thePoint.y);
-    CTFramesetterRef theRef = CTFramesetterCreateWithAttributedString((__bridge CFAttributedStringRef)theString);
-    if (theRef == NULL) {
-        return;
-    }
-    
-    CGMutablePathRef path = CGPathCreateMutable();
-    
-    CGPathAddRect(path, NULL, drawRect);
-
-    CTFrameRef frame = CTFramesetterCreateFrame(theRef, CFRangeMake(0, [theString length]), path, NULL);
-    //Don't need this anymore
-    CFRelease(theRef);
-
-    if (frame == NULL) {
-        CFRelease(path);
-        return NO;
-    }
-    //Get Lines
-    CFArrayRef lines = CTFrameGetLines(frame);
-    if (lines == NULL) {
-        CFRelease(frame);
-        CFRelease(path);
-        return NO;
-    }
-    
-    NSInteger lineCount = CFArrayGetCount(lines);
-    if (lineCount == 0) {
-        CFRelease(frame);
-        CFRelease(path);
-        //CFRelease(lines);
-        return NO;
-    }
-    //Get Line Origins
-    CGPoint lineOrigins[lineCount];
-    CTFrameGetLineOrigins(frame, CFRangeMake(0, lineCount), lineOrigins);
-    
-    NSUInteger idx = NSNotFound;
-    for (CFIndex lineIndex = 0; (lineIndex < lineCount) && (idx == NSNotFound); lineIndex++) {
-        
-        CGPoint lineOrigin = lineOrigins[lineIndex];
-        CTLineRef line = CFArrayGetValueAtIndex(lines, lineIndex);
-        
-        // Get bounding information of line
-        CGRect lineRect = CTLineGetBoundsWithOptions(line,0);
-        CGFloat ymin = lineRect.origin.y + lineOrigin.y;
-        CGFloat ymax = ymin + lineRect.size.height;
-        
-        if (ymin <= thePoint.y && ymax >= thePoint.y) {
-            if (thePoint.x >= lineOrigin.x && thePoint.x <= lineOrigin.x + lineRect.size.width) {
-                // Convert CT coordinates to line-relative coordinates
-                CGPoint relativePoint = CGPointMake(thePoint.x - lineOrigin.x, thePoint.y - lineOrigin.y);
-                idx = CTLineGetStringIndexForPosition(line, relativePoint);
-            }
-        }
-    }
-    
-    //Don't need frame,path or lines now
-    CFRelease(frame);
-    CFRelease(path);
-    //CFRelease(lines);
-    
+    CFIndex idx = [label characterIndexAtPoint:p];
     if (idx != NSNotFound) {
-        if(idx > theString.string.length) {
+        if(idx >= theString.string.length) {
             return NO;
         }
         NSRange theRange = NSMakeRange(0, 0);
-        NSString *url = [theString attribute:NSLinkAttributeName atIndex:idx effectiveRange:&theRange];
-        if(url != nil && url.length) {
-            NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                                       url, @"url",
-                                       [NSArray arrayWithObjects:NUMINT(theRange.location), NUMINT(theRange.length),nil],@"range",
-                                       nil];
-                                            
-            [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO reportSuccess:NO errorCode:0 message:nil];
-            return YES;
-        }
+        NSURL *url = [theString attribute:DTLinkAttribute atIndex:idx effectiveRange:&theRange];
+        return url;
     }
-    return NO;
-}
-
--(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer
-{
-    if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        CGPoint p = [recognizer locationInView:self];
-        if ([self.proxy _hasListeners:@"longpress"]) {
-            NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                                   NUMFLOAT(p.x), @"x",
-                                   NUMFLOAT(p.y), @"y",
-                                   nil];
-            [self.proxy fireEvent:@"longpress" withObject:event];
-        }
-        if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO] && (label != nil) && [TiUtils isIOS7OrGreater]) {
-            NSMutableAttributedString* optimizedAttributedText = [label.attributedText mutableCopy];
-            if (optimizedAttributedText != nil) {
-                // use label's font and lineBreakMode properties in case the attributedText does not contain such attributes
-                [label.attributedText enumerateAttributesInRange:NSMakeRange(0, [label.attributedText length]) options:0 usingBlock:^(NSDictionary *attrs, NSRange range, BOOL *stop) {
-                    if (!attrs[(NSString*)kCTFontAttributeName]) {
-                        [optimizedAttributedText addAttribute:(NSString*)kCTFontAttributeName value:label.font range:range];
-                    }
-                    if (!attrs[(NSString*)kCTParagraphStyleAttributeName]) {
-                        NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc] init];
-                        [paragraphStyle setLineBreakMode:label.lineBreakMode];
-                        [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
-                        [paragraphStyle release];
-                    }
-                }];
-                
-                // modify kCTLineBreakByTruncatingTail lineBreakMode to kCTLineBreakByWordWrapping
-                [optimizedAttributedText enumerateAttribute:(NSString*)kCTParagraphStyleAttributeName inRange:NSMakeRange(0, [optimizedAttributedText length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop) {
-                    NSMutableParagraphStyle* paragraphStyle = [value mutableCopy];
-                    if ([paragraphStyle lineBreakMode] == kCTLineBreakByTruncatingTail) {
-                        [paragraphStyle setLineBreakMode:kCTLineBreakByWordWrapping];
-                    }
-                    [optimizedAttributedText removeAttribute:(NSString*)kCTParagraphStyleAttributeName range:range];
-                    [optimizedAttributedText addAttribute:(NSString*)kCTParagraphStyleAttributeName value:paragraphStyle range:range];
-                    [paragraphStyle release];
-                }];
-                [self checkLinkAttributeForString:optimizedAttributedText atPoint:p];
-                [optimizedAttributedText release];
-            }
-        }
-    }
+    return nil;
 }
 
 - (id)accessibilityElement
@@ -281,17 +161,50 @@
     {
         TiThreadPerformOnMainThread(^{
             [self setAttributedTextViewContent];
-        }, NO);
+        }, YES);
         return;
     }
-    
-    id attr = [(TiUILabelProxy*)[self proxy] getLabelContent];
-    [[self label] setText:attr];
+    id content = [(TiUILabelProxy*)[self proxy] getLabelContent];
+    [self transitionToText:content];
 }
 
--(void)setHighlighted:(BOOL)newValue
+
+- (TiLabel*) cloneView:(TiLabel*)source {
+    NSData *archivedViewData = [NSKeyedArchiver archivedDataWithRootObject: source];
+    TiLabel* clone = [NSKeyedUnarchiver unarchiveObjectWithData:archivedViewData];
+    
+    //seems to be duplicated < ios7
+    clone.font = source.font;
+    clone.textColor = source.textColor;
+    clone.highlightedTextColor = source.highlightedTextColor;
+    //
+    
+    clone.touchDelegate = source.touchDelegate;
+    clone.delegate = source.delegate;
+    return clone;
+}
+
+-(void) transitionToText:(id)text
 {
-    [super setHighlighted:newValue];
+    TiTransition* transition = [TiTransitionHelper transitionFromArg:self.transition containerView:self];
+    if (transition != nil) {
+        TiLabel *oldView = [self label];
+        TiLabel *newView = [self cloneView:oldView];
+        newView.text = text;
+        [TiTransitionHelper transitionfromView:oldView toView:newView insideView:self withTransition:transition prepareBlock:^{
+        } completionBlock:^{
+            [oldView release];
+        }];
+        label = [newView retain];
+	}
+    else {
+        [[self label] setText:text];
+    }
+}
+
+-(void)setHighlighted:(BOOL)newValue animated:(BOOL)animated
+{
+    [super setHighlighted:newValue animated:animated];
     [[self label] setHighlighted:newValue];
 }
 
@@ -315,7 +228,19 @@
     return [[self label] isHighlighted];
 }
 
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self label] setExclusiveTouch:value];
+}
+
 #pragma mark Public APIs
+
+-(void)setEnabled_:(id)value
+{
+    [super setEnabled_:value];
+	[[self label] setEnabled:[self interactionEnabled]];
+}
 
 -(void)setVerticalAlign_:(id)value
 {
@@ -337,16 +262,6 @@
 	[[self label] setTextColor:newColor];
 }
 
-//-(void)setText_:(id)value
-//{
-//	[self setAttributedTextViewContent];
-//}
-//
-//-(void)setHtml_:(id)value
-//{
-//	[self setAttributedTextViewContent];
-//}
-
 -(void)setText_:(id)value
 {
     needsSetText = YES;
@@ -367,6 +282,12 @@
 {
 	UIColor * newColor = [[TiUtils colorValue:color] _color];
 	[[self label] setHighlightedTextColor:(newColor != nil)?newColor:[UIColor lightTextColor]];
+}
+
+-(void)setDisabledColor_:(id)color
+{
+	UIColor * newColor = [[TiUtils colorValue:color] _color];
+	[[self label] setDisabledColor:newColor];
 }
 
 -(void)setFont_:(id)fontValue
@@ -438,10 +359,9 @@
 	[[self label] setShadowOffset:size];
 }
 
--(void)setPadding_:(id)value
+-(void)setPadding:(UIEdgeInsets)inset
 {
-    [self label].viewInsets = [TiUtils insetValue:value];
-    [(TiViewProxy *)[self proxy] contentsWillChange];
+    [self label].viewInsets = inset;
 }
 
 -(void) updateNumberLines
@@ -491,6 +411,11 @@
     }
 }
 
+-(void)setTransition_:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
+    self.transition = arg;
+}
 
 #pragma mark -
 #pragma mark DTAttributedTextContentViewDelegate
@@ -498,7 +423,13 @@
 - (void)attributedLabel:(TTTAttributedLabel *)label
    didSelectLinkWithURL:(NSURL *)url
 {
-    [[UIApplication sharedApplication] openURL:url];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   url, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:url];
 }
 
 - (void)attributedLabel:(TTTAttributedLabel *)label
@@ -517,30 +448,63 @@ didSelectLinkWithAddress:(NSDictionary *)addressComponents
     if((temp = [addressComponents objectForKey:NSTextCheckingCountryKey]))
         [address appendString:[NSString stringWithFormat:@"%@%@", ([address length] > 0) ? @", " : @"", temp]];
     NSString* urlString = [NSString stringWithFormat:@"http://maps.google.com/maps?q=%@", [address stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   urlString, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:[NSURL URLWithString:urlString]];
 }
 
 - (void)attributedLabel:(TTTAttributedLabel *)label
 didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
 {
     NSURL* url = [NSURL URLWithString:[NSString stringWithFormat:@"tel://%@", phoneNumber]];
-    [[UIApplication sharedApplication] openURL:url];
+    if ([(TiViewProxy*)[self proxy] _hasListeners:@"link" checkParent:NO]) {
+        NSDictionary *eventDict = [NSDictionary dictionaryWithObjectsAndKeys:
+                                   url, @"url",
+                                   nil];
+        [[self proxy] fireEvent:@"link" withObject:eventDict propagate:NO];
+    }
+    else [[UIApplication sharedApplication] openURL:url];
 }
 
-//- (void)attributedLabel:(TTTAttributedLabel *)label
-//  didSelectLinkWithDate:(NSDate *)date
-//{
-//    [[UIApplication sharedApplication] openURL:url];
-//}
-//
-//- (void)attributedLabel:(TTTAttributedLabel *)label
-//  didSelectLinkWithDate:(NSDate *)date
-//               timeZone:(NSTimeZone *)timeZone
-//               duration:(NSTimeInterval)duration
-//{
-//    [[UIApplication sharedApplication] openURL:url];
-//}
+-(void)setReusing:(BOOL)value
+{
+    _reusing = value;
+}
 
+-(NSDictionary*)dictionaryFromTouch:(UITouch*)touch
+{
+    NSDictionary* event = [super dictionaryFromTouch:touch];
+    NSAttributedString* attString = label.attributedText;
+    if (attString != nil) {
+        CGPoint localPoint = [touch locationInView:label];
+        NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
+        if (url){
+            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            [(NSMutableDictionary*)event setObject:url forKey:@"link"];
+        }
+    }
+    return event;
+}
+
+-(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture
+{
+    NSDictionary* event = [super dictionaryFromGesture:gesture];
+    
+    NSAttributedString* attString = label.attributedText;
+    if (attString != nil) {
+        CGPoint localPoint = [gesture locationInView:label];
+        NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
+        if (url){
+            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            [(NSMutableDictionary*)event setObject:url forKey:@"link"];
+        }
+    }
+    return event;
+}
 @end
 
 #endif

@@ -10,6 +10,7 @@
 #import "TiApp.h"
 #import "TiLayoutQueue.h"
 #import "TiErrorController.h"
+#import "TiViewProxy.h"
 
 #ifdef FORCE_WITH_MODAL
 @interface ForcingController: UIViewController {
@@ -450,7 +451,7 @@
 - (void)keyboardDidHide:(NSNotification*)notification
 {
 	startFrame = endFrame;
-    [self performSelector:@selector(adjustKeyboardHeight:) withObject:@NO afterDelay:leaveDuration];
+    [self performSelector:@selector(adjustKeyboardHeight:) withObject:[NSNumber numberWithBool:NO]];
 }
 
 - (void)keyboardDidShow:(NSNotification*)notification
@@ -819,10 +820,15 @@
     [self dismissKeyboard];
     [[containedWindows lastObject] resignFocus];
     if ([theWindow isModal]) {
-        [modalWindows addObject:theWindow];
+        if (![modalWindows containsObject:theWindow]) {
+            [modalWindows addObject:theWindow];
+        }
     } else {
-        [containedWindows addObject:theWindow];
-        theWindow.parentOrientationController = self;
+        if (![containedWindows containsObject:theWindow]) {
+            [containedWindows addObject:theWindow];
+            theWindow.parentOrientationController = self;
+        }
+        
     }
 }
 
@@ -1004,7 +1010,10 @@
 
 -(UIInterfaceOrientation) lastValidOrientation:(BOOL)checkModal
 {
-	for (int i = 0; i<4; i++) {
+    if ([self shouldRotateToInterfaceOrientation:deviceOrientation checkModal:checkModal]) {
+        return deviceOrientation;
+    }
+    for (int i = 0; i<4; i++) {
 		if ([self shouldRotateToInterfaceOrientation:orientationHistory[i] checkModal:checkModal]) {
 			return orientationHistory[i];
 		}
@@ -1078,8 +1087,11 @@
 #endif
     for (id<TiWindowProtocol> thisWindow in containedWindows) {
         if ([thisWindow isKindOfClass:[TiViewProxy class]]) {
-            if (!CGRectEqualToRect([(TiViewProxy*)thisWindow sandboxBounds], [[self view] bounds])) {
-                [(TiViewProxy*)thisWindow parentSizeWillChange];
+            TiViewProxy* proxy = (TiViewProxy*)thisWindow;
+            CGRect bounds = [[self view] bounds];
+            if (!CGRectEqualToRect([proxy sandboxBounds], bounds)) {
+                [proxy setSandboxBounds:bounds];
+                [proxy parentSizeWillChange];
             }
         }
     }
@@ -1412,6 +1424,7 @@
     }
     [super viewDidDisappear:animated];
 }
+
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     for (id<TiWindowProtocol> thisWindow in containedWindows) {

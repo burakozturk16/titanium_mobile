@@ -44,5 +44,4 @@
     self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
     return self;
 }
-
 @end

@@ -21,6 +21,7 @@ import org.appcelerator.titanium.view.TiUINonViewGroupView;
 
 import android.graphics.Rect;
 import android.graphics.Color;
+import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -39,7 +40,7 @@ public class TiUIButton extends TiUINonViewGroupView
 	private float shadowY = 0f;
 	private int shadowColor = Color.TRANSPARENT;
 
-	private Rect titlePadding;
+	private RectF titlePadding;
 	private Drawable imageDrawable;
 	private int imageGravity;
 
@@ -47,7 +48,7 @@ public class TiUIButton extends TiUINonViewGroupView
 	{
 		super(proxy);
 		imageGravity = Gravity.LEFT;
-		titlePadding = new Rect();
+		titlePadding = new RectF();
 		titlePadding.left = 8;
 		titlePadding.right = 8;
 		Log.d(TAG, "Creating a button", Log.DEBUG_MODE);
@@ -80,7 +81,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			}
 
 		};
-		btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+		TiUIHelper.setPadding(btn, titlePadding);
 		btn.setGravity(Gravity.CENTER);
 		color = disabledColor = selectedColor = defaultColor = btn.getCurrentTextColor();
 		setNativeView(btn);
@@ -138,7 +139,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			Object value = d.get(TiC.PROPERTY_IMAGE);
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), value);
 
-			if (drawableRef != null) {
+			if (drawableRef != null && !drawableRef.isTypeNull()) {
 				try {
 					imageDrawable = drawableRef.getDrawable();
 				} catch (FileNotFoundException e) {
@@ -183,7 +184,7 @@ public class TiUIButton extends TiUINonViewGroupView
 		}
 		if (d.containsKey(TiC.PROPERTY_TITLE_PADDING)) {
 			titlePadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_TITLE_PADDING);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			TiUIHelper.setPadding(btn, titlePadding);
 		}
 		if (d.containsKey(TiC.PROPERTY_IMAGE_ANCHOR)) {
 			imageGravity = TiUIHelper.getGravity(d.getString(TiC.PROPERTY_IMAGE_ANCHOR), false);
@@ -200,8 +201,8 @@ public class TiUIButton extends TiUINonViewGroupView
 			if (value instanceof HashMap) {
 				needShadow = true;
 				HashMap dict = (HashMap) value;
-				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
-				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
+				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
 			}
 		}
 		if (d.containsKey(TiC.PROPERTY_SHADOW_RADIUS)) {
@@ -246,7 +247,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_TITLE_PADDING)) {
 			titlePadding = TiConvert.toPaddingRect(newValue);
-			btn.setPadding(titlePadding.left, titlePadding.top, titlePadding.right, titlePadding.bottom);
+			TiUIHelper.setPadding(btn, titlePadding);
 			btn.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_WORD_WRAP)) {
 			btn.setSingleLine(!TiConvert.toBoolean(newValue));
@@ -273,8 +274,8 @@ public class TiUIButton extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_SHADOW_OFFSET)) {
 			if (newValue instanceof HashMap) {
 				HashMap dict = (HashMap) newValue;
-				shadowX = TiConvert.toFloat(dict.get(TiC.PROPERTY_X), 0);
-				shadowY = TiConvert.toFloat(dict.get(TiC.PROPERTY_Y), 0);
+				shadowX = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_X));
+				shadowY = TiUIHelper.getRawSizeOrZero(dict.get(TiC.PROPERTY_Y));
 				btn.setShadowLayer(shadowRadius, shadowX, shadowY, shadowColor);
 			}
 		} else if (key.equals(TiC.PROPERTY_SHADOW_RADIUS)) {

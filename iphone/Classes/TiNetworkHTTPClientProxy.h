@@ -69,6 +69,7 @@ typedef enum {
 @property(nonatomic,retain,readwrite) NSNumber* validatesSecureCertificate;
 @property(nonatomic,retain,readwrite) NSNumber* timeout;
 @property(nonatomic,retain,readwrite) NSNumber* autoRedirect;
+@property(nonatomic,readwrite) BOOL showActivity;
 
 // constants
 @property(nonatomic,readonly) NSInteger UNSENT;

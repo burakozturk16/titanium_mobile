@@ -13,7 +13,6 @@ import java.util.Set;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
@@ -512,7 +511,8 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 				} else {
 					h = Math.max(minRowHeight, height.getAsPixels(this));
 				}
-				if (hasChildView) {
+				// Make sure the height is greater than 1 (not 0 since image views default to 1)
+				if (hasChildView && h > 1) {
 					content.getLayoutParams().height = h;
 				}
 

@@ -169,7 +169,7 @@ public class EmailDialogProxy extends ViewProxy implements ActivityTransitionLis
 					KrollDict result = new KrollDict();
 					result.put("result", SENT); // TODO fix this when figure out above
 					result.putCodeAndMessage(TiC.ERROR_CODE_NO_ERROR, null);
-					fireEvent("complete", result);
+					fireEvent("complete", result, false);
 				}
 
 				@Override
@@ -177,7 +177,7 @@ public class EmailDialogProxy extends ViewProxy implements ActivityTransitionLis
 					KrollDict result = new KrollDict();
 					result.put("result", FAILED);
 					result.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, e.getMessage());
-					fireEvent("complete", result);
+					fireEvent("complete", result, false);
 				}
 			});
 			

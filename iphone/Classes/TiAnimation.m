@@ -8,6 +8,7 @@
 #import "TiViewProxy.h"
 #import "KrollCallback.h"
 #import "TiHLSAnimation+Friend.h"
+#import "CAMediaTimingFunction+AdditionalEquations.h"
 
 #ifdef DEBUG 
 	#define ANIMATION_DEBUG 0
@@ -15,12 +16,13 @@
 
 @interface TiAnimation()
 {
+    CAMediaTimingFunction* _curve;
 }
 
 @end
 
 @implementation TiAnimation
-@synthesize callback, duration, repeat, autoreverse, delay, restartFromBeginning, curve, cancelRunningAnimations;
+@synthesize callback, duration, repeat, autoreverse, delay, restartFromBeginning, curve = _curve, cancelRunningAnimations;
 @synthesize animation, animatedProxy;
 @synthesize animated, transition, view;
 
@@ -33,6 +35,7 @@ static NSArray *animProps;
         autoreverse = NO;
         repeat = [NSNumber numberWithInt:1];
         duration = 0;
+        _curve = [[TiAnimation timingFunctionForCurve:kTiAnimCurveEaseInOut] retain];
         
         transition = UIViewAnimationTransitionNone;
         animated = NO;
@@ -57,6 +60,7 @@ static NSArray *animProps;
 	RELEASE_TO_NIL(animatedProxy);
 	RELEASE_TO_NIL(animation);
 	RELEASE_TO_NIL(view);
+	RELEASE_TO_NIL(_curve);
 	[super dealloc];
 }
 
@@ -105,6 +109,9 @@ static NSArray *animProps;
 			cb = [args objectAtIndex:1];
 			ENSURE_TYPE(cb,KrollCallback);
 		}
+        
+        BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
+        if (!animated) return nil;
 		
 		return [[[TiAnimation alloc] initWithDictionary:properties context:context callback:cb] autorelease];
 	}
@@ -175,6 +182,11 @@ static NSArray *animProps;
 -(float) getDuration {
     return duration/1000;
 }
+
+-(float) delay {
+    return delay/1000;
+}
+
 -(NSUInteger) repeatCount {
     if ([repeat doubleValue] != HUGE_VALF) {
         return [repeat intValue];
@@ -206,31 +218,45 @@ static NSArray *animProps;
 +(CAMediaTimingFunction*) timingFunctionForCurve:(int)curve_
 {
     switch (curve_) {
-        case UIViewAnimationOptionCurveEaseInOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        case UIViewAnimationOptionCurveEaseIn: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
-        case UIViewAnimationOptionCurveEaseOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
-        case UIViewAnimationOptionCurveLinear: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        case kTiAnimCurveEaseInOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+        case kTiAnimCurveEaseIn: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseIn];
+        case kTiAnimCurveEaseOut: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
+        case kTiAnimCurveLinear: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+        case kTiAnimCurveEaseOutCirc: return [CAMediaTimingFunction easeOutCirc];
+        case kTiAnimCurveEaseInOutCirc: return [CAMediaTimingFunction easeInOutCirc];
+        case kTiAnimCurveEaseInCubic: return [CAMediaTimingFunction easeInCubic];
+        case kTiAnimCurveEaseOutCubic: return [CAMediaTimingFunction easeOutCubic];
+        case kTiAnimCurveEaseInOutCubic: return [CAMediaTimingFunction easeInOutCubic];
+        case kTiAnimCurveEaseInExpo: return [CAMediaTimingFunction easeInExpo];
+        case kTiAnimCurveEaseOutExpo: return [CAMediaTimingFunction easeOutExpo];
+        case kTiAnimCurveEaseInOutExpo: return [CAMediaTimingFunction easeInOutExpo];
+        case kTiAnimCurveEaseInQuad: return [CAMediaTimingFunction easeInQuad];
+        case kTiAnimCurveEaseOutQuad: return [CAMediaTimingFunction easeOutQuad];
+        case kTiAnimCurveEaseInOutQuad: return [CAMediaTimingFunction easeInOutQuad];
+        case kTiAnimCurveEaseInQuart: return [CAMediaTimingFunction easeInQuart];
+        case kTiAnimCurveEaseOutQuart: return [CAMediaTimingFunction easeOutQuart];
+        case kTiAnimCurveEaseInOutQuart: return [CAMediaTimingFunction easeInOutQuart];
+        case kTiAnimCurveEaseInQuint: return [CAMediaTimingFunction easeInQuint];
+        case kTiAnimCurveEaseOutQuint: return [CAMediaTimingFunction easeOutQuint];
+        case kTiAnimCurveEaseInOutQuint: return [CAMediaTimingFunction easeInOutQuint];
+        case kTiAnimCurveEaseInSine: return [CAMediaTimingFunction easeInSine];
+        case kTiAnimCurveEaseOutSine: return [CAMediaTimingFunction easeOutSine];
+        case kTiAnimCurveEaseInOutSine: return [CAMediaTimingFunction easeInOutSine];
+        case kTiAnimCurveEaseInBack: return [CAMediaTimingFunction easeInBack];
+        case kTiAnimCurveEaseOutBack: return [CAMediaTimingFunction easeOutBack];
+        case kTiAnimCurveEaseInOutBack: return [CAMediaTimingFunction easeInOutBack];
         default: return [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionDefault];
     }
 }
 
-+(int)reverseCurve:(int)curve_
++(CAMediaTimingFunction*)reverseCurve:(CAMediaTimingFunction*)curve_
 {
-    switch (curve_) {
-        case UIViewAnimationCurveEaseIn:
-            return UIViewAnimationCurveEaseOut;
-            break;
-            
-        case UIViewAnimationCurveEaseOut:
-            return UIViewAnimationCurveEaseIn;
-            break;
-            
-        case UIViewAnimationCurveLinear:
-        case UIViewAnimationCurveEaseInOut:
-        default:
-            return curve_;
-            break;
-    }
+    float coords1[2];
+    float coords2[2];
+    [curve_ getControlPointAtIndex:1 values:coords1];
+    [curve_ getControlPointAtIndex:2 values:coords2];
+    CAMediaTimingFunction* function = [CAMediaTimingFunction functionWithControlPoints:coords2[0] :coords1[1] :coords1[0] :coords2[1]];
+    return function;
 }
 
 -(void)cancelMyselfBeforeStarting
@@ -248,12 +274,16 @@ static NSArray *animProps;
 
 -(void)cancel:(id)args
 {
+    [self cancelWithReset:YES];
+}
+
+-(void)cancelWithReset:(BOOL)reset
+{
     TiAnimatableProxy* proxy = [animatedProxy retain];
-    TiThreadPerformOnMainThread(^{
-        [animation cancel];
-    }, YES);
     if (proxy != nil) {
-        [proxy cancelAnimation:self];
+        //animation will actually be cancelled in in animationDidComplete
+        //we need to do this to make sure things are done in order
+        [proxy cancelAnimation:self shouldReset:reset];
 	}
 	[proxy release];
 }
@@ -286,6 +316,25 @@ static NSArray *animProps;
 		// called by the view to cause himself to be animated
 		[(TiAnimatableProxy*)args animate:[NSArray arrayWithObject:self]];
 	}
+}
+
+-(void)setCurve:(id)value
+{
+    RELEASE_TO_NIL(_curve);
+    if ([value isKindOfClass:[NSNumber class]])
+    {
+        _curve = [[TiAnimation timingFunctionForCurve:[value intValue]] retain];
+    }
+    else if ([value isKindOfClass:[NSArray class]])
+    {
+        NSArray* array = (NSArray*)value;
+        int count = [array count];
+        if (count == 4)
+        {
+            _curve = [[CAMediaTimingFunction functionWithControlPoints: [[array objectAtIndex:0] doubleValue] : [[array objectAtIndex:1] doubleValue] : [[array objectAtIndex:2] doubleValue] : [[array objectAtIndex:3] doubleValue]] retain];
+        }
+    }
+    [self replaceValue:value forKey:@"curve" notification:NO];
 }
 
 #pragma mark -

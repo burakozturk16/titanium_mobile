@@ -222,6 +222,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	if (self = [super init])
 	{
 		_bubbleParent = YES;
+        _bubbleParentDefined = NO;
 #if PROXY_MEMORY_TRACK == 1
 		NSLog(@"[DEBUG] INIT: %@ (%d)",self,[self hash]);
 #endif
@@ -621,6 +622,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 -(void)setBubbleParent:(id)arg
 {
+    _bubbleParentDefined = YES;
     _bubbleParent = [TiUtils boolValue:arg def:YES];
 }
 
@@ -914,61 +916,41 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 		type = (NSString*)args;
 	}
 	id bubbleObject = [params objectForKey:@"bubbles"];
-	//TODO: Yes is the historical default. Is this the right thing to do, given the expense?
-	BOOL bubble = [TiUtils boolValue:bubbleObject def:YES];
+	BOOL bubble = [TiUtils boolValue:bubbleObject def:NO];
 	if((bubbleObject != nil) && ([params count]==1)){
 		params = nil; //No need to propagate when we already have this information
 	}
-	if ([self doesntOverrideFireEventWithSource]){
-		//TODO: Once the deprecated methods are removed, we can use the following line without checking to see if we'd shortcut.
-		// For now, we're shortcutting to suppress false warnings.
-		[self fireEvent:type withObject:params propagate:bubble reportSuccess:NO errorCode:0 message:nil];
-		return;
-	}
-	DebugLog(@"[WARN] The Objective-C class %@ has overridden -[fireEvent:withObject:withSource:propagate:].",[self class]);
-	[self fireEvent:type withObject:params withSource:self propagate:bubble];	//In case of not debugging, we don't change behavior, just in case.
+    [self fireEvent:type withObject:params propagate:bubble reportSuccess:NO errorCode:0 message:nil];
+}
+
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn
+{
+    [self fireEvent:type withObject:nil propagate:yn reportSuccess:NO errorCode:0 message:nil];
+}
+-(void)fireEvent:(NSString*)type propagate:(BOOL)yn checkForListener:(BOOL)checkForListener
+{
+    [self fireEvent:type withObject:nil propagate:yn reportSuccess:NO errorCode:0 message:nil checkForListener:checkForListener];
 }
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj
 {
-	if ([self doesntOverrideFireEventWithSource]){
-		//TODO: Once the deprecated methods are removed, we can use the following line without checking to see if we'd shortcut.
-		// For now, we're shortcutting to suppress false warnings.
-		[self fireEvent:type withObject:obj propagate:YES reportSuccess:NO errorCode:0 message:nil];
-		return;
-	}
-	DebugLog(@"[WARN] The Objective-C class %@ has overridden -[fireEvent:withObject:withSource:propagate:].",[self class]);
-	[self fireEvent:type withObject:obj withSource:self propagate:YES];	//In case of not debugging, we don't change behavior, just in case.
+    [self fireEvent:type withObject:obj propagate:YES reportSuccess:NO errorCode:0 message:nil];
 }
 
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source
+-(void)fireEvent:(NSString*)type withObject:(id)obj checkForListener:(BOOL)checkForListener
 {
-	//The warning for this is in the propagate version.
-	[self fireEvent:type withObject:obj withSource:source propagate:YES];
+    [self fireEvent:type withObject:obj propagate:YES reportSuccess:NO errorCode:0 message:nil checkForListener:checkForListener];
 }
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn
 {
-	if ([self doesntOverrideFireEventWithSource]){
-		//TODO: Once the deprecated methods are removed, we can use the following line without checking to see if we'd shortcut.
-		// For now, we're shortcutting to suppress false warnings.
-		[self fireEvent:type withObject:obj propagate:yn reportSuccess:NO errorCode:0 message:nil];
-		return;
-	}
-	DebugLog(@"[WARN] The Objective-C class %@ has overridden -[fireEvent:withObject:withSource:propagate:].",[self class]);
-	[self fireEvent:type withObject:obj withSource:self propagate:yn];
+    [self fireEvent:type withObject:obj propagate:yn reportSuccess:NO errorCode:0 message:nil];
 }
 
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)yn checkForListener:(BOOL)checkForListener
 {
-	DebugLog(@"[WARN] The methods -[fireEvent:withObject:withSource:] and [fireEvent:withObject:withSource:propagate:] are deprecated. Please use -[fireEvent:withObject:propagate:reportSuccess:errorCode:message:] instead.");
-	if (self != source) {
-		NSLog(@"[WARN] Source is not the same as self. (Perhaps this edge case is still valid?)");
-	}
-	[self fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:NO errorCode:0 message:nil];
+    [self fireEvent:type withObject:obj propagate:yn reportSuccess:NO errorCode:0 message:nil checkForListener:checkForListener];
 }
-
-
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj errorCode:(int)code message:(NSString*)message;
 {
@@ -976,22 +958,16 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 }
 
 //What classes should actually use.
--(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message checkForListener:(BOOL)checkForListener
 {
-	[self fireEvent:type withObject:obj withSource:self propagate:propagate reportSuccess:report errorCode:code message:message];
-}
-
-//Temporary method until source is removed, for our subclasses.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-{
-	if (![self _hasListeners:type])
+	if (checkForListener && ![self _hasListeners:type])
 	{
 		return;
 	}
 	
 	TiBindingEvent ourEvent;
 	
-	ourEvent = TiBindingEventCreateWithNSObjects(self, source, type, obj);
+	ourEvent = TiBindingEventCreateWithNSObjects(self, self, type, obj);
 	if (report || (code != 0)) {
 		TiBindingEventSetErrorCode(ourEvent, code);
 	}
@@ -1003,6 +979,10 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	TiBindingEventFire(ourEvent);
 }
 
+-(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
+{
+    [self fireEvent:type withObject:obj propagate:propagate reportSuccess:report errorCode:code message:message checkForListener:YES];
+}
 
 - (void)setValuesForKeysWithDictionary:(NSDictionary *)keyedValues
 {

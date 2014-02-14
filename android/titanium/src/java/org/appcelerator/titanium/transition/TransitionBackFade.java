@@ -23,14 +23,14 @@ public class TransitionBackFade extends Transition {
 		
 		inAnimator = new AnimatorSet();
 		Animator anim1 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 0, 1.0f);
-		anim1.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.2f, 1.0f, duration));
+		anim1.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.2f, 1.0f));
 		Animator anim2 = ObjectAnimator.ofFloat(null, new ScaleProperty(), 1.0f, scale, 1.0f);
 		((AnimatorSet) inAnimator).playTogether(anim1, anim2);
 		inAnimator.setDuration(duration);
 
 		outAnimator = new AnimatorSet();
 		Animator anim3 = ObjectAnimator.ofFloat(null, new AlphaProperty(), 1, 0.0f);
-		anim3.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.2f, 1.0f, duration));
+		anim3.setInterpolator(new CubicBezierInterpolator(0.8f, 0.0f, 0.2f, 1.0f));
 		Animator anim4 = ObjectAnimator.ofFloat(null, new ScaleProperty(), 1.0f, scale, 1.0f);
 		((AnimatorSet) outAnimator).playTogether(anim3, anim4);
 		outAnimator.setDuration(duration);

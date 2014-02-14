@@ -220,4 +220,6 @@ typedef enum {
 -(void)cancel;
 
 -(id)cache:(id)image forURL:(NSURL*)url;
+
+-(void)clearCache;
 @end

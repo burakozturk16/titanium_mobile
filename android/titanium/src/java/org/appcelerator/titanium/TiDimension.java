@@ -387,7 +387,7 @@ public class TiDimension
 		return getPercentPixels(parent.getWidth(), parent.getHeight());
 	}
 
-	protected static DisplayMetrics getDisplayMetrics(Context context)
+	public static DisplayMetrics getDisplayMetrics(Context context)
 	{
 		if (metrics == null) {
 			WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -419,7 +419,7 @@ public class TiDimension
 		return getScaledPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
 	}
 	
-	protected double getDPIForType(Context context)
+	public static double getDPIForType(Context context, int valueType)
 	{
 		DisplayMetrics metrics = getDisplayMetrics(context);		
 		float dpi = -1;
@@ -441,6 +441,11 @@ public class TiDimension
 		}
 		
 		return dpi;
+	}
+	
+	protected double getDPIForType(Context context)
+	{
+		return getDPIForType(context, valueType);
 	}
 	protected double getDPIForType(View parent)
 	{

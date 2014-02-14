@@ -6,34 +6,48 @@
  */
 package org.appcelerator.titanium.view;
 
+import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.util.TiUIHelper.Shadow;
+
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.drawable.ColorDrawable;
+import android.graphics.Path.Direction;
+import android.graphics.Path.FillType;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
 import android.util.StateSet;
-import android.view.View;
 
 public class TiBackgroundDrawable extends Drawable {
 	static final int NOT_SET = -1;
 	private int alpha = NOT_SET;
 	
-	private RectF innerRect;
+//	private RectF innerRect;
 	private SparseArray<OneStateDrawable> drawables;
 	private OneStateDrawable currentDrawable;
-	private ColorDrawable defaultColorDrawable;
+	private int defaultColor = Color.TRANSPARENT;
 	private SparseArray<int[]> mStateSets;
+	
+	private RectF boundsF = new RectF();
+	private Rect bounds = new Rect();
+	private float[] radius = null;
+	Path path = null;
+	private float pathWidth = 0;
+	private RectF mPadding;
+	private Paint paint = new Paint();
 	
 
 	public TiBackgroundDrawable()
 	{
 		currentDrawable = null;
-		defaultColorDrawable = null;
+		mPadding = null;
 		mStateSets = new SparseArray<int[]>();
 		drawables = new SparseArray<OneStateDrawable>();
-		innerRect = new RectF();
+//		innerRect = new RectF();
 	}
 	
 	private int keyOfStateSet(int[] stateSet) {
@@ -78,18 +92,86 @@ public class TiBackgroundDrawable extends Drawable {
 		if (currentDrawable != null) {
 			currentDrawable.draw(canvas);
 		}
-		else if(defaultColorDrawable != null) {
-			defaultColorDrawable.draw(canvas);
+		else if(defaultColor != Color.TRANSPARENT) {
+			if (path != null){
+				
+                paint.setColor(defaultColor);
+				canvas.drawPath(path, paint);
+			}
+			else {
+				canvas.drawColor(defaultColor);
+			}
 		}
 
 		canvas.restore();
+	}
+	
+	private float[] innerRadiusFromPadding(RectF outerRect, float padding)
+	{
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = Math.max(radius[i] - padding, 0);
+		}
+		return result;
+	}
+	
+	private float[] insetRadius(float[] radius, float inset)
+	{
+		float[] result = new float[8];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = radius[i] + inset;
+		}
+		return result;
+	}
+	
+	private void updatePath(){
+		if (bounds.isEmpty()) return;
+		path = null;
+		RectF outerRect = TiUIHelper.insetRect(boundsF, mPadding);
+		if (radius != null) {
+			path = new Path();
+			path.setFillType(FillType.EVEN_ODD);
+			if (pathWidth > 0) {
+				path.addRoundRect(outerRect, radius, Direction.CW);
+				float padding = 0;
+				float maxPadding = 0;
+				RectF innerRect = new RectF(); 
+				maxPadding = Math.min(bounds.width() / 2, bounds.height() / 2);
+				padding = Math.min(pathWidth, maxPadding);
+				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
+				path.addRoundRect(innerRect, innerRadiusFromPadding(outerRect, padding), Direction.CCW);
+			}
+			else {
+				//adjustment not see background under border because of antialias
+				path.addRoundRect(TiUIHelper.insetRect(outerRect, 0.3f), radius, Direction.CW);
+			}
+		}
+		else {
+			if (pathWidth > 0) {
+				path = new Path();
+				path.setFillType(FillType.EVEN_ODD);
+				path.addRect(outerRect, Direction.CW);
+				int padding = 0;
+				int maxPadding = 0;
+				RectF innerRect = new RectF();
+				maxPadding = (int) Math.min(bounds.width() / 2, bounds.height() / 2);
+				padding = (int) Math.min(pathWidth, maxPadding);
+				innerRect.set(outerRect.left + padding, outerRect.top + padding, outerRect.right - padding, outerRect.bottom - padding);
+				path.addRect(innerRect, Direction.CCW);
+			}
+		}
+	}
+	public Path getPath(){
+		return path;
 	}
 
 	@Override
 	protected void onBoundsChange(Rect bounds)
 	{
+		this.boundsF = new RectF(bounds);
+		this.bounds = bounds;
 		super.onBoundsChange(bounds);
-		innerRect.set(bounds);
+		updatePath();
 		int length = drawables.size();
 		for(int i = 0; i < length; i++) {
 		   Drawable drawable = drawables.valueAt(i);
@@ -97,6 +179,33 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 	}
 	
+	public void setRadius(float[] radius)
+	{
+		this.radius = radius;
+		updatePath();
+		invalidateSelf();
+	}
+	
+	public void setPathWidth(float width)
+	{
+		this.pathWidth = width;
+		updatePath();
+		invalidateSelf();
+	}
+	public void setRadiusWidth(float[] radius, float width)
+	{
+		this.pathWidth = width;
+		this.radius = radius;
+		updatePath();
+		invalidateSelf();
+	}
+	
+	public void setPadding(RectF padding) {
+		this.mPadding = padding;
+		updatePath();
+		invalidateSelf();
+	}
+
 	// @Override
 	// protected boolean onLevelChange(int level)
 	// {
@@ -112,16 +221,15 @@ public class TiBackgroundDrawable extends Drawable {
 	protected boolean onStateChange(int[] stateSet) {
 		
 		super.onStateChange(stateSet);
-		setState(stateSet);
+//		setState(stateSet);
 		int key = keyOfBestMatchingStateSet(stateSet);
         if (key < 0) {
-        	key = keyOfBestMatchingStateSet(StateSet.WILD_CARD);
+        	key = keyOfBestMatchingStateSet(TiUIHelper.BACKGROUND_DEFAULT_STATE_2);
         }
 		OneStateDrawable newdrawable = null;
 		if (key != -1)
 		{
 			newdrawable = drawables.get(key);
-			invalidateSelf();
 		}
 		
 		if (newdrawable != currentDrawable)
@@ -147,10 +255,16 @@ public class TiBackgroundDrawable extends Drawable {
 		{
 			key = mStateSets.size();
 			mStateSets.append(key, stateSet);
-			drawable = new OneStateDrawable();
+			drawable = new OneStateDrawable(this);
 			drawable.setAlpha(this.alpha);
-			drawable.setDefaultColorDrawable(defaultColorDrawable);
+			drawable.setDefaultColor(defaultColor);
+			drawable.setBounds(bounds);
 			drawables.append(key, drawable);
+			
+			int currentKey = keyOfBestMatchingStateSet(getState());
+			if (currentKey == key) {
+				currentDrawable = drawable;
+			}
 		}
 		else
 		{
@@ -168,19 +282,12 @@ public class TiBackgroundDrawable extends Drawable {
 		return result;
 	}
 	
-	public void setColorDrawableForState(int[] stateSet, Drawable drawable)
-	{
-		if (drawable != null) {
-			drawable.setBounds(this.getBounds());
-		}
-		getOrCreateDrawableForState(stateSet).setColorDrawable(drawable);
-		onStateChange(getState());
-	}
-	
 	public void setColorForState(int[] stateSet, int color)
 	{
 		getOrCreateDrawableForState(stateSet).setColor(color);
+		invalidateSelf();
 	}
+
 	
 	public void setImageDrawableForState(int[] stateSet, Drawable drawable)
 	{
@@ -188,7 +295,7 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setBounds(this.getBounds());
 		}
 		getOrCreateDrawableForState(stateSet).setBitmapDrawable(drawable);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 	
 	public void setGradientDrawableForState(int[] stateSet, Drawable drawable)
@@ -197,17 +304,23 @@ public class TiBackgroundDrawable extends Drawable {
 			drawable.setBounds(this.getBounds());
 		}
 		getOrCreateDrawableForState(stateSet).setGradientDrawable(drawable);
-		onStateChange(getState());
+		invalidateSelf();
 	}
 	
-	protected void setNativeView(View view)
+	public void setInnerShadowsForState(int[] stateSet, Shadow[] shadows)
 	{
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.setNativeView(view);
-		}
+		getOrCreateDrawableForState(stateSet).setInnerShadows(shadows);
+		invalidateSelf();
 	}
+	
+//	protected void setNativeView(View view)
+//	{
+//		int length = drawables.size();
+//		for(int i = 0; i < length; i++) {
+//			OneStateDrawable drawable = drawables.valueAt(i);
+//			drawable.setNativeView(view);
+//		}
+//	}
 	
 	public void setImageRepeat(boolean repeat)
 	{
@@ -218,15 +331,15 @@ public class TiBackgroundDrawable extends Drawable {
 		}
 	}
 	
-	public void invalidateDrawable(Drawable who) {
-		
-		int length = drawables.size();
-		for(int i = 0; i < length; i++) {
-			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.invalidateDrawable(who);
-		}
-
-	}
+//	public void invalidateDrawable(Drawable who) {
+//		
+//		int length = drawables.size();
+//		for(int i = 0; i < length; i++) {
+//			OneStateDrawable drawable = drawables.valueAt(i);
+//			drawable.invalidateDrawable(who);
+//		}
+//
+//	}
 
 	public void releaseDelegate() {
 		int length = drawables.size();
@@ -260,12 +373,12 @@ public class TiBackgroundDrawable extends Drawable {
 		
 	}
 
-	public void setDefaultColorDrawable(ColorDrawable colorDrawable) {
-		defaultColorDrawable = colorDrawable;
+	public void setDefaultColor(int defaultColor) {
+		this.defaultColor = defaultColor;
 		int length = drawables.size();
 		for(int i = 0; i < length; i++) {
 			OneStateDrawable drawable = drawables.valueAt(i);
-			drawable.setDefaultColorDrawable(colorDrawable);
+			drawable.setDefaultColor(defaultColor);
 		}
 	}
 }

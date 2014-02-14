@@ -31,6 +31,9 @@
     TiDimension topCap;
     TiDimension bottomCap;
     TiDimension rightCap;
+    BOOL _needsLayout;
+    BOOL configurationSet;
+    BOOL _unHighlightOnSelect;
 }
 
 @synthesize templateStyle = _templateStyle;
@@ -61,6 +64,15 @@ DEFINE_EXCEPTIONS
     if (self) {
 		_templateStyle = TiUIListItemTemplateStyleCustom;
 		_proxy = [proxy retain];
+        self.selectionStyle = UITableViewCellSelectionStyleNone;
+        _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
+        _viewHolder.proxy = _proxy;
+        _viewHolder.shouldHandleSelection = NO;
+        [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
+        [_viewHolder setClipsToBounds: YES];
+        [_viewHolder.layer setMasksToBounds: YES];
+        //    [_viewHolder selectableLayer].animateTransition = YES;
+        [self.contentView addSubview:_viewHolder];
         [self initialize];
         [self setGrouped:grouped];
         _positionMask = position;
@@ -75,20 +87,40 @@ DEFINE_EXCEPTIONS
         self.backgroundColor = [UIColor clearColor];
     }
     self.contentView.opaque = NO;
-    _viewHolder = [[TiUIView alloc] initWithFrame:self.contentView.bounds];
-    _viewHolder.proxy = _proxy;
-    _viewHolder.shouldHandleSelection = NO;
-    [_viewHolder setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
-    [_viewHolder setClipsToBounds: YES];
-    [_viewHolder.layer setMasksToBounds: YES];
-    [self.contentView addSubview:_viewHolder];
+    _unHighlightOnSelect = YES;
+    
     _proxy.listItem = self;
     _proxy.modelDelegate = [self autorelease]; //without the autorelease we got a memory leak
+    configurationSet = NO;
+    [_proxy dirtyItAll];
 }
 
 -(void)setGrouped:(BOOL)grouped
 {
     _grouped = grouped && ![TiUtils isIOS7OrGreater];
+}
+
+-(void)configurationStart
+{
+    configurationSet = NO;
+    if (_bgSelectedView) {
+        [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+    if (_bgView) {
+        [_bgView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+}
+
+-(void)configurationSet
+{
+	// can be used to trigger things after all properties are set
+    configurationSet = YES;
+    if (_bgSelectedView) {
+        [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
+    if (_bgView) {
+        [_bgView selectableLayer].readyToCreateDrawables = configurationSet;
+    }
 }
 
 -(void) updateBackgroundLayerCorners:(TiCellBackgroundView*)view {
@@ -124,6 +156,7 @@ DEFINE_EXCEPTIONS
     _bgSelectedView.alpha = self.contentView.alpha;
 
     [self updateBackgroundLayerCorners:_bgSelectedView];
+    [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
     return _bgSelectedView;
 }
 
@@ -260,6 +293,8 @@ DEFINE_EXCEPTIONS
 
 - (void)dealloc
 {
+	[_proxy detachView];
+	[_proxy cleanup];
 	_proxy.listItem = nil;
 	_proxy.modelDelegate = nil;
     _viewHolder.proxy = nil;
@@ -274,6 +309,7 @@ DEFINE_EXCEPTIONS
 - (void)prepareForReuse
 {
 	RELEASE_TO_NIL(_dataItem);
+    [_proxy prepareForReuse];
 	[super prepareForReuse];
 }
 
@@ -282,20 +318,22 @@ static NSArray* handledKeys;
 {
     if (handledKeys == nil)
     {
-        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font", @"opacity", @"backgroundGradient", @"backgroundImage", @"backgroundOpacity", @"backgroundColor"
-                         , @"backgroundSelectedGradient", @"backgroundSelectedImage", @"backgroundSelectedColor"] retain];
+        handledKeys = [@[@"selectionStyle", @"title", @"accessoryType", @"subtitle", @"color", @"image", @"font"
+                         , @"unHighlightOnSelect"] retain];
     }
     return handledKeys;
 }
 
 -(void)propertyChanged:(NSString*)key oldValue:(id)oldValue newValue:(id)newValue proxy:(TiProxy*)proxy_
 {
-	if ([[self handledKeys] indexOfObject:key] != NSNotFound) {
-        DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
-    } else {
+    if (_templateStyle == TiUIListItemTemplateStyleCustom && [[self handledKeys] indexOfObject:key] == NSNotFound)
+    {
         DoProxyDelegateChangedValuesWithProxy(_viewHolder, key, oldValue, newValue, proxy_);
+    } else {
+        DoProxyDelegateChangedValuesWithProxy(self, key, oldValue, newValue, proxy_);
     }
 }
+
 
 #pragma mark - Background Support
 -(BOOL) selectedOrHighlighted
@@ -310,35 +348,39 @@ static NSArray* handledKeys;
         {
             [(id)subview setHighlighted:NO];
         }
+        else {
+            NSArray *subviews = [subview subviews];
+            if ([subviews count] > 0)
+                [self unHighlight:subviews];
+        }
         // Get the subviews of the view
-        NSArray *subviews = [subview subviews];
-        if ([subviews count] > 0)
-            [self unHighlight:subviews];
+    
     }
 }
 
--(void)setHighlighted:(BOOL)yn
+-(void)unHighlight
 {
-    [super setHighlighted:yn];
-    [self unHighlight:[self subviews]];
-}
-
--(void)setSelected:(BOOL)yn
-{
-    [super setSelected:yn];
-    [self unHighlight:[self subviews]];
+    if (_viewHolder)
+    {
+        [self unHighlight:[_viewHolder subviews]];
+    }
+    else {
+        [self unHighlight:[self subviews]];
+    }
 }
 
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
-    [self unHighlight:[self subviews]];
+    [_viewHolder setSelected:yn animated:animated];
+    if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
-    [self unHighlight:[self subviews]];
+    [_viewHolder setHighlighted:yn animated:animated];
+    if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
 -(void)setPosition:(int)position isGrouped:(BOOL)grouped
@@ -367,6 +409,11 @@ static NSArray* handledKeys;
 {
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
+}
+
+-(void)setUnHighlightOnSelect_:(id)newValue
+{
+    _unHighlightOnSelect = [TiUtils boolValue:newValue def:YES];
 }
 
 -(void)setAccessoryType_:(id)newValue
@@ -409,11 +456,38 @@ static NSArray* handledKeys;
     self.detailTextLabel.text = [newValue description];
 }
 
+-(void)setFrame:(CGRect)frame
+{
+	// this happens when a controller resizes its view
+    
+    if (!CGRectIsEmpty(frame))
+	{
+        CGRect currentbounds = [self bounds];
+        CGRect newBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
+        if (!CGRectEqualToRect(newBounds, currentbounds))
+        {
+//            [(TiViewProxy*)self.proxy setSandboxBounds:newBounds];
+            [(TiViewProxy*)self.proxy dirtyItAll];
+        }
+	}
+    [super setFrame:frame];
+	
+}
+
 - (void)layoutSubviews
 {
     [super layoutSubviews];
     if (_templateStyle == TiUIListItemTemplateStyleCustom) {
-        [_proxy layoutChildren:NO];
+        TiViewAnimationStep* anim = [_proxy runningAnimation];
+        if (anim)
+        {
+            [_proxy setRunningAnimationRecursive:anim];
+            [_proxy refreshViewIfNeeded:YES];
+            [_proxy setRunningAnimationRecursive:nil];
+        }
+        else {
+            [_proxy refreshViewIfNeeded:YES];
+        }
     }
 }
 @end

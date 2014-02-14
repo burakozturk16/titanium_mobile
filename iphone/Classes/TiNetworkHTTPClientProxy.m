@@ -103,12 +103,13 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 
 @implementation TiNetworkHTTPClientProxy
 
-@synthesize timeout, validatesSecureCertificate, autoRedirect;
+@synthesize timeout, validatesSecureCertificate, autoRedirect, showActivity;
 
 -(id)init
 {
 	if (self = [super init])
 	{
+        showActivity = YES;
 		readyState = NetworkClientStateUnsent;
 		autoRedirect = [[NSNumber alloc] initWithBool:YES];
 #if defined(DEBUG) || defined(DEVELOPER)
@@ -380,30 +381,30 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 }
 
--(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) request
+-(void)setResponseHandlersFroRequest:(ASIFormDataRequest*) rq
 {
 	if (hasOnsendstream)
     {
-        [request setUploadProgressDelegate:self];
+        [rq setUploadProgressDelegate:self];
     }
     if (hasOndatastream)
     {
-        [request setDownloadProgressDelegate:self];
+        [rq setDownloadProgressDelegate:self];
     }
 }
 
-- (void)request:(ASIHTTPRequest *)request willRedirectToURL:(NSURL *)newURL
+- (void)request:(ASIHTTPRequest *)rq willRedirectToURL:(NSURL *)newURL
 {
     if (hasOnredirect)
     {
 		TiNetworkHTTPClientResultProxy *thisPointer = [[TiNetworkHTTPClientResultProxy alloc] initWithDelegate:self];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[request url] absoluteString],@"from",
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[rq url] absoluteString],@"from",
                                [newURL absoluteString],@"to", @"redirect",@"type",nil];
 		[self fireCallback:@"onredirect" withArg:event withSource:thisPointer];
 		[thisPointer release];
     }
-    if ([request shouldRedirect])
-        [request redirectToURL:newURL];
+    if ([rq shouldRedirect])
+        [rq redirectToURL:newURL];
 }
 
 -(void)open:(id)args
@@ -618,7 +619,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	connected = YES;
 	downloadProgress = 0;
 	uploadProgress = 0;
-	[[TiApp app] startNetwork];
+	if (showActivity) [[TiApp app] startNetwork];
 	[self _fireReadyStateChange:NetworkClientStateLoading failed:NO];
 	[request setAllowCompressedResponse:YES];
 	
@@ -637,9 +638,8 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	}
 	else
 	{
-		[[TiApp app] startNetwork];
 		[request startSynchronous];
-		[[TiApp app] stopNetwork];
+		if (showActivity) [[TiApp app] stopNetwork];
 	}
 }
 
@@ -696,12 +696,12 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	[self _fireReadyStateChange:NetworkClientStateDone failed:NO];
 	connected = NO;
 	[self forgetSelf];
-	[[TiApp app] stopNetwork];
+	if (showActivity) [[TiApp app] stopNetwork];
 }
 
 -(void)requestFailed:(ASIHTTPRequest *)request_
 {
-	[[TiApp app] stopNetwork];
+	if (showActivity) [[TiApp app] stopNetwork];
 	connected=NO;
 	
 	NSError *error = [request error];

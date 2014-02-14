@@ -282,7 +282,7 @@
 
 -(void)createCache:(CGRect)bounds
 {
-    CGRect actualBounds = bounds;
+    CGRect actualBounds = CGRectIntegral(bounds);
     if (!CGRectIsNull(gradientRect)) {
         actualBounds = gradientRect;
     }

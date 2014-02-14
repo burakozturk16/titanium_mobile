@@ -772,6 +772,21 @@ DEFINE_EXCEPTIONS
 	return result;
 }
 
+-(void)clearCache
+{
+    [cache removeAllObjects];
+    NSFileManager* fm = [NSFileManager defaultManager];
+    NSError* error = nil;
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, (NSUserDomainMask | NSLocalDomainMask), YES);
+    NSString *cacheDirectory = [paths objectAtIndex:0];
+    NSArray *Contents = [fm contentsOfDirectoryAtPath:cacheDirectory error:&error];
+    
+    for(NSString *source in Contents)
+    {
+        [fm removeItemAtPath:source error:&error];
+    }
+}
+
 
 -(ImageCacheEntry *)entryForKey:(NSURL *)url
 {

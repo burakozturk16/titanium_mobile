@@ -7,16 +7,11 @@
 //
 
 #import <QuartzCore/QuartzCore.h>
-typedef struct ShadowDef{
-    CGFloat opacity;
-    CGColorRef color;
-    CGSize offset;
-    CGFloat radius;
-} ShadowDef;
-
+@interface TiShadow : NSShadow
+@end
 @interface TiUIHelper : NSObject
 
 +(void)applyShadow:(NSDictionary*)args toLayer:(CALayer *)layer;
-+(ShadowDef)getShadow:(NSDictionary*)args;
++(TiShadow*)getShadow:(NSDictionary*)args;
 
 @end

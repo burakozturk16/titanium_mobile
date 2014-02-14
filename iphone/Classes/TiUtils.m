@@ -1296,7 +1296,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 		{
 			align = UITextAlignmentLeft;
 		}
-		else if ([alignment isEqualToString:@"center"])
+		else if ([alignment isEqualToString:@"middle"] || [alignment isEqualToString:@"center"])
 		{
 			align = UITextAlignmentCenter;
 		}
@@ -1322,7 +1322,7 @@ If the new path starts with / and the base url is app://..., we have to massage 
 		{
 			align = UIControlContentVerticalAlignmentTop;
 		}
-		else if ([alignment isEqualToString:@"middle"])
+		else if ([alignment isEqualToString:@"middle"] || [alignment isEqualToString:@"center"])
 		{
 			align = UIControlContentVerticalAlignmentCenter;
 		}

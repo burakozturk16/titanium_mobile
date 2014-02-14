@@ -11,6 +11,7 @@
 #import "TiUIListItem.h"
 #import "TiUtils.h"
 #import "TiViewTemplate.h"
+#import "TiTableView.h"
 
 @interface TiUIListViewProxy ()
 @property (nonatomic, readwrite) TiUIListView *listView;
@@ -22,6 +23,31 @@
 	pthread_mutex_t _operationQueueMutex;
 	pthread_rwlock_t _markerLock;
 	NSIndexPath *marker;
+    NSDictionary* _propertiesForItems;
+}
+@synthesize propertiesForItems = _propertiesForItems;
+
+static NSArray* keysToGetFromListView;
+-(NSArray *)keysToGetFromListView
+{
+	if (keysToGetFromListView == nil)
+	{
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
+	}
+	return keysToGetFromListView;
+}
+
+static NSDictionary* listViewKeysToReplace;
+-(NSDictionary *)listViewKeysToReplace
+{
+	if (listViewKeysToReplace == nil)
+	{
+		listViewKeysToReplace = [@{@"selectedBackgroundColor": @"backgroundSelectedColor",
+                                   @"selectedBackgroundGradient": @"backgroundSelectedGradient",
+                                   @"selectedBackgroundImage": @"backgroundSelectedImage"
+                                   } retain];
+	}
+	return listViewKeysToReplace;
 }
 
 - (id)init
@@ -53,8 +79,9 @@
 	[_operationQueue release];
 	pthread_mutex_destroy(&_operationQueueMutex);
 	pthread_rwlock_destroy(&_markerLock);
-	[_sections release];
+    RELEASE_TO_NIL(_sections);
 	RELEASE_TO_NIL(marker);
+    RELEASE_TO_NIL(_propertiesForItems);
     [super dealloc];
 }
 
@@ -63,7 +90,29 @@
 	return (TiUIListView *)self.view;
 }
 
+-(void)setValue:(id)value forKey:(NSString *)key
+{
+    if ([[self keysToGetFromListView] containsObject:key])
+    {
+        if (_propertiesForItems == nil)
+        {
+            _propertiesForItems = [[NSMutableDictionary alloc] init];
+        }
+        if ([[self listViewKeysToReplace] valueForKey:key]) {
+            [_propertiesForItems setValue:value forKey:[[self listViewKeysToReplace] valueForKey:key]];
+        }
+        else {
+            [_propertiesForItems setValue:value forKey:key];
+        }
+    }
+    [super setValue:value forKey:key];
+}
+
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block
+{
+    [self dispatchUpdateAction:block animated:YES];
+}
+-(void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated
 {
 	if (view == nil) {
 		block(nil);
@@ -85,7 +134,15 @@
     pthread_mutex_unlock(&_operationQueueMutex);
 	if (triggerMainThread) {
 		TiThreadPerformOnMainThread(^{
-			[self processUpdateActions];
+            if (animated)
+            {
+                [self processUpdateActions];
+            }
+            else {
+                [UIView setAnimationsEnabled:NO];
+                [self processUpdateActions];
+                [UIView setAnimationsEnabled:YES];
+            }
 		}, NO);
 	}
 }
@@ -122,6 +179,7 @@
 	UITableView *tableView = self.listView.tableView;
 	BOOL removeHead = NO;
 	BOOL begin = YES;
+    CGPoint offset;
 	while (YES) {
 		void (^block)(UITableView *) = nil;
 		pthread_mutex_lock(&_operationQueueMutex);
@@ -133,9 +191,9 @@
 			removeHead = YES;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
-        CGPoint offset = [tableView contentOffset];
 		if (block != nil) {
 			if (begin) {
+                offset = [tableView contentOffset];
 				[tableView beginUpdates];
 				begin = NO;
 			}
@@ -144,11 +202,11 @@
 		} else {
 			[tableView endUpdates];
             [tableView setContentOffset:offset animated:NO];
+			[self.listView updateIndicesForVisibleRows];
 			return;
 		}
 	}
 }
-
 
 - (TiUIListSectionProxy *)sectionForIndex:(NSUInteger)index
 {
@@ -167,6 +225,9 @@
     TiUIListSectionProxy *section = [_sections objectAtIndex:index];
     [_sections removeObjectAtIndex:index];
     section.delegate = nil;
+    [_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
+        section.sectionIndex = idx;
+    }];
     [self forgetProxy:section];
 }
 
@@ -251,13 +312,22 @@
 	}
 	NSDictionary *properties = [args count] > 1 ? [args objectAtIndex:1] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
-	[appendedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
-		ENSURE_TYPE(section, TiUIListSectionProxy);
-		[self rememberProxy:section];
-	}];
+    NSMutableArray *insertedSections = [NSMutableArray arrayWithCapacity:[appendedSections count]];
+    for (int i = 0; i < [appendedSections count]; i++) {
+        id section = [appendedSections objectAtIndex:i];
+        if ([section isKindOfClass:[NSDictionary class]]) {
+            //wer support directly sending a dictionnary
+            section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
+        }
+        else {
+            ENSURE_TYPE(section, TiUIListSectionProxy);
+        }
+        [self rememberProxy:section];
+        [insertedSections addObject:section];
+    }
 	[self dispatchUpdateAction:^(UITableView *tableView) {
 		NSMutableIndexSet *indexSet = [[NSMutableIndexSet alloc] init];
-		[appendedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
+		[insertedSections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
 			if (![_sections containsObject:section]) {
 				NSUInteger insertIndex = [_sections count];
 				[_sections addObject:section];
@@ -272,7 +342,7 @@
 			[tableView insertSections:indexSet withRowAnimation:animation];
 		}
 		[indexSet release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)deleteSectionAt:(id)args
@@ -289,9 +359,12 @@
 		TiUIListSectionProxy *section = [_sections objectAtIndex:deleteIndex];
 		[_sections removeObjectAtIndex:deleteIndex];
 		section.delegate = nil;
+		[_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
+			section.sectionIndex = idx;
+		}];
 		[tableView deleteSections:[NSIndexSet indexSetWithIndex:deleteIndex] withRowAnimation:animation];
 		[self forgetProxy:section];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)insertSectionAt:(id)args
@@ -334,7 +407,7 @@
 		}];
 		[tableView insertSections:indexSet withRowAnimation:animation];
 		[indexSet release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)replaceSectionAt:(id)args
@@ -365,27 +438,45 @@
 		[tableView deleteSections:indexSet withRowAnimation:animation];
 		[tableView insertSections:indexSet withRowAnimation:animation];
 		[self forgetProxy:prevSection];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)scrollToItem:(id)args
 {
+    if (view != nil) {
+        ENSURE_ARG_COUNT(args, 2);
+        NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
+        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
+        UITableViewScrollPosition scrollPosition = [TiUtils intValue:@"position" properties:properties def:UITableViewScrollPositionNone];
+        BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
+        TiThreadPerformOnMainThread(^{
+            if ([_sections count] <= sectionIndex) {
+                DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+                return;
+            }
+            TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
+            [self.listView.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:scrollPosition animated:animated];
+        }, NO);
+    }
+}
+
+- (id)getItem:(id)args
+{
 	ENSURE_ARG_COUNT(args, 2);
 	NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
 	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
-	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
-	UITableViewScrollPosition scrollPosition = [TiUtils intValue:@"position" properties:properties def:UITableViewScrollPositionNone];
-	BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:YES];
-
-	[self dispatchUpdateAction:^(UITableView *tableView) {
-		if ([_sections count] <= sectionIndex) {
-			DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
-			return;
-		}
-		TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
-		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
-		[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:scrollPosition animated:animated];
-	}];
+    if ([_sections count] <= sectionIndex) {
+        DebugLog(@"[WARN] ListView: getItem section  index is out of range");
+        return nil;
+    }
+    TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+    if ([section itemCount] <= itemIndex) {
+        DebugLog(@"[WARN] ListView: getItem index is out of range");
+        return nil;
+    }
+    return [section itemAtIndex:itemIndex];
 }
 
 - (id)getChildByBindId:(id)args
@@ -395,12 +486,12 @@
 	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
 	NSString *bindId = [TiUtils stringValue:[args objectAtIndex:2]];
     if ([_sections count] <= sectionIndex) {
-        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        DebugLog(@"[WARN] ListView:getChildByBindId section index is out of range");
         return nil;
     }
     TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
     if ([section itemCount] <= itemIndex) {
-        DebugLog(@"[WARN] ListView: Scroll to section index is out of range");
+        DebugLog(@"[WARN] ListView: getChildByBindId index is out of range");
         return nil;
     }
     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:MIN(itemIndex, section.itemCount) inSection:sectionIndex];
@@ -431,43 +522,47 @@
 
 - (void)selectItem:(id)args
 {
-	ENSURE_ARG_COUNT(args, 2);
-	NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
-	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
-	[self dispatchUpdateAction:^(UITableView *tableView) {
-		if ([_sections count] <= sectionIndex) {
-			DebugLog(@"[WARN] ListView: Select section index is out of range");
-			return;
-		}
-		TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
-		if (section.itemCount <= itemIndex) {
-			DebugLog(@"[WARN] ListView: Select item index is out of range");
-			return;
-		}
-		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:itemIndex inSection:sectionIndex];
-		[tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
-		[tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
-	}];
+    if (view != nil) {
+        ENSURE_ARG_COUNT(args, 2);
+        NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
+        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        TiThreadPerformOnMainThread(^{
+            if ([_sections count] <= sectionIndex) {
+                DebugLog(@"[WARN] ListView: Select section index is out of range");
+                return;
+            }
+            TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+            if (section.itemCount <= itemIndex) {
+                DebugLog(@"[WARN] ListView: Select item index is out of range");
+                return;
+            }
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:itemIndex inSection:sectionIndex];
+            [self.listView.tableView selectRowAtIndexPath:indexPath animated:YES scrollPosition:UITableViewScrollPositionNone];
+            [self.listView.tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionNone animated:YES];
+        }, NO);
+    }
 }
 
 - (void)deselectItem:(id)args
 {
-	ENSURE_ARG_COUNT(args, 2);
-	NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
-	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
-	[self dispatchUpdateAction:^(UITableView *tableView) {
-		if ([_sections count] <= sectionIndex) {
-			DebugLog(@"[WARN] ListView: Select section index is out of range");
-			return;
-		}
-		TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
-		if (section.itemCount <= itemIndex) {
-			DebugLog(@"[WARN] ListView: Select item index is out of range");
-			return;
-		}
-		NSIndexPath *indexPath = [NSIndexPath indexPathForRow:itemIndex inSection:sectionIndex];
-		[tableView deselectRowAtIndexPath:indexPath animated:YES];
-	}];
+    if (view != nil) {
+        ENSURE_ARG_COUNT(args, 2);
+        NSUInteger sectionIndex = [TiUtils intValue:[args objectAtIndex:0]];
+        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        TiThreadPerformOnMainThread(^{
+            if ([_sections count] <= sectionIndex) {
+                DebugLog(@"[WARN] ListView: Select section index is out of range");
+                return;
+            }
+            TiUIListSectionProxy *section = [_sections objectAtIndex:sectionIndex];
+            if (section.itemCount <= itemIndex) {
+                DebugLog(@"[WARN] ListView: Select item index is out of range");
+                return;
+            }
+            NSIndexPath *indexPath = [NSIndexPath indexPathForRow:itemIndex inSection:sectionIndex];
+            [self.listView.tableView deselectRowAtIndexPath:indexPath animated:YES];
+        }, NO);
+    }
 }
 
 -(void)setContentInsets:(id)args
@@ -485,6 +580,87 @@
     TiThreadPerformOnMainThread(^{
         [self.listView setContentInsets_:arg1 withObject:arg2];
     }, NO);
+}
+
+- (TiUIListSectionProxy *)getSectionAt:(id)args
+{
+    NSNumber *sectionIndex = nil;
+	ENSURE_ARG_AT_INDEX(sectionIndex, args, 0, NSNumber);
+	return [_sections objectAtIndex:[sectionIndex integerValue]];
+}
+
+
+- (TiUIListSectionProxy *)getItemAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 2);
+    TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        return [section getItemAt:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+    }
+    else {
+        DebugLog(@"[WARN] getItemAt item index is out of range");
+    }
+}
+
+- (void)appendItems:(id)args
+{
+	ENSURE_ARG_COUNT(args, 2);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section appendItems:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+    }
+    else {
+        DebugLog(@"[WARN] appendItems:section item index is out of range");
+    }
+}
+
+- (void)insertItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section insertItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] insertItemsAt item index is out of range");
+    }
+}
+
+- (void)replaceItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 4);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section replaceItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], [args objectAtIndex:3], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] replaceItemsAt item index is out of range");
+    }
+}
+
+- (void)deleteItemsAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section deleteItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] deleteItemsAt item index is out of range");
+    }
+}
+
+- (void)updateItemAt:(id)args
+{
+	ENSURE_ARG_COUNT(args, 3);
+	TiUIListSectionProxy* section = [self getSectionAt:args];
+    if (section){
+        [section updateItemAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+    }
+    else {
+        DebugLog(@"[WARN] updateItemAt item index is out of range");
+    }
 }
 
 -(void)showPullView:(id)args
@@ -520,7 +696,7 @@
             return;
         }
         if ( (indexPath.section > marker.section) || ( (marker.section == indexPath.section) && (indexPath.row >= marker.row) ) ){
-            [self fireEvent:@"marker" withObject:nil withSource:self propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            [self fireEvent:@"marker" withObject:nil propagate:NO checkForListener:NO];
             RELEASE_TO_NIL(marker);
         }
         pthread_rwlock_unlock(&_markerLock);

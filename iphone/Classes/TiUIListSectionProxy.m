@@ -17,6 +17,7 @@
 
 @implementation TiUIListSectionProxy {
 	NSMutableArray *_items;
+    BOOL _hidden;
 }
 
 @synthesize delegate = _delegate;
@@ -29,6 +30,7 @@
     self = [super init];
     if (self) {
 		_items = [[NSMutableArray alloc] initWithCapacity:20];
+        _hidden = false;
     }
     return self;
 }
@@ -90,6 +92,36 @@
 
 #pragma mark - Public API
 
+- (void)setVisible:(NSNumber *)newVisible
+{
+    BOOL value = [TiUtils boolValue:newVisible def:YES];
+    if (_hidden == !value) return;
+    _hidden = !value;
+	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
+		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:UITableViewRowAnimationNone];
+	} animated:YES];
+}
+
+- (id)visible
+{
+    return NUMBOOL(!_hidden);
+}
+
+- (BOOL)isHidden
+{
+    return _hidden;
+}
+
+- (void)show:(id)arg
+{
+	[self setVisible:YES];
+}
+
+-(void)hide:(id)arg
+{
+	[self setVisible:NO];
+}
+
 - (NSArray *)items
 {
 	return [self.dispatcher dispatchBlockWithResult:^() {
@@ -100,7 +132,7 @@
 - (NSUInteger)itemCount
 {
 	return [[self.dispatcher dispatchBlockWithResult:^() {
-		return [NSNumber numberWithUnsignedInteger:[_items count]];
+		return _hidden?0:[NSNumber numberWithUnsignedInteger:[_items count]];
 	}] unsignedIntegerValue];
 }
 
@@ -126,7 +158,7 @@
 	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
 		[_items setArray:items];
 		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:animation];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)appendItems:(id)args
@@ -149,7 +181,7 @@
 		}
 		[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)insertItemsAt:(id)args
@@ -177,7 +209,7 @@
 		}
 		[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)replaceItemsAt:(id)args
@@ -213,7 +245,7 @@
 			[tableView insertRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		}
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)deleteItemsAt:(id)args
@@ -243,7 +275,7 @@
 		}
 		[tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 - (void)updateItemAt:(id)args
@@ -267,6 +299,7 @@
 			TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
 			if ((cell != nil) && ([cell canApplyDataItem:item])) {
 				cell.dataItem = item;
+                [cell setNeedsLayout];
 			} else {
 				forceReload = YES;
 			}
@@ -275,14 +308,26 @@
 			[tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		}
 		[indexPaths release];
-	}];
+	} animated:(animation != UITableViewRowAnimationNone)];
 }
 
 #pragma mark - TiUIListViewDelegate
 
-- (void)dispatchUpdateAction:(void (^)(UITableView *))block
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block
 {
-	block(nil);
+    [self dispatchUpdateAction:block animated:YES];
+}
+-(void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated
+{
+    if (animated)
+    {
+        block(nil);
+    }
+    else {
+        [UIView setAnimationsEnabled:NO];
+        block(nil);
+        [UIView setAnimationsEnabled:YES];
+    }
 }
 
 - (id)dispatchBlockWithResult:(id (^)(void))block

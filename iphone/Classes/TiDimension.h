@@ -105,7 +105,7 @@ TI_INLINE BOOL TiDimensionDidCalculateValue(TiDimension dimension,CGFloat boundi
 			*result = dimension.value;
 			return YES;
 		case TiDimensionTypePercent:
-			*result = dimension.value * boundingValue;
+			*result = ceilf(dimension.value * boundingValue);
 			return YES;
         case TiDimensionTypeAutoFill:
 			*result = boundingValue;

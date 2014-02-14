@@ -33,7 +33,6 @@
         self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
         self.layer.masksToBounds = YES;
         [self selectableLayer].animateTransition = NO;
-        [self selectableLayer].readyToCreateDrawables = YES;
     }
     return self;
 }

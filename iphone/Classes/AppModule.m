@@ -18,6 +18,7 @@
 #import <UIKit/UILocalNotification.h>
 #import <unistd.h>
 #import "TiLayoutQueue.h"
+#import "ImageLoader.h"
 
 extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 extern NSString * const TI_APPLICATION_ID;
@@ -296,9 +297,8 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 //To fire the keyboard frame change event.
 -(void)keyboardFrameChanged:(NSNotification*) notification
 {
-    BOOL oldApi = [self _hasListeners:@"keyboardFrameChanged"];
-    BOOL newApi = [self _hasListeners:@"keyboardframechanged"];
-    if (!oldApi && !newApi)
+    BOOL hasEvent = [self _hasListeners:@"keyboardframechanged"];
+    if (!hasEvent)
     {
         return;
     }
@@ -315,8 +315,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
                                 [TiUtils rectToDictionary:keyboardEndFrame], @"keyboardFrame",
                                 nil];
     
-    if (oldApi) [self fireEvent:@"keyboardFrameChanged" withObject:event];
-    if (newApi) [self fireEvent:@"keyboardframechanged" withObject:event];
+    [self fireEvent:@"keyboardframechanged" withObject:event];
 }
 
 - (void)timeChanged:(NSNotification*)notiication
@@ -594,6 +593,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     [self replaceValue:args forKey:@"forceSplashAsSnapshot" notification:NO];
     BOOL flag = [TiUtils boolValue:args def:NO];
     [[TiApp app] setForceSplashAsSnapshot:flag];
+}
+
+-(void)clearImageCache:(id)args
+{
+    [[ImageLoader sharedLoader] clearCache];
 }
 
 #if defined(USE_TI_APPIOS)

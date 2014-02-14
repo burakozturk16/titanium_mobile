@@ -356,7 +356,7 @@ MAKE_SYSTEM_PROP(STATE_PAUSED,AS_PAUSED);
 	if ([self _hasListeners:@"change"])
 	{
 		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[self state],@"state",[self stateToString:player.state],@"description",nil];
-		[self fireEvent:@"change" withObject:event];
+		[self fireEvent:@"change" withObject:event checkForListener:NO];
 	}
 	if (player.errorCode != AS_NO_ERROR && player.state == AS_STOPPED) {
 		[[TiMediaAudioSession sharedSession] stopAudioSession];

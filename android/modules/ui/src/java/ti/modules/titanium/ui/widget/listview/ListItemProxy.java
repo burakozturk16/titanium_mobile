@@ -8,7 +8,9 @@
 package ti.modules.titanium.ui.widget.listview;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollDict;
@@ -24,6 +26,22 @@ import android.app.Activity;
 public class ListItemProxy extends TiViewProxy
 {
 	protected WeakReference<TiViewProxy> listProxy;
+	
+	private HashMap<String, ViewItem> viewsMap;
+	private List<TiViewProxy> nonBindingViews;
+	private ViewItem viewItem;
+	
+	public ListItemProxy()
+	{
+		viewsMap = new HashMap<String, ViewItem>();
+		nonBindingViews = new ArrayList();
+	}
+	
+	@Override
+	public void handleCreationDict(KrollDict options)
+	{
+		super.handleCreationDict(options);
+	}
 
 	public TiUIView createView(Activity activity)
 	{
@@ -42,47 +60,49 @@ public class ListItemProxy extends TiViewProxy
 		}
 		return null;
 	}
-
+	
 	@Override
 	public KrollProxy getParentForBubbling()
 	{
 		return getListProxy();
 	}
 
-	public boolean fireEvent(final String event, final Object data, boolean bubbles)
+	public boolean fireEvent(final String event, final Object data, boolean bubbles, boolean checkParent)
 	{
-		fireItemClick(event, data);
-		return super.fireEvent(event, data, bubbles);
+		if (event.equals(TiC.EVENT_CLICK)) fireItemClick(event, data);
+		return super.fireEvent(event, data, bubbles, checkParent);
 	}
 
 	private void fireItemClick(String event, Object data)
 	{
-		if (event.equals(TiC.EVENT_CLICK) && data instanceof HashMap) {
+		TiViewProxy listViewProxy = listProxy.get();
+		if (listViewProxy != null) {
+		if (listViewProxy != null && listViewProxy.hasListeners(TiC.EVENT_ITEM_CLICK)) {
 			KrollDict eventData = new KrollDict((HashMap) data);
 			Object source = eventData.get(TiC.EVENT_PROPERTY_SOURCE);
 			if (source != null && !source.equals(this) && listProxy != null) {
-				TiViewProxy listViewProxy = listProxy.get();
-				if (listViewProxy != null) {
-					listViewProxy.fireEvent(TiC.EVENT_ITEM_CLICK, eventData);
+					listViewProxy.fireEvent(TiC.EVENT_ITEM_CLICK, eventData, false, false);
 				}
 			}
 		}
 	}
 
 	@Override
-	public boolean hierarchyHasListener(String event)
+	public boolean hasListeners(String event, boolean bubbles)
 	{
 		// In order to fire the "itemclick" event when the children views are clicked,
 		// the children views' "click" events must be fired and bubbled up. (TIMOB-14901)
 		if (event.equals(TiC.EVENT_CLICK)) {
 			return true;
 		}
-		return super.hierarchyHasListener(event);
+		return super.hasListeners(event, bubbles);
 	}
 
 	public void release()
 	{
 		super.release();
+		viewsMap.clear();
+		nonBindingViews.clear();
 		if (listProxy != null) {
 			listProxy = null;
 		}
@@ -92,5 +112,43 @@ public class ListItemProxy extends TiViewProxy
 	public String getApiName()
 	{
 		return "Ti.UI.ListItem";
+	}
+	
+
+	public TiViewProxy getViewProxyFromBinding(String binding) {
+		ViewItem viewItem = viewsMap.get(binding);
+		if (viewItem != null) {
+			return viewItem.getViewProxy();
+		}
+		return null;
+	}
+	
+	@Override
+	protected void addBinding(String bindId, TiViewProxy bindingProxy)
+	{
+		super.addBinding(bindId, bindingProxy);
+		if (bindId != null) {
+			ViewItem viewItem = new ViewItem(bindingProxy, bindingProxy.getProperties());
+			viewsMap.put(bindId, viewItem);
+		}
+		else {
+			nonBindingViews.add(bindingProxy);
+		}
+		
+	}
+	
+	public HashMap<String, ViewItem> getViewsMap() {
+		return viewsMap;
+	}
+	
+	public List<TiViewProxy> getNonBindedViews() {
+		return nonBindingViews;
+	}
+	
+	public ViewItem getViewItem() {
+		if (viewItem == null) {
+			viewItem = new ViewItem(this, getProperties());
+		}
+		return viewItem;
 	}
 }

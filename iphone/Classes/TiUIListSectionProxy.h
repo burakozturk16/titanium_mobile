@@ -12,6 +12,7 @@
 @required
 
 - (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block;
+- (void)dispatchUpdateAction:(void(^)(UITableView *tableView))block animated:(BOOL)animated;
 - (id)dispatchBlockWithResult:(id(^)(void))block;
 
 @end
@@ -25,6 +26,14 @@
 - (NSDictionary *)itemAtIndex:(NSUInteger)index;
 - (void) deleteItemAtIndex:(NSUInteger)index;
 - (void) addItem:(NSDictionary*)item atIndex:(NSUInteger)index;
+- (BOOL)isHidden;
+
+- (void)appendItems:(id)args;
+- (void)insertItemsAt:(id)args;
+- (void)replaceItemsAt:(id)args;
+- (void)deleteItemsAt:(id)args;
+- (void)updateItemAt:(id)args;
+- (id)getItemAt:(id)args;
 
 // Public API
 @property (nonatomic, readonly) NSUInteger itemCount;

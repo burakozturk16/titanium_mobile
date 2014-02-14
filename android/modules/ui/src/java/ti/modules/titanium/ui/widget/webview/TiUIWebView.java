@@ -104,10 +104,10 @@ public class TiUIWebView extends TiUIView
 			// also to be detected as a click on the webview.  So we cannot let handling of the event one way block
 			// the handling the other way -- it must be passed to both in all cases for everything to work correctly.
 			//
-			if (ev.getAction() == MotionEvent.ACTION_UP) {
+			if (ev.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
 				Rect r = new Rect(0, 0, getWidth(), getHeight());
 				if (r.contains((int) ev.getX(), (int) ev.getY())) {
-					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev));
+					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev), true, false);
 				}
 			}
 			
@@ -126,6 +126,16 @@ public class TiUIWebView extends TiUIView
 		{
 			super.onLayout(changed, left, top, right, bottom);
 			TiUIHelper.firePostLayoutEvent(TiUIWebView.this);
+		}
+
+		@Override
+		public boolean onCheckIsTextEditor()
+		{
+			if (proxy.hasProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)
+				&& TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
+				return false;
+			}
+			return true;
 		}
 	}
 
@@ -178,6 +188,10 @@ public class TiUIWebView extends TiUIView
 		webView.setWebChromeClient(chromeClient);
 		client = new TiWebViewClient(this, webView);
 		webView.setWebViewClient(client);
+		//setLayerType() is supported in API 11+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			webView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		}
 		webView.client = client;
 
 		if (proxy instanceof WebViewProxy) {

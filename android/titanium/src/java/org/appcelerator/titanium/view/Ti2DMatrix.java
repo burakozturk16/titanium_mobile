@@ -261,8 +261,8 @@ public class Ti2DMatrix extends KrollProxy {
 		View parent = (View) view.getParent();
 		if (parent == null)
 			parent = view;
-		ViewHelper.setPivotX(view, (float) 0.5);
-		ViewHelper.setPivotY(view, (float) 0.5);
+//		ViewHelper.setPivotX(view, (float) 0.5);
+//		ViewHelper.setPivotY(view, (float) 0.5);
 		return getAffineTransform(view.getContext(),
 				view.getMeasuredWidth(), view.getMeasuredHeight(),
 				parent.getMeasuredWidth(), parent.getMeasuredHeight());

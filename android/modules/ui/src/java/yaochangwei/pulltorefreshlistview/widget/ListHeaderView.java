@@ -165,6 +165,7 @@ public class ListHeaderView extends ViewGroup {
 	}
 
 	public void moveToUpdateHeight(boolean animated) {
+		mCanUpdate = true; //just to be sure, in case the animation does not run
 		if (animated) {
 			mInitHeight = mHeight;
 			mDistance = mInitHeight - mUpdateHeight;

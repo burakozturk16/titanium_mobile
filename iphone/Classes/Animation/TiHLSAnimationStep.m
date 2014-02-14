@@ -14,15 +14,14 @@
 - (id)init
 {
     if ((self = [super init])) {
-        self.curve = UIViewAnimationCurveEaseInOut;        
+        self.curve = nil;
     }
     return self;
 }
 
 - (void)dealloc
 {
-//    self.dummyView = nil;
-    
+    RELEASE_TO_NIL(m_curve);
     [super dealloc];
 }
 

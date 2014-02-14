@@ -151,11 +151,23 @@
 	return [self scrollView];
 }
 
+-(BOOL)flexibleContentWidth
+{
+    return TiDimensionIsAuto(contentWidth) ||
+    TiDimensionIsAutoSize(contentWidth) ||
+    TiDimensionIsUndefined(contentWidth);
+}
+
+-(BOOL)flexibleContentHeight
+{
+    return TiDimensionIsAuto(contentHeight) ||
+    TiDimensionIsAutoSize(contentHeight) ||
+    TiDimensionIsUndefined(contentHeight);
+}
+
 -(void)setNeedsHandleContentSizeIfAutosizing
 {
-	if (TiDimensionIsAuto(contentWidth) || TiDimensionIsAuto(contentHeight) ||
-        TiDimensionIsAutoSize(contentWidth) || TiDimensionIsAutoSize(contentHeight) ||
-        TiDimensionIsUndefined(contentWidth) || TiDimensionIsUndefined(contentHeight))
+	if ([self flexibleContentWidth] || [self flexibleContentHeight])
 	{
 		[self setNeedsHandleContentSize];
 	}
@@ -191,8 +203,8 @@
     
     CGSize autoSize;
 
-    if (TiDimensionIsAuto(contentWidth) || TiDimensionIsAutoSize(contentWidth) || TiDimensionIsUndefined(contentWidth) ||
-        TiDimensionIsAuto(contentHeight) || TiDimensionIsAutoSize(contentHeight) || TiDimensionIsUndefined(contentHeight)) {
+	if ([self flexibleContentWidth] || [self flexibleContentHeight])
+    {
         autoSize = [(TiViewProxy *)[self proxy] autoSizeForSize:[self bounds].size];
     }
 

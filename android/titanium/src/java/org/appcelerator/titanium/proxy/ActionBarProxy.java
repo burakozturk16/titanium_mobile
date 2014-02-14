@@ -29,7 +29,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
 import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockActivity;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;

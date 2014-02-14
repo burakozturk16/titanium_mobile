@@ -193,6 +193,18 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		};
 		setNativeView(view);
 	}
+	
+	@Override
+	public void setReusing(boolean value)
+	{
+		super.setReusing(value);
+		if (value)
+		{
+			TiImageView view = getView();
+			if (view != null)
+				view.cancelCurrentTransition();
+		}
+	}
 
 	@Override
 	public void setProxy(TiViewProxy proxy)
@@ -564,12 +576,12 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	}
 	
 	public boolean fireImageEvent(String eventName, KrollDict data) {
-		return fireEvent(eventName, data, false);
+		return fireEvent(eventName, data, false, false);
 	}
 
 	private void fireLoad(String state)
 	{
-		if (proxy.hasListeners(TiC.EVENT_LOAD)) {
+		if (hasListeners(TiC.EVENT_LOAD)) {
 			KrollDict data = new KrollDict();
 			data.put(TiC.EVENT_PROPERTY_STATE, state);
 			fireImageEvent(TiC.EVENT_LOAD, data);
@@ -578,7 +590,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 	
 	private void fireLoad(String state, Bitmap bitmap)
 	{
-		if (proxy.hasListeners(TiC.EVENT_LOAD)) {
+		if (hasListeners(TiC.EVENT_LOAD)) {
 			KrollDict data = new KrollDict();
 			data.put("image", TiBlob.blobFromImage(bitmap));
 			data.put(TiC.EVENT_PROPERTY_STATE, state);
@@ -588,14 +600,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	private void fireStart()
 	{
-		if (proxy.hasListeners(TiC.EVENT_START)) {
+		if (hasListeners(TiC.EVENT_START)) {
 			fireImageEvent(TiC.EVENT_START, null);
 		}
 	}
 
 	private void fireChange(int index)
 	{
-		if (proxy.hasListeners(TiC.EVENT_CHANGE)) {
+		if (hasListeners(TiC.EVENT_CHANGE)) {
 			KrollDict data = new KrollDict();
 			data.put(TiC.EVENT_PROPERTY_INDEX, index);
 			fireImageEvent(TiC.EVENT_CHANGE, data);
@@ -604,14 +616,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 
 	private void fireStop()
 	{
-		if (proxy.hasListeners(TiC.EVENT_LOAD)) {
+		if (hasListeners(TiC.EVENT_LOAD)) {
 			fireImageEvent(TiC.EVENT_LOAD, null);
 		}
 	}
 
 	private void fireError(String message, String imageUrl)
 	{
-		if (proxy.hasListeners(TiC.EVENT_ERROR)) {
+		if (hasListeners(TiC.EVENT_ERROR)) {
 			KrollDict data = new KrollDict();
 
 			data.putCodeAndMessage(TiC.ERROR_CODE_UNKNOWN, message);
@@ -1027,8 +1039,11 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 			if (changeImage) {
-				view.setImageBitmap(null);
-				view.setImageDrawable(null);
+				if (reusing)
+				{
+					view.setImageBitmap(null);
+					view.setImageDrawable(null);
+				}
 				// Check for orientation and decodeRetries only if an image is specified
 				Object autoRotate = d.get(TiC.PROPERTY_AUTOROTATE);
 				if (autoRotate != null && TiConvert.toBoolean(autoRotate)) {

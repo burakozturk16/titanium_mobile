@@ -55,6 +55,7 @@
     if (maxLength > -1 && [string length] > maxLength) {
         string = [string substringToIndex:maxLength];
     }
+    if ([string isEqualToString:[(id)[self textWidgetView] text]]) return;
     [(id)[self textWidgetView] setText:string];
     [(TiUITextWidgetProxy*)[self proxy] noteValueChange:string];
 }
@@ -107,7 +108,7 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-	[textWidgetView setFrame:[self bounds]];
+//	[textWidgetView setFrame:[self bounds]];
     [super frameSizeChanged:frame bounds:bounds];
 }
 
@@ -154,20 +155,11 @@
 
 -(BOOL)resignFirstResponder
 {
-	if (![textWidgetView isFirstResponder])
-	{
-		return NO;
-	}
 	return [[self textWidgetView] resignFirstResponder];
 }
 
 -(BOOL)becomeFirstResponder
 {
-	if ([textWidgetView isFirstResponder])
-	{
-		return NO;
-	}
-	
 	return [[self textWidgetView] becomeFirstResponder];
 }
 

@@ -167,7 +167,7 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_ITEM_CLICK = "itemclick";
-
+	
 	/**
 	 * @module.api
 	 */
@@ -207,6 +207,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_OPEN = "open";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_PADDING = "padding";
 
 	/**
 	 * @module.api
@@ -751,12 +756,17 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_CHECKED_GRADIENT = "backgroundCheckedGradient";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_CHECKED_IMAGE = "backgroundCheckedImage";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_BACKGROUND_CHECKED_GRADIENT = "backgroundCheckedGradient";
+	public static final String PROPERTY_BACKGROUND_CHECKED_INNERSHADOWS = "backgroundCheckedInnerShadows";
 	
 	/**
 	 * @module.api
@@ -766,12 +776,17 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_DISABLED_GRADIENT = "backgroundDisabledGradient";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_DISABLED_IMAGE = "backgroundDisabledImage";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_BACKGROUND_DISABLED_GRADIENT = "backgroundDisabledGradient";
+	public static final String PROPERTY_BACKGROUND_DISABLED_INNERSHADOWS = "backgroundDisabledInnerShadows";
 	
 	/**
 	 * @module.api
@@ -781,12 +796,17 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_FOCUSED_GRADIENT = "backgroundFocusedGradient";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_FOCUSED_IMAGE = "backgroundFocusedImage";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_BACKGROUND_FOCUSED_GRADIENT = "backgroundFocusedGradient";
+	public static final String PROPERTY_BACKGROUND_FOCUSED_INNERSHADOWS = "backgroundFocusedInnerShadows";
 	
 	/**
 	 * @module.api
@@ -797,6 +817,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BACKGROUND_IMAGE = "backgroundImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_INNERSHADOWS = "backgroundInnerShadows";
 
 	/**
 	 * @module.api
@@ -823,7 +848,17 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_BACKGROUND_SELECTED_GRADIENT = "backgroundSelectedGradient";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_BACKGROUND_SELECTED_IMAGE = "backgroundSelectedImage";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BACKGROUND_SELECTED_INNERSHADOWS = "backgroundSelectedInnerShadows";
 	
 	/**
 	 * @module.api
@@ -839,11 +874,6 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BAR_IMAGE = "barImage";
-
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_BACKGROUND_SELECTED_GRADIENT = "backgroundSelectedGradient";
 
 	/**
 	 * @module.api
@@ -869,6 +899,41 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BORDER_COLOR = "borderColor";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_CHECKED_COLOR = "borderCheckedColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_CHECKED_GRADIENT = "borderCheckedGradient";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_DISABLED_COLOR = "borderDisabledColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_DISABLED_GRADIENT = "borderDisabledGradient";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_FOCUSED_COLOR = "borderFocusedColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_FOCUSED_GRADIENT = "borderFocusedGradient";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_GRADIENT = "borderGradient";
 
 	/**
 	 * @module.api
@@ -884,6 +949,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_BORDER_RADIUS = "borderRadius";
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_SELECTED_COLOR = "borderSelectedColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_BORDER_SELECTED_GRADIENT = "borderSelectedGradient";
+
 
 	/**
 	 * @module.api
@@ -1108,6 +1183,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_CURVE = "curve";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_DATA = "data";
 	
 	/**
@@ -1164,6 +1244,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_DISABLED_COLOR = "disabledColor";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISABLE_HW = "disableHW";
 
 	/**
 	 * @module.api
@@ -1421,6 +1506,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_HINT_COLOR = "hintColor";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_HINT_TEXT = "hintText";
 	
 	/**
@@ -1562,6 +1652,11 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_LINK = "link";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_LOAD_URL = "loadUrl";
 
 	/**
@@ -1608,6 +1703,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_LEVEL = "level";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_LIGHTWEIGHT = "lightweight";
 
 	/**
 	 * @module.api
@@ -1783,6 +1883,10 @@ public class TiC
 	 */
 	public static final String PROPERTY_NUMBER = "number";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_OFFSET = "offset";
 	/**
 	 * @module.api
 	 */
@@ -1992,6 +2096,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_PULL_VIEW = "pullView";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_RADIUS = "radius";	
 	
 	/**
 	 * @module.api

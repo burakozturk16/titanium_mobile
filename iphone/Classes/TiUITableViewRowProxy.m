@@ -847,7 +847,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     }
 }
 
--(void)updateAnimated:(TiAnimation*)animation
+-(void)updateAnimated:(TiViewAnimationStep*)animation
 {
     if ([self isAttached] && !modifyingRow && !attaching)
 	{
@@ -910,7 +910,7 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	}
 }
 
--(void)repositionWithinAnimation:(TiAnimation*)animation
+-(void)repositionWithinAnimation:(TiViewAnimationStep*)animation
 {
 //	[self triggerUpdateIfHeightChanged];
 }
@@ -964,18 +964,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
 	[dict setObject:NUMBOOL(NO) forKey:@"searchMode"];
 	
 	return dict;
-}
-
-//TODO: Remove when deprication is done.
--(void)fireEvent:(NSString*)type withObject:(id)obj withSource:(id)source propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;
-{
-	// merge in any row level properties for the event
-	if (source!=self)
-	{
-		obj = [self createEventObject:obj];
-	}
-	[callbackCell handleEvent:type];
-	[super fireEvent:type withObject:obj withSource:source propagate:propagate reportSuccess:report errorCode:code message:message];
 }
 
 -(void)fireEvent:(NSString*)type withObject:(id)obj propagate:(BOOL)propagate reportSuccess:(BOOL)report errorCode:(int)code message:(NSString*)message;

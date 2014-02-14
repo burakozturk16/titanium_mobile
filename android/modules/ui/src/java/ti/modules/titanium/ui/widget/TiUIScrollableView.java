@@ -19,7 +19,6 @@ import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
-import org.appcelerator.titanium.transition.TransitionHelper.SubTypes;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiEventHelper;
 import org.appcelerator.titanium.util.TiViewHelper;
@@ -59,6 +58,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	boolean hardwaredDisabled = false;
 	int cacheSize = 3;
 	private Transition transition;
+	private boolean updateCurrentPageDuringScroll = true;
 	private interface IPageAdapter {
 
 		void notifyDataSetChanged();
@@ -248,6 +248,15 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	}
 	
 	
+	private void setCurrentPageIndex(int newPage, boolean animated)
+	{
+		if (newPage == mCurIndex) return;
+		mCurIndex = newPage;
+		proxy.setProperty(TiC.PROPERTY_CURRENT_PAGE, mCurIndex);
+		updateCacheSize();
+		((ScrollableViewProxy)proxy).firePageChange(mCurIndex, mViews.get(mCurIndex));
+	}
+	
 
 	@Override
 	public void onPageScrollStateChanged(int scrollState) {
@@ -258,23 +267,25 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		mPager.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 		
 		if (scrollState == ViewPager.SCROLL_STATE_DRAGGING) {
+			updateCurrentPageDuringScroll = true;
 			((ScrollableViewProxy)proxy).fireScrollStart(mCurIndex, mViews.get(mCurIndex));
 		}
 		else if ((scrollState == ViewPager.SCROLL_STATE_IDLE) && isValidScroll) {
 			int oldIndex = mCurIndex;
 			{
+				updateCurrentPageDuringScroll = false;
 				((ScrollableViewProxy)proxy).fireScrollEnd(mCurIndex, mViews.get(mCurIndex));
 			}
 			if (mCurIndex >= 0) {
-				if (oldIndex >=0 && oldIndex != mCurIndex && oldIndex < mViews.size()) {
-					// Don't know what these focused and unfocused
-					// events are good for, but they were in our previous
-					// scrollable implementation.
-					// cf. https://github.com/appcelerator/titanium_mobile/blob/20335d8603e2708b59a18bafbb91b7292278de8e/android/modules/ui/src/ti/modules/titanium/ui/widget/TiScrollableView.java#L260
-					TiEventHelper.fireFocused(mViews.get(oldIndex));
-				}
-
-				TiEventHelper.fireUnfocused(mViews.get(mCurIndex));
+//				if (oldIndex >=0 && oldIndex != mCurIndex && oldIndex < mViews.size()) {
+//					// Don't know what these focused and unfocused
+//					// events are good for, but they were in our previous
+//					// scrollable implementation.
+//					// cf. https://github.com/appcelerator/titanium_mobile/blob/20335d8603e2708b59a18bafbb91b7292278de8e/android/modules/ui/src/ti/modules/titanium/ui/widget/TiScrollableView.java#L260
+//					TiEventHelper.fireFocused(mViews.get(oldIndex));
+//				}
+//
+//				TiEventHelper.fireUnfocused(mViews.get(mCurIndex));
 				if (oldIndex >= 0) {
 					// oldIndex will be -1 if the view has just
 					// been created and is setting currentPage
@@ -294,6 +305,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			// `idle` and this handler is called.
 			isValidScroll = false;
 		} else if (scrollState == ViewPager.SCROLL_STATE_SETTLING) {
+			updateCurrentPageDuringScroll = false;
 			((ScrollableViewProxy)proxy).fireDragEnd(mCurIndex, mViews.get(mCurIndex));
 
 			// Note that we just fired a `dragend` so the `onPageSelected`
@@ -306,6 +318,8 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	public void onPageSelected(int page)
 	{
 
+		setCurrentPageIndex(page, true);
+		updateCurrentPageDuringScroll = false;
 		// If we didn't just fire a `dragend` event then this is the case
 		// where a user drags the view and settles it on a different view.
 		// Since the OS settling logic is never run, the
@@ -351,18 +365,16 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		// the current index. We add 0.5 so that positionFloat will be rounded
 		// half up; ie, if it has a value of 1.5, it will be rounded up to 2; if
 		// it has a value of 1.4, it will be rounded down to 1.
-		mCurIndex = (int) Math.floor(positionFloat + 0.5);
-		mCurIndex = Math.min(Math.max(mCurIndex, 0), mViews.size() - 1);
+		int index = Math.min(Math.max((int) Math.floor(positionFloat + 0.5), 0), mViews.size() - 1);
+		if (updateCurrentPageDuringScroll)
+		{
+			setCurrentPageIndex(index, true);
+		}
 		((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
 
 		// Note that we didn't just fire a `dragend`.  See the above comment
 		// in `onPageSelected`.
 		justFiredDragEnd = false;
-		
-		if (oldIndex != mCurIndex)
-		{
-			updateCacheSize();
-		}
 		
 		//Force the container to redraw on scrolling.
         //Without this the outer pages render initially and then stay static
@@ -664,9 +676,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.");
 			return;
 		}
-		mCurIndex = index;
-		updateCacheSize();
-		mPager.setCurrentItem(index, animated);
+		//we dont to update page during scroll but immediately. Otherwise if we jump multiple page, we will have multiple events!
+		setCurrentPageIndex(index, animated);
+		mPager.setCurrentItem(mCurIndex, animated);
 	}
 
 //	private void move(int index)

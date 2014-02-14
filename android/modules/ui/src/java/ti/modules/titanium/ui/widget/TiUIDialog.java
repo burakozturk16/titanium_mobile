@@ -323,7 +323,7 @@ public class TiUIDialog extends TiUIView
 					((TiBaseActivity) dialogActivity).addDialog(dialogWrapper);
 					dialog.show();
 					setButtonsListeners(dialog);
-					fireEvent(TiC.EVENT_OPEN, new KrollDict());
+					fireEvent(TiC.EVENT_OPEN, null, false);
 				}
 			} else {
 				dialog = null;
@@ -336,7 +336,7 @@ public class TiUIDialog extends TiUIView
 
 	public void hide(KrollDict options)
 	{
-		fireEvent(TiC.EVENT_CLOSE, new KrollDict());
+		fireEvent(TiC.EVENT_CLOSE, null, false);
 		AlertDialog dialog = dialogWrapper.getDialog();
 		//we have to try and hide the keyboard before the dialog is dismissed
 		if (view != null) {
@@ -385,6 +385,6 @@ public class TiUIDialog extends TiUIView
 		}
 		data.put(TiC.EVENT_PROPERTY_INDEX, id);
 		data.put(TiC.PROPERTY_CANCEL, id == cancelIndex);
-		fireEvent(TiC.EVENT_CLICK, data);
+		fireEvent(TiC.EVENT_CLICK, data, false);
 	}
 }

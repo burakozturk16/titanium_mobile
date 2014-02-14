@@ -20,10 +20,20 @@
 			<arguments>
 			</arguments>
 		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Ant_builder.launch</value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>com.appcelerator.titanium.mobile.module.nature</nature>
-		<nature>com.aptana.projects.webnature</nature>
+		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 	</natures>
 </projectDescription>

@@ -75,12 +75,11 @@
         default:
             return;
     }
-//    [self setHighlighted:button.highlighted];
     if ((fireActionEvent != nil) && [self.proxy _hasListeners:fireActionEvent]) {
-        [self.proxy fireEvent:fireActionEvent withObject:evt];
+        [self.proxy fireEvent:fireActionEvent withObject:evt checkForListener:NO];
     }
 	if ([self.proxy _hasListeners:fireEvent]) {
-		[self.proxy fireEvent:fireEvent withObject:evt];
+		[self.proxy fireEvent:fireEvent withObject:evt checkForListener:NO];
 	}
 }
 
@@ -154,13 +153,15 @@
 
 -(void)setEnabled_:(id)value
 {
-	[[self button] setEnabled:[TiUtils boolValue:value]];
+    [super setEnabled_:value];
+	[[self button] setEnabled:[self interactionEnabled]];
 }
 
--(BOOL) enabledForBgState {
-    return [self button].enabled && [super enabledForBgState];
+-(void)setExclusiveTouch:(BOOL)value
+{
+    [super setExclusiveTouch:value];
+	[[self button] setExclusiveTouch:value];
 }
-
 
 -(void)setSelected_:(id)value
 {
@@ -385,10 +386,9 @@
 	[[[b titleLabel] layer] setShadowRadius:[TiUtils floatValue:arg]];
 }
 
--(void)setPadding_:(id)value
+-(void)setPadding:(UIEdgeInsets)inset
 {
-    titlePadding = [TiUtils insetValue:value];
-	[button setTitleEdgeInsets:titlePadding];
+	[button setTitleEdgeInsets:inset];
     [button setNeedsLayout];
 }
 
