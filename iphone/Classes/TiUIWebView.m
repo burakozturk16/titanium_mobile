@@ -100,27 +100,37 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	return [scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"];
 }
 
--(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+-(void)viewForHitTest
 {
-	/*	webview is a little _special_ and refuses to share events.
-	 *	As such, we have to take the events away if we have event listeners
-	 *	Or let webview has his entire cake. Through experimenting, if the
-	 *	webview is interested, a subview or subsubview will be the target.
-	 */
-
-	UIView *view = [super hitTest:point withEvent:event];
-	if ( ([self hasTouchableListener]) && willHandleTouches )
-	{
-		UIView *superview = [view superview];
-		UIView *superduperview = [superview superview];
-		if ((view == webview) || (superview == webview) || (superduperview == webview))
-		{
-			return self;
-		}
-	}
-	
-	return view;
+    return webview;
 }
+
+//-(UIView*)viewForGestures
+//{
+//    return webview;
+//}
+
+//-(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+//{
+//	/*	webview is a little _special_ and refuses to share events.
+//	 *	As such, we have to take the events away if we have event listeners
+//	 *	Or let webview has his entire cake. Through experimenting, if the
+//	 *	webview is interested, a subview or subsubview will be the target.
+//	 */
+//
+//	UIView *view = [super hitTest:point withEvent:event];
+//	if ( ([self hasTouchableListener]) && willHandleTouches )
+//	{
+//		UIView *superview = [view superview];
+//		UIView *superduperview = [superview superview];
+//		if ((view == webview) || (superview == webview) || (superduperview == webview))
+//		{
+//			return self;
+//		}
+//	}
+//	
+//	return view;
+//}
 
 -(void)setWillHandleTouches_:(id)args
 {
