@@ -50,6 +50,7 @@ import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
@@ -58,8 +59,9 @@ import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 import android.view.KeyEvent;
 import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
 import com.actionbarsherlock.view.MenuItem;
+
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 
@@ -473,6 +475,19 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			}
 		}
 	}
+	
+	private void checkUpEventSent(MotionEvent event){
+		if (!windowStack.isEmpty()) {
+			Iterator itr = windowStack.iterator();
+		    while( itr.hasNext() ) {
+		        TiWindowProxy window = (TiWindowProxy)itr.next();
+		        window.checkUpEventSent(event);
+		    }
+		}
+		if (window != null) {
+			 window.checkUpEventSent(event);
+		}
+	}
 
 	// Subclasses can override to provide a custom layout
 	protected View createLayout()
@@ -498,6 +513,20 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		        	return false;
 		        }
 		        return super.requestFocus(direction, previouslyFocusedRect);
+		    }
+			
+			@Override
+		    public boolean onInterceptTouchEvent(final MotionEvent event) {
+				if (event.getAction() == MotionEvent.ACTION_UP) {
+					final Handler handler = new Handler();
+					handler.postDelayed(new Runnable() {
+					  @Override
+					  public void run() {
+						  checkUpEventSent(event);
+					  }
+					}, 10);
+				}
+		        return super.onInterceptTouchEvent(event);
 		    }
 		};
 	}

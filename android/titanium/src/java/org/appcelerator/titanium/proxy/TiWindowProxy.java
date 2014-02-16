@@ -32,6 +32,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Message;
+import android.view.MotionEvent;
 import android.view.View;
 
 @Kroll.proxy(propertyAccessors={
@@ -558,5 +559,12 @@ public abstract class TiWindowProxy extends TiViewProxy
 	{
 		// We know whether a window is lightweight or not only after it opens.
 		return (opened || opening);
+	}
+	
+	
+	public void checkUpEventSent(MotionEvent event){
+		if (view != null) {
+			view.checkUpEventSent(event);
+		}
 	}
 }
