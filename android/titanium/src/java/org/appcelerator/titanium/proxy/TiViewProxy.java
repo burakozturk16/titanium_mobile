@@ -156,9 +156,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		pendingTransitions = new ArrayList<HashMap>();
 //		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 //		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
-		setProperty(TiC.PROPERTY_VISIBLE, true);
-		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
-		setProperty(TiC.PROPERTY_ENABLED, true);
+//		setProperty(TiC.PROPERTY_VISIBLE, true);
+//		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
+//		setProperty(TiC.PROPERTY_ENABLED, true);
 	}
 
 	@Override
