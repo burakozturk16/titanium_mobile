@@ -1845,7 +1845,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if ((touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)))
+	if (hitView == [self viewForHitTest] && (touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)))
 	{
 		return nil;
 	}
