@@ -883,7 +883,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void remove(TiViewProxy child)
 	{
-		Log.w(TAG, "Removing view");
 		if (child == null) {
 			Log.e(TAG, "Add called with null child");
 			return;
