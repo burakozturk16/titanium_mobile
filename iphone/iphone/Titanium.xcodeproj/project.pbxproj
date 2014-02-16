@@ -607,6 +607,9 @@
 		B6C5206318035AF3002471C6 /* TiUIiOSAttributedStringProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = B6C5206018035AF3002471C6 /* TiUIiOSAttributedStringProxy.m */; };
 		D4AB36F5123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
 		D4AB36F6123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
+		D50A303018B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
+		D50A303118B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
+		D50A303218B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
 		D512A7AD187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
 		D512A7AE187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
 		D512A7AF187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
@@ -736,6 +739,8 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
+		D5818EAB18AA87D0007EF771 /* libAkylasMopub.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EA618AA87A6007EF771 /* libAkylasMopub.a */; };
+		D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EAE18AA8872007EF771 /* AdSupport.framework */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -1239,6 +1244,20 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		D5818EA518AA87A6007EF771 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = AkylasMopub;
+		};
+		D5818EA918AA87CB007EF771 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = AkylasMopub;
+		};
 		D5EE1BA41860A11500579573 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
@@ -1849,6 +1868,8 @@
 		B6C5206018035AF3002471C6 /* TiUIiOSAttributedStringProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSAttributedStringProxy.m; sourceTree = "<group>"; };
 		D4AB36F3123DE20200DED4A0 /* TiUIClipboardProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIClipboardProxy.h; sourceTree = "<group>"; };
 		D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIClipboardProxy.m; sourceTree = "<group>"; };
+		D50A302E18B0F6C1004CBD52 /* TouchCapturingWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchCapturingWindow.h; sourceTree = "<group>"; };
+		D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchCapturingWindow.m; sourceTree = "<group>"; };
 		D50ABAB817EB6680002CE73D /* AppleSucksDOMImplementation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppleSucksDOMImplementation.h; path = ../Classes/SVGKit/AppleSucksDOMImplementation.h; sourceTree = "<group>"; };
 		D50ABAB917EB6680002CE73D /* Attr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Attr.h; path = ../Classes/SVGKit/Attr.h; sourceTree = "<group>"; };
 		D50ABABA17EB6680002CE73D /* BaseClassForAllSVGBasicShapes_ForSubclasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BaseClassForAllSVGBasicShapes_ForSubclasses.h; path = ../Classes/SVGKit/BaseClassForAllSVGBasicShapes_ForSubclasses.h; sourceTree = "<group>"; };
@@ -2228,6 +2249,8 @@
 		D57007F718255C520063F7FE /* TiTransitionSwipeDualFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSwipeDualFade.h; sourceTree = "<group>"; };
 		D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwipeDualFade.m; sourceTree = "<group>"; };
 		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
+		D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasMopub.xcodeproj; path = ../../../modules/akylas_modules/mopub/ios/AkylasMopub.xcodeproj; sourceTree = "<group>"; };
+		D5818EAE18AA8872007EF771 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		D58791E8183E790F007F5BF1 /* TiTransitionPerspective.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionPerspective.h; sourceTree = "<group>"; };
@@ -2454,6 +2477,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
+				D5818EAB18AA87D0007EF771 /* libAkylasMopub.a in Frameworks */,
 				D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */,
 				D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */,
 				D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */,
@@ -3013,6 +3038,8 @@
 				D51F03D81808411F005B4EE2 /* TiImageHelper.m */,
 				D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */,
 				D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */,
+				D50A302E18B0F6C1004CBD52 /* TouchCapturingWindow.h */,
+				D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -3727,6 +3754,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D5818EAE18AA8872007EF771 /* AdSupport.framework */,
 				D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */,
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
 				D5C2866317FC18C0005B2628 /* libGPUImage.a */,
@@ -4141,6 +4169,7 @@
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
 				D5E75A70187C58F00016542B /* icon@2x.png */,
+				D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */,
 				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
 				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
 				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
@@ -4206,6 +4235,14 @@
 				D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */,
 			);
 			name = transitions;
+			sourceTree = "<group>";
+		};
+		D5818EA018AA87A6007EF771 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D5818EA618AA87A6007EF771 /* libAkylasMopub.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D585BBE017E62F350062275E /* GPUImage */ = {
@@ -4611,6 +4648,7 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
+				D5818EAA18AA87CB007EF771 /* PBXTargetDependency */,
 				D5EE1BEC1860CAC300579573 /* PBXTargetDependency */,
 				D5EE1BE11860ABDB00579573 /* PBXTargetDependency */,
 				D5EE1BA71860A12800579573 /* PBXTargetDependency */,
@@ -4695,6 +4733,10 @@
 					ProjectRef = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
 				},
 				{
+					ProductGroup = D5818EA018AA87A6007EF771 /* Products */;
+					ProjectRef = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
+				},
+				{
 					ProductGroup = D5EE1BA01860A11400579573 /* Products */;
 					ProjectRef = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
 				},
@@ -4713,6 +4755,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		D5818EA618AA87A6007EF771 /* libAkylasMopub.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libAkylasMopub.a;
+			remoteRef = D5818EA518AA87A6007EF771 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		D5EE1BA51860A11500579573 /* libAkylasShapes.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -4782,7 +4831,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp -Rf \"$PROJECT_DIR/../../demos/KitchenSink/Resources/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\" \nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/facebook/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/ui/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\n\"$PROJECT_DIR/../../support/common/localecompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios simulator \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\"\n\"$PROJECT_DIR/../../support/common/css/csscompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios \"$PROJECT_DIR/../Resources\"";
+			shellScript = "cp -Rf \"$PROJECT_DIR/../../demos/KitchenSink/Resources/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\" \nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/mopub\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/facebook/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/ui/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\ncp -Rf \"/Volumes/data/dev/titanium/modules/akylas_modules/mopub/ios/assets/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/mopub/\"\n\"$PROJECT_DIR/../../support/common/localecompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios simulator \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\"\n\"$PROJECT_DIR/../../support/common/css/csscompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios \"$PROJECT_DIR/../Resources\"";
 		};
 		24CA8D03111169070084E2DE /* Post-Compile */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4894,6 +4943,7 @@
 				8484E3A717A865F700C24B02 /* TiViewController.m in Sources */,
 				24CA8980111161050084E2DE /* PLSqliteResultSet.m in Sources */,
 				24CA8981111161050084E2DE /* SBJSON.m in Sources */,
+				D50A303018B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				24CA89B81111615D0084E2DE /* KrollBridge.m in Sources */,
 				24CA89B91111615D0084E2DE /* KrollCallback.m in Sources */,
 				24CA89BA1111615D0084E2DE /* KrollContext.m in Sources */,
@@ -5345,6 +5395,7 @@
 				D55795821837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				D54C7D0D18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				24D8E433119B9D8A00F8CAA6 /* TiHost.m in Sources */,
+				D50A303118B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
 				D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				24D8E434119B9D8A00F8CAA6 /* TiFilesystemFileProxy.m in Sources */,
@@ -5707,6 +5758,7 @@
 				D55795831837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				D54C7D0E18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				DABB370E12E8CB280026A6EA /* TiHost.m in Sources */,
+				D50A303218B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
 				D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				DABB370F12E8CB280026A6EA /* TiFilesystemFileProxy.m in Sources */,
@@ -5947,6 +5999,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D5818EAA18AA87CB007EF771 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = AkylasMopub;
+			targetProxy = D5818EA918AA87CB007EF771 /* PBXContainerItemProxy */;
+		};
 		D5EE1BA71860A12800579573 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = AkylasShapes;
