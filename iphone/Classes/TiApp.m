@@ -21,6 +21,7 @@
 #import "TiExceptionHandler.h"
 #import "DTCoreText.h"
 #import "Mimetypes.h"
+#import "TouchCapturingWindow.h"
 
 #ifdef KROLL_COVERAGE
 # import "KrollCoverage.h"
@@ -357,7 +358,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: NO];
     
 	// nibless window
-	window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+	window = [[TouchCapturingWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
 
 	[self initController];
 
