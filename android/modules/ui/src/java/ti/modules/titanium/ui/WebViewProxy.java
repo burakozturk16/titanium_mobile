@@ -394,6 +394,10 @@ public class WebViewProxy extends ViewProxy
 	@Override
 	public void releaseViews()
 	{
+		TiUIWebView view = (TiUIWebView) peekView();
+		if (view != null) {
+			view.pauseWebView();
+		}
 	}
 
 	@Kroll.method
