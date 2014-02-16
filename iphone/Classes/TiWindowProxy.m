@@ -427,7 +427,7 @@
     if (focussed == NO) {
         focussed = YES;
         if ([self handleFocusEvents] && opened) {
-            [self fireEvent:@"blur" propagate:NO];
+            [self fireEvent:@"focus" propagate:NO];
         }
         UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
         [[self view] setAccessibilityElementsHidden:NO];
