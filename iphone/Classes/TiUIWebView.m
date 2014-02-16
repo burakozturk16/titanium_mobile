@@ -479,6 +479,58 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	[[self scrollview] setScrollsToTop:scrollsToTop];
 }
 
+
+-(void)setShowHorizontalScrollIndicator_:(id)value
+{
+	[[self scrollview] setShowsHorizontalScrollIndicator:[TiUtils boolValue:value]];
+}
+
+-(void)setShowVerticalScrollIndicator_:(id)value
+{
+	[[self scrollview] setShowsVerticalScrollIndicator:[TiUtils boolValue:value]];
+}
+
+-(void)setScrollIndicatorStyle_:(id)value
+{
+	[[self scrollview] setIndicatorStyle:[TiUtils intValue:value def:UIScrollViewIndicatorStyleDefault]];
+}
+
+-(void)setScrollingEnabled_:(id)enabled
+{
+    BOOL scrollingEnabled = [TiUtils boolValue:enabled def:YES];
+    [[self scrollview] setScrollEnabled:scrollingEnabled];
+    [[self proxy] replaceValue:NUMBOOL(scrollingEnabled) forKey:@"scrollingEnabled" notification:NO];
+}
+
+-(void)setHorizontalBounce_:(id)value
+{
+	[[self scrollview] setAlwaysBounceHorizontal:[TiUtils boolValue:value]];
+}
+
+-(void)setVerticalBounce_:(id)value
+{
+	[[self scrollview] setAlwaysBounceVertical:[TiUtils boolValue:value]];
+}
+
+-(void)setAllowsInlineMediaPlayback_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setAllowsInlineMediaPlayback:result];
+}
+
+-(void)setMediaPlaybackAllowsAirPlay_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setMediaPlaybackAllowsAirPlay:result];
+}
+
+-(void)setMediaPlaybackRequiresUserAction_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setMediaPlaybackRequiresUserAction:result];
+}
+
+
 - (void)setUrl_:(id)args
 {
 	ignoreNextRequest = YES;
