@@ -23,6 +23,7 @@ import android.graphics.drawable.ClipDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LayerDrawable;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.widget.SeekBar;
 
 public class TiUISlider extends TiUIView
@@ -58,6 +59,13 @@ public class TiUISlider extends TiUIView
 			{
 				super.onLayout(changed, left, top, right, bottom);
 				TiUIHelper.firePostLayoutEvent(TiUISlider.this);
+			}
+			
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
 			}
 		};
 		seekBar.setOnSeekBarChangeListener(this);

@@ -20,6 +20,7 @@ import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -55,7 +56,14 @@ public class TiUIActivityIndicator extends TiUIView
 			return;
 		}
 
-		view = new LinearLayout(activity);
+		view = new LinearLayout(activity) {
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		view.setOrientation(LinearLayout.HORIZONTAL);
 		view.setGravity(Gravity.CENTER);
 

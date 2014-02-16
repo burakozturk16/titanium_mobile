@@ -279,6 +279,13 @@ public class TiUIText extends TiUIView
 			Log.d(TAG, "onFocusChange "  + hasFocus + "  for FocusFixedEditText with text " + editText.getText(), Log.DEBUG_MODE);
 
 		}
+		
+		@Override
+		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough == true)
+				return false;
+			return super.dispatchTouchEvent(event);
+		}
 
 		@Override
 		public boolean onCheckIsTextEditor () {

@@ -239,7 +239,14 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		params.optionWidth = new TiDimension("100%", TiDimension.TYPE_WIDTH);
 		params.optionHeight = new TiDimension("100%", TiDimension.TYPE_HEIGHT);
 		mPager.setLayoutParams(params);
-		mContainer = new TiViewPagerLayout(activity);
+		mContainer = new TiViewPagerLayout(activity) {
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		mContainer.addView((View)mPager, params);
 		mPagingControl = buildPagingControl(activity);
 		mContainer.addView(mPagingControl, buildFillLayoutParams());

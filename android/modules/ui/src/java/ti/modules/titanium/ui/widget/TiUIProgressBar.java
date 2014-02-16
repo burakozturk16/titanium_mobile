@@ -15,6 +15,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -36,6 +37,13 @@ public class TiUIProgressBar extends TiUIView {
 			{
 				super.onLayout(changed, left, top, right, bottom);
 				TiUIHelper.firePostLayoutEvent(TiUIProgressBar.this);
+			}
+			
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
 			}
 		};
 		view.setOrientation(LinearLayout.VERTICAL);

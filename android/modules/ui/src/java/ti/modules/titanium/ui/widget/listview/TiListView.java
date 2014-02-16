@@ -182,6 +182,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				}
 			}
 		}
+		
+		@Override
+		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough == true)
+				return false;
+			return super.dispatchTouchEvent(event);
+		}
 	}
 	
 	public class TiBaseAdapter extends BaseAdapter {

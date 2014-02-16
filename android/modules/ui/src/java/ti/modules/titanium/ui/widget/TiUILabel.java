@@ -324,6 +324,7 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		@Override
 		public boolean dispatchTouchEvent(MotionEvent event) {
+			if (touchPassThrough(childrenHolder, event)) return false;
 			if (touchPassThrough == true)
 				return false;
 			return super.dispatchTouchEvent(event);

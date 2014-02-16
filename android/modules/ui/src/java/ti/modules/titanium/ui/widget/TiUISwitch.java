@@ -20,6 +20,7 @@ import android.annotation.SuppressLint;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -233,6 +234,13 @@ public class TiUISwitch extends TiUIView
 							super.onLayout(changed, left, top, right, bottom);
 							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
 						}
+						
+						@Override
+						public boolean dispatchTouchEvent(MotionEvent event) {
+							if (touchPassThrough == true)
+								return false;
+							return super.dispatchTouchEvent(event);
+						}
 					};
 				}
 				break;
@@ -247,6 +255,13 @@ public class TiUISwitch extends TiUIView
 							super.onLayout(changed, left, top, right, bottom);
 							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
 						}
+						
+						@Override
+						public boolean dispatchTouchEvent(MotionEvent event) {
+							if (touchPassThrough == true)
+								return false;
+							return super.dispatchTouchEvent(event);
+						}
 					};
 				}
 				break;
@@ -260,6 +275,13 @@ public class TiUISwitch extends TiUIView
 						{
 							super.onLayout(changed, left, top, right, bottom);
 							TiUIHelper.firePostLayoutEvent(TiUISwitch.this);
+						}
+						
+						@Override
+						public boolean dispatchTouchEvent(MotionEvent event) {
+							if (touchPassThrough == true)
+								return false;
+							return super.dispatchTouchEvent(event);
 						}
 					};
 				}

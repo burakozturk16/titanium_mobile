@@ -1751,6 +1751,27 @@ public abstract class TiUIView
 		return null;
 	}
 	
+	public boolean touchPassThrough(ViewGroup view, MotionEvent event)
+	{
+		if (touchPassThrough == true)
+		{
+			if (view != null) {
+				int[] location = new int[2];
+				double x = event.getRawX();
+				double y = event.getRawY();
+				for (int i=0; i<view.getChildCount(); i++) {
+		            View child = view.getChildAt(i);
+		            child.getLocationOnScreen(location);
+		            if(location[0] <= x && x <= (location[0] + child.getWidth()) && location[1] <= y && y <= (location[1] + child.getHeight())){
+		                return child.dispatchTouchEvent(event);
+		            }
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
 	public boolean getTouchPassThrough() {
 		return touchPassThrough;
 	}

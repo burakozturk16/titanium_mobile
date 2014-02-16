@@ -29,6 +29,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.Build;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -51,7 +52,14 @@ public class TiUITableView extends TiUIView
 		getLayoutParams().autoFillsWidth = true;
 
 		Log.d(TAG, "Creating a tableView", Log.DEBUG_MODE);
-		tableView = new TiTableView((TableViewProxy) proxy);
+		tableView = new TiTableView((TableViewProxy) proxy) {
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		Activity activity = proxy.getActivity();
 		if (activity instanceof TiBaseActivity) {
 			((TiBaseActivity) activity).addOnLifecycleEventListener(this);
