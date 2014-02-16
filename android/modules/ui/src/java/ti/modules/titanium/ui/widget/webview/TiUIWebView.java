@@ -164,9 +164,11 @@ public class TiUIWebView extends TiUIView
 		WebSettings settings = webView.getSettings();
 		settings.setUseWideViewPort(true);
 		settings.setJavaScriptEnabled(true);
+		settings.setPluginsEnabled(true);
 		settings.setSupportMultipleWindows(true);
 		settings.setJavaScriptCanOpenWindowsAutomatically(true);
-		settings.setLoadsImagesAutomatically(true);
+		settings.setJavaScriptCanOpenWindowsAutomatically(true);
+		settings.setAllowFileAccess(true);
 		settings.setDomStorageEnabled(true); // Required by some sites such as Twitter. This is in our iOS WebView too.
 		File path = TiApplication.getInstance().getFilesDir();
 		if (path != null) {
