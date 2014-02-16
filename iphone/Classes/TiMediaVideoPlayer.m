@@ -105,6 +105,11 @@
 	}
 }
 
+-(UIView*)viewForHitTest
+{
+    return [controller view];
+}
+
 -(BOOL)touchedContentViewWithEvent:(UIEvent *)event
 {
     // The view hierarchy of the movie player controller's view is subject to change,
