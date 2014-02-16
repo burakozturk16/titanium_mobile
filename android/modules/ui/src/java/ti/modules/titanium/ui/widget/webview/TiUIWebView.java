@@ -143,7 +143,14 @@ public class TiUIWebView extends TiUIView
 	{
 		super(proxy);
 
-		TiWebView webView = new TiWebView(proxy.getActivity());
+		TiWebView webView = new TiWebView(proxy.getActivity()) {;
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		webView.setVerticalScrollbarOverlay(true);
 
 		WebSettings settings = webView.getSettings();
