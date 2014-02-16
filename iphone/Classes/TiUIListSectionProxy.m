@@ -92,14 +92,27 @@
 
 #pragma mark - Public API
 
-- (void)setVisible:(NSNumber *)newVisible
+- (void)setVisible:(id)args
 {
-    BOOL value = [TiUtils boolValue:newVisible def:YES];
-    if (_hidden == !value) return;
-    _hidden = !value;
+    BOOL visible = YES;
+    BOOL animated = YES;
+    if ([args isKindOfClass:[NSArray class]]) {
+        id value = nil;
+        NSNumber* anim = nil;
+        ENSURE_ARG_AT_INDEX(value , args, 0, NSObject);
+        ENSURE_ARG_OR_NIL_AT_INDEX(anim, args, 1, NSNumber);
+        if (anim != nil)
+            animated = [anim boolValue];
+        visible = [TiUtils boolValue:value def:visible];
+    }
+    else {
+        visible = [TiUtils boolValue:args def:visible];
+    }
+    if (_hidden == !visible) return;
 	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
-		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:UITableViewRowAnimationNone];
-	} animated:YES];
+        _hidden = !visible;
+		[tableView reloadSections:[NSIndexSet indexSetWithIndex:_sectionIndex] withRowAnimation:animated?UITableViewRowAnimationAutomatic:UITableViewRowAnimationNone];
+	} animated:animated];
 }
 
 - (id)visible
