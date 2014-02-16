@@ -37,7 +37,6 @@ import ti.modules.titanium.ui.android.AndroidModule;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.view.MotionEvent;
@@ -65,6 +64,7 @@ public class TiUIWebView extends TiUIView
 	public static final int PLUGIN_STATE_OFF = 0;
 	public static final int PLUGIN_STATE_ON = 1;
 	public static final int PLUGIN_STATE_ON_DEMAND = 2;
+	private boolean mScrollingEnabled = true;
 
 	private static enum reloadTypes {
 		DEFAULT, DATA, HTML, URL
@@ -90,35 +90,43 @@ public class TiUIWebView extends TiUIView
 			}
 			super.destroy();
 		}
-
+		
 		@Override
-		public boolean onTouchEvent(MotionEvent ev)
-		{
-			
-			boolean handled = false;
-
-			// In Android WebView, all the click events are directly sent to WebKit. As a result, OnClickListener() is
-			// never called. Therefore, we have to manually call performClick() when a click event is detected.
-			//
-			// In native Android and in the Ti world, it's possible to to have a touchEvent click on a link in a webview and
-			// also to be detected as a click on the webview.  So we cannot let handling of the event one way block
-			// the handling the other way -- it must be passed to both in all cases for everything to work correctly.
-			//
-			if (ev.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
-				Rect r = new Rect(0, 0, getWidth(), getHeight());
-				if (r.contains((int) ev.getX(), (int) ev.getY())) {
-					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev), true, false);
-				}
+		public boolean onTouchEvent(MotionEvent event) {
+			if (event.getAction() == MotionEvent.ACTION_MOVE && !mScrollingEnabled) {
+				return false;
 			}
-			
-			boolean swipeHandled = (detector != null && detector.onTouchEvent(ev));
-			
-			// Don't return here -- must call super.onTouchEvent()
-			
-			boolean superHandled = super.onTouchEvent(ev);
-			
-			return (superHandled || handled || swipeHandled);
+			return super.onTouchEvent(event);
 		}
+		
+//		@Override
+//		public boolean onTouchEvent(MotionEvent ev)
+//		{
+//			
+//			boolean handled = false;
+//
+//			// In Android WebView, all the click events are directly sent to WebKit. As a result, OnClickListener() is
+//			// never called. Therefore, we have to manually call performClick() when a click event is detected.
+//			//
+//			// In native Android and in the Ti world, it's possible to to have a touchEvent click on a link in a webview and
+//			// also to be detected as a click on the webview.  So we cannot let handling of the event one way block
+//			// the handling the other way -- it must be passed to both in all cases for everything to work correctly.
+//			//
+//			if (ev.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
+//				Rect r = new Rect(0, 0, getWidth(), getHeight());
+//				if (r.contains((int) ev.getX(), (int) ev.getY())) {
+//					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev), true, false);
+//				}
+//			}
+//			
+//			boolean swipeHandled = (detector != null && detector.onTouchEvent(ev));
+//			
+//			// Don't return here -- must call super.onTouchEvent()
+//			
+//			boolean superHandled = super.onTouchEvent(ev);
+//			
+//			return false;
+//		}
 
 		@SuppressWarnings("deprecation")
 		@Override
@@ -261,6 +269,15 @@ public class TiUIWebView extends TiUIView
 	{
 		super.doSetClickable(view, clickable);
 	}
+	
+	public void setScrollingEnabled(Object value)
+	{
+		try {
+			mScrollingEnabled = TiConvert.toBoolean(value);
+		} catch (IllegalArgumentException e) {
+			mScrollingEnabled = true;
+		}
+	}
 
 	@Override
 	public void processProperties(KrollDict d)
@@ -315,6 +332,19 @@ public class TiUIWebView extends TiUIView
 				nativeView.setOverScrollMode(TiConvert.toInt(d.get(TiC.PROPERTY_OVER_SCROLL_MODE), View.OVER_SCROLL_ALWAYS));
 			}
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_SCROLLING_ENABLED)) {
+			setScrollingEnabled(d.get(TiC.PROPERTY_SCROLLING_ENABLED));
+		}
+
+		if (d.containsKey(TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR)) {
+			boolean showHorizontalScrollBar = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR);
+			nativeView.setHorizontalScrollBarEnabled(showHorizontalScrollBar);
+		}
+		if (d.containsKey(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR)) {
+			boolean showVerticalScrollBar = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR);
+			nativeView.setVerticalScrollBarEnabled(showVerticalScrollBar);
+		}
 	}
 
 	@Override
@@ -344,9 +374,16 @@ public class TiUIWebView extends TiUIView
 		} else if (TiC.PROPERTY_LIGHT_TOUCH_ENABLED.equals(key)) {
 			WebSettings settings = getWebView().getSettings();
 			settings.setLightTouchEnabled(TiConvert.toBoolean(newValue));
+		}else if (TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR.equals(key)) {
+			getWebView().setHorizontalScrollBarEnabled(TiConvert.toBoolean(newValue));
+		}else if (TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR.equals(key)) {
+			getWebView().setVerticalScrollBarEnabled(TiConvert.toBoolean(newValue));
+		} else if (TiC.PROPERTY_SCROLLING_ENABLED.equals(key)) {
+				setScrollingEnabled(newValue);
 		} else {
 			super.propertyChanged(key, oldValue, newValue, proxy);
 		}
+		
 
 		// If TiUIView's propertyChanged ended up making a TiBackgroundDrawable
 		// for the background, we must set the WebView background color to transparent
