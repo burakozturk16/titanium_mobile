@@ -392,11 +392,31 @@ public class WebViewProxy extends ViewProxy
 	 * Don't release the web view when it's removed. TIMOB-7808
 	 */
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		TiUIWebView view = (TiUIWebView) peekView();
-		if (view != null) {
-			view.pauseWebView();
+		if (activityFinishing) {
+			TiUIWebView webView = (TiUIWebView) peekView();
+			if (webView != null) {
+				webView.pauseWebView();
+				// We allow JS polling to continue until we exit the app. If we want to stop the polling when the app is
+				// backgrounded, we would need to move this to onStop(), and add the appropriate logic in onResume() to restart
+				// the polling.
+				webView.destroyWebViewBinding();
+
+				WebView nativeWebView = webView.getWebView();
+				if (nativeWebView != null) {
+					nativeWebView.stopLoading();
+				}
+
+			}
+
+			super.releaseViews(activityFinishing);
+		}
+		else {
+			TiUIWebView view = (TiUIWebView) peekView();
+			if (view != null) {
+				view.pauseWebView();
+			}
 		}
 	}
 
@@ -440,23 +460,7 @@ public class WebViewProxy extends ViewProxy
 
 	@Override
 	public void onDestroy(Activity activity) {
-		TiUIWebView webView = (TiUIWebView) peekView();
-		if (webView == null) {
-			return;
-		}
-
-		// We allow JS polling to continue until we exit the app. If we want to stop the polling when the app is
-		// backgrounded, we would need to move this to onStop(), and add the appropriate logic in onResume() to restart
-		// the polling.
-		webView.destroyWebViewBinding();
-
-		WebView nativeWebView = webView.getWebView();
-		if (nativeWebView == null) {
-			return;
-		}
-
-		nativeWebView.stopLoading();
-		super.releaseViews();
+		releaseViews(true);
 	}
 
 	@Override
