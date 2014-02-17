@@ -57,6 +57,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	private static final int MSG_SET_PIXEL_FORMAT = MSG_FIRST_ID + 100;
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 101;
 	private static final int MSG_SET_WIDTH_HEIGHT = MSG_FIRST_ID + 102;
+	private static final int MSG_REMOVE_LIGHTWEIGHT = MSG_FIRST_ID + 103;
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
 	protected WeakReference<TiBaseActivity> windowActivity;
@@ -132,10 +133,10 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
 		if (activity != null) {
 			ActivityProxy activityProxy = activity.getActivityProxy();
+			closeFromActivity(true);
 			if (activityProxy != null) {
 				activityProxy.getDecorView().remove(this);
 			}
-			closeFromActivity(false);
 			activity.removeWindowFromStack(this);
 			
 		}
@@ -200,7 +201,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			return;
 		}
 		if (lightweight) {
-			removeLightweightWindowFromStack();
+			if (TiApplication.isUIThread()) {
+				removeLightweightWindowFromStack();
+			} else {
+				getMainHandler().obtainMessage(MSG_REMOVE_LIGHTWEIGHT).sendToTarget();
+			}
 		} else {
 			super.close(arg);
 		}
@@ -526,6 +531,10 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			case MSG_SET_WIDTH_HEIGHT: {
 				Object[] obj = (Object[]) msg.obj;
 				setWindowWidthHeight(obj[0], obj[1]);
+				return true;
+			}
+			case MSG_REMOVE_LIGHTWEIGHT: {
+				removeLightweightWindowFromStack();
 				return true;
 			}
 		}
