@@ -1874,6 +1874,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         [self resetDefaultValues];
         _transitioning = NO;
         childrenCount = 0;
+        vzIndex = 0;
 //        _runningViewAnimations = [[NSMutableArray alloc] init];
 	}
 	return self;
@@ -2380,7 +2381,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)willChangeZIndex
 {
-	SET_AND_PERFORM(TiRefreshViewZIndex,);
+	SET_AND_PERFORM(TiRefreshViewZIndex, return);
 	//Nothing cascades from here.
 	[self willEnqueueIfVisible];
 }
@@ -2668,13 +2669,22 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 #pragma mark Layout actions
 
+
+-(void)updateZIndex {
+    if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags) && vzIndex > 0) {
+//        [parent insertSubview:view forProxy:self];
+        UIView * ourSuperview = [[self view] superview];
+        if(ourSuperview != nil) {
+            [[self class] reorderViewsInParent:ourSuperview];
+        }
+    }
+}
+
 // Need this so we can overload the sandbox bounds on split view detail/master
 -(void)determineSandboxBounds
 {
     if (controller) return;
-    if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
-        [parent insertSubview:view forProxy:self];
-    }
+    [self updateZIndex];
     UIView * ourSuperview = [[self view] superview];
     if(ourSuperview != nil)
     {
@@ -2771,6 +2781,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)dirtyItAll
 {
+    OSAtomicTestAndSet(TiRefreshViewZIndex, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewEnqueued, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewSize, &dirtyflags);
     OSAtomicTestAndSet(TiRefreshViewPosition, &dirtyflags);
@@ -2878,10 +2889,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	}
     
     
-	if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags) || (transferView != nil))
-	{
-		[parent insertSubview:view forProxy:self];
-	}
+	[self updateZIndex];
     [transferView setRunningAnimation:nil];
 }
 
@@ -2895,10 +2903,29 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	OSAtomicTestAndClearBarrier(TiRefreshViewSize, &dirtyflags);
 }
 
+
++(void)reorderViewsInParent:(UIView*)parentView
+{
+	if (parentView == nil) return;
+    
+    NSMutableArray* parentViewToSort = [NSMutableArray array];
+    for (UIView* subview in [parentView subviews])
+    {
+        if ([subview isKindOfClass:[TiUIView class]]) {
+            [parentViewToSort addObject:subview];
+        }
+    }
+    NSArray *sortedArray = [parentViewToSort sortedArrayUsingSelector:@selector(compare:)];
+    for (TiUIView* view in sortedArray) {
+        [parentView bringSubviewToFront:view];
+    }
+}
+
 -(void)insertSubview:(UIView *)childView forProxy:(TiViewProxy *)childProxy
 {
 	int result = 0;
-	int childZindex = [childProxy vzIndex];
+//	int childZindex = [childProxy vzIndex];
+	int childZindex = 0;
 	BOOL earlierSibling = YES;
 	UIView * ourView = [self parentViewForChild:childProxy];
 	if (ourView == nil) return;
@@ -2924,7 +2951,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 			continue;
 		}
 		
-		int thisChildZindex = [thisChildProxy vzIndex];
+//		int thisChildZindex = [thisChildProxy vzIndex];
+		int thisChildZindex = 0;
 		if((thisChildZindex < childZindex) ||
 				(earlierSibling && (thisChildZindex == childZindex)))
 		{
@@ -3028,9 +3056,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         [view setBounds:sizeCache];
         [view setCenter:positionCache];
         
-        if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags)) {
-            [parent insertSubview:view forProxy:self];
-        }
+        [self updateZIndex];
         
         if ([observer respondsToSelector:@selector(proxyDidRelayout:)]) {
             [observer proxyDidRelayout:self];

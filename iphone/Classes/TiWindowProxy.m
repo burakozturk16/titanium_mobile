@@ -182,6 +182,7 @@
     TiUIView* theView = [self view];
     [rootView addSubview:theView];
     [rootView bringSubviewToFront:theView];
+    [[TiViewProxy class] reorderViewsInParent:rootView]; //make sure views are ordered along zindex
 }
 
 -(BOOL)argOrWindowPropertyExists:(NSString*)key args:(id)args

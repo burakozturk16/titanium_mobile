@@ -711,6 +711,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	[rect setRect:r];
 }
 
+- (NSComparisonResult)compare:(TiUIView *)otherView {
+    return [((TiViewProxy*)self.proxy).zIndex compare:((TiViewProxy*)otherView.proxy).zIndex];
+}
+
 #pragma mark Public APIs
 
 -(void)setTintColor_:(id)color
