@@ -226,12 +226,6 @@ doReposition = YES;\
         
         doReposition = YES;
     }
-    
-    if (zIndex!=nil)
-    {
-        [m_tiViewProxy setVzIndex:[zIndex intValue]];
-    }
-    
     if (doReposition)
     {
         [m_tiViewProxy repositionWithinAnimation:step];
