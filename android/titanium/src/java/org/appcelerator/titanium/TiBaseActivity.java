@@ -516,13 +516,14 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		    }
 			
 			@Override
-		    public boolean onInterceptTouchEvent(final MotionEvent event) {
+		    public boolean onInterceptTouchEvent(MotionEvent event) {
 				if (event.getAction() == MotionEvent.ACTION_UP) {
+					final MotionEvent copy = MotionEvent.obtain(event);
 					final Handler handler = new Handler();
 					handler.postDelayed(new Runnable() {
 					  @Override
 					  public void run() {
-						  checkUpEventSent(event);
+						  checkUpEventSent(copy);
 					  }
 					}, 10);
 				}
