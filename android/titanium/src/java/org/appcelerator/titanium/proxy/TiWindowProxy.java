@@ -190,7 +190,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		KrollDict data = null;
 		if (activityIsFinishing) {
-			releaseViews();
+			releaseViews(true);
 		} else {
 			// If the activity is forced to destroy by Android OS due to lack of memory or 
 			// enabling "Don't keep activities" (TIMOB-12939), we will not release the
@@ -211,7 +211,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 	protected void releaseViewsForActivityForcedToDestroy()
 	{
-		releaseViews();
+		releaseViews(false);
 	}
 
 	@Kroll.method(name="setTab")

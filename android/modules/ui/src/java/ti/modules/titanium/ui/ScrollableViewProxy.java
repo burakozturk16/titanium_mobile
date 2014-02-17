@@ -325,10 +325,10 @@ public class ScrollableViewProxy extends TiViewProxy
 	}
 
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
 		getMainHandler().removeMessages(MSG_HIDE_PAGER);
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 	}
 	
 	@Override

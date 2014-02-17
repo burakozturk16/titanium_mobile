@@ -147,21 +147,21 @@ public class TabProxy extends ViewProxy
 	}
 	
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 		if (window != null) {
 			window.setTabProxy(null);
 			window.setTabGroupProxy(null);
-			window.releaseViews();
+			window.releaseViews(activityFinishing);
 		}
 	}
 
 	public void releaseViewsForActivityForcedToDestroy()
 	{
-		super.releaseViews();
+		super.releaseViews(false);
 		if (window != null) {
-			window.releaseViews();
+			window.releaseViews(false);
 		}
 	}
 

@@ -635,13 +635,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
 		if (view != null) {
 			view.blur();
 			if  (children != null) {
 				for (TiViewProxy p : children) {
-					p.releaseViews();
+					p.releaseViews(activityFinishing);
 				}
 			}
 			view.release();
@@ -944,7 +944,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				view.remove(child.peekView());
 			}
 			if (child != null) {
-				child.releaseViews();
+				child.releaseViews(false);
 				child.setActivity(null);
 			}
 		}

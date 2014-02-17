@@ -1432,7 +1432,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 
 		//LW windows
 		if (window == null && view != null) {
-			view.releaseViews();
+			view.releaseViews(isFinishing);
 			view = null;
 		}
 		

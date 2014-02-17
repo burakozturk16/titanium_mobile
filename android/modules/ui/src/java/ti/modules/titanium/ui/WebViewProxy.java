@@ -176,7 +176,7 @@ public class WebViewProxy extends ViewProxy
 					return true;
 				}
 				case MSG_RELEASE:
-					super.releaseViews();
+					super.releaseViews(true);
 					return true;
 				case MSG_PAUSE:
 					getWebView().pauseWebView();
@@ -404,7 +404,7 @@ public class WebViewProxy extends ViewProxy
 	public void release()
 	{
 		if (TiApplication.isUIThread()) {
-			super.releaseViews();
+			super.releaseViews(true);
 		} else {
 			getMainHandler().sendEmptyMessage(MSG_RELEASE);
 		}

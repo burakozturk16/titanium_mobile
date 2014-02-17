@@ -128,12 +128,12 @@ public class TableViewProxy extends ViewProxy
 	}
 
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 		if (localSections != null) {
 			for (TableViewSectionProxy section : localSections) {
-				section.releaseViews();
+				section.releaseViews(activityFinishing);
 			}
 		}
 	}
