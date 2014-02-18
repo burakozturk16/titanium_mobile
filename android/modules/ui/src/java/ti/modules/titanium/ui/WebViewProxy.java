@@ -19,6 +19,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -76,12 +77,30 @@ public class WebViewProxy extends ViewProxy
 	{
 		this();
 	}
+	
+	@Override
+	public void setActivity(Activity activity)
+	{
+		if (this.activity != null) {
+			TiBaseActivity tiActivity = (TiBaseActivity) this.activity.get();
+			if (tiActivity != null) {
+				tiActivity.removeOnLifecycleEventListener(this);
+				tiActivity.removeInterceptOnBackPressedEventListener(this);
+			}
+		}
+		super.setActivity(activity);
+		if (this.activity != null) {
+			TiBaseActivity tiActivity = (TiBaseActivity) this.activity.get();
+			if (tiActivity != null) {
+				tiActivity.addOnLifecycleEventListener(this);
+				tiActivity.addInterceptOnBackPressedEventListener(this);
+			}
+		}
+	}
 
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		((TiBaseActivity)activity).addOnLifecycleEventListener(this);
-		((TiBaseActivity)activity).addInterceptOnBackPressedEventListener(this);
 		TiUIWebView webView = new TiUIWebView(this);
 
 		if (postCreateMessage != null) {
