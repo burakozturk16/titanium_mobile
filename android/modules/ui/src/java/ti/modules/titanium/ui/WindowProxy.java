@@ -179,7 +179,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		}
 
 		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "open the window: lightweight = " + lightweight);
+			Log.d(TAG, "open the window: lightweight = " + lightweight, Log.DEBUG_MODE);
 		}
 
 		if (lightweight) {
@@ -242,7 +242,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	{
 		if (windowActivity == null) {
 			//we must have been opened without creating the activity.
-			closeFromActivity(false);
+			closeFromActivity(true);
 			return;
 		}
 		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
