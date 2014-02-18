@@ -501,7 +501,6 @@ static NSSet* transferableProps = nil;
 		{
 			DebugLog(@"[DEBUG] Animation guard triggered, exceeded timeout to perform animation.");
             [pendingAnimation simulateFinish:self];
-            [self removePendingAnimation:pendingAnimation];
             [self handlePendingAnimation];
             animationDelayGuard = 0;
 			return;
