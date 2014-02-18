@@ -151,7 +151,7 @@ public class TiUIWebView extends TiUIView
 	{
 		super(proxy);
 
-		TiWebView webView = new TiWebView(proxy.getActivity()) {;
+		TiWebView webView = new TiWebView(proxy.getActivity()) {
 			@Override
 			public boolean dispatchTouchEvent(MotionEvent event) {
 				if (touchPassThrough == true)
