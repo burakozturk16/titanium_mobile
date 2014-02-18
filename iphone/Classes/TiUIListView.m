@@ -109,43 +109,43 @@ static NSDictionary* replaceKeysForRow;
 {
     _tableView.delegate = nil;
     _tableView.dataSource = nil;
-    RELEASE_TO_NIL(_tableView);
-    RELEASE_TO_NIL(_templates);
-    RELEASE_TO_NIL(_defaultItemTemplate);
-    RELEASE_TO_NIL(_searchString);
-    RELEASE_TO_NIL(_searchResults);
-    RELEASE_TO_NIL(_pullViewWrapper);
-    RELEASE_TO_NIL(_searchWrapper);
+    RELEASE_TO_NIL(_tableView)
+    RELEASE_TO_NIL(_templates)
+    RELEASE_TO_NIL(_defaultItemTemplate)
+    RELEASE_TO_NIL(_searchString)
+    RELEASE_TO_NIL(_searchResults)
+    RELEASE_TO_NIL(_pullViewWrapper)
+    RELEASE_TO_NIL(_searchWrapper)
     RELEASE_TO_NIL(_headerWrapper)
     if (_pullViewProxy)
     {
         [_pullViewProxy detachView];
-        RELEASE_TO_NIL(_pullViewProxy);
+        RELEASE_TO_NIL(_pullViewProxy)
     }
     if (_headerViewProxy)
     {
         [_headerViewProxy detachView];
-        RELEASE_TO_NIL(_headerViewProxy);
+        RELEASE_TO_NIL(_headerViewProxy)
     }
     if (_footerViewProxy)
     {
         [_footerViewProxy detachView];
-        RELEASE_TO_NIL(_footerViewProxy);
+        RELEASE_TO_NIL(_footerViewProxy)
     }
     if (searchViewProxy)
     {
         [searchViewProxy detachView];
-        RELEASE_TO_NIL(searchViewProxy);
+        RELEASE_TO_NIL(searchViewProxy)
     }
-    RELEASE_TO_NIL(tableController);
-    RELEASE_TO_NIL(searchController);
-    RELEASE_TO_NIL(sectionTitles);
-    RELEASE_TO_NIL(sectionIndices);
-    RELEASE_TO_NIL(filteredTitles);
-    RELEASE_TO_NIL(filteredIndices);
-    RELEASE_TO_NIL(_measureProxies);
+    RELEASE_TO_NIL(tableController)
+    RELEASE_TO_NIL(searchController)
+    RELEASE_TO_NIL(sectionTitles)
+    RELEASE_TO_NIL(sectionIndices)
+    RELEASE_TO_NIL(filteredTitles)
+    RELEASE_TO_NIL(filteredIndices)
+    RELEASE_TO_NIL(_measureProxies)
 #ifdef USE_TI_UIREFRESHCONTROL
-    RELEASE_TO_NIL(_refreshControlProxy);
+    RELEASE_TO_NIL(_refreshControlProxy)
 #endif
     [super dealloc];
 }
