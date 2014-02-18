@@ -75,6 +75,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     
     NSMutableDictionary* _measureProxies;
     BOOL _scrollSuspendImageLoading;
+    BOOL hasOnDisplayCell;
 }
 
 static NSDictionary* replaceKeysForRow;
@@ -884,6 +885,12 @@ static NSDictionary* replaceKeysForRow;
 	[[self tableView] setBounces:![TiUtils boolValue:value]];
 }
 
+
+-(void)setOnDisplayCell_:(id)callback
+{
+    hasOnDisplayCell = [callback isKindOfClass:[KrollCallback class]] || [callback isKindOfClass:[KrollWrapper class]];
+}
+
 #pragma mark - Search Support
 -(void)setCaseInsensitiveSearch_:(id)args
 {
@@ -1451,6 +1458,18 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (hasOnDisplayCell) {
+        TiUIListSectionProxy *section = [self.listViewProxy sectionForIndex:indexPath.section];
+        NSDictionary *item = [section itemAtIndex:indexPath.row];
+        NSDictionary * propertiesDict = @{
+                                          @"view":((TiUIListItem*)cell).proxy,
+                                          @"section":section,
+                                          @"searchResult":NUMBOOL([self isSearchActive]),
+                                          @"sectionIndex":NUMINT(indexPath.section),
+                                          @"itemIndex":NUMINT(indexPath.row)
+        };
+        [self.proxy fireCallback:@"onDisplayCell" withArg:propertiesDict withSource:self.proxy];
+    }
     if (searchActive || (tableView != _tableView)) {
         return;
     }
