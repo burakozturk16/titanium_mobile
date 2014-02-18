@@ -927,32 +927,36 @@ public abstract class TiUIView
 
 	public void processProperties(KrollDict d)
 	{
-		boolean nativeViewNull = false;
 		
-		
-		if (nativeView == null) {
-			nativeViewNull = true;
-			Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
-		}
+		boolean inApply = proxy.inBatchPropertyApply();
+		if (!inApply) {
+			boolean nativeViewNull = false;
 			
-		updateLayoutForChildren(d);
-		
+			
+			if (nativeView == null) {
+				nativeViewNull = true;
+				Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
+			}
 				
-		if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
-			getOuterView().setLayoutParams(layoutParams);
+			updateLayoutForChildren(d);
+			
+					
+			if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
+				getOuterView().setLayoutParams(layoutParams);
+			}
 		}
-		
 		for (String key : d.keySet()) {
 			propertySet(key, d.get(key), null, false);
 		}
-		
-		if (touchView == null || touchView.get() != getTouchView()) {
-			registerForTouch();
-			registerForKeyPress();
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
-			mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
+		if (!inApply) {
+			if (touchView == null || touchView.get() != getTouchView()) {
+				registerForTouch();
+				registerForKeyPress();
+			}
+			
+			if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
+				mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
+			}
 		}
 	}
 
