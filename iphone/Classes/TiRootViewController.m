@@ -734,13 +734,9 @@
 
 -(UIView *)topWindowProxyView
 {
-    if ([modalWindows count] > 0) {
-        return (UIView *)[[modalWindows lastObject] view];
-    } else if ([containedWindows count] > 0) {
-        return (UIView *)[[containedWindows lastObject] view];
-    } else {
-        return [self view];
-    }
+    TiViewProxy* topProxy = [self topWindow];
+    if (topProxy) return [topProxy view];
+    return [self view];
 }
 
 -(TiViewProxy *)topWindow
@@ -750,9 +746,7 @@
         DebugLog(@"[ERROR] ErrorController is up");
         return nil;
     }
-    if (topVC == self) {
-        [[containedWindows lastObject] resignFocus];
-    } else if ([topVC respondsToSelector:@selector(proxy)]) {
+    if (topVC != self && [topVC respondsToSelector:@selector(proxy)]) {
         id theProxy = [(id)topVC proxy];
         if ([theProxy conformsToProtocol:@protocol(TiWindowProtocol)]) {
             return [(id<TiWindowProtocol>)theProxy topWindow];
