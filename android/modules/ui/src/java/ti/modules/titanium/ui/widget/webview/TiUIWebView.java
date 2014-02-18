@@ -772,6 +772,12 @@ public class TiUIWebView extends TiUIView
 	{
 		getWebView().stopLoading();
 	}
+	
+	public void clearWebView()
+	{
+		getWebView().loadUrl("about:blank");
+	}
+
 
 	public boolean shouldInjectBindingCode()
 	{

@@ -398,16 +398,11 @@ public class WebViewProxy extends ViewProxy
 			TiUIWebView webView = (TiUIWebView) peekView();
 			if (webView != null) {
 				webView.pauseWebView();
+				webView.clearWebView();
 				// We allow JS polling to continue until we exit the app. If we want to stop the polling when the app is
 				// backgrounded, we would need to move this to onStop(), and add the appropriate logic in onResume() to restart
 				// the polling.
 				webView.destroyWebViewBinding();
-
-				WebView nativeWebView = webView.getWebView();
-				if (nativeWebView != null) {
-					nativeWebView.stopLoading();
-				}
-
 			}
 
 			super.releaseViews(activityFinishing);
