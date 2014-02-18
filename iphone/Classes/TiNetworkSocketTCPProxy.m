@@ -401,15 +401,7 @@ NSCondition* temp = [condition retain]; \
 }
 
 // TODO: Move to TiBase?
-#define TYPESAFE_SETTER(funcname,prop,type) \
--(void)funcname:(type*)val \
-{ \
-ENSURE_TYPE_OR_NIL(val,type); \
-if (prop != val) { \
-[prop release]; \
-prop = [val retain]; \
-}\
-}
+
 
 TYPESAFE_SETTER(setHost, host, NSString)
 
