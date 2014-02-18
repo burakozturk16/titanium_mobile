@@ -14,6 +14,9 @@
 #import	"TiTab.h"
 
 @implementation TiUIOptionDialogProxy
+{
+    UIDeviceOrientation currentOrientation;
+}
 @synthesize dialogView;
 
 - (void) dealloc
@@ -85,6 +88,7 @@
 			dialogRect = CGRectZero;
 		}
 	}
+    currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceRotationBegan:) name:UIDeviceOrientationDidChangeNotification object:nil];
     
     [self updateOptionDialogNow];
@@ -169,8 +173,11 @@
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateOptionDialogNow) object:nil];
     NSTimeInterval delay = [[UIApplication sharedApplication] statusBarOrientationAnimationDuration];
-    UIInterfaceOrientation nextOrientation = [[notification.userInfo objectForKey:UIApplicationStatusBarOrientationUserInfoKey] intValue];
-    UIInterfaceOrientation currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    UIDeviceOrientation nextOrientation =  [[UIDevice currentDevice] orientation];
+    if (nextOrientation == UIDeviceOrientationFaceUp || nextOrientation == UIDeviceOrientationFaceDown ||
+        nextOrientation == UIDeviceOrientationUnknown) return;
+    if (currentOrientation == nextOrientation) return;
+    currentOrientation = nextOrientation;
     if (UIInterfaceOrientationIsPortrait(currentOrientation) == UIInterfaceOrientationIsPortrait(nextOrientation)) {
         ++accumulatedOrientationChanges; // double for a 180 degree orientation change
     }
