@@ -712,7 +712,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 }
 
 - (NSComparisonResult)compare:(TiUIView *)otherView {
-    return [((TiViewProxy*)self.proxy).zIndex compare:((TiViewProxy*)otherView.proxy).zIndex];
+    int val1 = ((TiViewProxy*)self.proxy).vzIndex;
+    int val2 = ((TiViewProxy*)otherView.proxy).vzIndex;
+    if (val1 < val2) {
+        return NSOrderedAscending;
+    } else if(val1 > val2) {
+        return NSOrderedDescending;
+    }
+    return NSOrderedSame;
 }
 
 #pragma mark Public APIs
