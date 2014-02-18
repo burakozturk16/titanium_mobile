@@ -69,6 +69,8 @@ exports.init = function (logger, config, cli) {
 						'"' + path.join(build.titaniumIosSdkPath, 'ios-sim') + '"',
 						'launch',
 						'"' + build.xcodeAppDir + '"',
+						'--xcode-dir',
+						'"' + build.xcodeEnv.path + '"',
 						'--sdk',
 						appc.version.format(build.iosSimVersion, 2, 2),
 						'--family',
@@ -79,13 +81,11 @@ exports.init = function (logger, config, cli) {
 					readChangesTimer,
 					simErr = [],
 					stripLogLevelRE = new RegExp('\\[(?:' + logger.getLevels().join('|') + ')\\] '),
-					simStarted = false,
-					simEnv = path.join(build.xcodeEnv.path, 'Platforms', 'iPhoneSimulator.platform', 'Developer', 'Library', 'PrivateFrameworks') +
-							':' + afs.resolvePath(build.xcodeEnv.path, '..', 'OtherFrameworks');
+					simStarted = false;
+
 				if (config.get('ios.restartSimulator', true) == false) {
 					cmd.push('--exit');
 				}
-
 				if (appc.version.gte(build.iosSimVersion, '7.0.0') && cli.argv['sim-64bit']) {
 					cmd.push('--retina');
 					if (build.iosSimType == 'iphone') {
@@ -101,14 +101,11 @@ exports.init = function (logger, config, cli) {
 				cmd = cmd.join(' ');
 
 				logger.info(__('Launching application in iOS Simulator'));
-				logger.trace(__('Simulator environment: %s', ('DYLD_FRAMEWORK_PATH=' + simEnv).cyan));
+
 				logger.debug(__('Simulator command: %s', cmd.cyan));
 
 				simProcess = spawn('/bin/sh', ['-c', cmd], {
-					cwd: build.titaniumIosSdkPath,
-					env: {
-						DYLD_FRAMEWORK_PATH: simEnv
-					}
+					cwd: build.titaniumIosSdkPath
 				});
 
 				simProcess.stderr.on('data', function (data) {
