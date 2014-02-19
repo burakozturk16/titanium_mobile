@@ -28,6 +28,7 @@
     BOOL _imageRepeat;
     BOOL readyToCreateDrawables;
     BOOL _needsToSetAllDrawablesOnNextSize;
+    CGFloat _clipWidth;
 }
 @property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;

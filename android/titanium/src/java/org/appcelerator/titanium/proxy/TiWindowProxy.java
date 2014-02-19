@@ -32,6 +32,7 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Message;
+import android.view.MotionEvent;
 import android.view.View;
 
 @Kroll.proxy(propertyAccessors={
@@ -189,7 +190,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		KrollDict data = null;
 		if (activityIsFinishing) {
-			releaseViews();
+			releaseViews(true);
 		} else {
 			// If the activity is forced to destroy by Android OS due to lack of memory or 
 			// enabling "Don't keep activities" (TIMOB-12939), we will not release the
@@ -210,7 +211,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 	protected void releaseViewsForActivityForcedToDestroy()
 	{
-		releaseViews();
+		releaseViews(false);
 	}
 
 	@Kroll.method(name="setTab")
@@ -558,5 +559,12 @@ public abstract class TiWindowProxy extends TiViewProxy
 	{
 		// We know whether a window is lightweight or not only after it opens.
 		return (opened || opening);
+	}
+	
+	
+	public void checkUpEventSent(MotionEvent event){
+		if (view != null) {
+			view.checkUpEventSent(event);
+		}
 	}
 }

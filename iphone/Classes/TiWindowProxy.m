@@ -182,6 +182,7 @@
     TiUIView* theView = [self view];
     [rootView addSubview:theView];
     [rootView bringSubviewToFront:theView];
+    [[TiViewProxy class] reorderViewsInParent:rootView]; //make sure views are ordered along zindex
 }
 
 -(BOOL)argOrWindowPropertyExists:(NSString*)key args:(id)args
@@ -427,7 +428,7 @@
     if (focussed == NO) {
         focussed = YES;
         if ([self handleFocusEvents] && opened) {
-            [self fireEvent:@"blur" propagate:NO];
+            [self fireEvent:@"focus" propagate:NO];
         }
         UIAccessibilityPostNotification(UIAccessibilityScreenChangedNotification, nil);
         [[self view] setAccessibilityElementsHidden:NO];

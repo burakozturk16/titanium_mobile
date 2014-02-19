@@ -79,6 +79,7 @@ function createListView(_args) {
 	}, _args);
 	var listview = Ti.UI.createListView(realArgs);
 	listview.addEventListener('itemclick', function(_event) {
+		info('itemclick ' + _event.itemIndex);
 		if (_event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
 			var item = _event.section.getItemAt(_event.itemIndex);
 			if (item.callback) {
@@ -2941,6 +2942,7 @@ function listViewLayout() {
 	}]);
 	win.add(listView);
 	listView.addEventListener('click', function(_event) {
+		info('click');
 		if (_event.bindId && _event.hasOwnProperty('section') && _event.hasOwnProperty('itemIndex')) {
 			var item = _event.section.getItemAt(_event.itemIndex);
 			if (_event.bindId === 'button') {
@@ -3541,6 +3543,11 @@ listview.sections = [{
 			title: 'ListView2'
 		},
 		callback: listView2Ex
+	}, {
+		properties: {
+			title: 'webView'
+		},
+		callback: webviewTest
 	}]
 }];
 firstWindow.add(listview);
@@ -3850,6 +3857,7 @@ function borderPaddingEx() {
 			}],
 		events: {
 			'longpress': function(e) {
+				info('test' + JSON.stringify(e));
 				// if (e.bindId === 'test') {
 				e.source.text = 'toto';
 				// }
@@ -3857,6 +3865,147 @@ function borderPaddingEx() {
 			}
 		}
 	}]);
+
+	// win.add({
+	// "properties": {
+	// "rclass": "GenericRow TVRow",
+	// "layout": "horizontal",
+	// "height": "SIZE"
+	// },
+	// "childTemplates": [{
+	// "type": "Ti.UI.Label",
+	// "bindId": "title",
+	// "properties": {
+	// "rclass": "NZBGetTVRTitle",
+	// "font": {
+	// "size": 14
+	// },
+	// "padding": {
+	// "left": 4,
+	// "right": 4,
+	// "top": 10
+	// },
+	// text: 'downloadpath',
+	// "textAlign": "right",
+	// "width": 90,
+	// "color": "black",
+	// // "height": "FILL",
+	// "verticalAlign": "top"
+	// }
+	// }, {
+	// "type": "Ti.UI.Label",
+	// "bindId": "value",
+	// "properties": {
+	// selectedColor:'green',
+	// html: 'A new version is available <a href="https://github.com/RuudBurger/CouchPotatoServer/compare/b468048d95216474183daafaf46a4f2bd0d7ada7...master" target="_blank"><font color="red"><b><u>see what has changed</u></b></font></a> or <a href="update">just update, gogogo!</a>',
+	// // "autoLink":Ti.UI.AUTOLINK_ALL,
+	// "rclass": "NZBGetTVRValue",
+	// "color": "#686868",
+	// "font": {
+	// "size": 14
+	// },
+	// // transition: {
+	// // style: Ti.UI.TransitionStyle.SWIPE_FADE
+	// // },
+	// "top": 4,
+	// "bottom": 4,
+	// "padding": {
+	// "left": 4,
+	// "right": 4,
+	// "bottom": 2,
+	// "top": 2
+	// },
+	// "verticalAlign": "middle",
+	// "left": 4,
+	// "width": "FILL",
+	// "height": "SIZE",
+	// "right": 4,
+	// "textAlign": "left",
+	// "maxLines": 2,
+	// "ellipsize": Ti.UI.TEXT_ELLIPSIZE_TAIL,
+	// "borderColor": "#eeeeee",
+	// "borderRadius": 2
+	// }
+	// }]
+	// });
+	// info(win.value.text);
+	var first = true;
+	// win.value.addEventListener('click',function(e){
+	// info(stringify(e));
+	// });
+	// win.value.addEventListener('longpress',function(e){
+	// info(stringify(e));
+	// });
+
+	// win.add({
+	// type: 'Ti.UI.View',
+	// properties: {
+	// width: 200,
+	// height: 20
+	// },
+	// events:{
+	// 'click':function(e){info(stringify(e));}
+	// },
+	// childTemplates: [{
+	// borderPadding: {
+	// bottom: -1
+	// },
+	// borderColor: 'darkGray',
+	// backgroundColor: 'gray',
+	// borderRadius: 4
+	// }, {
+	// bindId: 'progress',
+	// properties: {
+	// borderPadding: {
+	// top: -1,
+	// left: -1,
+	// right: -1
+	// },
+	// borderColor: '#66AC66',
+	// backgroundColor: '#62C462',
+	// borderRadius: 4,
+	// left: 0,
+	// width: '50%',
+	// backgroundGradient: {
+	// type: 'linear',
+	// rect:{x:0, y:0, width:40, height:40},
+	// colors: [{
+	// offset: 0,
+	// color: '#26ffffff'
+	// }, {
+	// offset: 0.25,
+	// color: '#26ffffff'
+	// }, {
+	// offset: 0.25,
+	// color: 'transparent'
+	// }, {
+	// offset: 0.5,
+	// color: 'transparent'
+	// }, {
+	// offset: 0.5,
+	// color: '#26ffffff'
+	// }, {
+	// offset: 0.75,
+	// color: '#26ffffff'
+	// }, {
+	// offset: 0.75,
+	// color: 'transparent'
+	// }, {
+	// offset: 1,
+	// color: 'transparent'
+	// }],
+	// startPoint: {
+	// x: 0,
+	// y: 0
+	// },
+	// endPoint: {
+	// x: "100%",
+	// y: '100%'
+	// }
+	// }
+	// }
+	// }]
+	// });
 
 	openWin(win);
 }
@@ -4135,6 +4284,7 @@ function testMCTS() {
 		}
 	});
 	win.addEventListener('click', function(_event) {
+		info('click' + _event.bindId);
 		if (_event.bindId !== 'textfield') {
 			win.blur();
 		}

@@ -515,9 +515,9 @@ public class ViewProxy extends TiViewProxy implements OnLifecycleEvent
 	}
 
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 		onDestroy(null);
 	}
 

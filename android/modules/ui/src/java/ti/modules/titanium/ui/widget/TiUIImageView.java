@@ -52,6 +52,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.view.MotionEvent;
 import android.view.View.MeasureSpec;
 import android.widget.ImageView.ScaleType;
 
@@ -111,6 +112,14 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 			{
 				super.onLayout(changed, left, top, right, bottom);
 				TiUIHelper.firePostLayoutEvent(TiUIImageView.this);
+			}
+			
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough(childrenHolder, event)) return false;
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
 			}
 		};
 		setImage(null); //this actually creates a drawable which will allow transition

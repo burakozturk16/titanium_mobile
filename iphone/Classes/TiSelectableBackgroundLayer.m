@@ -17,7 +17,6 @@
     UIControlState currentState;
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
-    CGFloat _clipWidth;
     CGPathRef _clippingPath;
     BOOL _nonRetina;
 }

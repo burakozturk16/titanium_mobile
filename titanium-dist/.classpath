@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-accelerometer.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/titanium-analytics.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-android.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-app.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-calendar.jar"/>

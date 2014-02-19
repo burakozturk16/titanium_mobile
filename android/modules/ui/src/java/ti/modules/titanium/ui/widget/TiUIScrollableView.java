@@ -239,7 +239,14 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		params.optionWidth = new TiDimension("100%", TiDimension.TYPE_WIDTH);
 		params.optionHeight = new TiDimension("100%", TiDimension.TYPE_HEIGHT);
 		mPager.setLayoutParams(params);
-		mContainer = new TiViewPagerLayout(activity);
+		mContainer = new TiViewPagerLayout(activity) {
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		mContainer.addView((View)mPager, params);
 		mPagingControl = buildPagingControl(activity);
 		mContainer.addView(mPagingControl, buildFillLayoutParams());
@@ -728,7 +735,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		synchronized (viewsLock) {
 			mPager.removeAllViews();
 			for (TiViewProxy viewProxy : mViews) {
-				viewProxy.releaseViews();
+				viewProxy.releaseViews(true);
 			}
 			mViews.clear();
 		}
@@ -781,7 +788,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		}
 		if (mViews != null) {
 			for (TiViewProxy viewProxy : mViews) {
-				viewProxy.releaseViews();
+				viewProxy.releaseViews(true);
 			}
 			mViews.clear();
 		}
@@ -805,7 +812,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 						((ViewPager) container).removeView(layout);
 					}
 				}
-				tiProxy.releaseViews();
+				tiProxy.releaseViews(false);
 			}
 		}
 
@@ -890,7 +897,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			}
 			// if we arrive here, the data-item for which the Proxy was created
 			// does not exist anymore.
-			proxy.releaseViews();
+			proxy.releaseViews(false);
 
 			return POSITION_NONE;
 		
@@ -914,7 +921,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 						((ViewPager) container).removeView(layout);
 					}
 				}
-				tiProxy.releaseViews();
+				tiProxy.releaseViews(false);
 			}
 		}
 
@@ -998,7 +1005,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			}
 			// if we arrive here, the data-item for which the Proxy was created
 			// does not exist anymore.
-			proxy.releaseViews();
+			proxy.releaseViews(false);
 
 			return POSITION_NONE;
 		}
