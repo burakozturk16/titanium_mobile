@@ -33,22 +33,22 @@ exports.init = function (logger, config, cli) {
 
 			var simulatorDir = afs.resolvePath('~/Library/Application Support/iPhone Simulator/' + build.iosSimVersion +
 					(appc.version.gte(build.iosSimVersion, '7.0.0') && cli.argv['sim-64bit'] ? '-64' : '') + '/Applications'),
-				logFile = build.tiapp.guid + '.log';
+				logFile = build.tiapp.guid + '.log',
+				restartSimulator = config.get('ios.restartSimulator', true);
 
 			parallel([
 				function (next) {
-					if (config.get('ios.restartSimulator', true)) {
-						logger.debug(__('Terminating all iOS simulators'));
-						exec('/usr/bin/killall ios-sim', setTimeout(next, 250));
-					}
-					else next();
+					logger.debug(__('Terminating all iOS simulators'));
+					exec('/usr/bin/killall ios-sim', setTimeout(next, 250));
 				},
 
 				function (next) {
-					if (config.get('ios.restartSimulator', true)) {
+					if (restartSimulator) {
 						exec('/usr/bin/killall "iPhone Simulator"', setTimeout(next, 250));
 					}
-					else next();
+					else {
+						exec('/usr/bin/killall "' + build.tiapp.name + '"', setTimeout(next, 250));
+					}
 				},
 
 				function (next) {
@@ -78,14 +78,10 @@ exports.init = function (logger, config, cli) {
 					],
 					findLogTimer,
 					simProcess,
-					readChangesTimer,
 					simErr = [],
 					stripLogLevelRE = new RegExp('\\[(?:' + logger.getLevels().join('|') + ')\\] '),
 					simStarted = false;
 
-				if (config.get('ios.restartSimulator', true) == false) {
-					cmd.push('--exit');
-				}
 				if (appc.version.gte(build.iosSimVersion, '7.0.0') && cli.argv['sim-64bit']) {
 					cmd.push('--retina');
 					if (build.iosSimType == 'iphone') {
@@ -114,24 +110,21 @@ exports.init = function (logger, config, cli) {
 					}, this);
 				}.bind(this));
 
-				setTimeout(function(){
-					simProcess.on('exit', function(code, signal) {
+				simProcess.on('exit', function (code, signal) {
+					clearTimeout(findLogTimer);
 
-						if (simStarted) {
-							var endLogTxt = __('End simulator log');
-							logger.log(('-- ' + endLogTxt + ' ' + (new Array(75 - endLogTxt.length)).join('-')).grey);
-						} else return;
-						clearTimeout(findLogTimer);
-						clearTimeout(readChangesTimer);
+					if (simStarted) {
+						var endLogTxt = __('End simulator log');
+						logger.log(('-- ' + endLogTxt + ' ' + (new Array(75 - endLogTxt.length)).join('-')).grey);
+					}
 
-						if (code || simErr.length) {
-							finished(new appc.exception(__('An error occurred running the iOS Simulator'), simErr));
-						} else {
-							logger.info(__('Application has exited from iOS Simulator'));
-							finished();
-						}
-					}.bind(this));
-				}, 10000);
+					if (code || simErr.length) {
+						finished(new appc.exception(__('An error occurred running the iOS Simulator'), simErr));
+					} else {
+						logger.info(__('Application has exited from iOS Simulator'));
+						finished();
+					}
+				}.bind(this));
 
 				// focus the simulator
 				logger.info(__('Focusing the iOS Simulator'));
@@ -170,6 +163,7 @@ exports.init = function (logger, config, cli) {
 							var position = 0,
 								buf = new Buffer(16),
 								buffer = '',
+								readChangesTimer,
 								lastLogger = 'debug';
 
 							(function readChanges () {
@@ -218,6 +212,10 @@ exports.init = function (logger, config, cli) {
 									throw ex;
 								}
 							}());
+
+							simProcess.on('exit', function() {
+								clearTimeout(readChangesTimer);
+							});
 
 							// we found the log file, no need to keep searching for it
 							return;
