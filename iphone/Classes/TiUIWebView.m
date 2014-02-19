@@ -174,6 +174,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 			spinner.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
 			[self addSubview:spinner];
 			[spinner sizeToFit];
+            spinner.center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
 			[spinner startAnimating];
 		}
 	}
@@ -203,7 +204,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		
 		if (spinner!=nil)
 		{
-			spinner.center = self.center;
+			spinner.center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
 		}		
 	}
 }
