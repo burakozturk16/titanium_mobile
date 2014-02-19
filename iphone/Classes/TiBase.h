@@ -312,6 +312,16 @@ if ((__x<__minX) || (__x>__maxX)) \
 #define ENSURE_DICT(x) ENSURE_TYPE(x,NSDictionary)
 #define ENSURE_ARRAY(x) ENSURE_TYPE(x,NSArray)
 #define ENSURE_STRING(x) ENSURE_TYPE(x,NSString)
+    
+#define TYPESAFE_SETTER(funcname,prop,type) \
+-(void)funcname:(type*)val \
+{ \
+ENSURE_TYPE_OR_NIL(val,type); \
+if (prop != val) { \
+[prop release]; \
+prop = [val retain]; \
+}\
+}
 
 void TiExceptionThrowWithNameAndReason(NSString *exceptionName, NSString *reason, NSString *subreason, NSString *location);
 	

@@ -156,9 +156,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		pendingTransitions = new ArrayList<HashMap>();
 //		defaultValues.put(TiC.PROPERTY_BACKGROUND_REPEAT, false);
 //		defaultValues.put(TiC.PROPERTY_VISIBLE, true);
-		setProperty(TiC.PROPERTY_VISIBLE, true);
-		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
-		setProperty(TiC.PROPERTY_ENABLED, true);
+//		setProperty(TiC.PROPERTY_VISIBLE, true);
+//		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
+//		setProperty(TiC.PROPERTY_ENABLED, true);
 	}
 
 	@Override
@@ -541,12 +541,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	protected TiUIView handleGetView(boolean enableModelListener, boolean processProperties)
 	{
-		if (view == null) {
+		Activity activity = getActivity();
+		if (view == null && activity != null) {
 			if (Log.isDebugModeEnabled()) {
 				Log.d(TAG, "getView: " + getClass().getSimpleName(), Log.DEBUG_MODE);
 			}
 
-			Activity activity = getActivity();
 			view = createView(activity);
 			if (isDecorView) {
 				if (activity != null) {
@@ -635,13 +635,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
 		if (view != null) {
 			view.blur();
 			if  (children != null) {
 				for (TiViewProxy p : children) {
-					p.releaseViews();
+					p.releaseViews(activityFinishing);
 				}
 			}
 			view.release();
@@ -883,7 +883,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	@Kroll.method
 	public void remove(TiViewProxy child)
 	{
-		Log.w(TAG, "Removing view");
 		if (child == null) {
 			Log.e(TAG, "Add called with null child");
 			return;
@@ -945,7 +944,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				view.remove(child.peekView());
 			}
 			if (child != null) {
-				child.releaseViews();
+				child.releaseViews(false);
 				child.setActivity(null);
 			}
 		}
@@ -1386,10 +1385,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	}
 
 	@Override
-	public void applyPropertiesInternal(Object arg, boolean force)
+	public void applyPropertiesInternal(Object arg, boolean force, boolean wait)
 	{
 		batchPropertyApply.set(true);
-		super.applyPropertiesInternal(arg, force);
+		super.applyPropertiesInternal(arg, force, true);
 		if (TiApplication.isUIThread()) {
 			handleFinishBatchPropertyApply();
 		} else {

@@ -14,6 +14,9 @@
 #import	"TiTab.h"
 
 @implementation TiUIOptionDialogProxy
+{
+    UIDeviceOrientation currentOrientation;
+}
 @synthesize dialogView;
 
 - (void) dealloc
@@ -38,9 +41,9 @@
 	ENSURE_SINGLE_ARG_OR_NIL(args,NSDictionary);
 	[self rememberSelf];
 	ENSURE_UI_THREAD(show,args);
-
+    
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(suspended:) name:kTiSuspendNotification object:nil];
-
+    
 	showDialog = YES;
 	NSMutableArray *options = [self valueForKey:@"options"];
 	if (options==nil)
@@ -48,7 +51,7 @@
 		options = [[[NSMutableArray alloc] initWithCapacity:2] autorelease];
 		[options addObject:NSLocalizedString(@"OK",@"Alert OK Button")];
 	}
-
+    
     persistentFlag = [TiUtils boolValue:[self valueForKey:@"persistent"] def:YES];
     forceOpaqueBackground = [TiUtils boolValue:[self valueForKey:@"opaquebackground"] def:NO];
 	if (actionSheet != nil) {
@@ -57,7 +60,7 @@
 	}
 	actionSheet = [[UIActionSheet alloc] init];
 	[actionSheet setDelegate:self];
-
+    
 	[actionSheet setTitle:[TiUtils stringValue:[self valueForKey:@"title"]]];
 	
 	for (id thisOption in options)
@@ -65,12 +68,12 @@
 		NSString * thisButtonName = [TiUtils stringValue:thisOption];
 		[actionSheet addButtonWithTitle:thisButtonName];
 	}
-
+    
 	[actionSheet setCancelButtonIndex:[TiUtils intValue:[self valueForKey:@"cancel"] def:-1]];
 	[actionSheet setDestructiveButtonIndex:[TiUtils intValue:[self valueForKey:@"destructive"] def:-1]];
-
+    
 	[self retain];
-
+    
 	if ([TiUtils isIPad])
 	{
 		[self setDialogView:[args objectForKey:@"view"]];
@@ -84,11 +87,12 @@
 		{
 			dialogRect = CGRectZero;
 		}
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceRotationBegan:) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
-		[self updateOptionDialogNow];
-		return;
 	}
-	[actionSheet showInView:[[TiApp app] topMostWindow]];
+    currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(deviceRotationBegan:) name:UIDeviceOrientationDidChangeNotification object:nil];
+    
+    [self updateOptionDialogNow];
+    
 }
 
 -(void)completeWithButton:(int)buttonIndex
@@ -169,8 +173,11 @@
 {
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(updateOptionDialogNow) object:nil];
     NSTimeInterval delay = [[UIApplication sharedApplication] statusBarOrientationAnimationDuration];
-    UIInterfaceOrientation nextOrientation = [[notification.userInfo objectForKey:UIApplicationStatusBarOrientationUserInfoKey] intValue];
-    UIInterfaceOrientation currentOrientation = [UIApplication sharedApplication].statusBarOrientation;
+    UIDeviceOrientation nextOrientation =  [[UIDevice currentDevice] orientation];
+    if (nextOrientation == UIDeviceOrientationFaceUp || nextOrientation == UIDeviceOrientationFaceDown ||
+        nextOrientation == UIDeviceOrientationUnknown) return;
+    if (currentOrientation == nextOrientation) return;
+    currentOrientation = nextOrientation;
     if (UIInterfaceOrientationIsPortrait(currentOrientation) == UIInterfaceOrientationIsPortrait(nextOrientation)) {
         ++accumulatedOrientationChanges; // double for a 180 degree orientation change
     }
@@ -190,7 +197,7 @@
 	UIView *view = nil;
 	if (dialogView==nil)
 	{
-		view = [[[[TiApp app] window] subviews] lastObject];
+		view = [[[TiApp app] controller] topWindowProxyView];
 	}
 	else 
 	{

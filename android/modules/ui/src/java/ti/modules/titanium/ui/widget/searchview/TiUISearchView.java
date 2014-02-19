@@ -16,8 +16,11 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.searchbar.TiUISearchBar.OnSearchChangeListener;
+import android.annotation.SuppressLint;
+import android.view.MotionEvent;
 import android.widget.SearchView;
 
+@SuppressLint("NewApi")
 public class TiUISearchView extends TiUIView implements SearchView.OnQueryTextListener, SearchView.OnCloseListener {
 	private SearchView searchView;
 
@@ -28,7 +31,14 @@ public class TiUISearchView extends TiUIView implements SearchView.OnQueryTextLi
 	public TiUISearchView(TiViewProxy proxy) {
 		super(proxy);
 
-		searchView = new SearchView(proxy.getActivity());
+		searchView = new SearchView(proxy.getActivity()) {
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		};
 		searchView.setOnQueryTextListener(this);
 		searchView.setOnCloseListener(this);
 		searchView.setOnQueryTextFocusChangeListener(this);

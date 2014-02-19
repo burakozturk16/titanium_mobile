@@ -145,7 +145,8 @@ public abstract class TiUIView
 	private int visibility = View.VISIBLE;
 	
 	protected GestureDetector detector = null;
-
+	protected ScaleGestureDetector scaleDetector = null;
+	
 	protected Handler handler;
 	
 	protected boolean exclusiveTouch = false;
@@ -926,32 +927,36 @@ public abstract class TiUIView
 
 	public void processProperties(KrollDict d)
 	{
-		boolean nativeViewNull = false;
 		
-		
-		if (nativeView == null) {
-			nativeViewNull = true;
-			Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
-		}
+		boolean inApply = proxy.inBatchPropertyApply();
+		if (!inApply) {
+			boolean nativeViewNull = false;
 			
-		updateLayoutForChildren(d);
-		
+			
+			if (nativeView == null) {
+				nativeViewNull = true;
+				Log.d(TAG, "Nativeview is null", Log.DEBUG_MODE);
+			}
 				
-		if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
-			getOuterView().setLayoutParams(layoutParams);
+			updateLayoutForChildren(d);
+			
+					
+			if (!(layoutParams instanceof AnimationLayoutParams) && TiConvert.fillLayout(d, layoutParams) && getOuterView() != null) {
+				getOuterView().setLayoutParams(layoutParams);
+			}
 		}
-		
 		for (String key : d.keySet()) {
 			propertySet(key, d.get(key), null, false);
 		}
-		
-		if (touchView == null || touchView.get() != getTouchView()) {
-			registerForTouch();
-			registerForKeyPress();
-		}
-		
-		if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
-			mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
+		if (!inApply) {
+			if (touchView == null || touchView.get() != getTouchView()) {
+				registerForTouch();
+				registerForKeyPress();
+			}
+			
+			if (d.containsKey(TiC.PROPERTY_BORDER_PADDING)) {
+				mBorderPadding = TiConvert.toPaddingRect(d, TiC.PROPERTY_BORDER_PADDING);
+			}
 		}
 	}
 
@@ -1405,13 +1410,91 @@ public abstract class TiUIView
 			registerForTouch(getTouchView());
 		}
 	}
+	
+	public void checkUpEventSent(MotionEvent event){
+		if (pointerDown) {
+			customInterceptTouchEvent(event);
+		}
+		else {
+			for (TiUIView child : children) {
+				child.checkUpEventSent(event);
+			}
+		}
+	}
+	
+	private int pointersDown = 0;
+	private boolean pointerDown = false;
+	public boolean customInterceptTouchEvent(MotionEvent event) {
+		if (mTouchDelegate != null) {
+			mTouchDelegate.onTouchEvent(event, TiUIView.this);
+		}
+		if (exclusiveTouch) {
+			ViewGroup parent =  (ViewGroup)getTouchView().getParent();
+			if(parent != null) {
+				switch (event.getAction()) {
+			    case MotionEvent.ACTION_MOVE: 
+			        parent.requestDisallowInterceptTouchEvent(true);
+			        break;
+			    case MotionEvent.ACTION_UP:
+			    case MotionEvent.ACTION_OUTSIDE:
+			    case MotionEvent.ACTION_CANCEL:
+			    	parent.requestDisallowInterceptTouchEvent(false);
+			        break;
+			    }
+			}
+			
+		}
+		if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL
+				|| event.getAction() == MotionEvent.ACTION_OUTSIDE) {
+			lastUpEvent = event;
+			pointerDown = false;
+		}
+
+		if (event.getAction() == MotionEvent.ACTION_DOWN ) {
+			lastDownEvent = event;
+			pointerDown = true;
+		}
+
+		scaleDetector.onTouchEvent(event);
+		if (scaleDetector.isInProgress()) {
+			pointersDown = 0;
+			return true;
+		}
+
+		boolean handled = detector.onTouchEvent(event);
+		if (handled) {
+			pointersDown = 0;
+			return true;
+		}
+
+		if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
+			if (didScale) {
+				didScale = false;
+				pointersDown = 0;
+			} else {
+				pointersDown++;
+			}
+		} else if (event.getAction() == MotionEvent.ACTION_UP) {
+			if (pointersDown == 1) {
+				if (hierarchyHasListener(TiC.EVENT_TWOFINGERTAP)) {
+					fireEventNoCheck(TiC.EVENT_TWOFINGERTAP, dictFromEvent(event));
+				}
+				pointersDown = 0;
+				return true;
+			}
+			pointersDown = 0;
+		}
+
+		handleTouchEvent(event);
+		return false;
+	}
 
 	protected void registerTouchEvents(final View touchable)
 	{
 
 		touchView = new WeakReference<View>(touchable);
 
-		final ScaleGestureDetector scaleDetector = new ScaleGestureDetector(touchable.getContext(),
+		scaleDetector = new ScaleGestureDetector(touchable.getContext(),
 			new SimpleOnScaleGestureListener()
 			{
 				// protect from divide by zero errors
@@ -1520,72 +1603,9 @@ public abstract class TiUIView
 		
 		touchable.setOnTouchListener(new OnTouchListener()
 		{
-			int pointersDown = 0;
-
 			public boolean onTouch(View view, MotionEvent event)
 			{
-				if (mTouchDelegate != null) {
-					mTouchDelegate.onTouchEvent(event, TiUIView.this);
-				}
-				if (exclusiveTouch) {
-					ViewGroup parent =  (ViewGroup)view.getParent();
-					if(parent != null) {
-						switch (event.getAction()) {
-					    case MotionEvent.ACTION_MOVE: 
-					        parent.requestDisallowInterceptTouchEvent(true);
-					        break;
-					    case MotionEvent.ACTION_UP:
-					    case MotionEvent.ACTION_CANCEL:
-					    	parent.requestDisallowInterceptTouchEvent(false);
-					        break;
-					    }
-					}
-					
-				}
-				if (event.getAction() == MotionEvent.ACTION_UP) {
-					lastUpEvent = event;
-				}
-
-				if (event.getAction() == MotionEvent.ACTION_DOWN ) {
-					lastDownEvent = event;
-				}
-
-				scaleDetector.onTouchEvent(event);
-				if (scaleDetector.isInProgress()) {
-					pointersDown = 0;
-					return true;
-				}
-
-				boolean handled = detector.onTouchEvent(event);
-				if (handled) {
-					pointersDown = 0;
-					return true;
-				}
-
-				if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
-					if (didScale) {
-						didScale = false;
-						pointersDown = 0;
-					} else {
-						pointersDown++;
-					}
-				} else if (event.getAction() == MotionEvent.ACTION_UP) {
-					if (pointersDown == 1) {
-						if (hierarchyHasListener(TiC.EVENT_TWOFINGERTAP)) {
-							fireEventNoCheck(TiC.EVENT_TWOFINGERTAP, dictFromEvent(event));
-						}
-						pointersDown = 0;
-						return true;
-					}
-					pointersDown = 0;
-				}
-
-				handleTouchEvent(event);
-
-				// Inside View.java, dispatchTouchEvent() does not call onTouchEvent() if this listener returns true. As
-				// a result, click and other motion events do not occur on the native Android side. To prevent this, we
-				// always return false and let Android generate click and other motion events.
-				return false;
+				return customInterceptTouchEvent(event);
 			}
 		});
 		
@@ -1749,6 +1769,27 @@ public abstract class TiUIView
 			}
 		}
 		return null;
+	}
+	
+	public boolean touchPassThrough(ViewGroup view, MotionEvent event)
+	{
+		if (touchPassThrough == true)
+		{
+			if (view != null) {
+				int[] location = new int[2];
+				double x = event.getRawX();
+				double y = event.getRawY();
+				for (int i=0; i<view.getChildCount(); i++) {
+		            View child = view.getChildAt(i);
+		            child.getLocationOnScreen(location);
+		            if(location[0] <= x && x <= (location[0] + child.getWidth()) && location[1] <= y && y <= (location[1] + child.getHeight())){
+		                return false;
+		            }
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean getTouchPassThrough() {

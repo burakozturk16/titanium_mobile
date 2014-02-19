@@ -668,6 +668,7 @@ Set the animation on its view and all it's children
  */
 -(UIViewController*) hostingController;
 -(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds;
++(void)reorderViewsInParent:(UIView*)parentView;
 @end
 
 

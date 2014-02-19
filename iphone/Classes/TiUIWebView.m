@@ -100,27 +100,37 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	return [scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"];
 }
 
--(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+-(void)viewForHitTest
 {
-	/*	webview is a little _special_ and refuses to share events.
-	 *	As such, we have to take the events away if we have event listeners
-	 *	Or let webview has his entire cake. Through experimenting, if the
-	 *	webview is interested, a subview or subsubview will be the target.
-	 */
-
-	UIView *view = [super hitTest:point withEvent:event];
-	if ( ([self hasTouchableListener]) && willHandleTouches )
-	{
-		UIView *superview = [view superview];
-		UIView *superduperview = [superview superview];
-		if ((view == webview) || (superview == webview) || (superduperview == webview))
-		{
-			return self;
-		}
-	}
-	
-	return view;
+    return webview;
 }
+
+//-(UIView*)viewForGestures
+//{
+//    return webview;
+//}
+
+//-(UIView*)hitTest:(CGPoint)point withEvent:(UIEvent *)event
+//{
+//	/*	webview is a little _special_ and refuses to share events.
+//	 *	As such, we have to take the events away if we have event listeners
+//	 *	Or let webview has his entire cake. Through experimenting, if the
+//	 *	webview is interested, a subview or subsubview will be the target.
+//	 */
+//
+//	UIView *view = [super hitTest:point withEvent:event];
+//	if ( ([self hasTouchableListener]) && willHandleTouches )
+//	{
+//		UIView *superview = [view superview];
+//		UIView *superduperview = [superview superview];
+//		if ((view == webview) || (superview == webview) || (superduperview == webview))
+//		{
+//			return self;
+//		}
+//	}
+//	
+//	return view;
+//}
 
 -(void)setWillHandleTouches_:(id)args
 {
@@ -164,6 +174,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 			spinner.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin | UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin;
 			[self addSubview:spinner];
 			[spinner sizeToFit];
+            spinner.center = CGPointMake(CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
 			[spinner startAnimating];
 		}
 	}
@@ -193,7 +204,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		
 		if (spinner!=nil)
 		{
-			spinner.center = self.center;
+			spinner.center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
 		}		
 	}
 }
@@ -468,6 +479,58 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	BOOL scrollsToTop = [TiUtils boolValue:value def:YES];
 	[[self scrollview] setScrollsToTop:scrollsToTop];
 }
+
+
+-(void)setShowHorizontalScrollIndicator_:(id)value
+{
+	[[self scrollview] setShowsHorizontalScrollIndicator:[TiUtils boolValue:value]];
+}
+
+-(void)setShowVerticalScrollIndicator_:(id)value
+{
+	[[self scrollview] setShowsVerticalScrollIndicator:[TiUtils boolValue:value]];
+}
+
+-(void)setScrollIndicatorStyle_:(id)value
+{
+	[[self scrollview] setIndicatorStyle:[TiUtils intValue:value def:UIScrollViewIndicatorStyleDefault]];
+}
+
+-(void)setScrollingEnabled_:(id)enabled
+{
+    BOOL scrollingEnabled = [TiUtils boolValue:enabled def:YES];
+    [[self scrollview] setScrollEnabled:scrollingEnabled];
+    [[self proxy] replaceValue:NUMBOOL(scrollingEnabled) forKey:@"scrollingEnabled" notification:NO];
+}
+
+-(void)setHorizontalBounce_:(id)value
+{
+	[[self scrollview] setAlwaysBounceHorizontal:[TiUtils boolValue:value]];
+}
+
+-(void)setVerticalBounce_:(id)value
+{
+	[[self scrollview] setAlwaysBounceVertical:[TiUtils boolValue:value]];
+}
+
+-(void)setAllowsInlineMediaPlayback_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setAllowsInlineMediaPlayback:result];
+}
+
+-(void)setMediaPlaybackAllowsAirPlay_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setMediaPlaybackAllowsAirPlay:result];
+}
+
+-(void)setMediaPlaybackRequiresUserAction_:(id)value
+{
+	BOOL result = [TiUtils boolValue:value def:YES];
+	[[self webview] setMediaPlaybackRequiresUserAction:result];
+}
+
 
 - (void)setUrl_:(id)args
 {

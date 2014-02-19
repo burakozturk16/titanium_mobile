@@ -75,6 +75,7 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
     
     NSMutableDictionary* _measureProxies;
     BOOL _scrollSuspendImageLoading;
+    BOOL hasOnDisplayCell;
 }
 
 static NSDictionary* replaceKeysForRow;
@@ -109,43 +110,43 @@ static NSDictionary* replaceKeysForRow;
 {
     _tableView.delegate = nil;
     _tableView.dataSource = nil;
-    RELEASE_TO_NIL(_tableView);
-    RELEASE_TO_NIL(_templates);
-    RELEASE_TO_NIL(_defaultItemTemplate);
-    RELEASE_TO_NIL(_searchString);
-    RELEASE_TO_NIL(_searchResults);
-    RELEASE_TO_NIL(_pullViewWrapper);
-    RELEASE_TO_NIL(_searchWrapper);
+    RELEASE_TO_NIL(_tableView)
+    RELEASE_TO_NIL(_templates)
+    RELEASE_TO_NIL(_defaultItemTemplate)
+    RELEASE_TO_NIL(_searchString)
+    RELEASE_TO_NIL(_searchResults)
+    RELEASE_TO_NIL(_pullViewWrapper)
+    RELEASE_TO_NIL(_searchWrapper)
     RELEASE_TO_NIL(_headerWrapper)
     if (_pullViewProxy)
     {
         [_pullViewProxy detachView];
-        RELEASE_TO_NIL(_pullViewProxy);
+        RELEASE_TO_NIL(_pullViewProxy)
     }
     if (_headerViewProxy)
     {
         [_headerViewProxy detachView];
-        RELEASE_TO_NIL(_headerViewProxy);
+        RELEASE_TO_NIL(_headerViewProxy)
     }
     if (_footerViewProxy)
     {
         [_footerViewProxy detachView];
-        RELEASE_TO_NIL(_footerViewProxy);
+        RELEASE_TO_NIL(_footerViewProxy)
     }
     if (searchViewProxy)
     {
         [searchViewProxy detachView];
-        RELEASE_TO_NIL(searchViewProxy);
+        RELEASE_TO_NIL(searchViewProxy)
     }
-    RELEASE_TO_NIL(tableController);
-    RELEASE_TO_NIL(searchController);
-    RELEASE_TO_NIL(sectionTitles);
-    RELEASE_TO_NIL(sectionIndices);
-    RELEASE_TO_NIL(filteredTitles);
-    RELEASE_TO_NIL(filteredIndices);
-    RELEASE_TO_NIL(_measureProxies);
+    RELEASE_TO_NIL(tableController)
+    RELEASE_TO_NIL(searchController)
+    RELEASE_TO_NIL(sectionTitles)
+    RELEASE_TO_NIL(sectionIndices)
+    RELEASE_TO_NIL(filteredTitles)
+    RELEASE_TO_NIL(filteredIndices)
+    RELEASE_TO_NIL(_measureProxies)
 #ifdef USE_TI_UIREFRESHCONTROL
-    RELEASE_TO_NIL(_refreshControlProxy);
+    RELEASE_TO_NIL(_refreshControlProxy)
 #endif
     [super dealloc];
 }
@@ -884,6 +885,12 @@ static NSDictionary* replaceKeysForRow;
 	[[self tableView] setBounces:![TiUtils boolValue:value]];
 }
 
+
+-(void)setOnDisplayCell_:(id)callback
+{
+    hasOnDisplayCell = [callback isKindOfClass:[KrollCallback class]] || [callback isKindOfClass:[KrollWrapper class]];
+}
+
 #pragma mark - Search Support
 -(void)setCaseInsensitiveSearch_:(id)args
 {
@@ -1451,6 +1458,18 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if (hasOnDisplayCell) {
+        TiUIListSectionProxy *section = [self.listViewProxy sectionForIndex:indexPath.section];
+        NSDictionary *item = [section itemAtIndex:indexPath.row];
+        NSDictionary * propertiesDict = @{
+                                          @"view":((TiUIListItem*)cell).proxy,
+                                          @"section":section,
+                                          @"searchResult":NUMBOOL([self isSearchActive]),
+                                          @"sectionIndex":NUMINT(indexPath.section),
+                                          @"itemIndex":NUMINT(indexPath.row)
+        };
+        [self.proxy fireCallback:@"onDisplayCell" withArg:propertiesDict withSource:self.proxy];
+    }
     if (searchActive || (tableView != _tableView)) {
         return;
     }

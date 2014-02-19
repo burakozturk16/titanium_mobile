@@ -19,6 +19,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -76,12 +77,30 @@ public class WebViewProxy extends ViewProxy
 	{
 		this();
 	}
+	
+	@Override
+	public void setActivity(Activity activity)
+	{
+		if (this.activity != null) {
+			TiBaseActivity tiActivity = (TiBaseActivity) this.activity.get();
+			if (tiActivity != null) {
+				tiActivity.removeOnLifecycleEventListener(this);
+				tiActivity.removeInterceptOnBackPressedEventListener(this);
+			}
+		}
+		super.setActivity(activity);
+		if (this.activity != null) {
+			TiBaseActivity tiActivity = (TiBaseActivity) this.activity.get();
+			if (tiActivity != null) {
+				tiActivity.addOnLifecycleEventListener(this);
+				tiActivity.addInterceptOnBackPressedEventListener(this);
+			}
+		}
+	}
 
 	@Override
 	public TiUIView createView(Activity activity)
 	{
-		((TiBaseActivity)activity).addOnLifecycleEventListener(this);
-		((TiBaseActivity)activity).addInterceptOnBackPressedEventListener(this);
 		TiUIWebView webView = new TiUIWebView(this);
 
 		if (postCreateMessage != null) {
@@ -176,7 +195,7 @@ public class WebViewProxy extends ViewProxy
 					return true;
 				}
 				case MSG_RELEASE:
-					super.releaseViews();
+					super.releaseViews(true);
 					return true;
 				case MSG_PAUSE:
 					getWebView().pauseWebView();
@@ -392,15 +411,34 @@ public class WebViewProxy extends ViewProxy
 	 * Don't release the web view when it's removed. TIMOB-7808
 	 */
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
+		if (activityFinishing) {
+			TiUIWebView webView = (TiUIWebView) peekView();
+			if (webView != null) {
+				webView.pauseWebView();
+				webView.clearWebView();
+				// We allow JS polling to continue until we exit the app. If we want to stop the polling when the app is
+				// backgrounded, we would need to move this to onStop(), and add the appropriate logic in onResume() to restart
+				// the polling.
+				webView.destroyWebViewBinding();
+			}
+
+			super.releaseViews(activityFinishing);
+		}
+		else {
+			TiUIWebView view = (TiUIWebView) peekView();
+			if (view != null) {
+				view.pauseWebView();
+			}
+		}
 	}
 
 	@Kroll.method
 	public void release()
 	{
 		if (TiApplication.isUIThread()) {
-			super.releaseViews();
+			super.releaseViews(true);
 		} else {
 			getMainHandler().sendEmptyMessage(MSG_RELEASE);
 		}
@@ -436,23 +474,7 @@ public class WebViewProxy extends ViewProxy
 
 	@Override
 	public void onDestroy(Activity activity) {
-		TiUIWebView webView = (TiUIWebView) peekView();
-		if (webView == null) {
-			return;
-		}
-
-		// We allow JS polling to continue until we exit the app. If we want to stop the polling when the app is
-		// backgrounded, we would need to move this to onStop(), and add the appropriate logic in onResume() to restart
-		// the polling.
-		webView.destroyWebViewBinding();
-
-		WebView nativeWebView = webView.getWebView();
-		if (nativeWebView == null) {
-			return;
-		}
-
-		nativeWebView.stopLoading();
-		super.releaseViews();
+		releaseViews(true);
 	}
 
 	@Override

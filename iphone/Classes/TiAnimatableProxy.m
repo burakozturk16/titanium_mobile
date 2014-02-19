@@ -159,9 +159,6 @@
 
 -(void)handlePendingAnimation:(TiAnimation*)pendingAnimation
 {
-	pthread_rwlock_rdlock(&pendingLock);
-    [_pendingAnimations removeObject:pendingAnimation]; //make sure we dont handle this one anymore
-	pthread_rwlock_unlock(&pendingLock);
     if (pendingAnimation.cancelRunningAnimations) {
         [self cancelAllAnimations:nil];
     }

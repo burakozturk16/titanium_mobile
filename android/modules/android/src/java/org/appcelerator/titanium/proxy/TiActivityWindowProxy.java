@@ -51,7 +51,7 @@ public class TiActivityWindowProxy extends TiWindowProxy
 			((TiUIActivityWindow)view).close();
 		}
 
-		releaseViews();
+		releaseViews(true);
 		opened = false;
 	}
 

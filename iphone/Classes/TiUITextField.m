@@ -26,7 +26,7 @@
 
 -(void)configure
 {
-    _padding = UIEdgeInsetsZero;
+    _padding = UIEdgeInsetsMake(0, 5, 0, 5);
 	[super setLeftViewMode:UITextFieldViewModeAlways];
 	[super setRightViewMode:UITextFieldViewModeAlways];
     _hintColor = nil;

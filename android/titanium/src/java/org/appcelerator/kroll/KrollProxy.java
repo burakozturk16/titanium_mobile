@@ -473,37 +473,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		if (options == null || options.isEmpty()) {
 			return;
 		}
-		
-		ArrayList<KrollPropertyChange> propertyChanges = new ArrayList<KrollPropertyChange>();
-		for (String name : options.keySet()) {
-			Object oldValue = properties.get(name);
-			Object value = options.get(name);
-
-			// dont just fire the change event, make sure we set the property back on the KrollObject 
-			// since the property change may not be driven from JS (KrollObject->Java proxy)
-			setProperty(name, value);
-
-			if (shouldFireChange(oldValue, value)) {
-				KrollPropertyChange pch = new KrollPropertyChange(name, oldValue, value);
-				propertyChanges.add(pch);
-			}
-		}
-
-		// convert to two dimensional array
-		int changeSize = propertyChanges.size();
-		Object[][] changeArray = new Object[changeSize][];
-		for (int i = 0; i < changeSize; i++) {
-			KrollPropertyChange propertyChange = propertyChanges.get(i);
-			changeArray[i] = new Object[] {propertyChange.name, propertyChange.oldValue, propertyChange.newValue};
-		}
-
-		if (KrollRuntime.getInstance().isRuntimeThread()) {
-			firePropertiesChanged(changeArray);
-
-		} else {
-			Message message = getMainHandler().obtainMessage(MSG_MODEL_PROPERTIES_CHANGED, changeArray);
-			message.sendToTarget();
-		}
+		applyPropertiesInternal(options, false, true);
 	}
 
 	private void firePropertiesChanged(Object[][] changes)
@@ -513,6 +483,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 
 		int changesLength = changes.length;
+//		if (modelListener != null) {
+//			modelListener.propertyChanged((String) name, change[INDEX_OLD_VALUE], change[INDEX_VALUE], this);
+//		}
 		for (int i = 0; i < changesLength; ++i) {
 			Object[] change = changes[i];
 			if (change.length != 3) {
@@ -528,6 +501,9 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				modelListener.propertyChanged((String) name, change[INDEX_OLD_VALUE], change[INDEX_VALUE], this);
 			}
 		}
+//		if (modelListener != null) {
+//			modelListener.propertyChanged((String) name, change[INDEX_OLD_VALUE], change[INDEX_VALUE], this);
+//		}
 	}
 
 	public Object getIndexedProperty(int index)
@@ -701,7 +677,6 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 		HashMap props = (HashMap) arg;
 		KrollDict changedProps = new KrollDict();
-//		KrollPropertyChangeSet changes = new KrollPropertyChangeSet(props.size());
 		for (Object key : props.keySet()) {
 			String name = TiConvert.toString(key);
 			Object value = props.get(key);
@@ -730,9 +705,6 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 
 		}
-//		if (changes.entryCount > 0) {
-//			getMainHandler().obtainMessage(MSG_MODEL_PROPERTY_CHANGE, changes).sendToTarget();
-//		}
 	}
 	
 	public void applyPropertiesInternal(Object arg, boolean force)

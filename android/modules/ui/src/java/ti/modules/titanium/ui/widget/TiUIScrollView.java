@@ -76,6 +76,9 @@ public class TiUIScrollView extends TiUIView
 			if (!canCancelEvents) {
 				requestDisallowInterceptTouchEvent(true);
 			}
+			
+			if (touchPassThrough == true)
+				return false;
 
 			return super.dispatchTouchEvent(ev);
 		}
@@ -434,12 +437,12 @@ public class TiUIScrollView extends TiUIView
 		if (Log.isDebugModeEnabled()) {
 			Log.d(TAG, "Property: " + key + " old: " + oldValue + " new: " + newValue, Log.DEBUG_MODE);
 		}
-		if (key.equals(TiC.PROPERTY_CONTENT_OFFSET)) {
+		else if (key.equals(TiC.PROPERTY_CONTENT_OFFSET)) {
 			setContentOffset(newValue);
 			((TiScrollView) nativeView).setShouldClamp(false);
 			scrollTo(offsetX, offsetY);
 		}
-		if (key.equals(TiC.PROPERTY_CAN_CANCEL_EVENTS)) {
+		else if (key.equals(TiC.PROPERTY_CAN_CANCEL_EVENTS)) {
 			View view = getNativeView();
 			boolean canCancelEvents = TiConvert.toBoolean(newValue);
 //			if (view instanceof TiHorizontalScrollView) {
@@ -448,10 +451,13 @@ public class TiUIScrollView extends TiUIView
 				((TiScrollView) view).getLayout().setCanCancelEvents(canCancelEvents);
 //			}
 		}
-		if (TiC.PROPERTY_SCROLLING_ENABLED.equals(key)) {
+		else if (TiC.PROPERTY_SCROLLING_ENABLED.equals(key)) {
 			setScrollingEnabled(newValue);
-		}
-		if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)) {
+		}else if (TiC.PROPERTY_SHOW_HORIZONTAL_SCROLL_INDICATOR.equals(key)) {
+			getNativeView().setHorizontalScrollBarEnabled(TiConvert.toBoolean(newValue));
+		}else if (TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR.equals(key)) {
+			getNativeView().setVerticalScrollBarEnabled(TiConvert.toBoolean(newValue));
+		} else if (TiC.PROPERTY_OVER_SCROLL_MODE.equals(key)) {
 			if (Build.VERSION.SDK_INT >= 9) {
 				getNativeView().setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
 			}
@@ -474,11 +480,6 @@ public class TiUIScrollView extends TiUIView
 		}
 		if (d.containsKey(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR)) {
 			showVerticalScrollBar = TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR);
-		}
-
-		if (showHorizontalScrollBar && showVerticalScrollBar) {
-			Log.w(TAG, "Both scroll bars cannot be shown. Defaulting to vertical shown");
-			showHorizontalScrollBar = false;
 		}
 
 		if (d.containsKey(TiC.PROPERTY_CONTENT_OFFSET)) {

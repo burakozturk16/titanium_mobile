@@ -1229,21 +1229,11 @@ public class TiCompositeLayout extends FreeLayout implements
 	        }
 		}
 	};
-
 	
-//	@Override
-//    public boolean onInterceptTouchEvent(MotionEvent ev) {
-//		TiUIView view = (this.view == null ? null : this.view.get());
-//		if (view != null && (view.getTouchPassThrough() == true))
-//			return false;
-//        return super.onInterceptTouchEvent(ev);
-//    }
-
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event) {
 		TiUIView view = (this.view == null ? null : this.view.get());
-		if (view != null && (view.getTouchPassThrough() == true))
-			return false;
+		if (view != null && view.touchPassThrough(this, event)) return false;
 		return super.dispatchTouchEvent(event);
 	}
 

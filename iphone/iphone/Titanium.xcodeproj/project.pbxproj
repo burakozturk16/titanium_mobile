@@ -607,6 +607,9 @@
 		B6C5206318035AF3002471C6 /* TiUIiOSAttributedStringProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = B6C5206018035AF3002471C6 /* TiUIiOSAttributedStringProxy.m */; };
 		D4AB36F5123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
 		D4AB36F6123DE20200DED4A0 /* TiUIClipboardProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */; };
+		D50A303018B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
+		D50A303118B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
+		D50A303218B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */; };
 		D512A7AD187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
 		D512A7AE187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
 		D512A7AF187F1813004E3AB1 /* ADNavigationControllerDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = D512A7A8187F1813004E3AB1 /* ADNavigationControllerDelegate.m */; };
@@ -1801,6 +1804,8 @@
 		B6C5206018035AF3002471C6 /* TiUIiOSAttributedStringProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSAttributedStringProxy.m; sourceTree = "<group>"; };
 		D4AB36F3123DE20200DED4A0 /* TiUIClipboardProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIClipboardProxy.h; sourceTree = "<group>"; };
 		D4AB36F4123DE20200DED4A0 /* TiUIClipboardProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIClipboardProxy.m; sourceTree = "<group>"; };
+		D50A302E18B0F6C1004CBD52 /* TouchCapturingWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchCapturingWindow.h; sourceTree = "<group>"; };
+		D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TouchCapturingWindow.m; sourceTree = "<group>"; };
 		D50ABAB817EB6680002CE73D /* AppleSucksDOMImplementation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppleSucksDOMImplementation.h; path = ../Classes/SVGKit/AppleSucksDOMImplementation.h; sourceTree = "<group>"; };
 		D50ABAB917EB6680002CE73D /* Attr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Attr.h; path = ../Classes/SVGKit/Attr.h; sourceTree = "<group>"; };
 		D50ABABA17EB6680002CE73D /* BaseClassForAllSVGBasicShapes_ForSubclasses.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BaseClassForAllSVGBasicShapes_ForSubclasses.h; path = ../Classes/SVGKit/BaseClassForAllSVGBasicShapes_ForSubclasses.h; sourceTree = "<group>"; };
@@ -2959,6 +2964,8 @@
 				D51F03D81808411F005B4EE2 /* TiImageHelper.m */,
 				D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */,
 				D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */,
+				D50A302E18B0F6C1004CBD52 /* TouchCapturingWindow.h */,
+				D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -4772,6 +4779,7 @@
 				8484E3A717A865F700C24B02 /* TiViewController.m in Sources */,
 				24CA8980111161050084E2DE /* PLSqliteResultSet.m in Sources */,
 				24CA8981111161050084E2DE /* SBJSON.m in Sources */,
+				D50A303018B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				24CA89B81111615D0084E2DE /* KrollBridge.m in Sources */,
 				24CA89B91111615D0084E2DE /* KrollCallback.m in Sources */,
 				24CA89BA1111615D0084E2DE /* KrollContext.m in Sources */,
@@ -5223,6 +5231,7 @@
 				D55795821837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				D54C7D0D18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				24D8E433119B9D8A00F8CAA6 /* TiHost.m in Sources */,
+				D50A303118B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				D5C8C99517EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
 				D5C8C96E17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				24D8E434119B9D8A00F8CAA6 /* TiFilesystemFileProxy.m in Sources */,
@@ -5585,6 +5594,7 @@
 				D55795831837BF6C0057DD41 /* TiViewAnimationStep.m in Sources */,
 				D54C7D0E18115C0900F592A9 /* TiTransitionGhost.m in Sources */,
 				DABB370E12E8CB280026A6EA /* TiHost.m in Sources */,
+				D50A303218B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				D5C8C99617EF45C900F54C19 /* ADSwipeTransition.m in Sources */,
 				D5C8C96F17EF45C900F54C19 /* ADCrossTransition.m in Sources */,
 				DABB370F12E8CB280026A6EA /* TiFilesystemFileProxy.m in Sources */,

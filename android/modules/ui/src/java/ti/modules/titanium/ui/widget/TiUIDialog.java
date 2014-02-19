@@ -152,7 +152,7 @@ public class TiUIDialog extends TiUIView
 				dialog = null;
 				if (view != null)
 				{
-					view.getProxy().releaseViews();
+					view.getProxy().releaseViews(true);
 					view = null;
 				}
 			}
@@ -348,7 +348,7 @@ public class TiUIDialog extends TiUIView
 		}
 
 		if (view != null) {
-			view.getProxy().releaseViews();
+			view.getProxy().releaseViews(true);
 			view = null;
 		}
 	}

@@ -358,7 +358,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 		Log.d(TAG, "handleClose: " + options, Log.DEBUG_MODE);
 		
 		modelListener = null;
-		releaseViews();
+		releaseViews(true);
 		view = null;
 
 		opened = false;
@@ -458,14 +458,14 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	}
 
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 		if (tabs != null) {
 			synchronized (tabs) {
 				for (TabProxy t : tabs) {
 					t.setTabGroup(null);
-					t.releaseViews();
+					t.releaseViews(activityFinishing);
 				}
 			}
 		}
@@ -474,7 +474,7 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 	@Override
 	public void releaseViewsForActivityForcedToDestroy()
 	{
-		super.releaseViews();
+		super.releaseViews(false);
 		if (tabs != null) {
 			synchronized (tabs) {
 				for (TabProxy t : tabs) {

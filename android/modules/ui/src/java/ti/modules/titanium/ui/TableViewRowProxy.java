@@ -290,16 +290,16 @@ public class TableViewRowProxy extends ViewProxy
 	}
 
 	@Override
-	public void releaseViews()
+	public void releaseViews(boolean activityFinishing)
 	{
-		super.releaseViews();
+		super.releaseViews(activityFinishing);
 		if (tableViewItem != null) {
 			tableViewItem.release();
 			tableViewItem = null;
 		}
 		if (controls != null) {
 			for (TiViewProxy control : controls) {
-				control.releaseViews();
+				control.releaseViews(activityFinishing);
 			}
 		}
 	}
