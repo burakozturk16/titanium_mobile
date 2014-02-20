@@ -393,11 +393,11 @@ public abstract class TiUIView
 		this.layoutParams = layoutParams;
 	}
 	
-	public void cleanAnimatedParams()
+	public void cleanAnimatedParams(boolean autoreverse)
 	{
 		if (layoutParams instanceof AnimationLayoutParams) {
 			//we remove any animated params...
-			layoutParams = new TiCompositeLayout.LayoutParams(layoutParams);
+			layoutParams = new TiCompositeLayout.LayoutParams(autoreverse?((AnimationLayoutParams) layoutParams).oldParams:layoutParams);
 			if (getOuterView() != null)
 				getOuterView().setLayoutParams(layoutParams);
 		}
