@@ -515,9 +515,29 @@ DEFINE_EXCEPTIONS
             pathAnimation.timingFunction = [runningAnimation curve];
             pathAnimation.fillMode = kCAFillModeBoth;
             pathAnimation.toValue = (id)path;
-            [layer.mask addAnimation:pathAnimation forKey:@"clippingpath"];
+            [layer.mask addAnimation:pathAnimation forKey:@"clippingPath"];
         }
         ((CAShapeLayer*)layer.mask).path = path;
+    }
+}
+
+-(void)applyPathToLayersShadow:(CALayer*)layer path:(CGPathRef)path
+{
+    if (layer == nil) return;
+    if (path == nil) {
+        layer.shadowPath = nil;
+    }
+    else {
+        if (runningAnimation) {
+            CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"shadowPath"];
+            pathAnimation.fromValue = (id)layer.shadowPath;
+            pathAnimation.duration = [runningAnimation duration];
+            pathAnimation.timingFunction = [runningAnimation curve];
+            pathAnimation.fillMode = kCAFillModeBoth;
+            pathAnimation.toValue = (id)path;
+            [layer addAnimation:pathAnimation forKey:@"shadowPath"];
+        }
+        layer.shadowPath = path;
     }
 }
 
@@ -603,10 +623,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         self.layer.cornerRadius = radius;
         if (_bgLayer) _bgLayer.cornerRadius = radius;
     }
-    if (_bgLayer)
-    {
-        _bgLayer.shadowPath = path;
+    else {
+        if (_bgLayer)
+        {
+            [self applyPathToLayersShadow:self.layer path:path];
+        }
     }
+    
 
     CGPathRelease(path);
 }
@@ -619,7 +642,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [self updatePathForClipping:bounds];
     }
     if (_borderLayer) {
-        _borderLayer.frame = bounds;
+        [_borderLayer setFrame:bounds withinAnimation:runningAnimation];
     }
     if (_bgLayer) {
         _bgLayer.frame = UIEdgeInsetsInsetRect(bounds, _backgroundPadding);
@@ -1148,7 +1171,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void) setBorderSelectedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-//    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateSelected];
     [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
 }
 
@@ -1358,10 +1380,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     ENSURE_SINGLE_ARG(arg,NSDictionary);
     [TiUIHelper applyShadow:arg toLayer:[self shadowLayer]];
-//    if ([[self shadowLayer] shadowOpacity] > 0.0f)
-//    {
-//        [self shadowLayer].shadowPath = [_borderLayer clippingPath];
-//    }
 }
 
 -(NSArray*) childViews

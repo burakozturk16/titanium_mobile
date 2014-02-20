@@ -2,6 +2,7 @@
 
 @class TiGradient;
 @class TiSVGImage;
+@class TiViewAnimationStep;
 @interface TiDrawable : NSObject
 {
     NSArray* states;
@@ -24,19 +25,18 @@
 @interface TiSelectableBackgroundLayer : CALayer
 {
     NSMutableDictionary* stateLayersMap;
-    NSMutableArray* stateLayers;
     BOOL _imageRepeat;
     BOOL readyToCreateDrawables;
     BOOL _needsToSetAllDrawablesOnNextSize;
+    TiViewAnimationStep *runningAnimation;
     CGFloat _clipWidth;
 }
 @property(nonatomic,assign) BOOL imageRepeat;
 @property(nonatomic,readonly) NSDictionary *stateLayersMap;
-@property(nonatomic,readonly) NSArray *stateLayers;
 @property(nonatomic,assign) BOOL readyToCreateDrawables;
 @property(nonatomic,assign) BOOL animateTransition;
 @property(nonatomic,assign) CGFloat clipWidth;
-@property (nonatomic, readwrite, assign) CGPathRef clippingPath;
+@property(nonatomic,assign) CGFloat customPropAnim;
 
 - (void)setState:(UIControlState)state;
 - (void)setState:(UIControlState)state animated:(BOOL)animated;
@@ -47,4 +47,5 @@
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state;
 - (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state;
 -(void)setNonRetina:(BOOL)value;
+-(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*) runningAnimation;
 @end
