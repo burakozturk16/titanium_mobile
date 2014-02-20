@@ -626,7 +626,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     else {
         if (_bgLayer)
         {
-            [self applyPathToLayersShadow:self.layer path:path];
+            [self applyPathToLayersShadow:_bgLayer path:path];
         }
     }
     
