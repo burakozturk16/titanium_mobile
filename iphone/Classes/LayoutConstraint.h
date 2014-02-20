@@ -88,8 +88,12 @@ typedef struct LayoutConstraint {
 		unsigned int horizontalWrap:1;
 	} layoutFlags;
 	
-	CGFloat minimumHeight;
-	CGFloat minimumWidth;
+	TiDimension minimumHeight;
+	TiDimension minimumWidth;
+    TiDimension maximumHeight;
+	TiDimension maximumWidth;
+    
+    BOOL fullscreen;
 	
 } LayoutConstraint;
 
@@ -105,3 +109,4 @@ CGFloat WidthFromConstraintGivenWidth(LayoutConstraint * constraint,CGFloat view
 CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, NSObject<LayoutAutosizing> * autoSizer, CGSize referenceSize, UIViewAutoresizing * resultResizing);
 CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * constraint, LayoutConstraint * parentConstraint, TiViewProxy* viewProxy, CGSize viewSize, CGPoint anchorPoint, CGSize referenceSize, CGSize sandboxSize, UIViewAutoresizing * resultResizing);
 BOOL IsLayoutUndefined(LayoutConstraint *constraint);
+CGSize minmaxSize(LayoutConstraint * constraint, CGSize size, CGSize parentSize);
