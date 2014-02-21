@@ -194,33 +194,35 @@ public class TiConvert
 			Map.Entry pairs = (Map.Entry)it.next();
 			String key = (String) pairs.getKey();
 			if (key.equals(TiC.PROPERTY_LEFT)) {
-				layoutParams.optionLeft = toTiDimension(hashMap, TiC.PROPERTY_LEFT, TiDimension.TYPE_LEFT);
+				layoutParams.optionLeft = toTiDimension(hashMap, key, TiDimension.TYPE_LEFT);
 				handled = dirty = true;
 			}
 
 			else if (key.equals(TiC.PROPERTY_TOP)) {
-				layoutParams.optionTop = toTiDimension(hashMap, TiC.PROPERTY_TOP, TiDimension.TYPE_TOP);
+				layoutParams.optionTop = toTiDimension(hashMap, key, TiDimension.TYPE_TOP);
 				handled = dirty = true;
 			}
 
 			else if (key.equals(TiC.PROPERTY_CENTER)) {
-				updateLayoutCenter(hashMap.get(TiC.PROPERTY_CENTER), layoutParams);
+				updateLayoutCenter(hashMap.get(key), layoutParams);
 				handled = dirty = true;
 			}
 
 			else if (key.equals(TiC.PROPERTY_RIGHT)) {
-				layoutParams.optionRight = toTiDimension(hashMap, TiC.PROPERTY_RIGHT, TiDimension.TYPE_RIGHT);
+				layoutParams.optionRight = toTiDimension(hashMap, key, TiDimension.TYPE_RIGHT);
 				handled = dirty = true;
 			}
 
 			else if (key.equals(TiC.PROPERTY_BOTTOM)) {
-				layoutParams.optionBottom = toTiDimension(hashMap, TiC.PROPERTY_BOTTOM, TiDimension.TYPE_BOTTOM);
+				layoutParams.optionBottom = toTiDimension(hashMap, key, TiDimension.TYPE_BOTTOM);
+				handled = dirty = true;
+			}
 				handled = dirty = true;
 			}
 
 			else if (key.equals(TiC.PROPERTY_WIDTH)) {
 				if (width == null) {
-					width = hashMap.get(TiC.PROPERTY_WIDTH);
+					width = hashMap.get(key);
 				}
 
 				if (width == null) {
@@ -251,7 +253,7 @@ public class TiConvert
 
 			else if (key.equals(TiC.PROPERTY_HEIGHT)) {
 				if (height == null) {
-					height = hashMap.get(TiC.PROPERTY_HEIGHT);
+					height = hashMap.get(key);
 				}
 
 				if (height == null) {
@@ -280,7 +282,7 @@ public class TiConvert
 				handled = dirty = true;
 			}
 			else if (key.equals(TiC.PROPERTY_ZINDEX)) {
-				Object zIndex = hashMap.get(TiC.PROPERTY_ZINDEX);
+				Object zIndex = hashMap.get(key);
 				if (zIndex != null) {
 					layoutParams.optionZIndex = toInt(zIndex);
 
@@ -290,11 +292,11 @@ public class TiConvert
 				handled = dirty = true;
 			}
 			else if (key.equals(TiC.PROPERTY_TRANSFORM) && withMatrix) {
-				layoutParams.matrix = (Ti2DMatrix) hashMap.get(TiC.PROPERTY_TRANSFORM);
+				layoutParams.matrix = (Ti2DMatrix) hashMap.get(key);
 				handled = dirty = true;
 			}
 			else if (key.equals(TiC.PROPERTY_ANCHOR_POINT) && withMatrix) {
-				Object anchorPoint = hashMap.get(TiC.PROPERTY_ANCHOR_POINT);
+				Object anchorPoint = hashMap.get(key);
 				if (anchorPoint instanceof HashMap) {
 					HashMap point = (HashMap) anchorPoint;
 					layoutParams.anchorX = TiConvert.toFloat(point, TiC.PROPERTY_X);
