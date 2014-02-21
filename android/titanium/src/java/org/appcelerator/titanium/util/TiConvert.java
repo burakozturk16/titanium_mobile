@@ -217,6 +217,25 @@ public class TiConvert
 				layoutParams.optionBottom = toTiDimension(hashMap, key, TiDimension.TYPE_BOTTOM);
 				handled = dirty = true;
 			}
+			
+			else if (key.equals(TiC.PROPERTY_MIN_WIDTH)) {
+				layoutParams.minWidth = toTiDimension(hashMap, key, TiDimension.TYPE_WIDTH);
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_MIN_HEIGHT)) {
+				layoutParams.minHeight = toTiDimension(hashMap, key, TiDimension.TYPE_HEIGHT);
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_MAX_WIDTH)) {
+				layoutParams.maxWidth = toTiDimension(hashMap, key, TiDimension.TYPE_WIDTH);
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_MAX_HEIGHT)) {
+				layoutParams.maxHeight = toTiDimension(hashMap, key, TiDimension.TYPE_HEIGHT);
+				handled = dirty = true;
+			}
+			else if (key.equals(TiC.PROPERTY_FULLSCREEN)) {
+				layoutParams.fullscreen = toBoolean(hashMap, key, false);
 				handled = dirty = true;
 			}
 

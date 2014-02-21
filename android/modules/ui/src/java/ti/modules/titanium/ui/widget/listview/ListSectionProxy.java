@@ -133,6 +133,8 @@ public class ListSectionProxy extends ViewProxy {
 			toPassProps.put(TiC.PROPERTY_SELECTED_BACKGROUND_GRADIENT,
 					TiC.PROPERTY_BACKGROUND_SELECTED_GRADIENT);
 			toPassProps.put(TiC.PROPERTY_ROW_HEIGHT, TiC.PROPERTY_HEIGHT);
+			toPassProps.put(TiC.PROPERTY_MIN_ROW_HEIGHT, TiC.PROPERTY_MIN_HEIGHT);
+			toPassProps.put(TiC.PROPERTY_MAX_ROW_HEIGHT, TiC.PROPERTY_MAX_HEIGHT);
 		}
 		listItemData = new ArrayList<ListItemData>();
 		filterIndices = new ArrayList<Integer>();

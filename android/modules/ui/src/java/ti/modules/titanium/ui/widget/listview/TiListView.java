@@ -308,15 +308,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			else return;
 			//here the parent cant be null as we inflated
 			holder.setListView(listView);
-			String minRowHeight = MIN_ROW_HEIGHT;
-			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
-				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
-			}
-			item.setMinHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT));
-			if (proxy == null) return;
-			if (proxy.hasProperty(TiC.PROPERTY_MAX_ROW_HEIGHT)) {
-				item.setMaxHeight(TiConvert.toTiDimension(proxy.getProperty(TiC.PROPERTY_MAX_ROW_HEIGHT), TiDimension.TYPE_HEIGHT));
-			}
+//			String minRowHeight = MIN_ROW_HEIGHT;
+//			if (proxy != null && proxy.hasProperty(TiC.PROPERTY_MIN_ROW_HEIGHT)) {
+//				minRowHeight = TiConvert.toString(proxy.getProperty(TiC.PROPERTY_MIN_ROW_HEIGHT));
+//			}
+//			item.setMinHeight(TiConvert.toTiDimension(minRowHeight, TiDimension.TYPE_HEIGHT));
+//			if (proxy == null) return;
+//			if (proxy.hasProperty(TiC.PROPERTY_MAX_ROW_HEIGHT)) {
+//				item.setMaxHeight(TiConvert.toTiDimension(proxy.getProperty(TiC.PROPERTY_MAX_ROW_HEIGHT), TiDimension.TYPE_HEIGHT));
+//			}
 		}
 		
 		@Override

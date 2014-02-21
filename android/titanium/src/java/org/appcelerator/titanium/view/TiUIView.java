@@ -572,6 +572,21 @@ public abstract class TiUIView
 				layoutParams.optionHeight = null;
 			}
 			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MIN_WIDTH)) {
+			layoutParams.minWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MIN_HEIGHT)) {
+			layoutParams.minHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MAX_HEIGHT)) {
+			layoutParams.maxWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MAX_HEIGHT)) {
+			layoutParams.maxHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_FULLSCREEN)) {
+			layoutParams.fullscreen = TiConvert.toBoolean(newValue, false);
+			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
 				((TiCompositeLayout) getParentViewForChild())
@@ -2118,7 +2133,13 @@ public abstract class TiUIView
 				options.containsKey(TiC.PROPERTY_BOTTOM) ||
 				options.containsKey(TiC.PROPERTY_LEFT) ||
 				options.containsKey(TiC.PROPERTY_RIGHT) ||
-				options.containsKey(TiC.PROPERTY_CENTER)) {
+				options.containsKey(TiC.PROPERTY_CENTER) ||
+				options.containsKey(TiC.PROPERTY_FULLSCREEN) ||
+				options.containsKey(TiC.PROPERTY_MIN_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_MIN_HEIGHT) ||
+				options.containsKey(TiC.PROPERTY_MAX_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_MAX_HEIGHT)
+				) {
 			AnimationLayoutParams animParams;
 //			if (layoutParams instanceof AnimationLayoutParams) {
 //				animParams = (AnimationLayoutParams)layoutParams;
