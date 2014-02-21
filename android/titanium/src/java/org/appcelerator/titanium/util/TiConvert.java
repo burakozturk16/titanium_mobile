@@ -755,6 +755,7 @@ public class TiConvert
 	 */
 	public static TiDimension toTiDimension(String value, int valueType)
 	{
+		if (value == null) return null;
 		return new TiDimension(value, valueType);
 	}
 
