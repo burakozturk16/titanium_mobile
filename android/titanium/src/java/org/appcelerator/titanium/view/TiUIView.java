@@ -540,39 +540,19 @@ public abstract class TiUIView
 						.setLayoutArrangement(layout);
 			}
 		} else if (key.equals(TiC.PROPERTY_LEFT)) {
-			if (newValue != null) {
-				layoutParams.optionLeft = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
-			} else {
-				layoutParams.optionLeft = null;
-			}
+			layoutParams.optionLeft = TiConvert.toTiDimension(newValue, TiDimension.TYPE_LEFT);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_TOP)) {
-			if (newValue != null) {
-				layoutParams.optionTop = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_TOP);
-			} else {
-				layoutParams.optionTop = null;
-			}
+			layoutParams.optionTop = TiConvert.toTiDimension(newValue, TiDimension.TYPE_TOP);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_CENTER)) {
 			TiConvert.updateLayoutCenter(newValue, layoutParams);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_RIGHT)) {
-			if (newValue != null) {
-				layoutParams.optionRight = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
-			} else {
-				layoutParams.optionRight = null;
-			}
+			layoutParams.optionRight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_RIGHT);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_BOTTOM)) {
-			if (newValue != null) {
-				layoutParams.optionBottom = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
-			} else {
-				layoutParams.optionBottom = null;
-			}
+			layoutParams.optionBottom = TiConvert.toTiDimension(newValue, TiDimension.TYPE_BOTTOM);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
 			if (newValue != null) {
