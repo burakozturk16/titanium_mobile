@@ -82,6 +82,9 @@ exports.init = function (logger, config, cli) {
 					stripLogLevelRE = new RegExp('\\[(?:' + logger.getLevels().join('|') + ')\\] '),
 					simStarted = false;
 
+				if (restartSimulator) {
+					cmd.push('--exit');
+				}
 				if (appc.version.gte(build.iosSimVersion, '7.0.0') && cli.argv['sim-64bit']) {
 					cmd.push('--retina');
 					if (build.iosSimType == 'iphone') {
