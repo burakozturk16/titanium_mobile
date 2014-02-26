@@ -36,16 +36,58 @@ else (width is invalid)
 
 */
 
+CGSize minmaxSize(LayoutConstraint * constraint, CGSize size, CGSize parentSize)
+{
+    CGSize result;
+    result.width = MAX(TiDimensionCalculateValueDef(constraint->minimumWidth, parentSize.width, size.width),size.width);
+    result.height = MAX(TiDimensionCalculateValueDef(constraint->minimumHeight, parentSize.height, size.height),size.height);
+    result.width = MIN(TiDimensionCalculateValueDef(constraint->maximumWidth, parentSize.width, size.width),size.width);
+    result.height = MIN(TiDimensionCalculateValueDef(constraint->maximumHeight, parentSize.height, size.height),size.height);
+    return result;
+}
+
 CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, NSObject<LayoutAutosizing> * autoSizer, CGSize referenceSize, UIViewAutoresizing * resultResizing)
 {
 	//TODO: Refactor for elegance.
-	CGFloat width;
-    CGFloat height;
+	__block CGFloat width;
+    __block CGFloat height;
     BOOL ignorePercent = NO;
     BOOL needsWidthAutoCompute = NO;
     BOOL needsHeightAutoCompute = NO;
     BOOL parentCanGrow = NO;
     CGSize parentSize = CGSizeZero;
+    
+    CGSize (^completion)() = ^() {
+        // when you use negative top, you get into a situation where you get smaller
+        // then intended sizes when using auto.  this allows you to set a floor for
+
+        CGSize result = minmaxSize(constraint, CGSizeMake(width, height), ignorePercent?parentSize:referenceSize);
+        
+        //Should we always do this or only for auto
+        if ([autoSizer respondsToSelector:@selector(verifySize:)])
+        {
+            result = [(id)autoSizer verifySize:result];
+        }
+        
+        if ((resultResizing != NULL) && [autoSizer respondsToSelector:@selector(verifyAutoresizing:)])
+        {
+            *resultResizing = [autoSizer verifyAutoresizing:*resultResizing];
+        }
+        return result;
+    };
+    
+	if(resultResizing != NULL)
+	{
+		*resultResizing &= ~(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+	}
+    
+    if (constraint->fullscreen == YES) {
+		*resultResizing |= (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
+        width = referenceSize.width;
+        height = referenceSize.height;
+        return completion();
+    }
+    
     
     if ([autoSizer isKindOfClass:[TiViewProxy class]]) {
         TiViewProxy* parent = [(TiViewProxy*)autoSizer parent];
@@ -58,11 +100,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         }
     }
     
-    
-	if(resultResizing != NULL)
-	{
-		*resultResizing &= ~(UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
-	}
+
     
     TiDimension dimension = constraint->width;
     BOOL flexibleWidth = NO;
@@ -218,26 +256,7 @@ CGSize SizeConstraintViewWithSizeAddingResizing(LayoutConstraint * constraint, N
         *resultResizing |= UIViewAutoresizingFlexibleHeight;
     }
     
-    
-    
-	// when you use negative top, you get into a situation where you get smaller
-	// then intended sizes when using auto.  this allows you to set a floor for
-	// the height/width so that it won't be smaller than specified - defaults to 0
-	height = MAX(constraint->minimumHeight,height);
-	width = MAX(constraint->minimumWidth,width);
-    CGSize result = CGSizeMake(width, height);
-    
-    //Should we always do this or only for auto
-    if ([autoSizer respondsToSelector:@selector(verifySize:)])
-    {
-        result = [(id)autoSizer verifySize:result];
-    }
-	
-	if ((resultResizing != NULL) && [autoSizer respondsToSelector:@selector(verifyAutoresizing:)])
-	{
-		*resultResizing = [autoSizer verifyAutoresizing:*resultResizing];
-	}
-    return result;
+    return completion();
 }
 
 
@@ -260,6 +279,11 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     
     CGSize parentSize = sandboxSize;
     if (!horizontal) parentSize = referenceSize;
+    
+    if (constraint->fullscreen == YES) {
+		return CGPointMake(parentSize.width/2.0, parentSize.height/2.0);
+    }
+    
     CGFloat frameLeft = 0.0;
     if (!flexibleSize) {
         if (TiDimensionIsUndefined(constraint->width)) {
@@ -393,6 +417,7 @@ void ApplyConstraintToViewWithBounds(LayoutConstraint * constraint, LayoutConstr
 
 CGFloat WidthFromConstraintGivenWidth(LayoutConstraint * constraint, CGFloat viewWidth)
 {
+    if (constraint->fullscreen == YES) return viewWidth;
 	switch (constraint->width.type)
 	{
 		case TiDimensionTypeDip:

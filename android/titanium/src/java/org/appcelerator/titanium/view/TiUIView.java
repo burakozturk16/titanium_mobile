@@ -393,11 +393,11 @@ public abstract class TiUIView
 		this.layoutParams = layoutParams;
 	}
 	
-	public void cleanAnimatedParams()
+	public void cleanAnimatedParams(boolean autoreverse)
 	{
 		if (layoutParams instanceof AnimationLayoutParams) {
 			//we remove any animated params...
-			layoutParams = new TiCompositeLayout.LayoutParams(layoutParams);
+			layoutParams = new TiCompositeLayout.LayoutParams(autoreverse?((AnimationLayoutParams) layoutParams).oldParams:layoutParams);
 			if (getOuterView() != null)
 				getOuterView().setLayoutParams(layoutParams);
 		}
@@ -540,39 +540,19 @@ public abstract class TiUIView
 						.setLayoutArrangement(layout);
 			}
 		} else if (key.equals(TiC.PROPERTY_LEFT)) {
-			if (newValue != null) {
-				layoutParams.optionLeft = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_LEFT);
-			} else {
-				layoutParams.optionLeft = null;
-			}
+			layoutParams.optionLeft = TiConvert.toTiDimension(newValue, TiDimension.TYPE_LEFT);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_TOP)) {
-			if (newValue != null) {
-				layoutParams.optionTop = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_TOP);
-			} else {
-				layoutParams.optionTop = null;
-			}
+			layoutParams.optionTop = TiConvert.toTiDimension(newValue, TiDimension.TYPE_TOP);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_CENTER)) {
 			TiConvert.updateLayoutCenter(newValue, layoutParams);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_RIGHT)) {
-			if (newValue != null) {
-				layoutParams.optionRight = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_RIGHT);
-			} else {
-				layoutParams.optionRight = null;
-			}
+			layoutParams.optionRight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_RIGHT);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_BOTTOM)) {
-			if (newValue != null) {
-				layoutParams.optionBottom = TiConvert.toTiDimension(
-						TiConvert.toString(newValue), TiDimension.TYPE_BOTTOM);
-			} else {
-				layoutParams.optionBottom = null;
-			}
+			layoutParams.optionBottom = TiConvert.toTiDimension(newValue, TiDimension.TYPE_BOTTOM);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HEIGHT)) {
 			if (newValue != null) {
@@ -591,6 +571,21 @@ public abstract class TiUIView
 			} else {
 				layoutParams.optionHeight = null;
 			}
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MIN_WIDTH)) {
+			layoutParams.minWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MIN_HEIGHT)) {
+			layoutParams.minHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MAX_HEIGHT)) {
+			layoutParams.maxWidth = TiConvert.toTiDimension(newValue, TiDimension.TYPE_WIDTH);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_MAX_HEIGHT)) {
+			layoutParams.maxHeight = TiConvert.toTiDimension(newValue, TiDimension.TYPE_HEIGHT);
+			layoutNativeView();
+		} else if (key.equals(TiC.PROPERTY_FULLSCREEN)) {
+			layoutParams.fullscreen = TiConvert.toBoolean(newValue, false);
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_HORIZONTAL_WRAP)) {
 			if (nativeView instanceof TiCompositeLayout) {
@@ -2138,7 +2133,13 @@ public abstract class TiUIView
 				options.containsKey(TiC.PROPERTY_BOTTOM) ||
 				options.containsKey(TiC.PROPERTY_LEFT) ||
 				options.containsKey(TiC.PROPERTY_RIGHT) ||
-				options.containsKey(TiC.PROPERTY_CENTER)) {
+				options.containsKey(TiC.PROPERTY_CENTER) ||
+				options.containsKey(TiC.PROPERTY_FULLSCREEN) ||
+				options.containsKey(TiC.PROPERTY_MIN_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_MIN_HEIGHT) ||
+				options.containsKey(TiC.PROPERTY_MAX_WIDTH) ||
+				options.containsKey(TiC.PROPERTY_MAX_HEIGHT)
+				) {
 			AnimationLayoutParams animParams;
 //			if (layoutParams instanceof AnimationLayoutParams) {
 //				animParams = (AnimationLayoutParams)layoutParams;

@@ -1760,6 +1760,11 @@ public class TiC
 	public static final String PROPERTY_MAX = "max";
 
 	public static final String PROPERTY_MAX_AGE = "maxAge";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MAX_HEIGHT = "maxHeight";	
 	
 	/**
 	 * @module.api
@@ -1775,6 +1780,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_MAX_ROW_HEIGHT = "maxRowHeight";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MAX_WIDTH = "maxWidth";
+	
 	/**
 	 * @module.api
 	 */
@@ -1830,13 +1841,23 @@ public class TiC
 	public static final String PROPERTY_MIN = "min";
 
 	public static final String PROPERTY_MIN_AGE = "minAge";
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MIN_HEIGHT = "minHeight";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_MIN_ROW_HEIGHT = "minRowHeight";
+	
 	public static final String PROPERTY_MIN_UPDATE_DISTANCE = "minUpdateDistance";
 	public static final String PROPERTY_MIN_UPDATE_TIME = "minUpdateTime";
 
 	/**
 	 * @module.api
 	 */
-	public static final String PROPERTY_MIN_ROW_HEIGHT = "minRowHeight";
+	public static final String PROPERTY_MIN_WIDTH = "minWidth";
 
 	/**
 	 * @module.api

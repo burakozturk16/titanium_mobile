@@ -12,6 +12,7 @@
 #import "TiAnimation.h"
 #import "TiViewAnimationStep.h"
 
+
 CGFloat* innerRadiusFromPadding(const CGFloat* radii, const CGRect  rect, float _decale)
 {
     CGFloat maxPadding = MIN(rect.size.width / 4, rect.size.height / 4);
@@ -47,7 +48,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     radii = innerRadiusFromPadding(radii, rect, _decale);
     // create a mutable path
     CGMutablePathRef path = CGPathCreateMutable();
-   
+    
     // get the 4 corners of the rect
     CGPoint topLeft = CGPointMake(rect.origin.x + _decale, rect.origin.y + _decale);
     CGPoint topRight = CGPointMake(rect.origin.x + rect.size.width - _decale, rect.origin.y + _decale);
@@ -110,6 +111,13 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     return path;
 }
 
+@interface TiBorderLayer()
+@property(nonatomic,readonly) UIEdgeInsets borderPadding;
+@property(nonatomic,readonly) CGFloat* radii;
+@property(nonatomic,readonly) BOOL usingDefaultBorderStyle;
+
+@end
+
 @implementation TiBorderLayer
 {
     BOOL _usingDefaultBorderStyle;
@@ -125,6 +133,20 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         _clipWidth = 1;
         self.zPosition = 0.01;
         _borderPadding = UIEdgeInsetsZero;
+        self.needsDisplayOnBoundsChange = YES;
+        self.shouldRasterize = YES;
+    }
+    return self;
+}
+
+- (id) initWithLayer:(id)layer
+{
+    self = [super initWithLayer:layer];
+    if (self) {
+        TiBorderLayer *customLayer = (TiBorderLayer *)layer;
+        _borderPadding = customLayer.borderPadding;
+        _radii = customLayer.radii;
+        _usingDefaultBorderStyle = customLayer.usingDefaultBorderStyle;
     }
     return self;
 }
@@ -149,7 +171,25 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         return;
     }
     if (!readyToCreateDrawables && !_needsToSetAllDrawablesOnNextSize) return;
-    CGPathRef path = self.shadowPath = [self borderPath:radii forBounds:bounds];
+    if (self.mask == nil) {
+        CAShapeLayer* maskLayer = [CAShapeLayer layer];
+        maskLayer.fillColor = [[UIColor clearColor] CGColor];
+        maskLayer.strokeColor = [[UIColor blackColor] CGColor];
+        maskLayer.frame = self.bounds;
+        self.mask = maskLayer;
+    }
+    ((CAShapeLayer*)self.mask).lineWidth = _clipWidth;
+    CGPathRef path = [self borderPath:radii forBounds:bounds];
+    if (runningAnimation) {
+        CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
+        pathAnimation.fromValue = (id)((CAShapeLayer*)self.mask).path;
+        pathAnimation.duration = [runningAnimation duration];
+        pathAnimation.timingFunction = [runningAnimation curve];
+        pathAnimation.fillMode = kCAFillModeBoth;
+        pathAnimation.toValue = (id)path;
+        [self.mask addAnimation:pathAnimation forKey:@"clippingPath"];
+    }
+    ((CAShapeLayer*)self.mask).path = path;
     CGPathRelease(path);
 }
 
@@ -179,8 +219,8 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         return;
     }
     if (width == self.clipWidth) return;
-    [self updateBorderPath];
     [super setClipWidth:width];
+    [self updateBorderPath];
 }
 
 -(void)setCornerRadius:(CGFloat)cornerRadius
@@ -241,5 +281,6 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
     [self swithToContentBorder];
     return [super getOrCreateDrawableForState:state];
 }
+
 
 @end
