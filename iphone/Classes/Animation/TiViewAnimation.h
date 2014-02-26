@@ -34,7 +34,13 @@
     id  bottom;
     id  width;
     id  height;
+    BOOL  _fullscreen;
     
+    id minWidth;
+    id minHeight;
+    id maxWidth;
+    id maxHeight;
+ 
     BOOL  leftDefined;
     BOOL  rightDefined;
     BOOL  topDefined;
@@ -42,6 +48,13 @@
     BOOL  widthDefined;
     BOOL  heightDefined;
     BOOL  transformDefined;
+    BOOL  fullscreenDefined;
+    
+    BOOL minWidthDefined;
+    BOOL minHeightDefined;
+    BOOL maxWidthDefined;
+    BOOL maxHeightDefined;
+   
     
     TiPoint		*center;
     TiColor		*backgroundColor;

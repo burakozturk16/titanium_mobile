@@ -1,6 +1,7 @@
 #import "TiSelectableBackgroundLayer.h"
 #import "TiGradient.h"
 #import "TiSVGImage.h"
+#import "TiViewAnimationStep.h"
 
 @interface TiDrawable()
 {
@@ -17,10 +18,10 @@
     UIControlState currentState;
     BOOL _animateTransition;
     BOOL _needsToSetDrawables;
-    CGPathRef _clippingPath;
     BOOL _nonRetina;
 }
 @property(nonatomic,assign) BOOL nonRetina;
+@property(nonatomic,readonly) TiDrawable *currentDrawable;
 
 @end
 
@@ -199,14 +200,13 @@
 @end
 
 @implementation TiSelectableBackgroundLayer
-@synthesize stateLayers, stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, clippingPath = _clippingPath, nonRetina = _nonRetina;
+@synthesize stateLayersMap, imageRepeat = _imageRepeat, readyToCreateDrawables, animateTransition = _animateTransition, clipWidth = _clipWidth, nonRetina = _nonRetina, currentDrawable = currentDrawable, customPropAnim;
 
 - (id)init {
     if (self = [super init])
     {
         stateLayersMap = [[NSMutableDictionary dictionaryWithCapacity:4] retain];
         currentDrawable = [self getOrCreateDrawableForState:UIControlStateNormal];
-        stateLayers = [[NSMutableArray array] retain];
         currentState = UIControlStateNormal;
         _imageRepeat = NO;
         readyToCreateDrawables = NO;
@@ -221,16 +221,26 @@
     return self;
 }
 
+- (id) initWithLayer:(id)layer
+{
+    self = [super initWithLayer:layer];
+    if (self) {
+        TiSelectableBackgroundLayer *customLayer = (TiSelectableBackgroundLayer *)layer;
+        stateLayersMap = [[NSMutableDictionary dictionaryWithDictionary:customLayer.stateLayersMap] retain];
+        currentDrawable = customLayer.currentDrawable;
+        self.imageRepeat = customLayer.imageRepeat;
+        self.readyToCreateDrawables = customLayer.readyToCreateDrawables;
+        _clipWidth = customLayer.clipWidth;
+        self.animateTransition = customLayer.animateTransition;
+        self.customPropAnim = customLayer.customPropAnim;
+    }
+    return self;
+}
+
 - (void) dealloc
 {
     currentDrawable = nil;
 	[stateLayersMap release];
-	[stateLayers release];
-    if (_clippingPath)
-    {
-        CGPathRelease(_clippingPath);
-        _clippingPath = nil;
-    }
 	[super dealloc];
 }
 
@@ -486,6 +496,49 @@
     }
 }
 
+-(void)setFrame:(CGRect)frame withinAnimation:(TiViewAnimationStep*) animation
+{
+    runningAnimation = animation;
+    [self setFrame:frame];
+    runningAnimation = nil;
+}
+
+//
+//static NSArray *animationKeys;
+//+ (NSArray *)animationKeys
+//{
+//    if (!animationKeys)
+//        animationKeys = [@[@"customPropAnim"] retain];
+//    
+//    return animationKeys;
+//}
+//
+//+ (BOOL)needsDisplayForKey:(NSString *)key {
+//    if ([[self  animationKeys] indexOfObject:key] != NSNotFound)
+//        return YES;
+//    return [super needsDisplayForKey:key];
+//}
+
+//-(void)setShadowPath:(CGPathRef)shadowPath
+//{
+//    if (runningAnimation) {
+//        CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"customPropAnim"];
+//        animation.fromValue = NUMFLOAT(0);
+//        animation.duration = [runningAnimation duration];
+//        animation.timingFunction = [runningAnimation curve];
+//        animation.fillMode = kCAFillModeBoth;
+//        animation.toValue = NUMFLOAT(1);
+//        [self addAnimation:animation forKey:@"customPropAnim"];
+//        
+//        animation = [CABasicAnimation animationWithKeyPath:@"shadowPath"];
+//        animation.fromValue = (id)self.shadowPath;
+//        animation.toValue = (id)shadowPath;
+//        [self addAnimation:animation forKey:@"shadowPath"];
+//    }
+//    [super setShadowPath:shadowPath];
+//}
+
+
 - (id<CAAction>)actionForKey:(NSString *)event
 {
     id action  = [super actionForKey:event];
@@ -505,14 +558,6 @@
     }
 
     return action;
-}
-
--(void)setClippingPath:(CGPathRef)newPath
-{
-    if ( newPath != _clippingPath ) {
-        CGPathRelease(_clippingPath);
-        _clippingPath = CGPathRetain(newPath);
-    }
 }
 
 @end

@@ -63,7 +63,7 @@ public class TiViewAnimator extends TiAnimatorSet
 //			view.clearAnimation();
 //		}
 		if (viewProxy != null && viewProxy.peekView() != null) {
-			viewProxy.peekView().cleanAnimatedParams();
+			viewProxy.peekView().cleanAnimatedParams(autoreverse);
 		}
 	}
 

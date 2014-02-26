@@ -141,6 +141,16 @@ TI_INLINE CGFloat TiDimensionCalculateValue(TiDimension dimension,CGFloat boundi
 	return 0.0;
 }
 
+TI_INLINE CGFloat TiDimensionCalculateValueDef(TiDimension dimension,CGFloat boundingValue, CGFloat defaultValue)
+{
+	CGFloat result;
+	if(TiDimensionDidCalculateValue(dimension,boundingValue,&result))
+	{
+		return result;
+	}
+	return defaultValue;
+}
+
 TI_INLINE CGFloat TiDimensionCalculateValueFromStringInBouding(NSString* value, CGFloat boundingValue)
 {
 	CGFloat result;

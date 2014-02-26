@@ -33,7 +33,7 @@ static NSArray *layoutProps;
 + (NSArray *)layoutProps
 {
     if (!layoutProps)
-        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", @"transform", nil];
+        layoutProps = [[NSArray alloc] initWithObjects:@"left", @"right", @"top", @"bottom", @"width", @"height", @"transform", @"fullscreen", nil];
     
     return layoutProps;
 }
@@ -138,7 +138,7 @@ self.p = v;\
 }\
 }\
 
-    leftDefined = rightDefined = topDefined = bottomDefined = widthDefined = heightDefined = transformDefined = NO;
+    leftDefined = rightDefined = topDefined = bottomDefined = widthDefined = heightDefined = transformDefined = fullscreenDefined = NO;
     
     NSMutableSet *intersection = [NSMutableSet setWithArray:[TiViewAnimation layoutProps]];
     [intersection intersectSet:[NSSet setWithArray:[properties allKeys]]];
@@ -192,23 +192,46 @@ self.p = v;\
         height = [value retain];
         heightDefined = YES;
     }
+    else if ([key isEqualToString:@"minWidth"]) {
+        RELEASE_TO_NIL(minWidth);
+        minWidth = [value retain];
+        minWidthDefined = YES;
+    }
+    else if ([key isEqualToString:@"minHeight"]) {
+        RELEASE_TO_NIL(minHeight);
+        minHeight = [value retain];
+        minHeightDefined = YES;
+    }
+    else if ([key isEqualToString:@"maxWidth"]) {
+        RELEASE_TO_NIL(maxWidth);
+        maxWidth = [value retain];
+        maxWidthDefined = YES;
+    }
+    else if ([key isEqualToString:@"maxHeight"]) {
+        RELEASE_TO_NIL(maxHeight);
+        maxHeight = [value retain];
+        maxHeightDefined = YES;
+    }
     else if ([key isEqualToString:@"transform"]) {
         RELEASE_TO_NIL(transform);
         transform = [value retain];
         transformDefined = YES;
+    }
+    else if ([key isEqualToString:@"fullscreen"]) {
+        _fullscreen = [TiUtils boolValue:value def:NO];
+        fullscreenDefined = YES;
     }
 }
 
 -(void)applyLayoutConstraintsForStep:(TiViewAnimationStep*) step
 {
     LayoutConstraint *layoutProperties = [m_tiViewProxy layoutProperties];
-    
+    if (layoutProperties == NULL) return;
     BOOL doReposition = NO;
     
 #define CHECK_LAYOUT_CHANGE(a, b) \
-if (b == YES && layoutProperties!=NULL) \
+if (b == YES) \
 {\
-id cacheValue = [m_tiViewProxy valueForKey:@#a]; \
 layoutProperties->a = TiDimensionFromObject(a); \
 doReposition = YES;\
 }
@@ -219,6 +242,10 @@ doReposition = YES;\
     CHECK_LAYOUT_CHANGE(height, heightDefined);
     CHECK_LAYOUT_CHANGE(top, topDefined);
     CHECK_LAYOUT_CHANGE(bottom, bottomDefined);
+    if (fullscreenDefined) {
+        layoutProperties->fullscreen = _fullscreen;
+        doReposition = YES;
+    }
     if (center!=nil && layoutProperties != NULL)
     {
         layoutProperties->centerX = [center xDimension];
