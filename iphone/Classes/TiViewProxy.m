@@ -3455,7 +3455,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     BOOL followsFillHBehavior = TiDimensionIsAutoFill([child defaultAutoHeightBehavior:nil]);
     __block CGSize autoSize;
     __block BOOL autoSizeComputed = FALSE;
-    __block CGFloat boundingWidth = bounds.size.width-horizontalLayoutBoundary;
+    __block CGFloat boundingWidth = TiLayoutFlagsHasHorizontalWrap(&layoutProperties)?bounds.size.width:bounds.size.width - horizontalLayoutBoundary;
     __block CGFloat boundingHeight = bounds.size.height-verticalLayoutBoundary;
     if (boundingHeight < 0) {
         boundingHeight = 0;
@@ -3478,7 +3478,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             case TiDimensionTypePercent:
             case TiDimensionTypeDip:
             {
-                return  TiDimensionCalculateValue(constraint, bounds.size.height) + offsetV;
+                return  TiDimensionCalculateValue(constraint, boundingHeight) + offsetV;
             }
             case TiDimensionTypeAutoFill:
             {
@@ -3531,7 +3531,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                 case TiDimensionTypePercent:
                 case TiDimensionTypeDip:
                 {
-                    bounds.size.width =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
+                    bounds.size.width =  TiDimensionCalculateValue(constraint, boundingWidth) + offsetH;
                     break;
                 }
                 case TiDimensionTypeAutoFill:
@@ -3542,11 +3542,11 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                 case TiDimensionTypeUndefined:
                 {
                     if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->centerX) ) {
-                        CGFloat width = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->left, bounds.size.width) );
+                        CGFloat width = 2 * ( TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->left, boundingWidth) );
                         bounds.size.width = width + offsetH;
                     }
                     else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
-                        CGFloat w   = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, bounds.size.width) - TiDimensionCalculateValue([child layoutProperties]->centerX, bounds.size.width));
+                        CGFloat w   = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
                         bounds.size.width = autoSize.width + offsetH;
                         break;
                     }
@@ -3597,7 +3597,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
             if (TiDimensionIsDip(constraint) || TiDimensionIsPercent(constraint))
             {
-                desiredWidth =  TiDimensionCalculateValue(constraint, bounds.size.width) + offsetH;
+                desiredWidth =  TiDimensionCalculateValue(constraint, boundingWidth) + offsetH;
                 isPercent = TiDimensionIsPercent(constraint);
             }
             else if (followsFillBehavior && TiDimensionIsUndefined(constraint))
@@ -3609,7 +3609,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
                 else if (!TiDimensionIsUndefined([child layoutProperties]->left) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
                     recalculateWidth = YES;
                     followsFillBehavior = YES;
-                    desiredWidth = bounds.size.width;
+                    desiredWidth = boundingWidth;
                 }
                 else if (!TiDimensionIsUndefined([child layoutProperties]->centerX) && !TiDimensionIsUndefined([child layoutProperties]->right) ) {
                     desiredWidth = 2 * ( boundingWidth - TiDimensionCalculateValue([child layoutProperties]->right, boundingWidth) - TiDimensionCalculateValue([child layoutProperties]->centerX, boundingWidth));
@@ -3636,7 +3636,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         
         bounds.size.height = computeHeight();
         
-        if (horizontalWrap && (desiredWidth > boundingWidth)) {
+        if (horizontalWrap && (horizontalLayoutBoundary + desiredWidth >   boundingWidth)) {
             if (horizontalLayoutBoundary == 0.0) {
                 //This is start of row
                 bounds.origin.x = horizontalLayoutBoundary;
