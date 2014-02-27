@@ -329,7 +329,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			
 			int widthPadding = getViewWidthPadding(child, params, this);
 			int heightPadding = getViewHeightPadding(child, params, this);
-			constrainChild(child, params, (w - horizontalRowWidth), wMode, h, hMode, widthPadding, heightPadding);
+			constrainChild(child, params, horizontalNoWrap?(w - horizontalRowWidth):w, wMode, h, hMode, widthPadding, heightPadding);
 
 			int childWidth = child.getMeasuredWidth() + widthPadding;
 			int childHeight = child.getMeasuredHeight() + heightPadding;
