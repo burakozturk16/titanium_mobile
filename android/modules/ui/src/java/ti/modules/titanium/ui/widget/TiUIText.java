@@ -15,6 +15,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
@@ -44,7 +45,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.content.res.ColorStateList;
 
-public class TiUIText extends TiUIView
+public class TiUIText extends TiUINonViewGroupView
 	implements TextWatcher, OnEditorActionListener, OnFocusChangeListener
 {
 	private static final String TAG = "TiUIText";
