@@ -1153,11 +1153,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 				}
 			}
 		}
-
-		// Checkpoint for ti.end event
-		if (tiApp != null) {
-			tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppEndEvent());
-		}
 	}
 
 	@Override
@@ -1214,7 +1209,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 
 		// Checkpoint for ti.start event
 		String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
-		tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppStartEvent(tiApp, deployType));
 	}
 	
 	@Override
