@@ -1332,6 +1332,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	_dispatchPressed = [TiUtils boolValue:arg def:_dispatchPressed];
 }
 
+-(BOOL)dispatchPressed
+{
+	return _dispatchPressed;
+}
+
 -(BOOL) touchEnabled {
 	return _touchEnabled;
 }
