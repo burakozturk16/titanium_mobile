@@ -860,8 +860,8 @@ public abstract class TiUIView
 				disableHWAcceleration();
 			else
 				enableHWAcceleration();
-		} else if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
+//		} else if (Log.isDebugModeEnabled()) {
+//			Log.d(TAG, "Unhandled property key: " + key, Log.DEBUG_MODE);
 		}
 	}
 	
