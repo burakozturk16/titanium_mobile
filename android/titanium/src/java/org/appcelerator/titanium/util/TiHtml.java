@@ -193,6 +193,14 @@ public class TiHtml {
 
             if (img != null) {
                 d = img.getDrawable(src);
+                if (d != null) {
+                	int len = text.length();
+                    text.append("\uFFFC");
+
+                    text.setSpan(new ImageSpan(d, src), len, text.length(),
+                                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+                
             }
 
 //            if (d == null) {
@@ -201,11 +209,7 @@ public class TiHtml {
 //                d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
 //            }
 
-            int len = text.length();
-            text.append("\uFFFC");
-
-            text.setSpan(new ImageSpan(d, src), len, text.length(),
-                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            
         }
 
         private static void startFont(SpannableStringBuilder text,
