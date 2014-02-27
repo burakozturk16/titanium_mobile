@@ -108,8 +108,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	private TiProperties appProperties;
 	private WeakReference<Activity> currentActivity;
 	private String density;
-	private boolean needsStartEvent;
-	private boolean needsEnrollEvent;
 	private String buildVersion = "", buildTimestamp = "", buildHash = "";
 	private String defaultUnit;
 	private TiResponseCache responseCache;
@@ -117,9 +115,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	private AccessibilityManager accessibilityManager = null;
 	private boolean forceFinishRootActivity = false;
 
-	protected TiAnalyticsModel analyticsModel;
-	protected Intent analyticsIntent;
-	protected Handler analyticsHandler;
 	protected TiDeployData deployData;
 	protected TiTempFileHelper tempFileHelper;
 	protected ITiAppInfo appInfo;
@@ -130,7 +125,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	protected static ArrayList<ActivityTransitionListener> activityTransitionListeners = new ArrayList<ActivityTransitionListener>();
 	protected static TiWeakList<Activity> activityStack = new TiWeakList<Activity>();
 
-	public TiAnalyticsEvent lastAnalyticsEvent;
 	public String lastEventID;
 
 	public static interface ActivityTransitionListener
@@ -163,9 +157,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	{
 		Log.checkpoint(TAG, "checkpoint, app created.");
 
-		analyticsHandler = new Handler(this);
-		needsEnrollEvent = false; // test is after DB is available
-		needsStartEvent = true;
 
 		loadBuildProperties();
 
@@ -386,7 +377,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			public void uncaughtException(Thread t, Throwable e) {
 				String tiVer = buildVersion + "," + buildTimestamp + "," + buildHash ;
 				Log.e(TAG, "Sending event: exception on thread: " + t.getName() + " msg:" + e.toString() + "; Titanium " + tiVer, e);
-				postAnalyticsEvent(TiAnalyticsEventFactory.createErrorEvent(t, e, tiVer));
 				defaultHandler.uncaughtException(t, e);
 			}
 		});
@@ -496,22 +486,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			}
 		}
 
-		if (collectAnalytics()) {
-			analyticsIntent = new Intent(this, TiAnalyticsService.class);
-			analyticsModel = new TiAnalyticsModel(this);
-			needsEnrollEvent = analyticsModel.needsEnrollEvent();
-
-			if (needsEnrollEvent()) {
-				//FIXME: Find some other way to set the deploytype?
-				String deployType = appProperties.getString("ti.deploytype", "unknown");
-				postAnalyticsEvent(TiAnalyticsEventFactory.createAppEnrollEvent(this,deployType));
-			}
-
-		} else {
-			needsEnrollEvent = false;
-			needsStartEvent = false;
-			Log.i(TAG, "Analytics have been disabled");
-		}
 		tempFileHelper.scheduleCleanTempDir();
 	}
 
@@ -656,91 +630,9 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		return proxy;
 	}
 
-	public synchronized boolean needsStartEvent()
-	{
-		return needsStartEvent;
-	}
-
-	public synchronized boolean needsEnrollEvent()
-	{
-		return needsEnrollEvent;
-	}
-
-	private boolean collectAnalytics()
-	{
-		return false;
-	}
-
-	/**
-	 * Posts analytic event to the server if the application is collecting analytic information.
-	 * @param event the analytic event to be posted.
-	 */
-	public synchronized void postAnalyticsEvent(TiAnalyticsEvent event)
-	{
-		// if (!collectAnalytics()) {
-		// 	Log.i(TAG, "Analytics are disabled, ignoring postAnalyticsEvent", Log.DEBUG_MODE);
-		// 	return;
-		// }
-		// lastAnalyticsEvent = event;
-		// if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_ENROLL) {
-		// 	if (needsEnrollEvent) {
-		// 		lastEventID = analyticsModel.addEvent(event);
-		// 		needsEnrollEvent = false;
-		// 		sendAnalytics();
-		// 		analyticsModel.markEnrolled();
-		// 	}
-
-		// } else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_START) {
-		// 	HashMap<Integer,String> tsForEndEvent = analyticsModel.getLastTimestampForEventType(TiAnalyticsEventFactory.EVENT_APP_END);
-		// 	if (tsForEndEvent.size() == 1) {
-		// 		for (Integer key : tsForEndEvent.keySet()) {
-		// 			try {
-		// 				SimpleDateFormat dateFormat = TiAnalyticsEvent.getDateFormatForTimestamp();
-		// 				long lastEnd = dateFormat.parse(tsForEndEvent.get(key)).getTime(); //in millisecond
-		// 				long start = dateFormat.parse(event.getEventTimestamp()).getTime();
-		// 				// If the new activity starts immediately after the previous activity pauses, we consider
-		// 				// the app is still in foreground so will not send any analytics events
-		// 				if (start - lastEnd < TIME_SEPARATION_ANALYTICS) {
-		// 					analyticsModel.deleteEvents(new int[] {key});
-		// 					return;
-		// 				}
-		// 			} catch (ParseException e) {
-		// 				Log.e(TAG, "Incorrect timestamp. Unable to send the ti.start event.", e);
-		// 			}
-		// 		}
-		// 	}
-		// 	lastEventID = analyticsModel.addEvent(event);
-		// 	sendAnalytics();
-
-		// } else if (event.getEventType() == TiAnalyticsEventFactory.EVENT_APP_END) {
-		// 	lastEventID = analyticsModel.addEvent(event);
-		// 	sendAnalytics();
-
-		// } else {
-		// 	lastEventID = analyticsModel.addEvent(event);
-		// 	sendAnalytics();
-		// }
-	}
-
 	public boolean handleMessage(Message msg)
 	{
-		if (msg.what == MSG_SEND_ANALYTICS) {
-			if (startService(analyticsIntent) == null) {
-				Log.w(TAG, "Analytics service not found.");
-			}
-			return true;
-		}
 		return false;
-	}
-
-	public void sendAnalytics()
-	{
-		if (analyticsIntent != null) {
-			synchronized(this) {
-				analyticsHandler.removeMessages(MSG_SEND_ANALYTICS);
-				analyticsHandler.sendEmptyMessageDelayed(MSG_SEND_ANALYTICS, SEND_ANALYTICS_DELAY);
-			}
-		}
 	}
 
 	public String getDeployType()
@@ -754,6 +646,14 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	public String getTiBuildVersion()
 	{
 		return buildVersion;
+	}
+	
+	/**
+	 * Posts analytic event to the server if the application is collecting analytic information.
+	 * @param event the analytic event to be posted.
+	 */
+	public synchronized void postAnalyticsEvent(TiAnalyticsEvent event)
+	{
 	}
 
 	public String getTiBuildTimestamp()
