@@ -181,7 +181,10 @@ public class TiUIText extends TiUINonViewGroupView
 			LinearLayout.LayoutParams params;
 
 			leftPane = new TiCompositeLayout(context);
+			leftPane.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			leftPane.setFocusable(false);
 			leftPane.setId(100);
+			leftPane.setVisibility(View.GONE);
 			leftPane.setTag("leftPane");
 			params = createBaseParams();
 			params.gravity = Gravity.CENTER;
@@ -194,7 +197,10 @@ public class TiUIText extends TiUINonViewGroupView
 
 			rightPane = new TiCompositeLayout(context);
 			rightPane.setId(300);
+			rightPane.setVisibility(View.GONE);
 			rightPane.setTag("rightPane");
+			rightPane.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			rightPane.setFocusable(false);
 			params = createBaseParams();
 			params.gravity = Gravity.CENTER;
 			layout.addView(rightPane, params);
