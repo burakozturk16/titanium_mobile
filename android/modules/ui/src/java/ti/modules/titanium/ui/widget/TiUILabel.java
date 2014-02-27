@@ -399,7 +399,8 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		@Override
 		public void setMaxLines(int maxLines) {
-			super.setMaxLines(maxLines);
+			
+			super.setMaxLines((maxLines == 0)?Integer.MAX_VALUE:maxLines);
 			if (maxLines == Integer.MAX_VALUE) maxLines = 0;
 			this.maxLines = maxLines;
 			updateEllipsize();
