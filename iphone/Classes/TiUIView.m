@@ -1928,6 +1928,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(UIControlState)realStateForState:(UIControlState)state
 {
     if ([self enabledForBgState]) {
+//        TiUIView * parentView = [[(TiViewProxy*)proxy parent] view];
+//        if (parentView && [parentView dispatchPressed]) {
+//            return [parentView realStateForState:state];
+//        }
         if (viewState != -1)
             state = viewState;
         return state;
