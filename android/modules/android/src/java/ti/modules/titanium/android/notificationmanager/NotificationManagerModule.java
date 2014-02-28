@@ -63,19 +63,28 @@ public class NotificationManagerModule extends KrollModule
 	@Kroll.method
 	public void cancel(int id)
 	{
-		getManager().cancel(id);
+		NotificationManager manager = getManager();
+		if (manager != null) {
+			manager.cancel(id);
+		}
 	}
 	
 	@Kroll.method
 	public void cancelAll()
 	{
-		getManager().cancelAll();
+		NotificationManager manager = getManager();
+		if (manager != null) {
+			manager.cancelAll();
+		}
 	}
 	
 	@Kroll.method
 	public void notify(int id, NotificationProxy notificationProxy)
 	{
-		getManager().notify(id, notificationProxy.getNotification());
+		NotificationManager manager = getManager();
+		if (manager != null && notificationProxy != null) {
+			manager.notify(id, notificationProxy.getNotification());
+		}
 	}
 
 	@Override
