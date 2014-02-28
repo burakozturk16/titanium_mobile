@@ -104,7 +104,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
 	
-	static boolean isPaused = true;
+	private boolean isPaused = false;
 	
 	private boolean fullscreen = false;
 	private boolean defaultFullscreen = false;
@@ -698,6 +698,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		return inForeground;
 	}
+	
+	public boolean isActivityPaused()
+	{
+		return isPaused;
+	}
 
 	protected void sendMessage(final int msgId)
 	{
@@ -1104,7 +1109,15 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 		super.onWindowFocusChanged(hasFocus);
 	}
-
+	
+	@Override
+    public void startActivity(Intent intent) {
+		//this activity onPause is called before the new activity onCreate :s
+		//this prevent unwanted pause events to be sent
+		TiApplication.willStartActivity();
+		super.startActivity(intent);
+    }
+	
 	@Override
 	/**
 	 * When this activity pauses, this method sets the current activity to null, fires a javascript 'pause' event,
@@ -1112,9 +1125,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onPause() 
 	{
+		TiApplication.getInstance().activityPaused(this); //call before setting inForeground
 		inForeground = false;
 		super.onPause();
 		isResumed = false;
+		isPaused = true;
 
 		Log.d(TAG, "Activity " + this + " onPause", Log.DEBUG_MODE);
 
@@ -1141,7 +1156,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		if (activityProxy != null) {
 			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
 		}
-		TiApplication.getInstance().activityPaused(this);
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1162,6 +1176,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onResume()
 	{
+		TiApplication.getInstance().activityResumed(this);
 		inForeground = true;
 		super.onResume();
 		if (isFinishing()) {
@@ -1190,10 +1205,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			activityProxy.fireSyncEvent(TiC.EVENT_RESUME, null, 4000);
 		}
 		
-		TiApplication.getInstance().activityResumed(this);
-		TiApplication.getInstance().setStartingActivity(false);
-
-
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
 				try {
@@ -1206,16 +1217,17 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		isResumed = true;
+		isPaused = false;
 
 		// Checkpoint for ti.start event
 		String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
 	}
 	
-	@Override
-	public void startActivity(Intent intent)	{
-		TiApplication.getInstance().setStartingActivity(true);
-		super.startActivity(intent);
-	}
+//	@Override
+//	public void startActivity(Intent intent)	{
+//		TiApplication.getInstance().setStartingActivity(true);
+//		super.startActivity(intent);
+//	}
 	
 	@Override
 	/**

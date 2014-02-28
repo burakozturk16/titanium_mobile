@@ -12,8 +12,6 @@ import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,9 +35,6 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.kroll.util.TiTempFileHelper;
 import org.appcelerator.titanium.analytics.TiAnalyticsEvent;
-import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
-import org.appcelerator.titanium.analytics.TiAnalyticsModel;
-import org.appcelerator.titanium.analytics.TiAnalyticsService;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiImageLruCache;
 import org.appcelerator.titanium.util.TiPlatformHelper;
@@ -94,10 +89,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	// Whether or not using legacy window. This is set in the application's tiapp.xml with the
 	// "ti.android.useLegacyWindow" property.
 	public static boolean USE_LEGACY_WINDOW = false;
-	
-	private int nbRunningActivities = 0;
-	private boolean startingActivity = false;
-	private boolean finishingActivity = false;
 
 	private boolean restartPending = false;
 	private String baseUrl;
@@ -247,6 +238,20 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		Activity currentActivity = getAppCurrentActivity();
 		if (currentActivity instanceof TiBaseActivity) {
 			return ((TiBaseActivity)currentActivity).isInForeground();
+		}
+		return false;
+	}
+	
+	/**
+	 * Check whether the current activity is paused or not.
+	 * @return true if the current activity is paused; false otherwise.
+	 * @module.api
+	 */
+	public static boolean isCurrentActivityPaused()
+	{
+		Activity currentActivity = getAppCurrentActivity();
+		if (currentActivity instanceof TiBaseActivity) {
+			return ((TiBaseActivity)currentActivity).isActivityPaused();
 		}
 		return false;
 	}
@@ -871,26 +876,27 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public abstract void verifyCustomModules(TiRootActivity rootActivity);
 	
-	public void setStartingActivity(boolean starting) {
-		startingActivity = starting;
+	private static int startingActivityCount = 0;
+	private static boolean paused = false;
+	public static void willStartActivity() {
+		startingActivityCount++;
 	}
 	
 	public void activityPaused(Activity activity) {
-		nbRunningActivities -= 1;
-		if (activity.isFinishing()) {
-			finishingActivity = true;
-		}
-		if (!startingActivity && !activity.isFinishing() && nbRunningActivities == 0) {
+		if (!paused && startingActivityCount == 0 && activity == getAppCurrentActivity() && !isCurrentActivityPaused()) {
 			fireAppEvent(TiC.EVENT_PAUSE, null);
+			paused = true;
 		}
 	}
 	
 	public void activityResumed(Activity activity) {
-		if (!startingActivity && !finishingActivity && nbRunningActivities == 0) {
+		if (paused && activity == getAppCurrentActivity() && isCurrentActivityPaused()) {
 			fireAppEvent(TiC.EVENT_RESUME, null);
+			paused = false;
 		}
-		finishingActivity = false;
-		nbRunningActivities += 1;
+		if (!(activity instanceof TiLaunchActivity) && startingActivityCount > 0) {
+			startingActivityCount--;
+		}
 	}
 }
 
