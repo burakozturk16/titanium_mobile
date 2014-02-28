@@ -25,6 +25,7 @@
 #import <libkern/OSAtomic.h>
 #import <pthread.h>
 #import "TiViewController.h"
+#import "TiWindowProxy.h"
 
 
 @interface TiFakeAnimation : TiViewAnimationStep
@@ -1670,6 +1671,20 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 -(UIView *)parentViewForChild:(TiViewProxy *)child
 {
 	return [view parentViewForChildren];
+}
+
+-(TiWindowProxy*)getParentWindow
+{
+    if (parent) {
+        if ([parent isKindOfClass:[TiWindowProxy class]])
+        {
+            return (TiWindowProxy*)parent;
+        }
+        else {
+            return [parent getParentWindow];
+        }
+    }
+    return nil;
 }
 
 #pragma mark Event trigger methods

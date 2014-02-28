@@ -21,10 +21,11 @@
 @implementation TiWindowProxy
 {
     BOOL readyToBeLayout;
+    BOOL _isManaged;
 }
 
 @synthesize tab = tab;
-@synthesize isManaged;
+@synthesize isManaged = _isManaged;
 
 -(id)init
 {
@@ -34,6 +35,7 @@
         opening = NO;
         opened = NO;
         readyToBeLayout = NO;
+        _isManaged = NO;
 	}
 	return self;
 }
@@ -109,6 +111,14 @@
         readyToBeLayout = YES;
     }
     [super setSandboxBounds:rect];
+}
+
+-(BOOL)isManaged
+{
+    if (parent) {
+        return [[self getParentWindow] isManaged];
+    }
+    return _isManaged;
 }
 
 #pragma mark - Utility Methods

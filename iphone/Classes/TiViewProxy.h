@@ -43,7 +43,7 @@ enum
 	TiRefreshViewEnqueued,
 };
 
-@class TiAction, TiBlob, TiViewAnimationStep, TiViewController;
+@class TiAction, TiBlob, TiViewAnimationStep, TiViewController, TiWindowProxy;
 //For TableRows, we need to have minimumParentHeightForWidth:
 
 /**
@@ -297,6 +297,7 @@ enum
  @return The parent view
  */
 -(UIView *)parentViewForChild:(TiViewProxy *)child;
+-(TiWindowProxy*)getParentWindow;
 
 #pragma mark Event trigger methods
 
@@ -361,6 +362,7 @@ enum
 -(void)viewDidDetach;
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
 
 -(void)viewWillAppear:(BOOL)animated;
 -(void)viewWillDisappear:(BOOL)animated;
