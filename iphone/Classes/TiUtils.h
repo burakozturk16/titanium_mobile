@@ -657,4 +657,6 @@ typedef enum
  */
 + (NSMutableDictionary *)dictionaryWithCode:(int)code message:(NSString *)message;
 
++(UIView*)UIViewWithFrame:(CGRect)frame;
+
 @end

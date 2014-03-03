@@ -368,7 +368,7 @@
 		
 		if (readd)
 		{
-			UIView *view = [[UIView alloc] initWithFrame:viewBounds];
+			UIView *view = [TiUtils UIViewWithFrame:viewBounds];
 			[sv addSubview:view];
             [_wrappers addObject:view];
 			[view release];

@@ -322,6 +322,8 @@ DEFINE_EXCEPTIONS
     self.clipsToBounds = self.layer.masksToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.layer.shouldRasterize = YES;
+    self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
     _touchEnabled = YES;
