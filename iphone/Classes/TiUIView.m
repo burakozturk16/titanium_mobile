@@ -2306,7 +2306,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         self.superview.alpha = 1.0f;
     }
     //Render the layer in the image context
-    //Render the layer in the image context
     UIGraphicsBeginImageContextWithOptions(visibleRect.size, NO, 1.0);
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextTranslateCTM(context, -visibleRect.origin.x, -visibleRect.origin.y);
@@ -2331,7 +2330,9 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }
         NSDictionary* options;
         ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary)
-        [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterBoxBlur]] forKey:@"filters"];
+        if (![options objectForKey:@"filters"]) {
+            [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterIOSBlur]] forKey:@"filters"];
+        }
         UIImage* result = [[TiImageHelper imageFiltered:[image autorelease] withOptions:options] retain];
         if ([options objectForKey:@"callback"]) {
             id callback = [options objectForKey:@"callback"];

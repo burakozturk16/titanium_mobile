@@ -11,18 +11,28 @@
 #import "TiUtils.h"
 #import "TiDimension.h"
 #import "UIImage+Resize.h"
-#import "GPUImage.h"
-
+#import <GPUImage/GPUImage.h>
 @implementation TiImageHelper
 
 +(UIImage*)getFilteredImage:(UIImage*)inputImage withFilter:(TiImageHelperFilterType)filterType options:(NSDictionary*)options
 {
     switch (filterType) {
-        case TiImageHelperFilterBoxBlur:
+        case TiImageHelperFilterIOSBlur:
         {
-            GPUImageFastBlurFilter* filter = [[GPUImageFastBlurFilter alloc] init];
-            CGFloat blurSize = [TiUtils floatValue:@"radius" properties:options def:1.0f];
-            filter.blurSize = blurSize;
+            GPUImageiOSBlurFilter* filter = [[GPUImageiOSBlurFilter alloc] init];
+            filter.blurRadiusInPixels = [TiUtils floatValue:@"radius" properties:options def:12.0f];
+            filter.downsampling = [TiUtils floatValue:@"downsampling" properties:options def:4.0f];
+            filter.saturation = [TiUtils floatValue:@"saturation" properties:options def:0.8f];
+            UIImage* result = [filter imageByFilteringImage:inputImage];
+            [filter release];
+            return result;
+        }
+        case TiImageHelperFilterGaussianBlur:
+        {
+            GPUImageGaussianBlurFilter* filter = [[GPUImageGaussianBlurFilter alloc] init];
+            filter.blurRadiusInPixels = [TiUtils floatValue:@"radius" properties:options def:2.0f];
+            filter.blurPasses = [TiUtils floatValue:@"passes" properties:options def:1.0f];
+            filter.texelSpacingMultiplier = [TiUtils floatValue:@"texelSpacingMultiplier" properties:options def:1.0f];
             UIImage* result = [filter imageByFilteringImage:inputImage];
             [filter release];
             return result;
@@ -80,10 +90,9 @@
     }
     
     if ([options objectForKey:@"tint"]) {
-        UIColor* color = [[TiUtils colorValue:@"tint" properties:options].color retain];
+        UIColor* color = [TiUtils colorValue:@"tint" properties:options].color;
         CGBlendMode mode = [TiUtils intValue:@"blend" properties:options def:kCGBlendModeLighten];
         image = [self tintedImage:image withColor:color blendMode:mode];
-        [color release];
     }
     
     return image;

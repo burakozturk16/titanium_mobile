@@ -8,7 +8,8 @@
 
 typedef NS_ENUM(NSInteger, TiImageHelperFilterType) {
     TiImageHelperFilterBoxBlur,
-    TiImageHelperFilterGaussianBlur
+    TiImageHelperFilterGaussianBlur,
+    TiImageHelperFilterIOSBlur
 };
 
 @interface TiImageHelper : NSObject
