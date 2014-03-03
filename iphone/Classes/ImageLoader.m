@@ -782,7 +782,10 @@ DEFINE_EXCEPTIONS
     
     for(NSString *source in Contents)
     {
-        [fm removeItemAtPath:source error:&error];
+        [fm removeItemAtPath:[cacheDirectory stringByAppendingPathComponent:source] error:&error];
+        if (error) {
+            DebugLog(@"Error removing file at path: %@", error.localizedDescription);
+        }
     }
 }
 
