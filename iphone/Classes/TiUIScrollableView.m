@@ -167,6 +167,18 @@
 ////	[self checkBounds];
 }
 
+-(void)setView:(TiViewProxy*)viewProxy inWrapper:(UIView *)wrapper
+{
+    BOOL wasAttached = [viewProxy viewAttached];
+    CGRect bounds = [wrapper bounds];
+    BOOL needsRefresh = !CGRectEqualToRect(bounds, [viewProxy sandboxBounds]);
+    if ([[viewProxy view] superview] != wrapper) {
+        [wrapper addSubview:[viewProxy getAndPrepareViewForOpening:[wrapper bounds]]];
+    }
+    if (wasAttached && needsRefresh) {
+        [viewProxy refreshView];
+    }
+}
 
 -(void)renderView:(TiViewProxy*)viewProxy forIndex:(int)index withRefresh:(BOOL)refresh
 {
@@ -178,14 +190,7 @@
 	}
 
 	UIView *wrapper = [_wrappers objectAtIndex:index];
-	TiViewProxy *viewproxy = [[self proxy] viewAtIndex:index];
-    if (![viewproxy viewAttached]) {
-        if ([[viewproxy view] superview] != wrapper) {
-            [wrapper addSubview:[viewproxy getAndPrepareViewForOpening:[wrapper bounds]]];
-        }
-    } else if (!CGRectEqualToRect([viewproxy sandboxBounds], [wrapper bounds])) {
-        [self.proxy layoutChild:viewproxy optimize:NO withMeasuredBounds:[wrapper bounds]];
-    }
+    [self setView:viewProxy inWrapper:wrapper];
 }
 
 -(NSRange)cachedFrames:(int)page
@@ -312,7 +317,7 @@
 -(void)resetWrapperView:(UIView*)wrapper
 {
     // we need to reset it after transitions
-    wrapper.layer.transform = CATransform3DIdentity;
+    wrapper.layer.transform = wrapper.layer.sublayerTransform = CATransform3DIdentity;
     wrapper.layer.hidden = NO;
     wrapper.alpha = 1;
 }
@@ -347,6 +352,7 @@
 		{
 			[view removeFromSuperview];
 		}
+        [_wrappers removeAllObjects];
 	}
 	
 	int viewsCount = [[self proxy] viewCount];
@@ -376,6 +382,7 @@
 		else 
 		{
 			UIView *view = [_wrappers objectAtIndex:i];
+			[sv addSubview:view];
             [self resetWrapperView:view];
 			view.frame = viewBounds;
 		}
@@ -386,22 +393,15 @@
     
 	[self manageCache:page];
 	
-	CGRect contentBounds;
-//	contentBounds.origin.x = viewBounds.origin.x;
-//	contentBounds.origin.y = viewBounds.origin.y;
-	contentBounds.size.width = viewBounds.size.width;
-	contentBounds.size.height = viewBounds.size.height;
-    
+	CGSize contentBounds = CGSizeMake(viewBounds.size.width, viewBounds.size.height);
     if (verticalLayout) {
-        contentBounds.size.height *= viewsCount;
-
+        contentBounds.height *= viewsCount;
     }
     else {
-        contentBounds.size.width *= viewsCount;
+        contentBounds.width *= viewsCount;
     }
 	
-	
-	[sv setContentSize:contentBounds.size];
+	[sv setContentSize:contentBounds];
     [self didScroll];
 }
 
