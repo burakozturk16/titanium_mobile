@@ -74,18 +74,6 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 			return true;
 		}
 	}
-	
-	private final class CompatActionExpandListener implements MenuItemCompat.OnActionExpandListener {
-		public boolean onMenuItemActionCollapse(MenuItem item) {
-			fireEvent(TiC.EVENT_COLLAPSE, null);
-			return true;
-		}
-
-		public boolean onMenuItemActionExpand(MenuItem item) {
-			fireEvent(TiC.EVENT_EXPAND, null);
-			return true;
-		}
-	}
 
 	protected MenuItemProxy(MenuItem item)
 	{
