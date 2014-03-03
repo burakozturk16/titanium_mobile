@@ -2458,20 +2458,8 @@ iOSBuilder.prototype.copyTitaniumLibraries = function copyTitaniumLibraries(next
 	dest = path.join(dir, 'libti_ios_profiler.a');
 	fs.existsSync(dest) || afs.copyFileSync(path.join(this.titaniumIosSdkPath, 'libti_ios_profiler.a'), dest, { logger: this.logger.debug });
 
-
-	var src = path.join(this.titaniumIosSdkPath, 'libexternals');
-	dest = path.join(this.buildDir, 'libexternals');
-	var files = [];
-	if (fs.statSync(src).isDirectory()) {
-		files = fs.readdirSync(src);
-	}
-	var logger = this.logger;
-	files.map(function (filename) {
-		var from = path.join(src, filename),
-			to = path.join(dest, filename);
-		fs.existsSync(to) || afs.copyFileSync(from, to, { logger: logger.debug });
-	});
-	next();
+	afs.copyDirRecursive(path.join(this.titaniumIosSdkPath, 'libexternals'), 
+		path.join(this.buildDir, 'libexternals'), next);
 };
 
 iOSBuilder.prototype.compileJSSFiles = function compileJSSFiles(next) {
