@@ -804,8 +804,6 @@
 		D5C07A92187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C07A91187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m */; };
 		D5C07A93187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C07A91187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m */; };
 		D5C07A94187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m in Sources */ = {isa = PBXBuildFile; fileRef = D5C07A91187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m */; };
-		D5C2866617FC18C0005B2628 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866317FC18C0005B2628 /* libGPUImage.a */; };
-		D5C2866717FC18C1005B2628 /* libGPUImage.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5C2866317FC18C0005B2628 /* libGPUImage.a */; };
 		D5C5EC291863584100357DE4 /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
 		D5C5EC2D1863584100357DE4 /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
 		D5C5EC2E1863584200357DE4 /* TiUILabel.m in Sources */ = {isa = PBXBuildFile; fileRef = D56915C9168F2E7300C3F89F /* TiUILabel.m */; };
@@ -2225,7 +2223,6 @@
 		D5C06C1E17C7D8F700FA0E98 /* TiUIHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIHelper.m; sourceTree = "<group>"; };
 		D5C07A90187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "CAMediaTimingFunction+AdditionalEquations.h"; path = "../Classes/ADTransitionController/CAMediaTimingFunction+AdditionalEquations.h"; sourceTree = "<group>"; };
 		D5C07A91187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "CAMediaTimingFunction+AdditionalEquations.m"; path = "../Classes/ADTransitionController/CAMediaTimingFunction+AdditionalEquations.m"; sourceTree = "<group>"; };
-		D5C2866317FC18C0005B2628 /* libGPUImage.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libGPUImage.a; path = ../libexternals/libGPUImage.a; sourceTree = "<group>"; };
 		D5C5EC2F18642FB100357DE4 /* TiTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTableView.h; sourceTree = "<group>"; };
 		D5C5EC3018642FB100357DE4 /* TiTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTableView.m; sourceTree = "<group>"; };
 		D5C8C93D17EF45C900F54C19 /* ADBackFadeTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADBackFadeTransition.h; path = ../Classes/ADTransitionController/ADBackFadeTransition.h; sourceTree = "<group>"; };
@@ -2407,7 +2404,6 @@
 				D57193E317E996E30033897A /* CoreTelephony.framework in Frameworks */,
 				D585BC8B17E630DA0062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */,
-				D5C2866617FC18C0005B2628 /* libGPUImage.a in Frameworks */,
 				D93DAA6B16CBFD6400AD64C9 /* EventKit.framework in Frameworks */,
 				D5B6C729181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				D93DAA6C16CBFD6400AD64C9 /* EventKitUI.framework in Frameworks */,
@@ -2453,7 +2449,6 @@
 				D585BC8917E630CD0062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */,
 				D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */,
-				D5C2866717FC18C1005B2628 /* libGPUImage.a in Frameworks */,
 				D93DAA6916CBFD5600AD64C9 /* EventKit.framework in Frameworks */,
 				D5B6C72A181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				D93DAA6A16CBFD5600AD64C9 /* EventKitUI.framework in Frameworks */,
@@ -3636,7 +3631,6 @@
 				D5818EAE18AA8872007EF771 /* AdSupport.framework */,
 				D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */,
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
-				D5C2866317FC18C0005B2628 /* libGPUImage.a */,
 				D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */,
 				D585BC8817E630CD0062275E /* CoreMedia.framework */,
 				D585BC8417E630AB0062275E /* CoreVideo.framework */,
