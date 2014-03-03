@@ -2125,7 +2125,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 +(UIView*)UIViewWithFrame:(CGRect)frame
 {
     UIView *view = [[UIView alloc] initWithFrame:frame];
-    view.layer.shouldRasterize = YES;
+//    view.layer.shouldRasterize = YES;
     view.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     return view;
 }

@@ -26,8 +26,6 @@
         return;
     }
     view.layer.hidden = NO;
-    view.layer.shouldRasterize = YES;
-    view.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     view.layer.doubleSided = NO;
     
     float multiplier = 1;

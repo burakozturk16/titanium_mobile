@@ -134,7 +134,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         self.zPosition = 0.01;
         _borderPadding = UIEdgeInsetsZero;
         self.needsDisplayOnBoundsChange = YES;
-        self.shouldRasterize = YES;
+//        self.shouldRasterize = YES;
     }
     return self;
 }

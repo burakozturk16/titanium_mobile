@@ -322,7 +322,7 @@ DEFINE_EXCEPTIONS
     self.clipsToBounds = self.layer.masksToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    self.layer.shouldRasterize = YES;
+//    self.layer.shouldRasterize = YES;
     self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
@@ -1369,6 +1369,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     clipChildren = [TiUtils boolValue:arg];
     self.clipsToBounds = [self clipChildren];
+}
+
+
+-(void)setRasterize_:(id)arg
+{
+    self.layer.shouldRasterize = [TiUtils boolValue:arg def:self.layer.shouldRasterize];
 }
 
 -(BOOL)clipChildren
