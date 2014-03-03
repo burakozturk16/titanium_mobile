@@ -533,6 +533,7 @@ static NSDictionary* replaceKeysForRow;
     RELEASE_TO_NIL(filteredIndices);
     RELEASE_TO_NIL(filteredTitles);
     if (searchActive) {
+        BOOL hasResults = NO;
         //Initialize
         if(_searchResults == nil) {
             _searchResults = [[NSMutableArray alloc] init];
@@ -553,6 +554,7 @@ static NSDictionary* replaceKeysForRow;
                 id theValue = [self valueWithKey:@"searchableText" atIndexPath:thePath];
                 if (theValue!=nil && [[TiUtils stringValue:theValue] rangeOfString:self.searchString options:searchOpts].location != NSNotFound) {
                     (thisSection != nil) ? [thisSection addObject:thePath] : [singleSection addObject:thePath];
+                    hasResults = YES;
                 }
             }
             if (thisSection != nil) {
@@ -582,6 +584,11 @@ static NSDictionary* replaceKeysForRow;
                 [_searchResults addObject:singleSection];
             }
             [singleSection release];
+        }
+        if (!hasResults) {
+            if ([(TiViewProxy*)self.proxy _hasListeners:@"noresults" checkParent:NO]) {
+                [self.proxy fireEvent:@"noresults" withObject:nil propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            }
         }
         
     } else {

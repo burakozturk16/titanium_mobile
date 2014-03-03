@@ -503,6 +503,12 @@ typedef enum
 
 +(UITextAlignment)textAlignmentValue:(id)alignment;
 
++(NSString*)jsonStringify:(id)value;
++(id)jsonParse:(NSString*)value;
+
++(NSString*)jsonStringify:(id)value error:(NSError**)error;
++(id)jsonParse:(NSString*)value error:(NSError**)error;;
+
 +(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment;
 +(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment;
 +(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValueFromTextAlignment:(id)alignment;

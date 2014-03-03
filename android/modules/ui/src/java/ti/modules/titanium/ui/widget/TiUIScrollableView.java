@@ -609,6 +609,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	{
 		if (!mViews.contains(proxy)) {
 			proxy.setActivity(this.proxy.getActivity());
+			proxy.setParent(this.proxy);
 			mViews.add(proxy);
 			getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 			mAdapter.notifyDataSetChanged();
@@ -620,6 +621,8 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		if (view instanceof Number) {
 			int viewIndex = TiConvert.toInt(view);
 			if (viewIndex >= 0 && viewIndex < mViews.size()) {
+				TiViewProxy proxy = (TiViewProxy)mViews.get(viewIndex);
+				proxy.setParent(null);
 				mViews.remove(viewIndex);
 				getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 				mAdapter.notifyDataSetChanged();
@@ -627,6 +630,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		} else if (view instanceof TiViewProxy) {
 			TiViewProxy proxy = (TiViewProxy)view;
 			if (mViews.contains(proxy)) {
+				proxy.setParent(null);
 				mViews.remove(proxy);
 				getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 				mAdapter.notifyDataSetChanged();
@@ -736,6 +740,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			mPager.removeAllViews();
 			for (TiViewProxy viewProxy : mViews) {
 				viewProxy.releaseViews(true);
+				viewProxy.setParent(null);
 			}
 			mViews.clear();
 		}
@@ -762,6 +767,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 				if (views[i] instanceof TiViewProxy) {
 					TiViewProxy tv = (TiViewProxy)views[i];
 					tv.setActivity(activity);
+					tv.setParent(this.proxy);
 					mViews.add(tv);
 					changed = true;
 				}
@@ -789,6 +795,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		if (mViews != null) {
 			for (TiViewProxy viewProxy : mViews) {
 				viewProxy.releaseViews(true);
+				viewProxy.setParent(null);
 			}
 			mViews.clear();
 		}

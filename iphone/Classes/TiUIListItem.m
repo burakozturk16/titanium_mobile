@@ -295,6 +295,7 @@ DEFINE_EXCEPTIONS
 {
 	[_proxy detachView];
 	[_proxy cleanup];
+	[_proxy deregisterProxy:[_proxy pageContext]];
 	_proxy.listItem = nil;
 	_proxy.modelDelegate = nil;
     _viewHolder.proxy = nil;

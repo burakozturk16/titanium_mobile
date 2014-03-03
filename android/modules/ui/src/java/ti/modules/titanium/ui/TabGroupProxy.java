@@ -288,11 +288,14 @@ public class TabGroupProxy extends TiWindowProxy implements TiActivityWindow
 		Intent intent = new Intent(topActivity, TiActivity.class);
 		fillIntent(topActivity, intent);
 
-		int windowId = TiActivityWindows.addWindow(this);
-		intent.putExtra(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, true);
-		intent.putExtra(TiC.INTENT_PROPERTY_WINDOW_ID, windowId);
+			int windowId = TiActivityWindows.addWindow(this);
+			intent.putExtra(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, true);
+			intent.putExtra(TiC.INTENT_PROPERTY_WINDOW_ID, windowId);
 
-		topActivity.startActivity(intent);
+			topActivity.startActivity(intent);
+		} else {
+			Log.e(TAG, "TabGroupProxy requires an activity that is a descendent of ActionBarActivity to work with AppCompat", Log.DEBUG_MODE);
+		}
 	}
 
 	@Override

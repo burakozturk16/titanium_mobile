@@ -270,17 +270,16 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 			message.getData().putString(LOGO, url);
 			message.sendToTarget();
 		}
+		
 	}
 
 	public void setIcon(Object value)
 	{
-		if (Build.VERSION.SDK_INT >= TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
 			if (TiApplication.isUIThread()) {
 				handleSetIcon(value);
 			} else {
 				getMainHandler().obtainMessage(MSG_SET_ICON, value).sendToTarget();
-			}
-		}
+			}		
 	}
 
 	private void handleSetIcon(Object value)

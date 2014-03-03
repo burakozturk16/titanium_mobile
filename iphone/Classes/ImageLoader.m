@@ -8,7 +8,6 @@
 #import "ImageLoader.h"
 #import "OperationQueue.h"
 #import "TiUtils.h"
-#import "ASIHTTPRequest.h"
 #import "TiApp.h"
 #import "UIImage+Resize.h"
 #import <CommonCrypto/CommonDigest.h>
@@ -325,7 +324,7 @@
 
 -(NSString*)description
 {
-    return [NSString stringWithFormat:@"<ImageCache:%p> %@[%@]",self,remoteURL,localPath];
+    return [NSString stringWithFormat:@"<ImageCache:%x> %@[%@]",[self hash],remoteURL,localPath];
 }
 
 +(NSString*)cachePathForURL:(NSURL *)url
@@ -540,7 +539,7 @@ DEFINE_EXCEPTIONS
 -(void)cancel
 {
 	cancelled = YES;
-	[request cancel];
+	[request abort];
 	RELEASE_TO_NIL(request);
 }
 
@@ -886,15 +885,17 @@ DEFINE_EXCEPTIONS
 		return image;
 	}
 	
-	ASIHTTPRequest *req = [ASIHTTPRequest requestWithURL:url];
-	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[[TiApp app] startNetwork];
-	[req start];
+    TiHTTPRequest *req = [[[TiHTTPRequest alloc] init] autorelease];
+    [req setUrl:url];
+    [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
+    [req setSynchronous:YES];
+    [[TiApp app] startNetwork];
+	[req send];
 	[[TiApp app] stopNetwork];
-	
-	if (req!=nil && [req error]==nil)
+
+	if (req!=nil && [[req response] error]==nil)
 	{
-	   NSData *data = [req responseData];
+	   NSData *data = [[req response] responseData];
 	   UIImage *resultImage = [UIImage imageWithData:data];
 	   ImageCacheEntry *result = [self setImage:resultImage forKey:url hires:NO];
 	   [result setData:data];
@@ -913,19 +914,22 @@ DEFINE_EXCEPTIONS
 		return image;
 	}
 	
-	ASIHTTPRequest *req = [ASIHTTPRequest requestWithURL:url];
-	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[[TiApp app] startNetwork];
-	[req start];
+	TiHTTPRequest *req = [[[TiHTTPRequest alloc] init] autorelease];
+    [req setUrl:url];
+    [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
+    [req setSynchronous:YES];
+    [[TiApp app] startNetwork];
+	[req send];
 	[[TiApp app] stopNetwork];
-	
-	if (req!=nil && [req error]==nil)
+    
+	if (req!=nil && [[req response] error]==nil)
 	{
-        NSData *data = [req responseData];
+        NSData *data = [[req response] responseData];
         SVGKImage *resultImage = [SVGKImage imageWithData:data];
         SVGImageCacheEntry *result = [self setSVGImage:resultImage forKey:url];
         [result setData:data];
         return [result svgImage];
+
 	}
 	
 	return nil;
@@ -1016,26 +1020,23 @@ DEFINE_EXCEPTIONS
 	// we don't have it local or in the cache so we need to fetch it remotely
 	if (queue == nil)
 	{
-		queue = [[ASINetworkQueue alloc] init];
+		queue = [[NSOperationQueue alloc] init];
 		[queue setMaxConcurrentOperationCount:4];
-		[queue setShouldCancelAllRequestsOnFailure:NO];
-		[queue setDelegate:self];
-		[queue setRequestDidFailSelector:@selector(queueRequestDidFail:)];
-		[queue setRequestDidFinishSelector:@selector(queueRequestDidFinish:)];
-		[queue go];
 	}
 	
 	NSDictionary *dict = [NSDictionary dictionaryWithObject:request forKey:@"request"];
-	ASIHTTPRequest *req = [ASIHTTPRequest requestWithURL:url];
+	TiHTTPRequest *req = [[[TiHTTPRequest alloc] init] autorelease];
+    [req setDelegate:self];
+    [req setUrl:url];
 	[req setUserInfo:dict];
-	[req setRequestMethod:@"GET"];
+	[req setMethod:@"GET"];
 	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[req setTimeOutSeconds:20];
+	[req setTimeout:20];
+    [req setTheQueue:queue];
+    [req send];
 	[request setRequest:req];
 	
 	[[TiApp app] startNetwork];
-	
-	[queue addOperation:req];
 }
 
 -(ImageLoaderRequest*)loadImage:(NSURL*)url delegate:(NSObject<ImageLoaderDelegate>*)delegate userInfo:(NSDictionary*)userInfo
@@ -1078,7 +1079,7 @@ DEFINE_EXCEPTIONS
 	[lock lock];
 	if (queue!=nil)
 	{
-		[queue reset];
+		[queue cancelAllOperations];
 	}
 	[lock unlock];
 }
@@ -1160,18 +1161,16 @@ DEFINE_EXCEPTIONS
     [self notifyRequest:req imageCompleted:image];
 }
 
--(void)queueRequestDidFinish:(ASIHTTPRequest*)request
+-(void)tiRequest:(TiHTTPRequest *)request onLoad:(TiHTTPResponse *)tiResponse
 {
-	ENSURE_UI_THREAD_1_ARG(request);
-
 	// hold while we're working with it (release below)
 	[request retain];
 	
 	[[TiApp app] stopNetwork];
-	ImageLoaderRequest *req = [[request userInfo] objectForKey:@"request"];
+	ImageLoaderRequest *req = [[[request userInfo] objectForKey:@"request"] retain];
 	if ([req cancelled]==NO)
 	{
-		NSData *data = [request responseData];
+		NSData *data = [tiResponse responseData];
 		if (data == nil || [data length]==0)
 		{
 			NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
@@ -1180,6 +1179,7 @@ DEFINE_EXCEPTIONS
 			[[req delegate] imageLoadFailed:req error:error];
 			[request setUserInfo:nil];
 			[request release];
+			[req release];
 			return;
 		}
 		
@@ -1188,7 +1188,7 @@ DEFINE_EXCEPTIONS
 		// for this session and not on disk so we ignore (potentially at a determinent?)
 		// the actual max-age setting for now.
 		BOOL cacheable = YES;
-		NSString *cacheControl = [[request responseHeaders] objectForKey:@"Cache-Control"];
+		NSString *cacheControl = [[tiResponse headers] objectForKey:@"Cache-Control"];
 		if (cacheControl!=nil)
 		{
 			// check to see if we're cacheable or not
@@ -1209,24 +1209,22 @@ DEFINE_EXCEPTIONS
         [self handleImageData:data fromReq:req cacheable:cacheable];
     }
 	[request setUserInfo:nil];
-    [request release];
+	[request release];
+	[req release];
 }
 
--(void)queueRequestDidFail:(ASIHTTPRequest*)request
+-(void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
 	[[TiApp app] stopNetwork];
 	ImageLoaderRequest *req = [[request userInfo] objectForKey:@"request"];
-	NSError *error = [request error];
-	if ([error code] == ASIRequestCancelledErrorType && [error domain] == NetworkRequestErrorDomain)
-	{
-		if ([[req delegate] respondsToSelector:@selector(imageLoadCancelled:)])
-		{
-			[[req delegate] performSelector:@selector(imageLoadCancelled:) withObject:req];
-		}
-	}
-	else 
-	{
-		[[req delegate] imageLoadFailed:req error:[request error]];
+	NSError *error = [tiResponse error];
+    
+	if ([request cancelled]) {
+        if ([[req delegate] respondsToSelector:@selector(imageLoadCancelled:)]) {
+            [[req delegate] performSelector:@selector(imageLoadCancelled:) withObject:req];
+        }
+	} else {
+		[[req delegate] imageLoadFailed:req error:[tiResponse error]];
 	}
 	[request setUserInfo:nil];
 }

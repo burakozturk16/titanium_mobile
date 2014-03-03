@@ -14,10 +14,11 @@
 #import "TiNetworkSocketProxy.h"
 #import "ASIHTTPRequest.h"
 #import "TiUtils.h"
+#import "TiHTTPClient/HTTPClientProxy.h"
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
-
+static NSOperationQueue *_operationQueue = nil;
 @implementation NetworkModule
 
 -(NSString*)apiName
@@ -45,6 +46,11 @@ NSString* const INADDR_ANY_token = @"INADDR_ANY";
     return [NSNumber numberWithInt:READ_WRITE_MODE];
 }
 
+-(void)shutdown:(id)sender
+{
+    RELEASE_TO_NIL(_operationQueue);
+    [super shutdown:sender];
+}
 -(void)startReachability
 {
 	NSAssert([NSThread currentThread],@"not on the main thread for startReachability");
@@ -215,6 +221,11 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_0, TLS_VERSION_1_0);
 MAKE_SYSTEM_PROP(TLS_VERSION_1_1, TLS_VERSION_1_1);
 MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 
+-(HTTPClientProxy*)createNewHTTPClient:(id)args
+{
+    return [[[HTTPClientProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
+}
+
 #pragma mark Push Notifications 
 
 - (NSString*) remoteDeviceUUID
@@ -364,6 +375,14 @@ MAKE_SYSTEM_PROP(TLS_VERSION_1_2, TLS_VERSION_1_2);
 
 #endif
 
++(NSOperationQueue*)operationQueue;
+{
+    if(_operationQueue == nil) {
+        _operationQueue = [[NSOperationQueue alloc] init];
+        [_operationQueue setMaxConcurrentOperationCount:4];
+    }
+    return _operationQueue;
+}
 @end
 
 

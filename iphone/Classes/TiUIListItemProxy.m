@@ -45,10 +45,33 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
         eventOverrideDelegate = self; // to make sure we also override events
 		[context.krollContext invokeBlockOnThread:^{
 			[context registerProxy:self];
-			[listViewProxy rememberProxy:self];
+			//Reusable cell will keep native proxy alive.
+			//This proxy will keep its JS object alive.
+			[self rememberSelf];
 		}];
     }
     return self;
+}
+
++(BOOL)shouldRegisterOnInit
+{
+    //Since this is initialized on main thread,
+    //there is no need to register on init. Registration
+    //done later on JS thread (See above)
+    return NO;
+}
+
+-(void)deregisterProxy:(id<TiEvaluator>)context
+{
+    //Aggressive removal of children on deallocation of cell
+    [self removeAllChildren:nil];
+    [self windowDidClose];
+    //Go ahead and unprotect JS object and mark context closed
+    //(Since cell no longer exists, the proxy is inaccessible)
+    [context.krollContext invokeBlockOnThread:^{
+        [self forgetSelf];
+        [self contextShutdown:context];
+    }];
 }
 
 -(NSString*)apiName

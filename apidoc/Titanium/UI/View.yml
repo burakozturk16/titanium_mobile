@@ -1,8 +1,10 @@
 ---
 name: Titanium.UI.View
-summary: An empty drawing surface or container created by the method <Titanium.UI.createView>.
+summary: An empty drawing surface or container 
 description: |
     The `View` is the base type for all UI widgets in Titanium.
+
+    You use the <Titanium.UI.createView> method or **`<View>`** Alloy element to create a View.
     
     #### Units and Coordinates
     
@@ -19,20 +21,44 @@ description: |
     
     The following units are supported:
     
-    <table cellpadding="6px" border="1" rules="all">
-    <tr>
-    <th align="left">Unit</th> <th align="left">Specifier</th> <th align="left">Note</th>
-    </tr>
-    <tr> <td>pixels</td> <td>px</td> <td></td> </tr>
-    <tr> <td>density-independent pixels</td> <td>dip</td> <td>Equivalent to Apple "points."</td> </tr>
-    <tr> <td>inches</td> <td>in</td> <td></td> </tr>
-    <tr> <td>millimeters</td> <td>mm</td> <td>Android, iOS only</td>  </tr>
-    <tr> <td>centimeters</td> <td>cm</td> <td>Android, iOS only</td>  </tr>
-    <tr> <td>points</td> <td>pt</td> 
-         <td>Typographical points of 1/72 of an inch. On Android, you can specify sizes and 
-         coordinates in typographical points. On other platforms, this unit is only used
-         to specify font sizes.  Not to be confused with Apple "points."</td> </tr>
+    <table class="doc-table" width="60%">
+        <tr>
+            <th>Unit</th>
+            <th>Specifier</th>
+            <th>Note</th>
+        </tr>
+        <tr>
+            <td>pixels</td>
+            <td>px</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>density-independent pixels</td>
+            <td>dip</td>
+            <td>Equivalent to Apple "points."</td>
+        </tr>
+        <tr>
+            <td>inches</td>
+            <td>in</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>millimeters</td>
+            <td>mm</td>
+            <td>Android, iOS only</td>
+        </tr>
+        <tr>
+            <td>centimeters</td>
+            <td>cm</td>
+            <td>Android, iOS only</td>
+        </tr>
+        <tr>
+            <td>points</td>
+            <td>pt</td>
+            <td>Typographical points of 1/72 of an inch. On Android, you can specify sizes and coordinates in typographical points. On other platforms, this unit is only used to specify font sizes. Not to be confused with Apple "points."</td>
+        </tr>
     </table>
+
     
     The interpretation of the density-independent pixel (DIP) varies by platform:
     
@@ -1172,6 +1198,13 @@ properties:
     summary: Opacity of this view, from 0.0 (transparent) to 1.0 (opaque).
     type: Number
     default: 1.0 (opaque)
+
+  - name: pullBackgroundColor
+    summary: Background color of the wrapper view when this view is used as either <Titanium.UI.ListView.pullView> or <Titanium.UI.TableView.headerPullView>.
+    type: String
+    default: Undefined. Results in a light grey background color on the wrapper view.
+    since: "3.3.0"
+    platforms: [iphone,ipad]
 
   - name: right
     summary: View's right position, in platform-specific units.
