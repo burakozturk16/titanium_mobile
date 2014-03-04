@@ -563,6 +563,17 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	}
 }
 
+
+-(void)setUsername_:(id)value
+{
+	RELEASE_TO_NIL(_currentRequest)
+}
+
+-(void)setPassword_:(id)value
+{
+	RELEASE_TO_NIL(_currentRequest)
+}
+
 - (void)ensureLocalProtocolHandler
 {
 	static dispatch_once_t onceToken;
@@ -671,12 +682,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 {
     [[self webview] loadRequest:request.request];
 }
-
-//-(void)tiRequest:(TiHTTPRequest*)request onDataStream:(TiHTTPResponse *)tiResponse
-//{
-//    NSString *htmlString = [[NSString alloc] initWithData:[tiResponse responseData] encoding:NSUTF8StringEncoding];
-//    [[self webview] loadHTMLString:htmlString baseURL:request.url];
-//}
 
 -(void)setBasicAuthentication:(NSArray*)args
 {
