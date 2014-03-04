@@ -18,6 +18,7 @@
 #import "TiFile.h"
 #import "Mimetypes.h"
 #import "Base64Transcoder.h"
+#import "TiHTTPResponse.h"
 
 extern NSString * const TI_APPLICATION_ID;
 static NSString * const kMCTSJavascript = @"Ti.App={};Ti.API={};Ti.App._listeners={};Ti.App._listener_id=1;Ti.App.id=Ti.appId;Ti.App._xhr=XMLHttpRequest;"
@@ -64,6 +65,9 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 @end
  
 @implementation TiUIWebView
+{
+    TiHTTPRequest* _currentRequest;
+}
 @synthesize reloadData, reloadDataProperties;
 
 -(void)dealloc
@@ -90,6 +94,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	RELEASE_TO_NIL(reloadData);
 	RELEASE_TO_NIL(reloadDataProperties);
 	RELEASE_TO_NIL(lastValidLoad);
+    RELEASE_TO_NIL(_currentRequest);
 	[super dealloc];
 }
 
@@ -647,6 +652,32 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	}
 }
 
+-(void)tiRequest:(TiHTTPRequest*)request onUseAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
+{
+    if ([challenge previousFailureCount] > 0) {
+        [[challenge sender] cancelAuthenticationChallenge:challenge];
+    }
+}
+
+-(void)tiRequest:(TiHTTPRequest*)request onRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
+{
+    if ([self.proxy _hasListeners:@"authentication"])
+	{
+		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:[[request url] absoluteString], @"url", nil];
+		[self.proxy fireEvent:@"authentication" withObject:event];
+	}
+}
+-(void)tiRequest:(TiHTTPRequest*)request onLoad:(TiHTTPResponse*)tiResponse
+{
+    [[self webview] loadRequest:request.request];
+}
+
+//-(void)tiRequest:(TiHTTPRequest*)request onDataStream:(TiHTTPResponse *)tiResponse
+//{
+//    NSString *htmlString = [[NSString alloc] initWithData:[tiResponse responseData] encoding:NSUTF8StringEncoding];
+//    [[self webview] loadHTMLString:htmlString baseURL:request.url];
+//}
+
 -(void)setBasicAuthentication:(NSArray*)args
 {
 	ENSURE_ARG_COUNT(args,2);
@@ -697,6 +728,23 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
     return ret;
 }
 
+-(void)hideSpinner {
+    if (spinner!=nil) {
+        [UIView beginAnimations:@"webspiny" context:nil];
+        [UIView setAnimationDuration:0.3];
+        [spinner removeFromSuperview];
+        [UIView commitAnimations];
+        [spinner autorelease];
+        spinner = nil;
+    }
+}
+
+-(BOOL)shoudTryToAuth:(UIWebViewNavigationType)navigationType
+{
+    return navigationType == UIWebViewNavigationTypeOther &&  !basicCredentials && (
+                                                                                    [self.proxy valueForKey:@"username"] || [self.proxy valueForKey:@"password"] || [self.proxy valueForKey:@"needsAuth"]);
+}
+
 #pragma mark WebView Delegate
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
@@ -731,7 +779,20 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		if ([scheme isEqualToString:@"file"] || [scheme isEqualToString:@"app"]) {
 			[NSURLProtocol setProperty:[self _mctsInjection] forKey:kContentInjection inRequest:(NSMutableURLRequest *)request];
 		}
-		return YES;
+        
+       if ([self shoudTryToAuth:navigationType] && !_currentRequest) {
+           _currentRequest = [[TiHTTPRequest alloc] init];
+           [_currentRequest setAuthRetryCount:3];
+           [_currentRequest setRequestUsername:[TiUtils stringValue:[self.proxy valueForKey:@"username"]]];
+           [_currentRequest setRequestPassword:[TiUtils stringValue:[self.proxy valueForKey:@"password"]]];
+           [_currentRequest setUrl:newUrl];
+           [_currentRequest setDelegate:self];
+           [_currentRequest setMethod:@"GET"];
+           [_currentRequest send];
+           return NO;
+
+        }
+        return YES;
 	}
 	
 	UIApplication * uiApp = [UIApplication sharedApplication];
@@ -752,14 +813,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
-    if (spinner!=nil) {
-        [UIView beginAnimations:@"webspiny" context:nil];
-        [UIView setAnimationDuration:0.3];
-        [spinner removeFromSuperview];
-        [UIView commitAnimations];
-        [spinner autorelease];
-        spinner = nil;
-    }
+    [self hideSpinner];
     [url release];
     url = [[[webview request] URL] retain];
     NSString* urlAbs = [url absoluteString];
@@ -794,6 +848,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 			return;
 		}
 	}
+    [self hideSpinner];
 
 	NSLog(@"[ERROR] Error loading: %@, Error: %@",offendingUrl,error);
 

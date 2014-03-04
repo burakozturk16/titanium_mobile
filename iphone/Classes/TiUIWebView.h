@@ -7,9 +7,9 @@
 #ifdef USE_TI_UIWEBVIEW
 
 #import "TiUIView.h"
+#import "TiHTTPRequest.h"
 
-
-@interface TiUIWebView : TiUIView<UIWebViewDelegate> {
+@interface TiUIWebView : TiUIView<UIWebViewDelegate, TiHTTPRequestDelegate> {
 @private
 	UIWebView *webview;
 	UIActivityIndicatorView *spinner;
