@@ -284,7 +284,7 @@ extern NSString * const TI_APPLICATION_GUID;
 }
 
 
--(void)tiRequest:(TiHTTPRequest *)request onReadyStateChage:(TiHTTPResponse *)tiResponse
+-(void)tiRequest:(TiHTTPRequest *)request onReadyStateChange:(TiHTTPResponse *)tiResponse
 {
     if(hasOnreadystatechange) {
         [self fireCallback:@"onreadystatechange" withArg:nil withSource:self];

@@ -15,6 +15,10 @@
 @synthesize filePath = _filePath;
 @synthesize requestPassword = _requestPassword;
 @synthesize requestUsername = _requestUsername;
+@synthesize challengedCredential = _challengedCredential;
+@synthesize authenticationChallenge = _authenticationChallenge;
+@synthesize persistence = _persistence;
+@synthesize authRetryCount = _authRetryCount;
 
 - (void)dealloc
 {
@@ -30,6 +34,8 @@
     RELEASE_TO_NIL(_operation);
     RELEASE_TO_NIL(_userInfo);
     RELEASE_TO_NIL(_headers);
+    RELEASE_TO_NIL(_challengedCredential);
+    RELEASE_TO_NIL(_authenticationChallenge);
     [super dealloc];
 }
 - (id)init
@@ -47,6 +53,8 @@
     [self setRedirects:YES];
     [self setValidatesSecureCertificate: YES];
     
+    _authRetryCount = 1;
+    _persistence = NSURLCredentialPersistenceForSession;
     _request = [[NSMutableURLRequest alloc] init];
     [_request setCachePolicy:NSURLRequestReloadIgnoringLocalAndRemoteCacheData];
     _response = [[TiHTTPResponse alloc] init];
@@ -71,6 +79,30 @@
 -(NSURLConnection*)connection
 {
     return _connection;
+}
+
+-(void)updateChallengeCredential
+{
+    if (_requestUsername && _requestPassword) {
+        self.challengedCredential = [NSURLCredential credentialWithUser:_requestUsername password:_requestPassword persistence:_persistence];
+    }
+    else {
+        self.challengedCredential = nil;
+    }
+}
+
+-(void)setRequestUsername:(NSString *)requestUsername
+{
+    RELEASE_TO_NIL(_requestUsername)
+    _requestUsername = [requestUsername retain];
+    [self updateChallengeCredential];
+}
+
+-(void)setRequestPassword:(NSString *)requestPassword
+{
+    RELEASE_TO_NIL(_requestPassword)
+    _requestPassword = [requestPassword retain];
+    [self updateChallengeCredential];
 }
 
 -(void)send
@@ -108,7 +140,7 @@
     [_request setHTTPShouldHandleCookies:[self sendDefaultCookies]];
     
     if([self synchronous]) {
-        if([self requestUsername] != nil && [self requestPassword] != nil && [_request valueForHTTPHeaderField:@"Authorization"] == nil) {
+        if(!_challengedCredential && [self requestUsername] != nil && [self requestPassword] != nil && [_request valueForHTTPHeaderField:@"Authorization"] == nil) {
             NSString *authString = [TiHTTPHelper base64encode:[[NSString stringWithFormat:@"%@:%@",[self requestUsername], [self requestPassword]] dataUsingEncoding:NSUTF8StringEncoding]];
             [_request setValue:[NSString stringWithFormat:@"Basic %@", authString] forHTTPHeaderField:@"Authorization"];
         }
@@ -124,8 +156,8 @@
     } else {
         [_response setRequest:_request];
         [_response setReadyState:TiHTTPResponseStateOpened];
-        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-            [_delegate tiRequest:self onReadyStateChage:_response];
+        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+            [_delegate tiRequest:self onReadyStateChange:_response];
         }
         
         _connection = [[NSURLConnection alloc] initWithRequest: _request
@@ -159,15 +191,59 @@
     [_headers setValue:value forKey:key];
 }
 
+- (void)removeCredentialsWithURLURLProtectionSpace:(NSURLProtectionSpace *)space
+{
+    NSURLCredentialStorage* credentialStorage = [NSURLCredentialStorage sharedCredentialStorage];
+    NSDictionary* credentials = [credentialStorage credentialsForProtectionSpace:space];
+    for (NSString* key in [credentials allKeys]) {
+        NSURLCredential* cred = [credentials objectForKey:key];
+        [credentialStorage removeCredential:cred forProtectionSpace:space];
+    }
+}
+
+
+- (BOOL)connection:(NSURLConnection *)connection canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace{
+    if([[self delegate] respondsToSelector:@selector(tiRequest:canAuthenticateAgainstProtectionSpace:)])
+    {
+        return [[self delegate] tiRequest:self canAuthenticateAgainstProtectionSpace:protectionSpace];
+    }
+	if (([protectionSpace authenticationMethod] == NSURLAuthenticationMethodClientCertificate)
+        ||  ([protectionSpace authenticationMethod] == NSURLAuthenticationMethodServerTrust))
+	{
+		return NO;
+	}
+	else
+	{
+		return YES;
+	}
+}
+
+- (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)connection{
+	if([[self delegate] respondsToSelector:@selector(tiRequest:connectionShouldUseCredentialStorage:)])
+    {
+        return [[self delegate] tiRequest:self connectionShouldUseCredentialStorage:connection];
+    }
+	return YES;
+}
+
+
 -(void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
     DeveloperLog(@"%s", __PRETTY_FUNCTION__);
+    NSString* authMethod = [[challenge protectionSpace] authenticationMethod];
     if ([challenge previousFailureCount]) {
-        [[challenge sender] cancelAuthenticationChallenge:challenge];
+        NSURLCredential* credential = [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:challenge.protectionSpace];
+        if(credential && [challenge previousFailureCount]  == 1) {
+            [challenge.sender useCredential:credential forAuthenticationChallenge:challenge];
+            return;
+        }
+        else if ([challenge previousFailureCount] > _authRetryCount) {
+            [[challenge sender] cancelAuthenticationChallenge:challenge];
+        }
     }
     if(![self validatesSecureCertificate]) {
         if (
-            [[[challenge protectionSpace] authenticationMethod] isEqualToString:NSURLAuthenticationMethodServerTrust] &&
+            [authMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
             [challenge.protectionSpace.host isEqualToString:[[self url] host]]
             ) {
             [[challenge sender] useCredential:
@@ -176,15 +252,36 @@
         }
     }
     
-    if([self requestPassword] != nil && [self requestUsername] != nil) {
-        [[challenge sender] useCredential:
-         [NSURLCredential credentialWithUser:[self requestUsername]
-                                    password:[self requestPassword]
-                                 persistence:NSURLCredentialPersistenceForSession]
-               forAuthenticationChallenge:challenge];
+    if ([authMethod isEqualToString:NSURLAuthenticationMethodDefault]) {
+        self.authenticationChallenge = challenge;
         
+        if(_challengedCredential) { //if password and username
+            [challenge.sender useCredential:_challengedCredential forAuthenticationChallenge:challenge];
+    //        [[challenge sender] useCredential:
+    //         [NSURLCredential credentialWithUser:_requestUsername
+    //                                    password:_requestPassword
+    //                                 persistence:_persistence]
+    //               forAuthenticationChallenge:challenge];
+            if([[self delegate] respondsToSelector:@selector(tiRequest:onUseAuthenticationChallenge:)])
+            {
+                [[self delegate] tiRequest:self onUseAuthenticationChallenge:challenge];
+            }
+    //        [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+        }
+        else {
+            [self removeCredentialsWithURLURLProtectionSpace:challenge.protectionSpace];
+            if([[self delegate] respondsToSelector:@selector(tiRequest:onRequestForAuthenticationChallenge:)])
+            {
+                [[self delegate] tiRequest:self onRequestForAuthenticationChallenge:challenge];
+            }
+            else {
+                [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+            }
+        }
     }
-    [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+    else {
+        [[challenge sender] continueWithoutCredentialForAuthenticationChallenge:challenge];
+    }
 }
 
 -(NSURLRequest*)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)response
@@ -231,8 +328,18 @@
     }
     _expectedDownloadResponseLength = [response expectedContentLength];
     
-    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-        [_delegate tiRequest:self onReadyStateChage:_response];
+    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+        [_delegate tiRequest:self onReadyStateChange:_response];
+    }
+    
+    if(_authenticationChallenge && [_authenticationChallenge.protectionSpace.protocol isEqualToString:response.URL.scheme] &&
+       [_authenticationChallenge.protectionSpace.host isEqualToString:response.URL.host]){
+        
+        if([self requestPassword] != nil && [self requestUsername] != nil) {
+            if(_challengedCredential && _authenticationChallenge && [(NSHTTPURLResponse *)response statusCode] == 200){
+                [[NSURLCredentialStorage sharedCredentialStorage] setCredential:_challengedCredential forProtectionSpace:_authenticationChallenge.protectionSpace];
+            }
+        }
     }
 
 }
@@ -243,8 +350,8 @@
 
     if([_response readyState] != TiHTTPResponseStateLoading) {
         [_response setReadyState:TiHTTPResponseStateLoading];
-        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-            [_delegate tiRequest:self onReadyStateChage:_response];
+        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+            [_delegate tiRequest:self onReadyStateChange:_response];
         }
     }
     [_response appendData:data];
@@ -259,8 +366,8 @@
 {
     if([_response readyState] != TiHTTPResponseStateLoading) {
         [_response setReadyState:TiHTTPResponseStateLoading];
-        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-            [_delegate tiRequest:self onReadyStateChage:_response];
+        if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+            [_delegate tiRequest:self onReadyStateChange:_response];
         }
     }
     [_response setUploadProgress: (float)totalBytesWritten / (float)totalBytesExpectedToWrite];
@@ -280,8 +387,8 @@
     [_response setReadyState:TiHTTPResponseStateDone];
     [_response setConnected:NO];
      
-    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-        [_delegate tiRequest:self onReadyStateChage:_response];
+    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+        [_delegate tiRequest:self onReadyStateChange:_response];
     }
     if([_delegate respondsToSelector:@selector(tiRequest:onSendStream:)]) {
         [_delegate tiRequest:self onSendStream:_response];
@@ -309,8 +416,8 @@
     }
     DeveloperLog(@"%s", __PRETTY_FUNCTION__);
     [_response setReadyState:TiHTTPResponseStateDone];
-    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChage:)]) {
-        [_delegate tiRequest:self onReadyStateChage:_response];
+    if([_delegate respondsToSelector:@selector(tiRequest:onReadyStateChange:)]) {
+        [_delegate tiRequest:self onReadyStateChange:_response];
     }
     [_response setConnected:NO];
     [_response setError:error];

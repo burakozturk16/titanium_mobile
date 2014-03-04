@@ -30,8 +30,12 @@ typedef enum {
 -(void)tiRequest:(TiHTTPRequest*)request onError:(TiHTTPResponse*)tiResponse;
 -(void)tiRequest:(TiHTTPRequest*)request onDataStream:(TiHTTPResponse*)tiResponse;
 -(void)tiRequest:(TiHTTPRequest*)request onSendStream:(TiHTTPResponse*)tiResponse;
--(void)tiRequest:(TiHTTPRequest*)request onReadyStateChage:(TiHTTPResponse*)tiResponse;
+-(void)tiRequest:(TiHTTPRequest*)request onReadyStateChange:(TiHTTPResponse*)tiResponse;
 -(void)tiRequest:(TiHTTPRequest*)request onRedirect:(TiHTTPResponse*)tiResponse;
+-(void)tiRequest:(TiHTTPRequest*)request onRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge;
+-(void)tiRequest:(TiHTTPRequest*)request onUseAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge;
+- (BOOL)tiRequest:(TiHTTPRequest *)request canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace;
+- (BOOL)tiRequest:(TiHTTPRequest *)request connectionShouldUseCredentialStorage:(NSURLConnection *)connection;
 
 @end
 
@@ -61,6 +65,10 @@ typedef enum {
 @property(nonatomic) TiRequestAuth authType;
 @property(nonatomic, retain) NSOperationQueue *theQueue;
 @property(nonatomic, retain) NSDictionary *userInfo;
+@property(nonatomic, retain) NSURLAuthenticationChallenge* authenticationChallenge;
+@property(nonatomic, retain) NSURLCredential* challengedCredential;
+@property (nonatomic) NSURLCredentialPersistence persistence;
+@property(nonatomic) int authRetryCount;
 -(void)send;
 -(void)abort;
 -(void)addRequestHeader:(NSString*)key value:(NSString*)value;
