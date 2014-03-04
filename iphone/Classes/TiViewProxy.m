@@ -2252,7 +2252,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	}
 
 	TiThreadPerformOnMainThread(^{
-		[[self view] performSelector:selector withObject:object];
+		[[self getOrCreateView] performSelector:selector withObject:object];
 	}, wait);
 }
 
