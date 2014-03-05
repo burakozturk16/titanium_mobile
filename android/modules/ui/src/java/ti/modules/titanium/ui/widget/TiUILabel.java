@@ -39,6 +39,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.MeasureSpec;
 import android.widget.TextView;
 import android.graphics.Typeface;
 import android.text.Layout;
@@ -159,8 +160,21 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		@Override
 	    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			
 			int maxHeight = 0;
 	        int maxWidth = 0;
+	        
+	        //those lines try to fix the TextView using a min when set to MeasureSpec.AT_MOST
+			if (layoutParams.optionWidth == null && layoutParams.autoFillsWidth) {
+				int w = MeasureSpec.getSize(widthMeasureSpec);
+				widthMeasureSpec = MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY);
+            }
+			if (layoutParams.optionHeight == null && layoutParams.autoFillsHeight) {
+				int h = MeasureSpec.getSize(heightMeasureSpec);
+				heightMeasureSpec = MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY);
+            }
+			//
+			
 	        if (textView.getVisibility() != GONE) {
                 measureChildWithMargins(textView, widthMeasureSpec, 0, heightMeasureSpec, 0);
                 final LayoutParams lp = (LayoutParams) textView.getLayoutParams();
@@ -289,6 +303,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			int h = MeasureSpec.getSize(heightMeasureSpec);
 			int hm = MeasureSpec.getMode(heightMeasureSpec);
 			if (hm == 0) h = 100000;
+			
 			
 			
 			if (w > 0) {
