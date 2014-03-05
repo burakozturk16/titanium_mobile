@@ -487,7 +487,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			} else {
 				if (p.autoFillsWidth) {
 					childDimension = LayoutParams.MATCH_PARENT;
-				} else {
+				} else if (!p.sizeOrFillWidthEnabled) {
 					TiDimension left = p.optionLeft;
 					TiDimension centerX = p.optionCenterX;
 					TiDimension right = p.optionRight;
@@ -533,7 +533,7 @@ public class TiCompositeLayout extends FreeLayout implements
 				if (p.autoFillsHeight
 						|| (checkedForConflict && sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT)) {
 					childDimension = LayoutParams.MATCH_PARENT;
-				} else {
+				} else if (!p.sizeOrFillHeightEnabled) {
 					TiDimension top = p.optionTop;
 					TiDimension centerY = p.optionCenterY;
 					TiDimension bottom = p.optionBottom;
