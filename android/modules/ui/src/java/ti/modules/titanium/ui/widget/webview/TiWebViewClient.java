@@ -149,6 +149,9 @@ public class TiWebViewClient extends WebViewClient
 		if (this.username != null && this.password != null) {
 			handler.proceed(this.username, this.password);
 		}
+		else {
+			webView.getProxy().fireEvent(TiC.EVENT_AUTHENTICATION);
+		}
 	}
 
 	public void setBasicAuthentication(String username, String password)
