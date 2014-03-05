@@ -83,7 +83,7 @@
 
 -(void)updateChallengeCredential
 {
-    if (_requestUsername && _requestPassword) {
+    if ([_requestUsername length] > 0 && [_requestPassword length] >0) {
         self.challengedCredential = [NSURLCredential credentialWithUser:_requestUsername password:_requestPassword persistence:_persistence];
     }
     else {
