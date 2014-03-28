@@ -808,7 +808,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	
 	UIApplication * uiApp = [UIApplication sharedApplication];
 	
-	if ([uiApp canOpenURL:newUrl])
+	if ([uiApp canOpenURL:newUrl] && !willHandleUrl)
 	{
 		[uiApp openURL:newUrl];
 		return NO;
