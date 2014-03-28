@@ -207,6 +207,63 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiAnalyticsNotification object:nil userInfo:event];
 }
 
++(NSDate *)dateValue:(id)value def:(NSDate *)def
+{
+	if ([value isKindOfClass:[NSDate class]])
+	{
+		return value;
+	}
+    else {
+        int milliseconds = [self intValue:value def:-1];
+        if (milliseconds != -1) {
+            return [[NSDate alloc] initWithTimeIntervalSince1970:milliseconds/1000];
+        }
+    }
+	return def;
+}
+
+
++(NSDate *)dateValue:(id)object
+{
+	return [self dateValue:object def:nil];
+}
+
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def exists:(BOOL*) exists
+{
+	if ([properties isKindOfClass:[NSDictionary class]])
+	{
+		id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+		{
+			if (exists != NULL) *exists = YES;
+			return nil;
+		}
+		if (value != nil)
+		{
+			if (exists != NULL)
+			{
+				*exists = YES;
+			}
+			return [self dateValue:value];
+		}
+	}
+	if (exists != NULL)
+	{
+		*exists = NO;
+	}
+	return def;
+	
+}
+
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)props def:(NSDate *)def;
+{
+	return [self dateValue:name properties:props def:def exists:NULL];
+}
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)props;
+{
+	return [self dateValue:name properties:props def:nil exists:NULL];
+}
+
 +(NSString *)UTCDateForDate:(NSDate*)data
 {
 	NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
@@ -386,7 +443,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return CGRectMake(0, 0, 0, 0);
 }
 
-+(CGPoint)pointValue:(id)value
+
++(CGPoint)pointValue:(id)value def:(CGPoint)defaultValue
 {
 	if ([value isKindOfClass:[TiPoint class]])
 	{
@@ -396,7 +454,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	{
 		return CGPointMake([[value objectForKey:@"x"] floatValue],[[value objectForKey:@"y"] floatValue]);
 	}
-	return CGPointMake(0,0);
+	return defaultValue;
+}
+
++(CGPoint)pointValue:(id)value
+{
+	return [self pointValue:value def:CGPointZero];
 }
 
 +(CGPoint)pointValue:(id)value valid:(BOOL*)isValid

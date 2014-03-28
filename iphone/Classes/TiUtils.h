@@ -473,12 +473,19 @@ typedef enum
 +(NSString*)stringValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(CGPoint)pointValue:(NSString*)name properties:(NSDictionary*)properties;
++(CGPoint)pointValue:(id)value def:(CGPoint)defaultValue;
 
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
+
++(NSDate *)dateValue:(id)value def:(NSDate *)def;
++(NSDate *)dateValue:(id)object;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def exists:(BOOL*) exists;
 
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
 +(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
