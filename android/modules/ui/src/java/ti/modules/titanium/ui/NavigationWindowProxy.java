@@ -654,8 +654,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				fireEvent(TiC.EVENT_ANDROID_BACK, false, false);
 				return true;
 			}
-			poping = true;
-			return popCurrentWindow(null);
+			if (windows.size() >= 2) {
+				poping = true;
+				return popCurrentWindow(null);
+			}
 		}
 		return false;
 	}
