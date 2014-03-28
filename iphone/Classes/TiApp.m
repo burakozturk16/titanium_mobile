@@ -353,7 +353,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     
 	// preload font matching table
 	[DTCoreTextFontDescriptor asyncPreloadFontLookupTable];
-    [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: NO];
     
 	// nibless window
 	window = [[TouchCapturingWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
