@@ -16,9 +16,6 @@ var require = {
 		"native-localstorage": function (g) {
 			return "localStorage" in g && "setItem" in localStorage;
 		},
-		"function-bind": function () {
-			return !!Function.prototype.bind;
-		},
 		"js-btoa": function (g) {
 			return "btoa" in g;
 		},
@@ -28,9 +25,6 @@ var require = {
 		"ti-instrumentation": function(g) {
 				return <%- hasInstrumentation %> && g.instrumentation;
 		},
-<% if (target == 'winstore') { -%>
-		"winstore-extensions": true,
-<% } %>
 		"touch": function (g) {
 			return <%- hasAllowTouch %> && 'ontouchstart' in g;
 		}
@@ -59,7 +53,3 @@ var require = {
 		dom: ["", "Webkit", "Moz", "ms", "O", "Khtml"]
 	}
 };
-
-<% if (target == 'wp8') { -%>
-window.hasWP8Extensions = true;
-<% } %>

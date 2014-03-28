@@ -144,6 +144,11 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 	[super detachView];
 }
 
+-(BOOL)viewAttached
+{
+    return _listItem != nil;
+}
+
 //-(void)_destroy
 //{
 //	view = nil;

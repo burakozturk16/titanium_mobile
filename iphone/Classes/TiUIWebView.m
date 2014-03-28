@@ -574,6 +574,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	RELEASE_TO_NIL(_currentRequest)
 }
 
+-(void)setHandlePlatformUrl_:(id)arg
+{
+    [[self proxy] replaceValue:arg forKey:@"handlePlatformUrl" notification:NO];
+    willHandleUrl = [TiUtils boolValue:arg];
+}
+
 - (void)ensureLocalProtocolHandler
 {
 	static dispatch_once_t onceToken;

@@ -9,8 +9,10 @@
 #define RELEASE_TO_NIL(x) { if (x!=nil) { [x release]; x = nil; } }
 #endif
 
+
 #import "TiHTTPRequest.h"
 #import "TiHTTPResponse.h"
 #import "TiHTTPPostForm.h"
 #import "TiHTTPOperation.h"
 #import "TiHTTPHelper.h"
+#import "TiBase.h"

@@ -433,6 +433,14 @@ static NSArray* handledKeys;
     [self.textLabel setTextColor:color];
 }
 
+-(void)setTintColor_:(id)newValue
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        UIColor *color = newValue != nil ? [[TiUtils colorValue:newValue] _color] : [UIColor blackColor];
+        [self.textLabel setTintColor:color];
+    }
+}
+
 -(void)setFont_:(id)fontValue
 {
     UIFont *font = (fontValue != nil) ? [[TiUtils fontValue:fontValue] font] : nil;

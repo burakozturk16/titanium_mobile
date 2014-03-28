@@ -45,7 +45,8 @@ import android.view.WindowManager;
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_ACTIVITY,
 	TiC.PROPERTY_URL,
-	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
+	TiC.PROPERTY_WINDOW_PIXEL_FORMAT,
+	TiC.PROPERTY_FLAG_SECURE
 })
 public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 {
@@ -271,6 +272,13 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		setActivity(activity);
 
 		Window win = activity.getWindow();
+		boolean flagSecure = TiConvert.toBoolean(getProperty(TiC.PROPERTY_FLAG_SECURE), false);
+		if (flagSecure) {
+			if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+				activity.getWindow()
+					.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+			}
+		}
 		// Handle the background of the window activity if it is a translucent activity.
 		// If it is a modal window, set a translucent dimmed background to the window.
 		// If the opacity is given, set a transparent background to the window. In this case, if no backgroundColor or
@@ -422,6 +430,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		if (modal || hasProperty(TiC.PROPERTY_OPACITY) || (hasProperty(TiC.PROPERTY_BACKGROUND_COLOR) && 
 				Color.alpha(TiConvert.toColor(getProperty(TiC.PROPERTY_BACKGROUND_COLOR))) < 255 )) {
 			intent.setClass(activity, TiTranslucentActivity.class);
+		} else if (hasProperty(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			int bgColor = TiConvert.toColor(properties, TiC.PROPERTY_BACKGROUND_COLOR);
+			if (Color.alpha(bgColor) < 0xFF) {
+				intent.setClass(activity, TiTranslucentActivity.class);
+			}
 		}
 		if (hasProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT)) {
 			intent.putExtra(TiC.PROPERTY_WINDOW_PIXEL_FORMAT, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT), PixelFormat.UNKNOWN));

@@ -1035,6 +1035,9 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			textView.setHighlightColor(TiConvert.toColor(d, TiC.PROPERTY_HIGHLIGHTED_COLOR));
 		}
+		if (d.containsKey(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
+			textView.setIncludeFontPadding(TiConvert.toBoolean(d, TiC.PROPERTY_INCLUDE_FONT_PADDING, true));
+		}
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(textView, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
@@ -1168,6 +1171,8 @@ public class TiUILabel extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(textView, null, TiConvert.toString(newValue));
 			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
+			textView.setIncludeFontPadding(TiConvert.toBoolean(newValue, true));
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(textView, (HashMap) newValue);
 			tv.requestLayout();

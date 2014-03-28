@@ -681,8 +681,7 @@ public class ListSectionProxy extends ViewProxy {
 		}
 	}
 
-	public void appendExtraEventData(TiUIView view, int itemIndex,
-			int sectionIndex, String bindId, String itemId) {
+	public void appendExtraEventData(TiUIView view, int itemIndex, int sectionIndex, String bindId, String itemId) {
 		KrollDict existingData = view.getAdditionalEventData();
 		if (existingData == null) {
 			existingData = new KrollDict();

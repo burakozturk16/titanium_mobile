@@ -1194,6 +1194,11 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		reFilter(text);
 	}
 	
+	public ListSectionProxy[] getSections()
+	{
+		return sections.toArray(new ListSectionProxy[sections.size()]);
+	}
+	
 	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
 		int position = findItemPosition(sectionIndex, itemIndex);
 		if (position > -1) {

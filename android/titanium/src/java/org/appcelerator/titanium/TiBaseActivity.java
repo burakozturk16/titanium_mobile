@@ -663,8 +663,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		windowCreated();
 
 		if (activityProxy != null) {
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_CREATE, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_CREATE, null);
 		}
 
 		// set the current activity back to what it was originally
@@ -1154,7 +1153,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		releaseDialogs(this.isFinishing());
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
+			activityProxy.fireEvent(TiC.EVENT_PAUSE, null);
 		}
 
 		synchronized (lifecycleListeners.synchronizedList()) {
@@ -1201,8 +1200,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		TiApplication.updateActivityTransitionState(false);
 		
 		if (activityProxy != null) {
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_RESUME, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_RESUME, null);
 		}
 		
 		synchronized (lifecycleListeners.synchronizedList()) {
@@ -1267,8 +1265,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			Activity tempCurrentActivity = tiApp.getCurrentActivity();
 			tiApp.setCurrentActivity(this, this);
 
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_START, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_START, null);
 
 			// set the current activity back to what it was originally
 			tiApp.setCurrentActivity(this, tempCurrentActivity);
@@ -1309,7 +1306,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_STOP, null);
+			activityProxy.fireEvent(TiC.EVENT_STOP, null);
 		}
 
 		synchronized (lifecycleListeners.synchronizedList()) {
@@ -1353,7 +1350,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			Activity tempCurrentActivity = tiApp.getCurrentActivity();
 			tiApp.setCurrentActivity(this, this);
 
-			activityProxy.fireSyncEvent(TiC.EVENT_RESTART, null);
+			activityProxy.fireEvent(TiC.EVENT_RESTART, null);
 
 			// set the current activity back to what it was originally
 			tiApp.setCurrentActivity(this, tempCurrentActivity);
@@ -1377,7 +1374,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_USER_LEAVE_HINT, null);
+			activityProxy.fireEvent(TiC.EVENT_USER_LEAVE_HINT, null);
 		}
 
 		super.onUserLeaveHint();
@@ -1503,7 +1500,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		if (!onDestroyFired) {
 			if (activityProxy != null) {
-				activityProxy.fireSyncEvent(TiC.EVENT_DESTROY, null);
+				activityProxy.fireEvent(TiC.EVENT_DESTROY, null);
 			}
 			onDestroyFired = true;
 		}

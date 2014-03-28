@@ -324,7 +324,7 @@
 
 -(NSString*)description
 {
-    return [NSString stringWithFormat:@"<ImageCache:%x> %@[%@]",[self hash],remoteURL,localPath];
+    return [NSString stringWithFormat:@"<ImageCache:%@> %@[%@]",self,remoteURL,localPath];
 }
 
 +(NSString*)cachePathForURL:(NSURL *)url

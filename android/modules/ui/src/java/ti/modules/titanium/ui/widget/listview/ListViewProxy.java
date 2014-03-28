@@ -34,7 +34,6 @@ import android.os.Message;
 	TiC.PROPERTY_TEMPLATES,
 	TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE,
 	TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
-	TiC.PROPERTY_SECTIONS,
 	TiC.PROPERTY_SEPARATOR_COLOR,
 	TiC.PROPERTY_SEARCH_TEXT,
 	TiC.PROPERTY_SEARCH_VIEW,
@@ -56,6 +55,7 @@ public class ListViewProxy extends TiViewProxy {
 	private static final int MSG_SCROLL_TO_BOTTOM = MSG_FIRST_ID + 406;
 	private static final int MSG_CLOSE_PULL_VIEW = MSG_FIRST_ID + 407;
 	private static final int MSG_SHOW_PULL_VIEW = MSG_FIRST_ID + 408;
+	private static final int MSG_SECTIONS = MSG_FIRST_ID + 409;
 
 
 	//indicate if user attempts to add/modify/delete sections before TiListView is created 
@@ -296,6 +296,13 @@ public class ListViewProxy extends TiViewProxy {
 				handleClosePullView(msg.obj);
 				return true;
 			}
+			
+			case MSG_SECTIONS: {
+				AsyncResult result = (AsyncResult)msg.obj;
+				result.setResult(handleSections());
+				return true;
+			}
+			
 			default:
 				return super.handleMessage(msg);
 		}
@@ -422,6 +429,33 @@ public class ListViewProxy extends TiViewProxy {
 			handleInsertSectionAt(index,  section);
 			
 		}
+	}
+	
+	@Kroll.method @Kroll.getProperty
+	public ListSectionProxy[] getSections()
+	{
+		if (TiApplication.isUIThread()) {
+			return handleSections();
+		} else {
+			return (ListSectionProxy[]) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SECTIONS));
+		}
+	}
+	
+	@Kroll.setProperty(retain=false) @Kroll.method
+	public void setSections(Object sections)
+	{
+		setPropertyAndFire(TiC.PROPERTY_SECTIONS, sections);
+	}
+	
+	private ListSectionProxy[] handleSections()
+	{
+		TiUIView listView = peekView();
+
+		if (listView != null) {
+			return ((TiListView) listView).getSections();
+		}
+		ArrayList<ListSectionProxy> preloadedSections = getPreloadSections();
+		return preloadedSections.toArray(new ListSectionProxy[preloadedSections.size()]);
 	}
 
 	@Override

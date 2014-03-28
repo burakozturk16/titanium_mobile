@@ -665,7 +665,7 @@ public class TiUIText extends TiUINonViewGroupView
 			if (actionId != EditorInfo.IME_ACTION_NEXT) blur();
 		}
 
-		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
+		Boolean enableReturnKey = TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY));
 		if (enableReturnKey != null && enableReturnKey && v.getText().length() == 0) {
 			return true;
 		}

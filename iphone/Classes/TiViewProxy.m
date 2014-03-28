@@ -422,44 +422,31 @@ static NSSet* transferableProps = nil;
 
 -(void)removeAllChildren:(id)arg
 {
-	ENSURE_UI_THREAD_1_ARG(arg);
-    
-    
-	if (children != nil) {
-		pthread_rwlock_wrlock(&childrenLock);
+    ENSURE_UI_THREAD_1_ARG(arg);
+    pthread_rwlock_wrlock(&childrenLock);
+    NSMutableArray* childrenCopy = [children mutableCopy];
+    NSMutableArray* pendingChildrenCopy = [pendingAdds mutableCopy];
+    [children removeAllObjects];
+    [pendingAdds removeAllObjects];
+    childrenCount = 0;
+    RELEASE_TO_NIL(children);
+    RELEASE_TO_NIL(pendingAdds);
+    pthread_rwlock_unlock(&childrenLock);
+    for (TiViewProxy* theChild in childrenCopy) {
+        [theChild windowWillClose];
+        [theChild setParentVisible:NO];
+        [theChild setParent:nil];
+        [theChild windowDidClose];
+        [self forgetProxy:theChild];
+    }
 
-		for (TiViewProxy* child in children)
-		{
-			if ([pendingAdds containsObject:child])
-			{
-				[pendingAdds removeObject:child];
-			}
-
-			[child setParent:nil];
-			[self forgetProxy:child];
-
-			if (view!=nil)
-			{
-				TiUIView *childView = [(TiViewProxy *)child view];
-                [childView removeFromSuperview];
-			}
-			[child parentWillHide];
-		}
-
-		[children removeAllObjects];
-        childrenCount = 0;
-		RELEASE_TO_NIL(children);
-
-		pthread_rwlock_unlock(&childrenLock);
-
-		if (view!=nil)
-		{
-            if (![self absoluteLayout])
-            {
-                [self layoutChildren:NO];
-            }
-		}
-	}
+    if (view!=nil)
+    {
+        if (![self absoluteLayout])
+        {
+            [self layoutChildren:NO];
+        }
+    }
 }
 
 -(void)show:(id)arg
@@ -2729,10 +2716,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)updateZIndex {
     if(OSAtomicTestAndClearBarrier(TiRefreshViewZIndex, &dirtyflags) && vzIndex > 0) {
-//        [parent insertSubview:view forProxy:self];
-        UIView * ourSuperview = [[self view] superview];
-        if(ourSuperview != nil) {
-            [[self class] reorderViewsInParent:ourSuperview];
+        if(parent != nil) {
+            [parent reorderZChildren];
         }
     }
 }
@@ -2972,63 +2957,38 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             [parentViewToSort addObject:subview];
         }
     }
-    NSArray *sortedArray = [parentViewToSort sortedArrayUsingSelector:@selector(compare:)];
+    NSArray *sortedArray = [parentViewToSort sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        int first = [(TiViewProxy*)a vzIndex];
+        int second = [(TiViewProxy*)b vzIndex];
+        return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
+    }];
     for (TiUIView* view in sortedArray) {
         [parentView bringSubviewToFront:view];
     }
 }
 
+-(void)reorderZChildren{
+	if (view == nil) return;
+    pthread_rwlock_rdlock(&childrenLock);
+    NSArray *sortedArray = [children sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
+        int first = [(TiViewProxy*)a vzIndex];
+        int second = [(TiViewProxy*)b vzIndex];
+        return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
+    }];
+    pthread_rwlock_unlock(&childrenLock);
+    for (TiUIView* childView in sortedArray) {
+        [view bringSubviewToFront:childView];
+    }
+}
+
 -(void)insertSubview:(UIView *)childView forProxy:(TiViewProxy *)childProxy
 {
-	int result = 0;
-//	int childZindex = [childProxy vzIndex];
-	int childZindex = 0;
-	BOOL earlierSibling = YES;
-	UIView * ourView = [self parentViewForChild:childProxy];
-	if (ourView == nil) return;
-    BOOL optimizeInsertion = [childProxy optimizeSubviewInsertion];
+    UIView * ourView = [self parentViewForChild:childProxy];
     
-    for (UIView* subview in [ourView subviews])
-    {
-        if (!optimizeInsertion || ![subview isKindOfClass:[TiUIView class]]) {
-            result++;
-        }
+    if (ourView==nil || childView == nil) {
+        return;
     }
-	pthread_rwlock_rdlock(&childrenLock);
-	for (TiViewProxy * thisChildProxy in children)
-	{
-		if(thisChildProxy == childProxy)
-		{
-			earlierSibling = NO;
-			continue;
-		}
-		
-		if(![thisChildProxy viewHasSuperview:ourView])
-		{
-			continue;
-		}
-		
-//		int thisChildZindex = [thisChildProxy vzIndex];
-		int thisChildZindex = 0;
-		if((thisChildZindex < childZindex) ||
-				(earlierSibling && (thisChildZindex == childZindex)))
-		{
-			result ++;
-		}
-	}
-	pthread_rwlock_unlock(&childrenLock);
-    if ([[ourView subviews] indexOfObject:childView] != NSNotFound) return;
-    if (result == 0 || result  >= [[ourView subviews] count]) {
-        [ourView addSubview:childView];
-    }
-    else {
-        //Doing a blind insert at index messes up the underlying sublayer indices
-        //if there are layers which do not belong to subviews (backgroundGradient)
-        //So ensure the subview layer goes at the right index
-        //See TIMOB-11586 for fail case
-        UIView *sibling = [[ourView subviews] objectAtIndex:result-1];
-        [ourView insertSubview:childView aboveSubview:sibling];
-    }
+    [ourView addSubview:[childProxy view]];
 }
 
 
@@ -3759,6 +3719,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		if (parentView!=ourView)
 		{
             [self insertSubview:childView forProxy:child];
+            [self reorderZChildren];
 		}
 	}
 	[child setSandboxBounds:bounds];

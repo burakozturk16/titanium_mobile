@@ -32,7 +32,7 @@ static NSArray* keysToGetFromListView;
 {
 	if (keysToGetFromListView == nil)
 	{
-		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"tintColor",@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
 	}
 	return keysToGetFromListView;
 }
@@ -136,7 +136,7 @@ static NSDictionary* listViewKeysToReplace;
 		TiThreadPerformOnMainThread(^{
             if (animated)
             {
-                [self processUpdateActions];
+			[self processUpdateActions];
             }
             else {
                 [UIView setAnimationsEnabled:NO];
@@ -178,7 +178,6 @@ static NSDictionary* listViewKeysToReplace;
 {
 	UITableView *tableView = self.listView.tableView;
 	BOOL removeHead = NO;
-	BOOL begin = YES;
     CGPoint offset;
 	while (YES) {
 		void (^block)(UITableView *) = nil;
@@ -192,16 +191,13 @@ static NSDictionary* listViewKeysToReplace;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
 		if (block != nil) {
-			if (begin) {
-                offset = [tableView contentOffset];
-				[tableView beginUpdates];
-				begin = NO;
-			}
+            offset = [tableView contentOffset];
+			[tableView beginUpdates];
 			block(tableView);
-			Block_release(block);
-		} else {
 			[tableView endUpdates];
             [tableView setContentOffset:offset animated:NO];
+			Block_release(block);
+		} else {
 			[self.listView updateIndicesForVisibleRows];
 			return;
 		}
@@ -280,9 +276,9 @@ static NSDictionary* listViewKeysToReplace;
             [insertedSections replaceObjectAtIndex:i withObject:section];
         }
         else {
-            ENSURE_TYPE(section, TiUIListSectionProxy);
+		ENSURE_TYPE(section, TiUIListSectionProxy);
         }
-        [self rememberProxy:section];
+		[self rememberProxy:section];
     }
 	[self dispatchBlock:^(UITableView *tableView) {
 		[_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
@@ -320,9 +316,9 @@ static NSDictionary* listViewKeysToReplace;
             section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
         }
         else {
-            ENSURE_TYPE(section, TiUIListSectionProxy);
+		ENSURE_TYPE(section, TiUIListSectionProxy);
         }
-        [self rememberProxy:section];
+		[self rememberProxy:section];
         [insertedSections addObject:section];
     }
 	[self dispatchUpdateAction:^(UITableView *tableView) {

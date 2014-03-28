@@ -30,6 +30,7 @@ import org.appcelerator.titanium.ContextSpecific;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiBlob;
+import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.io.TiBaseFile;
 import org.appcelerator.titanium.io.TiFileFactory;
@@ -119,6 +120,9 @@ public class MediaModule extends KrollModule
 
 	@Kroll.constant public static final int CAMERA_FRONT = 0;
 	@Kroll.constant public static final int CAMERA_REAR = 1;
+	@Kroll.constant public static final int CAMERA_FLASH_OFF = 0;
+	@Kroll.constant public static final int CAMERA_FLASH_ON = 1;
+	@Kroll.constant public static final int CAMERA_FLASH_AUTO = 2;
 
 	public MediaModule()
 	{
@@ -153,6 +157,7 @@ public class MediaModule extends KrollModule
 		KrollFunction cancelCallback = null;
 		KrollFunction errorCallback = null;
 		boolean autohide = true;
+		int flashMode = CAMERA_FLASH_OFF;
 		boolean saveToPhotoGallery = false;
 
 		if (options.containsKey("success")) {
@@ -174,6 +179,11 @@ public class MediaModule extends KrollModule
 		if (saveToPhotoGalleryOption != null) {
 			saveToPhotoGallery = TiConvert.toBoolean(saveToPhotoGalleryOption);
 		}
+		
+		Object cameraFlashModeOption = options.get(TiC.PROPERTY_FLASH_MODE);
+		if (cameraFlashModeOption != null) {
+			flashMode = TiConvert.toInt(cameraFlashModeOption);
+		}
 
 		// Use our own custom camera activity when an overlay is provided.
 		if (options.containsKey("overlay")) {
@@ -185,6 +195,7 @@ public class MediaModule extends KrollModule
 			TiCameraActivity.errorCallback = errorCallback;
 			TiCameraActivity.cancelCallback = cancelCallback;
 			TiCameraActivity.saveToPhotoGallery = saveToPhotoGallery;
+			TiCameraActivity.setFlashMode(flashMode);
 			TiCameraActivity.whichCamera = CAMERA_REAR; // default.
 
 			// This option is only applicable when running the custom
@@ -681,6 +692,20 @@ public class MediaModule extends KrollModule
 		}
 	}
 
+	@Kroll.method
+	@Kroll.setProperty
+	public void setFlashMode(int flashMode)
+	{
+		TiCameraActivity.setFlashMode(flashMode);
+	}
+
+	@Kroll.method
+	@Kroll.getProperty
+	public int getFlashMode()
+	{
+		return TiCameraActivity.cameraFlashMode;
+	}
+	
 	@Kroll.method
 	public void openPhotoGallery(KrollDict options)
 	{

@@ -1375,11 +1375,21 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FIRSTNAME = "firstName";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FLAG_SECURE = "flagSecure";
 
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_FLAGS = "flags";
+	
+	/**
+	 * @module.api
+	 */	
+	public static final String PROPERTY_FLASH_MODE = "flashMode";
 
 	/**
 	 * @module.api
@@ -1584,6 +1594,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_IMAGES = "images";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_INCLUDE_FONT_PADDING = "includeFontPadding";
+	
 	/**
 	 * @module.api
 	 */
