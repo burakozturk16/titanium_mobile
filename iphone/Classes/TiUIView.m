@@ -1815,11 +1815,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
 { 
     if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        CGPoint p = [recognizer locationInView:self];
-        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                               NUMFLOAT(p.x), @"x",
-                               NUMFLOAT(p.y), @"y",
-                               nil];
+        NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
         [self.proxy fireEvent:@"longpress" withObject:event checkForListener:NO];
     }
 }
