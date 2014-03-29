@@ -2976,8 +2976,8 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
         return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
     }];
     pthread_rwlock_unlock(&childrenLock);
-    for (TiUIView* childView in sortedArray) {
-        [view bringSubviewToFront:childView];
+    for (TiViewProxy* child in sortedArray) {
+        [view bringSubviewToFront:[child view]];
     }
 }
 
