@@ -2957,9 +2957,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
             [parentViewToSort addObject:subview];
         }
     }
-    NSArray *sortedArray = [parentViewToSort sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-        int first = [(TiViewProxy*)a vzIndex];
-        int second = [(TiViewProxy*)b vzIndex];
+    NSArray *sortedArray = [parentViewToSort sortedArrayUsingComparator:^NSComparisonResult(TiUIView* a, TiUIView* b) {
+        int first = [(TiViewProxy*)(a.proxy) vzIndex];
+        int second = [(TiViewProxy*)(b.proxy) vzIndex];
         return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
     }];
     for (TiUIView* view in sortedArray) {
@@ -2970,9 +2970,9 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)reorderZChildren{
 	if (view == nil) return;
     pthread_rwlock_rdlock(&childrenLock);
-    NSArray *sortedArray = [children sortedArrayUsingComparator:^NSComparisonResult(id a, id b) {
-        int first = [(TiViewProxy*)a vzIndex];
-        int second = [(TiViewProxy*)b vzIndex];
+    NSArray *sortedArray = [children sortedArrayUsingComparator:^NSComparisonResult(TiViewProxy* a, TiViewProxy* b) {
+        int first = [a vzIndex];
+        int second = [b vzIndex];
         return (first > second) ? NSOrderedDescending : ( first < second ? NSOrderedAscending : NSOrderedSame );
     }];
     pthread_rwlock_unlock(&childrenLock);
