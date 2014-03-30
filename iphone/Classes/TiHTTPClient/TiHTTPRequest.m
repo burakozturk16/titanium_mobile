@@ -51,7 +51,7 @@
 {
     [self setSendDefaultCookies:YES];
     [self setRedirects:YES];
-    [self setValidatesSecureCertificate: YES];
+    [self setValidatesSecureCertificate: NO];
     
     _authRetryCount = 1;
     _persistence = NSURLCredentialPersistenceForSession;
