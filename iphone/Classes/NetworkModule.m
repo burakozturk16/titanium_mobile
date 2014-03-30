@@ -19,6 +19,9 @@
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 static NSOperationQueue *_operationQueue = nil;
 @implementation NetworkModule
+{
+    dispatch_semaphore_t _startingSema;
+}
 
 -(NSString*)apiName
 {
@@ -75,6 +78,7 @@ static NSOperationQueue *_operationQueue = nil;
 	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
 	// wait until done is important to get the right state
+    _startingSema = dispatch_semaphore_create(0);
 	TiThreadPerformOnMainThread(^{[self startReachability];}, NO);
 }
 
@@ -93,6 +97,7 @@ static NSOperationQueue *_operationQueue = nil;
 
 -(void)updateReachabilityStatus
 {
+    
 	NetworkStatus status = [reachability currentReachabilityStatus];
 	switch(status)
 	{
@@ -117,6 +122,11 @@ static NSOperationQueue *_operationQueue = nil;
 			break;
 		}
 	}
+    if (_startingSema) {
+        dispatch_semaphore_signal(_startingSema);
+        dispatch_release(_startingSema);
+        _startingSema = nil;
+    }
 	if ([self _hasListeners:@"change"])
 	{
 		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -165,6 +175,9 @@ static NSOperationQueue *_operationQueue = nil;
 
 - (NSNumber*)online
 {
+    if (_startingSema) {
+        dispatch_semaphore_wait(_startingSema, DISPATCH_TIME_FOREVER);
+    }
 	if (state!=TiNetworkConnectionStateNone && state!=TiNetworkConnectionStateUnknown)
 	{
 		return NUMBOOL(YES);
