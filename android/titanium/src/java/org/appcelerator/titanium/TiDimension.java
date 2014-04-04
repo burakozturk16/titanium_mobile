@@ -228,7 +228,7 @@ public class TiDimension
 		this.valueType = type;
 	}
 
-	protected double getPixels(Context context, int width, int height)
+	public double getPixels(Context context, int width, int height)
 	{
 		switch (units) {
 			case TypedValue.COMPLEX_UNIT_PX:
