@@ -6,6 +6,7 @@
  */
 package ti.modules.titanium.ui.widget;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -21,6 +22,7 @@ public class TiArrowView extends View
 	private Path path;
 	private Paint p;
 
+	@SuppressLint("NewApi")
 	public TiArrowView(Context context) {
 		super(context);
 		leftArrow = true;
