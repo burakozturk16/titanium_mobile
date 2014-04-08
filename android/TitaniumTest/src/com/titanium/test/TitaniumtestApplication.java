@@ -18,6 +18,10 @@ import org.appcelerator.kroll.KrollModuleInfo;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiRootActivity;
+import akylas.shapes.*;
+import akylas.commonjs.*;
+import akylas.slidemenu.*;
+import akylas.millenoki.vpn.*;
 
 
 public final class TitaniumtestApplication extends TiApplication
@@ -35,6 +39,11 @@ public final class TitaniumtestApplication extends TiApplication
 		
 		HashMap<String,Class[]> modules = new HashMap<String, Class[]>() {
 		     {
+			      put("akylas.shapes", new Class[]{akylas.shapes.AkylasShapesBootstrap.class, akylas.shapes.AkylasShapesModule.class});
+			      put("akylas.commonjs", new Class[]{akylas.commonjs.AkylasCommonjsBootstrap.class, akylas.commonjs.AkylasCommonjsModule.class});
+			      put("akylas.slidemenu", new Class[]{akylas.slidemenu.AkylasSlidemenuBootstrap.class, akylas.slidemenu.AkylasSlidemenuModule.class});
+			      put("akylas.mapbox", new Class[]{akylas.mapbox.AkylasMapboxBootstrap.class, akylas.mapbox.AkylasMapboxModule.class});
+			      put("akylas.millenoki.vpn", new Class[]{akylas.millenoki.vpn.MillenokiVpnBootstrap.class, akylas.millenoki.vpn.MillenokiVpnModule.class});
 		     }
 		 };
 
@@ -71,9 +80,6 @@ public final class TitaniumtestApplication extends TiApplication
 		    }
 		} catch (Exception e) {
 		}
-		KrollModule.addCustomModuleInfo(moduleInfo);
-		moduleInfo = new KrollModuleInfo("akylas.commonjs","akylas.commonjs", "","", "", "","", "");
-		KrollModule.addCustomModuleInfo(moduleInfo);
 	}
 
 	@Override
