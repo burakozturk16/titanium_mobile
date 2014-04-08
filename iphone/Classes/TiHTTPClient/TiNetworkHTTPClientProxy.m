@@ -177,9 +177,6 @@ extern NSString * const TI_APPLICATION_GUID;
     
     NSOperationQueue *operationQueue = [NetworkModule operationQueue];
     
-    if ([[self request] showActivity]) {
-        [[TiApp app] startNetwork];
-    }
     if(async) {
         [[self request] setTheQueue:operationQueue];
         [[self request] send];
