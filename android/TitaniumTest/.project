@@ -32,9 +32,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>android-17</name>
+			<name>android-19</name>
 			<type>2</type>
-			<location>/Volumes/data/dev/androidSDK/sources/android-17</location>
+			<location>/Volumes/data/dev/androidSDK/sources/android-19</location>
 		</link>
 		<link>
 			<name>ui</name>

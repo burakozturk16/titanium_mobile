@@ -14,6 +14,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/titanium-network.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-platform.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-utils.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-filesystem.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-xml.jar"/>
+	<classpathentry kind="lib" path="lib/titanium-media.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
