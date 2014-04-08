@@ -244,6 +244,12 @@ public class TiUIHelper
 						baseActivity.addDialog(baseActivity.new DialogWrapper(dialog, true, new WeakReference<TiBaseActivity>(baseActivity)));
 						dialog.setOwnerActivity(activity);
 					}
+					dialog.setOnShowListener(new DialogInterface.OnShowListener(){
+				        @Override
+				        public void onShow(DialogInterface dialog) {
+				        	TiApplication.getInstance().cancelPauseEvent();
+				        }
+					});
 					dialog.show();
 
 				}

@@ -596,6 +596,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		TiApplication.getInstance().activityStarted(this);
 		Log.d(TAG, "Activity " + this + " onCreate", Log.DEBUG_MODE);
 
 		inForeground = true;
@@ -1113,7 +1114,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
     public void startActivity(Intent intent) {
 		//this activity onPause is called before the new activity onCreate :s
 		//this prevent unwanted pause events to be sent
-		TiApplication.willStartActivity();
 		super.startActivity(intent);
     }
 	
@@ -1293,6 +1293,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onStop()
 	{
+		TiApplication.getInstance().activityStopped(this);
 		inForeground = false;
 		super.onStop();
 
@@ -1596,6 +1597,13 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	protected Dialog onCreateDialog (int id, Bundle args) {
+		Log.d(TAG, "onCreateDialog");
+		TiApplication.getInstance().cancelPauseEvent();
+		return super.onCreateDialog(id, args);
 	}
 }
 

@@ -876,27 +876,44 @@ public abstract class TiApplication extends Application implements Handler.Callb
 
 	public abstract void verifyCustomModules(TiRootActivity rootActivity);
 	
-	private static int startingActivityCount = 0;
 	private static boolean paused = false;
-	public static void willStartActivity() {
-		startingActivityCount++;
-	}
-	
+	private final Handler mHandler = new Handler() {
+		@Override
+	    public void handleMessage(Message msg){
+	        if(msg.what == PAUSE){
+	        	fireAppEvent(TiC.EVENT_PAUSE, null);
+				paused = true;
+	        }
+	    }
+	};
+    private static final int PAUSE = 123;
+    private static final int PAUSE_TIMEOUT = 400;
+    
 	public void activityPaused(Activity activity) {
-		if (!paused && startingActivityCount == 0 && activity == getAppCurrentActivity() && !isCurrentActivityPaused()) {
-			fireAppEvent(TiC.EVENT_PAUSE, null);
-			paused = true;
+		if (!paused && activity == getAppCurrentActivity() && !isCurrentActivityPaused()) {
+	        mHandler.removeMessages(PAUSE);
+			mHandler.sendEmptyMessageDelayed(PAUSE, PAUSE_TIMEOUT);
 		}
 	}
 	
+	public void activityStopped(Activity activity) {
+	}
+	
 	public void activityResumed(Activity activity) {
+        mHandler.removeMessages(PAUSE);
 		if (paused && activity == getAppCurrentActivity() && isCurrentActivityPaused()) {
 			fireAppEvent(TiC.EVENT_RESUME, null);
 			paused = false;
 		}
-		if (!(activity instanceof TiLaunchActivity) && startingActivityCount > 0) {
-			startingActivityCount--;
-		}
+	}
+	
+    
+	public void activityStarted(Activity activity) {
+		cancelPauseEvent();
+	}
+	
+	public void cancelPauseEvent() {
+        mHandler.removeMessages(PAUSE);
 	}
 }
 
