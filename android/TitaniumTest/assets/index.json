@@ -1,8 +1,20 @@
 {
 	"Resources/app.js": 1,
 	"Resources/lib/underscore.js": 1,
+	"Resources/lib/akylas.commonjs.js": 1,
 	"Resources/lib/underscore.string.js": 1,
+	"Resources/lib/lodash.js": 1,
 	"Resources/lib/moment/moment.js": 1,
 	"Resources/lib/moment/lang/fr.js": 1,
-	"Resources/rjss/common.rjss": 1
+	"Resources/lib/AkInclude/akylas.global.js": 1,
+	"Resources/lib/AkInclude/akylas.animation.js": 1,
+	"Resources/lib/AkInclude/akylas.util.js": 1,
+	"Resources/lib/AkInclude/akylas.ti.js": 1,
+	"Resources/lib/AkInclude/akylas.lang.js": 1,
+	"Resources/lib/AkInclude/redux.js": 1,
+	"Resources/lib/WindowManager.js": 1,
+	"Resources/lib/IconicFont.js": 1,
+	"Resources/fonts/font_webhostinghub.js": 1,
+	"Resources/rjss/common.rjss": 1,
+	"Resources/rjss/pulltorefresh.rjss": 1
 }
