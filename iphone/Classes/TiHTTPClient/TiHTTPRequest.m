@@ -19,6 +19,7 @@
 @synthesize authenticationChallenge = _authenticationChallenge;
 @synthesize persistence = _persistence;
 @synthesize authRetryCount = _authRetryCount;
+@synthesize showActivity;
 
 - (void)dealloc
 {

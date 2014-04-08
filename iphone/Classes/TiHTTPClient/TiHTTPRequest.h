@@ -62,6 +62,7 @@ typedef enum {
 @property(nonatomic) BOOL synchronous;
 @property(nonatomic) BOOL validatesSecureCertificate;
 @property(nonatomic) BOOL cancelled;
+@property(nonatomic) BOOL showActivity;
 @property(nonatomic) TiRequestAuth authType;
 @property(nonatomic, retain) NSOperationQueue *theQueue;
 @property(nonatomic, retain) NSDictionary *userInfo;

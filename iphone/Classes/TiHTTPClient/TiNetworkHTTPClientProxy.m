@@ -63,6 +63,9 @@ extern NSString * const TI_APPLICATION_GUID;
 {
     [self rememberSelf];
     
+    if([self valueForUndefinedKey:@"showActivity"]) {
+        [[self request] setShowActivity: [TiUtils boolValue:[self valueForUndefinedKey:@"showActivity"] def:YES]];
+    }
     if([self valueForUndefinedKey:@"timeout"]) {
         [[self request] setTimeout: [TiUtils intValue:[self valueForUndefinedKey:@"timeout"] def:15000] / 1000 ];
     }
@@ -175,14 +178,15 @@ extern NSString * const TI_APPLICATION_GUID;
     
     NSOperationQueue *operationQueue = [NetworkModule operationQueue];
     
-    [[TiApp app] startNetwork];
+    if ([[self request] showActivity]) {
+        [[TiApp app] startNetwork];
+    }
     if(async) {
         [[self request] setTheQueue:operationQueue];
         [[self request] send];
     } else {
         [[self request] setSynchronous:YES];
         [[self request] send];
-        [[TiApp app] stopNetwork];
         [self forgetSelf];
     }
 }
@@ -252,7 +256,9 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)tiRequest:(TiHTTPRequest *)request onLoad:(TiHTTPResponse *)tiResponse
 {
-    [[TiApp app] stopNetwork];
+    if ([request showActivity]) {
+        [[TiApp app] stopNetwork];
+    }
     if([request cancelled]) {
         return;
     }
@@ -278,7 +284,9 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
-    [[TiApp app] stopNetwork];
+    if ([request showActivity]) {
+        [[TiApp app] stopNetwork];
+    }
     if([request cancelled]) {
         return;
     }
