@@ -190,7 +190,6 @@
 		24CA8C78111167B60084E2DE /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C77111167B60084E2DE /* AddressBookUI.framework */; };
 		24CA8C7C111167B60084E2DE /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7B111167B60084E2DE /* CFNetwork.framework */; };
 		24CA8C7E111167B60084E2DE /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7D111167B60084E2DE /* CoreLocation.framework */; };
-		24CA8C80111167B60084E2DE /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7F111167B60084E2DE /* MapKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		24CA8C82111167B60084E2DE /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C81111167B60084E2DE /* MessageUI.framework */; };
 		24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C83111167B60084E2DE /* MobileCoreServices.framework */; };
 		24CA8C86111167B60084E2DE /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C85111167B60084E2DE /* OpenGLES.framework */; };
@@ -388,7 +387,6 @@
 		24D8E49D119B9D8A00F8CAA6 /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C77111167B60084E2DE /* AddressBookUI.framework */; };
 		24D8E49E119B9D8A00F8CAA6 /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7B111167B60084E2DE /* CFNetwork.framework */; };
 		24D8E49F119B9D8A00F8CAA6 /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7D111167B60084E2DE /* CoreLocation.framework */; };
-		24D8E4A0119B9D8A00F8CAA6 /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7F111167B60084E2DE /* MapKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		24D8E4A1119B9D8A00F8CAA6 /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C81111167B60084E2DE /* MessageUI.framework */; };
 		24D8E4A2119B9D8A00F8CAA6 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C83111167B60084E2DE /* MobileCoreServices.framework */; };
 		24D8E4A3119B9D8A00F8CAA6 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C85111167B60084E2DE /* OpenGLES.framework */; };
@@ -657,6 +655,7 @@
 		D52A8E73183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
+		D52DF20C18C77BC60076FB71 /* libAkylasMapbox.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */; };
 		D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603918609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603A18609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
@@ -747,7 +746,6 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
-		D5818EAB18AA87D0007EF771 /* libAkylasMopub.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EA618AA87A6007EF771 /* libAkylasMopub.a */; };
 		D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EAE18AA8872007EF771 /* AdSupport.framework */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -1150,7 +1148,6 @@
 		DABB37A612E8CB280026A6EA /* AddressBookUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C77111167B60084E2DE /* AddressBookUI.framework */; };
 		DABB37A712E8CB280026A6EA /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7B111167B60084E2DE /* CFNetwork.framework */; };
 		DABB37A812E8CB280026A6EA /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7D111167B60084E2DE /* CoreLocation.framework */; };
-		DABB37A912E8CB280026A6EA /* MapKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C7F111167B60084E2DE /* MapKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C81111167B60084E2DE /* MessageUI.framework */; };
 		DABB37AB12E8CB280026A6EA /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C83111167B60084E2DE /* MobileCoreServices.framework */; };
 		DABB37AC12E8CB280026A6EA /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24CA8C85111167B60084E2DE /* OpenGLES.framework */; };
@@ -1232,19 +1229,19 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		D5818EA518AA87A6007EF771 /* PBXContainerItemProxy */ = {
+		D52DF1D618C77AF80076FB71 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = AkylasMopub;
+			remoteInfo = MapBox;
 		};
-		D5818EA918AA87CB007EF771 /* PBXContainerItemProxy */ = {
+		D52DF20A18C77BBE0076FB71 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = AkylasMopub;
+			remoteInfo = AkylasMapbox;
 		};
 		D5EE1BA41860A11500579573 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1618,7 +1615,6 @@
 		24CA8C77111167B60084E2DE /* AddressBookUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AddressBookUI.framework; path = System/Library/Frameworks/AddressBookUI.framework; sourceTree = SDKROOT; };
 		24CA8C7B111167B60084E2DE /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		24CA8C7D111167B60084E2DE /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
-		24CA8C7F111167B60084E2DE /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
 		24CA8C81111167B60084E2DE /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		24CA8C83111167B60084E2DE /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		24CA8C85111167B60084E2DE /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
@@ -2016,6 +2012,8 @@
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = TiAnimatableProxy.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TiAnimatableProxy.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
+		D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MapBox.xcodeproj; path = ../../../modules/akylas_modules/mapbox/ios/MapBox.xcodeproj; sourceTree = "<group>"; };
+		D52DF22C18C7A0550076FB71 /* libMapbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMapbox.a; path = "../../../../ios/MapBox/MapView/build/Debug-iphoneos/libMapbox.a"; sourceTree = "<group>"; };
 		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
 		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
@@ -2077,7 +2075,6 @@
 		D57007F718255C520063F7FE /* TiTransitionSwipeDualFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSwipeDualFade.h; sourceTree = "<group>"; };
 		D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwipeDualFade.m; sourceTree = "<group>"; };
 		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
-		D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasMopub.xcodeproj; path = ../../../modules/akylas_modules/mopub/ios/AkylasMopub.xcodeproj; sourceTree = "<group>"; };
 		D5818EAE18AA8872007EF771 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
@@ -2236,6 +2233,7 @@
 		D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Merge.m"; sourceTree = "<group>"; };
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
+		D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libresolv.dylib; path = usr/lib/libresolv.dylib; sourceTree = SDKROOT; };
 		D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasShapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/AkylasShapes.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasSlidemenu.xcodeproj; path = ../../../modules/akylas_modules/slidemenu/ios/AkylasSlidemenu.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ak_commonjs_ios.xcodeproj; path = ../../../modules/akylas_modules/commonjs/ios/ak_commonjs_ios.xcodeproj; sourceTree = "<group>"; };
@@ -2296,8 +2294,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D52DF20C18C77BC60076FB71 /* libAkylasMapbox.a in Frameworks */,
 				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
-				D5818EAB18AA87D0007EF771 /* libAkylasMopub.a in Frameworks */,
 				D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */,
 				D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */,
 				D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */,
@@ -2319,7 +2317,6 @@
 				24CA8C78111167B60084E2DE /* AddressBookUI.framework in Frameworks */,
 				24CA8C7C111167B60084E2DE /* CFNetwork.framework in Frameworks */,
 				24CA8C7E111167B60084E2DE /* CoreLocation.framework in Frameworks */,
-				24CA8C80111167B60084E2DE /* MapKit.framework in Frameworks */,
 				24CA8C82111167B60084E2DE /* MessageUI.framework in Frameworks */,
 				24CA8C84111167B60084E2DE /* MobileCoreServices.framework in Frameworks */,
 				24CA8C86111167B60084E2DE /* OpenGLES.framework in Frameworks */,
@@ -2365,7 +2362,6 @@
 				24D8E49D119B9D8A00F8CAA6 /* AddressBookUI.framework in Frameworks */,
 				24D8E49E119B9D8A00F8CAA6 /* CFNetwork.framework in Frameworks */,
 				24D8E49F119B9D8A00F8CAA6 /* CoreLocation.framework in Frameworks */,
-				24D8E4A0119B9D8A00F8CAA6 /* MapKit.framework in Frameworks */,
 				24D8E4A1119B9D8A00F8CAA6 /* MessageUI.framework in Frameworks */,
 				24D8E4A2119B9D8A00F8CAA6 /* MobileCoreServices.framework in Frameworks */,
 				24D8E4A3119B9D8A00F8CAA6 /* OpenGLES.framework in Frameworks */,
@@ -2411,7 +2407,6 @@
 				DABB37A612E8CB280026A6EA /* AddressBookUI.framework in Frameworks */,
 				DABB37A712E8CB280026A6EA /* CFNetwork.framework in Frameworks */,
 				DABB37A812E8CB280026A6EA /* CoreLocation.framework in Frameworks */,
-				DABB37A912E8CB280026A6EA /* MapKit.framework in Frameworks */,
 				DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */,
 				DABB37AB12E8CB280026A6EA /* MobileCoreServices.framework in Frameworks */,
 				DABB37AC12E8CB280026A6EA /* OpenGLES.framework in Frameworks */,
@@ -3541,6 +3536,8 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */,
+				D52DF22C18C7A0550076FB71 /* libMapbox.a */,
 				D5818EAE18AA8872007EF771 /* AdSupport.framework */,
 				D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */,
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
@@ -3565,7 +3562,6 @@
 				24CA8C77111167B60084E2DE /* AddressBookUI.framework */,
 				24CA8C7B111167B60084E2DE /* CFNetwork.framework */,
 				24CA8C7D111167B60084E2DE /* CoreLocation.framework */,
-				24CA8C7F111167B60084E2DE /* MapKit.framework */,
 				24CA8C81111167B60084E2DE /* MessageUI.framework */,
 				24CA8C83111167B60084E2DE /* MobileCoreServices.framework */,
 				24CA8C85111167B60084E2DE /* OpenGLES.framework */,
@@ -3909,6 +3905,14 @@
 			name = JRSwizzle;
 			sourceTree = "<group>";
 		};
+		D52DF1CE18C77AF80076FB71 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		D55795071837BEF90057DD41 /* CoconutKitAnimation */ = {
 			isa = PBXGroup;
 			children = (
@@ -3972,10 +3976,10 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
+				D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */,
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
 				D5E75A70187C58F00016542B /* icon@2x.png */,
-				D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */,
 				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
 				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
 				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
@@ -4041,14 +4045,6 @@
 				D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */,
 			);
 			name = transitions;
-			sourceTree = "<group>";
-		};
-		D5818EA018AA87A6007EF771 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D5818EA618AA87A6007EF771 /* libAkylasMopub.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		D5B6C6DD1811249F00A2612A /* DT */ = {
@@ -4289,7 +4285,7 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
-				D5818EAA18AA87CB007EF771 /* PBXTargetDependency */,
+				D52DF20B18C77BBE0076FB71 /* PBXTargetDependency */,
 				D5EE1BEC1860CAC300579573 /* PBXTargetDependency */,
 				D5EE1BE11860ABDB00579573 /* PBXTargetDependency */,
 				D5EE1BA71860A12800579573 /* PBXTargetDependency */,
@@ -4374,16 +4370,16 @@
 					ProjectRef = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
 				},
 				{
-					ProductGroup = D5818EA018AA87A6007EF771 /* Products */;
-					ProjectRef = D5818E9F18AA87A6007EF771 /* AkylasMopub.xcodeproj */;
-				},
-				{
 					ProductGroup = D5EE1BA01860A11400579573 /* Products */;
 					ProjectRef = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
 				},
 				{
 					ProductGroup = D5EE1BDA1860ABD100579573 /* Products */;
 					ProjectRef = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+				},
+				{
+					ProductGroup = D52DF1CE18C77AF80076FB71 /* Products */;
+					ProjectRef = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -4396,11 +4392,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D5818EA618AA87A6007EF771 /* libAkylasMopub.a */ = {
+		D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasMopub.a;
-			remoteRef = D5818EA518AA87A6007EF771 /* PBXContainerItemProxy */;
+			path = libAkylasMapbox.a;
+			remoteRef = D52DF1D618C77AF80076FB71 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		D5EE1BA51860A11500579573 /* libAkylasShapes.a */ = {
@@ -4486,7 +4482,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "";
+			shellScript = "cp -R -f $BUILT_PRODUCTS_DIR/Mapbox.bundle $BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/";
 		};
 		24D8E3B9119B9D8A00F8CAA6 /* Pre-Compile */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -5628,10 +5624,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D5818EAA18AA87CB007EF771 /* PBXTargetDependency */ = {
+		D52DF20B18C77BBE0076FB71 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = AkylasMopub;
-			targetProxy = D5818EA918AA87CB007EF771 /* PBXContainerItemProxy */;
+			name = AkylasMapbox;
+			targetProxy = D52DF20A18C77BBE0076FB71 /* PBXContainerItemProxy */;
 		};
 		D5EE1BA71860A12800579573 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -5661,6 +5657,7 @@
 					"$(inherited)",
 					/Volumes/data/dev/ios/GPUImage/build,
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -5691,6 +5688,7 @@
 				PRODUCT_NAME = Titanium;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "armv7 i386";
 			};
 			name = Debug;
 		};
@@ -5704,6 +5702,7 @@
 					"$(inherited)",
 					/Volumes/data/dev/ios/GPUImage/build,
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
@@ -5722,6 +5721,7 @@
 				PRODUCT_NAME = Titanium;
 				TARGETED_DEVICE_FAMILY = 1;
 				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = "armv7 i386";
 			};
 			name = Release;
 		};
@@ -5734,6 +5734,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -5769,6 +5770,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
@@ -5797,9 +5799,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = armv7;
-				"ARCHS[sdk=iphoneos*]" = armv7;
-				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -5844,9 +5843,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = armv7;
-				"ARCHS[sdk=iphoneos*]" = armv7;
-				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -5888,9 +5884,6 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 241EAEC5118E2BA90081A5BE /* project.xcconfig */;
 			buildSettings = {
-				ARCHS = armv7;
-				"ARCHS[sdk=iphoneos*]" = armv7;
-				"ARCHS[sdk=iphonesimulator*]" = i386;
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -5942,6 +5935,7 @@
 					"$(inherited)",
 					/Volumes/data/dev/ios/GPUImage/build,
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
@@ -5972,6 +5966,7 @@
 				PRODUCT_NAME = Titanium;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = 1;
+				VALID_ARCHS = "armv7 i386";
 			};
 			name = Developer;
 		};
@@ -5984,6 +5979,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -6019,6 +6015,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -6060,6 +6057,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -6101,6 +6099,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
+					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
