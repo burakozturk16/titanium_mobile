@@ -1085,12 +1085,7 @@ public class TiMapView extends TiUIView
 	{
 		if (pinImage != null) {
 			TiDrawableReference drawableRef = TiDrawableReference.fromUrl(proxy, pinImage);
-			Drawable d;
-			try {
-				d = drawableRef.getDrawable();
-			} catch (FileNotFoundException e) {
-				d = null;
-			}
+			Drawable d = drawableRef.getDrawable();
 			if (d != null) {
 				d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
 				return d;
