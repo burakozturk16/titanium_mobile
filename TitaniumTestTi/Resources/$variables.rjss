@@ -1,21 +1,81 @@
 $navBarHeight=44;
-$navBarTop=20;
-$bgdColor='#1B1F27';
-$blueColor='#0D6EA0';
-$redColor='#BB2446';
-$grayColor='#6F7D8C';
-$statboxGreen='#3AF13A';
-$statboxYellow='#ffff3d';
-$statboxRed='#ff3d3d';
-$horizontalDecale=6;
-$verticalDecale=4;
-$defaultBgdColor=$grayColor;
-$mbColor=$redColor;
-$wfColor=$grayColor;
-$ttColor=$blueColor;
-$containerBgdColor='white';
-$vColor='#029C3A';
-$bottomViewHeight=50;
-$switchOnColor='#5C9035';
-$switchOffColor='#4E4F5F';
-$alertBgColor='#dd15668F';
+$navBarTop=0;
+
+[app.deviceinfo.isIOS7]  {
+    $navBarTop=20;
+}
+[app.deviceinfo.isAndroid] {
+    $navBarHeight=50;
+}
+
+$notificationDuration=3000;
+$backgroundColor='white';
+$backgroundColorGray='#F9F9F9';
+$disconnectedColor='red';
+$animatedWindowBgColor='#99000000';
+$alertViewBgColor=$backgroundColor;
+$alertBtnHeight=50;
+$decaleH=2;
+$decaleV=2;
+$imageDetailsWidth=40;
+$settingsBorderTrans='#00b6bcbd';
+$settingsBorder='#b6bcbd';
+$settingsBorderOnTrans='#00ffffff';
+$settingsBorderOn='#ffffff';
+$zIndeVideo=10;
+$zIndeAlert=11;
+
+@
+var font = app.iconicfonts.webhostinghub;
+var myObj={
+    grayBorder:'#eeeeee',
+    cDownloading:'#468847',
+    cSuccess:'#468847',
+    cProcessing:'#468847',
+    cChecking:'#468847',
+    cUnpacking:'#468847',
+    cRepairing:'#468847',
+    cVerifying:'#468847',
+    cInfo:'#468847',
+	cPaused:'#f89405',
+    cRepairable:'#f89405',
+    cQueued:'#999999',
+    cPpQueued:'#999999',
+	cNone:'#999999',
+	cPriority:'#b94a48',
+	cUnknown:'#3A87AD',
+	cFailure:'#b94a48',
+	cDamaged:'#b94a48',
+    cPpFailure:'#F89406',
+    cDetail:'#3a87ad',
+    cWarning:'#f89406',
+    cError:'#b94a48',
+    cDeletedHealth:'#b94a48',
+    cDebug:'#3a87ad',
+    cPBSuccess:'#62c462',
+    cPBWarning:'#fbb450',
+    cPBError:'#ee5f5b',
+    cPBInfo:'#5bc0de',
+    cSelectedRow:'#FFFFE1',
+    sIconDownload: font.icon('whh-download2'),
+    sIconHistory: font.icon('whh-calendar'),
+    sIconMessage: font.icon('whh-email'),
+    sIconSearch: font.icon('whh-search'),
+    sIconSettings: font.icon('whh-settings'),
+
+    rightMenuWidth:60,
+    drBtnWidth:40,
+    drCheckWidth:20,
+    drPBHeight:16,
+    drTLWidth:60,
+    navBarColor:'#2c2c2c',
+    priorities:[
+        {value:100, text:tr('very_high')},
+        {value:50, text:tr('high')},
+        {value:0, text:tr('normal')},
+        {value:-50, text:tr('low')},
+        {value:-100, text:tr('very_low')}
+    ]
+};
+$nzbget=myObj;
+@

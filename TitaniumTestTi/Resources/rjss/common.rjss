@@ -1,6 +1,5 @@
 Window {
     backgroundColor: $bgdColor, orientationModes : [Titanium.UI.PORTRAIT],
-    navBarHidden: true
 }
 
 SettingsWindow {
@@ -36,6 +35,45 @@ Button {
     height: Ti.UI.FILL
 }
 
+.HHolder {
+    layout:'horizontal'
+}
+.VHolder {
+    layout:'vertical'
+}
+
+.Wrap {
+	horizontalWrap:true
+}
+
+.SizeWidth, .Size {
+    width: 'SIZE',
+}
+
+.SizeHeight, .Size {
+    height: 'SIZE',
+}
+
+.CenteredHeight {
+    height: 'SIZE',
+    top:0,
+    bottom:0
+}
+
+
+.Fill, .FillWidth {
+    width: 'FILL'
+}
+
+.Fill, .FillHeight {
+    height: 'FILL'
+}
+
+.FillViewHeightTwice {
+    height:'65%',
+    width:'FILL'
+}
+
 .LabelTest {
     left: 5,
     right: 5
@@ -47,4 +85,29 @@ Button {
 
 .LeftLabel {
     textAlign:'left'
+}
+
+
+NotificationWindow {
+    backgroundColor: 'transparent',
+    lightweight:true,
+    touchPassThrough:true,
+    touchEnabled:false
+}
+.NotificationView {
+    height:'FILL',
+    width:'FILL',
+}
+
+.MsgView {
+    top:0,
+    textAlign:'center',
+    maxLines:3,
+    ellipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
+    backgroundOpacity:0.8,
+    padding:{top:$navBarTop+ 5, bottom:5},
+    width:'FILL'
+}
+.MsgLevelError {
+	backgroundColor:'red'
 }

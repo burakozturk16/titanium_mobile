@@ -1,25 +1,75 @@
-var Shape = require('akylas.shapes');
-var slidemenu = require('akylas.slidemenu');
-// var mopub = require('akylas.mopub');
-var ak = require('lib/akylas.commonjs');
+app = { // not using var seems very important, cant really see why!
+	views: {},
+	modules: {
+		map: require('akylas.mapbox'),
+		slidemenu: require('akylas.slidemenu'),
+		shapes: require('akylas.shapes'),
+		commonjs: require('akylas.commonjs'),
+		iconicfont: require('lib/IconicFont')
+	},
+	services: {},
+	values: {
+		winOpeningArgs: {}
+	},
+	fonts: {
+		// entypo: 'entypo',
+		ios7icon: 'ios7-icon',
+		roboto: 'Roboto',
+		lobster: 'Lobster 1.4'
+	},
+	utils: {},
+	templates: {}
+};
 
-ak.load(this, {
+app.iconicfonts = {
+	webhostinghub: app.modules.iconicfont.IconicFont({
+		font: '/fonts/font_webhostinghub'
+	})
+};
+
+app.modules.commonjs.load(this, {
+	underscore: 'lodash',
 	modules: ['ti', 'moment', 'animation', 'lang'],
-	additions: ['string']
+	additions: []
 });
-redux.fn.addNaturalConstructor(this, slidemenu, 'SlideMenu', 'SlideMenu');
+app.modules.commonjs = null;
+redux.fn.addNaturalConstructor(this, app.modules.slidemenu, 'SlideMenu', 'SlideMenu');
 
+if (typeof(String.prototype.assign) === "undefined") {
+	String.prototype.assign = function() {
+		var assign = {};
+		_.each(arguments, function(element, index, list) {
+			if (_.isObject(element)) {
+				_.extend(assign, element);
+			} else assign[index + 1] = element;
+		});
+		return this.replace(/\{([^{]+?)\}/g, function(m, key) {
+			return _.has(assign, key) ? assign[key] : m;
+		});
+	}
+}
 _.str = require('lib/underscore.string');
 // Mix in non-conflict functions to Underscore namespace if you want
 _.mixin(_.str.exports());
-
-var app = {};
 ak.prepareAppObject(app);
 ak.ti.loadRjss('$variables'); //load variables
 ak.ti.loadCreatorsFromDir('ui');
 // /RJSS loading
 ak.ti.loadRjssFromDir('rjss');
+var WindowManager = require('lib/WindowManager').WindowManager;
+app.ui = new WindowManager({
+	shouldDelayOpening: false
+});
+app.debounce = function(callback) {
+	return _.debounce(callback, 500, {
+		'leading': true,
+		'trailing': false
+	});
+};
 
+app.onDebounce = function(_object, _type, _callback) {
+	_object.addEventListener(_type, app.debounce(_callback));
+};
 var isiOS7 = app.deviceinfo.isIOS7;
 var isAndroid = Ti.Platform.osname == "android";
 var isApple = Ti.Platform.osname === 'ipad' || Ti.Platform.osname === 'iphone';
@@ -739,7 +789,8 @@ function layout1Ex() {
 	var view = Ti.UI.createView({
 		backgroundColor: 'green',
 		width: 200,
-		height: Ti.UI.SIZE,
+		top: 0,
+		height: 300,
 		layout: 'horizontal'
 	});
 	var view1 = Ti.UI.createView({
@@ -769,6 +820,7 @@ function layout1Ex() {
 		backgroundColor: 'orange',
 		width: Ti.UI.FILL,
 		height: Ti.UI.FILL,
+		maxHeight: 100,
 		bottom: 6,
 		right: 4
 	});
@@ -780,7 +832,7 @@ function layout1Ex() {
 			backgroundColor: 'purple',
 			width: Ti.UI.FILL,
 			height: Ti.UI.FILL,
-			bottom: 6,
+			bottom: 4,
 			right: 4
 		},
 		childTemplates: [{
@@ -796,18 +848,72 @@ function layout1Ex() {
 	});
 	view.add(view3);
 	win.add(view);
+	win.add({
+		type: 'Ti.UI.View',
+		properties: {
+			backgroundColor: 'yellow',
+			width: 200,
+			bottom: 0,
+			height: Ti.UI.SIZE,
+			layout: 'horizontal',
+			horizontalWrap: true
+		},
+		childTemplates: [{
+			type: 'Ti.UI.View',
+			properties: {
+				backgroundColor: 'red',
+				width: 60,
+				height: 80,
+				left: 0
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				backgroundColor: 'blue',
+				width: 20,
+				borderColor: 'red',
+				borderWidth: 2,
+				borderRadius: [2, 10, 0, 20],
+				// top:10,
+				height: 80,
+				left: 10,
+				right: 4
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				backgroundColor: 'purple',
+				width: Ti.UI.FILL,
+				height: 100,
+				bottom: 4,
+				right: 4
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				backgroundColor: 'orange',
+				width: 10,
+				height: 50,
+				maxHeight: 100,
+				bottom: 6,
+				right: 4
+			}
+		}]
+
+	});
 	win.addEventListener('click', function(e) {
 		view2.animate({
 			cancelRunningAnimations: true,
 			// restartFromBeginning:true,
 			duration: 3000,
 			autoreverse: true,
+			fullscreen: !view2.fullscreen
 			// repeat: 4,
-			width: Ti.UI.FILL,
-			height: 100,
-			top: null,
-			left: 0,
-			right: 30
+			// width: Ti.UI.FILL,
+			// height: 100,
+			// top: null,
+			// left: 0,
+			// right: 30
 		});
 	});
 	openWin(win);
@@ -860,7 +966,7 @@ function shapeExs() {
 
 function shape1Ex() {
 	var win = createWin();
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		bubbleParent: false,
 		width: 200,
 		height: 200
@@ -868,7 +974,7 @@ function shape1Ex() {
 	view.add({
 		lineColor: '#777',
 		lineWidth: 10,
-		lineCap: Shape.CAP_ROUND,
+		lineCap: app.modules.shapes.CAP_ROUND,
 		transform: Ti.UI.create2DMatrix().rotate(5),
 		lineShadow: {
 			color: 'white'
@@ -880,12 +986,12 @@ function shape1Ex() {
 			sweepAngle: 320
 		}]
 	});
-	var shape = Shape.createArc({
+	var shape = app.modules.shapes.createArc({
 		radius: '45%',
 		// startAngle: -160,
 		sweepAngle: 90,
 		lineWidth: 10,
-		lineCap: Shape.CAP_ROUND,
+		lineCap: app.modules.shapes.CAP_ROUND,
 		lineGradient: {
 			type: 'sweep',
 			colors: [{
@@ -922,8 +1028,8 @@ function shape1Ex() {
 		height: 100
 	});
 	view.addEventListener('click', function(e) {
-		// shape.cancelAllAnimations();
-		// shape.sweepAngle = 320;
+		// app.modules.shapes.cancelAllAnimations();
+		// app.modules.shapes.sweepAngle = 320;
 		view.animate(anim);
 	});
 	win.add(view);
@@ -932,7 +1038,7 @@ function shape1Ex() {
 
 function shape2Ex() {
 	var win = createWin();
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		top: 150,
 		borderRadius: 10,
 		borderColor: 'red',
@@ -944,7 +1050,7 @@ function shape2Ex() {
 		transform: Ti.UI.create2DMatrix().scale(1.5, 1.5),
 		viewMask: '/images/body-mask.png'
 	});
-	var shape = Shape.createCircle({
+	var shape = app.modules.shapes.createCircle({
 		fillColor: '#bbb',
 		lineColor: '#777',
 		lineWidth: 1,
@@ -973,7 +1079,7 @@ function shape2Ex() {
 		fillColor: 'blue',
 		curve: [0.68, -0.55, 0.265, 1.55]
 	});
-	shape.addEventListener('click', function(e) {
+	app.modules.shapes.addEventListener('click', function(e) {
 		// e.source.cancelAllAnimations();
 		e.source.animate(anim);
 	});
@@ -983,18 +1089,18 @@ function shape2Ex() {
 
 function shape3Ex() {
 	var win = createWin();
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		bubbleParent: false,
 		width: Ti.UI.FILL,
 		height: 200
 	});
-	var shape = Shape.createLine({
+	var shape = app.modules.shapes.createLine({
 		lineColor: 'blue',
 		lineWidth: 6,
 		retina: false,
 		antialiasing: true,
-		lineCap: Shape.CAP_BUTT,
-		lineJoin: Shape.JOIN_ROUND,
+		lineCap: app.modules.shapes.CAP_BUTT,
+		lineJoin: app.modules.shapes.JOIN_ROUND,
 		lineShadow: {
 			radius: 3,
 			color: 'blue'
@@ -1015,7 +1121,7 @@ function shape3Ex() {
 	});
 	view.add(shape);
 	view.addEventListener('click', function(e) {
-		shape.animate({
+		app.modules.shapes.animate({
 			duration: 400,
 			lineWidth: 20,
 			autoreverse: true,
@@ -1043,12 +1149,12 @@ function shape4Ex() {
 		bottom: 20,
 		html: html
 	}));
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		width: Ti.UI.FILL,
 		height: Ti.UI.FILL,
 		bubbleParent: false
 	});
-	var shape = Shape.createCircle({
+	var shape = app.modules.shapes.createCircle({
 		fillColor: 'transparent',
 		lineColor: '#777',
 		lineWidth: 1,
@@ -1069,7 +1175,7 @@ function shape4Ex() {
 		radius: '20%'
 	});
 	view.add(shape);
-	shape.addEventListener('click', function(e) {
+	app.modules.shapes.addEventListener('click', function(e) {
 		e.source.cancelAllAnimations();
 		e.source.animate({
 			duration: 400,
@@ -1094,12 +1200,12 @@ function shape5Ex() {
 		bottom: 20,
 		html: html
 	}));
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		width: Ti.UI.FILL,
 		height: Ti.UI.FILL,
 		bubbleParent: false
 	});
-	var shape = Shape.createRoundedRect({
+	var shape = app.modules.shapes.createRoundedRect({
 		cornerRadius: 10,
 		// lineColor:'#777',
 		// lineWidth:4,
@@ -1119,7 +1225,7 @@ function shape5Ex() {
 	});
 	view.add(shape);
 	view.addEventListener('click', function(e) {
-		shape.animate({
+		app.modules.shapes.animate({
 			duration: 3000,
 			restartFromBeginning: true,
 			transform: Ti.UI.create2DMatrix().scale(2)
@@ -1132,12 +1238,12 @@ function shape5Ex() {
 function shape6Ex() {
 	var win = createWin();
 	win.backgroundColor = 'gray';
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		width: 200,
 		height: 200,
 		bubbleParent: false
 	});
-	view.add(Shape.createRoundedRect({
+	view.add(app.modules.shapes.createRoundedRect({
 		lineWidth: 1,
 		fillColor: 'white',
 		lineColor: 'gray',
@@ -1180,25 +1286,25 @@ function shape7Ex() {
 	var win = createWin({
 		backgroundColor: 'gray'
 	});
-	var view = Shape.createView({
+	var view = app.modules.shapes.createView({
 		width: 200,
 		height: 200,
 		bubbleParent: false
 	});
-	var slice1 = Shape.createPieSlice({
+	var slice1 = app.modules.shapes.createPieSlice({
 		fillColor: '#aa00ffff',
 		innerRadius: 30,
 		startAngle: 0,
 		radius: '40%',
 		sweepAngle: 40
 	});
-	var slice2 = Shape.createPieSlice({
+	var slice2 = app.modules.shapes.createPieSlice({
 		fillColor: '#aaff00ff',
 		innerRadius: 30,
 		startAngle: 30,
 		sweepAngle: 100
 	});
-	var slice3 = Shape.createPieSlice({
+	var slice3 = app.modules.shapes.createPieSlice({
 		fillColor: '#aaffff00',
 		innerRadius: 30,
 		startAngle: -60,
@@ -1276,7 +1382,7 @@ function buttonAndLabelEx() {
 		borderRadius: 10,
 		borderColor: 'red',
 		backgroundColor: 'gray',
-		touchPassThrough: false,
+		touchPassThrough: true,
 		backgroundSelectedGradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
@@ -1388,8 +1494,13 @@ function buttonAndLabelEx() {
 	var t3 = Ti.UI.create2DMatrix().scale(2.0, 2.0).translate(0, -40).rotate(90);
 	label.addEventListener('longpress', function(e) {
 		label.animate({
-			duration: 500,
-			transform: varSwitch(label.transform, t3, t1),
+			duration: 5000,
+			// width:'FILL',
+			// height:'FILL',
+			// bottom:0,
+			autoreverse: true,
+			fullscreen: !label.fullscreen
+			// transform: varSwitch(label.transform, t3, t1),
 		});
 	});
 	win.add(label);
@@ -1761,7 +1872,8 @@ function ImageViewEx() {
 	view.addEventListener('click', function() {
 		//		view.image = varSwitch(view.image, '/images/slightlylargerimage.png', '/images/poster.jpg');
 		view.animate({
-			height: 400,
+			width: 'FILL',
+			height: 'FILL',
 			duration: 1000,
 			autoreverse: true
 		});
@@ -2551,7 +2663,7 @@ function fadeInEx() {
 // } else {
 // function transform2Ex() {
 // 	var win = createWin();
-// 	var view = Shape.createView({
+// 	var view = app.modules.shapes.createView({
 // 		top : 150,
 // 		borderRadius : 10,
 // 		borderColor : 'red',
@@ -2579,7 +2691,7 @@ function fadeInEx() {
 // 		width : 5,
 // 		height : 5
 // 	}));
-// 	var shape = Shape.createCircle({
+// 	var shape = app.modules.shapes.createCircle({
 // 		fillColor : '#bbb',
 // 		lineColor : '#777',
 // 		lineWidth : 1,
@@ -2599,7 +2711,7 @@ function fadeInEx() {
 // 	view.addEventListener('click', function(e) {
 // 		if (isAndroid)
 // 			set.cancel();
-// 		shape.animate({
+// 		app.modules.shapes.animate({
 // 			duration : 400,
 // 			lineWidth : 20,
 // 			autoreverse : true,
@@ -2626,7 +2738,7 @@ function fadeInEx() {
 // 			fillColor : 'blue'
 // 		}, shape);
 // 		win.addEventListener('click', function(e) {
-// 			shape.cancelAllAnimations();
+// 			app.modules.shapes.cancelAllAnimations();
 // 			set.start();
 // 		});
 // 	}
@@ -2646,11 +2758,11 @@ function htmlLabelEx() {
 	var win = createWin();
 	var scrollView = Ti.UI.createScrollView({
 		layout: 'vertical',
-		contentWidth: 'SIZE',
+		contentWidth: 'FILL',
 		contentHeight: Ti.UI.SIZE
 	});
 	scrollView.add(Ti.UI.createLabel({
-		width: Ti.UI.SIZE,
+		width: Ti.UI.FILL,
 		padding: {
 			left: 20,
 			right: 20,
@@ -2658,6 +2770,8 @@ function htmlLabelEx() {
 			bottom: 20
 		},
 		height: Ti.UI.SIZE,
+		ellipsize: Ti.UI.TEXT_ELLIPSIZE_TAIL,
+		maxHeight: 100,
 		bottom: 20,
 		html: html
 	}));
@@ -3395,6 +3509,7 @@ function navWindowEx() {
 		height: 40,
 		width: 200,
 		borderRadius: 10,
+		disableHW: true,
 		backgroundColor: 'red'
 	});
 	var tr1 = Ti.UI.createLabel({
@@ -3410,6 +3525,7 @@ function navWindowEx() {
 			style: Ti.UI.TransitionStyle.FOLD,
 			duration: 3000
 		});
+		videoOverlayTest();
 	});
 	var tr2 = Ti.UI.createButton({
 		title: 'I am a button!',
@@ -3469,6 +3585,7 @@ function navWindowEx() {
 			Ti.UI.LANDSCAPE_RIGHT,
 			Ti.UI.LANDSCAPE_LEFT
 		],
+		style: 1,
 		leftViewWidth: -60,
 		leftViewDisplacement: 40,
 		shadowWidth: 0,
@@ -3603,9 +3720,10 @@ function slideMenuEx() {
 		});
 		imageView.addEventListener('load', function(e) {
 			// setTimeout(function(){
-			Ti.Image.getFilteredViewToImage(imageView, Ti.Image.FILTER_GAUSSIAN_BLUR, {
-				scale: 0.3,
-				radius: 1,
+			Ti.Image.getFilteredViewToImage(imageView, {
+				filters: [Ti.Image.FILTER_IOS_BLUR],
+				// scale: 0.3,
+				// radius: 1,
 				callback: function(result) {
 					blurImageView.image = result.image;
 					glassView.backgroundImage = result.image.imageAsCropped(glassView.rect, {
@@ -3818,8 +3936,10 @@ function slideMenuEx() {
 	function getScrollViewPage(_imgUrl, _title) {
 		var view = Ti.UI.createView({
 			opacity: 0,
+			rasterize: true,
 			height: Ti.UI.FILL,
 			width: Ti.UI.FILL,
+			backgroundColor: 'green'
 			// left:'15%',
 			// right:'15%'
 		});
@@ -3839,10 +3959,11 @@ function slideMenuEx() {
 		// var textView = Ti.UI.createView({backgroundColor:'#55000000'});
 		imageView.addEventListener('load', function(e) {
 			glassView.blurBackground('backgroundImage', {
+				filters: [Ti.Image.FILTER_IOS_BLUR],
 				blend: Ti.UI.BlendMode.DARKEN,
-				radius: 1,
-				scale: 0.3,
-				tint: '#aa000000',
+				// radius: 1,
+				// scale: 0.3,
+				tint: '#aaff0000',
 				callback: function() {
 					view.animate({
 						opacity: 1,
@@ -3971,7 +4092,7 @@ function slideMenuEx() {
 		};
 		otherWindows = [slidingMenu];
 	}
-	var slidingMenu = slidemenu.createSlideMenu({
+	var slidingMenu = new SlideMenu({
 		backgroundColor: backColor,
 		navBarHidden: true,
 		leftViewWidth: '40%',
@@ -4354,313 +4475,324 @@ function listViewLayout() {
 	'http://zapp.trakt.us/images/posters_movies/210231-138.jpg',
 	'http://zapp.trakt.us/images/posters_movies/176347-138.jpg',
 	'http://zapp.trakt.us/images/posters_movies/210596-138.jpg'];
+	var trId = Ti.UI.create2DMatrix({
+		ownFrameCoord: true
+	});
+	var trDecaled = trId.translate(50, 0);
 	var listView = createListView({
 		rowHeight: 60,
 		// minRowHeight: 40,
+		onDisplayCell: function(_args) {
+			_args.view.opacity = 0;
+			_args.view.animate({
+				opacity: 1,
+				duration: 250
+			});
+		},
 		defaultItemTemplate: 'template2'
 	});
 
 	listView.templates = {
-		'template' : template,
-		'template2' : {
-			"properties" : {
-				"rclass" : "NZBGetRowBordered",
-				"height" : 75,
-				"borderPadding" : {
-					"left" : -1,
-					"right" : -1,
-					"top" : -1
+		'template': template,
+		'template2': {
+			"properties": {
+				"rclass": "NZBGetRowBordered",
+				"height": 75,
+				"borderPadding": {
+					"left": -1,
+					"right": -1,
+					"top": -1
 				},
-				"borderColor" : "#DDDDDD",
-				"backgroundColor" : "white"
+				"borderColor": "#DDDDDD",
+				"backgroundColor": "white"
 			},
-			"childTemplates" : [{
-				"type" : "Ti.UI.View",
-				"properties" : {
-					"rclass" : "NZBGetDRCheckHolder",
-					"width" : 40,
-					"height" : 40,
-					"left" : 4
+			"childTemplates": [{
+				"type": "Ti.UI.View",
+				"properties": {
+					"rclass": "NZBGetDRCheckHolder",
+					"width": 40,
+					"height": 40,
+					"left": 4
 				},
-				"childTemplates" : [{
-					"type" : "Ti.UI.Label",
-					"bindId" : "check",
-					"properties" : {
-						"rclass" : "NZBGetDRCheck",
-						"color" : "transparent",
-						"textAlign" : "center",
-						"clipChildren" : false,
-						"borderSelectedColor" : "#0088CC",
-						"font" : {
-							"family" : "LigatureSymbols"
+				"childTemplates": [{
+					"type": "Ti.UI.Label",
+					"bindId": "check",
+					"properties": {
+						"rclass": "NZBGetDRCheck",
+						"color": "transparent",
+						"textAlign": "center",
+						"clipChildren": false,
+						"borderSelectedColor": "#0088CC",
+						"font": {
+							"family": "LigatureSymbols"
 						},
-						"text" : "",
-						"width" : 20,
-						"height" : 20,
-						"borderRadius" : 2,
-						"borderColor" : "#DDDDDD"
+						"text": "",
+						"width": 20,
+						"height": 20,
+						"borderRadius": 2,
+						"borderColor": "#DDDDDD"
 					}
 				}]
 			}, {
-				"type" : "Ti.UI.Button",
-				"bindId" : "button",
-				"properties" : {
-					"rclass" : "NZBGetDRButton",
-					"width" : 40,
-					"height" : 40,
-					"left" : 4,
-					"font" : {
-						"family" : "Simple-Line-Icons",
-						"size" : 18,
-						"weight" : "bold"
+				"type": "Ti.UI.Button",
+				"bindId": "button",
+				"properties": {
+					"rclass": "NZBGetDRButton",
+					"width": 40,
+					"height": 40,
+					"left": 4,
+					"font": {
+						"family": "Simple-Line-Icons",
+						"size": 18,
+						"weight": "bold"
 					},
-					"borderRadius" : 10,
-					"borderWidth" : 1,
-					"color" : "white",
-					"selectedColor" : "gray",
-					"backgroundColor" : "transparent"
+					"borderRadius": 10,
+					"borderWidth": 1,
+					"color": "white",
+					"selectedColor": "gray",
+					"backgroundColor": "transparent"
 				},
-				"events" : {}
+				"events": {}
 			}, {
-				"type" : "Ti.UI.View",
-				"properties" : {
-					"rclass" : "NZBGetDRVHolder",
-					"layout" : "vertical",
-					"left" : 44,
-					"height" : "FILL",
-					"width" : "FILL"
+				"type": "Ti.UI.View",
+				"properties": {
+					"rclass": "NZBGetDRVHolder",
+					"layout": "vertical",
+					"left": 44,
+					"height": "FILL",
+					"width": "FILL"
 				},
-				"childTemplates" : [{
-					"type" : "Ti.UI.Label",
-					"bindId" : "tlabel",
-					"properties" : {
-						"rclass" : "NZBGetRTitle",
-						"padding" : {
-							"left" : 5,
-							"right" : 5
+				"childTemplates": [{
+					"type": "Ti.UI.Label",
+					"bindId": "tlabel",
+					"properties": {
+						"rclass": "NZBGetRTitle",
+						"padding": {
+							"left": 5,
+							"right": 5
 						},
-						"ellipsize" : 'END',
-						"maxLines" : 2,
-						"height" : "48%",
-						"width" : "FILL",
-						"verticalAlign" : "top",
-						"font" : {
-							"size" : 14
+						"ellipsize": 'END',
+						"maxLines": 2,
+						"height": "48%",
+						"width": "FILL",
+						"verticalAlign": "top",
+						"font": {
+							"size": 14
 						},
-						"color" : "black"
+						"color": "black"
 					}
 				}, {
-					"type" : "Ti.UI.View",
-					"properties" : {
-						"rclass" : "Fill HHolder",
-						"layout" : "horizontal",
-						"width" : "FILL",
-						"height" : "FILL"
+					"type": "Ti.UI.View",
+					"properties": {
+						"rclass": "Fill HHolder",
+						"layout": "horizontal",
+						"width": "FILL",
+						"height": "FILL"
 					},
-					"childTemplates" : [{
-						"type" : "Ti.UI.Label",
-						"bindId" : "category",
-						"properties" : {
-							"rclass" : "NZBGetLabelLeft NZBGetRTags",
-							"backgroundColor" : "#999999",
-							"color" : "white",
-							"padding" : {
-								"left" : 2,
-								"right" : 2,
-								"top" : 0
+					"childTemplates": [{
+						"type": "Ti.UI.Label",
+						"bindId": "category",
+						"properties": {
+							"rclass": "NZBGetLabelLeft NZBGetRTags",
+							"backgroundColor": "#999999",
+							"color": "white",
+							"padding": {
+								"left": 2,
+								"right": 2,
+								"top": 0
 							},
-							"shadowColor" : "#55000000",
-							"shadowRadius" : 1,
-							"borderRadius" : 2,
-							"height" : "SIZE",
-							"width" : "SIZE",
-							"maxLines" : 1,
-							"clipChildren" : false,
-							"font" : {
-								"size" : 12,
-								"weight" : "bold"
+							"shadowColor": "#55000000",
+							"shadowRadius": 1,
+							"borderRadius": 2,
+							"height": "SIZE",
+							"width": "SIZE",
+							"maxLines": 1,
+							"clipChildren": false,
+							"font": {
+								"size": 12,
+								"weight": "bold"
 							},
-							"textAlign" : "left",
-							"left" : 5
+							"textAlign": "left",
+							"left": 5
 						}
 					}, {
-						"type" : "Ti.UI.Label",
-						"bindId" : "health",
-						"properties" : {
-							"visible" : false,
-							"rclass" : "NZBGetLabelLeft NZBGetRTags",
-							"backgroundColor" : "#999999",
-							"color" : "white",
-							"padding" : {
-								"left" : 2,
-								"right" : 2,
-								"top" : 0
+						"type": "Ti.UI.Label",
+						"bindId": "health",
+						"properties": {
+							"visible": false,
+							"rclass": "NZBGetLabelLeft NZBGetRTags",
+							"backgroundColor": "#999999",
+							"color": "white",
+							"padding": {
+								"left": 2,
+								"right": 2,
+								"top": 0
 							},
-							"shadowColor" : "#55000000",
-							"shadowRadius" : 1,
-							"borderRadius" : 2,
-							"height" : "SIZE",
-							"width" : "SIZE",
-							"maxLines" : 1,
-							"clipChildren" : false,
-							"font" : {
-								"size" : 12,
-								"weight" : "bold"
+							"shadowColor": "#55000000",
+							"shadowRadius": 1,
+							"borderRadius": 2,
+							"height": "SIZE",
+							"width": "SIZE",
+							"maxLines": 1,
+							"clipChildren": false,
+							"font": {
+								"size": 12,
+								"weight": "bold"
 							},
-							"textAlign" : "left",
-							"left" : 5
+							"textAlign": "left",
+							"left": 5
 						}
 					}, {
-						"type" : "Ti.UI.View",
-						"properties" : {
-							"rclass" : "FILL"
+						"type": "Ti.UI.View",
+						"properties": {
+							"rclass": "FILL"
 						}
 					}, {
-						"type" : "Ti.UI.Label",
-						"bindId" : "priority",
-						"properties" : {
-							"rclass" : "NZBGetLabelRight NZBGetRPriority",
-							"color" : "white",
-							"padding" : {
-								"left" : 2,
-								"right" : 2,
-								"top" : 0
+						"type": "Ti.UI.Label",
+						"bindId": "priority",
+						"properties": {
+							"rclass": "NZBGetLabelRight NZBGetRPriority",
+							"color": "white",
+							"padding": {
+								"left": 2,
+								"right": 2,
+								"top": 0
 							},
-							"shadowColor" : "#55000000",
-							"shadowRadius" : 1,
-							"borderRadius" : 2,
-							"height" : "SIZE",
-							"width" : "SIZE",
-							"maxLines" : 1,
-							"clipChildren" : false,
-							"font" : {
-								"size" : 12,
-								"weight" : "bold"
+							"shadowColor": "#55000000",
+							"shadowRadius": 1,
+							"borderRadius": 2,
+							"height": "SIZE",
+							"width": "SIZE",
+							"maxLines": 1,
+							"clipChildren": false,
+							"font": {
+								"size": 12,
+								"weight": "bold"
 							},
-							"backgroundColor" : "#b94a48",
-							"textAlign" : "right",
-							"right" : 5
+							"backgroundColor": "#b94a48",
+							"textAlign": "right",
+							"right": 5
 						}
 					}]
 				}, {
-					"type" : "Ti.UI.View",
-					"properties" : {
-						"rclass" : "Fill",
-						"width" : "FILL",
-						"height" : "FILL"
+					"type": "Ti.UI.View",
+					"properties": {
+						"rclass": "Fill",
+						"width": "FILL",
+						"height": "FILL"
 					},
-					"childTemplates" : [{
-						"type" : "Ti.UI.View",
-						"properties" : {
-							"rclass" : "NZBGetDRPPBHolder",
-							"disableHW" : true,
-							"left" : 3,
-							"top" : 1,
-							"height" : 16,
-							"right" : 60,
-							"bottom" : 2
+					"childTemplates": [{
+						"type": "Ti.UI.View",
+						"properties": {
+							"rclass": "NZBGetDRPPBHolder",
+							"disableHW": true,
+							"left": 3,
+							"top": 1,
+							"height": 16,
+							"right": 60,
+							"bottom": 2
 						},
-						"childTemplates" : [{
-							"type" : "Ti.UI.View",
-							"properties" : {
-								"rclass" : "NZBGetDRPPBack",
-								"backgroundColor" : "#e9e9e9",
-								"borderPadding" : {
-									"bottom" : -1
+						"childTemplates": [{
+							"type": "Ti.UI.View",
+							"properties": {
+								"rclass": "NZBGetDRPPBack",
+								"backgroundColor": "#e9e9e9",
+								"borderPadding": {
+									"bottom": -1
 								},
-								"borderColor" : "#E1E1E1",
-								"borderRadius" : 4
+								"borderColor": "#E1E1E1",
+								"borderRadius": 4
 							}
 						}, {
-							"type" : "Ti.UI.View",
-							"bindId" : "progressbar",
-							"properties" : {
-								"rclass" : "NZBGetDRPPB",
-								"borderPadding" : {
-									"top" : -1,
-									"left" : -1,
-									"right" : -1
+							"type": "Ti.UI.View",
+							"bindId": "progressbar",
+							"properties": {
+								"rclass": "NZBGetDRPPB",
+								"borderPadding": {
+									"top": -1,
+									"left": -1,
+									"right": -1
 								},
-								"left" : 0,
-								"height" : "FILL",
-								"borderRadius" : 4,
-								"backgroundGradient" : {
-									"type" : "linear",
-									"tileMode" : "repeat",
-									"rect" : {
-										"x" : 0,
-										"y" : 0,
-										"width" : 40,
-										"height" : 40
+								"left": 0,
+								"height": "FILL",
+								"borderRadius": 4,
+								"backgroundGradient": {
+									"type": "linear",
+									"tileMode": "repeat",
+									"rect": {
+										"x": 0,
+										"y": 0,
+										"width": 40,
+										"height": 40
 									},
-									"colors" : [{
-										"offset" : 0,
-										"color" : "#26ffffff"
+									"colors": [{
+										"offset": 0,
+										"color": "#26ffffff"
 									}, {
-										"offset" : 0.25,
-										"color" : "#26ffffff"
+										"offset": 0.25,
+										"color": "#26ffffff"
 									}, {
-										"offset" : 0.25,
-										"color" : "transparent"
+										"offset": 0.25,
+										"color": "transparent"
 									}, {
-										"offset" : 0.5,
-										"color" : "transparent"
+										"offset": 0.5,
+										"color": "transparent"
 									}, {
-										"offset" : 0.5,
-										"color" : "#26ffffff"
+										"offset": 0.5,
+										"color": "#26ffffff"
 									}, {
-										"offset" : 0.75,
-										"color" : "#26ffffff"
+										"offset": 0.75,
+										"color": "#26ffffff"
 									}, {
-										"offset" : 0.75,
-										"color" : "transparent"
+										"offset": 0.75,
+										"color": "transparent"
 									}, {
-										"offset" : 1,
-										"color" : "transparent"
+										"offset": 1,
+										"color": "transparent"
 									}],
-									"startPoint" : {
-										"x" : 0,
-										"y" : 0
+									"startPoint": {
+										"x": 0,
+										"y": 0
 									},
-									"endPoint" : {
-										"x" : "100%",
-										"y" : "100%"
+									"endPoint": {
+										"x": "100%",
+										"y": "100%"
 									}
 								}
 							}
 						}, {
-							"type" : "Ti.UI.Label",
-							"bindId" : "sizelabel",
-							"properties" : {
-								"rclass" : "NZBGetDRSize",
-								"maxLines" : 1,
-								"textAlign" : "center",
-								"pading" : {
-									"left" : 2,
-									"right" : 2
+							"type": "Ti.UI.Label",
+							"bindId": "sizelabel",
+							"properties": {
+								"rclass": "NZBGetDRSize",
+								"maxLines": 1,
+								"textAlign": "center",
+								"pading": {
+									"left": 2,
+									"right": 2
 								},
-								"ellipsize" : 'END',
-								"font" : {
-									"size" : 12
+								"ellipsize": 'END',
+								"font": {
+									"size": 12
 								},
-								"height" : "FILL",
-								"width" : "FILL",
-								"color" : "black"
+								"height": "FILL",
+								"width": "FILL",
+								"color": "black"
 							}
 						}]
 					}, {
-						"type" : "Ti.UI.Label",
-						"bindId" : "timelabel",
-						"properties" : {
-							"rclass" : "NZBGetDRTime",
-							"width" : 60,
-							"height" : 16,
-							"textAlign" : "right",
-							"right" : 5,
-							"font" : {
-								"size" : 12
+						"type": "Ti.UI.Label",
+						"bindId": "timelabel",
+						"properties": {
+							"rclass": "NZBGetDRTime",
+							"width": 60,
+							"height": 16,
+							"textAlign": "right",
+							"right": 5,
+							"font": {
+								"size": 12
 							},
-							"color" : "black"
+							"color": "black"
 						}
 					}]
 				}]
@@ -4688,17 +4820,17 @@ function listViewLayout() {
 				text: names[Math.floor(Math.random() * names.length)]
 			},
 			priority: {
-				visible:priority.length > 0,
+				visible: priority.length > 0,
 				html: priority
 			},
 			sizelabel: {
-				text:  (new Date()).toString()
+				text: (new Date()).toString()
 			},
 			timelabel: {
 				html: '<strike>' + (new Date()).toString() + '</strike>'
 			},
 			category: {
-				visible:cat.length > 0,
+				visible: cat.length > 0,
 				text: cat
 			},
 			progressbar: {
@@ -4839,8 +4971,8 @@ function opacityTest() {
 		height: 70,
 		bubbleParent: false,
 		backgroundColor: 'gray',
-		touchPassThrough: false,
-		dispatchPressed: true,
+		touchPassThrough: true,
+		dispatchPressed: false,
 		backgroundSelectedGradient: {
 			type: 'linear',
 			colors: ['#333', 'transparent'],
@@ -5227,7 +5359,7 @@ function antiAliasTest() {
 
 var firstWindow = createWin({});
 var listview = createListView({
-	headerTitle: 'Testing Title'
+	headerTitle: 'Testing Title',
 	// minRowHeight:100,
 	// maxRowHeight:140
 });
@@ -5344,7 +5476,7 @@ listview.sections = [{
 		properties: {
 			title: 'webView'
 		},
-		callback: webviewTest
+		callback: videoOverlayTest
 	}]
 }];
 firstWindow.add(listview);
@@ -5665,69 +5797,70 @@ function borderPaddingEx() {
 		}
 	}]);
 
-	// win.add({
-	// "properties": {
-	// "rclass": "GenericRow TVRow",
-	// "layout": "horizontal",
-	// "height": "SIZE"
-	// },
-	// "childTemplates": [{
-	// "type": "Ti.UI.Label",
-	// "bindId": "title",
-	// "properties": {
-	// "rclass": "NZBGetTVRTitle",
-	// "font": {
-	// "size": 14
-	// },
-	// "padding": {
-	// "left": 4,
-	// "right": 4,
-	// "top": 10
-	// },
-	// text: 'downloadpath',
-	// "textAlign": "right",
-	// "width": 90,
-	// "color": "black",
-	// // "height": "FILL",
-	// "verticalAlign": "top"
-	// }
-	// }, {
-	// "type": "Ti.UI.Label",
-	// "bindId": "value",
-	// "properties": {
-	// selectedColor:'green',
-	// html: 'A new version is available <a href="https://github.com/RuudBurger/CouchPotatoServer/compare/b468048d95216474183daafaf46a4f2bd0d7ada7...master" target="_blank"><font color="red"><b><u>see what has changed</u></b></font></a> or <a href="update">just update, gogogo!</a>',
-	// // "autoLink":Ti.UI.AUTOLINK_ALL,
-	// "rclass": "NZBGetTVRValue",
-	// "color": "#686868",
-	// "font": {
-	// "size": 14
-	// },
-	// // transition: {
-	// // style: Ti.UI.TransitionStyle.SWIPE_FADE
-	// // },
-	// "top": 4,
-	// "bottom": 4,
-	// "padding": {
-	// "left": 4,
-	// "right": 4,
-	// "bottom": 2,
-	// "top": 2
-	// },
-	// "verticalAlign": "middle",
-	// "left": 4,
-	// "width": "FILL",
-	// "height": "SIZE",
-	// "right": 4,
-	// "textAlign": "left",
-	// "maxLines": 2,
-	// "ellipsize": Ti.UI.TEXT_ELLIPSIZE_TAIL,
-	// "borderColor": "#eeeeee",
-	// "borderRadius": 2
-	// }
-	// }]
-	// });
-	// info(win.value.text);
+	win.add({
+		"properties": {
+			"rclass": "GenericRow TVRow",
+			"layout": "horizontal",
+			"height": "SIZE"
+		},
+		"childTemplates": [{
+			"type": "Ti.UI.Label",
+			"bindId": "title",
+			"properties": {
+				"rclass": "NZBGetTVRTitle",
+				"font": {
+					"size": 14
+				},
+				"padding": {
+					"left": 4,
+					"right": 4,
+					"top": 10
+				},
+				text: 'downloadpath',
+				"textAlign": "right",
+				"width": 90,
+				"color": "black",
+				// "height": "FILL",
+				"verticalAlign": "top"
+			}
+		}, {
+			"type": "Ti.UI.Label",
+			"bindId": "value",
+			"properties": {
+				selectedColor: 'green',
+				html: 'A new version is available <a href="https://github.com/RuudBurger/CouchPotatoServer/compare/b468048d95216474183daafaf46a4f2bd0d7ada7...master" target="_blank"><font color="red"><b><u>see what has changed</u></b></font></a> or <a href="update">just update, gogogo!</a>',
+				// "autoLink":Ti.UI.AUTOLINK_ALL,
+				"rclass": "NZBGetTVRValue",
+				"color": "#686868",
+				"font": {
+					"size": 14
+				},
+				// transition: {
+				// style: Ti.UI.TransitionStyle.SWIPE_FADE
+				// },
+				"top": 4,
+				"bottom": 4,
+				"padding": {
+					"left": 4,
+					"right": 4,
+					"bottom": 2,
+					"top": 2
+				},
+				"verticalAlign": "middle",
+				"left": 4,
+				"width": "FILL",
+				"height": "SIZE",
+				"right": 4,
+				"textAlign": "left",
+				"maxLines": 2,
+				"ellipsize": Ti.UI.TEXT_ELLIPSIZE_TAIL,
+				"borderColor": "#eeeeee",
+				"borderRadius": 2
+			}
+		}]
+	});
+
+	info(win.value.text);
 	var first = true;
 	// win.value.addEventListener('click',function(e){
 	// info(stringify(e));
@@ -6246,7 +6379,7 @@ function testLabel() {
 		}]
 	});
 	//slidingMenu
-	var slidingMenu = slidemenu.createSlideMenu({
+	var slidingMenu = new SlideMenu({
 		orientationModes: [Ti.UI.UPSIDE_PORTRAIT,
 			Ti.UI.PORTRAIT,
 			Ti.UI.LANDSCAPE_RIGHT,
@@ -6296,8 +6429,12 @@ function deepLayoutTest() {
 			properties: {
 				height: 'FILL',
 				width: 'SIZE',
-				borderColor:'#667383',
-				borderPadding:{right:-1,top:-1,bottom:-1},
+				borderColor: '#667383',
+				borderPadding: {
+					right: -1,
+					top: -1,
+					bottom: -1
+				},
 			},
 			childTemplates: [{
 				type: 'Ti.UI.TextField',
@@ -6310,10 +6447,14 @@ function deepLayoutTest() {
 					height: 'FILL',
 					visible: false,
 					backgroundColor: 'white',
-					borderWidth:3,
-					borderPadding:{right:-3,left:-3,top:-3},
-					borderColor:'red',
-					borderSelectedColor:'#04BCE6',
+					borderWidth: 3,
+					borderPadding: {
+						right: -3,
+						left: -3,
+						top: -3
+					},
+					borderColor: 'red',
+					borderSelectedColor: '#04BCE6',
 					width: 'FILL',
 					hintText: 'cp.searchfieldHint',
 					padding: {
@@ -6326,9 +6467,13 @@ function deepLayoutTest() {
 				bindId: 'search',
 				properties: {
 					callbackId: 'search',
-					borderWidth:3,
-					borderPadding:{right:-3,left:-3,top:-3},
-					borderSelectedColor:'#047792',
+					borderWidth: 3,
+					borderPadding: {
+						right: -3,
+						left: -3,
+						top: -3
+					},
+					borderSelectedColor: '#047792',
 					backgroundSelectedColor: '#667383',
 					backgroundColor: 'gray',
 					font: {
@@ -6356,7 +6501,7 @@ function deepLayoutTest() {
 	});
 
 	test.addEventListener('click', function(e) {
-				info('test click ' + JSON.stringify(e.source));
+		info('test click ' + JSON.stringify(e.source));
 		if (e.source.callbackId === 'search') {
 			if (test.searchField.visible) {
 				var searchField = test.searchField;
@@ -6528,10 +6673,67 @@ function deepLayoutTest() {
 		return template;
 	};
 	var editMode = false;
+
 	var listView = createListView({
 		height: 'FILL',
 		backgroundSelectedColor: 'blue',
 		templates: {
+			"titlevalue": {
+				"properties": {
+					"rclass": "GenericRow TVRow",
+					"layout": "horizontal",
+					"height": "SIZE"
+				},
+				"childTemplates": [{
+					"type": "Ti.UI.Label",
+					"bindId": "title",
+					"properties": {
+						"rclass": "NZBGetTVRTitle",
+						"font": {
+							"size": 14
+						},
+						"padding": {
+							"left": 4,
+							"right": 4,
+							"top": 5
+						},
+						"textAlign": "right",
+						"width": 90,
+						"color": "black",
+						"verticalAlign": "top",
+						top: 0
+						// "height" : "FILL"
+					}
+				}, {
+					"type": "Ti.UI.Label",
+					"bindId": "value",
+					"properties": {
+						"rclass": "NZBGetTVRValue",
+						"color": "#686868",
+						"font": {
+							"size": 14
+						},
+						"top": 4,
+						"bottom": 4,
+						"padding": {
+							"left": 4,
+							"right": 4,
+							"bottom": 2,
+							"top": 2
+						},
+						"verticalAlign": "middle",
+						"left": 4,
+						"width": "FILL",
+						"height": "SIZE",
+						"right": 4,
+						"textAlign": "left",
+						"maxLines": 2,
+						"ellipsize": "END",
+						"borderColor": "#eeeeee",
+						"borderRadius": 2
+					}
+				}]
+			},
 			"textfield": {
 				"childTemplates": [{
 					type: 'Ti.UI.View',
@@ -6590,6 +6792,7 @@ function deepLayoutTest() {
 						"bottom": 4,
 						"verticalAlign": "middle",
 						"borderSelectedColor": "#74B9EF",
+						// returnKeyType: Ti.UI.RETURNKEY_NEXT,
 						"borderRadius": 2,
 						"height": 40,
 						"right": 4,
@@ -6754,7 +6957,7 @@ function deepLayoutTest() {
 							}
 						}],
 						"type": "Ti.UI.View",
-					"bindId": "iconsHolder",
+						"bindId": "iconsHolder",
 						"properties": {
 							"layout": "horizontal",
 							"rclass": "CPMovieReleaseRowInfosHolder"
@@ -6820,6 +7023,79 @@ function deepLayoutTest() {
 					"rclass": "CPMovieReleaseRow",
 					"height": 62
 				}
+			},
+
+			titleTest: {
+				"properties": {
+					"rclass": "NewsDetailsRow",
+					"height": "SIZE",
+					"backgroundGradient": {
+						"type": "linear",
+						"colors": ["#F7F7F7", "white"],
+						"startPoint": {
+							"x": 0,
+							"y": 0
+						},
+						"endPoint": {
+							"x": 0,
+							"y": "100%"
+						}
+					}
+				},
+				"childTemplates": [{
+					"type": "Ti.UI.ImageView",
+					"bindId": "image",
+					"properties": {
+						"rclass": "NewsDetailsRowImage",
+						"top": 8,
+						"backgroundColor": "#C5C5C5",
+						"left": 8,
+						"width": 60,
+						"height": 60,
+						"retina": false,
+						"localLoadSync": true,
+						"preventDefaultImage": true
+					}
+				}, {
+					"type": "Ti.UI.View",
+					"properties": {
+						"rclass": "NewsDetailsRowLabelHolder",
+						"height": "SIZE",
+						"layout": "vertical",
+						"left": 76,
+						"top": 10,
+						"bottom": 10
+					},
+					"childTemplates": [{
+						"type": "Ti.UI.Label",
+						"bindId": "title",
+						"properties": {
+							"rclass": "NewsDetailsRowTitle",
+							"height": "SIZE",
+							"maxLines": 0,
+							"color": "#6B6B6B",
+							"width": "FILL",
+							"ellipsize": "END",
+							"font": {
+								"size": 14,
+								"weight": "bold"
+							}
+						}
+					}, {
+						"type": "Ti.UI.Label",
+						"bindId": "description",
+						"properties": {
+							"rclass": "NewsDetailsRowSubtitle",
+							"height": "SIZE",
+							"color": "#3F3F3F",
+							"width": "FILL",
+							"ellipsize": "END",
+							"font": {
+								"size": 12
+							}
+						}
+					}]
+				}]
 			}
 		},
 		sections: [{
@@ -6831,65 +7107,141 @@ function deepLayoutTest() {
 					textfield: {
 						value: ''
 					}
-				}, {
+			}, {
 					template: 'textfield',
 					textfield: {
 						value: ''
 					}
-				}, {
+			}, {
 					template: 'soonRow',
 					soonBottomLabel0: {
-						visible:true,
-						text:'test'
+						visible: true,
+						text: 'test'
 					},
 					soonLabel0: {
-						text:'test'
+						text: 'test'
 					},
 					soonImage0: {
-						image:'http://zapp.trakt.us/images/posters_movies/192263-138.jpg'
+						image: 'http://zapp.trakt.us/images/posters_movies/192263-138.jpg'
 					}
-				}, {
-					template:'release',
+			}, {
+					template: 'release',
 					title: {
 						text: 'test release'
 					},
 					iconsHolder: {
 						visible: false
 					}
-				}]
-			},
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titlevalue',
+					title: {
+						text: tr('category')
+					},
+					value: {
+						text: tr('nzbget.catEmpty')
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}, {
+					template: 'titleTest',
+					title: {
+						text: 'test release'
+					},
+					description: {
+						html: "<p style=\"text-align: center;\"><img src=\"https://www.yaliberty.org/sites/default/files/imagecache/fullsize/images/Bonnie_Kristian/susq.jpg\" alt=\"Susquehanna\" title=\"Susquehanna\" class=\"imagecache imagecache-fullsize\" /></p><p>Susquehanna Young Americans for Liberty had our first&nbsp;<span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">meeting on February 19. We introduced ourselves and discussed why we believe liberty is important, along with some&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">potential recruiting options.&nbsp;</span><span style=\"letter-spacing: 0px; line-height: 1.3em; word-spacing: normal;\">We then discussed current events and how they affect liberty and how to move ahead in expanding this chapter on campus!</span></p>"
+					}
+			}]
+		},
 			section]
 	});
 
 	// listView.addEventListener('click', function(e) {
-		// editMode = !editMode;
-		// listView.sections = [{
-				// items: [{
-					// template: 'textfield',
-					// check: {
-						// visible: editMode
-					// },
-					// textfield: {
-						// value: ''
-					// }
-				// }, {
-					// template: 'textfield',
-					// textfield: {
-						// value: ''
-					// }
-				// }]
-			// },
-			// section]
-		// info('click' + e.source.backgroundSelectedColor);
+	// editMode = !editMode;
+	// listView.sections = [{
+	// items: [{
+	// template: 'textfield',
+	// check: {
+	// visible: editMode
+	// },
+	// textfield: {
+	// value: ''
+	// }
+	// }, {
+	// template: 'textfield',
+	// textfield: {
+	// value: ''
+	// }
+	// }]
+	// },
+	// section]
+	// info('click' + e.source.backgroundSelectedColor);
 	// });
 	var label = new Label({
 		color: '#F2F3F3',
 		disabledColor: '#F2F3F3',
 		width: 'FILL',
-		touchPassThrough:true,
-		borderWidth:3,
+		touchPassThrough: true,
+		borderWidth: 3,
 		text: 'test',
-		borderPadding:{right:-3,top:-3,bottom:-3},
+		borderPadding: {
+			right: -3,
+			top: -3,
+			bottom: -3
+		},
 		borderDisabledColor: 'red',
 		borderSelectedColor: 'blue',
 		padding: {
@@ -6910,6 +7262,37 @@ function deepLayoutTest() {
 	openWin(win);
 }
 
+app.utils.createNZBButton = function(_id, _rclass, _addSuffix) {
+	var props = redux.fn.style('Label', {
+		rclass: _rclass || 'NZBGetButton',
+		rid: (_addSuffix !== false) ? (_id + 'Btn') : _id,
+		bindId: _id
+	});
+	props.backgroundGradient = app.utils.createNZBGradient(props.colors);
+	props.backgroundSelectedGradient = app.utils.createNZBGradient(props.selectedColors);
+	delete props.rclass;
+	delete props.rid;
+	return {
+		type: 'Ti.UI.Label',
+		bindId: _id,
+		properties: props
+	};
+};
+app.utils.createNZBGradient = function(_colors) {
+	return {
+		type: 'linear',
+		colors: _colors,
+		startPoint: {
+			x: 0,
+			y: 0
+		},
+		endPoint: {
+			x: 0,
+			y: "100%"
+		}
+	};
+};
+
 function showSpeedLimit() {
 	var viewArgs = {
 		properties: {
@@ -6917,16 +7300,15 @@ function showSpeedLimit() {
 		},
 		childTemplates: [{
 			properties: {
-				backgroundColor: 'white',
 				rclass: 'Fill SizeHeight HHolder'
 			},
 			childTemplates: [{
-				type: 'Ti.UI.Label',
-				properties: {
-					rclass: 'FillWidth',
-					rid: 'nzbGetSpeedLimitDesc'
-				}
-			}, {
+				// type: 'Ti.UI.Label',
+				// properties: {
+				// rclass: 'FillWidth',
+				// rid: 'nzbGetSpeedLimitDesc'
+				// }
+				// }, {
 				properties: {
 					rid: 'nzbGetSpeedLimitTFHolder'
 				},
@@ -6936,44 +7318,54 @@ function showSpeedLimit() {
 					properties: {
 						rid: 'nzbGetSpeedLimitTF'
 					}
-				}, {
+					}, {
 					type: 'Ti.UI.Label',
 					properties: {
-						rclass: 'NZBGetBorderView',
+						// rclass: 'NZBGetBorderView',
 						rid: 'nzbGetSpeedLimitUnit'
 					}
+					}]
 				}]
 			}]
-		}]
 	};
-	var speedLimit = 10;
+	var speedLimit = 0;
 	if (speedLimit > 0) {
 		viewArgs.childTemplates.push({
 			type: 'Ti.UI.Label',
 			properties: {
 				rid: 'nzbGetCurrentSpeedLimit',
-				text: 'test'
+				text: 0
 			}
 		});
 	}
 
 	var args = {
 		cancel: 0,
-		title: tr('speedlimit'),
-		customView: new ScrollView(viewArgs)
+		// title: tr('speed_limit'),
+		customView: new ScrollView(viewArgs),
+		// buttonNames: ['close', 'setlimit']
 	}
 	var alert = new NZBGetAlert(args);
 	alert.addEventListener('click', function(e) {
 		if (e.cancel === false) {
 			var rate = parseInt(alert.customView.textfield.value);
+			Status.setSpeedLimitClick(rate, function() {
+				Ti.App.fireEvent('nzbget', {
+					subtype: 'cmd',
+					command: 'rate',
+					value: rate
+				});
+			});
+
 		}
 	});
-	alert.addEventListener('touchstart', function(e) {
+	app.onDebounce(alert, 'touchstart', function(e) {
 		if (e.source !== alert.customView.textfield) {
 			alert.customView.textfield.blur();
 		}
 	});
-	openWin(alert);
+
+	alert.showMe();
 }
 
 function adTest() {
@@ -6981,90 +7373,77 @@ function adTest() {
 
 	// viewHolder.add(test);
 	win.add(mopub.createBannerView({
-		backgroundColor:'red'
+		backgroundColor: 'red'
 	}));
 
 	openWin(win);
 }
 
 var interstitial;
+
 function adTest2() {
 	interstitial = mopub.createInterstitialView({
-		backgroundColor:'red',
-		adUnitId:'13260008add211e295fa123138070049'
+		backgroundColor: 'red',
+		adUnitId: '13260008add211e295fa123138070049'
 	});
-	interstitial.addEventListener('load',function(){interstitial.open()})
+	interstitial.addEventListener('load', function() {
+		interstitial.open()
+	})
 	interstitial.loadAd()
 }
 
-function webviewTest() {
-	var win = createWin();
-	var readContents;
-	var readFile = Titanium.Filesystem.getFile('video.html');
-	readContents = readFile.read();
-	var html = readContents.text.assign({
-		videoId:'23m3EfXT0FM'
+function videoOverlayTest() {
+	var win = createWin({
+		backgroundColor: 'transparent',
+		lightweight: true,
+		touchPassThrough: true,
+		zIndex: 10
 	});
-	var webViewWidth = 200;
-	var webViewRight = 20;
-	var fullscreen = false;
-	var webView = Ti.UI.createWebView({
-		// properties:{
-			allowsInlineMediaPlayback:true,
-			scrollingEnabled:false,
-			borderColor:'gray',
-			borderWidth:2,
-			width: webViewWidth,
-			height: 130,
-			bottom: 20,
-			right: webViewRight,
-		// },
-		// childTemplates:[{
-		// 	type:'Ti.UI.WebView',
-		// 	properties:{
-			backgroundColor: 'black',
-			// url:'http://www.google.com'
-				html: html
-			// }
-		// }]
+	var htmlFormat,
+		readFile = Titanium.Filesystem.getFile('video.html');
+	htmlFormat = readFile.read();
+
+	var currentDelta = 0,
+		fullscreen = false,
+		videoWVWidth = 200,
+		videoWVRight = 20,
+		totalDelta = 0,
+		closeDelta = 0.5 * (videoWVWidth + videoWVRight),
+		trId = Ti.UI.create2DMatrix({
+			ownFrameCoord: true
+		}),
+		tr100 = trId.translate(2 * closeDelta, 0),
+		previousX = 0,
+		previousVelocity = 0,
+		inAnim = {
+			transform: trId,
+			opacity: 1
+		}, outAnim = {
+			transform: tr100,
+			opacity: 0
+		};
+
+	var webView = new WebView(_.assign({
+		scrollingEnabled: false,
+		borderColor: 'gray',
+		borderWidth: 2,
+		width: videoWVWidth,
+		height: Math.ceil(videoWVWidth * 9 / 16),
+		bottom: videoWVRight,
+		right: videoWVRight,
+		backgroundColor: 'black',
+		mediaPlaybackRequiresUserAction: false,
+		allowsInlineMediaPlayback: true,
+		pluginState: 1
+	}, outAnim));
+
+	webView.addEventListener('longpress', function(e) {
+		info('longpress');
 	});
-	
-	webView.addEventListener('longpress', function() {
-		if (fullscreen) {
-			webView.animate({
-				width: 'FILL',
-				height: 'FILL',
-				bottom: 0,
-				right: 0,
-				duration: 800
-			});
-		} else {
-			webView.animate({
-				width: 200,
-				height: 130,
-				bottom: 20,
-				right: 20,
-				duration: 800
-			});
-		}
-		fullscreen = !fullscreen;
-	})
 
-	// webView.addEventListener('longpress',function(){
-	// 	app.ui.closeWindow(self);
-	// })
-
-	var currentDelta = 0;
-	var totalDelta = 0;
-	var closeDelta = 0.5 * (webViewWidth +webViewRight );
-	var trId = Ti.UI.create2DMatrix({ownFrameCoord:true});
-	var tr100 = trId.translate(2*closeDelta, 0);
-	var previousX = 0;
-	var previousVelocity = 0;
 	webView.addEventListener('touchstart', function(e) {
 		currentDelta = 0;
 		totalDelta = 0;
-		previousVelocity = 0;
 		previousX = e.globalPoint.x;
 	});
 
@@ -7075,10 +7454,9 @@ function webviewTest() {
 		totalDelta += delta;
 		currentDelta += delta;
 		webView.applyProperties({
-			opacity:1-currentDelta/ (2*closeDelta),
+			opacity: 1 - currentDelta / (2 * closeDelta),
 			transform: trId.translate(currentDelta, 0)
-		})
-		webView.transform = trId.translate(currentDelta, 0);
+		});
 		previousX = e.globalPoint.x;
 	});
 
@@ -7089,29 +7467,631 @@ function webviewTest() {
 		totalDelta += delta;
 		currentDelta += delta;
 		info(previousVelocity);
-		if (totalDelta >= closeDelta || previousVelocity >= 10) {
-			webView.animate({
-				transform:tr100,
-				opacity:0,
+		if (totalDelta >= closeDelta || previousVelocity >= 7) {
+			webView.animate(_.assign({
 				duration: totalDelta
-			}, function(){
-				win.close();
+			}, outAnim), function() {
+				if (win != null) win.hideMe();
 			});
-			
-		} else {
-			webView.animate({
-				transform:trId,
-				opacity:1,
-				duration: totalDelta
-			});
-		}
 
+		} else {
+			webView.animate(_.assign({
+				duration: totalDelta
+			}, inAnim));
+		}
 	}
 	webView.addEventListener('touchend', onTouchEnd);
 	webView.addEventListener('touchcancel', onTouchEnd);
 
 	win.add(webView);
+
+	win.setVideoId = function(_videoId) {
+		if (!_videoId) return;
+		webView.html = htmlFormat.text.assign({
+			videoId: _videoId
+		});
+		info(webView.html);
+	};
+
+	win.setVideoId('23m3EfXT0FM');
+
+	var hidden = true;
+	win.showMe = function() {
+
+		if (hidden === true) {
+			hidden = false;
+			win.open({
+				animated: false
+			});
+		}
+
+		webView.animate(_.assign({
+			duration: 2 * closeDelta
+		}, inAnim));
+	};
+
+	win.hideMe = function() {
+		if (hidden === false) {
+			hidden = true;
+			win.close({
+				animated: false
+			});
+		}
+	};
+	win.addEventListener('close', function() {
+		win = null;
+	})
+	win.showMe();
+}
+
+function zIndexTest() {
+	var win1 = Titanium.UI.createWindow({
+		title: 'Tab 1',
+		backgroundColor: '#fff'
+	});
+
+	var g_backgroundGradient = {
+		startPoint: {
+			x: 0,
+			y: 0
+		},
+		endPoint: {
+			x: 400,
+			y: 600
+		},
+		colors: ['blue', 'orange'],
+		type: 'linear'
+	};
+
+	var backview = Titanium.UI.createView({
+		backgroundGradient: g_backgroundGradient // <<< COMMENT OUT THIS LINE TO FIX PROBLEM
+	});
+
+	var view1 = Titanium.UI.createView({
+		backgroundColor: 'red',
+		width: '300',
+		height: '400',
+		left: 15,
+		top: 15,
+		zIndex: 10,
+	});
+
+	var view2 = Titanium.UI.createView({
+		width: '100',
+		height: '70',
+		left: 5,
+		top: 5,
+		backgroundColor: 'green',
+		zIndex: 1
+	});
+	backview.add(view1);
+	backview.add(view2);
+
+	win1.add(backview);
+
+	win1.open();
+}
+
+function horizontalLayout() {
+	var win = createWin();
+	win.add({
+		type: 'Ti.UI.ScrollView',
+		properties: {
+			width: 'FILL',
+			height: 'FILL',
+			layout: 'horizontal',
+			horizontalWrap: true,
+			backgroundColor: 'yellow'
+		},
+		childTemplates: [{
+			// 	type: 'Ti.UI.Label',
+			// 	properties: {
+			// 		rid: 'dTitle'
+			// 	}
+			// }, {
+			// 	type: 'Ti.UI.Label',
+			// 	properties: {
+			// 		rid: 'dDesc'
+			// 	}
+			// }, {
+			type: 'Ti.UI.View',
+			properties: {
+				width: '44%',
+				left: '2%',
+				right: '2%',
+				height: 40,
+				backgroundColor: 'red'
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				width: '44%',
+				left: '2%',
+				right: '2%',
+				height: 40,
+				backgroundColor: 'blue'
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				width: '44%',
+				left: '2%',
+				right: '2%',
+				height: 40,
+				backgroundColor: 'orange'
+			}
+		}, {
+			type: 'Ti.UI.View',
+			properties: {
+				width: '44%',
+				left: '2%',
+				right: '2%',
+				height: 40,
+				backgroundColor: 'purple'
+			}
+		}, {
+			type: 'Ti.UI.TextField',
+			bindId: 'userNameTF',
+			properties: {
+				borderRadius: 12,
+				font: {
+					size: 22
+				},
+				backgroundColor: 'white',
+				hintColor: '#8C8C8C',
+				padding: {
+					left: 55,
+					right: 5
+				},
+				height: 50,
+				width: '90%',
+				bottom: 20,
+				returnKeyType: Ti.UI.RETURNKEY_NEXT,
+				hintText: tr('username'),
+			},
+			childTemplates: [{
+				type: 'Ti.UI.Label',
+				properties: {
+					left: 10,
+					font: {
+						size: 26
+					},
+					color: '#8C8C8C',
+					selectedColor: 'black',
+					text: 'b',
+					// focusable:false
+				}
+			}]
+		}, {
+			type: 'Ti.UI.TextField',
+			bindId: 'passwordTF',
+			properties: {
+				borderRadius: 12,
+				font: {
+					size: 22
+				},
+				backgroundColor: 'white',
+				hintColor: '#8C8C8C',
+				padding: {
+					left: 55,
+					right: 5
+				},
+				height: 50,
+				width: '90%',
+				bottom: 20,
+				passwordMask: true,
+				returnKeyType: Ti.UI.RETURNKEY_DONE,
+				hintText: tr('password'),
+			},
+			childTemplates: [{
+				type: 'Ti.UI.Label',
+				properties: {
+					left: 10,
+					font: {
+						size: 26
+					},
+					color: '#8C8C8C',
+					selectedColor: 'black',
+					text: 'b',
+					// focusable:false
+				}
+			}]
+		}]
+	});
 	openWin(win);
 }
 
-webviewTest();
+function showDummyNotification() {
+	if (app.deviceinfo.isAndroid) {
+		// Intent object to launch the application
+		var intent = Ti.Android.createIntent({
+			className: Ti.Android.appActivityClassName,
+			action: Ti.Android.ACTION_MAIN
+		});
+		intent.addCategory(Ti.Android.CATEGORY_LAUNCHER);
+
+		// Create a PendingIntent to tie together the Activity and Intent
+		var pending = Ti.Android.createPendingIntent({
+			intent: intent,
+			flags: Ti.Android.FLAG_UPDATE_CURRENT
+		});
+
+		// Create the notification
+		var notification = Ti.Android.createNotification({
+			flags: Ti.Android.FLAG_SHOW_LIGHTS | Ti.Android.FLAG_AUTO_CANCEL,
+			contentTitle: tr('notif_title'),
+			tickerText: tr('notif_title'),
+			contentText: tr('notif_desc'),
+			contentIntent: pending,
+			ledOnMS: 3000,
+			ledARGB: 0xFFff0000
+		});
+		// Send the notification.
+		Ti.Android.NotificationManager.notify(1234, notification);
+	}
+}
+
+Ti.App.addEventListener('pause', function() {
+	info('pause');
+	setTimeout(showDummyNotification, 10);
+});
+
+Ti.App.addEventListener('resume', function() {
+	info('resume');
+});
+
+function mapEx() {
+	var win = createWin({
+		layout: 'vertical'
+	});
+	var rows = [
+		{
+			properties:{title: 'Go Mt. View'},
+			run: function() {
+				map.region = {
+					latitude: 37.3689,
+					longitude: -122.0353,
+					latitudeDelta: 0.1,
+					longitudeDelta: 0.1
+				}; //Mountain View
+			}
+        },
+		{
+			properties:{title: 'add anno3'},
+			run: function() {
+				map.addAnnotation(anno3);
+			}
+        },
+		{
+			properties:{title: 'rm anno3'},
+			run: function() {
+				map.removeAnnotation(anno3);
+			}
+        },
+		{
+			properties:{title: 'add anno1, 2, 4'},
+			run: function() {
+				map.annotations = [anno, anno2, anno4];
+			}
+        },
+		{
+			properties:{title: 'rm all'},
+			run: function() {
+				map.removeAllAnnotations();
+			}
+        },
+		{
+			properties:{title: 'remove annos: Sydney, anno2'},
+			run: function() {
+				Ti.API.info(anno.getTitle());
+				map.removeAnnotations(["Sydney", anno2]);
+			}
+        },
+		{
+			properties:{title: 'select anno2'},
+			run: function() {
+				map.selectAnnotation(anno2);
+			}
+        },
+		{
+			properties:{title: 'desel anno2'},
+			run: function() {
+				map.deselectAnnotation(anno2);
+			}
+        },
+		{
+			properties:{title: 'modify anno2'},
+			run: function() {
+				anno2.title = "Hello";
+				anno2.subtitle = "Hi there.";
+				anno2.longitude = 151.27689;
+			}
+        }
+    ];
+
+	var tableView = Ti.UI.createListView({
+		height: '30%',
+		sections: [{items:rows}]
+	});
+	win.add(tableView);
+	tableView.addEventListener('itemclick', function(_event) {
+		if (_event.hasOwnProperty('itemIndex')) {
+			var item = _event.section.getItemAt(_event.itemIndex);
+			rows[_event.itemIndex].run && rows[_event.itemIndex].run();
+		}
+	});
+
+	var anno = app.modules.map.createAnnotation({
+		latitude: -33.87365,
+		longitude: 151.20689,
+		title: "Sydney",
+		subtitle: "Sydney is quite chill",
+		draggable: true
+	});
+	var anno2 = app.modules.map.createAnnotation({
+		latitude: -33.86365,
+		pincolor: 'green',
+		longitude: 151.21689,
+		title: "Anno2",
+		subtitle: "This is anno2",
+		draggable: true
+	});
+	var anno3 = app.modules.map.createAnnotation({
+		latitude: -33.85365,
+		longitude: 151.20689,
+		title: "Anno3",
+		subtitle: "This is anno3",
+		draggable: false
+	});
+	var anno4 = app.modules.map.createAnnotation({
+		latitude: -33.86365,
+		longitude: 151.22689,
+		title: "Anno4",
+		subtitle: "This is anno4",
+		draggable: true
+	});
+
+	Ti.API.info("Latitude:" + anno.latitude);
+	Ti.API.info("Title:" + anno.title);
+
+	var map = app.modules.map.createView({
+		userLocation: true,
+		backgroundColor: 'red',
+		tileSource: 'mapquest',
+		animate: true,
+		zoom: 2,
+		defaultPinImage: 'map_pin.png',
+		// annotations: [anno, anno2, anno4],
+		// region: {
+		// 	latitude: -33.87365,
+		// 	longitude: 151.20689,
+		// 	latitudeDelta: 0.1,
+		// 	longitudeDelta: 0.1
+		// }, //Sydney
+		height: 'FILL',
+		width: 'FILL',
+	});
+	Ti.API.info("userLocation: " + map.userLocation);
+	win.add(map);
+
+	function onEventInfo(e) {
+		info(e.type);
+	}
+	var tileSource;
+	var token;
+
+	function queryString(params, _start) {
+		return _.reduce(params, function(memo, value, key) {
+			if (memo !== '') return memo + '&' + key + '=' + value;
+			else return '?' + key + '=' + value;
+		}, _start || '');
+	};
+
+	function runMethod(_method, _params, _callback) {
+		if (token) {
+			_params.token = token;
+		}
+		var url = queryString(_params, 'https://api.quantified-people.com/api.php?fct=' + _method);
+
+		var xhr = Titanium.Network.createHTTPClient({
+			onload: _callback
+		});
+		info(url);
+		xhr.open('GET', url);
+		xhr.send();
+	}
+
+	function onError(e) {
+		alert('error' + e);
+	}
+
+	function loggin(_username, _password, _callback) {
+		runMethod('auth', {
+			method: 0,
+			login: _username,
+			passwd: _password
+		}, function(e) {
+			try {
+				token = JSON.parse(this.responseText).token;
+				_callback();
+			} catch (e) {
+				onError();
+			}
+		});
+	}
+
+	function getTrailsList(_callback) {
+		runMethod('getTrailList', {}, function(e) {
+			try {
+				var json = JSON.parse(this.responseText);
+				var optionTitles = [];
+				var optionValues = [];
+				_.each(json, function(value, key, list) {
+					if (key === 'result') return;
+					optionTitles.push(key);
+					optionValues.push(value);
+				});
+				optionTitles.push('Cancel');
+				var opts = {
+					cancel: optionTitles.length,
+					options: optionTitles.concat(['cancel']),
+					title: 'Select Trail'
+				};
+				var dialog = Ti.UI.createOptionDialog(opts);
+				dialog.addEventListener('click', function(e) {
+					if (e.cancel == false) {
+						_callback(optionValues[e.index]);
+					}
+				});
+				dialog.show();
+			} catch (e) {
+				onError();
+			}
+		});
+	}
+
+	function onDownloadedTrail(_trailId, _file) {
+		tileSource = app.modules.map.createTileSource({
+			source: _file.nativePath
+		});
+		// tileSource.addEventListener('cachebegin', onEventInfo);
+		// tileSource.addEventListener('cachefinished', onEventInfo);
+		// tileSource.beginBackgroundCache();
+		map.tileSource = [tileSource, 'mapquest'];
+		var region = tileSource.region;
+		info(stringify(region));
+		if (online === false) {
+			map.scrollableAreaLimit = region;
+		}
+		else {
+			map.scrollableAreaLimit = null;
+		}
+		map.region = region;
+	}
+
+	function loadRoute(points){
+		info(stringify(points));
+		var route = app.modules.map.createRoute({
+			points: points,
+			color: 'blue',
+			width: 5.0
+		});
+		map.addRoute(route);
+	}
+
+	function downloadTrail(_trailId) {
+
+		runMethod('getTrailInfo', {
+			trailId: _trailId
+		}, function(e) {
+			try {
+				var json = JSON.parse(this.responseText);
+				info(_trailId);
+
+				var points = [];
+				var gpx = json.GPX;
+				for (var i = 0; i < gpx.length; i++) {
+					var dict = gpx[i];
+					points.push({
+						latitude: dict.lat,
+						longitude: dict.lon,
+						altitude: dict.ele,
+					});
+				};
+				Ti.App.Properties.setString('routeSaved', JSON.stringify(points));
+				loadRoute(points);
+
+				var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'trail' + _trailId + '.MBTiles');
+				if (f.exists()) {
+					onDownloadedTrail(_trailId, f);
+					return;
+				}
+				info('no file already downloaded');
+				runMethod('getTrailInfo', {
+					trailId: _trailId,
+					mbTiles:1
+				}, function(e) {
+					try {
+						var json = JSON.parse(this.responseText);
+						var xhr2 = Titanium.Network.createHTTPClient({
+							onload: function() {
+								f.write(this.responseData);
+								Ti.App.Properties.setString('mapSaved', _trailId);
+								onDownloadedTrail(_trailId, f);
+							}
+						});
+						xhr2.open('GET', json.MBTiles.tiles);
+						xhr2.send();
+					} catch (e) {
+						onError(e);
+					}
+				});
+			} catch (e) {
+				onError(e);
+			}
+		});
+
+		// var xhr = Titanium.Network.createHTTPClient({
+		// 	onload: function() {
+		// 		var json = JSON.parse(this.responseText);
+		// 		info(json);
+		// 		if (json && json.tiles) {
+		// 			var xhr2 = Titanium.Network.createHTTPClient({
+		// 				onload: function() {
+		// 					var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'trail' + _id + '.MBTiles');
+		// 					f.write(this.responseData);
+		// 					onDownloadedTile(_id, f);
+		// 				},
+		// 				// timeout: 10000
+		// 			});
+		// 			xhr2.open('GET', json.tiles);
+		// 			xhr2.send();
+		// 		}
+
+		// 	},
+		// 	// timeout: 10000
+		// });
+		// xhr.open('GET', 'https://api.quantified-people.com/getmbTrail.php?idTrail=' + _id);
+		// xhr.send();
+	}
+
+	var online = Ti.Network.online
+	info('Ti.Network.online ' + online);
+	if (online === false) {
+		loadRoute(JSON.parse(Ti.App.Properties.getString('routeSaved')));
+		var trailId = Ti.App.Properties.getString('mapSaved');
+		var f = Ti.Filesystem.getFile(Ti.Filesystem.applicationDataDirectory, 'trail' + trailId + '.MBTiles');
+		if (f.exists()) {
+			info('loading trail ' + trailId);
+			onDownloadedTrail(trailId, f);
+		}
+	}
+	else {
+		loggin('pjallon@quantified-people.com', 'Hello001', function() {
+			getTrailsList(function(_trailId) {
+				downloadTrail(_trailId);
+			});
+		});
+	}
+
+	// downloadTile(1325);
+
+
+	map.addEventListener('click', function(e) {
+		Ti.API.info(stringify(e));
+	});
+
+	map.addEventListener('longpress', function(e) {
+		Ti.API.info(stringify(e));
+	});
+
+	openWin(win);
+}
+mapEx();
+
+var test = require('akylas.millenoki.vpn').createVpnService({
+	port:'8002',
+	address:'88.150.173.98',
+	secret:'8002_88.150.173.98'
+});
+test.connect();
