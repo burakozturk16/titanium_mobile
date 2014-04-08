@@ -3,7 +3,4 @@
 <!--          <item name="actionBarStyle">@style/ActionBarTheme</item>
  --><!--     	<item name="android:windowActionBarOverlay">true</item>
  -->        </style>
- <style name="TiEditText" parent="@android:style/Widget.EditText">
-<item name="android:textCursorDrawable">@null</item>
-			</style>	
 </resources>
