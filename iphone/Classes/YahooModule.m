@@ -46,8 +46,6 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 
 - (void)tiRequest:(TiHTTPRequest *)request onLoad:(TiHTTPResponse *)tiResponse
 {
-	[[TiApp app] stopNetwork];
-	
 	NSString *responseString = [tiResponse responseString];
     NSError *error = nil;
 	id result = [TiUtils jsonParse:responseString error:&error];
@@ -77,8 +75,6 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 
 - (void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
-	[[TiApp app] stopNetwork];
-	
 	NSError *error = [tiResponse error];
 	NSMutableDictionary * event = [TiUtils dictionaryWithCode:[error code] message:[TiUtils messageFromError:error]];
 	[module _fireEventToListener:@"yql" withObject:event listener:callback thisObject:nil];
@@ -188,7 +184,7 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 	TiHTTPRequest *req = [[TiHTTPRequest alloc] init];
     [req setUrl:[NSURL URLWithString:theurl]];
 	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[[TiApp app] startNetwork];
+    [req setShowActivity:YES];
 	[req setDelegate:job];
     TiThreadPerformOnMainThread(^{
         [req send];

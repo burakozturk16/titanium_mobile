@@ -63,9 +63,8 @@ extern NSString * const TI_APPLICATION_GUID;
 {
     [self rememberSelf];
     
-    if([self valueForUndefinedKey:@"showActivity"]) {
-        [[self request] setShowActivity: [TiUtils boolValue:[self valueForUndefinedKey:@"showActivity"] def:YES]];
-    }
+    [[self request] setShowActivity: [TiUtils boolValue:[self valueForUndefinedKey:@"showActivity"] def:YES]];
+
     if([self valueForUndefinedKey:@"timeout"]) {
         [[self request] setTimeout: [TiUtils intValue:[self valueForUndefinedKey:@"timeout"] def:15000] / 1000 ];
     }
@@ -256,9 +255,6 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)tiRequest:(TiHTTPRequest *)request onLoad:(TiHTTPResponse *)tiResponse
 {
-    if ([request showActivity]) {
-        [[TiApp app] stopNetwork];
-    }
     if([request cancelled]) {
         return;
     }
@@ -284,9 +280,6 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
-    if ([request showActivity]) {
-        [[TiApp app] stopNetwork];
-    }
     if([request cancelled]) {
         return;
     }

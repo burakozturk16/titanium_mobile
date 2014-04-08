@@ -58,6 +58,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	}
 
     TiHTTPRequest *req = [[TiHTTPRequest alloc] init];
+    [req setShowActivity:YES];
     [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
     [req setUrl:[NSURL URLWithString:url]];
     [req setDelegate:self];
@@ -82,8 +83,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)tiRequest:(TiHTTPRequest*)request onLoad:(TiHTTPResponse*)tiResponse
 {
-	[[TiApp app] stopNetwork];
-
 	if (request!=nil && [tiResponse error]==nil)
 	{
 		NSString *data = [tiResponse responseString];
@@ -99,7 +98,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
-	[[TiApp app] stopNetwork];
 	[self requestError:[tiResponse error]];
 	[self autorelease];
 }
@@ -500,8 +498,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)performGeo:(NSString*)direction address:(NSString*)address callback:(GeolocationCallback*)callback
 {
-	[[TiApp app] startNetwork];
-	
 	id aguid = TI_APPLICATION_GUID;
 	id sid = [[TiApp app] sessionId];
 	

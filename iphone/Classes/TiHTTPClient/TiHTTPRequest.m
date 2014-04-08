@@ -7,6 +7,7 @@
 
 #import "TiHTTPClient.h"
 #import "TiBase.h"
+#import "TiApp.h"
 
 @implementation TiHTTPRequest
 @synthesize url = _url;
@@ -54,6 +55,7 @@
     [self setRedirects:YES];
     [self setValidatesSecureCertificate: NO];
     
+    showActivity = NO;
     _authRetryCount = 1;
     _persistence = NSURLCredentialPersistenceForSession;
     _request = [[NSMutableURLRequest alloc] init];
@@ -108,6 +110,9 @@
 
 -(void)send
 {
+    if (showActivity) {
+        [[TiApp app] startNetwork];
+    }
     if([self filePath]) {
         [_response setFilePath:[self filePath]];
     }
@@ -382,6 +387,9 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
+    if (showActivity) {
+        [[TiApp app] stopNetwork];
+    }
     if(_operation != nil) {
         [_operation setFinished:YES];
     }
@@ -407,6 +415,9 @@
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
 {
+    if (showActivity) {
+        [[TiApp app] stopNetwork];
+    }
     if(_operation != nil) {
         [_operation setFinished:YES];
     }

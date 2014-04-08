@@ -892,9 +892,7 @@ DEFINE_EXCEPTIONS
     [req setUrl:url];
     [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
     [req setSynchronous:YES];
-    [[TiApp app] startNetwork];
 	[req send];
-	[[TiApp app] stopNetwork];
 
 	if (req!=nil && [[req response] error]==nil)
 	{
@@ -921,9 +919,7 @@ DEFINE_EXCEPTIONS
     [req setUrl:url];
     [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
     [req setSynchronous:YES];
-    [[TiApp app] startNetwork];
 	[req send];
-	[[TiApp app] stopNetwork];
     
 	if (req!=nil && [[req response] error]==nil)
 	{
@@ -1169,7 +1165,6 @@ DEFINE_EXCEPTIONS
 	// hold while we're working with it (release below)
 	[request retain];
 	
-	[[TiApp app] stopNetwork];
 	ImageLoaderRequest *req = [[[request userInfo] objectForKey:@"request"] retain];
 	if ([req cancelled]==NO)
 	{
@@ -1218,7 +1213,6 @@ DEFINE_EXCEPTIONS
 
 -(void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
 {
-	[[TiApp app] stopNetwork];
 	ImageLoaderRequest *req = [[request userInfo] objectForKey:@"request"];
 	NSError *error = [tiResponse error];
     
