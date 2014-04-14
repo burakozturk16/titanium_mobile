@@ -473,6 +473,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	[[self webview] setScalesPageToFit:scaling];
 }
 
+-(void)setMultipleTouchEnabled_:(id)args
+{
+	BOOL value = [TiUtils boolValue:args];
+	[[self webview] setMultipleTouchEnabled:value];
+}
+
 -(void)setDisableBounce_:(id)value
 {
 	BOOL bounces = ![TiUtils boolValue:value];
