@@ -63,14 +63,14 @@
 - (CGSize)suggestedFrameSizeToFitEntireStringConstraintedToSize:(CGSize)size
 {
     CGSize maxSize = CGSizeMake(size.width<=0 ? 10000 : size.width, 10000);
-    maxSize.width -= label.viewInsets.left + label.viewInsets.right;
+//    maxSize.width -= label.textInsets.left + label.textInsets.right;
     
     CGSize result = [[self label] sizeThatFits:maxSize];
-    if (size.width > 0) result.width = MIN(result.width,  size.width);
-    if (size.height > 0) result.height = MIN(result.height,  size.height);
-    //padding
-    result.width += label.viewInsets.left+ label.viewInsets.right;
-    result.height += label.viewInsets.top + label.viewInsets.bottom;
+//    if (size.width > 0) result.width = MIN(result.width,  size.width);
+//    if (size.height > 0) result.height = MIN(result.height,  size.height);
+//    //padding
+//    result.width += label.textInsets.left+ label.textInsets.right;
+//    result.height += label.textInsets.top + label.textInsets.bottom;
     
     CGSize shadowOffset = [label shadowOffset];
     result.width += abs(shadowOffset.width);
@@ -361,7 +361,7 @@
 
 -(void)setPadding:(UIEdgeInsets)inset
 {
-    [self label].viewInsets = inset;
+    [self label].textInsets = inset;
 }
 
 -(void) updateNumberLines
