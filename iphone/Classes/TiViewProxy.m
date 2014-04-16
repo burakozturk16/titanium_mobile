@@ -3965,7 +3965,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 		[self.view endEditing:YES];
 }
 
--(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child
+-(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiViewProxy*)child
 {
     pthread_rwlock_rdlock(&childrenLock);
     id result = nil;
@@ -3974,7 +3974,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     if(NSNotFound != index) {
         for (int i = index + 1; i < [subproxies count] ; i++) {
             id obj = [subproxies objectAtIndex:i];
-            if ([obj isKindOfClass:class]) {
+            if ([obj isKindOfClass:theClass]) {
                 TiViewProxy* aview = (TiViewProxy*)obj;
                 if([aview view].hidden == NO){
                     result = obj;

@@ -583,7 +583,7 @@ enum
  @param class The child class looked for
  @param child The child view
  */
--(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
+-(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiViewProxy*)child;
 
 +(NSArray*)layoutProperties;
 +(NSSet*)transferableProperties;
