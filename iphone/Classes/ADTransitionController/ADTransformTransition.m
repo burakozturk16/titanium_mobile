@@ -60,6 +60,13 @@
     return [reversedTransition autorelease];
 }
 
+-(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer
+{
+    viewIn.layer.transform = CATransform3DIdentity;
+    viewOut.layer.transform = CATransform3DIdentity;
+    [super finishedTransitionFromView:viewOut toView:viewIn inside:viewContainer];
+}
+
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
     [super startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
     viewIn.layer.transform = self.inLayerTransform;
