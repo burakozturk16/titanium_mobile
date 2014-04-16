@@ -618,6 +618,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if (clipChildren && usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
         [self applyPathToLayersMask:self.layer path:path];
+        if (_bgLayer)
+        {
+            [self applyPathToLayersShadow:_bgLayer path:path];
+        }
         
     }
     else if (!usePathAsBorder) {
