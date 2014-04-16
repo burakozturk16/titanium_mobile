@@ -14,21 +14,23 @@
 
 @interface TiUINavigationWindowProxy()
 {
-    ADNavigationControllerDelegate * _navigationDelegate;
+//    ADNavigationControllerDelegate * _navigationDelegate;
 }
 @property(nonatomic,retain) NSDictionary *defaultTransition;
+@property (nonatomic, strong) ADPercentDrivenInteractiveTransition *interactivePopTransition;
 
 @end
 
 @implementation TiUINavigationWindowProxy
 {
     BOOL _hasOnStackChange;
+    UIScreenEdgePanGestureRecognizer* popRecognizer;
 }
 
 -(void)dealloc
 {
 	RELEASE_TO_NIL_AUTORELEASE(rootWindow);
-    RELEASE_TO_NIL(_navigationDelegate);
+//    RELEASE_TO_NIL(_navigationDelegate);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
     RELEASE_TO_NIL(_defaultTransition);
@@ -132,20 +134,65 @@
     return [rootWindow hostingController];
 }
 
+- (void)handlePopRecognizer:(UIScreenEdgePanGestureRecognizer*)recognizer {
+    // Calculate how far the user has dragged across the view
+//    CGFloat progress = [recognizer translationInView:[self.view window]].x / (self.view.bounds.size.width * 1.0);
+//    progress = MIN(1.0, MAX(0.0, progress));
+    
+    CGPoint location = [recognizer locationInView:[self.view window]];
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        if (location.x < CGRectGetMidX(recognizer.view.bounds)) {
+            // Create a interactive transition and pop the view controller
+            self.interactivePopTransition = [[ADPercentDrivenInteractiveTransition alloc] init];
+            [navController popViewControllerAnimated:YES];
+        }
+    }
+    else if (recognizer.state == UIGestureRecognizerStateChanged) {
+        // Update the interactive transition's progress
+        CGFloat animationRatio = location.x / CGRectGetWidth([self.view window].bounds);
+        [self.interactivePopTransition updateInteractiveTransition:animationRatio];
+    }
+    else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
+        CGPoint velocity = [recognizer velocityInView:[self.view window]];
+        if (velocity.x > 0) {
+            [self fireEvent:@"closeWindow" forController:[self beforeLastController] transition:[self lastTransition]];
+            [self.interactivePopTransition finishInteractiveTransition];
+        }
+        
+        else {
+            [self.interactivePopTransition cancelInteractiveTransition];
+        }
+        
+        self.interactivePopTransition = nil;
+    }
+}
+
+-(UIScreenEdgePanGestureRecognizer*)popRecognizer;
+{
+	if (popRecognizer == nil) {
+		popRecognizer = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePopRecognizer:)];
+        popRecognizer.edges = UIRectEdgeLeft;
+	}
+	return popRecognizer;
+}
 
 -(id)controller
 {
     if (navController == nil) {
-//        UIViewController * transitionController = nil;
-//        if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-//            navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
-//            [_navigationDelegate release], _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
-//            ((UINavigationController *)navController).delegate = _navigationDelegate;
-//            [[(UINavigationController *)navController interactivePopGestureRecognizer] addTarget:self action:@selector(popGestureStateHandler:)];
-//        } else {
+        UIViewController * transitionController = nil;
+        if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+            UINavigationController* theController = navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
+//            RELEASE_TO_NIL(_navigationDelegate)
+//            _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
+            theController.delegate = self;
+            theController.interactivePopGestureRecognizer.enabled = NO;
+            theController.interactivePopGestureRecognizer.delegate = (id<UIGestureRecognizerDelegate>)self;
+            [theController.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
+//            [((UINavigationController *)navController).view addGestureRecognizer:popRecognizer];
+        } else {
             navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
             ((ADTransitionController*)navController).delegate = self;
-//        }
+        }
         [TiUtils configureController:navController withObject:self];
         [navController navigationBar].translucent = YES;
     }
@@ -243,24 +290,43 @@
 
 #pragma mark - UINavigationControllerDelegate
 
-#ifdef USE_TI_UIIOSTRANSITIONANIMATION
-- (id <UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-                                   animationControllerForOperation:(UINavigationControllerOperation)operation
-                                                fromViewController:(UIViewController *)fromVC
-                                                  toViewController:(UIViewController *)toVC
-{
-    if([toVC isKindOfClass:[TiViewController class]]) {
-        TiViewController* toViewController = (TiViewController*)toVC;
-        if([[toViewController proxy] isKindOfClass:[TiWindowProxy class]]) {
-            TiWindowProxy *windowProxy = (TiWindowProxy*)[toViewController proxy];
-            return [windowProxy transitionAnimation];
-        }
+- (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController
+                          interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>) animationController {
+    if ([animationController isKindOfClass:[ADTransitioningDelegate class]]) {
+        self.interactivePopTransition.transitionDelegate = (ADTransitioningDelegate*)animationController;
+        self.interactivePopTransition.transitionDelegate.cancelled = NO;
+        return self.interactivePopTransition;
     }
     return nil;
 }
-#endif
 
-- (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
+- (id <UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
+                                   animationControllerForOperation:(UINavigationControllerOperation)operation
+                                                fromViewController:(UIViewController *)fromVC
+                                                  toViewController:(UIViewController *)toVC {
+    switch (operation) {
+        case UINavigationControllerOperationPush:
+            if ([toVC.transitioningDelegate respondsToSelector:@selector(animationControllerForPresentedController:presentingController:sourceController:)]) {
+                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)toVC.transitioningDelegate;
+                delegate.transition.type = ADTransitionTypePush;
+                return delegate;
+            } else {
+                return nil;
+            }
+        case UINavigationControllerOperationPop:
+            if ([fromVC.transitioningDelegate respondsToSelector:@selector(animationControllerForDismissedController:)]){
+                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)fromVC.transitioningDelegate;
+                delegate.transition.type = ADTransitionTypePop;
+                return delegate;
+            } else {
+                return nil;
+            }
+        default:
+            return nil;
+    }
+}
+
+- (void)navController:(id)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
     if (!transitionWithGesture) {
         transitionIsAnimating = YES;
@@ -280,6 +346,10 @@
                 }
             }
         }
+        
+        if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+            [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+        }
         if (winclosing) {
             //TIMOB-15033. Have to call windowWillClose so any keyboardFocussedProxies resign
             //as first responders. This is ok since tab is not nil so no message will be sent to
@@ -294,7 +364,7 @@
     }
 }
 
-- (void)transitionController:(ADTransitionController *)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
+- (void)navController:(id)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
     transitionIsAnimating = NO;
     transitionWithGesture = NO;
@@ -320,10 +390,30 @@
     }
 }
 
+- (void)transitionController:(ADTransitionController *)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
+{
+    [self navController:transitionController willShowViewController:viewController animated:animated];
+}
+
+- (void)transitionController:(ADTransitionController *)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
+{
+    [self navController:transitionController didShowViewController:viewController animated:animated];
+}
+
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    [self navController:navigationController willShowViewController:viewController animated:animated];
+}
+
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    [self navController:navigationController didShowViewController:viewController animated:animated];
+}
+
 
 -(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
 {
-    if (!transition) return     ;
+    if (!transition) return nil;
     return @{@"duration": NUMINT([transition duration]*1000),
              @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
              @"substyle": NUMINT(transition.orientation),
@@ -366,61 +456,74 @@
     [self fireEvent:@"closeWindow" forController:viewController transition:transition];
 }
 
+-(ADTransition*) lastTransition {
+    return [(ADTransitioningViewController*)[current hostingController] transition];
+}
+
+-(UIViewController*) beforeLastController {
+    return [[navController viewControllers] objectAtIndex:([[navController viewControllers] count] - 2)];
+}
+
+
 - (void)_pushViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        [viewController setTransition:transition];
-    //        [navController pushViewController:viewController animated:YES];
-    //    } else {
-    [navController pushViewController:viewController withTransition:transition];
-    //    }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        [(ADTransitioningViewController*)viewController setTransition:transition];
+        [navController pushViewController:viewController animated:YES];
+    } else {
+        [navController pushViewController:viewController withTransition:transition];
+    }
 }
 
 - (UIViewController *)popViewController {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popViewControllerAnimated:YES];
-    //    } else {
-    return [navController popViewController];
-    //    }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        return [navController popViewControllerAnimated:YES];
+    } else {
+        return [navController popViewController];
+    }
 }
 
 - (UIViewController *)_popViewControllerWithTransition:(ADTransition *)transition {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popViewControllerAnimated:YES];
-    //    } else {
-    return [navController popViewControllerWithTransition:transition];
-    //    }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        UIViewController* ctlr = [current hostingController];
+        [(ADTransitioningViewController*)ctlr setTransition:transition];
+        return [navController popViewControllerAnimated:YES];
+    } else {
+        return [navController popViewControllerWithTransition:transition];
+    }
 }
 
 - (NSArray *)_popToViewController:(UIViewController *)viewController {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popToViewController:viewController animated:YES];
-    //    } else {
-    return [navController popToViewController:viewController];
-    //    }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        return [navController popToViewController:viewController animated:YES];
+    } else {
+        return [navController popToViewController:viewController];
+    }
 }
 
 - (NSArray *)_popToViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popToViewController:viewController animated:YES];
-    //    } else {
-    return [navController popToViewController:viewController withTransition:transition];
-    //    }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        [(ADTransitioningViewController*)viewController setTransition:transition];
+        return [navController popToViewController:viewController animated:YES];
+    } else {
+        return [navController popToViewController:viewController withTransition:transition];
+    }
 }
 
 - (NSArray *)_popToRootViewController {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popToRootViewControllerAnimated:YES];
-    //    } else {
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        return [navController popToRootViewControllerAnimated:YES];
+    } else {
     return [navController popToRootViewController];
-    //    }
+    }
 }
 
 - (NSArray *)_popToRootViewControllerWithTransition:(ADTransition *)transition {
-    //    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-    //        return [navController popToRootViewControllerAnimated:YES];
-    //    } else {
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        [(ADTransitioningViewController*)[rootWindow hostingController] setTransition:transition];
+        return [navController popToRootViewControllerAnimated:YES];
+    } else {
     return [navController popToRootViewControllerWithTransition:transition];
-    //    }
+    }
 }
 
 #pragma mark - Public API
@@ -434,6 +537,16 @@
     else {
         self.defaultTransition = [self platformDefaultTransition];
     }
+    [self replaceValue:arg forKey:@"transition" notification:NO];
+}
+
+-(void)setSwipeToClose:(id)arg
+{
+    ENSURE_SINGLE_ARG_OR_NIL(arg, NSNumber)
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        [((UINavigationController *)[self controller]).interactivePopGestureRecognizer setEnabled:[TiUtils boolValue:arg def:NO]];
+    }
+    [self replaceValue:arg forKey:@"swipeToClose" notification:NO];
 }
 
 #pragma mark - Private API
