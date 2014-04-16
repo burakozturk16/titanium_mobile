@@ -9,12 +9,24 @@
 #import "ADNavigationControllerDelegate.h"
 #import "ADTransitioningDelegate.h"
 
+@implementation ADPercentDrivenInteractiveTransition
+
+- (void)cancelInteractiveTransition {
+    [[self transitionDelegate] setCancelled:YES];
+    [super cancelInteractiveTransition];
+}
+
+
+@end
+
 @implementation ADNavigationControllerDelegate
 
 - (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController
                           interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>) animationController {
-    if ([animationController respondsToSelector:@selector(startInteractiveTransition:)]) {
-        return (id <UIViewControllerInteractiveTransitioning>)animationController;
+    if ([animationController isKindOfClass:[ADTransitioningDelegate class]]) {
+        self.interactivePopTransition.transitionDelegate = (ADTransitioningDelegate*)animationController;
+        self.interactivePopTransition.transitionDelegate.cancelled = NO;
+        return self.interactivePopTransition;
     }
     return nil;
 }

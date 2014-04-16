@@ -26,6 +26,7 @@
 
 @implementation ADTransitioningDelegate
 @synthesize transition = _transition;
+@synthesize cancelled;
 
 - (void)dealloc {
     [_transition release], _transition = nil;
@@ -35,6 +36,7 @@
 - (id)initWithTransition:(ADTransition *)transition {
     self = [self init];
     if (self) {
+        cancelled = false;
         _transition = [transition retain];
         _transition.delegate = self;
     }
@@ -74,12 +76,13 @@
     UIView * containerView = transitionContext.containerView;
     UIView * fromView = fromViewController.view;
     UIView * toView = toViewController.view;
-
+    
+    float zDistance = AD_Z_DISTANCE;
     CATransform3D sublayerTransform = CATransform3DIdentity;
-    sublayerTransform.m34 = 1.0 / -AD_Z_DISTANCE;
+    sublayerTransform.m34 = 1.0 / -zDistance;
     containerView.layer.sublayerTransform = sublayerTransform;
 
-    UIView * wrapperView = [[ADTransitionView alloc] initWithFrame:fromView.frame];
+    UIView * wrapperView = [[ADTransitionView alloc] initWithFrame:containerView.frame];
     fromView.frame = fromView.bounds;
     toView.frame = toView.bounds;
 
@@ -112,15 +115,6 @@
 
 @implementation ADTransitioningDelegate (Private)
 - (void)_transitionInContainerView:(UIView *)containerView fromView:(UIView *)viewOut toView:(UIView *)viewIn withTransition:(ADTransition *)transition {
-    [CATransaction setAnimationDuration:transition.duration];
-    [CATransaction setCompletionBlock:^{
-        UIView * contextView = [_currentTransitioningContext containerView];
-        viewOut.frame = containerView.frame;
-        [contextView addSubview:viewOut];
-        viewIn.frame = containerView.frame;
-        [contextView addSubview:viewIn];
-        [containerView removeFromSuperview];
-    }];
     [transition transitionFromView:viewOut toView:viewIn inside:containerView];
 }
 
@@ -140,13 +134,19 @@
 - (void)_completeTransition:(ADTransition *)transition {
     UIViewController * fromViewController = [_currentTransitioningContext viewControllerForKey:UITransitionContextFromViewControllerKey];
     UIViewController * toViewController = [_currentTransitioningContext viewControllerForKey:UITransitionContextToViewControllerKey];
-    UIView * containerView = _currentTransitioningContext.containerView;
     UIView * fromView = fromViewController.view;
     UIView * toView = toViewController.view;
+    UIView * contextView = [_currentTransitioningContext containerView];
+    UIView * containerView = [[contextView subviews] firstObject];
+    fromView.frame = contextView.frame;
+    [contextView addSubview:fromView];
+    toView.frame = contextView.frame;
+    [contextView addSubview:toView];
+    [containerView removeFromSuperview];
+    
     [transition finishedTransitionFromView:fromView toView:toView inside:containerView];
 
-
-    [_currentTransitioningContext completeTransition:YES];
+    [_currentTransitioningContext completeTransition:!cancelled];
     [_currentTransitioningContext release], _currentTransitioningContext = nil;
 }
 

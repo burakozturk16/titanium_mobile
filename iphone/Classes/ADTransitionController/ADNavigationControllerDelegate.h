@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ADNavigationControllerDelegate : NSObject <UINavigationControllerDelegate>
+@class ADTransitioningDelegate;
+@interface ADPercentDrivenInteractiveTransition : UIPercentDrivenInteractiveTransition
+@property (nonatomic, strong) ADTransitioningDelegate *transitionDelegate;
 
+@end
+
+@interface ADNavigationControllerDelegate : NSObject <UINavigationControllerDelegate>
+@property (nonatomic, strong) ADPercentDrivenInteractiveTransition *interactivePopTransition;
 @end

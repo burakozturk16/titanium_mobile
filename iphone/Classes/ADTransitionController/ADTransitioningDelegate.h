@@ -11,5 +11,6 @@
 
 @interface ADTransitioningDelegate : NSObject <UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning, ADTransitionDelegate>
 @property (nonatomic, retain) ADTransition * transition;
+@property (nonatomic, assign) BOOL cancelled;
 - (id)initWithTransition:(ADTransition *)transition;
 @end
