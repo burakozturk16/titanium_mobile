@@ -600,6 +600,9 @@
     if (animated) {
         transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultArg:[self defaultTransition] containerView:self.view];
     }
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        ((ADTransitioningViewController*)[window hostingController]).transition = transition.adTransition;
+    }
     
     [window windowWillOpen];
     
