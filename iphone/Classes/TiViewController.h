@@ -7,8 +7,9 @@
 
 #import <UIKit/UIKit.h>
 #import "TiControllerProtocols.h"
+#import "ADTransitioningViewController.h"
 
-@interface TiViewController : UIViewController {
+@interface TiViewController : ADTransitioningViewController {
 
     TiViewProxy* _proxy;
     TiOrientationFlags _supportedOrientations;
