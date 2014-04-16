@@ -254,6 +254,7 @@
             TiThreadPerformOnMainThread(^{
                 [self popOnUIThread:([args count] > 1) ? @[realWindow,[args objectAtIndex:1]] : @[realWindow]];
             }, YES);
+            return;
         }
     }
     TiThreadPerformOnMainThread(^{
@@ -413,7 +414,7 @@
 
 -(NSDictionary*)propsDictFromTransition:(ADTransition*)transition
 {
-    if (!transition) return nil;
+    if (!transition) return @{};
     return @{@"duration": NUMINT([transition duration]*1000),
              @"style": [TiTransitionHelper tiTransitionTypeForADTransition:transition],
              @"substyle": NUMINT(transition.orientation),
@@ -457,7 +458,12 @@
 }
 
 -(ADTransition*) lastTransition {
-    return [(ADTransitioningViewController*)[current hostingController] transition];
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        return [(ADTransitioningViewController*)[current hostingController] transition];
+    }
+    else {
+        return [navController lastTransition];
+    }
 }
 
 -(UIViewController*) beforeLastController {
@@ -467,7 +473,7 @@
 
 - (void)_pushViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        [(ADTransitioningViewController*)viewController setTransition:transition];
+//        [(ADTransitioningViewController*)viewController setTransition:transition];
         [navController pushViewController:viewController animated:YES];
     } else {
         [navController pushViewController:viewController withTransition:transition];
@@ -484,8 +490,8 @@
 
 - (UIViewController *)_popViewControllerWithTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        UIViewController* ctlr = [current hostingController];
-        [(ADTransitioningViewController*)ctlr setTransition:transition];
+//        UIViewController* ctlr = [current hostingController];
+//        [(ADTransitioningViewController*)ctlr setTransition:transition];
         return [navController popViewControllerAnimated:YES];
     } else {
         return [navController popViewControllerWithTransition:transition];
@@ -502,7 +508,7 @@
 
 - (NSArray *)_popToViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        [(ADTransitioningViewController*)viewController setTransition:transition];
+//        [(ADTransitioningViewController*)viewController setTransition:transition];
         return [navController popToViewController:viewController animated:YES];
     } else {
         return [navController popToViewController:viewController withTransition:transition];
@@ -519,7 +525,7 @@
 
 - (NSArray *)_popToRootViewControllerWithTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        [(ADTransitioningViewController*)[rootWindow hostingController] setTransition:transition];
+//        [(ADTransitioningViewController*)[rootWindow hostingController] setTransition:transition];
         return [navController popToRootViewControllerAnimated:YES];
     } else {
     return [navController popToRootViewControllerWithTransition:transition];
@@ -622,7 +628,7 @@
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
-        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[[navController lastTransition] reverseTransition]] autorelease] containerView:self.view];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[[self lastTransition] reverseTransition]] autorelease] containerView:self.view];
     }
     
     if (window == current) {
