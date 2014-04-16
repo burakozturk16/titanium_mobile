@@ -182,6 +182,7 @@
         UIViewController * transitionController = nil;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
             UINavigationController* theController = navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
+            [rootWindow viewWillAppear:NO]; // not called otherwise :s
 //            RELEASE_TO_NIL(_navigationDelegate)
 //            _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
             theController.delegate = self;
@@ -348,8 +349,19 @@
             }
         }
         
+        
+        
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-            [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+            BOOL shouldFireEvent = !transitionWithGesture;
+            if (!shouldFireEvent && self.interactivePopTransition == nil) {
+                ADTransition* transition = [((ADTransitioningViewController*)viewController) transition];
+                if (transition && ![transition isKindOfClass:[ADModernPushTransition class]]) {
+                    shouldFireEvent = true;
+                }
+            }
+            if (shouldFireEvent) {
+                [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+            }
         }
         if (winclosing) {
             //TIMOB-15033. Have to call windowWillClose so any keyboardFocussedProxies resign
@@ -404,6 +416,12 @@
 - (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
     [self navController:navigationController willShowViewController:viewController animated:animated];
+    id<UIViewControllerTransitionCoordinator> tc = navigationController.topViewController.transitionCoordinator;
+    [tc notifyWhenInteractionEndsUsingBlock:^(id<UIViewControllerTransitionCoordinatorContext> context) {
+        if (![context isCancelled]) {
+            [self fireEvent:@"closeWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+        }
+    }];
 }
 
 - (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
@@ -470,6 +488,9 @@
     return [[navController viewControllers] objectAtIndex:([[navController viewControllers] count] - 2)];
 }
 
+-(UIViewController*) lastController {
+    return [[navController viewControllers] objectAtIndex:([[navController viewControllers] count] - 1)];
+}
 
 - (void)_pushViewController:(UIViewController *)viewController withTransition:(ADTransition *)transition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
