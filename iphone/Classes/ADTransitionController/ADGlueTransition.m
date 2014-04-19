@@ -10,8 +10,7 @@
 
 @implementation ADGlueTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     const CGFloat widthAngle = M_PI / 4.0f;
@@ -23,7 +22,8 @@
     CGPoint anchorPoint;
     CATransform3D startTranslation;
     CATransform3D rotation;
-    switch (orientation) {
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
             inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(1.5 *viewWidth, 0.0f, 0.0f)];
@@ -88,8 +88,7 @@
     [outAnimation setAnimations:@[outOpacityKeyFrameAnimation, outTransformKeyFrameAnimation, outAnchorPointAnimation]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

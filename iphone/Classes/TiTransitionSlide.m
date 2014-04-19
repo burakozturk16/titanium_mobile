@@ -6,12 +6,8 @@
 @implementation TiTransitionSlide
 
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADSlideTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADSlideTransition class];
 }
 
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size

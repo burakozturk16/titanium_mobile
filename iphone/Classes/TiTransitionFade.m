@@ -3,14 +3,10 @@
 
 @implementation TiTransitionFade
 
-- (id)initWithDuration:(CFTimeInterval)duration
-{
-    if (self = [super init]) {
-        _adTransition = [[ADFadeTransition alloc] initWithDuration:duration];
-    }
-    return self;
-}
 
+-(Class) adTransitionClass {
+    return [ADFadeTransition class];
+}
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
     if (position >1 || position < -1) {

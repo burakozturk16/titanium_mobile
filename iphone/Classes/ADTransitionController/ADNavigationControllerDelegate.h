@@ -8,12 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@class ADTransitioningDelegate;
-@interface ADPercentDrivenInteractiveTransition : UIPercentDrivenInteractiveTransition
-@property (nonatomic, strong) ADTransitioningDelegate *transitionDelegate;
+@interface ADNavigationControllerDelegate : NSObject
+@property (nonatomic, assign) BOOL isInteractive;
+@property (nonatomic, assign) BOOL isInteracting;
+@property (nonatomic, retain) id<UINavigationControllerDelegate> delegate;
 
-@end
+- (void)manageNavigationController:(UINavigationController *)navigationController;
 
-@interface ADNavigationControllerDelegate : NSObject <UINavigationControllerDelegate>
-@property (nonatomic, strong) ADPercentDrivenInteractiveTransition *interactivePopTransition;
+- (UIScreenEdgePanGestureRecognizer *)panGestureRecognizerForLeftEdgeOfViewController:(UIViewController *)viewController;
 @end

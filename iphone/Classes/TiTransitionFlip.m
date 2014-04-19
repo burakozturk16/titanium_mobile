@@ -4,12 +4,9 @@
 
 @implementation TiTransitionFlip
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADFlipTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
-    }
-    return self;
+
+-(Class) adTransitionClass {
+    return [ADFlipTransition class];
 }
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {

@@ -10,5 +10,4 @@
 #import "ADTransformTransition.h"
 
 @interface ADCubeTransition : ADTransformTransition
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 @end

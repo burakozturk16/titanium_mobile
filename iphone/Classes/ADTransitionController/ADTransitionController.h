@@ -88,6 +88,7 @@
 - (NSArray *)popToRootViewController;
 - (NSArray *)popToRootViewControllerWithTransition:(ADTransition *)transition;
 -(ADTransition*)lastTransition;
+-(ADTransition*)lastTransitionReversed;
 @end
 
 @protocol ADTransitionControllerDelegate <NSObject>

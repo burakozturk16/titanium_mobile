@@ -12,7 +12,7 @@
 
 @implementation ADBackFadeTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration {
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     CABasicAnimation * inFadeAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
     inFadeAnimation.fromValue = @0.0f;
     inFadeAnimation.toValue = @1.0f;
@@ -36,8 +36,7 @@
     [outAnimation setAnimations:@[backFadeTranslation, outFadeAnimation]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

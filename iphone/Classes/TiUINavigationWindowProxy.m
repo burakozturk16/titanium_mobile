@@ -14,10 +14,10 @@
 
 @interface TiUINavigationWindowProxy()
 {
-//    ADNavigationControllerDelegate * _navigationDelegate;
+    ADNavigationControllerDelegate* _navigationDelegate;
 }
 @property(nonatomic,retain) NSDictionary *defaultTransition;
-@property (nonatomic, strong) ADPercentDrivenInteractiveTransition *interactivePopTransition;
+@property (nonatomic, strong) ADTransitioningDelegate *interactivePopTransition;
 
 @end
 
@@ -30,10 +30,11 @@
 -(void)dealloc
 {
 	RELEASE_TO_NIL_AUTORELEASE(rootWindow);
-//    RELEASE_TO_NIL(_navigationDelegate);
+    RELEASE_TO_NIL(_navigationDelegate);
     RELEASE_TO_NIL(navController);
     RELEASE_TO_NIL(current);
     RELEASE_TO_NIL(_defaultTransition);
+    RELEASE_TO_NIL(popRecognizer);
 	[super dealloc];
 }
 
@@ -67,26 +68,6 @@
     return @"Ti.UI.iOS.NavigationWindow";
 }
 
-
--(void)popGestureStateHandler:(UIGestureRecognizer *)recognizer
-{
-    UIGestureRecognizerState curState = recognizer.state;
-    
-    switch (curState) {
-        case UIGestureRecognizerStateBegan:
-            transitionWithGesture = YES;
-            break;
-        case UIGestureRecognizerStateEnded:
-        case UIGestureRecognizerStateCancelled:
-        case UIGestureRecognizerStateFailed:
-            transitionWithGesture = NO;
-            break;
-        default:
-            break;
-    }
-    
-}
-
 #pragma mark - TiOrientationController
 
 -(TiOrientationFlags) orientationFlags
@@ -117,6 +98,18 @@
     return nil;
 }
 
+#define SETPROP(m,x) \
+{\
+id value = [self valueForKey:m]; \
+if (value!=nil)\
+{\
+[self x:(value==[NSNull null]) ? nil : value];\
+}\
+else{\
+[self replaceValue:nil forKey:m notification:NO];\
+}\
+}\
+
 -(UIViewController *)rootController
 {
     if (rootWindow == nil) {
@@ -134,46 +127,12 @@
     return [rootWindow hostingController];
 }
 
-- (void)handlePopRecognizer:(UIScreenEdgePanGestureRecognizer*)recognizer {
-    // Calculate how far the user has dragged across the view
-//    CGFloat progress = [recognizer translationInView:[self.view window]].x / (self.view.bounds.size.width * 1.0);
-//    progress = MIN(1.0, MAX(0.0, progress));
-    
-    CGPoint location = [recognizer locationInView:[self.view window]];
-    if (recognizer.state == UIGestureRecognizerStateBegan) {
-        if (location.x < CGRectGetMidX(recognizer.view.bounds)) {
-            // Create a interactive transition and pop the view controller
-            self.interactivePopTransition = [[ADPercentDrivenInteractiveTransition alloc] init];
-            [navController popViewControllerAnimated:YES];
-        }
-    }
-    else if (recognizer.state == UIGestureRecognizerStateChanged) {
-        // Update the interactive transition's progress
-        CGFloat animationRatio = location.x / CGRectGetWidth([self.view window].bounds);
-        [self.interactivePopTransition updateInteractiveTransition:animationRatio];
-    }
-    else if (recognizer.state == UIGestureRecognizerStateEnded || recognizer.state == UIGestureRecognizerStateCancelled) {
-        CGPoint velocity = [recognizer velocityInView:[self.view window]];
-        if (velocity.x > 0) {
-            [self fireEvent:@"closeWindow" forController:[self beforeLastController] transition:[self lastTransition]];
-            [self.interactivePopTransition finishInteractiveTransition];
-        }
-        
-        else {
-            [self.interactivePopTransition cancelInteractiveTransition];
-        }
-        
-        self.interactivePopTransition = nil;
-    }
-}
-
--(UIScreenEdgePanGestureRecognizer*)popRecognizer;
+-(ADNavigationControllerDelegate*) navigationDelegate
 {
-	if (popRecognizer == nil) {
-		popRecognizer = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePopRecognizer:)];
-        popRecognizer.edges = UIRectEdgeLeft;
-	}
-	return popRecognizer;
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7 && rootWindow && _navigationDelegate == nil) {
+        [self controller];
+    }
+    return _navigationDelegate;
 }
 
 -(id)controller
@@ -181,15 +140,13 @@
     if (navController == nil) {
         UIViewController * transitionController = nil;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-            UINavigationController* theController = navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
+            navController = [[UINavigationController alloc] initWithRootViewController:[self rootController]];
             [rootWindow viewWillAppear:NO]; // not called otherwise :s
-//            RELEASE_TO_NIL(_navigationDelegate)
-//            _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
-            theController.delegate = self;
-            theController.interactivePopGestureRecognizer.enabled = NO;
-            theController.interactivePopGestureRecognizer.delegate = (id<UIGestureRecognizerDelegate>)self;
-            [theController.interactivePopGestureRecognizer addTarget:self action:@selector(popGestureStateHandler:)];
-//            [((UINavigationController *)navController).view addGestureRecognizer:popRecognizer];
+            RELEASE_TO_NIL(_navigationDelegate)
+            _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
+            [_navigationDelegate manageNavigationController:(id)navController];
+            _navigationDelegate.delegate = self;
+            SETPROP(@"swipeToClose", setSwipeToClose);
         } else {
             navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
             ((ADTransitionController*)navController).delegate = self;
@@ -292,47 +249,8 @@
 
 #pragma mark - UINavigationControllerDelegate
 
-- (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController
-                          interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>) animationController {
-    if ([animationController isKindOfClass:[ADTransitioningDelegate class]]) {
-        self.interactivePopTransition.transitionDelegate = (ADTransitioningDelegate*)animationController;
-        self.interactivePopTransition.transitionDelegate.cancelled = NO;
-        return self.interactivePopTransition;
-    }
-    return nil;
-}
-
-- (id <UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-                                   animationControllerForOperation:(UINavigationControllerOperation)operation
-                                                fromViewController:(UIViewController *)fromVC
-                                                  toViewController:(UIViewController *)toVC {
-    switch (operation) {
-        case UINavigationControllerOperationPush:
-            if ([toVC.transitioningDelegate respondsToSelector:@selector(animationControllerForPresentedController:presentingController:sourceController:)]) {
-                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)toVC.transitioningDelegate;
-                delegate.transition.type = ADTransitionTypePush;
-                return delegate;
-            } else {
-                return nil;
-            }
-        case UINavigationControllerOperationPop:
-            if ([fromVC.transitioningDelegate respondsToSelector:@selector(animationControllerForDismissedController:)]){
-                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)fromVC.transitioningDelegate;
-                delegate.transition.type = ADTransitionTypePop;
-                return delegate;
-            } else {
-                return nil;
-            }
-        default:
-            return nil;
-    }
-}
-
 - (void)navController:(id)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-    if (!transitionWithGesture) {
-        transitionIsAnimating = YES;
-    }
     if (current != nil) {
         UIViewController *curController = [current hostingController];
         NSArray* curStack = [navController viewControllers];
@@ -350,20 +268,15 @@
         }
         
         
-        
+        BOOL transitionWithGesture = NO;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+            transitionWithGesture = _navigationDelegate.isInteracting;
             BOOL shouldFireEvent = !transitionWithGesture;
-            if (!shouldFireEvent && self.interactivePopTransition == nil) {
-                ADTransition* transition = [((ADTransitioningViewController*)viewController) transition];
-                if (transition && ![transition isKindOfClass:[ADModernPushTransition class]]) {
-                    shouldFireEvent = true;
-                }
-            }
-            if (shouldFireEvent) {
+            if (!_navigationDelegate.isInteracting) {
                 [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
             }
         }
-        if (winclosing) {
+        if (winclosing && !transitionWithGesture) {
             //TIMOB-15033. Have to call windowWillClose so any keyboardFocussedProxies resign
             //as first responders. This is ok since tab is not nil so no message will be sent to
             //hosting controller.
@@ -372,15 +285,13 @@
     }
     TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if ((theWindow != rootWindow) && [theWindow opening]) {
-        [theWindow windowWillOpen];
+//        [theWindow windowWillOpen];
         [theWindow setAnimating:YES];
     }
 }
 
 - (void)navController:(id)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-    transitionIsAnimating = NO;
-    transitionWithGesture = NO;
     if (current != nil) {
         UIViewController* oldController = [current hostingController];
         
@@ -484,6 +395,15 @@
     }
 }
 
+-(ADTransition*) lastTransitionReversed {
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        return [[(ADTransitioningViewController*)[current hostingController] transition] reverseTransitionForSourceRect:[[self view] bounds]];
+    }
+    else {
+        return [navController lastTransitionReversed];
+    }
+}
+
 -(UIViewController*) beforeLastController {
     return [[navController viewControllers] objectAtIndex:([[navController viewControllers] count] - 2)];
 }
@@ -571,7 +491,7 @@
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSNumber)
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        [((UINavigationController *)[self controller]).interactivePopGestureRecognizer setEnabled:[TiUtils boolValue:arg def:NO]];
+        [[self navigationDelegate] setIsInteractive:[TiUtils boolValue:arg def:YES]];
     }
     [self replaceValue:arg forKey:@"swipeToClose" notification:NO];
 }
@@ -608,11 +528,11 @@
 
 -(void)pushOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating || transitionWithGesture)
-	{
-		[self performSelector:_cmd withObject:args afterDelay:0.1];
-		return;
-	}
+//	if (transitionIsAnimating || transitionWithGesture)
+//	{
+//		[self performSelector:_cmd withObject:args afterDelay:0.1];
+//		return;
+//	}
 	TiWindowProxy *window = [args objectAtIndex:0];
     NSDictionary* props = [args count] > 1 ? [args objectAtIndex:1] : nil;
     if ([props isKindOfClass:[NSNull class]]) props = nil;
@@ -632,11 +552,11 @@
 
 -(void)popOnUIThread:(NSArray*)args
 {
-	if (transitionIsAnimating || transitionWithGesture)
-	{
-		[self performSelector:_cmd withObject:args afterDelay:0.1];
-		return;
-	}
+//	if (transitionIsAnimating || transitionWithGesture)
+//	{
+//		[self performSelector:_cmd withObject:args afterDelay:0.1];
+//		return;
+//	}
     int propsIndex = 0;
     TiWindowProxy *window;
     if ([[args objectAtIndex:0] isKindOfClass:[TiWindowProxy class]]) {
@@ -652,7 +572,7 @@
     BOOL animated = props!=nil ?[TiUtils boolValue:@"animated" properties:props def:YES] : YES;
     TiTransition* transition = nil;
     if (animated) {
-        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[[self lastTransition] reverseTransition]] autorelease] containerView:self.view];
+        transition = [TiTransitionHelper transitionFromArg:[props objectForKey:@"transition"] defaultTransition:[[[TiTransition alloc] initWithADTransition:[self lastTransitionReversed]] autorelease] containerView:self.view];
     }
     
     if (window == current) {

@@ -11,8 +11,7 @@
 
 @implementation ADSwapTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     CGFloat viewWidth = sourceRect.size.width;
     CGFloat viewHeight = sourceRect.size.height;
     
@@ -32,7 +31,8 @@
     CAKeyframeAnimation * inPosition = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
     CAKeyframeAnimation * outPosition = [CAKeyframeAnimation animationWithKeyPath:@"transform"];
     
-    switch (orientation) {
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
             inPosition.values = @[[NSValue valueWithCATransform3D:CATransform3DIdentity], [NSValue valueWithCATransform3D:rightTransform], [NSValue valueWithCATransform3D:CATransform3DIdentity]];
@@ -81,8 +81,7 @@
     [outAnimation setAnimations:@[outZPosition, outPosition]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

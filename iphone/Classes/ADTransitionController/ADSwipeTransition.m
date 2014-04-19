@@ -10,8 +10,7 @@
 
 @implementation ADSwipeTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     
@@ -20,8 +19,9 @@
     
     CABasicAnimation * outSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     outSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
-    
-    switch (orientation) {
+
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
             inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(viewWidth, 0.0f, 0.0f)];
@@ -71,8 +71,9 @@
     outAnimation.animations = @[outSwipeAnimation, outPositionAnimation];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
+
+
 
 @end

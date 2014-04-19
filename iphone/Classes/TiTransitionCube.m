@@ -9,15 +9,17 @@
 @implementation TiTransitionCube
 
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
+-(Class) adTransitionClass {
+    return [ADCubeTransition class];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed
 {
-    if (self = [super init]) {
-        _adTransition = [[ADCubeTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
+    if (self = [super initWithDuration:duration orientation:orientation sourceRect:sourceRect reversed:reversed]) {
         _faceNb = 4;
     }
     return self;
 }
-
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
     if (fabs(position) >= _faceNb - 1)

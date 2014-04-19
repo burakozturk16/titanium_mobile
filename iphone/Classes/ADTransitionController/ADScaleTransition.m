@@ -10,8 +10,7 @@
 
 @implementation ADScaleTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     
@@ -71,8 +70,13 @@
     [outAnimation setAnimations:@[outOpacityAnimation, outPositionAnimation, outScaleAnimation]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    if (reversed) {
+        [ADTransition inverseTOFromInAnimation:outOpacityAnimation];
+        [ADTransition inverseTOFromInAnimation:inSwipeAnimation];
+        [ADTransition inverseTOFromInAnimation:outScaleAnimation];
+    }
+    
+    return [super initWithInAnimation:reversed?outAnimation:inAnimation andOutAnimation:reversed?inAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

@@ -31,8 +31,8 @@ typedef enum NWTransition {
 @class TiTransition;
 @interface TiTransitionHelper : NSObject
 
-+(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view;
-+(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options;
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view reversed:(BOOL)reversed;
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options reversed:(BOOL)reversed;
 
 +(BOOL)isTransitionPush:(ADTransition*)transition;
 +(BOOL)isTransitionVertical:(ADTransition*)transition;

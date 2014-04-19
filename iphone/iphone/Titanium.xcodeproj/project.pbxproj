@@ -665,6 +665,12 @@
 		D53D20F916A0901300D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
 		D53D20FA16A0901800D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
+		D5412E121900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5412E131900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; };
+		D5412E141900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; };
+		D5412E1719012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
+		D5412E1819012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
+		D5412E1919012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
 		D54C7CEF1811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
 		D54C7CF01811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
 		D54C7CF11811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
@@ -2016,6 +2022,10 @@
 		D52DF22C18C7A0550076FB71 /* libMapbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMapbox.a; path = "../../../../ios/MapBox/MapView/build/Debug-iphoneos/libMapbox.a"; sourceTree = "<group>"; };
 		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
 		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
+		D5412E101900156C00B720DF /* ADPercentDrivenInteractiveTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADPercentDrivenInteractiveTransition.h; path = ../Classes/ADTransitionController/ADPercentDrivenInteractiveTransition.h; sourceTree = "<group>"; };
+		D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADPercentDrivenInteractiveTransition.m; path = ../Classes/ADTransitionController/ADPercentDrivenInteractiveTransition.m; sourceTree = "<group>"; };
+		D5412E1519012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIGestureRecognizer+ADNavTransition.h"; path = "../Classes/ADTransitionController/UIGestureRecognizer+ADNavTransition.h"; sourceTree = "<group>"; };
+		D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIGestureRecognizer+ADNavTransition.m"; path = "../Classes/ADTransitionController/UIGestureRecognizer+ADNavTransition.m"; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
 		D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSlide.m; sourceTree = "<group>"; };
 		D54C7CF21811570B00F592A9 /* TiTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransition.m; sourceTree = "<group>"; };
@@ -4185,6 +4195,10 @@
 				D5C07A91187DA9CF00984901 /* CAMediaTimingFunction+AdditionalEquations.m */,
 				D5C8C96517EF45C900F54C19 /* UIViewController+ADTransitionController.h */,
 				D5C8C96617EF45C900F54C19 /* UIViewController+ADTransitionController.m */,
+				D5412E101900156C00B720DF /* ADPercentDrivenInteractiveTransition.h */,
+				D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */,
+				D5412E1519012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.h */,
+				D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */,
 			);
 			name = ADTransitionController;
 			sourceTree = "<group>";
@@ -4577,6 +4591,7 @@
 				24CA8981111161050084E2DE /* SBJSON.m in Sources */,
 				D50A303018B0F6C1004CBD52 /* TouchCapturingWindow.m in Sources */,
 				24CA89B81111615D0084E2DE /* KrollBridge.m in Sources */,
+				D5412E1719012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */,
 				24CA89B91111615D0084E2DE /* KrollCallback.m in Sources */,
 				24CA89BA1111615D0084E2DE /* KrollContext.m in Sources */,
 				24CA89BB1111615D0084E2DE /* KrollMethod.m in Sources */,
@@ -4858,6 +4873,7 @@
 				D93DAA5016CBF8CB00AD64C9 /* CalendarModule.m in Sources */,
 				D93DAA5516CBF8E500AD64C9 /* TiCalendarCalendar.m in Sources */,
 				D93DAA5A16CBF8FB00AD64C9 /* TiCalendarAlert.m in Sources */,
+				D5412E121900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */,
 				B6C5206118035AF3002471C6 /* TiUIiOSAttributedStringProxy.m in Sources */,
 				D54C7CEF1811565A00F592A9 /* TiTransitionSlide.m in Sources */,
 				D93DAA5F16CBF91100AD64C9 /* TiCalendarEvent.m in Sources */,
@@ -4980,6 +4996,7 @@
 				24D8E404119B9D8A00F8CAA6 /* TiUIiPhoneSystemButtonStyleProxy.m in Sources */,
 				24D8E405119B9D8A00F8CAA6 /* TiUIiPhoneSystemButtonProxy.m in Sources */,
 				D597CF0817D719C4009A080B /* TiCellBackgroundView.m in Sources */,
+				D5412E131900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */,
 				24D8E406119B9D8A00F8CAA6 /* TiUISwitchProxy.m in Sources */,
 				24D8E407119B9D8A00F8CAA6 /* TiUISwitch.m in Sources */,
 				24D8E408119B9D8A00F8CAA6 /* TiUIiPhoneStatusBarProxy.m in Sources */,
@@ -5121,6 +5138,7 @@
 				24D8E484119B9D8A00F8CAA6 /* TiUIiPadProxy.m in Sources */,
 				24D8E487119B9D8A00F8CAA6 /* TiUIiPadSplitWindowButtonProxy.m in Sources */,
 				24D8E488119B9D8A00F8CAA6 /* LauncherButton.m in Sources */,
+				D5412E1819012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */,
 				24D8E489119B9D8A00F8CAA6 /* LauncherItem.m in Sources */,
 				24D8E48A119B9D8A00F8CAA6 /* LauncherView.m in Sources */,
 				24D8E48B119B9D8A00F8CAA6 /* TiUIDashboardViewProxy.m in Sources */,
@@ -5339,6 +5357,7 @@
 				DABB36DF12E8CB280026A6EA /* TiUIiPhoneSystemButtonStyleProxy.m in Sources */,
 				DABB36E012E8CB280026A6EA /* TiUIiPhoneSystemButtonProxy.m in Sources */,
 				D597CF0917D719C4009A080B /* TiCellBackgroundView.m in Sources */,
+				D5412E141900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */,
 				DABB36E112E8CB280026A6EA /* TiUISwitchProxy.m in Sources */,
 				DABB36E212E8CB280026A6EA /* TiUISwitch.m in Sources */,
 				DABB36E312E8CB280026A6EA /* TiUIiPhoneStatusBarProxy.m in Sources */,
@@ -5480,6 +5499,7 @@
 				DABB375C12E8CB280026A6EA /* TiUIiPadProxy.m in Sources */,
 				DABB375F12E8CB280026A6EA /* TiUIiPadSplitWindowButtonProxy.m in Sources */,
 				DABB376012E8CB280026A6EA /* LauncherButton.m in Sources */,
+				D5412E1919012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */,
 				DABB376112E8CB280026A6EA /* LauncherItem.m in Sources */,
 				DABB376212E8CB280026A6EA /* LauncherView.m in Sources */,
 				DABB376312E8CB280026A6EA /* TiUIDashboardViewProxy.m in Sources */,

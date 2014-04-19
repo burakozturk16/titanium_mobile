@@ -8,52 +8,141 @@
 
 #import "ADNavigationControllerDelegate.h"
 #import "ADTransitioningDelegate.h"
+#import "UIGestureRecognizer+ADNavTransition.h"
 
-@implementation ADPercentDrivenInteractiveTransition
-
-- (void)cancelInteractiveTransition {
-    [[self transitionDelegate] setCancelled:YES];
-    [super cancelInteractiveTransition];
-}
-
-
+@interface ADNavigationControllerDelegate() <UINavigationControllerDelegate, UIGestureRecognizerDelegate>
+@property (nonatomic, strong) ADTransitioningDelegate* currentTransition;
+@property (nonatomic, assign) BOOL shouldCompleteCurrentInteractiveTransition;
 @end
+
 
 @implementation ADNavigationControllerDelegate
 
-- (id <UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController
-                          interactionControllerForAnimationController:(id <UIViewControllerAnimatedTransitioning>) animationController {
-    if ([animationController isKindOfClass:[ADTransitioningDelegate class]]) {
-        self.interactivePopTransition.transitionDelegate = (ADTransitioningDelegate*)animationController;
-        self.interactivePopTransition.transitionDelegate.cancelled = NO;
-        return self.interactivePopTransition;
+- (void)manageNavigationController:(UINavigationController *)navigationController
+{
+    navigationController.delegate = self;
+    _isInteractive = YES;
+    _isInteracting = NO;
+    // This part is *risky*.  Based on http://stackoverflow.com/a/20923477/860000
+    [navigationController view]; // interactivePopGestureRecognizer is initialized in -viewDidLoad
+    navigationController.interactivePopGestureRecognizer.delegate = self;
+    navigationController.interactivePopGestureRecognizer.AD_viewController = navigationController;
+}
+
+- (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC
+{
+    BOOL shouldAddGestureRecognizers = NO;
+    
+    switch (operation) {
+        case UINavigationControllerOperationPush:
+            shouldAddGestureRecognizers = _isInteractive;
+            if ([toVC.transitioningDelegate isKindOfClass:[ADTransitioningDelegate class]]) {
+                self.currentTransition = (ADTransitioningDelegate *)toVC.transitioningDelegate;
+                self.currentTransition.transition.type = ADTransitionTypePush;
+                break;
+            }
+        case UINavigationControllerOperationPop:
+            if ([fromVC.transitioningDelegate isKindOfClass:[ADTransitioningDelegate class]]){
+                self.currentTransition = (ADTransitioningDelegate *)fromVC.transitioningDelegate;
+                self.currentTransition.transition.type = ADTransitionTypePop;
+                break;
+            }
+        case UINavigationControllerOperationNone:
+        default:
+            self.currentTransition = nil;
     }
+    if (shouldAddGestureRecognizers) {
+        [toVC.view addGestureRecognizer:[self panGestureRecognizerForLeftEdgeOfViewController:toVC]];
+    }
+
+    return self.currentTransition;
+}
+
+- (id<UIViewControllerInteractiveTransitioning>)navigationController:(UINavigationController *)navigationController interactionControllerForAnimationController:(id<UIViewControllerAnimatedTransitioning>)animationController
+{
+    if (_isInteracting && animationController == self.currentTransition) {
+        return self.currentTransition;
+    }
+    
     return nil;
 }
 
-- (id <UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController
-                                   animationControllerForOperation:(UINavigationControllerOperation)operation
-                                                fromViewController:(UIViewController *)fromVC
-                                                  toViewController:(UIViewController *)toVC {
-    switch (operation) {
-        case UINavigationControllerOperationPush:
-            if ([toVC.transitioningDelegate respondsToSelector:@selector(animationControllerForPresentedController:presentingController:sourceController:)]) {
-                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)toVC.transitioningDelegate;
-                delegate.transition.type = ADTransitionTypePush;
-                return delegate;
+- (UIScreenEdgePanGestureRecognizer *)panGestureRecognizerForLeftEdgeOfViewController:(UIViewController *)viewController
+{
+    UIScreenEdgePanGestureRecognizer *panGestureRecognizer = [[UIScreenEdgePanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePanGesture:)];
+    panGestureRecognizer.AD_viewController = viewController;
+    panGestureRecognizer.edges = UIRectEdgeLeft;
+    panGestureRecognizer.delegate = self;
+    return panGestureRecognizer;
+}
+
+- (void)handlePanGesture:(UIPanGestureRecognizer *)sender
+{
+    CGPoint point = [sender translationInView:[sender.view window]];
+    
+    switch (sender.state) {
+        case UIGestureRecognizerStateBegan:
+            self.isInteracting = YES;
+            [sender.AD_viewController.navigationController popViewControllerAnimated:YES];
+            break;
+            
+        case UIGestureRecognizerStateChanged:
+        {
+            CGFloat percentComplete = point.x / CGRectGetWidth([sender.view window].bounds);
+            self.shouldCompleteCurrentInteractiveTransition = percentComplete > 0.5;
+            [self.currentTransition updateInteractiveTransition:fmaxf(0, percentComplete)];
+            break;
+        }
+            
+        case UIGestureRecognizerStateEnded:
+            if (self.shouldCompleteCurrentInteractiveTransition) {
+                [self.currentTransition finishInteractiveTransition];
             } else {
-                return nil;
+                [self.currentTransition cancelInteractiveTransition];
             }
-        case UINavigationControllerOperationPop:
-            if ([fromVC.transitioningDelegate respondsToSelector:@selector(animationControllerForDismissedController:)]){
-                ADTransitioningDelegate * delegate = (ADTransitioningDelegate *)fromVC.transitioningDelegate;
-                delegate.transition.type = ADTransitionTypePop;
-                return delegate;
-            } else {
-                return nil;
-            }
-        default:
-            return nil;
+            self.isInteracting = NO;
+            break;
+            
+        case UIGestureRecognizerStateCancelled:
+            [self.currentTransition cancelInteractiveTransition];
+            self.isInteracting = NO;
+            break;
+            
+        case UIGestureRecognizerStateFailed:
+        case UIGestureRecognizerStatePossible:
+            break;
     }
 }
+
+#pragma mark - UINavigationController swipe configuration
+
+- (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
+{
+    if (!_isInteractive) return NO;
+    UIViewController *viewController = gestureRecognizer.AD_viewController;
+    UINavigationController *navigationController = [viewController isKindOfClass:[UINavigationController class]] ? (id)viewController : viewController.navigationController;
+    
+    if ([navigationController.transitionCoordinator isAnimated]) {
+        return NO;
+    }
+    int count = navigationController.viewControllers.count;
+    if (navigationController.viewControllers.count < 2) {
+        return NO;
+    }
+    
+    if (gestureRecognizer == navigationController.interactivePopGestureRecognizer) {
+        return navigationController.interactivePopGestureRecognizer.enabled;
+    }
+    
+    return self.currentTransition != nil;
+}
+
+- (void)navigationController:(UINavigationController *)navigationController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    if (_delegate) {
+        [_delegate navigationController:navigationController willShowViewController:viewController animated:animated];
+    }
+}
+
+
 @end

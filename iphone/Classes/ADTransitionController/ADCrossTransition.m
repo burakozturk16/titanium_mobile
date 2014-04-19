@@ -10,19 +10,19 @@
 
 @implementation ADCrossTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration {
-    if (self = [super initWithDuration:duration]) {
-        CAAnimation * animation = nil;
-        animation = [CABasicAnimation animationWithKeyPath:@"transform"];
-        ((CABasicAnimation *)animation).fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeRotation(M_PI * 0.5f, 0.0f, 1.0f, 0.0f)];
-        ((CABasicAnimation *)animation).toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
-        _outLayerTransform = CATransform3DRotate(_outLayerTransform, -M_PI * 0.5f, 0.0f, 1.0f, 0.0f);
-        
-        _animation = [animation retain];
-        _animation.duration = duration;
-        _animation.delegate = self;
-    }
-    return self;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
+    float angle = (reversed?-1:1)*M_PI;
+    CAAnimation * animation = nil;
+    CATransform3D ouTransform = CATransform3DIdentity;
+    animation = [CABasicAnimation animationWithKeyPath:@"transform"];
+    ((CABasicAnimation *)animation).fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeRotation(angle * 0.5f, 0.0f, 1.0f, 0.0f)];
+    ((CABasicAnimation *)animation).toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
+    ouTransform = CATransform3DRotate(ouTransform, -angle * 0.5f, 0.0f, 1.0f, 0.0f);
+    
+    _animation = [animation retain];
+    _animation.duration = duration;
+    _animation.delegate = self;
+    return [super initWithAnimation:animation orientation:orientation inLayerTransform:CATransform3DIdentity outLayerTransform:ouTransform reversed:reversed];
 }
 
 @end

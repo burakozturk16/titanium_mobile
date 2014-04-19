@@ -3,14 +3,9 @@
 
 @implementation TiTransitionSwipeFade
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADSwipeFadeTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADSwipeFadeTransition class];
 }
-
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
 //    if (position >1 || position < -1) {

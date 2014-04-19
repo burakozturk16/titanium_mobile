@@ -20,6 +20,9 @@
 @property (readonly) CATransform3D outLayerTransform;
 
 - (id)initWithAnimation:(CAAnimation *)animation inLayerTransform:(CATransform3D)inTransform outLayerTransform:(CATransform3D)outTransform;
-- (id)initWithDuration:(CFTimeInterval)duration;
-- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect;
+- (id)initWithAnimation:(CAAnimation *)animation inLayerTransform:(CATransform3D)inTransform outLayerTransform:(CATransform3D)outTransform reversed:(BOOL)reversed;
+- (id)initWithAnimation:(CAAnimation *)animation reversed:(BOOL)reversed;
+- (id)initWithAnimation:(CAAnimation *)animation orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed;
+- (id)initWithAnimation:(CAAnimation *)animation orientation:(ADTransitionOrientation)orientation inLayerTransform:(CATransform3D)inTransform outLayerTransform:(CATransform3D)outTransform reversed:(BOOL)reversed;
+
 @end

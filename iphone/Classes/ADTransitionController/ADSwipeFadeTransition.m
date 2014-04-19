@@ -10,8 +10,7 @@
 
 @implementation ADSwipeFadeTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     
@@ -19,6 +18,9 @@
     inSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     CABasicAnimation * outSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     outSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
+    
+    
+//    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
     switch (orientation) {
         case ADTransitionRightToLeft:
         {
@@ -64,6 +66,11 @@
     outOpacityAnimation.fromValue = @1.0f;
     outOpacityAnimation.toValue = @0.0f;
     outOpacityAnimation.duration = duration;
+    if (reversed) {
+        [ADTransition inverseTOFromInAnimation:outOpacityAnimation];
+        [ADTransition inverseTOFromInAnimation:inSwipeAnimation];
+        [ADTransition inverseTOFromInAnimation:outSwipeAnimation];
+    }
     
     CABasicAnimation * outPositionAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
     outPositionAnimation.fromValue = @-0.01;
@@ -74,8 +81,7 @@
     [outAnimation setAnimations:@[outOpacityAnimation, outPositionAnimation, outSwipeAnimation]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:reversed?outAnimation:inAnimation andOutAnimation:reversed?inAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end
