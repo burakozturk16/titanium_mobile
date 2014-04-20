@@ -144,5 +144,11 @@
     }
 }
 
+- (void)navigationController:(UINavigationController *)navigationController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated
+{
+    if (_delegate) {
+        [_delegate navigationController:navigationController didShowViewController:viewController animated:animated];
+    }
+}
 
 @end
