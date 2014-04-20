@@ -667,7 +667,7 @@
 		D53D20FB16A0901D00D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D5412E121900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5412E131900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; };
-		D5412E141900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; };
+		D5412E141900156C00B720DF /* ADPercentDrivenInteractiveTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5412E1719012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
 		D5412E1819012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
 		D5412E1919012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
