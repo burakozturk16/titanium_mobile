@@ -41,13 +41,13 @@ exports.events = events;
  * @param {String} type - The event type
  */
 exports.addEvent = function addEvent(name, data, type) {
-	events.push({
-		id: uuid.v4(),
-		type: type || 'app.feature',
-		name: name,
-		ts: timestamp(),
-		data: data
-	});
+	// events.push({
+	// 	id: uuid.v4(),
+	// 	type: type || 'app.feature',
+	// 	name: name,
+	// 	ts: timestamp(),
+	// 	data: data
+	// });
 };
 
 /**
@@ -70,12 +70,12 @@ exports.addEvent = function addEvent(name, data, type) {
  * @returns {Object} The forked child process
  */
 exports.send = function send(args) {
-	var child = require('child_process').fork(module.filename);
-	args = args || {};
-	args.events = [].concat(events);
-	events = [];
-	child.send(args);
-	return child;
+	// var child = require('child_process').fork(module.filename);
+	// args = args || {};
+	// args.events = [].concat(events);
+	// events = [];
+	// child.send(args);
+	// return child;
 };
 
 /**
