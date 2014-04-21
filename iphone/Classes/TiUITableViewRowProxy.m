@@ -175,15 +175,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
         [self detachView];
     }
 	table = newTable;
-    
-    //use that time to make sure we dont have pendingAdds (would make scrolling a lot slower)
-    [self processPendingAdds];
-}
-
--(void)processPendingAdds
-{
-    ENSURE_UI_THREAD_0_ARGS
-    [super processPendingAdds];
 }
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args

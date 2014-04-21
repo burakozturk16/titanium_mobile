@@ -37,7 +37,9 @@ import android.os.Message;
 	TiC.PROPERTY_SEPARATOR_COLOR,
 	TiC.PROPERTY_SEARCH_TEXT,
 	TiC.PROPERTY_SEARCH_VIEW,
-	TiC.PROPERTY_CASE_INSENSITIVE_SEARCH
+	TiC.PROPERTY_CASE_INSENSITIVE_SEARCH,
+	TiC.PROPERTY_HEADER_DIVIDERS_ENABLED,
+	TiC.PROPERTY_FOOTER_DIVIDERS_ENABLED
 })
 public class ListViewProxy extends TiViewProxy {
 
@@ -174,7 +176,7 @@ public class ListViewProxy extends TiViewProxy {
 			KrollDict d = new KrollDict();
 			d.put("itemIndex", itemIndex);
 			d.put("sectionIndex", sectionIndex);
-			d.put("animated", animated);
+			d.put(TiC.PROPERTY_ANIMATED, animated);
 			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SCROLL_TO_ITEM), d);
 		}
 	}
@@ -253,7 +255,7 @@ public class ListViewProxy extends TiViewProxy {
 				KrollDict data = (KrollDict) result.getArg();
 				int sectionIndex = data.getInt("sectionIndex");
 				int itemIndex = data.getInt("itemIndex");
-				boolean animated = data.getBoolean("animated");
+				boolean animated = data.getBoolean(TiC.PROPERTY_ANIMATED);
 				handleScrollToItem(sectionIndex, itemIndex, animated);
 				result.setResult(null);
 				return true;

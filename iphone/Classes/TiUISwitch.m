@@ -50,6 +50,34 @@
 
 #pragma mark View controller stuff
 
+-(void)setTintColor_:(id)color
+{
+    [[self proxy] replaceValue:color forKey:@"tintColor" notification:NO];
+    TiColor *ticolor = [TiUtils colorValue:color];
+    if (ticolor != nil) {
+        [[self switchView] setTintColor:[ticolor color]];
+    }
+}
+
+-(void)setOnTintColor_:(id)color
+{
+    [[self proxy] replaceValue:color forKey:@"onTintColor" notification:NO];
+    TiColor *ticolor = [TiUtils colorValue:color];
+    if (ticolor != nil) {
+        [[self switchView] setOnTintColor:[ticolor color]];
+    }
+}
+
+-(void)setThumbTintColor_:(id)color
+{
+    [[self proxy] replaceValue:color forKey:@"thumbTintColor" notification:NO];
+    TiColor *ticolor = [TiUtils colorValue:color];
+    if (ticolor != nil) {
+        [[self switchView] setThumbTintColor:[ticolor color]];
+    }
+}
+
+
 -(void)setEnabled_:(id)value
 {
     [super setEnabled_:value];
@@ -114,12 +142,12 @@
 
 -(CGFloat)verifyWidth:(CGFloat)suggestedWidth
 {
-	return [switchView sizeThatFits:CGSizeZero].width;
+	return [[self switchView] sizeThatFits:CGSizeZero].width;
 }
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight
 {
-	return [switchView sizeThatFits:CGSizeZero].height;
+	return [[self switchView] sizeThatFits:CGSizeZero].height;
 }
 
 USE_PROXY_FOR_VERIFY_AUTORESIZING

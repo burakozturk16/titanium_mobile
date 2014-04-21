@@ -817,6 +817,20 @@ public class TiUIText extends TiUINonViewGroupView
 		}
 		realtv.setSelection(start, end);
 	}
+	
+	public KrollDict getSelection() {
+		KrollDict result = new KrollDict(2);
+		int start = realtv.getSelectionStart();
+		result.put(TiC.PROPERTY_LOCATION, start);
+		if (start != -1) {
+			int end = realtv.getSelectionEnd();
+			result.put(TiC.PROPERTY_LENGTH, end - start);
+		} else {
+			result.put(TiC.PROPERTY_LENGTH, -1);
+		}
+		
+		return result;
+	}
 
 	public void handleReturnKeyType(int type)
 	{

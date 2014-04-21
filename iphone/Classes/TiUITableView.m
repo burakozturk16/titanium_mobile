@@ -332,6 +332,7 @@
         settingData = NO;
         hideOnSearch = YES; // Legacy behavior
 		filterCaseInsensitive = YES; // defaults to true on search
+		filterAnchored = NO; // defaults to false on search
 		searchString = @"";
 		defaultSeparatorInsets = UIEdgeInsetsZero;
 	}
@@ -1361,7 +1362,7 @@
 		ourSearchAttribute = @"title";
 	}
 	
-	NSStringCompareOptions searchOpts = (filterCaseInsensitive ? NSCaseInsensitiveSearch : 0);
+	NSStringCompareOptions searchOpts = (filterCaseInsensitive ? NSCaseInsensitiveSearch : 0) | (filterAnchored ? NSAnchoredSearch : 0);
 	
 	for (TiUITableViewSectionProxy * thisSection in [(TiUITableViewProxy *)[self proxy] internalSections]) 
 	{
@@ -1933,6 +1934,11 @@
 	TiThreadPerformOnMainThread(^{
 		[[self tableView] reloadData];
 	}, NO);
+}
+
+-(void)setFilterAnchored_:(id)anchoredBool
+{
+	filterAnchored = [TiUtils boolValue:anchoredBool];
 }
 
 -(void)setFilterCaseInsensitive_:(id)caseBool

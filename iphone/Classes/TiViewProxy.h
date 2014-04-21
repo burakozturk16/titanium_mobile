@@ -69,7 +69,7 @@ enum
 	TiViewProxy *parent;
 	pthread_rwlock_t childrenLock;
 	NSMutableArray *children;
-	NSMutableArray *pendingAdds;
+//	NSMutableArray *pendingAdds;
 
 #pragma mark Visual components
 	TiUIView *view;
@@ -199,7 +199,6 @@ enum
 -(void)setReadyToCreateView:(BOOL)ready recursive:(BOOL)recursive;
 -(void)clearView:(BOOL)recurse;
 -(TiUIView*)getOrCreateView;
--(void)processPendingAdds;
 -(void)fakeOpening;
 
 -(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;

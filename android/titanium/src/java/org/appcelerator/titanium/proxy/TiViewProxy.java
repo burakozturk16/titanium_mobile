@@ -134,6 +134,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static final int MSG_QUEUED_ANIMATE = MSG_FIRST_ID + 114;
 	private static final int MSG_TRANSITION_VIEWS = MSG_FIRST_ID + 115;
 	private static final int MSG_BLUR_BACKGROUND = MSG_FIRST_ID + 116;
+	private static final int MSG_INSERT_VIEW_AT = MSG_FIRST_ID + 117;
+	private static final int MSG_HIDE_KEYBOARD = MSG_FIRST_ID + 118;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
@@ -219,6 +221,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			case MSG_BLUR : {
 				handleBlur();
+				return true;
+			}
+			case MSG_HIDE_KEYBOARD : {
+				handleHideKeyboard();
 				return true;
 			}
 			case MSG_FOCUS : {
@@ -343,6 +349,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			case MSG_BLUR_BACKGROUND : {
 				handleBlurBackground((HashMap) msg.obj);
+				return true;
+			}
+			case MSG_INSERT_VIEW_AT : {
+				handleInsertAt((HashMap) msg.obj);
 				return true;
 			}
 		}
@@ -849,6 +859,76 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 	}
 
+@Kroll.method
+	public void replaceAt(Object params)
+	{
+		if (!(params instanceof HashMap)) {
+			Log.e(TAG, "Argument for replaceAt must be a dictionary");
+			return;
+		}
+		@SuppressWarnings("rawtypes")
+		HashMap options = (HashMap) params;
+		Integer position = -1;
+		if(options.containsKey("position")) {
+			position = (Integer) options.get("position");
+		}
+		if(children != null && children.size() > position) {
+			TiViewProxy childToRemove = children.get(position);
+			insertAt(params);
+			remove(childToRemove);
+		}
+	}
+	
+
+	/**
+	 * Adds a child to this view proxy in the specified position. This is useful for "vertical" and
+	 * "horizontal" layouts.
+	 * @param params A Dictionary containing a TiViewProxy for the view and an int for the position 
+	 * @module.api
+	 */
+	@Kroll.method
+	public void insertAt(Object params)
+	{
+		if (!(params instanceof HashMap)) {
+			Log.e(TAG, "Argument for insertAt must be a dictionary");
+			return;
+		}
+		@SuppressWarnings("rawtypes")
+		HashMap options = (HashMap) params;
+
+		if (children == null) {
+			children = new ArrayList<TiViewProxy>();
+		}
+
+
+		if (view != null) {
+			if (TiApplication.isUIThread()) {
+				handleInsertAt(options);
+				return;
+			}
+			getMainHandler().obtainMessage(MSG_INSERT_VIEW_AT, options).sendToTarget();
+		} else {
+			handleInsertAt(options);
+		}
+	}
+
+	private void handleInsertAt(@SuppressWarnings("rawtypes") HashMap options)
+	{
+		TiViewProxy child = null;
+		Integer position = -1;
+		if(options.containsKey("view")) {
+			child = (TiViewProxy) options.get("view");
+		}
+		if(options.containsKey("position")) {
+			position = (Integer) options.get("position");
+		}
+		if(child == null) {
+			Log.e(TAG, "insertAt must be contain a view");
+			return;
+		}
+		handleAdd(child, position);
+	}
+
 	public void add(TiViewProxy child)
 	{
 		add(child, Integer.valueOf(-1));
@@ -856,6 +936,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	public void handleAdd(TiViewProxy child, int index)
 	{
+		children.remove(child);
 		if (index >= 0) {
 			children.add(index, child);
 		}
@@ -875,9 +956,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				child.isDecorView = true;
 			}
 			TiUIView cv = child.getOrCreateView();
-
-			view.add(cv);
+			view.insertAt(cv, index);
 		}
+	}
+	
+	private void handleAdd(TiViewProxy child)
+	{
+		handleAdd(child, -1);
 	}
 
 	/**
@@ -1413,16 +1498,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			view.forceLayoutNativeView(false);
 		}
 	}
-
-
-	@Kroll.method
-	public void hideKeyboard()
-	{
-		View nv = getOuterView();
-		if (nv != null) {
-			TiUIHelper.showSoftKeyboard(nv, false);
-		}
-	}
 	
 	public View parentViewForChild(TiViewProxy child)
 	{
@@ -1645,5 +1720,23 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (child.containsView(proxy)) return true;
 		}
 		return false;
+	}
+
+	@Kroll.method
+	public void hideKeyboard()
+	{
+		if (TiApplication.isUIThread()) {
+			handleHideKeyboard();
+		} else {
+			getMainHandler().sendEmptyMessage(MSG_HIDE_KEYBOARD);
+		}
+	}
+	
+	protected void handleHideKeyboard()
+	{
+		View nv = getOuterView();
+		if (nv != null) {
+			TiUIHelper.showSoftKeyboard(nv, false);
+		}
 	}
 }

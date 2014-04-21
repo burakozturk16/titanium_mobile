@@ -256,6 +256,7 @@
 
 -(void) windowDidClose
 {
+	[self cleanupWindowDecorations];
     // Because other windows or proxies we have open and wish to continue functioning might be relying
     // on our created context, we CANNOT explicitly shut down here.  Instead we should memory-manage
     // contexts better so they stop when they're no longer in use.
@@ -314,7 +315,6 @@
 - (void)viewWillDisappear:(BOOL)animated; // Called when the view is dismissed, covered or otherwise hidden. Default does nothing
 {
     shouldUpdateNavBar = NO;
-	[self cleanupWindowDecorations];
 	[super viewWillDisappear:animated];
 }
 
@@ -569,158 +569,157 @@ else{\
 	}
 }
 
--(void)setRightNavButton:(id)proxy withObject:(id)properties
+-(void)refreshRightNavButtons:(id)unused
 {
-	ENSURE_UI_THREAD_WITH_OBJ(setRightNavButton,proxy,properties);
-    if (properties == nil) {
-        properties = [self valueForKey:@"rightNavSettings"];
+	id navController = [self navControllerForController:controller];
+    if (controller == nil || navController == nil) {
+        return; // No need to refresh
     }
-    else {
-        [self setValue:properties forKey:@"rightNavSettings"];
+	if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
+    	navButtonNotSet = YES;
+    	return;
     }
-	
-    id navController = [self navControllerForController:controller];
-	if (controller!=nil && navController != nil)
-	{
-        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
-            navButtonNotSet = YES;
-            return;
+    navButtonNotSet = NO;
+    NSArray* theObjects = [self valueForUndefinedKey:@"rightNavButtons"];
+    NSDictionary* theProperties = [self valueForUndefinedKey:@"rightNavSettings"];
+    
+    ENSURE_TYPE_OR_NIL(theObjects, NSArray);
+    ENSURE_TYPE_OR_NIL(theProperties, NSDictionary);
+    
+    NSMutableArray* theItems = [[NSMutableArray alloc] init];
+    for (TiViewProxy* theProxy in theObjects) {
+        if ([theProxy supportsNavBarPositioning]) {
+            [theItems addObject:[theProxy barButtonItem]];
+        } else {
+            DebugLog(@"%@ does not support nav bar positioning", theProxy);
         }
-        navButtonNotSet = NO;
-		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
-		[self replaceValue:proxy forKey:@"rightNavButton" notification:NO];
-		if (proxy==nil || [proxy supportsNavBarPositioning])
-		{
-			// detach existing one
-			UIBarButtonItem *item = controller.navigationItem.rightBarButtonItem;
-			if ([item respondsToSelector:@selector(proxy)])
-			{
-				TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
-				[p removeBarButtonView];
-			}
-			if (proxy!=nil)
-			{
-				// add the new one
-                BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
-                [controller.navigationItem setRightBarButtonItem:[proxy barButtonItem] animated:animated];
-            }
-            else if (item != nil){ //we had button before so we must clean them
-                NSArray *buttons = controller.navigationItem.rightBarButtonItems;
-                controller.navigationItem.rightBarButtonItem = nil;
-                controller.navigationItem.rightBarButtonItems = buttons;
-            }
-		}
-		else
-		{
-			NSString *msg = [NSString stringWithFormat:@"%@ doesn't support positioning on the nav bar",proxy];
-			THROW_INVALID_ARG(msg);
-		}
-	}
-	else
-	{
-		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxy properties:properties] autorelease] forKey:@"rightNavButton" notification:NO];
-	}
+    }
+    
+    BOOL animated = [TiUtils boolValue:@"animated" properties:theProperties def:NO];
+    
+    if ([theItems count] > 0) {
+        [controller.navigationItem setRightBarButtonItems:theItems animated:animated];
+    } else {
+        [controller.navigationItem setRightBarButtonItems:nil animated:animated];
+    }
+    [theItems release];
 }
 
--(void)setRightNavButtons:(id)proxies withObject:(id)properties
+-(void)setRightNavButtons:(id)arg withObject:(id)properties
 {
-	ENSURE_UI_THREAD_WITH_OBJ(setRightNavButtons,proxies,properties);
-    if (properties == nil) {
-        properties = [self valueForKey:@"rightNavSettings"];
-    }
-    else {
-        [self setValue:properties forKey:@"rightNavSettings"];
-    }
-	
-    id navController = [self navControllerForController:controller];
-	if (controller!=nil && navController != nil)
-	{
-        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
-            navButtonNotSet = YES;
-            return;
-        }
-        navButtonNotSet = NO;
-		ENSURE_TYPE_OR_NIL(proxies,NSArray);
-		[self replaceValue:proxies forKey:@"rightNavButtons" notification:NO];
-        NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
-        for (id item in currentButtons) {
-            if ([item respondsToSelector:@selector(proxy)])
-			{
-				TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
-				[p removeBarButtonView];
-			}
-        }
-        if (proxies != nil) {
-            NSMutableArray* buttons = [NSMutableArray arrayWithCapacity:[proxies count]];
-            for (TiViewProxy* p in proxies) {
-                [buttons addObject:[p barButtonItem]];
+    ENSURE_TYPE_OR_NIL(arg, NSArray);
+    ENSURE_TYPE_OR_NIL(properties, NSDictionary);
+    
+    // detach existing one
+    NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
+    for (id item in currentButtons) {
+        if ([item respondsToSelector:@selector(proxy)])
+        {
+            TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+            if (![arg containsObject:p]) {
+                [p removeBarButtonView];
             }
-            BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
-            [controller.navigationItem setRightBarButtonItems:buttons animated:animated];
         }
-        else if (currentButtons != nil){ //we had buttons before so we must clean them
-            UIBarButtonItem *item = controller.navigationItem.rightBarButtonItem;
-            controller.navigationItem.rightBarButtonItems = nil;
-            controller.navigationItem.rightBarButtonItem = item;
+    }
+    
+    [self replaceValue:arg forKey:@"rightNavButtons" notification:NO];
+    [self replaceValue:properties forKey:@"rightNavSettings" notification:NO];
+    TiThreadPerformOnMainThread(^{
+        [self refreshRightNavButtons:nil];
+    }, NO);
+    
+}
+
+-(void)setRightNavButton:(id)proxy withObject:(id)properties
+{
+    UIBarButtonItem *item = controller.navigationItem.rightBarButtonItem;
+    if ([item respondsToSelector:@selector(proxy)])
+    {
+        TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+        if (p != proxy) {
+            [p removeBarButtonView];
         }
-	}
-	else
-	{
-		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxies properties:properties] autorelease] forKey:@"rightNavButtons" notification:NO];
-	}
+    }
+    [self replaceValue:proxy forKey:@"rightNavButton" notification:NO];
+    if (IS_NULL_OR_NIL(proxy)) {
+        [self setRightNavButtons:nil withObject:properties];
+    } else {
+        [self setRightNavButtons:[NSArray arrayWithObject:proxy] withObject:properties];
+    }
+
+}
+
+-(void)refreshLeftNavButtons:(id)unused
+{
+    if (controller == nil || [controller navigationController] == nil) {
+        return; // No need to refresh
+    }
+    NSArray* theObjects = [self valueForUndefinedKey:@"leftNavButtons"];
+    NSDictionary* theProperties = [self valueForUndefinedKey:@"leftNavSettings"];
+    
+    ENSURE_TYPE_OR_NIL(theObjects, NSArray);
+    ENSURE_TYPE_OR_NIL(theProperties, NSDictionary);
+    
+    NSMutableArray* theItems = [[NSMutableArray alloc] init];
+    for (TiViewProxy* theProxy in theObjects) {
+        if ([theProxy supportsNavBarPositioning]) {
+            [theItems addObject:[theProxy barButtonItem]];
+        } else {
+            DebugLog(@"%@ does not support nav bar positioning", theProxy);
+        }
+    }
+    
+    BOOL animated = [TiUtils boolValue:@"animated" properties:theProperties def:NO];
+    
+    if ([theItems count] > 0) {
+        [controller.navigationItem setLeftBarButtonItems:theItems animated:animated];
+    } else {
+        [controller.navigationItem setLeftBarButtonItems:nil animated:animated];
+    }
+    [theItems release];
+}
+
+-(void)setLeftNavButtons:(id)arg withObject:(id)properties
+{
+    ENSURE_TYPE_OR_NIL(arg, NSArray);
+    ENSURE_TYPE_OR_NIL(properties, NSDictionary);
+    
+    // detach existing one
+    NSArray* currentButtons = controller.navigationItem.leftBarButtonItems;
+    for (id item in currentButtons) {
+        if ([item respondsToSelector:@selector(proxy)])
+        {
+            TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+            if (![arg containsObject:p]) {
+                [p removeBarButtonView];
+            }
+        }
+    }
+    
+    [self replaceValue:arg forKey:@"leftNavButtons" notification:NO];
+    [self replaceValue:properties forKey:@"leftNavSettings" notification:NO];
+    TiThreadPerformOnMainThread(^{
+        [self refreshLeftNavButtons:nil];
+    }, NO);
+
 }
 
 -(void)setLeftNavButton:(id)proxy withObject:(id)properties
 {
-	ENSURE_UI_THREAD_WITH_OBJ(setLeftNavButton,proxy,properties);
-    if (properties == nil) {
-        properties = [self valueForKey:@"leftNavSettings"];
-    }
-    else {
-        [self setValue:properties forKey:@"leftNavSettings"];
-    }
-    
-    id navController = [self navControllerForController:controller];
-	if (controller!=nil && navController != nil)
-	{
-        if (!navBarWillShow && [TiUtils boolValue:[self valueForKey:@"navBarHidden"] def:NO]){
-            navButtonNotSet = YES;
-            return;
+    UIBarButtonItem *item = controller.navigationItem.leftBarButtonItem;
+    if ([item respondsToSelector:@selector(proxy)])
+    {
+        TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+        if (p != proxy) {
+            [p removeBarButtonView];
         }
-        navButtonNotSet = NO;
-		ENSURE_TYPE_OR_NIL(proxy,TiViewProxy);
-		[self replaceValue:proxy forKey:@"leftNavButton" notification:NO];
-		if (proxy==nil || [proxy supportsNavBarPositioning])
-		{
-			// detach existing one
-			UIBarButtonItem *item = controller.navigationItem.leftBarButtonItem;
-			if ([item respondsToSelector:@selector(proxy)])
-			{
-				TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
-				[p removeBarButtonView];
-			}
-			controller.navigationItem.leftBarButtonItem = nil;
-			if (proxy!=nil)
-			{
-				// add the new one
-                BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
-                [controller.navigationItem setLeftBarButtonItem:[proxy barButtonItem] animated:animated];
-            }
-			else
-			{
-				controller.navigationItem.leftBarButtonItem = nil;
-			}
-		}
-		else
-		{
-			NSString *msg = [NSString stringWithFormat:@"%@ doesn't support positioning on the nav bar",proxy];
-			THROW_INVALID_ARG(msg);
-		}
-	}
-	else
-	{
-		[self replaceValue:[[[TiComplexValue alloc] initWithValue:proxy properties:properties] autorelease] forKey:@"leftNavButton" notification:NO];
-	}
+    }
+    [self replaceValue:proxy forKey:@"leftNavButton" notification:NO];
+    if (IS_NULL_OR_NIL(proxy)) {
+        [self setLeftNavButtons:nil withObject:properties];
+    } else {
+        [self setLeftNavButtons:[NSArray arrayWithObject:proxy] withObject:properties];
+    }
 }
 
 -(void)setTabBarHidden:(id)value
@@ -1025,11 +1024,10 @@ else{\
     SETPROP(@"navTintColor",setNavTintColor);
     SETPROP(@"translucent",setTranslucent);
     SETPROP(@"tabBarHidden",setTabBarHidden);
-    SETPROPOBJ(@"leftNavButton",setLeftNavButton);
-    SETPROPOBJ(@"rightNavButton",setRightNavButton);
-    SETPROPOBJ(@"rightNavButtons",setRightNavButtons);
     SETPROPOBJ(@"toolbar",setToolbar);
     [self updateBarImage];
+    [self refreshLeftNavButtons:nil];
+    [self refreshRightNavButtons:nil];
     [self refreshBackButton];
     
     id navBarHidden = [self valueForKey:@"navBarHidden"];
@@ -1050,27 +1048,20 @@ else{\
     if ((controller == nil) || (navController == nil)) {
         return;
     }
-    UIBarButtonItem *item = controller.navigationItem.leftBarButtonItem;
-    if ([item respondsToSelector:@selector(proxy)]) {
-        TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
-        [p removeBarButtonView];
-    }
-    controller.navigationItem.leftBarButtonItem = nil;
-    item = controller.navigationItem.rightBarButtonItem;
-    if ([item respondsToSelector:@selector(proxy)]) {
-        TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
-        [p removeBarButtonView];
-    }
-    controller.navigationItem.rightBarButtonItem = nil;
-    NSArray* currentButtons = controller.navigationItem.rightBarButtonItems;
-    for (id item in currentButtons) {
+    
+    NSMutableArray* items = [NSMutableArray arrayWithObject:controller.navigationItem.leftBarButtonItem];
+    [items addObject:controller.navigationItem.rightBarButtonItem];
+    [items addObjectsFromArray:controller.navigationItem.leftBarButtonItems];
+    [items addObjectsFromArray:controller.navigationItem.rightBarButtonItems];
+    for (id item in items) {
         if ([item respondsToSelector:@selector(proxy)])
         {
             TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
             [p removeBarButtonView];
         }
     }
-    controller.navigationItem.rightBarButtonItems = nil;
+    controller.navigationItem.leftBarButtonItem = controller.navigationItem.rightBarButtonItem = nil;
+    controller.navigationItem.leftBarButtonItems = controller.navigationItem.rightBarButtonItems = nil;
     if (barImageView != nil) {
         [barImageView removeFromSuperview];
     }

@@ -684,7 +684,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private void move(int index, boolean animated)
 	{
 		if (index < 0 || index >= mViews.size()) {
-			Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.");
+			if (Log.isDebugModeEnabled()) {
+				Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.", Log.DEBUG_MODE);
+			}
 			return;
 		}
 		//we dont to update page during scroll but immediately. Otherwise if we jump multiple page, we will have multiple events!

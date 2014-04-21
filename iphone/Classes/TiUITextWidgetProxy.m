@@ -270,6 +270,18 @@ DEFINE_DEF_BOOL_PROP(suppressReturn,YES);
     return(nextOne != nil && [[nextOne view] becomeFirstResponder]);
 }
 
+-(NSDictionary*)selection
+{
+    if ([self viewAttached]) {
+        __block NSDictionary* result = nil;
+        TiThreadPerformOnMainThread(^{
+            result = [[(TiUITextWidget*)[self view] selectedRange] retain];
+        }, YES);
+        return [result autorelease];
+    }
+    return nil;
+}
+
 -(void)setSelection:(id)arg withObject:(id)property
 {
     NSInteger start = [TiUtils intValue:arg def: -1];

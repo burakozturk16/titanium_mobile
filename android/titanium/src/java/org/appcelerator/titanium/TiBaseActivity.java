@@ -54,15 +54,18 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 import android.view.KeyEvent;
+
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 
 /**
@@ -564,21 +567,30 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
 		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
+		int windowFlags = getIntentInt(TiC.PROPERTY_WINDOW_FLAGS, 0);
+		final Window window = getWindow();
 		
 //	    getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+		window.requestFeature(Window.FEATURE_PROGRESS);
+		window.requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
 		setFullscreen(fullscreen);
 		setNavBarHidden(navBarHidden);	
-
+		
+		if (windowFlags > 0) {
+			window.addFlags(windowFlags);
+		}
+		
 		if (modal) {
 			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
 				// This flag is deprecated in API 14. On ICS, the background is not blurred but straight black.
-				getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+				window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
 			}
 		}
 
 		if (hasSoftInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
-			getWindow().setSoftInputMode(softInputMode);
+			window.setSoftInputMode(softInputMode);
 		}
 
 		boolean useActivityWindow = getIntentBoolean(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, false);
