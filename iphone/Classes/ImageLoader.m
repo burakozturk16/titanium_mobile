@@ -1034,8 +1034,6 @@ DEFINE_EXCEPTIONS
     [req setTheQueue:queue];
     [req send];
 	[request setRequest:req];
-	
-	[[TiApp app] startNetwork];
 }
 
 -(ImageLoaderRequest*)loadImage:(NSURL*)url delegate:(NSObject<ImageLoaderDelegate>*)delegate userInfo:(NSDictionary*)userInfo
