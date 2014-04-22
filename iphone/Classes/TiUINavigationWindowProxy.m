@@ -17,8 +17,6 @@
     ADNavigationControllerDelegate* _navigationDelegate;
 }
 @property(nonatomic,retain) NSDictionary *defaultTransition;
-@property (nonatomic, strong) ADTransitioningDelegate *interactivePopTransition;
-
 @end
 
 @implementation TiUINavigationWindowProxy
@@ -271,9 +269,11 @@ else{\
         BOOL transitionWithGesture = NO;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
             transitionWithGesture = _navigationDelegate.isInteracting;
-            BOOL shouldFireEvent = !transitionWithGesture;
-            if (!_navigationDelegate.isInteracting) {
-                [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+            if (!transitionWithGesture) {
+                ADTransition* transition = [((ADTransitioningViewController*)viewController) transition];
+                if (transition && (!winclosing || ![transition isKindOfClass:[ADModernPushTransition class]])) {
+                    [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:transition];
+                }
             }
         }
         if (winclosing && !transitionWithGesture) {
