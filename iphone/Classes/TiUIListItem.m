@@ -408,6 +408,10 @@ static NSArray* handledKeys;
 
 - (void)setDataItem:(NSDictionary *)dataItem
 {
+    if (_dataItem) {
+        RELEASE_TO_NIL(_dataItem)
+        [(TiViewProxy*)self.proxy dirtyItAll];
+    }
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
 }
