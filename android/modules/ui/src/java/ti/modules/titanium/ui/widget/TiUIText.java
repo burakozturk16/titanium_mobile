@@ -412,10 +412,7 @@ public class TiUIText extends TiUINonViewGroupView
 			}
 		}
 
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
-		}
-
+		
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			String textAlign = d.optString(TiC.PROPERTY_TEXT_ALIGN, "left");
 			String verticalAlign = d.optString(TiC.PROPERTY_VERTICAL_ALIGN, "middle");
@@ -426,6 +423,11 @@ public class TiUIText extends TiUINonViewGroupView
 			|| d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)
 			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
+		}
+		
+		//password mask changes the font, so let's do this afterwards
+		if (d.containsKey(TiC.PROPERTY_FONT)) {
+			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
 		
 		//the order is important because returnKeyType must overload keyboard return key defined
@@ -506,6 +508,9 @@ public class TiUIText extends TiUINonViewGroupView
 				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
 			KrollDict d = proxy.getProperties();
 			handleKeyboard(d);
+			if (getProxy().hasProperty(TiC.PROPERTY_FONT)) {
+				TiUIHelper.styleText(realtv, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
+			}
 		} else if (key.equals(TiC.PROPERTY_RETURN_KEY_TYPE)) {
 			handleReturnKeyType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
