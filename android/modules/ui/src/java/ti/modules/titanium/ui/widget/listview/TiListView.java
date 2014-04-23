@@ -905,11 +905,17 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		templatesByBinding.put(defaultTemplateKey, defaultTemplate);
 		if(templates != null) {
 			for (String key : templates.keySet()) {
-				//Here we bind each template with a key so we can use it to look up later
-				KrollDict properties = new KrollDict((HashMap)templates.get(key));
-				TiListViewTemplate template = new TiListViewTemplate(key, properties);
-				template.setType(getItemType());
-				templatesByBinding.put(key, template);
+				HashMap templateDict = (HashMap)templates.get(key);
+				if (templateDict != null) {
+					//Here we bind each template with a key so we can use it to look up later
+					KrollDict properties = new KrollDict((HashMap)templates.get(key));
+					TiListViewTemplate template = new TiListViewTemplate(key, properties);
+					template.setType(getItemType());
+					templatesByBinding.put(key, template);
+				}
+				else {
+					Log.e(TAG, "null template definition: " + key);
+				}
 			}
 		}
 	}
