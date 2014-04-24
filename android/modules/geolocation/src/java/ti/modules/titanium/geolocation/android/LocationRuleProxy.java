@@ -100,11 +100,14 @@ public class LocationRuleProxy extends KrollProxy
 				return false;
 			}
 		}
-
+		
+		long currentTime = (currentLocation != null)?currentLocation.getTime():0;
+		long newTime = newLocation.getTime();
+		long delta = newTime - currentTime;
 		Object rawMinAge = properties.get(TiC.PROPERTY_MIN_AGE);
 		if ((rawMinAge != null) && (currentLocation != null)) {
 			double minAgeValue = TiConvert.toDouble(rawMinAge);
-			if (minAgeValue > (newLocation.getTime() - currentLocation.getTime())) {
+			if (minAgeValue > delta) {
 				return false;
 			}
 		}
@@ -112,7 +115,7 @@ public class LocationRuleProxy extends KrollProxy
 		Object rawMaxAge = properties.get(TiC.PROPERTY_MAX_AGE);
 		if ((rawMaxAge != null) && (currentLocation != null)) {
 			double maxAgeValue = TiConvert.toDouble(rawMaxAge);
-			if (maxAgeValue > (newLocation.getTime() - currentLocation.getTime())) {
+			if (maxAgeValue < delta) {
 				return false;
 			}
 		}
