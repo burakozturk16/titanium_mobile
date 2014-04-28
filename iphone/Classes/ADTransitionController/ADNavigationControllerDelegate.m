@@ -27,6 +27,7 @@
     [navigationController view]; // interactivePopGestureRecognizer is initialized in -viewDidLoad
     navigationController.interactivePopGestureRecognizer.delegate = self;
     navigationController.interactivePopGestureRecognizer.AD_viewController = navigationController;
+    [navigationController.interactivePopGestureRecognizer addTarget:self action:@selector(handlePanGesture:)];
 }
 
 - (id<UIViewControllerAnimatedTransitioning>)navigationController:(UINavigationController *)navigationController animationControllerForOperation:(UINavigationControllerOperation)operation fromViewController:(UIViewController *)fromVC toViewController:(UIViewController *)toVC
@@ -131,7 +132,7 @@
     }
     
     if (gestureRecognizer == navigationController.interactivePopGestureRecognizer) {
-        return navigationController.interactivePopGestureRecognizer.enabled;
+        return self.currentTransition == nil;
     }
     
     return self.currentTransition != nil;
