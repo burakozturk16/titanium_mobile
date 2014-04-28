@@ -1684,9 +1684,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	pthread_rwlock_unlock(&childrenLock);
 
     //TODO: This should be properly handled and moved, but for now, let's force it (Redundantly, I know.)
-//	if (parent != nil) {
-//		[self parentWil lShow];
-//	}
+	if (parent != nil) {
+		[self parentWillShow];
+	}
 }
 
 -(void)windowDidOpen
