@@ -271,7 +271,7 @@ else{\
             transitionWithGesture = _navigationDelegate.isInteracting;
             if (!transitionWithGesture) {
                 ADTransition* transition = [((ADTransitioningViewController*)viewController) transition];
-                if (transition && (!winclosing || ![transition isKindOfClass:[ADModernPushTransition class]])) {
+                if (transition) {
                     [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:transition];
                 }
             }
