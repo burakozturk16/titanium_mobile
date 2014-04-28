@@ -608,7 +608,7 @@ public abstract class TiUIView
 			if (nativeView instanceof TiCompositeLayout) {
 				((TiCompositeLayout) getParentViewForChild())
 						.setEnableHorizontalWrap(TiConvert.toBoolean(newValue,
-								true));
+								false));
 			}
 			layoutNativeView();
 		} else if (key.equals(TiC.PROPERTY_WIDTH)) {
@@ -637,15 +637,15 @@ public abstract class TiUIView
 			}
 				layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
-			isFocusable = TiConvert.toBoolean(newValue, false);
+			isFocusable = TiConvert.toBoolean(newValue, true);
 			if (changedProperty)
 				registerForKeyPress(nativeView, isFocusable);
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
-			nativeView.setEnabled(TiConvert.toBoolean(newValue));
-			doSetClickable(TiConvert.toBoolean(newValue));
+			boolean value = TiConvert.toBoolean(newValue, true);
+			nativeView.setEnabled(value);
+			doSetClickable(nativeView);
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
-			newValue = (newValue == null) ? false : newValue;
-			this.setVisibility(TiConvert.toBoolean(newValue) ? View.VISIBLE
+			this.setVisibility(TiConvert.toBoolean(newValue, true) ? View.VISIBLE
 					: View.INVISIBLE);
 		} else if (key.equals(TiC.PROPERTY_ENABLED)) {
 			boolean oldEnabled = isEnabled;
