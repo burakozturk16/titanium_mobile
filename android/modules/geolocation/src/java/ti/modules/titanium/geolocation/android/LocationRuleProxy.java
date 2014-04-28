@@ -12,6 +12,7 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
 
+import ti.modules.titanium.geolocation.GeolocationModule;
 import android.location.Location;
 
 
@@ -33,7 +34,9 @@ import android.location.Location;
 	TiC.PROPERTY_PROVIDER,
 	TiC.PROPERTY_ACCURACY,
 	TiC.PROPERTY_MIN_AGE,
-	TiC.PROPERTY_MAX_AGE
+	TiC.PROPERTY_MAX_AGE,
+	TiC.PROPERTY_MIN_DISTANCE,
+	TiC.PROPERTY_MAX_DISTANCE
 })
 public class LocationRuleProxy extends KrollProxy
 {
@@ -46,6 +49,7 @@ public class LocationRuleProxy extends KrollProxy
 	public LocationRuleProxy(Object[] creationArgs)
 	{
 		super();
+		defaultValues.put(TiC.PROPERTY_MIN_DISTANCE, GeolocationModule.SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE);
 
 		handleCreationArgs(null, creationArgs);
 	}
@@ -61,8 +65,12 @@ public class LocationRuleProxy extends KrollProxy
 	 * 							since the last good location update
 	 * @param maxAge			time value that is expected to be greater than the time in milliseconds
 	 * 							since the last good location update
+	 * @param minDistance		distance value that is expected to be greater than the distance in meters
+	 * 							since the last good location update
+	 * @param maxDistance		distance value that is expected to be greater than the distance in meters
+	 * 							since the last good location update
 	 */
-	public LocationRuleProxy(String provider, Double accuracy, Double minAge, Double maxAge)
+	public LocationRuleProxy(String provider, Double accuracy, Double minAge, Double maxAge, Double minDistance, Double maxDistance)
 	{
 		super();
 
@@ -70,6 +78,8 @@ public class LocationRuleProxy extends KrollProxy
 		setProperty(TiC.PROPERTY_ACCURACY, accuracy);
 		setProperty(TiC.PROPERTY_MIN_AGE, minAge);
 		setProperty(TiC.PROPERTY_MAX_AGE, maxAge);
+		setProperty(TiC.PROPERTY_MIN_DISTANCE, minDistance);
+		setProperty(TiC.PROPERTY_MAX_DISTANCE, maxDistance);
 	}
 
 	/**
@@ -86,6 +96,7 @@ public class LocationRuleProxy extends KrollProxy
 	 */
 	public boolean check(Location currentLocation, Location newLocation)
 	{
+		if (newLocation == null || newLocation.getProvider() == null) return false;
 		String provider = TiConvert.toString(properties.get(TiC.PROPERTY_PROVIDER));
 		if (provider != null) {
 			if (!(provider.equals(newLocation.getProvider()))) {
@@ -116,6 +127,25 @@ public class LocationRuleProxy extends KrollProxy
 		if ((rawMaxAge != null) && (currentLocation != null)) {
 			double maxAgeValue = TiConvert.toDouble(rawMaxAge);
 			if (maxAgeValue < delta) {
+				return false;
+			}
+		}
+		
+		
+		if (currentLocation == null || newLocation == null) return true;
+		
+		float distance = currentLocation.distanceTo(newLocation);
+		
+		Object rawMinDistance = properties.get(TiC.PROPERTY_MIN_DISTANCE);
+		if (rawMinDistance != null) {
+			if (TiConvert.toDouble(rawMinDistance, GeolocationModule.SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE) > distance) {
+				return false;
+			}
+		}
+		
+		Object rawMaxDistance = properties.get(TiC.PROPERTY_MAX_DISTANCE);
+		if (rawMaxDistance != null) {
+			if (TiConvert.toDouble(rawMaxDistance, Double.MAX_VALUE) < distance) {
 				return false;
 			}
 		}

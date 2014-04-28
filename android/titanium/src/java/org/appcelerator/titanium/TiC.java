@@ -1285,7 +1285,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_DISPLAY_HOME_AS_UP = "displayHomeAsUp";
 
-	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISTANCE = "distance";
+
 	/**
 	 * @module.api
 	 */
@@ -1806,6 +1810,7 @@ public class TiC
 	public static final String PROPERTY_MAX = "max";
 
 	public static final String PROPERTY_MAX_AGE = "maxAge";
+	public static final String PROPERTY_MAX_DISTANCE = "maxDistance";
 
 	/**
 	 * @module.api
@@ -1887,6 +1892,7 @@ public class TiC
 	public static final String PROPERTY_MIN = "min";
 
 	public static final String PROPERTY_MIN_AGE = "minAge";
+	public static final String PROPERTY_MIN_DISTANCE = "minDistance";
 	/**
 	 * @module.api
 	 */
