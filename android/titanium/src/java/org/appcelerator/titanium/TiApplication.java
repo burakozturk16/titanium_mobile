@@ -15,6 +15,8 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -110,7 +112,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	protected TiTempFileHelper tempFileHelper;
 	protected ITiAppInfo appInfo;
 	protected TiStylesheet stylesheet;
-	protected HashMap<String, WeakReference<KrollModule>> modules;
+	protected static HashMap<String, WeakReference<KrollModule>> modules;
 	
 	public static AtomicBoolean isActivityTransition = new AtomicBoolean(false);
 	protected static ArrayList<ActivityTransitionListener> activityTransitionListeners = new ArrayList<ActivityTransitionListener>();
@@ -192,6 +194,11 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	// application (typically when the root activity is destroyed)
 	public static void terminateActivityStack()
 	{
+		TiApplication instance = getInstance();
+		for (WeakReference<KrollModule> module : modules.values()) {
+		    module.get().onAppTerminate(instance);
+		}
+
 		if (activityStack == null || activityStack.size() == 0) {
 			return;
 		}
