@@ -17,6 +17,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
@@ -140,7 +141,8 @@ public class GeolocationModule extends KrollModule
 	public boolean legacyModeActive = true;
 
 	protected static final int MSG_ENABLE_LOCATION_PROVIDERS = KrollModule.MSG_LAST_ID + 100;
-	protected static final int MSG_LAST_ID = MSG_ENABLE_LOCATION_PROVIDERS;
+	protected static final int MSG_DISABLE_LOCATION_PROVIDERS = KrollModule.MSG_LAST_ID + 101;
+	protected static final int MSG_LAST_ID = MSG_DISABLE_LOCATION_PROVIDERS;
 
 	private static final String TAG = "GeolocationModule";
 	private static final double SIMPLE_LOCATION_PASSIVE_DISTANCE = 0.0;
@@ -176,7 +178,7 @@ public class GeolocationModule extends KrollModule
 	public GeolocationModule()
 	{
 		super("geolocation");
-
+		
 		tiLocation = new TiLocation();
 		tiCompass = new TiCompass(this, tiLocation);
 
@@ -207,6 +209,14 @@ public class GeolocationModule extends KrollModule
 		this();
 	}
 
+
+	@Override
+	public void onAppTerminate(TiApplication app)
+	{
+		tiCompass.unregisterListener();
+		disableLocationProviders();
+	}
+	
 	/**
 	 * @see org.appcelerator.kroll.KrollProxy#handleMessage(android.os.Message)
 	 */
@@ -218,6 +228,10 @@ public class GeolocationModule extends KrollModule
 				Object locationProviders = message.obj;
 				doEnableLocationProviders((HashMap<String, LocationProviderProxy>) locationProviders);
 
+				return true;
+			}
+			case MSG_DISABLE_LOCATION_PROVIDERS: {
+				doDisableLocationProviders();
 				return true;
 			}
 		}
@@ -529,11 +543,7 @@ public class GeolocationModule extends KrollModule
 				enableLocationProviders(locationProviders);
 
 				// fire off an initial location fix if one is available
-				lastLocation = tiLocation.getLastKnownLocation();
-				if (lastLocation != null) {
-					fireEvent(TiC.EVENT_LOCATION, buildLocationEvent(lastLocation, tiLocation.locationManager.getProvider(lastLocation.getProvider())));
-					doAnalytics(lastLocation);
-				}
+				onLocationChanged(tiLocation.getLastKnownLocation());
 			}
 		}
 
@@ -654,6 +664,24 @@ public class GeolocationModule extends KrollModule
 		}
 	}
 
+	
+	private void doDisableLocationProviders()
+	{
+		for (LocationProviderProxy locationProvider : legacyLocationProviders.values()) {
+			tiLocation.locationManager.removeUpdates(locationProvider);
+		}
+
+		for (LocationProviderProxy locationProvider : simpleLocationProviders.values()) {
+			tiLocation.locationManager.removeUpdates(locationProvider);
+		}
+
+		if (androidModule != null) {
+			for (LocationProviderProxy locationProvider : androidModule.manualLocationProviders.values()) {
+				tiLocation.locationManager.removeUpdates(locationProvider);
+			}
+		}
+	}
+	
 	/**
 	 * Enables the specified location behavior mode by registering the associated 
 	 * providers with the OS.  Even if the specified mode is currently active, the 
@@ -670,7 +698,7 @@ public class GeolocationModule extends KrollModule
 	private void doEnableLocationProviders(HashMap<String, LocationProviderProxy> locationProviders)
 	{
 		if (numLocationListeners > 0) {
-			disableLocationProviders();
+			doDisableLocationProviders();
 
 			Iterator<String> iterator = locationProviders.keySet().iterator();
 			while(iterator.hasNext()) {
@@ -687,18 +715,12 @@ public class GeolocationModule extends KrollModule
 	 */
 	private void disableLocationProviders()
 	{
-		for (LocationProviderProxy locationProvider : legacyLocationProviders.values()) {
-			tiLocation.locationManager.removeUpdates(locationProvider);
-		}
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			doDisableLocationProviders();
 
-		for (LocationProviderProxy locationProvider : simpleLocationProviders.values()) {
-			tiLocation.locationManager.removeUpdates(locationProvider);
-		}
-
-		if (androidModule != null) {
-			for (LocationProviderProxy locationProvider : androidModule.manualLocationProviders.values()) {
-				tiLocation.locationManager.removeUpdates(locationProvider);
-			}
+		} else {
+			Message message = getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS);
+			message.sendToTarget();
 		}
 	}
 
