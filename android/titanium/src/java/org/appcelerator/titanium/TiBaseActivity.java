@@ -942,6 +942,13 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 
 		return menuHelper.onCreateOptionsMenu(super.onCreateOptionsMenu(menu), menu);
 	}
+	
+	public Menu getMenu() {
+	    if (menuHelper != null) {
+	        return menuHelper.getMenu();
+	    }
+	    return null;
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)

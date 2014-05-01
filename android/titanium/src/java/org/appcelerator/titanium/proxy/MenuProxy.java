@@ -140,7 +140,6 @@ public class MenuProxy extends KrollProxy
 		synchronized(menuMap) {
 			menuMap.put(item, mip);
 		}
-		
 		return mip;
 	}
 
