@@ -44,9 +44,9 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 
 #pragma mark Delegates
 
-- (void)tiRequest:(TiHTTPRequest *)request onLoad:(TiHTTPResponse *)tiResponse
-{
-	NSString *responseString = [tiResponse responseString];
+- (void)request:(APSHTTPRequest *)request onLoad:(APSHTTPResponse *)response
+{	
+	NSString *responseString = [response responseString];
     NSError *error = nil;
 	id result = [TiUtils jsonParse:responseString error:&error];
 	NSMutableDictionary *event;
@@ -73,9 +73,9 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 	[self autorelease];
 }
 
-- (void)tiRequest:(TiHTTPRequest *)request onError:(TiHTTPResponse *)tiResponse
-{
-	NSError *error = [tiResponse error];
+- (void)request:(APSHTTPRequest *)request onError:(APSHTTPResponse *)response
+{	
+	NSError *error = [response error];
 	NSMutableDictionary * event = [TiUtils dictionaryWithCode:[error code] message:[TiUtils messageFromError:error]];
 	[module _fireEventToListener:@"yql" withObject:event listener:callback thisObject:nil];
 	[self autorelease];
@@ -181,7 +181,7 @@ const NSString *apiEndpoint = @"http://query.yahooapis.com/v1/public/yql?format=
 #endif
 	
 	YQLCallback *job = [[YQLCallback alloc] initWithCallback:callback module:self];
-	TiHTTPRequest *req = [[TiHTTPRequest alloc] init];
+	APSHTTPRequest *req = [[APSHTTPRequest alloc] init];
     [req setUrl:[NSURL URLWithString:theurl]];
 	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
     [req setShowActivity:YES];

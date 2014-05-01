@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -22,7 +22,6 @@ import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.OnWindowFocusChangedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
-import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.IntentProxy;
@@ -38,6 +37,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
+import org.aps.analytics.APSAnalytics;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -656,7 +656,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		// Doing this on every create in case the activity is externally created.
-		TiPlatformHelper.intializeDisplayMetrics(this);
+		TiPlatformHelper.getInstance().intializeDisplayMetrics(this);
 
 		if (layout == null) {
 			layout = createLayout();
@@ -1178,6 +1178,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 				}
 			}
 		}
+
+		// Checkpoint for ti.end event
+		if (tiApp != null && tiApp.collectAnalytics()) {
+			APSAnalytics.sendSessionBackgroundEvent();
+		}
 	}
 
 	@Override
@@ -1230,7 +1235,10 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		isPaused = false;
 
 		// Checkpoint for ti.start event
-		String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
+		//String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
+        if (tiApp.collectAnalytics()) {
+            APSAnalytics.sendSessionForegroundEvent();
+        }
 	}
 	
 //	@Override

@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -20,8 +20,8 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
+import org.appcelerator.titanium.util.TiConvert;
 
 import ti.modules.titanium.geolocation.TiLocation.GeocodeResponseHandler;
 import ti.modules.titanium.geolocation.android.AndroidModule;
@@ -241,6 +241,7 @@ public class GeolocationModule extends KrollModule
 
 	private void doAnalytics(Location location)
 	{
+        if (!TiApplication.getInstance().collectAnalytics()) return;
 		if (!sentAnalytics) {
 			tiLocation.doAnalytics(location);
 			sentAnalytics = true;
@@ -597,12 +598,24 @@ public class GeolocationModule extends KrollModule
 	/**
 	 * Retrieves the last obtained location and returns it as JSON.
 	 * 
-	 * @return			String representing the last geolocation event
+	 * @return			JSON representing the last geolocation event
 	 */
 	@Kroll.method @Kroll.getProperty
-	public String getLastGeolocation()
+	public KrollDict getLastGeolocation()
 	{
-		return TiAnalyticsEventFactory.locationToJSONString(lastLocation);
+	    if (lastLocation != null) {
+	        KrollDict coordinates = new KrollDict();
+	        coordinates.put(TiC.PROPERTY_LATITUDE, lastLocation.getLatitude());
+	        coordinates.put(TiC.PROPERTY_LONGITUDE, lastLocation.getLongitude());
+	        coordinates.put(TiC.PROPERTY_ALTITUDE, lastLocation.getAltitude());
+	        coordinates.put(TiC.PROPERTY_ACCURACY, lastLocation.getAccuracy());
+	        coordinates.put(TiC.PROPERTY_ALTITUDE_ACCURACY, null); // Not provided
+	        coordinates.put(TiC.PROPERTY_HEADING, lastLocation.getBearing());
+	        coordinates.put(TiC.PROPERTY_SPEED, lastLocation.getSpeed());
+	        coordinates.put(TiC.PROPERTY_TIMESTAMP, lastLocation.getTime());
+	        return coordinates;
+	    }
+	    return null;
 	}
 
 	/**

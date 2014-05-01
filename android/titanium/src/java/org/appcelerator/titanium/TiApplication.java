@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -36,13 +36,14 @@ import org.appcelerator.kroll.common.TiFastDev;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.kroll.util.TiTempFileHelper;
-import org.appcelerator.titanium.analytics.TiAnalyticsEvent;
+import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiImageLruCache;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
+import org.aps.analytics.APSAnalytics;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -64,13 +65,10 @@ import android.view.accessibility.AccessibilityManager;
 /**
  * The main application entry point for all Titanium applications and services.
  */
-public abstract class TiApplication extends Application implements Handler.Callback, KrollApplication
+public abstract class TiApplication extends Application implements KrollApplication
 {
 	private static final String SYSTEM_UNIT = "system";
 	private static final String TAG = "TiApplication";
-	private static final long TIME_SEPARATION_ANALYTICS = 1000;
-	private static final int MSG_SEND_ANALYTICS = 100;
-	private static final long SEND_ANALYTICS_DELAY = 30000; // Time analytics send request sits in queue before starting service.
 	private static final String PROPERTY_THREAD_STACK_SIZE = "ti.android.threadstacksize";
 	private static final String PROPERTY_COMPILE_JS = "ti.android.compilejs";
 	private static final String PROPERTY_ENABLE_COVERAGE = "ti.android.enablecoverage";
@@ -113,12 +111,10 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	protected ITiAppInfo appInfo;
 	protected TiStylesheet stylesheet;
 	protected static HashMap<String, WeakReference<KrollModule>> modules;
-	
+
 	public static AtomicBoolean isActivityTransition = new AtomicBoolean(false);
 	protected static ArrayList<ActivityTransitionListener> activityTransitionListeners = new ArrayList<ActivityTransitionListener>();
 	protected static TiWeakList<Activity> activityStack = new TiWeakList<Activity>();
-
-	public String lastEventID;
 
 	public static interface ActivityTransitionListener
 	{
@@ -129,27 +125,25 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	{
 		activityTransitionListeners.add(a);
 	}
-	
+
 	public static void removeActivityTransitionListener(ActivityTransitionListener a)
 	{
 		activityTransitionListeners.remove(a);
 	}
-	
+
 	public static void updateActivityTransitionState(boolean state)
 	{
 		isActivityTransition.set(state);
 		for (int i = 0; i < activityTransitionListeners.size(); ++i) {
 			activityTransitionListeners.get(i).onActivityTransition(state);
 		}
-		
+
 	}
 	public CountDownLatch rootActivityLatch = new CountDownLatch(1);
-
 
 	public TiApplication()
 	{
 		Log.checkpoint(TAG, "checkpoint, app created.");
-
 
 		loadBuildProperties();
 
@@ -248,7 +242,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Check whether the current activity is paused or not.
 	 * @return true if the current activity is paused; false otherwise.
@@ -280,7 +274,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	}
 
 	/**
-	 * This is a convenience method to avoid having to check TiApplication.getInstance() is not null every 
+	 * This is a convenience method to avoid having to check TiApplication.getInstance() is not null every
 	 * time we need to grab the root or current activity.
 	 * @return root activity if exists. If root activity doesn't exist, returns current activity if exists. Otherwise returns null.
 	 * @module.api
@@ -318,7 +312,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		Log.d(TAG, "activity stack is empty, unable to get current activity", Log.DEBUG_MODE);
 		return null;
 	}
-	
+
 	/**
 	 * @return root activity if exists. If root activity doesn't exist, returns current activity if exists. Otherwise returns null.
 	 */
@@ -331,7 +325,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 				return activity;
 			}
 		}
-		
+
 		if (currentActivity != null) {
 			activity = currentActivity.get();
 			if (activity != null) {
@@ -387,8 +381,11 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		final UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
 			public void uncaughtException(Thread t, Throwable e) {
-				String tiVer = buildVersion + "," + buildTimestamp + "," + buildHash ;
-				Log.e(TAG, "Sending event: exception on thread: " + t.getName() + " msg:" + e.toString() + "; Titanium " + tiVer, e);
+				if (collectAnalytics()) {
+					String tiVer = buildVersion + "," + buildTimestamp + "," + buildHash ;
+					Log.e(TAG, "Sending event: exception on thread: " + t.getName() + " msg:" + e.toString() + "; Titanium " + tiVer, e);
+					TiPlatformHelper.getInstance().postAnalyticsEvent(TiAnalyticsEventFactory.createErrorEvent(t, e, tiVer));
+				}
 				defaultHandler.uncaughtException(t, e);
 			}
 		});
@@ -436,8 +433,9 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	{
 		deployData = new TiDeployData(this);
 
-		TiPlatformHelper.initialize();
-		TiFastDev.initFastDev(this);
+		TiPlatformHelper.getInstance().initialize();
+		// Fastdev has been deprecated
+		// TiFastDev.initFastDev(this);
 	}
 
 	public void postOnCreate()
@@ -456,7 +454,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		USE_LEGACY_WINDOW = appProperties.getBool(PROPERTY_USE_LEGACY_WINDOW, false);
 
 		startExternalStorageMonitor();
-		
+
 		// Register the default cache handler
 		responseCache = new TiResponseCache(getRemoteCacheDir(), this);
 		TiResponseCache.setDefault(responseCache);
@@ -498,6 +496,22 @@ public abstract class TiApplication extends Application implements Handler.Callb
 			}
 		}
 
+		if (collectAnalytics()) {
+
+			TiPlatformHelper.getInstance().initAnalytics();
+			TiPlatformHelper.getInstance().setSdkVersion("ti." + getTiBuildVersion());
+			TiPlatformHelper.getInstance().setAppName(getAppInfo().getName());
+			TiPlatformHelper.getInstance().setAppId(getAppInfo().getId());
+			TiPlatformHelper.getInstance().setAppVersion(getAppInfo().getVersion());
+
+			// FIXME: Find some other way to set the deploytype?
+			String deployType = appProperties.getString("ti.deploytype", "unknown");
+			TiPlatformHelper.getInstance().setDeployType(deployType);
+			APSAnalytics.sendAppEnrollEvent();
+
+		} else {
+			Log.i(TAG, "Analytics have been disabled");
+		}
 		tempFileHelper.scheduleCleanTempDir();
 	}
 
@@ -642,9 +656,9 @@ public abstract class TiApplication extends Application implements Handler.Callb
 		return proxy;
 	}
 
-	public boolean handleMessage(Message msg)
+	public boolean collectAnalytics()
 	{
-		return false;
+		return getAppInfo().isAnalyticsEnabled();
 	}
 
 	public String getDeployType()
@@ -658,14 +672,6 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	public String getTiBuildVersion()
 	{
 		return buildVersion;
-	}
-	
-	/**
-	 * Posts analytic event to the server if the application is collecting analytic information.
-	 * @param event the analytic event to be posted.
-	 */
-	public synchronized void postAnalyticsEvent(TiAnalyticsEvent event)
-	{
 	}
 
 	public String getTiBuildTimestamp()
@@ -711,7 +717,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 	{
 		/* Fast dev is enabled by default in development mode, and disabled otherwise
 		 * When the property is set, it overrides the default behavior on emulator only
-		 * Deploy types are as follow: 
+		 * Deploy types are as follow:
 		 *    Emulator: 'development'
 		 *    Device: 'test'
 		 */
@@ -808,7 +814,7 @@ public abstract class TiApplication extends Application implements Handler.Callb
 					responseCache.setCacheDir(getRemoteCacheDir());
 					TiResponseCache.setDefault(responseCache);
 					Log.i(TAG, "SD card has been mounted. Enabling cache for http responses.", Log.DEBUG_MODE);
-					
+
 				} else {
 					// if the sd card is removed, we don't cache http responses
 					TiResponseCache.setDefault(null);

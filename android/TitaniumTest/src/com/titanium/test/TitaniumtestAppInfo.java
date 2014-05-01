@@ -57,7 +57,7 @@ public final class TitaniumtestAppInfo implements ITiAppInfo
 	}
 	
 	public boolean isAnalyticsEnabled() {
-		return true;
+		return false;
 	}
 	
 	public String getGUID() {
