@@ -887,10 +887,11 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 #pragma mark Geolacation Analytics
 
 -(void)fireApplicationAnalyticsIfNeeded:(NSArray *)locations{
+    if (!TI_APPLICATION_ANALYTICS) return;
     static BOOL analyticsSend = NO;
 	[lastLocationDict release];
 	lastLocationDict = [[self locationDictionary:[locations lastObject]] copy];
-    if (TI_APPLICATION_ANALYTICS && !analyticsSend)
+    if (!analyticsSend)
 	{
         analyticsSend = YES;
         [APSAnalytics sendAppGeoEvent:locations];

@@ -18,7 +18,7 @@
 #import "TiFile.h"
 #import "Mimetypes.h"
 #import "Base64Transcoder.h"
-#import "TiHTTPResponse.h"
+#import "APSHTTPResponse.h"
 
 extern NSString * const TI_APPLICATION_ID;
 static NSString * const kMCTSJavascript = @"Ti.App={};Ti.API={};Ti.App._listeners={};Ti.App._listener_id=1;Ti.App.id=Ti.appId;Ti.App._xhr=XMLHttpRequest;"
@@ -66,7 +66,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
  
 @implementation TiUIWebView
 {
-    TiHTTPRequest* _currentRequest;
+    APSHTTPRequest* _currentRequest;
 }
 @synthesize reloadData, reloadDataProperties;
 
@@ -675,14 +675,14 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	}
 }
 
--(void)tiRequest:(TiHTTPRequest*)request onUseAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
+-(void)request:(APSHTTPRequest*)request onUseAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
 {
     if ([challenge previousFailureCount] > 0) {
         [[challenge sender] cancelAuthenticationChallenge:challenge];
     }
 }
 
--(void)tiRequest:(TiHTTPRequest*)request onRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
+-(void)request:(APSHTTPRequest*)request onRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge
 {
     if ([self.proxy _hasListeners:@"authentication"])
 	{
@@ -690,7 +690,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		[self.proxy fireEvent:@"authentication" withObject:event];
 	}
 }
--(void)tiRequest:(TiHTTPRequest*)request onLoad:(TiHTTPResponse*)tiResponse
+-(void)request:(APSHTTPRequest*)request onLoad:(APSHTTPResponse*)tiResponse
 {
     [[self webview] loadRequest:request.request];
 }
@@ -798,7 +798,7 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 		}
         
        if ([self shoudTryToAuth:navigationType] && !_currentRequest) {
-           _currentRequest = [[TiHTTPRequest alloc] init];
+           _currentRequest = [[APSHTTPRequest alloc] init];
            [_currentRequest setAuthRetryCount:3];
            [_currentRequest setRequestUsername:[TiUtils stringValue:[self.proxy valueForKey:@"username"]]];
            [_currentRequest setRequestPassword:[TiUtils stringValue:[self.proxy valueForKey:@"password"]]];

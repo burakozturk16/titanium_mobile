@@ -915,7 +915,7 @@ DEFINE_EXCEPTIONS
 		return image;
 	}
 	
-	TiHTTPRequest *req = [[[TiHTTPRequest alloc] init] autorelease];
+	APSHTTPRequest *req = [[[APSHTTPRequest alloc] init] autorelease];
     [req setUrl:url];
     [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
     [req setSynchronous:YES];

@@ -24,11 +24,6 @@ typedef enum {
 @class APSHTTPPostForm;
 @class APSHTTPOperation;
 
-@protocol APSConnectionDelegate <NSURLConnectionDelegate>
-@optional
--(BOOL)willHandleChallenge:(NSURLAuthenticationChallenge *)challenge forConnection:(NSURLConnection *)connection;
-@end
-
 @protocol APSHTTPRequestDelegate <NSObject>
 @optional
 -(void)request:(APSHTTPRequest*)request onLoad:(APSHTTPResponse*)response;
@@ -37,6 +32,11 @@ typedef enum {
 -(void)request:(APSHTTPRequest*)request onSendStream:(APSHTTPResponse*)response;
 -(void)request:(APSHTTPRequest*)request onReadyStateChage:(APSHTTPResponse*)response;
 -(void)request:(APSHTTPRequest*)request onRedirect:(APSHTTPResponse*)response;
+
+-(void)request:(APSHTTPRequest*)request onRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge;
+-(void)request:(APSHTTPRequest*)request onUseAuthenticationChallenge:(NSURLAuthenticationChallenge*)challenge;
+- (BOOL)request:(APSHTTPRequest *)request canAuthenticateAgainstProtectionSpace:(NSURLProtectionSpace *)protectionSpace;
+- (BOOL)request:(APSHTTPRequest *)request connectionShouldUseCredentialStorage:(NSURLConnection *)connection;
 
 @end
 
@@ -57,20 +57,26 @@ typedef enum {
 @property(nonatomic, retain) APSHTTPPostForm *postForm;
 @property(nonatomic, readonly) APSHTTPResponse* response;
 @property(nonatomic, assign) NSObject<APSHTTPRequestDelegate>* delegate;
-@property(nonatomic, assign) NSObject<APSConnectionDelegate>* connectionDelegate;
 @property(nonatomic) NSTimeInterval timeout;
 @property(nonatomic) BOOL sendDefaultCookies;
 @property(nonatomic) BOOL redirects;
 @property(nonatomic) BOOL synchronous;
 @property(nonatomic) BOOL validatesSecureCertificate;
 @property(nonatomic) BOOL cancelled;
+@property(nonatomic) BOOL showActivity;
 @property(nonatomic) APSRequestAuth authType;
 @property(nonatomic, retain) NSOperationQueue *theQueue;
 @property(nonatomic, retain) NSDictionary *userInfo;
+@property(nonatomic, retain) NSURLAuthenticationChallenge* authenticationChallenge;
+@property(nonatomic, retain) NSURLCredential* challengedCredential;
+@property (nonatomic) NSURLCredentialPersistence persistence;
+@property(nonatomic) int authRetryCount;
 -(void)send;
 -(void)abort;
 -(void)addRequestHeader:(NSString*)key value:(NSString*)value;
 -(void)setCachePolicy:(NSURLRequestCachePolicy)cache;
 -(void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error;
 -(NSURLConnection*)connection;
++(void)setDisableNetworkActivityIndicator:(BOOL)value;
+
 @end
