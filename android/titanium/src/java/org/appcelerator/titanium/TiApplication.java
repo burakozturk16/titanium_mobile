@@ -496,19 +496,18 @@ public abstract class TiApplication extends Application implements KrollApplicat
 			}
 		}
 
-		if (collectAnalytics()) {
 
-			TiPlatformHelper.getInstance().initAnalytics();
-			TiPlatformHelper.getInstance().setSdkVersion("ti." + getTiBuildVersion());
-			TiPlatformHelper.getInstance().setAppName(getAppInfo().getName());
-			TiPlatformHelper.getInstance().setAppId(getAppInfo().getId());
-			TiPlatformHelper.getInstance().setAppVersion(getAppInfo().getVersion());
+		TiPlatformHelper.getInstance().initAnalytics();
+		TiPlatformHelper.getInstance().setSdkVersion("ti." + getTiBuildVersion());
+		TiPlatformHelper.getInstance().setAppName(getAppInfo().getName());
+		TiPlatformHelper.getInstance().setAppId(getAppInfo().getId());
+		TiPlatformHelper.getInstance().setAppVersion(getAppInfo().getVersion());
 
-			// FIXME: Find some other way to set the deploytype?
-			String deployType = appProperties.getString("ti.deploytype", "unknown");
-			TiPlatformHelper.getInstance().setDeployType(deployType);
+		// FIXME: Find some other way to set the deploytype?
+        String deployType = appProperties.getString("ti.deploytype", "unknown");
+        TiPlatformHelper.getInstance().setDeployType(deployType);
+        if (collectAnalytics()) {
 			APSAnalytics.sendAppEnrollEvent();
-
 		} else {
 			Log.i(TAG, "Analytics have been disabled");
 		}
