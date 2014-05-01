@@ -2697,7 +2697,6 @@
 				24CA8C58111165180084E2DE /* Accelerometer */,
 				24CA8C10111163BB0084E2DE /* API */,
 				24CA8C0F111163B50084E2DE /* App */,
-				24CA8C57111165070084E2DE /* Analytics */,
 				24CA8C1C1111645B0084E2DE /* Contacts */,
 				24CA8C19111164490084E2DE /* Database */,
 				24CA8C1B111164530084E2DE /* Filesystem */,
@@ -3028,13 +3027,6 @@
 				DA4E12D611C0A55F00A55BAB /* TiContactsGroup.m */,
 			);
 			name = Contacts;
-			sourceTree = "<group>";
-		};
-		24CA8C57111165070084E2DE /* Analytics */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Analytics;
 			sourceTree = "<group>";
 		};
 		24CA8C58111165180084E2DE /* Accelerometer */ = {
