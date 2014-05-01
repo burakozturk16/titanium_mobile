@@ -45,6 +45,9 @@
 		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@style/Theme.Titanium.Translucent"/>
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
 		<!-- TI_SERVICES -->
+		<service
+            android:name="org.aps.analytics.APSAnalyticsService" >
+        </service>
 
 	</application>
 
