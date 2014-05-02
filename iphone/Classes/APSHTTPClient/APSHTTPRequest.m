@@ -158,30 +158,19 @@ static BOOL _disableNetworkActivityIndicator;
         if([data length] > 0) {
             [_request setHTTPBody:data];
         }
-#ifdef DEBUG
-        NSLog(@"Data: %@", [NSString stringWithUTF8String: [data bytes]]);
-#endif
+
         NSDictionary *headers = [[self postForm] requestHeaders];
         for (NSString* key in headers)
         {
             [_request setValue:[headers valueForKey:key] forHTTPHeaderField:key];
-#ifdef DEBUG
-            NSLog(@"Header: %@: %@", key, [headers valueForKey:key]);
-#endif
         }
     }
     if(_headers != nil) {
         for (NSString* key in _headers)
         {
             [_request setValue:[_headers valueForKey:key] forHTTPHeaderField:key];
-#ifdef DEBUG
-            NSLog(@"Header: %@: %@", key, [_headers valueForKey:key]);
-#endif
         }
     }
-#ifdef DEBUG
-    NSLog(@"URL: %@", [self url]);
-#endif
     [_request setURL: [self url]];
     
     if([self timeout] > 0) {
@@ -189,9 +178,6 @@ static BOOL _disableNetworkActivityIndicator;
     }
     if([self method] != nil) {
         [_request setHTTPMethod: [self method]];
-#ifdef DEBUG
-        NSLog(@"Method: %@", [self method]);
-#endif
     }
     [_request setHTTPShouldHandleCookies:[self sendDefaultCookies]];
     
@@ -340,9 +326,6 @@ static BOOL _disableNetworkActivityIndicator;
 
 -(NSURLRequest*)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)response
 {
-#ifdef DEBUG
-    NSLog(@"Code %li Redirecting from: %@ to: %@",(long)[(NSHTTPURLResponse*)response statusCode], [_request URL] ,[request URL]);
-#endif
     [_response setConnected:YES];
     [_response setResponse: response];
     [_response setRequest:request];
@@ -370,9 +353,6 @@ static BOOL _disableNetworkActivityIndicator;
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response
 {
-#ifdef DEBUG
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-#endif
     [_response setReadyState:APSHTTPResponseStateHeaders];
     [_response setConnected:YES];
     [_response setResponse: response];
@@ -402,9 +382,6 @@ static BOOL _disableNetworkActivityIndicator;
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data
 {
-#ifdef DEBUG
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-#endif
     if([_response readyState] != APSHTTPResponseStateLoading) {
         [_response setReadyState:APSHTTPResponseStateLoading];
         if([_delegate respondsToSelector:@selector(request:onReadyStateChage:)]) {
@@ -441,9 +418,6 @@ static BOOL _disableNetworkActivityIndicator;
     if(_operation != nil) {
         [_operation setFinished:YES];
     }
-#ifdef DEBUG
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-#endif
     [_response setDownloadProgress:1.f];
     [_response setUploadProgress:1.f];
     [_response setReadyState:APSHTTPResponseStateDone];
@@ -471,9 +445,7 @@ static BOOL _disableNetworkActivityIndicator;
     if(_operation != nil) {
         [_operation setFinished:YES];
     }
-#ifdef DEBUG
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-#endif
+    
     [_response setReadyState:APSHTTPResponseStateDone];
     if([_delegate respondsToSelector:@selector(request:onReadyStateChage:)]) {
         [_delegate request:self onReadyStateChage:_response];
