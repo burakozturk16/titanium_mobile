@@ -10,6 +10,9 @@
 #import <UIKit/UIKit.h>
 
 @implementation APSHTTPRequest
+{
+    NSMutableArray* _trustedHosts;
+}
 static int32_t networkActivityCount;
 static BOOL _disableNetworkActivityIndicator;
 @synthesize url = _url;
@@ -73,6 +76,7 @@ static BOOL _disableNetworkActivityIndicator;
     RELEASE_TO_NIL(_headers);
     RELEASE_TO_NIL(_challengedCredential);
     RELEASE_TO_NIL(_authenticationChallenge);
+    RELEASE_TO_NIL(_trustedHosts);
     [super dealloc];
 }
 - (id)init
@@ -118,6 +122,21 @@ static BOOL _disableNetworkActivityIndicator;
 -(NSURLConnection*)connection
 {
     return _connection;
+}
+
+-(void)addTrustedHost:(NSString*)host
+{
+    if (host == nil) return;
+    if (_trustedHosts == nil) {
+        _trustedHosts = [[NSMutableArray alloc] init];
+    }
+    [_trustedHosts addObject:host];
+}
+
+-(void)removeTrustedHost:(NSString*)host
+{
+    if (host == nil || _trustedHosts == nil) return;
+    [_trustedHosts removeObject:host];
 }
 
 -(void)updateChallengeCredential
@@ -260,6 +279,14 @@ static BOOL _disableNetworkActivityIndicator;
 	}
 }
 
+- (void)connection:(NSURLConnection *)connection didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge {
+    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust])
+        if (![self validatesSecureCertificate] || [_trustedHosts containsObject:challenge.protectionSpace.host])
+            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
+    
+    [challenge.sender continueWithoutCredentialForAuthenticationChallenge:challenge];
+}
+
 - (BOOL)connectionShouldUseCredentialStorage:(NSURLConnection *)connection{
 	if([[self delegate] respondsToSelector:@selector(request:connectionShouldUseCredentialStorage:)])
     {
@@ -281,16 +308,9 @@ static BOOL _disableNetworkActivityIndicator;
             [[challenge sender] cancelAuthenticationChallenge:challenge];
         }
     }
-    if(![self validatesSecureCertificate]) {
-        if (
-            [authMethod isEqualToString:NSURLAuthenticationMethodServerTrust] &&
-            [challenge.protectionSpace.host isEqualToString:[[self url] host]]
-            ) {
-            [[challenge sender] useCredential:
-             [NSURLCredential credentialForTrust: [[challenge protectionSpace] serverTrust]]
-                   forAuthenticationChallenge: challenge];
-        }
-    }
+    if ([challenge.protectionSpace.authenticationMethod isEqualToString:NSURLAuthenticationMethodServerTrust] && [challenge.protectionSpace.host isEqualToString:[[self url] host]])
+        if (![self validatesSecureCertificate] || [_trustedHosts containsObject:challenge.protectionSpace.host])
+            [challenge.sender useCredential:[NSURLCredential credentialForTrust:challenge.protectionSpace.serverTrust] forAuthenticationChallenge:challenge];
     
     if ([authMethod isEqualToString:NSURLAuthenticationMethodDefault]) {
         self.authenticationChallenge = challenge;
