@@ -362,9 +362,8 @@ else{\
     }
     navBarWillShow = YES;
     if (navButtonNotSet) {
-        SETPROPOBJ(@"leftNavButton",setLeftNavButton);
-        SETPROPOBJ(@"rightNavButton",setRightNavButton);
-        SETPROPOBJ(@"rightNavButtons",setRightNavButtons);
+        [self refreshLeftNavButtons:nil];
+        [self refreshRightNavButtons:nil];
     }
 	[self replaceValue:@NO forKey:@"navBarHidden" notification:NO];
 	if (controller!=nil)
@@ -595,6 +594,11 @@ else{\
         }
     }
     
+    if ([theItems count] == 0) {
+        SETPROPOBJ(@"rightNavButton",setRightNavButton);
+        return;
+    }
+    
     BOOL animated = [TiUtils boolValue:@"animated" properties:theProperties def:NO];
     
     if ([theItems count] > 0) {
@@ -651,8 +655,9 @@ else{\
 
 -(void)refreshLeftNavButtons:(id)unused
 {
-    if (controller == nil || [controller navigationController] == nil) {
-        return; // No need to refresh
+    id navController = [self navControllerForController:controller];
+    if ((controller == nil) || navController == nil) {
+        return;
     }
     NSArray* theObjects = [self valueForUndefinedKey:@"leftNavButtons"];
     NSDictionary* theProperties = [self valueForUndefinedKey:@"leftNavSettings"];
@@ -667,6 +672,10 @@ else{\
         } else {
             DebugLog(@"%@ does not support nav bar positioning", theProxy);
         }
+    }
+    if ([theItems count] == 0) {
+        SETPROPOBJ(@"leftNavButton",setLeftNavButton);
+        return;
     }
     
     BOOL animated = [TiUtils boolValue:@"animated" properties:theProperties def:NO];
