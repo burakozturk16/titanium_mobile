@@ -78,5 +78,6 @@ typedef enum {
 -(void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error;
 -(NSURLConnection*)connection;
 +(void)setDisableNetworkActivityIndicator:(BOOL)value;
++ (BOOL)disableNetworkActivityIndicator;
 
 @end

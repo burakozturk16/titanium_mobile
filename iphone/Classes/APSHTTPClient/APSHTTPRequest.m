@@ -52,6 +52,11 @@ static BOOL _disableNetworkActivityIndicator;
 	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(!_disableNetworkActivityIndicator && (networkActivityCount > 0))];
 }
 
++ (BOOL)disableNetworkActivityIndicator
+{
+	return _disableNetworkActivityIndicator;
+}
+
 - (void)dealloc
 {
     RELEASE_TO_NIL(_connection);
