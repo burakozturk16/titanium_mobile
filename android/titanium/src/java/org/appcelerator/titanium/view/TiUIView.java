@@ -545,7 +545,7 @@ public abstract class TiUIView
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
 		propertySet(key, newValue, oldValue, true);
-		}
+	}
 	
 	public void propertySet(String key, Object newValue, Object oldValue,
 			boolean changedProperty) {
@@ -643,7 +643,7 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
 			boolean value = TiConvert.toBoolean(newValue, true);
 			nativeView.setEnabled(value);
-			doSetClickable(nativeView);
+			doSetClickable(nativeView, value);
 		} else if (key.equals(TiC.PROPERTY_VISIBLE)) {
 			this.setVisibility(TiConvert.toBoolean(newValue, true) ? View.VISIBLE
 					: View.INVISIBLE);
@@ -1818,11 +1818,11 @@ public abstract class TiUIView
 		if (view == null) {
 			return;
 		}
+		view.setClickable(clickable);
+        view.setLongClickable(clickable);
 		if (!clickable) {
 			view.setOnClickListener(null); // This will set clickable to true in the view, so make sure it stays here so the next line turns it off.
-			view.setClickable(false);
 			view.setOnLongClickListener(null);
-			view.setLongClickable(false);
 		} else if ( ! (view instanceof AdapterView) ){
 			// n.b.: AdapterView throws if click listener set.
 			// n.b.: setting onclicklistener automatically sets clickable to true.
@@ -1849,7 +1849,7 @@ public abstract class TiUIView
 		if (view == null) {
 			return;
 		}
-		doSetClickable(view, view.isClickable());
+		doSetClickable(view, view.isEnabled());
 	}
 
 	/**
