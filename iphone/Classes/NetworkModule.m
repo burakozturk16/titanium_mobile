@@ -215,6 +215,9 @@ static NSOperationQueue *_operationQueue = nil;
 
 -(NSNumber*)networkType
 {
+    if (_startingSema) {
+        dispatch_semaphore_wait(_startingSema, DISPATCH_TIME_FOREVER);
+    }
 	return NUMINT(state);
 }
 
