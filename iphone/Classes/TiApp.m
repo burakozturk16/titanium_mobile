@@ -61,7 +61,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 }
 
 @synthesize window, remoteNotificationDelegate, controller;
-@synthesize disableNetworkActivityIndicator;
+//@synthesize disableNetworkActivityIndicator;
 @synthesize remoteNotification;
 @synthesize pendingCompletionHandlers;
 @synthesize backgroundTransferCompletionHandlers;
@@ -97,31 +97,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 +(TiContextGroupRef)contextGroup
 {
 	return [sharedApp contextGroup];
-}
-
-
--(void)startNetwork
-{
-	ENSURE_UI_THREAD_0_ARGS;
-	if (OSAtomicIncrement32(&networkActivityCount) == 1)
-	{
-		[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:!disableNetworkActivityIndicator];
-	}
-}
-
--(void)stopNetwork
-{
-	ENSURE_UI_THREAD_0_ARGS;
-	if (OSAtomicDecrement32(&networkActivityCount) == 0)
-	{
-		[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-	}
-}
-
-- (void)setDisableNetworkActivityIndicator:(BOOL)value
-{
-	disableNetworkActivityIndicator = value;
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(!disableNetworkActivityIndicator && (networkActivityCount > 0))];
 }
 
 -(NSDictionary*)launchOptions

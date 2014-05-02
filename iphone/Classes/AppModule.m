@@ -285,13 +285,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 - (void)setDisableNetworkActivityIndicator:(NSNumber *)value
 {
-	BOOL yn = [TiUtils boolValue:value];
-	[TiApp app].disableNetworkActivityIndicator = yn;
+	[APSHTTPRequest setDisableNetworkActivityIndicator:[TiUtils boolValue:value]];
 }
 
 - (NSNumber *)disableNetworkActivityIndicator
 {
-	return NUMBOOL([TiApp app].disableNetworkActivityIndicator);
+	return NUMBOOL([APSHTTPRequest disableNetworkActivityIndicator]);
 }
 
 //To fire the keyboard frame change event.

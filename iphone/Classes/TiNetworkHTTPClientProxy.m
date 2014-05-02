@@ -182,14 +182,12 @@ extern NSString * const TI_APPLICATION_GUID;
     
     NSOperationQueue *operationQueue = [NetworkModule operationQueue];
     
-    [[TiApp app] startNetwork];
     if(async) {
         [[self request] setTheQueue:operationQueue];
         [[self request] send];
     } else {
         [[self request] setSynchronous:YES];
         [[self request] send];
-        [[TiApp app] stopNetwork];
         [self forgetSelf];
     }
 }
@@ -259,7 +257,6 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)request:(APSHTTPRequest *)request onLoad:(APSHTTPResponse *)response
 {
-    [[TiApp app] stopNetwork];
     if([request cancelled]) {
         return;
     }
@@ -285,7 +282,6 @@ extern NSString * const TI_APPLICATION_GUID;
 
 -(void)request:(APSHTTPRequest *)request onError:(APSHTTPResponse *)response
 {
-    [[TiApp app] stopNetwork];
     if([request cancelled]) {
         return;
     }

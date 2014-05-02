@@ -143,31 +143,6 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 -(NSString*)remoteDeviceUUID;
 
-/**
- Tells application to show network activity indicator.
- 
- Every call of startNetwork should be paired with <stopNetwork>.
- @see stopNetwork
- */
--(void)startNetwork;
-
-/**
- Tells application to hide network activity indicator.
- 
- Every call of stopNetwork should have corresponding <startNetwork> call.
- @see startNetwork
- */
--(void)stopNetwork;
-
-/**
- Prevents network activity indicator from showing.
- Setting this property to YES disables appearance of network activity indicator when startNetwork is called.
- In case network activity indicator is currently visible, it will be hidden.
- @see startNetwork
- @see stopNetwork
- */
-@property (nonatomic, assign) BOOL disableNetworkActivityIndicator;
-
 -(void)showModalError:(NSString*)message;
 
 /**
