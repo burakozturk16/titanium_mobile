@@ -195,7 +195,7 @@ NSArray* moviePlayerKeys = nil;
 	return nil;
 }
 
--(void)viewWillAttach
+-(void)viewWillInitialize
 {
 	reallyAttached = YES;
 }

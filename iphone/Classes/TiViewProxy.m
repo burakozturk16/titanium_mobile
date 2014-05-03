@@ -47,7 +47,7 @@
 }
 @end
 
-#define IGNORE_IF_NOT_OPENED if (!windowOpened||[self viewAttached]==NO) {dirtyflags=0;return;}
+#define IGNORE_IF_NOT_OPENED if ([self viewAttached]==NO) {dirtyflags=0;return;}
 
 @implementation TiViewProxy
 
@@ -1471,7 +1471,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 		}
 #endif		
 		// on open we need to create a new view
-		[self viewWillAttach];
+		[self viewWillInitialize];
 		view = [self newView];
 		view.proxy = self;
 		view.layer.transform = CATransform3DIdentity;
@@ -1493,9 +1493,9 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 			[self insertSubview:childView forProxy:child];
 		}
 		[childrenArray release];
-		[self viewDidAttach];
 
 		viewInitialized = YES;
+		[self viewDidInitialize];
 		// If parent has a non absolute layout signal the parent that
 		//contents will change else just lay ourselves out
 //		if (parent != nil && ![parent absoluteLayout]) {
@@ -1671,6 +1671,8 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	
 	windowOpened = YES;
 	windowOpening = YES;
+    
+    [self viewDidAttach];
     	
 	// If the window was previously opened, it may need to have
 	// its existing children redrawn
@@ -1737,16 +1739,21 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
 	}
 }
 
--(void)viewWillAttach
+-(void)viewWillInitialize
 {
 	// for subclasses
 }
 
+-(void)viewDidInitialize
+{
+	// for subclasses
+}
 
 -(void)viewDidAttach
 {
 	// for subclasses
 }
+
 
 -(void)viewWillDetach
 {
@@ -2818,7 +2825,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     
 	BOOL changedFrame = NO;
     //BUG BARRIER: Code in this block is legacy code that should be factored out.
-	if (windowOpened && [self viewAttached])
+	if ([self viewAttached])
 	{
 		CGRect oldFrame = [[self view] frame];
         BOOL relayout = ![self suppressesRelayout];

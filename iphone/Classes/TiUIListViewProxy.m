@@ -237,9 +237,10 @@ static NSDictionary* listViewKeysToReplace;
 	return keySequence;
 }
 
-- (void)viewDidAttach
+- (void)viewDidInitialize
 {
 	[self.listView tableView];
+    [super viewDidInitialize];
 }
 
 - (void)willShow

@@ -96,7 +96,7 @@ USE_VIEW_FOR_CONTENT_SIZE
     }
 }
 
--(void)viewDidAttach
+-(void)viewDidInitialize
 {
     TiUITableView * ourView = (TiUITableView *)[self view];
     ourView.viewWillDetach = NO;

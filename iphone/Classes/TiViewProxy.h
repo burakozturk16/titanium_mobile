@@ -338,13 +338,19 @@ enum
 
 /**
  Tells the view proxy that a view will be attached to it.
- @see viewDidAttach
+ @see viewDidInitialize
  */
--(void)viewWillAttach; // Need this for video player & possibly other classes which override newView
+-(void)viewWillInitialize; // Need this for video player & possibly other classes which override newView
+
+/**
+ Tells the view proxy that a view was initialized.
+ @see viewWillInitialize
+ */
+-(void)viewDidInitialize;
 
 /**
  Tells the view proxy that a view was attached to it.
- @see viewWillAttach
+ @see viewWillInitialize
  */
 -(void)viewDidAttach;
 
