@@ -153,7 +153,7 @@ void DoProxyDelegateReadKeyFromProxy(id<TiProxyDelegate> target, NSString *key, 
 	}
 	else
 	{
-		TiThreadPerformOnMainThread(^{[target performSelector:sel withObject:value];}, NO);
+		TiThreadPerformOnMainThread(^{[target performSelector:sel withObject:value];}, YES);
 	}
 }
 
