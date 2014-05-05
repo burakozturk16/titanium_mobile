@@ -21,6 +21,7 @@ static NSOperationQueue *_operationQueue = nil;
 @implementation NetworkModule
 {
     dispatch_semaphore_t _startingSema;
+    BOOL _firstUpdateDone;
 }
 
 -(NSString*)apiName
@@ -73,12 +74,12 @@ static NSOperationQueue *_operationQueue = nil;
 -(void)_configure
 {
 	[super _configure];
+    _firstUpdateDone = NO;
 	// default to unknown network type on startup until reachability has figured it out
 	state = TiNetworkConnectionStateUnknown; 
 	WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:kReachabilityChangedNotification object:nil];
 	// wait until done is important to get the right state
-    _startingSema = dispatch_semaphore_create(0);
 	TiThreadPerformOnMainThread(^{[self startReachability];}, NO);
 }
 
@@ -122,10 +123,10 @@ static NSOperationQueue *_operationQueue = nil;
 			break;
 		}
 	}
+    _firstUpdateDone = YES;
     if (_startingSema) {
         dispatch_semaphore_signal(_startingSema);
-        dispatch_release(_startingSema);
-        _startingSema = nil;
+        
     }
 	if ([self _hasListeners:@"change"])
 	{
@@ -173,11 +174,18 @@ static NSOperationQueue *_operationQueue = nil;
 }
 #endif
 
+-(void)waitIfNotReady{
+    if (_firstUpdateDone == NO) {
+        _startingSema = dispatch_semaphore_create(0);
+        dispatch_semaphore_wait(_startingSema, DISPATCH_TIME_FOREVER);
+        dispatch_release(_startingSema);
+        _startingSema = nil;
+    }
+}
+
 - (NSNumber*)online
 {
-    if (_startingSema) {
-        dispatch_semaphore_wait(_startingSema, DISPATCH_TIME_FOREVER);
-    }
+    [self waitIfNotReady];
 	if (state!=TiNetworkConnectionStateNone && state!=TiNetworkConnectionStateUnknown)
 	{
 		return NUMBOOL(YES);
@@ -187,6 +195,7 @@ static NSOperationQueue *_operationQueue = nil;
 
 - (NSString*)networkTypeName
 {
+    [self waitIfNotReady];
 	switch(state)
 	{
 		case TiNetworkConnectionStateNone:
@@ -215,10 +224,8 @@ static NSOperationQueue *_operationQueue = nil;
 
 -(NSNumber*)networkType
 {
-    if (_startingSema) {
-        dispatch_semaphore_wait(_startingSema, DISPATCH_TIME_FOREVER);
-    }
-	return NUMINT(state);
+    [self waitIfNotReady];
+    return NUMINT(state);
 }
 
 MAKE_SYSTEM_PROP(NETWORK_NONE,TiNetworkConnectionStateNone);
