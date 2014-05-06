@@ -266,6 +266,7 @@ DEFINE_EXCEPTIONS
 	[upSwipeRecognizer release];
 	[downSwipeRecognizer release];
 	[longPressRecognizer release];
+	[runningAnimation release];
 	proxy = nil;
 	touchDelegate = nil;
 	childViews = nil;
@@ -2334,7 +2335,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         else {
             properties = [NSArray arrayWithObject:[TiUtils stringValue:firstArg]];
         }
-        NSDictionary* options;
+        NSDictionary* options = nil;
         ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary)
         if (![options objectForKey:@"filters"]) {
             [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterIOSBlur]] forKey:@"filters"];

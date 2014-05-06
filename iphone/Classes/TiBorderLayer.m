@@ -159,7 +159,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
 
 
 
--(CGPathRef)borderPath:(const CGFloat*)radii forBounds:(CGRect)bounds
+-(CGPathRef)newBorderPath:(const CGFloat*)radii forBounds:(CGRect)bounds
 {
     return CGPathCreateRoundiiRectWithDecale(UIEdgeInsetsInsetRect(bounds, _borderPadding), radii, self.clipWidth/2);
 }
@@ -179,7 +179,7 @@ CGPathRef CGPathCreateRoundiiRectWithDecale( const CGRect rect, const CGFloat* r
         self.mask = maskLayer;
     }
     ((CAShapeLayer*)self.mask).lineWidth = _clipWidth;
-    CGPathRef path = [self borderPath:radii forBounds:bounds];
+    CGPathRef path = [self newBorderPath:radii forBounds:bounds];
     if (runningAnimation) {
         CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
         pathAnimation.fromValue = (id)((CAShapeLayer*)self.mask).path;

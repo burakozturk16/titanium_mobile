@@ -205,7 +205,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
     else {
         int milliseconds = [self intValue:value def:-1];
         if (milliseconds != -1) {
-            return [[NSDate alloc] initWithTimeIntervalSince1970:milliseconds/1000];
+            return [[[NSDate alloc] initWithTimeIntervalSince1970:milliseconds/1000] autorelease];
         }
     }
 	return def;
@@ -672,7 +672,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		if (!CGSizeEqualToSize(newSize, imageSize))
 		{
 			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationLow image:image hires:NO];
-            imageSize = [image size];
+//            imageSize = [image size];
 		}
 	}
 	return image;
@@ -1621,7 +1621,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 		}
 		if ([appurlstr hasPrefix:@"/"])
 		{
-			leadingSlashRemoved = YES;
+//			leadingSlashRemoved = YES;
 			appurlstr = [appurlstr substringFromIndex:1];
 		}
 #if TARGET_IPHONE_SIMULATOR
@@ -2179,7 +2179,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     UIView *view = [[UIView alloc] initWithFrame:frame];
 //    view.layer.shouldRasterize = YES;
     view.layer.rasterizationScale = [[UIScreen mainScreen] scale];
-    return view;
+    return [view autorelease];
 }
 
 +(NSString*)jsonStringify:(id)value error:(NSError**)error

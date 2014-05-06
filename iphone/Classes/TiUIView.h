@@ -113,7 +113,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 @property(nonatomic,readonly)			id transformMatrix;
 
 
-@property(nonatomic,readwrite,assign)	TiViewAnimationStep *runningAnimation;
+@property(nonatomic,readwrite,retain)	TiViewAnimationStep *runningAnimation;
 
 /**
  Provides access to background image of the view.

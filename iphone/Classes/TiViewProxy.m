@@ -356,7 +356,7 @@ static NSSet* transferableProps = nil;
 	ENSURE_UI_THREAD_1_ARG(arg);
 
 	pthread_rwlock_wrlock(&childrenLock);
-	NSMutableArray* childrenCopy = [children mutableCopy];
+//	NSMutableArray* childrenCopy = [children mutableCopy];
 	if ([children containsObject:arg]) {
 		[children removeObject:arg];
 	}
@@ -1084,7 +1084,7 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
         else {
             BOOL horizontal =  TiLayoutRuleIsHorizontal(layoutProperties.layoutStyle);
             BOOL vertical =  TiLayoutRuleIsVertical(layoutProperties.layoutStyle);
-            BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
+//            BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
             BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(&layoutProperties);
             
             NSMutableArray * widthFillChildren = horizontal?[NSMutableArray array]:nil;
@@ -1180,11 +1180,11 @@ LAYOUTFLAGS_SETTER(setHorizontalWrap,horizontalWrap,horizontalWrap,[self willCha
     CGFloat suggestedHeight = size.height;
     BOOL followsFillWBehavior = TiDimensionIsAutoFill([self defaultAutoHeightBehavior:nil]);
     
-    CGFloat offset = TiDimensionCalculateValue(layoutProperties.left, size.width)
-    + TiDimensionCalculateValue(layoutProperties.right, size.width);
+//    CGFloat offset = TiDimensionCalculateValue(layoutProperties.left, size.width)
+//    + TiDimensionCalculateValue(layoutProperties.right, size.width);
 
-    CGFloat offset2 = TiDimensionCalculateValue(layoutProperties.top, suggestedHeight)
-    + TiDimensionCalculateValue(layoutProperties.bottom, suggestedHeight);
+//    CGFloat offset2 = TiDimensionCalculateValue(layoutProperties.top, suggestedHeight)
+//    + TiDimensionCalculateValue(layoutProperties.bottom, suggestedHeight);
     
     CGSize result = CGSizeZero;
     
@@ -2720,7 +2720,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)refreshViewOrParent
 {
     if (parent && [parent isDirty]) {
-        if ([view runningAnimation])
+        if ([self runningAnimation])
         {
             [parent setRunningAnimation:[self runningAnimation]];
             [parent refreshViewOrParent];
@@ -3138,6 +3138,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
     anim.duration = duration;
     anim.curve = curve;
     [self setRunningAnimationRecursive:anim];
+    [anim release];
 }
 
 -(BOOL)isRotating
@@ -3147,11 +3148,11 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 
 -(void)removeFakeAnimation
 {
-    id anim = [self runningAnimation];
-    if ([anim isKindOfClass:[TiFakeAnimation class]])
+//    id anim = [self runningAnimation];
+    if ([[self runningAnimation] isKindOfClass:[TiFakeAnimation class]])
     {
         [self setRunningAnimationRecursive:nil];
-        [anim release];
+//        [anim release];
     }
 }
 
@@ -3686,7 +3687,7 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 	}
 	[child setSandboxBounds:bounds];
     [child dirtyItAll]; //for multileve recursion we need to make sure the child resizes itself
-    if ([view runningAnimation]){
+    if ([self runningAnimation]){
 		[child setRunningAnimation:[self runningAnimation]];
 		[child relayout];
 		[child setRunningAnimation:nil];

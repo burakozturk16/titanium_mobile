@@ -59,6 +59,7 @@
             workingView.autoresizesSubviews = YES;
             workingView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
             [containerView addSubview:workingView];
+            [workingView release];
         }
         else {
             workingView = [[containerView subviews] firstObject];

@@ -425,13 +425,16 @@ static NSDictionary* replaceKeysForRow;
             viewLayout->width = TiDimensionAutoFill;
         }
         
-        if (viewproxy.parent == nil)
-        {
-            
-            TiViewProxy* proxy = [self initWrapperProxy];
-            [proxy add:viewproxy];
-        }
-        return [viewproxy.parent getAndPrepareViewForOpening:self.tableView.bounds];
+//        if (viewproxy.parent == nil)
+//        {
+//            
+//            TiViewProxy* wrapperProxy = [self initWrapperProxy];
+//            [wrapperProxy add:viewproxy];
+//            return [wrapperProxy getAndPrepareViewForOpening:self.tableView.bounds];
+//        }
+//        else {
+            return [viewproxy getAndPrepareViewForOpening:self.tableView.bounds];
+//        }
     }
     return nil;
 }

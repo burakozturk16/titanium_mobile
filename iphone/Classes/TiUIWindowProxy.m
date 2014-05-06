@@ -595,6 +595,7 @@ else{\
     }
     
     if ([theItems count] == 0) {
+        [theItems release];
         SETPROPOBJ(@"rightNavButton",setRightNavButton);
         return;
     }
@@ -674,6 +675,7 @@ else{\
         }
     }
     if ([theItems count] == 0) {
+        [theItems release];
         SETPROPOBJ(@"leftNavButton",setLeftNavButton);
         return;
     }

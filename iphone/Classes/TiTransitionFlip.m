@@ -20,15 +20,15 @@
         multiplier = 1;
     }
     
-    float percent = ABS(position);
+//    float percent = ABS(position);
     int viewWidth = view.bounds.size.width;
-    int viewHeight = view.bounds.size.height;
+//    int viewHeight = view.bounds.size.height;
     CATransform3D transform = CATransform3DIdentity;
     if ([self isTransitionVertical]) {
         
     }
     else {
-        CGFloat halfWidth = viewWidth / 2;
+//        CGFloat halfWidth = viewWidth / 2;
         CGFloat realAngle = -kAngle * position * multiplier;
         CGFloat translateX = -position * viewWidth;
         if (adjust) transform = CATransform3DTranslate(transform, translateX, 0,0);

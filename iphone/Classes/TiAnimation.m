@@ -61,6 +61,7 @@ static NSArray *animProps;
 	RELEASE_TO_NIL(animation);
 	RELEASE_TO_NIL(view);
 	RELEASE_TO_NIL(_curve);
+    self.delegate = nil;
 	[super dealloc];
 }
 

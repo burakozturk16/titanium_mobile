@@ -126,7 +126,7 @@
     if ([navigationController.transitionCoordinator isAnimated]) {
         return NO;
     }
-    int count = navigationController.viewControllers.count;
+//    int count = navigationController.viewControllers.count;
     if (navigationController.viewControllers.count < 2) {
         return NO;
     }

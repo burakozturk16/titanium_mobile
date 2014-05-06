@@ -85,8 +85,8 @@
             TiImageHelperFilterType type = [filterId integerValue];
             image = [self getFilteredImage:image withFilter:type options:options];
         }
-        width = image.size.width;
-        height = image.size.height;
+//        width = image.size.width;
+//        height = image.size.height;
     }
     
     if ([options objectForKey:@"tint"]) {

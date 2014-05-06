@@ -483,7 +483,7 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
         CGPoint localPoint = [touch locationInView:label];
         NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
         if (url){
-            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            event = [NSMutableDictionary dictionaryWithDictionary:event];
             [(NSMutableDictionary*)event setObject:url forKey:@"link"];
         }
     }
@@ -499,7 +499,7 @@ didSelectLinkWithPhoneNumber:(NSString *)phoneNumber
         CGPoint localPoint = [gesture locationInView:label];
         NSURL* url = [self checkLinkAttributeForString:attString atPoint:localPoint];
         if (url){
-            event = [[NSMutableDictionary alloc]initWithDictionary:event];
+            event = [NSMutableDictionary dictionaryWithDictionary:event];
             [(NSMutableDictionary*)event setObject:url forKey:@"link"];
         }
     }

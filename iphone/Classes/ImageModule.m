@@ -80,7 +80,7 @@ typedef UIImage* (^ProcessImageBlock) ();
 -(id)getFilteredImage:(id)args
 {
     ENSURE_TYPE(args, NSArray)
-    NSDictionary *options;
+    NSDictionary *options = nil;
     ENSURE_ARG_OR_NIL_AT_INDEX(options, args, 1, NSDictionary);
     id imageArg = [args objectAtIndex:0];
     UIImage* image = nil;

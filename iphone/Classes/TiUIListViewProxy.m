@@ -592,7 +592,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 2);
     TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+//        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
         return [section getItemAt:[NSArray arrayWithObject:[args objectAtIndex:1]]];
     }
     else {

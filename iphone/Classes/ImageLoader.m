@@ -1212,7 +1212,7 @@ DEFINE_EXCEPTIONS
 -(void)request:(APSHTTPRequest *)request onError:(APSHTTPResponse *)response
 {
 	ImageLoaderRequest *req = [[request userInfo] objectForKey:@"request"];
-	NSError *error = [response error];
+//	NSError *error = [response error];
     
 	if ([request cancelled]) {
         if ([[req delegate] respondsToSelector:@selector(imageLoadCancelled:)]) {

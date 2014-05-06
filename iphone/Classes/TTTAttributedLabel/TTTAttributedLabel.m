@@ -709,7 +709,11 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     [self drawBackground:frame inRect:rect textRect:textRect context:c];
 
     CFArrayRef lines = CTFrameGetLines(frame);
-    if (lines == nil) return;
+    if (lines == nil) {
+        CFRelease(frame);
+        CFRelease(path);
+        return;
+    }
     NSInteger numberOfLines = self.numberOfLines > 0 ? MIN(self.numberOfLines, CFArrayGetCount(lines)) : CFArrayGetCount(lines);
     BOOL truncateLastLine = (self.lineBreakMode == TTTLineBreakByTruncatingHead || self.lineBreakMode == TTTLineBreakByTruncatingMiddle || self.lineBreakMode == TTTLineBreakByTruncatingTail);
 

@@ -42,7 +42,7 @@
 {
     NSLog(@"updateInteractiveTransition %f", percentComplete);
     
-    UIViewController * toViewController = [_transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+//    UIViewController * toViewController = [_transitionCo dntext viewControllerForKey:UITransitionContextToViewControllerKey];
     
 
     [self.transitionContext updateInteractiveTransition:percentComplete];

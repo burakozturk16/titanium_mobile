@@ -596,7 +596,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 #pragma mark UIToolbar
 
 - (void)setToolbarHidden:(BOOL)hidden animated:(BOOL)animated {
-    CGFloat toolbarHeight = _toolbar.frame.size.height;
+//    CGFloat toolbarHeight = _toolbar.frame.size.height;
     if (animated) {
         [UIView beginAnimations:nil context:NULL];
     }
