@@ -3924,8 +3924,10 @@ if (!viewInitialized || hidden || !parentVisible || OSAtomicTestAndSetBarrier(fl
 -(void)hideKeyboard:(id)arg
 {
 	ENSURE_UI_THREAD_1_ARG(arg);
-	if (view != nil)
-		[self.view endEditing:YES];
+	if ([self viewAttached])
+	{
+		[[self view] endEditing:YES];
+	}
 }
 
 -(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiViewProxy*)child
