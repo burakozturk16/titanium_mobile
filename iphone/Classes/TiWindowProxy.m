@@ -458,8 +458,21 @@
         if ([self handleFocusEvents]) {
             [self fireEvent:@"blur" propagate:NO];
         }
+        [super blur:nil];
         [[self view] setAccessibilityElementsHidden:YES];
     }
+}
+
+-(void)blur:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	[self resignFocus];
+}
+
+-(void)focus:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	[self gainFocus];
 }
 
 -(TiProxy *)topWindow
