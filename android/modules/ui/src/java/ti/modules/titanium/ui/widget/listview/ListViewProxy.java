@@ -453,6 +453,7 @@ public class ListViewProxy extends TiViewProxy {
 	{
 		setPropertyAndFire(TiC.PROPERTY_SECTIONS, sections);
 		if (!viewAttached()) {
+		    preloadSections.clear();
 		    preload = true;
             addPreloadSections((Object[]) sections, -1, true);
 		}
