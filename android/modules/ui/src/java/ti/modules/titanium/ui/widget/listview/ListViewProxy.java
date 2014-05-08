@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -87,6 +88,7 @@ public class ListViewProxy extends TiViewProxy {
 		//Adding sections to preload sections, so we can handle appendSections/insertSection
 		//accordingly if user call these before TiListView is instantiated.
 		if (options.containsKey(TiC.PROPERTY_SECTIONS)) {
+		    preload = true;
 			Object obj = options.get(TiC.PROPERTY_SECTIONS);
 			if (obj instanceof Object[]) {
 				addPreloadSections((Object[]) obj, -1, true);
@@ -126,6 +128,9 @@ public class ListViewProxy extends TiViewProxy {
 	}
 	
 	private void addPreloadSection(Object section, int index) {
+	    if(section instanceof HashMap) {
+            section =  KrollProxy.createProxy(ListSectionProxy.class, null, new Object[]{section}, null);
+        }
 		if (section instanceof ListSectionProxy) {
 			if (index == -1) {
 				preloadSections.add((ListSectionProxy) section);
@@ -447,6 +452,10 @@ public class ListViewProxy extends TiViewProxy {
 	public void setSections(Object sections)
 	{
 		setPropertyAndFire(TiC.PROPERTY_SECTIONS, sections);
+		if (!viewAttached()) {
+		    preload = true;
+            addPreloadSections((Object[]) sections, -1, true);
+		}
 	}
 	
 	private ListSectionProxy[] handleSections()
@@ -555,12 +564,12 @@ public class ListViewProxy extends TiViewProxy {
 
 	@Kroll.method
 	public void updateItemAt(int sectionIndex, int index, Object data) {
-		ListSectionProxy section = getSectionAt(sectionIndex);
-		if (section != null){
-			section.updateItemAt(index, data);
-		}
-		else {
-			Log.e(TAG, "updateItemAt wrong section index");
-		}
+        ListSectionProxy section = getSectionAt(sectionIndex);
+        if (section != null){
+            section.updateItemAt(index, data);
+        }
+        else {
+            Log.e(TAG, "updateItemAt wrong section index");
+        }
 	}
 }

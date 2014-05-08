@@ -472,11 +472,11 @@ public class ListSectionProxy extends ViewProxy {
 		}
 
 		if (TiApplication.isUIThread()) {
-			handleUpdateItemAt(index, new Object[] { data });
+			handleUpdateItemAt(index, data);
 		} else {
 			KrollDict d = new KrollDict();
 			d.put(TiC.EVENT_PROPERTY_INDEX, index);
-			d.put(TiC.PROPERTY_DATA, new Object[] { data });
+			d.put(TiC.PROPERTY_DATA, data );
 			TiMessenger.sendBlockingMainMessage(
 					getMainHandler().obtainMessage(MSG_UPDATE_ITEM_AT), d);
 		}
@@ -618,6 +618,26 @@ public class ListSectionProxy extends ViewProxy {
 			Log.e(TAG, "Invalid argument type to insertItemsAt", Log.DEBUG_MODE);
 		}
 	}
+	
+	private void handleUpdateItemAt(int index, Object data) {
+	    if (itemProperties == null) {
+	        return;
+	    }
+	    HashMap currentItem = KrollDict.merge((HashMap)itemProperties.get(index), (HashMap)(data));
+	    if (currentItem == null) return;
+	    itemProperties.set(index, currentItem);
+	    // only process items when listview's properties is processed.
+        if (getListView() == null) {
+            preload = true;
+            return;
+        }
+        KrollDict d = new KrollDict(currentItem);
+	    ListItemData itemD = new ListItemData(d);
+        listItemData.set(index, itemD);
+        hiddenItems.set(index, !itemD.isVisible());
+        
+       
+    }
 
 	private boolean deleteItems(int index, int count) {
 		boolean delete = false;
@@ -653,10 +673,10 @@ public class ListSectionProxy extends ViewProxy {
 		}
 	}
 
-	private void handleUpdateItemAt(int index, Object data) {
-		handleReplaceItemsAt(index, 1, data);
-		setProperty(TiC.PROPERTY_ITEMS, itemProperties.toArray());
-	}
+//	private void handleUpdateItemAt(int index, Object data) {
+//		handleReplaceItemsAt(index, 1, data);
+//		setProperty(TiC.PROPERTY_ITEMS, itemProperties.toArray());
+//	}
 
 	/**
 	 * This method creates a new cell and fill it with content. getView() calls
