@@ -1818,8 +1818,6 @@ public abstract class TiUIView
 		if (view == null) {
 			return;
 		}
-		view.setClickable(clickable);
-        view.setLongClickable(clickable);
 		if (!clickable) {
 			view.setOnClickListener(null); // This will set clickable to true in the view, so make sure it stays here so the next line turns it off.
 			view.setOnLongClickListener(null);
@@ -1829,6 +1827,8 @@ public abstract class TiUIView
 			setOnClickListener(view);
 			setOnLongClickListener(view);
 		}
+        view.setClickable(clickable);
+        view.setLongClickable(clickable);
 	}
 
 	private void doSetClickable(boolean clickable)
