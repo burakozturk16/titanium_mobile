@@ -603,6 +603,9 @@ public class GeolocationModule extends KrollModule
 	@Kroll.method @Kroll.getProperty
 	public KrollDict getLastGeolocation()
 	{
+	    if (lastLocation == null) {
+	        lastLocation = tiLocation.getLastKnownLocation();
+	    }
 	    if (lastLocation != null) {
 	        KrollDict coordinates = new KrollDict();
 	        coordinates.put(TiC.PROPERTY_LATITUDE, lastLocation.getLatitude());
