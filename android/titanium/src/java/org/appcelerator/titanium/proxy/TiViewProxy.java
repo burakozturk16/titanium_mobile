@@ -434,6 +434,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 		view = null;
 	}
+	
+	public boolean viewAttached() {
+	    return view != null;
+	}
 
 	/**
 	 * @return the TiUIView associated with this proxy.
