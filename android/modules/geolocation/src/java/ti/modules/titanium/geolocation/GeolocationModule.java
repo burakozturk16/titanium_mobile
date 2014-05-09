@@ -843,7 +843,7 @@ public class GeolocationModule extends KrollModule
 	private boolean shouldUseUpdate(Location newLocation)
 	{
 		boolean passed = false;
-
+		if (newLocation == null) return passed;
 		if (getManualMode()) {
 			if (androidModule.manualLocationRules.size() > 0) {
 				for(LocationRuleProxy rule : androidModule.manualLocationRules) {
