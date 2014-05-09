@@ -792,6 +792,9 @@
 		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
+		D5B04535191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B04534191D2EC4001CF02F /* TiFileSystemHelper.m */; };
+		D5B04536191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B04534191D2EC4001CF02F /* TiFileSystemHelper.m */; };
+		D5B04537191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5B04534191D2EC4001CF02F /* TiFileSystemHelper.m */; };
 		D5B6C728181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
 		D5B6C729181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
 		D5B6C72A181124C200A2612A /* libDTCoreText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5B6C727181124C200A2612A /* libDTCoreText.a */; };
@@ -2112,6 +2115,8 @@
 		D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionFold.m; sourceTree = "<group>"; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
+		D5B04533191D2EC4001CF02F /* TiFileSystemHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiFileSystemHelper.h; sourceTree = "<group>"; };
+		D5B04534191D2EC4001CF02F /* TiFileSystemHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiFileSystemHelper.m; sourceTree = "<group>"; };
 		D5B6C6DE181124AC00A2612A /* DTAccessibilityElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAccessibilityElement.h; path = ../Classes/DTCoreText/DTAccessibilityElement.h; sourceTree = "<group>"; };
 		D5B6C6DF181124AC00A2612A /* DTAccessibilityViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAccessibilityViewProxy.h; path = ../Classes/DTCoreText/DTAccessibilityViewProxy.h; sourceTree = "<group>"; };
 		D5B6C6E0181124AC00A2612A /* DTAnchorHTMLElement.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = DTAnchorHTMLElement.h; path = ../Classes/DTCoreText/DTAnchorHTMLElement.h; sourceTree = "<group>"; };
@@ -2767,6 +2772,8 @@
 				D5E999111869C8A2005B3664 /* TiBorderLayer.m */,
 				D5E897AF18A3FA0B00E565E1 /* NSDictionary+Merge.h */,
 				D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */,
+				D5B04533191D2EC4001CF02F /* TiFileSystemHelper.h */,
+				D5B04534191D2EC4001CF02F /* TiFileSystemHelper.m */,
 			);
 			name = Utils;
 			sourceTree = "<group>";
@@ -4583,6 +4590,7 @@
 				24CA895D111161050084E2DE /* AFUIImageReflection.m in Sources */,
 				D5C8C97317EF45C900F54C19 /* ADDualTransition.m in Sources */,
 				D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */,
+				D5B04535191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */,
 				243ECCB81126988200639DF4 /* TiUIiPhoneScrollIndicatorStyleProxy.m in Sources */,
 				84A00FF517FB675E00D4BF94 /* TiSnapBehavior.m in Sources */,
 				243ECCBE112698AA00639DF4 /* TiUITextWidgetProxy.m in Sources */,
@@ -5272,6 +5280,7 @@
 				D5C8C98F17EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D5C8C9A117EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
+				D5B04536191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */,
 				D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56E66A9180C664400F1B737 /* TiTransitionFade.m in Sources */,
 				D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
@@ -5633,6 +5642,7 @@
 				D522FE0F16D2AC8D008C6CC4 /* JRSwizzle.m in Sources */,
 				D5C8C99017EF45C900F54C19 /* ADSwapTransition.m in Sources */,
 				D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
+				D5B04537191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */,
 				D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */,
 				D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56E66AA180C664400F1B737 /* TiTransitionFade.m in Sources */,
