@@ -11,9 +11,10 @@
     NSMutableDictionary * result = [NSMutableDictionary dictionaryWithDictionary:dict1];
     
     [dict2 enumerateKeysAndObjectsUsingBlock: ^(id key, id obj, BOOL *stop) {
-        if (force || ![dict1 objectForKey:key]) {
+        NSDictionary* current = [dict1 objectForKey:key];
+        if (force || !current) {
             if ([obj isKindOfClass:[NSDictionary class]]) {
-                NSDictionary * newVal = [[dict1 objectForKey: key] dictionaryByMergingWith:(NSDictionary *) obj force:force];
+                NSDictionary * newVal = current?[current dictionaryByMergingWith:(NSDictionary *) obj force:force]:obj;
                 [result setObject: newVal forKey: key];
             } else {
                 [result setObject: obj forKey: key];
