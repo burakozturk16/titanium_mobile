@@ -64,7 +64,8 @@ static NSString* _lineEnding = @"\n";
 		}
 	}
     
-    return [[newpath stringByStandardizingPath] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];;
+//    return [[newpath stringByStandardizingPath] stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];;
+    return [newpath stringByStandardizingPath];
 }
 
 +(NSString*)separator

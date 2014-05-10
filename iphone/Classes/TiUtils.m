@@ -836,9 +836,9 @@ If the new path starts with / and the base url is app://..., we have to massage 
 			}
 		}
 	}
-    else {
-        relativeString = [relativeString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
-    }
+//    else {
+//        relativeString = [relativeString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+//    }
 
 	result = [NSURL URLWithString:relativeString relativeToURL:rootPath];
 
