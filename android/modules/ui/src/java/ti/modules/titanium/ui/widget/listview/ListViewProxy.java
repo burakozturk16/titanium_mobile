@@ -97,9 +97,11 @@ public class ListViewProxy extends TiViewProxy {
 	}
 	
 	public void clearPreloadSections() {
+	    //dont clear the preloaded because if we are 
 		if (preloadSections != null) {
 			preloadSections.clear();
 		}
+		preload = false;
 	}
 	
 	public ArrayList<ListSectionProxy> getPreloadSections() {
