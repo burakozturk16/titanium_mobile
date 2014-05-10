@@ -182,10 +182,22 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_CLOSE), options);
 	}
+	
+	@Override
+    public void releaseViews(boolean activityFinishing)
+    {
+        super.releaseViews(activityFinishing);
+        closeFromActivity(activityFinishing);
+    }
+    
 
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		if (!opened) { return; }
+		
+		opened = false;
+        activity = null;
+        parent = null;
 
 		KrollDict data = null;
 		if (activityIsFinishing) {
@@ -198,9 +210,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 			data = new KrollDict();
 			data.put("_closeFromActivityForcedToDestroy", true);
 		}
-		opened = false;
-		activity = null;
-		parent = null;
+		
 
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
