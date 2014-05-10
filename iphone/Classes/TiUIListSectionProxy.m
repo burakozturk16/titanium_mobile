@@ -312,8 +312,8 @@
 		BOOL forceReload = (animation != UITableViewRowAnimationNone);
 		if (!forceReload) {
 			TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
-			if ((cell != nil) && ([cell canApplyDataItem:item])) {
-				cell.dataItem = item;
+			if ((cell != nil) && ([cell canApplyDataItem:currentItem])) {
+				cell.dataItem = currentItem;
                 [cell setNeedsLayout];
 			} else {
 				forceReload = YES;
