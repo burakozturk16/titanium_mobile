@@ -636,7 +636,9 @@ public class ListSectionProxy extends ViewProxy {
         listItemData.set(index, itemD);
         hiddenItems.set(index, !itemD.isVisible());
         
-       
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
     }
 
 	private boolean deleteItems(int index, int count) {
