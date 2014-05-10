@@ -21,6 +21,7 @@
 #import "Base64Transcoder.h"
 #import "TiExceptionHandler.h"
 #import "SVGKit.h"
+#import "TiFileSystemHelper.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -808,7 +809,12 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	{
 		return [NSURL URLWithString:relativeString];
 	}
-
+    
+    if ([relativeString hasPrefix:@"file://"])
+	{
+        return [NSURL fileURLWithPath:[TiFileSystemHelper pathFromComponents:@[relativeString]]];
+    }
+    
 	NSURL *result = nil;
 		
 	// don't bother if we don't at least have a path and it's not remote
