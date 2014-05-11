@@ -188,5 +188,7 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 -(void)completionHandler:(id)key withResult:(int)result;
 -(void)completionHandlerForBackgroundTransfer:(id)key;
 
+@property(nonatomic,readonly) NSUserDefaults *userDefaults;
+
 @end
 

@@ -21,7 +21,6 @@
 	TiThreadPerformOnMainThread(^{
 		[[NSNotificationCenter defaultCenter] removeObserver:self];
 	}, YES);
-	RELEASE_TO_NIL(defaultsObject);
 	RELEASE_TO_NIL(_defaultsNull);
 	RELEASE_TO_NIL(_changedProperty);
     
@@ -53,19 +52,22 @@
 	}
 }
 
+-(NSUserDefaults*)userDefaults
+{
+    return [[TiApp app] userDefaults];
+}
+
 -(void)_configure
 {
-	defaultsObject = [[NSUserDefaults standardUserDefaults] retain];
 	_defaultsNull = [[NSData alloc] initWithBytes:"NULL" length:4];
-	[self registerDefaultsFromSettingsBundle];
 	[super _configure];
 }
 
 -(BOOL)propertyExists: (NSString *) key;
 {
 	if (![key isKindOfClass:[NSString class]]) return NO;
-	[defaultsObject synchronize];
-	return ([defaultsObject objectForKey:key] != nil);
+	[[self userDefaults] synchronize];
+	return ([[self userDefaults] objectForKey:key] != nil);
 }
 
 #define GETPROP \
@@ -81,31 +83,31 @@ if (![self propertyExists:key]) return defaultValue; \
 -(id)getBool:(id)args
 {
 	GETPROP
-	return [NSNumber numberWithBool:[defaultsObject boolForKey:key]];
+	return [NSNumber numberWithBool:[[self userDefaults] boolForKey:key]];
 }
 
 -(id)getDouble:(id)args
 {
 	GETPROP
-	return [NSNumber numberWithDouble:[defaultsObject doubleForKey:key]];
+	return [NSNumber numberWithDouble:[[self userDefaults] doubleForKey:key]];
 }
 
 -(id)getInt:(id)args
 {
 	GETPROP
-	return [NSNumber numberWithInt:[defaultsObject integerForKey:key]];
+	return [NSNumber numberWithInt:[[self userDefaults] integerForKey:key]];
 }
 
 -(id)getString:(id)args
 {
 	GETPROP
-	return [defaultsObject stringForKey:key];
+	return [[self userDefaults] stringForKey:key];
 }
 
 -(id)getList:(id)args
 {
 	GETPROP
-	NSArray *value = [defaultsObject arrayForKey:key];
+	NSArray *value = [[self userDefaults] arrayForKey:key];
 	NSMutableArray *array = [[[NSMutableArray alloc] initWithCapacity:[value count]] autorelease];
 	[(NSArray *)value enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
 		if ([obj isKindOfClass:[NSData class]] && [_defaultsNull isEqualToData:obj]) {
@@ -119,7 +121,7 @@ if (![self propertyExists:key]) return defaultValue; \
 -(id)getObject:(id)args
 {
     GETPROP
-    id theObject = [defaultsObject objectForKey:key];
+    id theObject = [[self userDefaults] objectForKey:key];
     if ([theObject isKindOfClass:[NSData class]]) {
         return [NSKeyedUnarchiver unarchiveObjectWithData:theObject];
     }
@@ -139,11 +141,11 @@ return; \
 } \
 id value = [args count] > 1 ? [args objectAtIndex:1] : nil;\
 if (value==nil || value==[NSNull null]) {\
-[defaultsObject removeObjectForKey:key];\
-[defaultsObject synchronize]; \
+[[self userDefaults] removeObjectForKey:key];\
+[[self userDefaults] synchronize]; \
 return;\
 }\
-if ([self propertyExists:key] && [ [defaultsObject objectForKey:key] isEqual:value]) {\
+if ([self propertyExists:key] && [ [[self userDefaults] objectForKey:key] isEqual:value]) {\
 return;\
 }\
 
@@ -151,32 +153,32 @@ return;\
 {
 	SETPROP
     _changedProperty = [key retain];
-	[defaultsObject setBool:[TiUtils boolValue:value] forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setBool:[TiUtils boolValue:value] forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)setDouble:(id)args
 {
 	SETPROP
     _changedProperty = [key retain];
-	[defaultsObject setDouble:[TiUtils doubleValue:value] forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setDouble:[TiUtils doubleValue:value] forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)setInt:(id)args
 {
 	SETPROP
     _changedProperty = [key retain];
-	[defaultsObject setInteger:[TiUtils intValue:value] forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setInteger:[TiUtils intValue:value] forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)setString:(id)args
 {
 	SETPROP
     _changedProperty = [key retain];
-	[defaultsObject setObject:[TiUtils stringValue:value] forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setObject:[TiUtils stringValue:value] forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)setList:(id)args
@@ -193,8 +195,8 @@ return;\
 		value = array;
 	}
     _changedProperty = [key retain];
-	[defaultsObject setObject:value forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setObject:value forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)setObject:(id)args
@@ -202,8 +204,8 @@ return;\
 	SETPROP
 	NSData* encoded = [NSKeyedArchiver archivedDataWithRootObject:value];
     _changedProperty = [key retain];
-	[defaultsObject setObject:encoded forKey:key];
-	[defaultsObject synchronize];
+	[[self userDefaults] setObject:encoded forKey:key];
+	[[self userDefaults] synchronize];
 }
 
 -(void)removeProperty:(id)args
@@ -214,14 +216,14 @@ return;\
         return;
     }
     _changedProperty = [[TiUtils stringValue:args] retain];
-	[defaultsObject removeObjectForKey:_changedProperty];
-	[defaultsObject synchronize];
+	[[self userDefaults] removeObjectForKey:_changedProperty];
+	[[self userDefaults] synchronize];
 }
 
 -(void)removeAllProperties {
-	NSArray *keys = [[defaultsObject dictionaryRepresentation] allKeys];
+	NSArray *keys = [[[self userDefaults] dictionaryRepresentation] allKeys];
 	for(NSString *key in keys) {
-		[defaultsObject removeObjectForKey:key];
+		[[self userDefaults] removeObjectForKey:key];
 	}
 }
 
@@ -236,7 +238,7 @@ return;\
 -(id)listProperties:(id)args
 {
     NSMutableArray *array = [NSMutableArray array];
-    [array addObjectsFromArray:[[defaultsObject dictionaryRepresentation] allKeys]];
+    [array addObjectsFromArray:[[[self userDefaults] dictionaryRepresentation] allKeys]];
     [array addObjectsFromArray:[[TiApp tiAppProperties] allKeys]];
     return array;
 }
@@ -251,46 +253,6 @@ return;\
 	[self fireEvent:@"change" withObject:event];
 }
 
-- (void)registerDefaultsFromSettingsBundle
-{
-	NSUserDefaults * defs = [NSUserDefaults standardUserDefaults];
-	[defs synchronize];
-	
-	NSString *settingsBundle = [[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"];
-	
-	if(!settingsBundle)
-	{
-        return;
-	}
-	
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
-	NSArray *preferences = [settings objectForKey:@"PreferenceSpecifiers"];
-	NSMutableDictionary *defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
-    
-	for (NSDictionary *prefSpecification in preferences)
-	{
-		NSString *key = [prefSpecification objectForKey:@"Key"];
-		if (key)
-		{
-			// check if value readable in userDefaults
-			id currentObject = [defs objectForKey:key];
-			if (currentObject == nil)
-			{
-				// not readable: set value from Settings.bundle
-				id objectToSet = [prefSpecification objectForKey:@"DefaultValue"];
-				[defaultsToRegister setObject:objectToSet forKey:key];
-			}
-			else
-			{
-				// already readable: don't touch
-			}
-		}
-	}
-	
-	[defs registerDefaults:defaultsToRegister];
-	[defaultsToRegister release];
-	[defs synchronize];
-}
 
 @end
 

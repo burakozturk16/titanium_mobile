@@ -48,6 +48,9 @@ BOOL applicationInMemoryPanic = NO;
 TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run on main thread, or else there is a risk of deadlock!
 
 @interface TiApp()
+{
+    NSUserDefaults *defaultsObject;
+}
 - (void)checkBackgroundServices;
 - (void)appBoot;
 @end
@@ -67,6 +70,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 @synthesize backgroundTransferCompletionHandlers;
 @synthesize localNotification;
 @synthesize appBooted;
+@synthesize userDefaults;
 
 +(void)initialize
 {
@@ -911,6 +915,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
     }
 	RELEASE_TO_NIL(backgroundServices);
 	RELEASE_TO_NIL(localNotification);
+	RELEASE_TO_NIL(defaultsObject);
 	[super dealloc];
 }
 
@@ -1073,6 +1078,55 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         }
     }
     return props;
+}
+
+- (void)registerDefaultsFromSettingsBundle
+{
+	[defaultsObject synchronize];
+	
+	NSString *settingsBundle = [[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"];
+	
+	if(!settingsBundle)
+	{
+        return;
+	}
+	
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
+	NSArray *preferences = [settings objectForKey:@"PreferenceSpecifiers"];
+	NSMutableDictionary *defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
+    
+	for (NSDictionary *prefSpecification in preferences)
+	{
+		NSString *key = [prefSpecification objectForKey:@"Key"];
+		if (key)
+		{
+			// check if value readable in userDefaults
+			id currentObject = [defaultsObject objectForKey:key];
+			if (currentObject == nil)
+			{
+				// not readable: set value from Settings.bundle
+				id objectToSet = [prefSpecification objectForKey:@"DefaultValue"];
+				[defaultsToRegister setObject:objectToSet forKey:key];
+			}
+			else
+			{
+				// already readable: don't touch
+			}
+		}
+	}
+	
+	[defaultsObject registerDefaults:defaultsToRegister];
+	[defaultsToRegister release];
+	[defaultsObject synchronize];
+}
+
+
+-(NSUserDefaults*)userDefaults {
+    if (defaultsObject == nil) {
+        defaultsObject = [[NSUserDefaults standardUserDefaults] retain];
+        [self registerDefaultsFromSettingsBundle];
+    }
+    return defaultsObject;
 }
 
 @end

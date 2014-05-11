@@ -10,10 +10,7 @@
 
 
 @interface TiAppPropertiesProxy : TiProxy 
-{
-@private
-	NSUserDefaults *defaultsObject;
-}
+
 
 -(id)getBool:(id)args;
 -(id)getDouble:(id)args;
@@ -29,7 +26,6 @@
 -(void)removeAllProperties;
 -(id)hasProperty:(id)args;
 -(id)listProperties:(id)args;
-
 @end
 
 #endif
