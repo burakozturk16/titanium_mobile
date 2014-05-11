@@ -2505,6 +2505,9 @@ iOSBuilder.prototype.invokeXcodeBuild = function invokeXcodeBuild(next) {
 		gccDefs.push('DEBUG=1');
 		gccDefs.push('TI_VERSION=' + this.titaniumSdkVersion);
 	}
+    else if (this.deployType == 'development') {
+        gccDefs.push('DEBUG=1');
+    }
 
 	if (/simulator|device|dist\-adhoc/.test(this.target)) {
 		this.tiapp.ios && this.tiapp.ios.enablecoverage && gccDefs.push('KROLL_COVERAGE=1');
