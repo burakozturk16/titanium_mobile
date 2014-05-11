@@ -586,6 +586,9 @@ static NSDictionary* listViewKeysToReplace;
 	return [_sections objectAtIndex:[sectionIndex integerValue]];
 }
 
+NSArray* sliceArray(NSArray* array, int startIndex) {
+    return [array subarrayWithRange:NSMakeRange(startIndex,[array count] -1)];
+}
 
 - (TiUIListSectionProxy *)getItemAt:(id)args
 {
@@ -593,7 +596,7 @@ static NSDictionary* listViewKeysToReplace;
     TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
 //        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
-        return [section getItemAt:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+        return [section getItemAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] getItemAt item index is out of range");
@@ -605,7 +608,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 2);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section appendItems:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+        [section appendItems:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] appendItems:section item index is out of range");
@@ -617,7 +620,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section insertItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section insertItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] insertItemsAt item index is out of range");
@@ -629,7 +632,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 4);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section replaceItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], [args objectAtIndex:3], nil]];
+        [section replaceItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] replaceItemsAt item index is out of range");
@@ -641,7 +644,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section deleteItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section deleteItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] deleteItemsAt item index is out of range");
@@ -653,7 +656,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section updateItemAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section updateItemAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] updateItemAt item index is out of range");
