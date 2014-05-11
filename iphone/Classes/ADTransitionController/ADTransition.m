@@ -127,7 +127,6 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 }
 
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    NSLog(@"finishedTransitionFromView");
     [self _teardownLayers:@[viewIn?[viewIn layer]:[NSNull null], viewOut?[viewOut layer]:[NSNull null]]];
     [viewIn.layer removeAnimationForKey:kAdKey];
     [viewOut.layer removeAnimationForKey:kAdKey];
