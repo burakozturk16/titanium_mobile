@@ -132,6 +132,10 @@ exports.init = function (logger, config, cli) {
 							afs.exists(dest) && fs.unlink(dest);
 							afs.copyFileSync(ipa, dest, { logger: logger.debug });
 
+                            dest = path.join(cli.argv['output-dir'], appName + '.app.dSYM');
+                            afs.exists(dest) && fs.unlink(dest);
+                            afs.copyDirSyncRecursive(dsym, dest, { logger: logger.debug });
+
 							dest = path.join(cli.argv['output-dir'], appName + '.app.dSYM.zip');
 							afs.exists(dest) && fs.unlink(dest);
 							exec('cd "' + path.dirname(dsym) + '"; /usr/bin/zip -r  "' + dest +  '" "' + dsymfilename +  '"', function (err, stdout, stderr) {
