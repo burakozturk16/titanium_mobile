@@ -23,6 +23,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
@@ -490,7 +491,7 @@ public class TiUIText extends TiUINonViewGroupView
 			this.disabledColor = TiConvert.toColor(newValue);
 			updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_HINT_TEXT)) {
-			realtv.setHint((String) newValue);
+			realtv.setHint(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_ELLIPSIZE)) {
 			if (TiConvert.toBoolean(newValue)) {
 				realtv.setEllipsize(TruncateAt.END);
@@ -784,9 +785,13 @@ public class TiUIText extends TiUINonViewGroupView
 
 		if (passwordMask) {
 			textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
+			Typeface origTF = realtv.getTypeface();
 			// Sometimes password transformation does not work properly when the input type is set after the transformation method.
 			// This issue has been filed at http://code.google.com/p/android/issues/detail?id=7092
 			realtv.setInputType(textTypeAndClass);
+			// Workaround for https://code.google.com/p/android/issues/detail?id=55418 since setInputType
+			// with InputType.TYPE_TEXT_VARIATION_PASSWORD sets the typeface to monospace.
+			realtv.setTypeface(origTF);
 			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.

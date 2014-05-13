@@ -297,6 +297,16 @@ static BOOL _disableNetworkActivityIndicator;
 
 -(void)connection:(NSURLConnection *)connection willSendRequestForAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
+    BOOL useSubDelegate = ([self connectionDelegate] != nil && [[self connectionDelegate] respondsToSelector:@selector(connection:willSendRequestForAuthenticationChallenge:)]);
+    if(useSubDelegate && [[self connectionDelegate] respondsToSelector:@selector(willHandleChallenge:forConnection:)]) {
+        useSubDelegate = [[self connectionDelegate] willHandleChallenge:challenge forConnection:connection];
+    }
+    
+    if(useSubDelegate) {
+        [[self connectionDelegate] connection:connection willSendRequestForAuthenticationChallenge:challenge];
+        return;
+    }
+    
     NSString* authMethod = [[challenge protectionSpace] authenticationMethod];
     if ([challenge previousFailureCount]) {
         NSURLCredential* credential = [[NSURLCredentialStorage sharedCredentialStorage] defaultCredentialForProtectionSpace:challenge.protectionSpace];

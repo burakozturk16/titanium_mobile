@@ -412,6 +412,9 @@ AndroidBuilder.prototype.config = function config(logger, config, cli) {
 						desc: __('the skin for the Android emulator; deprecated, use --device-id'),
 						hint: __('skin')
 					},
+					'build-type': {
+						hidden: true
+					},
 					'debug-host': {
 						hidden: true
 					},
@@ -903,6 +906,7 @@ AndroidBuilder.prototype.config = function config(logger, config, cli) {
 AndroidBuilder.prototype.validate = function validate(logger, config, cli) {
 	this.target = cli.argv.target;
 	this.deployType = /^device|emulator$/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : this.deployTypes[this.target];
+	this.buildType = cli.argv['build-type'] || '';
 
 	// ti.deploytype is deprecated and so we force the real deploy type
 	if (cli.tiapp.properties['ti.deploytype']) {
@@ -2166,6 +2170,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		moduleResPackages = this.moduleResPackages = [],
 		jsFilesToEncrypt = this.jsFilesToEncrypt = [],
 		htmlJsFiles = this.htmlJsFiles = {},
+		symlinkFiles = process.platform != 'win32' && this.config.get('android.symlinkResources', true),
 		_t = this;
 
 	function copyDir(opts, callback) {
@@ -2181,7 +2186,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 	function copyFile(from, to, next) {
 		var d = path.dirname(to);
 		fs.existsSync(d) || wrench.mkdirSyncRecursive(d);
-		if (process.platform != 'win32' && this.config.get('android.symlinkResources', true)) {
+		if (symlinkFiles) {
 			fs.existsSync(to) && fs.unlinkSync(to);
 			this.logger.debug(__('Symlinking %s => %s', from.cyan, to.cyan));
 			if (next) {
@@ -2535,9 +2540,11 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 							this.cli.createHook('build.android.compileJsFile', this, function (r, from, to, cb2) {
 								fs.writeFile(to, r.contents, cb2);
 							})(r, from, to, cb);
+						} else if (symlinkFiles) {
+							copyFile.call(this, from, to, cb);
 						} else {
+							// we've already read in the file, so just write the original contents
 							this.logger.debug(__('Copying %s => %s', from.cyan, to.cyan));
-
 							fs.writeFile(to, r.contents, cb);
 						}
 					})(from, to, done);
@@ -3103,6 +3110,9 @@ AndroidBuilder.prototype.writeXmlFile = function writeXmlFile(srcOrDoc, dest) {
 	if (destExists) {
 		// we're merging
 		destDoc = (new DOMParser({ errorHandler: function(){} }).parseFromString(fs.readFileSync(dest).toString(), 'text/xml')).documentElement;
+		xml.forEachAttr(destDoc, function (attr) {
+			root.setAttribute(attr.name, attr.value);
+		});
 		if (typeof srcOrDoc == 'string') {
 			this.logger.debug(__('Merging %s => %s', srcOrDoc.cyan, dest.cyan));
 		}
@@ -3112,6 +3122,10 @@ AndroidBuilder.prototype.writeXmlFile = function writeXmlFile(srcOrDoc, dest) {
 			this.logger.debug(__('Copying %s => %s', srcOrDoc.cyan, dest.cyan));
 		}
 	}
+
+	xml.forEachAttr(srcDoc, function (attr) {
+		root.setAttribute(attr.name, attr.value);
+	});
 
 	switch (filename) {
 		case 'arrays.xml':
@@ -3505,7 +3519,7 @@ AndroidBuilder.prototype.generateAndroidManifest = function generateAndroidManif
 
 	// add the analytics service
 	if (this.tiapp.analytics) {
-		var tiAnalyticsService = 'org.aps.analytics.APSAnalyticsService';
+		var tiAnalyticsService = 'org.appcelerator.aps.analytics.APSAnalyticsService';
 		finalAndroidManifest.application.service || (finalAndroidManifest.application.service = {});
 		finalAndroidManifest.application.service[tiAnalyticsService] = {
 			name: tiAnalyticsService,

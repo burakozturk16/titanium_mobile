@@ -362,7 +362,10 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 									} else if (cli.argv['device-id'] == undefined && config.get('ios.autoSelectDevice', true)) {
 										findTargetDevices(cli.argv.target, function (err, devices) {
 											if (cli.argv.target == 'device') {
-												cli.argv['device-id'] = 'itunes';
+												var dev = devices.filter(function (d) {
+														return d.udid != 'itunes' && d.udid != 'all';
+													}).shift();
+												cli.argv['device-id'] = dev ? dev.udid : 'itunes';
 												callback();
 											} else if (cli.argv.target == 'simulator') {
 												// for simulator builds, --device-id is a simulator profile and is not
@@ -745,6 +748,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 											// purposely fall through!
 
 										case 'dist-appstore':
+											_t.conf.options['deploy-type'].values = ['production'];
 											_t.conf.options['device-id'].required = false;
 											_t.conf.options['distribution-name'].required = true;
 											_t.conf.options['pp-uuid'].required = true;
@@ -1324,10 +1328,7 @@ iOSBuilder.prototype.initialize = function initialize(next) {
 	var argv = this.cli.argv;
 
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
-	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
-
 	this.templatesDir = path.join(this.titaniumIosSdkPath, 'templates', 'build');
-
 	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
 
 	this.moduleSearchPaths = [ this.projectDir, afs.resolvePath(this.titaniumIosSdkPath, '..', '..', '..', '..') ];
@@ -2927,9 +2928,11 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 							this.cli.createHook('build.ios.compileJsFile', this, function (r, from, to, cb2) {
 								fs.writeFile(to, r.contents, cb2);
 							})(r, from, to, cb);
+						} else if (symlinkFiles) {
+							copyFile.call(this, from, to, cb);
 						} else {
+							// we've already read in the file, so just write the original contents
 							this.logger.debug(__('Copying %s => %s', from.cyan, to.cyan));
-
 							fs.writeFile(to, r.contents, cb);
 						}
 					})(from, to, done);
