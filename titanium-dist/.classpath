@@ -5,18 +5,18 @@
 	<classpathentry exported="true" kind="lib" path="lib/titanium-app.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-calendar.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-contacts.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/titanium-database.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-database.jar" sourcepath="/titanium-database"/>
 	<classpathentry kind="lib" path="lib/titanium-geolocation.jar" sourcepath="/titanium-geolocation"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-gesture.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-image.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-locale.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-map.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/titanium-network.jar" sourcepath="/titanium-network"/>
+	<classpathentry kind="lib" path="lib/titanium-network.jar" sourcepath="/titanium-network"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-platform.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-utils.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/titanium-filesystem.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-filesystem.jar" sourcepath="/titanium-filesystem"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-xml.jar"/>
-	<classpathentry kind="lib" path="lib/titanium-media.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/titanium-media.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/titanium-analytics.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
