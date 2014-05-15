@@ -450,7 +450,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	 * Sub-classes will need to call handlePostOpen after their window is visible
 	 * so any pending dialogs can successfully show after the window is opened
 	 */
-	public void handlePostOpen()
+	protected void handlePostOpen()
 	{
 		opening = false;
 		opened = true;
