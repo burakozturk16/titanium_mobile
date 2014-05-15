@@ -46,6 +46,7 @@
  * Returns detailed description.
  */
 - (NSString *)detailedDescription;
+- (NSString *)oneLineDescription;
 
 @end
 
