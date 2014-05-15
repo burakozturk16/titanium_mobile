@@ -646,7 +646,6 @@
 		D52A8E73183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
 		D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */; };
-		D52DF20C18C77BC60076FB71 /* libAkylasMapbox.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */; };
 		D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603918609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603A18609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
@@ -743,6 +742,7 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
+		D578CAE819234C730019CA5A /* libAkylasMap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D578CAE319234C680019CA5A /* libAkylasMap.a */; };
 		D5809D5019129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
 		D5809D5119129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
 		D5809D5219129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
@@ -1241,19 +1241,19 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		D52DF1D618C77AF80076FB71 /* PBXContainerItemProxy */ = {
+		D578CAE219234C680019CA5A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = MapBox;
+			remoteInfo = AkylasMap;
 		};
-		D52DF20A18C77BBE0076FB71 /* PBXContainerItemProxy */ = {
+		D578CAE619234C6D0019CA5A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = AkylasMapbox;
+			remoteInfo = AkylasMap;
 		};
 		D5EE1BA41860A11500579573 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -2016,7 +2016,7 @@
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = TiAnimatableProxy.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TiAnimatableProxy.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MapBox.xcodeproj; path = ../../../modules/akylas_modules/mapbox/ios/MapBox.xcodeproj; sourceTree = "<group>"; };
+		D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasMap.xcodeproj; path = ../../../modules/akylas_modules/mapbox/ios/AkylasMap.xcodeproj; sourceTree = "<group>"; };
 		D52DF22C18C7A0550076FB71 /* libMapbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMapbox.a; path = "../../../../ios/MapBox/MapView/build/Debug-iphoneos/libMapbox.a"; sourceTree = "<group>"; };
 		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
 		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
@@ -2314,8 +2314,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D578CAE819234C730019CA5A /* libAkylasMap.a in Frameworks */,
 				312E36C1190B06D9008EAB8D /* libAPSAnalytics.a in Frameworks */,
-				D52DF20C18C77BC60076FB71 /* libAkylasMapbox.a in Frameworks */,
 				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
 				D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */,
 				D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */,
@@ -3934,14 +3934,6 @@
 			name = JRSwizzle;
 			sourceTree = "<group>";
 		};
-		D52DF1CE18C77AF80076FB71 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D55795071837BEF90057DD41 /* CoconutKitAnimation */ = {
 			isa = PBXGroup;
 			children = (
@@ -4005,7 +3997,7 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
-				D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */,
+				D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */,
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
 				D5E75A70187C58F00016542B /* icon@2x.png */,
@@ -4074,6 +4066,14 @@
 				D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */,
 			);
 			name = transitions;
+			sourceTree = "<group>";
+		};
+		D578CADD19234C680019CA5A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D578CAE319234C680019CA5A /* libAkylasMap.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		D5B6C6DD1811249F00A2612A /* DT */ = {
@@ -4318,7 +4318,7 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
-				D52DF20B18C77BBE0076FB71 /* PBXTargetDependency */,
+				D578CAE719234C6D0019CA5A /* PBXTargetDependency */,
 				D5EE1BEC1860CAC300579573 /* PBXTargetDependency */,
 				D5EE1BE11860ABDB00579573 /* PBXTargetDependency */,
 				D5EE1BA71860A12800579573 /* PBXTargetDependency */,
@@ -4403,16 +4403,16 @@
 					ProjectRef = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
 				},
 				{
+					ProductGroup = D578CADD19234C680019CA5A /* Products */;
+					ProjectRef = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
+				},
+				{
 					ProductGroup = D5EE1BA01860A11400579573 /* Products */;
 					ProjectRef = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
 				},
 				{
 					ProductGroup = D5EE1BDA1860ABD100579573 /* Products */;
 					ProjectRef = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
-				},
-				{
-					ProductGroup = D52DF1CE18C77AF80076FB71 /* Products */;
-					ProjectRef = D52DF1CD18C77AF80076FB71 /* MapBox.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -4425,11 +4425,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D52DF1D718C77AF80076FB71 /* libAkylasMapbox.a */ = {
+		D578CAE319234C680019CA5A /* libAkylasMap.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasMapbox.a;
-			remoteRef = D52DF1D618C77AF80076FB71 /* PBXContainerItemProxy */;
+			path = libAkylasMap.a;
+			remoteRef = D578CAE219234C680019CA5A /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		D5EE1BA51860A11500579573 /* libAkylasShapes.a */ = {
@@ -5666,10 +5666,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D52DF20B18C77BBE0076FB71 /* PBXTargetDependency */ = {
+		D578CAE719234C6D0019CA5A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = AkylasMapbox;
-			targetProxy = D52DF20A18C77BBE0076FB71 /* PBXContainerItemProxy */;
+			name = AkylasMap;
+			targetProxy = D578CAE619234C6D0019CA5A /* PBXContainerItemProxy */;
 		};
 		D5EE1BA71860A12800579573 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
