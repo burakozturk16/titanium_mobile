@@ -153,6 +153,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
 	protected ArrayList<HashMap> pendingTransitions;
 	protected Object pendingTransitionLock;
+
+    private boolean viewRealised = false;
 	/**
 	 * Constructs a new TiViewProxy instance.
 	 * @module.api
@@ -438,6 +440,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	public boolean viewAttached() {
 	    return view != null;
 	}
+    
+    public boolean viewInitialised() {
+        return viewAttached() && viewRealised;
+    }
 
 	/**
 	 * @return the TiUIView associated with this proxy.
@@ -579,6 +585,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				view.registerForTouch();
 				view.registerForKeyPress();
 			}
+			viewRealised  = true;
 		}
 		return view;
 	}
@@ -665,6 +672,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 			view.release();
 			view = null;
+			viewRealised = false;
 		}
 		setModelListener(null);
 		KrollRuntime.suggestGC();
