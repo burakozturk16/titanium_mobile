@@ -281,7 +281,9 @@
     
     if (!isModal && (tab==nil)) {
         openAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
-        [self rememberProxy:openAnimation];
+        if (openAnimation) {
+            [self rememberProxy:openAnimation];
+        }
     }
     [self updateOrientationModes];
     
@@ -357,7 +359,9 @@
     
     //TODO Argument Processing
     closeAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
-    [self rememberProxy:closeAnimation];
+    if (closeAnimation) {
+        [self rememberProxy:closeAnimation];
+    }
 
     //GO ahead and call close on UI thread
     TiThreadPerformOnMainThread(^{
@@ -387,8 +391,10 @@
 {
     TiRootViewController* theController = [[TiApp app] controller];
     if (isModal || (tab != nil) || self.isManaged) {
-        [self forgetProxy:closeAnimation];
-        RELEASE_TO_NIL(closeAnimation);
+        if (closeAnimation) {
+            [self forgetProxy:closeAnimation];
+            RELEASE_TO_NIL(closeAnimation);
+        }
     }
     if ( (!self.isManaged) && (!isModal) && (closeAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
         DeveloperLog(@"[WARN] The top View controller is not a container controller. This window will close behind the presented controller without animations.")
