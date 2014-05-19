@@ -742,7 +742,6 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
-		D578CAE819234C730019CA5A /* libAkylasMap.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D578CAE319234C680019CA5A /* libAkylasMap.a */; };
 		D5809D5019129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
 		D5809D5119129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
 		D5809D5219129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
@@ -774,6 +773,11 @@
 		D58DCBD217FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
 		D58DCBD317FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
 		D58DCBD417FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
+		D58ED9061928F49F00BA0E04 /* libakylas.charts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */; };
+		D58ED9071928F49F00BA0E04 /* libakylas.commonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8FB1928E6F800BA0E04 /* libakylas.commonjs.a */; };
+		D58ED9081928F49F00BA0E04 /* libakylas.map.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8E91928E6F700BA0E04 /* libakylas.map.a */; };
+		D58ED9091928F49F00BA0E04 /* libakylas.shapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8EF1928E6F700BA0E04 /* libakylas.shapes.a */; };
+		D58ED90A1928F49F00BA0E04 /* libakylas.slidemenu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8F51928E6F800BA0E04 /* libakylas.slidemenu.a */; };
 		D590815C168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
 		D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
 		D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5908158168B593B00362307 /* TiUIHorizontalTableView.m */; };
@@ -789,6 +793,7 @@
 		D59EC23D180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */ = {isa = PBXBuildFile; fileRef = D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */; };
 		D59EC23E180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */ = {isa = PBXBuildFile; fileRef = D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */; };
 		D59EC23F180FDC5D00FDDD11 /* TiTransitionFold.m in Sources */ = {isa = PBXBuildFile; fileRef = D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */; };
+		D5A016CA1926109E0005158A /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5A016C91926109E0005158A /* Accelerate.framework */; };
 		D5AADFAB17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
 		D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */ = {isa = PBXBuildFile; fileRef = D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */; };
@@ -900,9 +905,6 @@
 		D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
-		D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BA51860A11500579573 /* libAkylasShapes.a */; settings = {ATTRIBUTES = (Weak, ); }; };
-		D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */; settings = {ATTRIBUTES = (Weak, ); }; };
-		D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */; settings = {ATTRIBUTES = (Weak, ); }; };
 		D5FD09DC1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
 		D5FD09DD1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
 		D5FD09DE1830EFE2000FF4C5 /* TiAnimatedImage.m in Sources */ = {isa = PBXBuildFile; fileRef = D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */; };
@@ -1241,61 +1243,75 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
-		D578CAE219234C680019CA5A /* PBXContainerItemProxy */ = {
+		D58ED8E11928E6F700BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
+			containerPortal = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = AkylasMap;
+			remoteInfo = akylas.charts;
 		};
-		D578CAE619234C6D0019CA5A /* PBXContainerItemProxy */ = {
+		D58ED8E81928E6F700BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = AkylasMap;
-		};
-		D5EE1BA41860A11500579573 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = AkylasShapes;
+			remoteInfo = akylas.map;
 		};
-		D5EE1BA61860A12800579573 /* PBXContainerItemProxy */ = {
+		D58ED8EE1928E6F700BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = AkylasShapes;
-		};
-		D5EE1BDE1860ABD100579573 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+			containerPortal = D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = AkylasSlidemenu;
+			remoteInfo = akylas.shapes;
 		};
-		D5EE1BE01860ABDB00579573 /* PBXContainerItemProxy */ = {
+		D58ED8F41928E6F800BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = AkylasSlidemenu;
-		};
-		D5EE1BE81860CAB900579573 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+			containerPortal = D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = ak_commonjs_ios;
+			remoteInfo = akylas.slidemenu;
 		};
-		D5EE1BEB1860CAC300579573 /* PBXContainerItemProxy */ = {
+		D58ED8FA1928E6F800BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+			containerPortal = D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = akylas.commonjs;
+		};
+		D58ED8FC1928F48B00BA0E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = ak_commonjs_ios;
+			remoteInfo = akylas.charts;
+		};
+		D58ED8FE1928F48E00BA0E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.map;
+		};
+		D58ED9001928F49000BA0E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.commonjs;
+		};
+		D58ED9021928F49300BA0E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.slidemenu;
+		};
+		D58ED9041928F49600BA0E04 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.shapes;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -2016,7 +2032,7 @@
 		D526016B179DB3EA00FE5723 /* TiSelectableBackgroundLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiSelectableBackgroundLayer.m; sourceTree = "<group>"; };
 		D52A8E71183606F6001AC6A1 /* TiAnimatableProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = TiAnimatableProxy.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		D52A8E72183606F6001AC6A1 /* TiAnimatableProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TiAnimatableProxy.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasMap.xcodeproj; path = ../../../modules/akylas_modules/mapbox/ios/AkylasMap.xcodeproj; sourceTree = "<group>"; };
+		D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.map.xcodeproj; path = ../../../modules/akylas_modules/mapbox/ios/akylas.map.xcodeproj; sourceTree = "<group>"; };
 		D52DF22C18C7A0550076FB71 /* libMapbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMapbox.a; path = "../../../../ios/MapBox/MapView/build/Debug-iphoneos/libMapbox.a"; sourceTree = "<group>"; };
 		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
 		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
@@ -2113,6 +2129,8 @@
 		D59DD42618096186002FDCDF /* ADModernPushTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADModernPushTransition.m; path = ../Classes/ADTransitionController/ADModernPushTransition.m; sourceTree = "<group>"; };
 		D59EC23B180FDC5D00FDDD11 /* TiTransitionFold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionFold.h; sourceTree = "<group>"; };
 		D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionFold.m; sourceTree = "<group>"; };
+		D5A016AB192607F10005158A /* akylas.charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.charts.xcodeproj; path = ../../../modules/akylas_modules/charts/ios/akylas.charts.xcodeproj; sourceTree = "<group>"; };
+		D5A016C91926109E0005158A /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
 		D5B04533191D2EC4001CF02F /* TiFileSystemHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiFileSystemHelper.h; sourceTree = "<group>"; };
@@ -2255,9 +2273,9 @@
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
 		D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libresolv.dylib; path = usr/lib/libresolv.dylib; sourceTree = SDKROOT; };
-		D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasShapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/AkylasShapes.xcodeproj; sourceTree = "<group>"; };
-		D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = AkylasSlidemenu.xcodeproj; path = ../../../modules/akylas_modules/slidemenu/ios/AkylasSlidemenu.xcodeproj; sourceTree = "<group>"; };
-		D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ak_commonjs_ios.xcodeproj; path = ../../../modules/akylas_modules/commonjs/ios/ak_commonjs_ios.xcodeproj; sourceTree = "<group>"; };
+		D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.shapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/akylas.shapes.xcodeproj; sourceTree = "<group>"; };
+		D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.slidemenu.xcodeproj; path = ../../../modules/akylas_modules/slidemenu/ios/akylas.slidemenu.xcodeproj; sourceTree = "<group>"; };
+		D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.commonjs.xcodeproj; path = ../../../modules/akylas_modules/commonjs/ios/akylas.commonjs.xcodeproj; sourceTree = "<group>"; };
 		D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAnimatedImage.h; sourceTree = "<group>"; };
 		D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAnimatedImage.m; sourceTree = "<group>"; };
 		D930111C16DA9D61002E25C2 /* TiCalendarRecurrenceRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiCalendarRecurrenceRule.h; sourceTree = "<group>"; };
@@ -2314,12 +2332,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D578CAE819234C730019CA5A /* libAkylasMap.a in Frameworks */,
+				D58ED9061928F49F00BA0E04 /* libakylas.charts.a in Frameworks */,
+				D58ED9071928F49F00BA0E04 /* libakylas.commonjs.a in Frameworks */,
+				D58ED9081928F49F00BA0E04 /* libakylas.map.a in Frameworks */,
+				D58ED9091928F49F00BA0E04 /* libakylas.shapes.a in Frameworks */,
+				D58ED90A1928F49F00BA0E04 /* libakylas.slidemenu.a in Frameworks */,
+				D5A016CA1926109E0005158A /* Accelerate.framework in Frameworks */,
 				312E36C1190B06D9008EAB8D /* libAPSAnalytics.a in Frameworks */,
 				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
-				D5EE1BEA1860CABE00579573 /* libAkylasCommonjs.a in Frameworks */,
-				D5EE1BE21860ABDF00579573 /* libAkylasSlidemenu.a in Frameworks */,
-				D5EE1BA81860A12D00579573 /* libAkylasShapes.a in Frameworks */,
 				D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */,
 				D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */,
@@ -3555,6 +3575,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D5A016C91926109E0005158A /* Accelerate.framework */,
 				B606EF5F190B42FB00663EFC /* libAPSHTTPClient.a */,
 				D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */,
 				D52DF22C18C7A0550076FB71 /* libMapbox.a */,
@@ -3997,13 +4018,14 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
-				D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */,
+				D5A016AB192607F10005158A /* akylas.charts.xcodeproj */,
+				D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */,
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
 				D5E75A70187C58F00016542B /* icon@2x.png */,
-				D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */,
-				D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */,
-				D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */,
+				D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */,
+				D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */,
+				D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */,
 			);
 			name = _dependencies_;
 			sourceTree = "<group>";
@@ -4068,10 +4090,42 @@
 			name = transitions;
 			sourceTree = "<group>";
 		};
-		D578CADD19234C680019CA5A /* Products */ = {
+		D58ED8DD1928E6F700BA0E04 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D578CAE319234C680019CA5A /* libAkylasMap.a */,
+				D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D58ED8E41928E6F700BA0E04 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D58ED8E91928E6F700BA0E04 /* libakylas.map.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D58ED8EA1928E6F700BA0E04 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D58ED8EF1928E6F700BA0E04 /* libakylas.shapes.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D58ED8F01928E6F800BA0E04 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D58ED8F51928E6F800BA0E04 /* libakylas.slidemenu.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D58ED8F61928E6F800BA0E04 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D58ED8FB1928E6F800BA0E04 /* libakylas.commonjs.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4231,30 +4285,6 @@
 			name = UIViewsTouchDelegate;
 			sourceTree = "<group>";
 		};
-		D5EE1BA01860A11400579573 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D5EE1BA51860A11500579573 /* libAkylasShapes.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		D5EE1BDA1860ABD100579573 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		D5EE1BE41860CAB900579573 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D93DAA4C16CBF8A000AD64C9 /* Calendar */ = {
 			isa = PBXGroup;
 			children = (
@@ -4318,10 +4348,11 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
-				D578CAE719234C6D0019CA5A /* PBXTargetDependency */,
-				D5EE1BEC1860CAC300579573 /* PBXTargetDependency */,
-				D5EE1BE11860ABDB00579573 /* PBXTargetDependency */,
-				D5EE1BA71860A12800579573 /* PBXTargetDependency */,
+				D58ED9051928F49600BA0E04 /* PBXTargetDependency */,
+				D58ED9031928F49300BA0E04 /* PBXTargetDependency */,
+				D58ED9011928F49000BA0E04 /* PBXTargetDependency */,
+				D58ED8FF1928F48E00BA0E04 /* PBXTargetDependency */,
+				D58ED8FD1928F48B00BA0E04 /* PBXTargetDependency */,
 			);
 			name = "Titanium-KitchenSink";
 			productName = Titanium;
@@ -4399,20 +4430,24 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = D5EE1BE41860CAB900579573 /* Products */;
-					ProjectRef = D5EE1BE31860CAB900579573 /* ak_commonjs_ios.xcodeproj */;
+					ProductGroup = D58ED8DD1928E6F700BA0E04 /* Products */;
+					ProjectRef = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
 				},
 				{
-					ProductGroup = D578CADD19234C680019CA5A /* Products */;
-					ProjectRef = D52DF1CD18C77AF80076FB71 /* AkylasMap.xcodeproj */;
+					ProductGroup = D58ED8F61928E6F800BA0E04 /* Products */;
+					ProjectRef = D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */;
 				},
 				{
-					ProductGroup = D5EE1BA01860A11400579573 /* Products */;
-					ProjectRef = D5EE1B9F1860A11400579573 /* AkylasShapes.xcodeproj */;
+					ProductGroup = D58ED8E41928E6F700BA0E04 /* Products */;
+					ProjectRef = D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */;
 				},
 				{
-					ProductGroup = D5EE1BDA1860ABD100579573 /* Products */;
-					ProjectRef = D5EE1BD91860ABD100579573 /* AkylasSlidemenu.xcodeproj */;
+					ProductGroup = D58ED8EA1928E6F700BA0E04 /* Products */;
+					ProjectRef = D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */;
+				},
+				{
+					ProductGroup = D58ED8F01928E6F800BA0E04 /* Products */;
+					ProjectRef = D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -4425,32 +4460,39 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D578CAE319234C680019CA5A /* libAkylasMap.a */ = {
+		D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasMap.a;
-			remoteRef = D578CAE219234C680019CA5A /* PBXContainerItemProxy */;
+			path = libakylas.charts.a;
+			remoteRef = D58ED8E11928E6F700BA0E04 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		D5EE1BA51860A11500579573 /* libAkylasShapes.a */ = {
+		D58ED8E91928E6F700BA0E04 /* libakylas.map.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasShapes.a;
-			remoteRef = D5EE1BA41860A11500579573 /* PBXContainerItemProxy */;
+			path = libakylas.map.a;
+			remoteRef = D58ED8E81928E6F700BA0E04 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		D5EE1BDF1860ABD100579573 /* libAkylasSlidemenu.a */ = {
+		D58ED8EF1928E6F700BA0E04 /* libakylas.shapes.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasSlidemenu.a;
-			remoteRef = D5EE1BDE1860ABD100579573 /* PBXContainerItemProxy */;
+			path = libakylas.shapes.a;
+			remoteRef = D58ED8EE1928E6F700BA0E04 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		D5EE1BE91860CAB900579573 /* libAkylasCommonjs.a */ = {
+		D58ED8F51928E6F800BA0E04 /* libakylas.slidemenu.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libAkylasCommonjs.a;
-			remoteRef = D5EE1BE81860CAB900579573 /* PBXContainerItemProxy */;
+			path = libakylas.slidemenu.a;
+			remoteRef = D58ED8F41928E6F800BA0E04 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D58ED8FB1928E6F800BA0E04 /* libakylas.commonjs.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libakylas.commonjs.a;
+			remoteRef = D58ED8FA1928E6F800BA0E04 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -5666,25 +5708,30 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D578CAE719234C6D0019CA5A /* PBXTargetDependency */ = {
+		D58ED8FD1928F48B00BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = AkylasMap;
-			targetProxy = D578CAE619234C6D0019CA5A /* PBXContainerItemProxy */;
+			name = akylas.charts;
+			targetProxy = D58ED8FC1928F48B00BA0E04 /* PBXContainerItemProxy */;
 		};
-		D5EE1BA71860A12800579573 /* PBXTargetDependency */ = {
+		D58ED8FF1928F48E00BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = AkylasShapes;
-			targetProxy = D5EE1BA61860A12800579573 /* PBXContainerItemProxy */;
+			name = akylas.map;
+			targetProxy = D58ED8FE1928F48E00BA0E04 /* PBXContainerItemProxy */;
 		};
-		D5EE1BE11860ABDB00579573 /* PBXTargetDependency */ = {
+		D58ED9011928F49000BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = AkylasSlidemenu;
-			targetProxy = D5EE1BE01860ABDB00579573 /* PBXContainerItemProxy */;
+			name = akylas.commonjs;
+			targetProxy = D58ED9001928F49000BA0E04 /* PBXContainerItemProxy */;
 		};
-		D5EE1BEC1860CAC300579573 /* PBXTargetDependency */ = {
+		D58ED9031928F49300BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = ak_commonjs_ios;
-			targetProxy = D5EE1BEB1860CAC300579573 /* PBXContainerItemProxy */;
+			name = akylas.slidemenu;
+			targetProxy = D58ED9021928F49300BA0E04 /* PBXContainerItemProxy */;
+		};
+		D58ED9051928F49600BA0E04 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = akylas.shapes;
+			targetProxy = D58ED9041928F49600BA0E04 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
