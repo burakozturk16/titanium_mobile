@@ -748,7 +748,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 											// purposely fall through!
 
 										case 'dist-appstore':
-											_t.conf.options['deploy-type'].values = ['production'];
+                                            if (value === 'dist-appstore')_t.conf.options['deploy-type'].values = ['production'];
 											_t.conf.options['device-id'].required = false;
 											_t.conf.options['distribution-name'].required = true;
 											_t.conf.options['pp-uuid'].required = true;
