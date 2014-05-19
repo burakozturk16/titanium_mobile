@@ -1297,5 +1297,19 @@ DEFINE_EXCEPTIONS
 			 ] autorelease];
 }
 
+-(id)objectOfClass:(Class)theClass fromArg:(id)arg {
+    return [TiProxy objectOfClass:theClass fromArg:arg inContext:[self pageContext]];
+}
 
++(id)objectOfClass:(Class)theClass fromArg:(id)arg inContext:(id<TiEvaluator>)context_ {
+    if ([arg isKindOfClass:[NSArray class]] && [arg count] >0) {
+        arg = [arg objectAtIndex:0];
+    }
+	if ([arg isKindOfClass:[theClass class]])
+	{
+		return arg;
+	}
+    if (arg == nil || ![arg isKindOfClass:[NSDictionary class]]) return nil;
+	return [[[[theClass class] alloc] _initWithPageContext:context_ args:[NSArray arrayWithObject:arg]] autorelease];
+}
 @end
