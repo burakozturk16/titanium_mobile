@@ -606,7 +606,6 @@ else{\
     
     if ([theItems count] == 0) {
         [theItems release];
-        SETPROPOBJ(@"rightNavButton",setRightNavButton);
         return;
     }
     
@@ -686,7 +685,6 @@ else{\
     }
     if ([theItems count] == 0) {
         [theItems release];
-        SETPROPOBJ(@"leftNavButton",setLeftNavButton);
         return;
     }
     
@@ -936,7 +934,7 @@ else{\
         if (shouldUpdateNavBar && controller != nil && controller!=nil && navController != nil) {
             controller.navigationItem.title = title;
         }
-    }, NO);
+    }, YES);
 }
 
 -(void)setTitlePrompt:(NSString*)title_
