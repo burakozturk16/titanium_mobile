@@ -109,10 +109,10 @@ void TiLogMessage(NSString* str, ...) {
             }
         }
         else{
-#pragma push
-#undef NSLog
+            //#pragma push
+//#undef NSLog
             NSLog(@"%@",message);
-#pragma pop
+            //#pragma pop
         }
     }
     [message release];
@@ -152,10 +152,8 @@ void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName
             }
         }
         else{
-#pragma push
-#undef NSLog
             NSLog(@"%@",message);
-#pragma pop
+
         }
     }
     [message release];
