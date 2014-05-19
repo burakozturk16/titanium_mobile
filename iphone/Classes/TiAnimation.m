@@ -83,6 +83,9 @@ static NSArray *animProps;
 	}
 	else if ([args isKindOfClass:[NSArray class]])
 	{
+        if ([args count] == 0) {
+            return nil;
+        }
 		isArray = YES;
 		arg = [args objectAtIndex:0];
 		if ([arg isKindOfClass:[TiAnimation class]])
