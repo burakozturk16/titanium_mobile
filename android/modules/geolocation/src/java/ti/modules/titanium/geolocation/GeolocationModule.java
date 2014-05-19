@@ -20,7 +20,6 @@ import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.util.TiConvert;
 
 import ti.modules.titanium.geolocation.TiLocation.GeocodeResponseHandler;
