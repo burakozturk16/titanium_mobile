@@ -190,5 +190,9 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 
 @property(nonatomic,readonly) NSUserDefaults *userDefaults;
 
+//TiNSLog is just a wrapper around NSLog for modules override
+//if you override it make sure to undef NSLog 
++(void)TiNSLog:(NSString*) message;
+
 @end
 

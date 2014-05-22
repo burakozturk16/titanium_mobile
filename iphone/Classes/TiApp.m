@@ -1129,4 +1129,12 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
     return defaultsObject;
 }
 
++(void)TiNSLog:(NSString*) message
+{
+#pragma push
+#undef NSLog
+    NSLog(@"%@",message);
+#pragma pop
+}
+
 @end

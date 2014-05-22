@@ -90,6 +90,7 @@ void TiLogMessage(NSString* str, ...) {
     va_start(args, str);
     
     NSString* message = [[NSString alloc] initWithFormat:str arguments:args];
+#if defined(DEBUG) || defined(DEVELOPER)
     if ([[TiApp app] debugMode]) {
         TiDebuggerLogMessage(OUT, message);
     }
@@ -109,12 +110,12 @@ void TiLogMessage(NSString* str, ...) {
             }
         }
         else{
-            //#pragma push
-//#undef NSLog
-            NSLog(@"%@",message);
-            //#pragma pop
+#endif
+            [TiApp TiNSLog:message];
+#if defined(DEBUG) || defined(DEVELOPER)
         }
     }
+#endif
     [message release];
 }
 
@@ -152,8 +153,10 @@ void TiLogMoreMessage(const char *file, int lineNumber, const char *functionName
             }
         }
         else{
-            NSLog(@"%@",message);
-
+#pragma push
+#undef NSLog
+            [TiApp TiNSLog:message];
+#pragma pop
         }
     }
     [message release];
