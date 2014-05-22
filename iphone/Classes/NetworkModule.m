@@ -14,11 +14,19 @@
 #import "TiBlob.h"
 #import "TiNetworkSocketProxy.h"
 #import "TiUtils.h"
+
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
 #import <SystemConfiguration/CaptiveNetwork.h>
-#import <ifaddrs.h>
-#import <net/if.h>
+
 #include <mach/mach_time.h>
+#import <ifaddrs.h>
+//#import <netinet/in.h>
+#import <net/if.h>
+#import <arpa/inet.h>
+#import "Reachability.h"
+
+NSString* const WIFI_IFACE = @"en0";
+NSString* const DATA_IFACE = @"pdp_ip0";
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 static NSOperationQueue *_operationQueue = nil;
@@ -26,6 +34,7 @@ static NSOperationQueue *_operationQueue = nil;
 {
     dispatch_semaphore_t _startingSema;
     BOOL _firstUpdateDone;
+	NSString *address;
 }
 
 -(NSString*)apiName
@@ -33,7 +42,7 @@ static NSOperationQueue *_operationQueue = nil;
     return @"Ti.Network";
 }
 
--(NSString*)INADDR_ANY
+-(NSString*)getINADDR_ANY
 {
     return INADDR_ANY_token;
 }
@@ -95,6 +104,7 @@ static NSOperationQueue *_operationQueue = nil;
 	RELEASE_TO_NIL(pushNotificationCallback);
 	RELEASE_TO_NIL(pushNotificationError);
 	RELEASE_TO_NIL(pushNotificationSuccess);
+	RELEASE_TO_NIL(address);
     [self forgetProxy:socketProxy];
     RELEASE_TO_NIL(socketProxy);
 	[super _destroy];
@@ -223,7 +233,7 @@ static NSOperationQueue *_operationQueue = nil;
     CTCarrier *carrier = [netinfo subscriberCellularProvider];
     if (carrier != nil)
         return [carrier carrierName];
-    return (NSString*)[NSNull null];
+    return @"";
 }
 
 -(NSNumber*)networkType
@@ -232,25 +242,111 @@ static NSOperationQueue *_operationQueue = nil;
     return NUMINT(state);
 }
 
+
+-(NSString*)address
+{
+#if TARGET_IPHONE_SIMULATOR
+    // Assume classical ethernet and wifi interfaces
+    NSArray* interfaces = [NSArray arrayWithObjects:@"en0", @"en1", nil];
+    for (NSString* interface in interfaces) {
+        NSString* iface = [self getIface:interface mask:NO];
+        if (iface) {
+            return iface;
+        }
+    }
+    return @"";
+#else
+    return [self getIface:WIFI_IFACE mask:NO];
+#endif
+}
+
+-(NSString*)dataAddress
+{
+#if TARGET_IPHONE_SIMULATOR
+    return @""; // Handy shortcut
+#else
+    return [self getIface:DATA_IFACE mask:NO];
+#endif
+}
+
+// Only available for the local wifi; why would you want it for the data network?
+-(NSString*)netmask
+{
+#if TARGET_IPHONE_SIMULATOR
+    // Assume classical ethernet and wifi interfaces
+    NSArray* interfaces = [NSArray arrayWithObjects:@"en0", @"en1", nil];
+    for (NSString* interface in interfaces) {
+        NSString* iface = [self getIface:interface mask:YES];
+        if (iface) {
+            return iface;
+        }
+    }
+    return @"";
+#else
+    return [self getIface:WIFI_IFACE mask:YES];
+#endif
+}
+
+-(NSString*)getIface:(NSString*)iname mask:(BOOL)mask
+{
+    struct ifaddrs* head = NULL;
+    struct ifaddrs* ifaddr = NULL;
+    getifaddrs(&head);
+    
+    NSString* str = nil;
+    for (ifaddr = head; ifaddr != NULL; ifaddr = ifaddr->ifa_next) {
+        if (ifaddr->ifa_addr->sa_family == AF_INET &&
+            !strcmp(ifaddr->ifa_name, [iname UTF8String])) {
+            
+            char ipaddr[20];
+            struct sockaddr_in* addr;
+            if (mask) {
+                addr = (struct sockaddr_in*)ifaddr->ifa_netmask;
+            }
+            else {
+                addr = (struct sockaddr_in*)ifaddr->ifa_addr;
+            }
+            inet_ntop(addr->sin_family, &(addr->sin_addr), ipaddr, 20);
+            str = [NSString stringWithUTF8String:ipaddr];
+            break;
+        }
+    }
+    
+    freeifaddrs(head);
+    return str;
+}
+
 - (id)networkInfo
 {
+    NSMutableDictionary* result = [NSMutableDictionary dictionary];
+#if TARGET_IPHONE_SIMULATOR
+    [result setObject: @{
+                         @"ip":[self address],
+                         @"netmask":[self netmask],
+                         } forKey:@"wifi"] ;
+#else
     NSArray *ifs = (id)CNCopySupportedInterfaces();
     CFDictionaryRef networkinfo = nil;
-    NSDictionary* result = nil;
     for (NSString *ifnam in ifs) {
         networkinfo = CNCopyCurrentNetworkInfo((CFStringRef)ifnam);
         if (networkinfo) {
-            result = @{
-                       @"interface":ifnam,
-                       @"ssid": (NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeySSID),
-                       @"bssid":(NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeyBSSID)
-                       };
+            [result setObject: @{
+                                 @"ip":[self address],
+                                 @"netmask":[self netmask],
+                                 @"ssid": (NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeySSID),
+                                 @"bssid":(NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeyBSSID)
+                                 } forKey:@"wifi"] ;
             break;
         }
         CFRelease(networkinfo);
     }
     [ifs release];
-    CFRelease(networkinfo);
+    if (networkinfo) CFRelease(networkinfo);
+#endif
+    [result setObject: @{
+                         @"carrierName":[self carrierName],
+                         @"ip":[self dataAddress],
+                         } forKey:@"wwan"] ;
     return result;
 }
 
@@ -274,10 +370,10 @@ static NSOperationQueue *_operationQueue = nil;
     const struct ifaddrs *cursor;
     const struct if_data *networkStatisc;
     
-    int WiFiSent = 0;
-    int WiFiReceived = 0;
-    int WWANSent = 0;
-    int WWANReceived = 0;
+    long WiFiSent = 0;
+    long WiFiReceived = 0;
+    long WWANSent = 0;
+    long WWANReceived = 0;
     
     NSString *name=[[[NSString alloc]init]autorelease];
     
@@ -317,8 +413,8 @@ static NSOperationQueue *_operationQueue = nil;
     return @{
              @"boottime":NUMLONGLONG([boottime timeIntervalSince1970]*1000.0),
              @"timestamp":NUMLONGLONG([now timeIntervalSince1970]*1000.0),
-             @"wifi":@{@"sent_bytes": NUMLONG(WiFiSent), @"received_bytes": NUMLONG(WiFiReceived)},
-             @"wwan":@{@"sent_bytes": NUMLONG(WWANSent), @"received_bytes": NUMLONG(WWANReceived)}
+             @"wifi":@{@"sent_bytes": NUMLONG(abs(WiFiSent)), @"received_bytes": NUMLONG(abs(WiFiReceived))},
+             @"wwan":@{@"sent_bytes": NUMLONG(abs(WWANSent)), @"received_bytes": NUMLONG(abs(WWANReceived))}
     };
 }
 

@@ -9,7 +9,6 @@
 #import "TiBase.h"
 #import "TiModule.h"
 #import "KrollCallback.h"
-#import "Reachability.h"
 
 typedef enum {
 	READ_MODE = 1,
@@ -24,6 +23,7 @@ typedef enum {
     TLS_VERSION_1_2
 } TLSVersion;
 
+@class Reachability;
 @interface NetworkModule : TiModule {
 @private
 	TiNetworkConnectionState state;
