@@ -121,17 +121,6 @@ public class PlatformModule extends KrollModule
 		return TiPlatformHelper.getInstance().getArchitecture();
 	}
 
-
-	@Kroll.getProperty @Kroll.method
-	public String getAddress() {
-		return TiPlatformHelper.getInstance().getIpAddress();
-	}
-
-	@Kroll.getProperty @Kroll.method
-	public String getNetmask() {
-		return TiPlatformHelper.getInstance().getNetmask();
-	}
-
 	@Kroll.method
 	public boolean is24HourTimeFormat()
 	{

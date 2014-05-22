@@ -8,10 +8,12 @@ package ti.modules.titanium.network;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.apache.http.client.CookieStore;
@@ -27,15 +29,19 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.util.TiPlatformHelper;
 
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
+import android.net.DhcpInfo;
 import android.net.NetworkInfo;
+import android.net.TrafficStats;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.ScanResult;
 import android.os.Bundle;
@@ -472,6 +478,7 @@ public class NetworkModule extends KrollModule {
 	public KrollDict currentWifiAccessPoint()
 	{
 		KrollDict result = null;
+		
 		WifiConfiguration currentConf = getCurrentWifiApConfiguration();
 		if (currentConf != null){
 			result = new KrollDict();
@@ -576,6 +583,14 @@ public class NetworkModule extends KrollModule {
 		}
 
 		return cm;
+	}
+	
+	private WifiManager getWifiManager() {
+        TiApplication tiApp = TiApplication.getInstance();
+	    if(tiApp.getRootActivity().checkCallingOrSelfPermission(Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED) {
+            return (WifiManager) tiApp.getRootActivity().getSystemService(Context.WIFI_SERVICE);
+	    }
+	    return null;
 	}
 
 	@Override
@@ -934,4 +949,76 @@ public class NetworkModule extends KrollModule {
 	{
 		return "Ti.Network";
 	}
+	
+
+    @Kroll.getProperty @Kroll.method
+    public String getAddress() {
+        return TiPlatformHelper.getInstance().getIpAddress();
+    }
+
+    @Kroll.getProperty @Kroll.method
+    public String getNetmask() {
+        return TiPlatformHelper.getInstance().getNetmask();
+    }
+    
+    private final String formatIp(final int ipAddress) {
+        return String.format("%d.%d.%d.%d",
+                (ipAddress & 0xff),
+                (ipAddress >> 8 & 0xff),
+                (ipAddress >> 16 & 0xff),
+                (ipAddress >> 24 & 0xff));
+    }
+
+	
+	@Kroll.getProperty @Kroll.method
+    public KrollDict getNetworkInfo()
+    {
+	    KrollDict result = new KrollDict();
+        KrollDict wifi = new KrollDict();
+        KrollDict cell = new KrollDict();
+
+	    WifiManager wifiManager = getWifiManager();
+	    if (wifiManager != null) {
+            final WifiInfo connectionInfo = wifiManager.getConnectionInfo();
+            DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
+            if (connectionInfo != null){
+                result = new KrollDict();
+                wifi.put("ssid", connectionInfo.getSSID().replace("\"", ""));
+                wifi.put("bssid", connectionInfo.getBSSID());
+                wifi.put("ip", formatIp(connectionInfo.getIpAddress()));
+                wifi.put("linkSpeed", connectionInfo.getLinkSpeed() + WifiInfo.LINK_SPEED_UNITS);
+                wifi.put("macAddress", connectionInfo.getMacAddress());
+            }
+            if (dhcpInfo != null) {
+                wifi.put("netmask", formatIp(dhcpInfo.netmask));
+            }
+	    }
+        cell.put("carrierName", getCarrierName());
+        result.put("wifi", wifi);
+        result.put("wwan", cell);
+        return result;
+    }
+	
+	@Kroll.getProperty @Kroll.method
+    public KrollDict getNetworkStats()
+    {
+        long currentTime = java.lang.System.currentTimeMillis();
+        KrollDict stats = new KrollDict();
+        KrollDict wifi = new KrollDict();
+        KrollDict cell = new KrollDict();
+        
+        long cellReceived = TrafficStats.getMobileRxBytes();
+        long cellSent = TrafficStats.getMobileTxBytes();
+        
+        cell.put("received_bytes", cellReceived);
+        cell.put("sent_bytes", cellSent);
+        wifi.put("received_bytes",  TrafficStats.getTotalRxBytes() - cellReceived);
+        wifi.put("sent_bytes",  TrafficStats.getTotalTxBytes() - cellSent);
+        stats.put("wifi", wifi);
+        stats.put("wwan", cell);
+        stats.put("boottime", currentTime - android.os.SystemClock.elapsedRealtime());
+        stats.put("timestamp", currentTime);
+        return stats;
+    }
+    
 }
