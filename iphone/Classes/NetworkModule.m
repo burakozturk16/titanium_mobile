@@ -15,6 +15,10 @@
 #import "TiNetworkSocketProxy.h"
 #import "TiUtils.h"
 #import <CoreTelephony/CTTelephonyNetworkInfo.h>
+#import <SystemConfiguration/CaptiveNetwork.h>
+#import <ifaddrs.h>
+#import <net/if.h>
+#include <mach/mach_time.h>
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 static NSOperationQueue *_operationQueue = nil;
@@ -226,6 +230,96 @@ static NSOperationQueue *_operationQueue = nil;
 {
     [self waitIfNotReady];
     return NUMINT(state);
+}
+
+- (id)networkInfo
+{
+    NSArray *ifs = (id)CNCopySupportedInterfaces();
+    CFDictionaryRef networkinfo = nil;
+    NSDictionary* result = nil;
+    for (NSString *ifnam in ifs) {
+        networkinfo = CNCopyCurrentNetworkInfo((CFStringRef)ifnam);
+        if (networkinfo) {
+            result = @{
+                       @"interface":ifnam,
+                       @"ssid": (NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeySSID),
+                       @"bssid":(NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeyBSSID)
+                       };
+            break;
+        }
+        CFRelease(networkinfo);
+    }
+    [ifs release];
+    CFRelease(networkinfo);
+    return result;
+}
+
++ (float) secondsSinceLastReboot{
+    static mach_timebase_info_data_t    sTimebaseInfo;
+    // If this is the first time we've run, get the timebase.
+    // We can use denom == 0 to indicate that sTimebaseInfo is
+    // uninitialised because it makes no sense to have a zero
+    // denominator is a fraction.
+    
+    if ( sTimebaseInfo.denom == 0 ) {
+        (void) mach_timebase_info(&sTimebaseInfo);
+    }
+    return ((float)(mach_absolute_time())) * ((float)sTimebaseInfo.numer) / ((float)sTimebaseInfo.denom) / 1000000000.0f;
+}
+
+- (NSDictionary*)networkStats
+{
+    BOOL   success;
+    struct ifaddrs *addrs;
+    const struct ifaddrs *cursor;
+    const struct if_data *networkStatisc;
+    
+    int WiFiSent = 0;
+    int WiFiReceived = 0;
+    int WWANSent = 0;
+    int WWANReceived = 0;
+    
+    NSString *name=[[[NSString alloc]init]autorelease];
+    
+    success = getifaddrs(&addrs) == 0;
+    if (success)
+    {
+        cursor = addrs;
+        while (cursor != NULL)
+        {
+            name=[NSString stringWithFormat:@"%s",cursor->ifa_name];
+            // names of interfaces: en0 is WiFi ,pdp_ip0 is WWAN
+            if (cursor->ifa_addr->sa_family == AF_LINK)
+            {
+                if ([name hasPrefix:@"en"])
+                {
+                    networkStatisc = (const struct if_data *) cursor->ifa_data;
+                    WiFiSent+=networkStatisc->ifi_obytes;
+                    WiFiReceived+=networkStatisc->ifi_ibytes;
+                }
+                
+                if ([name hasPrefix:@"pdp_ip"])
+                {
+                    networkStatisc = (const struct if_data *) cursor->ifa_data;
+                    WWANSent+=networkStatisc->ifi_obytes;
+                    WWANReceived+=networkStatisc->ifi_ibytes;
+                }
+            }
+            
+            cursor = cursor->ifa_next;
+        }
+        
+        freeifaddrs(addrs);
+    }
+    
+    NSDate* now = [NSDate date];
+    NSDate* boottime = [now dateByAddingTimeInterval:-[NetworkModule secondsSinceLastReboot]];
+    return @{
+             @"boottime":NUMLONGLONG([boottime timeIntervalSince1970]*1000.0),
+             @"timestamp":NUMLONGLONG([now timeIntervalSince1970]*1000.0),
+             @"wifi":@{@"sent_bytes": NUMLONG(WiFiSent), @"received_bytes": NUMLONG(WiFiReceived)},
+             @"wwan":@{@"sent_bytes": NUMLONG(WWANSent), @"received_bytes": NUMLONG(WWANReceived)}
+    };
 }
 
 MAKE_SYSTEM_PROP(NETWORK_NONE,TiNetworkConnectionStateNone);
