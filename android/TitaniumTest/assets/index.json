@@ -1,5 +1,8 @@
 {
-	"Resources/app.js": 1,
+    "Resources/app.js": 1,
+    "Resources/charts.js": 1,
+    "Resources/shapes.js": 1,
+    "Resources/maps.js": 1,
 	"Resources/lib/underscore.js": 1,
 	"Resources/lib/akylas.commonjs.js": 1,
 	"Resources/lib/underscore.string.js": 1,
@@ -14,6 +17,7 @@
 	"Resources/lib/AkInclude/redux.js": 1,
 	"Resources/lib/WindowManager.js": 1,
 	"Resources/lib/IconicFont.js": 1,
+	"Resources/lib/EventTarget.js": 1,
 	"Resources/fonts/font_webhostinghub.js": 1,
 	"Resources/rjss/common.rjss": 1,
 	"Resources/rjss/pulltorefresh.rjss": 1
