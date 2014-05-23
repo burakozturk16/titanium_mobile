@@ -30,11 +30,17 @@ NSString* const DATA_IFACE = @"pdp_ip0";
 
 NSString* const INADDR_ANY_token = @"INADDR_ANY";
 static NSOperationQueue *_operationQueue = nil;
+static NetworkModule *_sharedInstance = nil;
 @implementation NetworkModule
 {
     dispatch_semaphore_t _startingSema;
     BOOL _firstUpdateDone;
 	NSString *address;
+}
+
++(NetworkModule*)sharedInstance
+{
+    return _sharedInstance;
 }
 
 -(NSString*)apiName
@@ -87,6 +93,7 @@ static NSOperationQueue *_operationQueue = nil;
 -(void)_configure
 {
 	[super _configure];
+    _sharedInstance = self;
     _firstUpdateDone = NO;
 	// default to unknown network type on startup until reachability has figured it out
 	state = TiNetworkConnectionStateUnknown; 

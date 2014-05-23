@@ -68,6 +68,7 @@ typedef enum {
 -(void)updateReachabilityStatus;
 
 +(NSOperationQueue*)operationQueue;
++(NetworkModule*)sharedInstance;
 
 @end
 
