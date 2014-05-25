@@ -43,8 +43,9 @@ public class TiDatabaseHelper {
         
         final String name  = srcFile.getNativeFile().getName();
         try {
-            if (!srcFile.nativePath().startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)) {
-                return SQLiteDatabase.openDatabase(srcFile.nativePath(), null, (writable?SQLiteDatabase.OPEN_READWRITE:SQLiteDatabase.OPEN_READONLY) | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+            String path = srcFile.nativePath();
+            if (!path.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)) {
+                return SQLiteDatabase.openDatabase(path.replace("file://", ""), null, (writable?SQLiteDatabase.OPEN_READWRITE:SQLiteDatabase.OPEN_READONLY) | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
             }
 
             Context ctx = TiApplication.getInstance();
