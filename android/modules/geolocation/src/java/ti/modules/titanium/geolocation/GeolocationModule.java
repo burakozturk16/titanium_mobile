@@ -16,7 +16,9 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
@@ -231,6 +233,7 @@ public class GeolocationModule extends KrollModule
 			}
 			case MSG_DISABLE_LOCATION_PROVIDERS: {
 				doDisableLocationProviders();
+                ((AsyncResult) message.obj).setResult(null);
 				return true;
 			}
 		}
@@ -695,6 +698,7 @@ public class GeolocationModule extends KrollModule
 				tiLocation.locationManager.removeUpdates(locationProvider);
 			}
 		}
+		Log.d(TAG, "doDisableLocationProviders done");
 	}
 	
 	/**
@@ -734,8 +738,9 @@ public class GeolocationModule extends KrollModule
 			doDisableLocationProviders();
 
 		} else {
-			Message message = getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS);
-			message.sendToTarget();
+            TiMessenger.sendBlockingRuntimeMessage(getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS));
+//			Message message = getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS);
+//			message.sendToTarget();
 		}
 	}
 
