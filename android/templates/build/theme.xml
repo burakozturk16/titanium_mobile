@@ -3,12 +3,19 @@
 	<style name="Theme.Titanium.Fullscreen" parent="Theme.Titanium">
 		<item name="android:windowFullscreen">true</item>
 	</style>
+
+    <style name="BaseTheme" parent="@style/Theme.Sherlock">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
+        <item name="android:actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
+    </style>
+
 	
-	<style name="Theme.Titanium" parent="@style/<%- flags %>">
-		<item name="android:windowBackground">@android:color/transparent</item>
-		<item name="actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
-		<item name="android:actionBarStyle">@style/Widget.Sherlock.ActionBar.Solid</item>
+	<style name="Theme.Titanium" parent="<%- baseTheme %>">
 	</style>
+
+    <style name="Theme" parent="<%- flags %>">
+    </style>
 	<style name="Theme.Titanium.NoActionBar" parent="Theme.Titanium">
 		<item name="android:windowActionBar">false</item>
 		<item name="android:windowNoTitle">true</item>

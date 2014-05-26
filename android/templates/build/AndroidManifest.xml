@@ -13,7 +13,7 @@
 
 	<application android:icon="@drawable/appicon"
 		android:label="<%- tiapp.name %>" android:name="<%- classname %>Application"
-		android:theme="@style/Theme.Titanium"
+		android:theme="@style/Theme"
 		android:debuggable="false">
 
 		<activity android:name=".<%- classname %>Activity"

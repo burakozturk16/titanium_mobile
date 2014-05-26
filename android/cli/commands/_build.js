@@ -3292,7 +3292,11 @@ AndroidBuilder.prototype.generateTheme = function generateTheme(next) {
 	if (!fs.existsSync(themeFile)) {
 		this.logger.info(__('Generating %s', themeFile.cyan));
 
-		var flags = 'Theme.Sherlock';
+		var flags = 'Theme.Titanium';
+        var baseTheme = "BaseTheme";
+        if ( this.tiapp['theme']) {
+            baseTheme = this.tiapp['theme'];
+        }
 		if ((this.tiapp.fullscreen || this.tiapp['statusbar-hidden']) && this.tiapp['navbar-hidden']) {
 			flags += '.NoActionBar.Fullscreen';
 		} else if (this.tiapp['navbar-hidden']) {
@@ -3300,7 +3304,8 @@ AndroidBuilder.prototype.generateTheme = function generateTheme(next) {
 		}
 
 		fs.writeFileSync(themeFile, ejs.render(fs.readFileSync(path.join(this.templatesDir, 'theme.xml')).toString(), {
-			flags: flags
+			flags: flags,
+            baseTheme:baseTheme
 		}));
 	}
 
