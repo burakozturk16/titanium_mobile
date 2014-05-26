@@ -645,7 +645,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	
 	@Override
 	public boolean shouldExitOnClose() {
-		if (windows.size() == 1) {
+		if (closing || windows.size() == 1) {
 			return super.shouldExitOnClose();
 		}
 		return false;
@@ -728,7 +728,7 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void onStop(Activity activity) {
 	}
 
-	public void onDestroy(Activity activity) {		
+	public void onDestroy(Activity activity) {
 		clearWindowsStack();
 	}
 	@Override

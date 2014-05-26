@@ -53,7 +53,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 	private static WeakReference<TiWindowProxy> waitingForOpen;
 
-	protected boolean opened, opening;
+	protected boolean opened, opening, closing;
 	protected boolean focused;
 	protected int[] orientationModes = null;
 	protected TiViewProxy tabGroup;
@@ -156,6 +156,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
+        closing = true;
 		if (winManager != null && winManager.handleClose(this, arg)) {
 			return;
 		}
@@ -194,7 +195,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		if (!opened) { return; }
-		
+		closing = false;
 		opened = false;
         activity = null;
         parent = null;
