@@ -803,6 +803,18 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 	return data;
 }
 
+-(NSMutableArray*)locationsDictionary:(NSArray*)newLocations;
+{
+    NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[newLocations count]];
+    for (CLLocation* loc in newLocations) {
+        NSDictionary* dict = [self locationDictionary:loc];
+        if (dict) {
+            [result addObject:dict];
+        }
+    }
+	return [result autorelease];
+}
+
 -(NSDictionary*)headingDictionary:(CLHeading*)newHeading
 {
 	long long ts = (long long)[[newHeading timestamp] timeIntervalSince1970] * 1000;
@@ -924,11 +936,17 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 //Using new delegate instead of the old deprecated method - (void)locationManager:didUpdateToLocation:fromLocation:
 
 -(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations{
-    NSDictionary *todict = [self locationDictionary:[locations lastObject]];
+    NSMutableArray* coords = [self locationsDictionary:locations];
+    if (!coords || [coords count] == 0) return;
+    NSDictionary *todict = [coords lastObject];
+    [coords removeLastObject];
     
 	//Must use dictionary because of singleshot.
 	NSMutableDictionary *event = [TiUtils dictionaryWithCode:0 message:nil];
 	[event setObject:todict forKey:@"coords"];
+    if ([coords count] > 0) {
+        [event setObject:coords forKey:@"olderCoords"];
+    }
     if ([self _hasListeners:@"location"])
 	{
 		[self fireEvent:@"location" withObject:event];
