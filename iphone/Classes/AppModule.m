@@ -194,7 +194,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 		id type = [args objectAtIndex:0];
 		id obj = [args count] > 1 ? [args objectAtIndex:1] : nil;
 		
-		DebugLog(@"[DEBUG] Firing app event: %@",type);
+//		DebugLog(@"[DEBUG] Firing app event: %@",type);
 		
 		NSArray *array = [appListeners objectForKey:type];
 		
