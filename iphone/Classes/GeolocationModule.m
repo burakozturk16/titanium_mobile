@@ -161,9 +161,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 @end
 
-
+@interface GeolocationModule()
+@property(nonatomic,readwrite,retain) CLLocation* lastLocation;
+@end
 
 @implementation GeolocationModule
+@synthesize lastLocation;
 
 #pragma mark Internal
 
@@ -803,14 +806,24 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 	return data;
 }
 
+-(BOOL)locationFarEnough:(CLLocation*) loc1 fromLocation:(CLLocation*) loc2{
+    if (!loc2) return true;
+    float dist = [loc2 distanceFromLocation:loc1];
+    return dist > distance;
+}
+
 -(NSMutableArray*)locationsDictionary:(NSArray*)newLocations;
 {
     NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[newLocations count]];
     for (CLLocation* loc in newLocations) {
-        NSDictionary* dict = [self locationDictionary:loc];
-        if (dict) {
-            [result addObject:dict];
+        if ([self locationFarEnough:loc fromLocation:self.lastLocation]) {
+            self.lastLocation = loc;
+            NSDictionary* dict = [self locationDictionary:loc];
+            if (dict) {
+                [result addObject:dict];
+            }
         }
+        
     }
 	return [result autorelease];
 }
