@@ -484,7 +484,7 @@ timodule.xml.
 			<zipfileset dir="${docs}" prefix="${zip.prefix}/documentation"/>
 			<zipfileset dir="${lib}" includes="**/*.jar" prefix="${zip.prefix}/lib"/>
 			<zipfileset dir="${ti.module.root}" includes="platform/**" excludes="platform/README" prefix="${zip.prefix}"/>
-			<zipfileset dir="${ti.module.root}" includes="LICENSE" prefix="${zip.prefix}"/>
+			<zipfileset dir="${ti.module.root}" includes="license.json" prefix="${zip.prefix}"/>
 			<zipfileset dir="${ti.module.root}" includes="example/**" prefix="${zip.prefix}"/>
 			<zipfileset file="${dist}/respackageinfo" prefix="${zip.prefix}"/>
 		</zip>

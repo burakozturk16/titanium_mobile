@@ -550,6 +550,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	return TI_APPLICATION_COPYRIGHT;
 }
 
+-(id)license
+{
+	return [TiApp license];
+}
+
 -(id)uRL
 {
 	return TI_APPLICATION_URL;

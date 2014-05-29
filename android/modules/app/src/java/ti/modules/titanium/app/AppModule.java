@@ -12,14 +12,18 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.util.KrollAssetHelper;
 import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.TiProperties;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiResponseCache;
 import org.appcelerator.titanium.util.TiSensorHelper;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Application;
 import android.content.Intent;
@@ -49,6 +53,8 @@ public class AppModule extends KrollModule implements SensorEventListener
 	private boolean proximityDetection = false;
 	private boolean proximityState;
 	private int proximityEventListenerCount = 0;
+	
+	private KrollDict licenseDict = null;
 
 	public AppModule()
 	{
@@ -111,6 +117,24 @@ public class AppModule extends KrollModule implements SensorEventListener
 	public String getCopyright() {
 		return appInfo.getCopyright();
 	}
+	
+	@Kroll.getProperty @Kroll.method
+    public KrollDict getLicense() {
+	    if (licenseDict == null) {
+	     // Load the JSON file:
+	        String licenseString = KrollAssetHelper.readAsset("Resources/_license_.json");
+	        if (licenseString != null) {
+	            try {
+	                JSONObject json =  new JSONObject(licenseString);
+	                licenseDict = new KrollDict(json);
+	            } catch (JSONException e) {
+	                Log.e(TAG, "Unable to load license..");
+	            }
+	        }
+	    }
+        return licenseDict;
+    }
+    
 
 	@Kroll.getProperty @Kroll.method
 	public String getGuid() {

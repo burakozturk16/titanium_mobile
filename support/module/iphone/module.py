@@ -7,6 +7,16 @@ import os, subprocess, sys, glob, string, optparse, subprocess
 import zipfile
 from datetime import date
 
+
+required_module_keys = ['name','version','moduleid','description','copyright','license','copyright','platform','minsdk']
+module_defaults = {
+    'description':'My module',
+    'author': 'Your Name',
+    'license' : 'Specify your license',
+    'copyright' : 'Copyright (c) %s by Your Company' % str(date.today().year),
+}
+module_license_default = "TODO: place your license here and we'll include it in the module distribution"
+
 def replace_vars(config,token):
     idx = token.find('$(')
     while idx != -1:
@@ -189,20 +199,49 @@ def package_module(manifest,mf,config):
     zip_dir(zf,'assets',modulepath,['.pyc','.js'])
     zip_dir(zf,'example',modulepath,['.pyc'])
     zip_dir(zf,'platform',modulepath,['.pyc','.js'])
-    zf.write('LICENSE','%s/LICENSE' % modulepath)
+    zf.write('license.json','%s/license.json' % modulepath)
     zf.write('module.xcconfig','%s/module.xcconfig' % modulepath)
     exports_file = 'metadata.json'
     if os.path.exists(exports_file):
         zf.write(exports_file, '%s/%s' % (modulepath, exports_file))
     zf.close()
 
+def validate_manifest():
+    path = os.path.join(cwd,'manifest')
+    f = open(path)
+    if not os.path.exists(path): die("missing %s" % path)
+    manifest = {}
+    for line in f.readlines():
+        line = line.strip()
+        if line[0:1]=='#': continue
+        if line.find(':') < 0: continue
+        key,value = line.split(':')
+        manifest[key.strip()]=value.strip()
+    for key in required_module_keys:
+        if not manifest.has_key(key): die("missing required manifest key '%s'" % key)
+        if module_defaults.has_key(key):
+            defvalue = module_defaults[key]
+            curvalue = manifest[key]
+            if curvalue==defvalue: warn("please update the manifest key: '%s' to a non-default value" % key)
+    return manifest,path
 
-def buildModule(modulepath, command, opts, manifest,mf,config):
+
+def validate_license():
+    c = open(os.path.join(cwd,'license.json')).read()
+    if c.find(module_license_default)!=-1:
+        warn('please update the license.json file with your license text before distributing')
+
+
+def buildModule(modulepath, command, opts, config):
     os.chdir(modulepath)
     global cwd
     global options
     cwd = modulepath
     options = opts
+
+    manifest,mf = validate_manifest()
+    validate_license()
+
     if (command == 'compilejs'):
         compile_js(manifest,config)
     elif(command == 'build'):

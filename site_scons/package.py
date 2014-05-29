@@ -213,6 +213,8 @@ def zip_android(zf, basepath, version):
 	android_modules = os.path.join(android_dist_dir, 'modules.json')
 	zf.write(android_modules, '%s/android/modules.json' % basepath)
 
+	zf.write(os.path.join(top_dir, 'license.json'), '%s/license.json' % basepath)
+
 	zf.writestr('%s/android/package.json' % basepath, codecs.open(os.path.join(top_dir, 'android', 'package.json'), 'r', 'utf-8').read().replace('__VERSION__', version))
 
 	titanium_lib_dir = os.path.join(top_dir, 'android', 'titanium', 'lib')
@@ -312,7 +314,7 @@ def zip_iphone_ipad(zf,basepath,platform,version,version_tag):
 	ticore_lib = os.path.join(top_dir,'iphone','lib')
 
 	zf.write(os.path.join(top_dir, 'iphone', 'simulators.json'), basepath+'/iphone/simulators.json')
-
+	zf.write(os.path.join(top_dir, 'license.json'), '%s/license.json' % basepath)
 	# during 1.3.3, we added a new lib to a folder that had a .gitignore
 	# and we need to manually reset this
 	if not os.path.exists(os.path.join(ticore_lib,'libtiverify.a')):

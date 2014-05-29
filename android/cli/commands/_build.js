@@ -2568,6 +2568,36 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 			this.encryptJS && jsFilesToEncrypt.push('_app_props_.json');
 			delete this.lastBuildFiles[appPropsFile];
 
+           // write the license file
+            var licenseFile = path.join(this.encryptJS ? this.buildAssetsDir : this.buildBinAssetsResourcesDir, '_license_.json'),
+            license = JSON.parse(fs.readFileSync(path.join(this.platformPath, '..', 'license.json')));
+            androidLicenses = license['android'];
+            for(var key in iosLicenses) {
+                if(androidLicenses.hasOwnProperty(key)) {
+                    license[key] = androidLicenses[key];
+                }
+            }
+            delete license['ios'];
+            delete license['android'];
+            this.modules.forEach(function (module) {
+                var moduleLicenseFile = path.join(module.modulePath, 'license.json');
+                if (fs.existsSync(moduleLicenseFile)) {
+                    moduleLicense = JSON.parse(fs.readFileSync(moduleLicenseFile));
+                    if (moduleLicense) {
+                        for(var key in moduleLicense) {
+                            if(moduleLicense.hasOwnProperty(key)) {
+                                license[key] = moduleLicense[key];
+                            }
+                        }
+                    }
+                }
+            });
+            fs.writeFileSync(
+                licenseFile,
+                JSON.stringify(license)
+            );
+            this.encryptJS && jsFilesToEncrypt.push('_license_.json');
+
 			if (!jsFilesToEncrypt.length) {
 				// nothing to encrypt, continue
 				return next();
