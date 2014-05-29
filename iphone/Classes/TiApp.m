@@ -1080,6 +1080,42 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
     return props;
 }
 
+// Returns an NSDictionary with the license data from license.json
++(NSDictionary *)license
+{
+    static NSDictionary* license;
+    
+    if(license == nil) {
+        // Get the props from the encrypted json file
+        NSString *tiLicensePath = [[TiHost resourcePath] stringByAppendingPathComponent:@"_license_.json"];
+        NSData *jsonData = [TiUtils loadAppResource: [NSURL fileURLWithPath:tiLicensePath]];
+        
+        if (jsonData==nil) {
+            // Not found in encrypted file, this means we're in development mode, get it from the filesystem
+            jsonData = [NSData dataWithContentsOfFile:tiLicensePath];
+        }
+        
+        NSString *errorString = nil;
+        // Get the JSON data and create the NSDictionary.
+        if(jsonData) {
+            NSError *error = nil;
+            license = [[NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error] retain];
+            errorString = [error localizedDescription];
+        } else {
+            // If we have no data...
+            // This should never happen on a Titanium app using the node.js CLI
+            errorString = @"File not found";
+        }
+        if(errorString != nil) {
+            // Let the developer know that we could not load the tiapp.xml properties.
+            DebugLog(@"[ERROR] Could not load _license_.json properties, error was %@", errorString);
+            // Create an empty dictioary to avoid running this code over and over again.
+            license = [[NSDictionary dictionary] retain];
+        }
+    }
+    return license;
+}
+
 - (void)registerDefaultsFromSettingsBundle
 {
 	[defaultsObject synchronize];

@@ -112,6 +112,11 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 +(NSDictionary *)tiAppProperties;
 
+/**
+ * Returns a read-only dictionary of the license
+ */
++(NSDictionary *)license;
+
 /*
  Convenience method to returns root view controller for TiApp instance.
  @return The application's root view controller.
