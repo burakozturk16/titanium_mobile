@@ -2572,7 +2572,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
             var licenseFile = path.join(this.encryptJS ? this.buildAssetsDir : this.buildBinAssetsResourcesDir, '_license_.json'),
             license = JSON.parse(fs.readFileSync(path.join(this.platformPath, '..', 'license.json')));
             androidLicenses = license['android'];
-            for(var key in iosLicenses) {
+            for(var key in androidLicenses) {
                 if(androidLicenses.hasOwnProperty(key)) {
                     license[key] = androidLicenses[key];
                 }
