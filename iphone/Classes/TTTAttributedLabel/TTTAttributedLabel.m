@@ -1079,7 +1079,7 @@ static inline CGSize CTFramesetterSuggestFrameSizeForAttributedStringWithConstra
     }
     
     if ([text isKindOfClass:[NSString class]]) {
-        if (self.dataDetectorTypes != UIDataDetectorTypeNone) {
+        if (self.dataDetectorTypes != UIDataDetectorTypeNone|| self.disabledColor != nil) {
             [self setText:text afterInheritingLabelAttributesAndConfiguringWithBlock:nil];
             return;
         }
@@ -1195,6 +1195,19 @@ afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString
 
     // Redraw to allow any ColorFromContext attributes a chance to update
     if (_attributedText && textColor != oldTextColor) {
+        [self setNeedsFramesetter];
+        [self setNeedsDisplay];
+    }
+}
+
+- (void)setDisabledColor:(UIColor *)textColor {
+    UIColor *oldTextColor = self.disabledColor;
+    _disabledColor = textColor;
+    
+    if (textColor && self.text) {
+        self.text = self.text;
+    }
+    if (!self.enabled) {
         [self setNeedsFramesetter];
         [self setNeedsDisplay];
     }
