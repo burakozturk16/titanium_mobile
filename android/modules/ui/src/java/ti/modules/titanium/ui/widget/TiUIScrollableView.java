@@ -257,7 +257,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	
 	private void setCurrentPageIndex(int newPage, boolean animated)
 	{
-		if (newPage == mCurIndex) return;
+		if (mViews == null || mCurIndex >= mViews.size() || newPage == mCurIndex) return;
 		mCurIndex = newPage;
 		proxy.setProperty(TiC.PROPERTY_CURRENT_PAGE, mCurIndex);
 		updateCacheSize();
@@ -377,7 +377,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		{
 			setCurrentPageIndex(index, true);
 		}
-		((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
+		if (mCurIndex != -1 && mCurIndex < mViews.size()) {
+	        ((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
+		}
 
 		// Note that we didn't just fire a `dragend`.  See the above comment
 		// in `onPageSelected`.
