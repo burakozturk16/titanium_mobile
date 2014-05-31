@@ -41,6 +41,7 @@ import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
 import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnPullListener;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -379,6 +380,14 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			public boolean onTouchEvent(MotionEvent event) {
 		        wrapper.onTouchEvent(event);
 		        return super.onTouchEvent(event);
+		    }
+			@Override
+		    protected void dispatchDraw(Canvas canvas) {
+		        try {
+		            super.dispatchDraw(canvas);
+		        } catch (IndexOutOfBoundsException e) {
+		            // samsung error
+		        }
 		    }
 		};
 		listView.setDuplicateParentStateEnabled(true);
