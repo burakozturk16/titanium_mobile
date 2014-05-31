@@ -484,24 +484,20 @@ public class ListSectionProxy extends ViewProxy {
 	
 	@Kroll.method
 	public void hide() {
-		if (hidden) return;
-		notifyDataChange();
-		hidden = true;
+        setVisible(false);
 	}
 	
 	@Kroll.method
 	public void show() {
-		if (!hidden) return;
-		notifyDataChange();
-		hidden = false;
+		setVisible(true);
 	}
 	
 	@Kroll.method
 	@Kroll.setProperty
 	public void setVisible(boolean value) {
 		if (hidden == !value) return;
+        hidden = !value;
 		notifyDataChange();
-		hidden = !value;
 	}
 	
 	@Kroll.method
@@ -861,11 +857,12 @@ public class ListSectionProxy extends ViewProxy {
 	 */
 	public int getItemCount() {
 		int totalCount = 0;
-
-		if (isFilterOn()) {
-			totalCount = filterIndices.size();
-		} else if (!hidden) {
-			totalCount = itemCount;
+		if (!hidden) {
+    		if (isFilterOn()) {
+    			totalCount = filterIndices.size();
+    		} else {
+    			totalCount = itemCount;
+    		}
 		}
 
 		if (!hideHeaderOrFooter()) {
