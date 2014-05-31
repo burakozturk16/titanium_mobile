@@ -591,10 +591,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	public void updateKrollObjectProperties(HashMap<String, Object>props)
 	{
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
-			doUpdateKrollObjectProperties(getProperties());
+			doUpdateKrollObjectProperties(props);
 
 		} else {
-			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, getProperties());
+			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, props);
 			message.sendToTarget();
 		}
 	}
