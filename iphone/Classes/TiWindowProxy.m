@@ -330,10 +330,10 @@
 -(void)close:(id)args
 {
     //I am not open. Go Away
-    if (opening) {
-        DebugLog(@"Window is opening. Ignoring this close call");
-        return;
-    }
+//    if (opening) {
+//        DebugLog(@"Window is opening. Ignoring this close call");
+//        return;
+//    }
     
     if (!opened) {
         DebugLog(@"Window is not open. Ignoring this close call");
