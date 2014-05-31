@@ -186,16 +186,13 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		}
 		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
 			initFromTemplate(options, this, true, true);
-			if (needsToUpdateProps) {
-				updateKrollObjectProperties();
-				needsToUpdateProps = false;
-			}
-			else {
-				updatePropertiesNativeSide();
-			}
 		}
 		if (needsToUpdateProps) {
 			updateKrollObjectProperties();
+		}
+		else {
+		    //we don't need to update them all, bindings might be there though
+		    updatePropertiesNativeSide();
 		}
 	}
 
@@ -827,7 +824,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
 					this, true);
 			if (childProxy != null) {
-//				childProxy.updateKrollObjectProperties();
+				childProxy.updateKrollObjectProperties();
 				add(childProxy);
 			}
 		} else {
