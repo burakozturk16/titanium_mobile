@@ -110,7 +110,7 @@ static NSArray* scrollViewKeySequence;
 
 -(CGSize)autoSizeForSize:(CGSize)size
 {
-    CGSize contentSize = CGSizeMake(size.width, size.height);
+    CGSize contentSize = CGSizeMake(size.width,size.height);
     if ([(TiUIScrollView *)[self view] flexibleContentWidth]) {
         contentSize.width = 0; //let the child be as wide as it wants.
     }
@@ -118,8 +118,8 @@ static NSArray* scrollViewKeySequence;
         contentSize.height = 0; //let the child be as high as it wants.
     }
     return [super autoSizeForSize:contentSize];
-}
-
+    }
+    
 //-(CGRect)computeChildSandbox:(TiViewProxy*)child withBounds:(CGRect)bounds
 //{
 //    CGRect contentSize = CGRectMake(bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height);
@@ -190,16 +190,18 @@ static NSArray* scrollViewKeySequence;
 
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
-	CGPoint offset = [scrollView contentOffset];
+    CGPoint offset = [scrollView contentOffset];
 	if ([self _hasListeners:@"scroll" checkParent:NO])
 	{
-		[self fireEvent:@"scroll" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
-				NUMFLOAT(offset.x),@"x",
-				NUMFLOAT(offset.y),@"y",
-				NUMBOOL([scrollView isDecelerating]),@"decelerating",
-				NUMBOOL([scrollView isDragging]),@"dragging",
+        [self fireEvent:@"scroll" withObject:[NSDictionary dictionaryWithObjectsAndKeys:
+                NUMFLOAT(offset.x),@"x",
+                NUMFLOAT(offset.y),@"y",
+                NUMFLOAT(scrollView.zoomScale),@"curZoomScale",
+                NUMBOOL([scrollView isZooming]),@"zooming",
+                NUMBOOL([scrollView isDecelerating]),@"decelerating",
+                NUMBOOL([scrollView isDragging]),@"dragging",
 				nil] propagate:NO checkForListener:NO];
-	}
+    }
 }
 
 - (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(float)scale

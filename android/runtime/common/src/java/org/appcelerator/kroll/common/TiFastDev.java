@@ -16,12 +16,11 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
-
 import org.appcelerator.kroll.KrollApplication;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.util.KrollStreamHelper;
 import org.appcelerator.kroll.util.TiTempFileHelper;
-
+import android.annotation.SuppressLint;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
@@ -90,6 +89,7 @@ public class TiFastDev implements Handler.Callback
 		return _instance;
 	}
 
+	@SuppressLint("NewApi")
 	public TiFastDev(KrollApplication app)
 	{
 		if (app == null) {

@@ -296,7 +296,7 @@ public class ActivityProxy extends KrollProxy
 	private void handleInvalidateOptionsMenu()
 	{
 		TiBaseActivity activity = (TiBaseActivity) getWrappedActivity();
-		if (activity != null) {
+		if (activity != null && activity.getMenu() != null ) {
 			activity.supportInvalidateOptionsMenu();
 		}
 	}

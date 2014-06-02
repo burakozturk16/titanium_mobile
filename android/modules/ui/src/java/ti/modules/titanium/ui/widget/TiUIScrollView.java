@@ -491,7 +491,7 @@ public class TiUIScrollView extends TiUIView
 
 		int type = TYPE_VERTICAL;
 		boolean deduced = false;
-
+		
 		if (d.containsKey(TiC.PROPERTY_WIDTH) && d.containsKey(TiC.PROPERTY_CONTENT_WIDTH)) {
 			Object width = d.get(TiC.PROPERTY_WIDTH);
 			Object contentWidth = d.get(TiC.PROPERTY_CONTENT_WIDTH);
@@ -499,6 +499,7 @@ public class TiUIScrollView extends TiUIView
 				type = TYPE_VERTICAL;
 				deduced = true;
 			}
+			
 		}
 
 		if (d.containsKey(TiC.PROPERTY_HEIGHT) && d.containsKey(TiC.PROPERTY_CONTENT_HEIGHT)) {

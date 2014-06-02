@@ -82,6 +82,9 @@ exports.init = function (logger, config, cli) {
 					stripLogLevelRE = new RegExp('\\[(?:' + logger.getLevels().join('|') + ')\\] '),
 					simStarted = false;
 
+				if (restartSimulator) {
+					cmd.push('--exit');
+				}
 				if (appc.version.gte(build.iosSimVersion, '7.0.0') && cli.argv['sim-64bit']) {
 					cmd.push('--retina');
 					if (build.iosSimType == 'iphone') {
@@ -169,7 +172,7 @@ exports.init = function (logger, config, cli) {
 							(function readChanges () {
 								try {
 									var stats = fs.statSync(file),
-										fd, bytesRead, lines, m,line, i, len;
+										fd, bytesRead, lines, m, line, i, len;
 
 									if (position < stats.size) {
 										fd = fs.openSync(file, 'r');

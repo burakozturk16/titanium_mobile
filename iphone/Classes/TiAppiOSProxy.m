@@ -103,6 +103,11 @@
 
 #pragma mark Public
 
+-(id)backgroundRefreshStatus
+{
+    return NUMINT([[UIApplication sharedApplication] backgroundRefreshStatus]);
+}
+
 -(id)registerBackgroundService:(id)args
 {
 	NSDictionary* a = nil;
@@ -332,6 +337,10 @@ MAKE_SYSTEM_STR(EVENT_ACCESSIBILITY_SCREEN_CHANGED,@"accessibilityscreenchanged"
 MAKE_SYSTEM_PROP(FETCH_NEWDATA, 0); //UIBackgroundFetchResultNewData
 MAKE_SYSTEM_PROP(FETCH_NODATA, 1); //UIBackgroundFetchResultNoData
 MAKE_SYSTEM_PROP(FETCH_FAILED, 2); //UIBackgroundFetchResultFailed
+
+MAKE_SYSTEM_PROP(BACKGROUNDREFRESH_STATUS_AVAILABLE, UIBackgroundRefreshStatusAvailable);
+MAKE_SYSTEM_PROP(BACKGROUNDREFRESH_STATUS_DENIED, UIBackgroundRefreshStatusDenied);
+MAKE_SYSTEM_PROP(BACKGROUNDREFRESH_STATUS_RESTRICTED, UIBackgroundRefreshStatusRestricted);
 
 @end
 

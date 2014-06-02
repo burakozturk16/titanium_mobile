@@ -113,22 +113,22 @@ static NSDictionary* typeMap = nil;
     return [[self typeMap] objectForKey:NSStringFromClass([transition class])];
 }
 
-+(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options
-{
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view options:(NSDictionary*)options reversed:(BOOL)
+reversed{
     TiTransition* result;
     switch (type) {
         case NWTransitionSwipe:
-            result = [[TiTransitionSwipe alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionSwipe alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionSwipeFade:
-            result = [[TiTransitionSwipeFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionSwipeFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionSwipeDualFade:
-            result = [[TiTransitionSwipeDualFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionSwipeDualFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionCube:
         {
-            result = [[TiTransitionCube alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionCube alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             if ([options objectForKey:@"faces"]) {
                 ((TiTransitionCube*)result).faceNb = [TiUtils intValue:@"faces" properties:options];
             }
@@ -136,26 +136,26 @@ static NSDictionary* typeMap = nil;
         }
         case NWTransitionCarousel:
         {
-            result = [[TiTransitionCarousel alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionCarousel alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             if ([options objectForKey:@"faces"]) {
                 ((TiTransitionCarousel*)result).faceNb = [TiUtils intValue:@"faces" properties:options];
             }
             break;
         }
         case NWTransitionCross:
-            result = [[TiTransitionCross alloc] initWithDuration:duration sourceRect:view.frame];
+            result = [[TiTransitionCross alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionFlip:
-            result = [[TiTransitionFlip alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionFlip alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionSwap:
-            result = [[TiTransitionSwap alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionSwap alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionBackFade:
-            result = [[TitransitionBackFade alloc] initWithDuration:duration];
+            result = [[TitransitionBackFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionGhost:
-            result = [[TiTransitionGhost alloc] initWithDuration:duration];
+            result = [[TiTransitionGhost alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionZoom:
         {
@@ -163,29 +163,29 @@ static NSDictionary* typeMap = nil;
             if ([options objectForKey:@"scale"]) {
                 scale = [TiUtils floatValue:@"scale" properties:options];
             }
-            result = [[TiTransitionZoom alloc] initWithScale:scale forDuration:duration];
+            result = [[TiTransitionZoom alloc] initWithScale:scale forDuration:duration orientation:subtype reversed:reversed];
             break;
         }
         case NWTransitionScale:
-            result = [[TiTransitionScale alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionScale alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionGlue:
-            result = [[TiTransitionGlue alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionGlue alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionPushRotate:
-            result = [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:ADTransitionRightToLeft sourceRect:view.frame];
+            result = [[TiTransitionPushRotate alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionFold:
-            result = [[TiTransitionFold alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionFold alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionSlide:
-            result = [[TiTransitionSlide alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionSlide alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionFade:
-            result = [[TiTransitionFade alloc] initWithDuration:duration];
+            result = [[TiTransitionFade alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         case NWTransitionModernPush:
-            result = [[TiTransitionModernPush alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame];
+            result = [[TiTransitionModernPush alloc] initWithDuration:duration orientation:subtype sourceRect:view.frame reversed:reversed];
             break;
         default:
             return nil;
@@ -198,10 +198,10 @@ static NSDictionary* typeMap = nil;
     return [result autorelease];
 }
 
-+(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view
++(TiTransition*) tiTransitionForType:(NWTransition)type subType:(ADTransitionOrientation)subtype withDuration:(float)duration containerView:(UIView*)view reversed:(BOOL)reversed
 
 {
-    return [self tiTransitionForType:type subType:subtype withDuration:duration containerView:view options:nil];
+    return [self tiTransitionForType:type subType:subtype withDuration:duration containerView:view options:nil reversed:reversed];
 }
 
 +(NWTransition) typeFromObject:(TiTransition*)transition {
@@ -227,11 +227,7 @@ static NSDictionary* typeMap = nil;
         
         ADTransitionOrientation subtype = [TiUtils intValue:@"substyle" properties:arg def:transition?transition.orientation:[TiUtils intValue:@"substyle" properties:defaultArg def:ADTransitionRightToLeft]];
         NWTransition type = [TiUtils intValue:@"style" properties:arg def:transition?([self typeFromObject:transition]):[TiUtils intValue:@"style" properties:defaultArg def:-1]];
-        result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg];
-        if (result && reversed)
-        {
-            [result reverseADTransition];
-        }
+        result = [self tiTransitionForType:type subType:subtype withDuration:duration containerView:container options:arg reversed:reversed];
     }
     return result;
 }

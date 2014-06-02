@@ -22,6 +22,7 @@
 -(CGFloat)sizeWidthForDecorations:(CGFloat)oldWidth forceResizing:(BOOL)force;
 -(void)cleanup;
 
+-(void)deregisterProxy:(id<TiEvaluator>)context;
 @end
 
 #endif

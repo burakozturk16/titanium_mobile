@@ -52,25 +52,27 @@
 
 - (NSNumber*) platformWidth
 {
+    CGFloat scale = [[UIScreen mainScreen] scale];
 	if ([self isUIPortrait])
 	{
-		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.width];	
+		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.width * scale];
 	}
 	else
 	{
-		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.height];	
+		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.height * scale];
 	}
 }
 
 - (NSNumber*) platformHeight
 {
+    CGFloat scale = [[UIScreen mainScreen] scale];
 	if ([self isUIPortrait] == NO)
 	{
-		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.width];	
+		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.width * scale];
 	}
 	else
 	{
-		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.height];	
+		return [NSNumber numberWithFloat:[[UIScreen mainScreen] bounds].size.height * scale];
 	}
 }
 

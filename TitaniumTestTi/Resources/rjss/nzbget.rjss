@@ -1,0 +1,1025 @@
+
+$themeColor=$nzbget.cUnknown;
+
+.NZBGetRBottom {
+    bottom:2
+}
+
+.NZBGetRTop {
+    top:2
+}
+
+.NZBGetLabelLeft {
+    textAlign:'left',
+    left:5
+}
+
+.NZBGetLabelRight {
+    textAlign:'right',
+    right:5
+}
+
+.NZBGetLabelBottom {
+    rclass:'NZBGetRBottom',
+    verticalAlign:'bottom'
+}
+
+.NZBGetLabelTop {
+    rclass:'NZBGetRTop',
+    verticalAlign:'top'
+}
+
+NZBGetWindow {
+    containerClass:'Fill VHolder',
+}
+
+NZBGetMainWindow {
+    containerClass:'Fill',
+    nzbGetNavBar:true,
+    isMain:true
+}
+
+NZBGetDownloadWindow {
+    title:_.capitalize(tr('downloads')),
+    backButtonTitle: app.templates.text.nzbget.backIcon.assign($nzbget.sIconDownload),
+    showMenuButton:true,
+    menuBtnRid:'editBtn',
+    noItemText:'nodownloaditem'
+}
+NZBGetHistoryDetailsWindow, NZBGetDownloadDetailsWindow, NZBGetMessageWindow {
+    showMenuButton:true
+}
+
+NZBGetHistoryWindow {
+    title:_.capitalize(tr('history')),
+    backButtonTitle: app.templates.text.nzbget.backIcon.assign($nzbget.sIconHistory),
+    showMenuButton:true,
+    menuBtnRid:'filterBtn',
+    noItemText:'nohistoryitem'
+}
+
+NZBGetHistoryDetailsWindow, NZBGetDownloadDetailsWindow {
+    detailsListView:true
+}
+
+NZBGetMessageWindow {
+    title:_.capitalize(tr('messages')),
+    showMenuButton:true,
+    menuBtnRid:'filterBtn',
+    backButtonTitle: app.templates.text.nzbget.backIcon.assign($nzbget.sIconMessage),
+    noItemText:'nomessageitem'
+}
+
+NZBGetFilesWindow {
+    title:_.capitalize(tr('files')),
+    buttonHolderInLayout:false,
+    menuBtnRid:'actionBtn',
+    noItemText:'nofileitem'
+}
+
+NZBGetListView {
+    separatorStyle:Ti.UI.ListViewSeparatorStyle.NONE,
+    keepSectionsInSearch:true,
+    backgroundColor:$backgroundColorGray
+}
+NZBGetAddWindow
+{
+    title:_.capitalize(tr('add')),
+    modal:true,
+    detailsListView:true,
+    nzbGetNavBar:true,
+    bottomToolbarVisible:true,
+}
+
+NZBGetSearchWindow
+{
+    title:_.capitalize(tr('search')),
+    modal:true,
+    nzbGetNavBar:true,
+    bottomToolbarVisible:true
+}
+
+#nzbGetNavContainer {
+    width:'FILL',
+    height:'FILL'
+}
+
+NZBGetTitleView {
+    width:'60%',
+    bottom:0,
+    height:'SIZE',
+    layout:'horizontal'
+}
+
+#nzbGetLogo {
+    top:2,
+    bottom:2,
+    imageOn:'modules/nzbget/images/logo_green.png',
+    imageOff:'modules/nzbget/images/logo_orange.png',
+    height:'FILL'
+}
+
+#nzbGetLogoStatic {
+    rid:'nzbGetLogo',
+    image:'modules/nzbget/images/logo_green.png',
+}
+
+#nzbGetActionButton {
+    rclass:'ActionButton',
+    dispatchPressed:true,
+    borderRadius:2
+}
+
+#nzbGetActionStateLabel {
+    rclass:'WWActionStateLabel',
+    color:'black',
+}
+
+#nzbGetActionButtonLabel {
+    transition:{
+        style:Ti.UI.TransitionStyle.SWIPE_DUAL_FADE,
+    },
+    height:'FILL',
+    width:'FILL'
+}
+
+
+#nzbButtonHolder {
+    width:'SIZE',
+    height:'FILL'
+}
+
+.NzbTitleLabel {
+    left:3,
+    right:3,
+    width:'FILL',
+    font:{size:12, weight:'bold'},
+    color:'#d5d5d5',
+    selectedColor:'white'
+}
+
+#nzbLabelsTime {
+    rclass : 'NzbTitleLabel',
+    textAlign:'left',
+    format: '<font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('fa-time') +'</font> {1}'
+}
+
+#nzbLabelsSpeed {
+    rclass : 'NzbTitleLabel',
+    textAlign:'right',
+    icon1:app.iconicfonts.webhostinghub.icon('fa-truck'),
+    icon2:app.iconicfonts.webhostinghub.icon('fa-plane'),
+    format: '{2} KB/s <font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">{1}</font>'
+}
+
+.NZBGetBorderView {
+    borderColor:'#DDDDDD'
+}
+
+.NZBGetRoundedView {
+    borderRadius:2
+}
+
+.NZBGetRoundedBorderedView {
+    rclass:'NZBGetBorderView NZBGetRoundedView'
+}
+
+.NZBGetRow {
+    backgroundColor:$backgroundColor,
+    height:65
+}
+
+
+.NZBGetRowBordered {
+    rclass:'NZBGetRow NZBGetBorderView',
+    borderPadding:{left:-1,right:-1,top:-1}
+}
+
+.NZBGetStatusRow {
+    rclass:'NZBGetRow HHolder Wrap'
+}
+
+.NZBGetDRCheckHolder {
+    width:$nzbget.drBtnWidth,
+    height:$nzbget.drBtnWidth,
+    left:4
+}
+
+.NZBGetDRCheck {
+    color:'transparent',
+    textAlign:'center',
+    rclass:'NZBGetRoundedBorderedView',
+    clipChildren:false,
+    borderSelectedColor:'#0088CC',
+    font:{family:app.iconicfonts.ligature.fontFamily()},
+    text:app.iconicfonts.ligature.icon('check'),
+    width:$nzbget.drCheckWidth,
+    height:$nzbget.drCheckWidth
+}
+
+.NZBGetDRButton {
+    width:$nzbget.drBtnWidth,
+    height:$nzbget.drBtnWidth,
+    left:4,
+    font:{family:app.iconicfonts.sline.fontFamily(), size:18, weight:'bold'},
+    borderRadius:10,
+    borderWidth:1,
+    color:'white',
+    selectedColor:'gray'
+}
+
+.NZBGetDRTopHolder {
+    left:$nzbget.drBtnWidth + 4,
+    height:'FILL',
+    width:'FILL',
+    layout:'horizontal'
+}
+
+.NZBGetDRVHolder {
+    layout:'vertical',
+    left:$nzbget.drBtnWidth + 4,
+    height:'FILL',
+    width:'FILL'
+}
+
+.NZBGetDRPPBHolder {
+    disableHW:true,
+    left:3,
+    top:1,
+    rclass:'NZBGetRBottom',
+    height:$nzbget.drPBHeight,
+    right:$nzbget.drTLWidth,
+}
+
+.NZBGetDRPPBack {
+    backgroundColor:'#e9e9e9',
+    borderPadding:{bottom:-1},
+    borderColor:'#E1E1E1',
+    borderRadius:4
+}
+
+.NZBGetDRPPB {
+    borderPadding:{top:-1, left:-1, right:-1},
+    left:0,
+    height:'FILL',
+    borderRadius:4,
+    /*borderWidth:1,*/
+    backgroundGradient: {
+        type: 'linear',
+        tileMode:'repeat',
+        rect:{x:0, y:0, width:40, height:40},
+        colors: [{
+            offset: 0,
+            color: '#26ffffff'
+        }, {
+            offset: 0.25,
+            color: '#26ffffff'
+        }, {
+            offset: 0.25,
+            color: 'transparent'
+        }, {
+            offset: 0.5,
+            color: 'transparent'
+        }, {
+            offset: 0.5,
+            color: '#26ffffff'
+        }, {
+            offset: 0.75,
+            color: '#26ffffff'
+        }, {
+            offset: 0.75,
+            color: 'transparent'
+        }, {
+            offset: 1,
+            color: 'transparent'
+        }],
+        startPoint: {
+            x: 0,
+            y: 0
+        },
+        endPoint: {
+            x: "100%",
+            y: '100%'
+        }
+    }
+}
+
+.NZBGetRTitle {
+    padding:{left:5,right:5},
+    ellipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
+    maxLines:2,
+    height:'48%',
+    width:'FILL',
+    verticalAlign:'top',
+    font:{size:14}
+}
+
+.NZBGetRTitle2 {
+    rclass:'NZBGetRTitle',
+    maxLines:3,
+    height:'FILL',
+    font:{size:13}
+}
+.NZBGetRPriority {
+    color:'white',
+    padding:{left:2,right:2, top:app.deviceinfo.isAndroid?-2:0},
+    shadowColor:'#55000000',
+    shadowRadius:1,
+    borderRadius:2,
+    height:'SIZE',
+    width:'SIZE',
+    maxLines:1,
+    clipChildren:false,
+    font:{size:12, weight:'bold'},
+    backgroundColor:$nzbget.cPriority
+}
+
+.NZBGetRTags {
+    rclass:'NZBGetRPriority',
+    backgroundColor:$nzbget.cNone
+}
+
+.NZBGetRPriorityLayout {
+    rclass:'NZBGetRPriority',
+    visible: false,
+    top:2, bottom:2,
+    left:2, right:2
+}
+
+.NZBGetDRSize {
+    maxLines:1,
+    textAlign:'center',
+    pading:{left:2,right:2},
+    ellipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
+    font:{size:12},
+    height:'FILL',
+    width:'FILL'
+}
+
+
+.NZBGetLabel, .NZBGetLabelLeft, .NZBGetLabelRight {
+    font:{size:12}
+}
+
+.NZBGetRSubtitle {
+    color:'gray'
+}
+
+.NZBGetDRTime {
+    rclass:'NZBGetLabelRight',
+    width:$nzbget.drTLWidth,
+    height:$nzbget.drPBHeight
+}
+
+
+.NZBGetFileSize {
+    rclass:'NZBGetRSubtitle NZBGetLabelLeft NZBGetLabelBottom',
+    left:$nzbget.drBtnWidth + 8,
+    width:'FILL',
+    height:'FILL',
+    font:{size:12}
+}
+
+.NZBGetRMessageTitle {
+    rclass:'NZBGetRTitle2',
+    font:{size:12}
+}
+
+NZBGetRightMenu {
+    layout:'vertical',
+    backgroundColor:$nzbget.navBarColor,
+    menuWidth:$nzbget.rightMenuWidth,
+    rightViewDisplacement:'100%'
+}
+
+.NZBGetRMIcon {
+    selectedColor:$themeColor,
+    width:'FILL',
+    backgroundColor:'green',
+    height:$nzbget.rightMenuWidth,
+    font:{family:app.iconicfonts.webhostinghub.fontFamily(),size:26}
+}
+
+#nzbgetRMLView {
+    backgroundColor:'transparent',
+    separatorStyle:Ti.UI.ListViewSeparatorStyle.NONE,
+    rowHeight:$nzbget.rightMenuWidth,
+    scrollingEnabled:false,
+    height:'FILL'
+}
+
+
+.NZBGetNBTHolder {
+    rclass:'NBTitleHolder',
+    width:'40%',
+    bottom:12
+}
+
+.NZBGetNBTitle {
+    rclass:'NBTitle',
+    textAlign:'center',
+    width:'140%',
+    padding:{bottom:2}
+}
+
+.NZBGetNBRightButton {
+    rclass:'WindowToolbarButton NBRightButton'
+}
+
+.NZBGetNBBack {
+    rclass:'NBBackButton',
+}
+
+.NZBGetNBBack, .NZBGetNBRightButton, .NZBGetNBTitle {
+    color:'#d5d5d5'
+}
+
+.NZBGetButton {
+    top:5,
+    bottom:5,
+    height:'SIZE',
+    width:'70%',
+    textAlign:'center',
+    borderWidth:1,
+    borderRadius:4,
+    font:{size:16},
+    padding:{top:10, bottom:10, right:10, left:10},
+    borderColor:'#BFBFBF',
+    disableHW:true,
+    backgroundSelectedInnerShadows:[{offset:{x:0,y:5},radius:5, color:'#88000000'}],
+    colors:['#FEFEFE', '#E3E3E3'],
+    selectedColors:['#F1F1F1', '#E2E2E2']
+}
+
+.NZBGetSearchBarButton  {
+    rclass:'NZBGetButton',
+    padding:{top:5, bottom:5},
+}
+
+.NZBGetButtonRed {
+    borderColor:'#BB3E35',
+    color:'white',
+    colors:['#E75349', '#B42F25'],
+    selectedColors:['#C63C31', '#B43025']
+}
+
+.NZBGetButtonBlue {
+    borderColor:'#01409A',
+    color:'white',
+    colors:['#0085CC', '#0056CC'],
+    selectedColors:['#0067CC', '#0055CC']
+}
+
+#nzbGetNavBar {
+    backButtonClass:'NZBGetNBBack',
+    backgroundColor:$nzbget.navBarColor,
+    titleHolderClass:'NZBGetNBTHolder',
+    titleLabelClass:'NZBGetNBTitle',
+    transitionLeft:{style:Ti.UI.TransitionStyle.FADE},
+    transitionRight:{style:Ti.UI.TransitionStyle.FADE}
+}
+
+.NZBGetTitleMenuHolder {
+    backgroundColor:$animatedWindowBgColor
+}
+
+NZBGetTitleMenu {
+	top:-8,
+    width:160,
+    height:'SIZE',
+    borderRadius:2,
+    backgroundColor:'#2c2c2c'
+}
+
+#nzbgetTMHolder {
+    height:'SIZE',
+    top:8,
+    left:4,
+    right:4,
+    width:'FILL',
+    layout:'vertical'
+}
+
+.NZBGetTitleMenuButton{
+    rclass:'NZBGetRPriority',
+    height:40,
+    width:'FILL',
+    textAlign:'center',
+    bottom:4,
+    top:4,
+    font:{size:22, weight:'bold'},
+}
+#nzbgetSSButton {
+    rclass: 'NZBGetTitleMenuButton',
+}
+
+#nzbgetSpeedButton {
+    rclass: 'NZBGetTitleMenuButton',
+    text:tr('speed_limit'),
+    backgroundColor:'#347BA8'
+}
+
+#nzbgetAutoRefreshButton {
+    rclass: 'NZBGetTitleMenuButton',
+    text:tr('autorefresh'),
+    backgroundColor:'#347BA8'
+}
+
+#nzbgetAddButton {
+    rclass: 'NZBGetTitleMenuButton',
+    html:'<big>+</big> Add',
+    backgroundColor:'gray'
+}
+
+
+.NZBListViewInfoLabel
+{
+    font:{size:14, weight:'bold'},
+    shadowColor:'white',
+    shadowRadius:2,
+    shadowOffset:{x:0,y:1},
+    textAlign:'center',
+    color:'#3A87AD'
+}
+
+.NZBPTR
+{
+    labelClass:'NZBPTRLabel',
+    arrowClass:'NZBPTRArrow'
+}
+
+.NZBPTRLabel{
+    rclass:'PullToRefreshLabel NZBListViewInfoLabel',
+    textAlign:'left'
+}
+.NZBPTRArrow{
+    rclass:'PullToRefreshArrow NZBListViewInfoLabel',
+    width:24,
+    font:{size:24}
+}
+
+.NZBGetNoItem {
+    rclass:'NZBListViewInfoLabel',
+    backgroundColor:'#D9EDF7',
+    borderColor:'#BCE8F1',
+    borderRadius:4,
+    borderWidth:1,
+    left:10,
+    right:10,
+    height:60
+}
+
+
+.NZBGetDetailsListView {
+    height:'FILL',
+    delaysContentTouches:false,
+    minRowHeight:40,
+    separatorStyle:Ti.UI.ListViewSeparatorStyle.NONE,
+    selectedBackgroundColor:'transparent'
+}
+
+.NZBGetTVRTitle {
+    rclass:'TVRTitle',
+    verticalAlign:'top',
+    height:'FILL',
+    padding:{top:10}
+}
+
+.NZBGetTVRArray {
+    borderColor:$nzbget.grayBorder,
+    rclass:'NZBGetRoundedView',
+    layout:'vertical'
+}
+
+.NZBGetTVRArrayLine {
+    backgroundColor:'red',
+    layout:'horizontal',
+    width:'FILL',
+    height:'24'
+}
+
+.NZBGetTVRArrayLineEven {
+    rclass:'NZBGetTVRArrayLine',
+    backgroundColor:$backgroundColorGray
+}
+
+.NZBGetTVRArrayLineOdd {
+    rclass:'NZBGetTVRArrayLine',
+    backgroundColor:'white'
+}
+
+.NZBGetTVRArrayLineLeft, .NZBGetTVRArrayLineRight {
+    color:'#686868',
+    font:{size:12},
+    height:'FILL',
+    padding:{left:4,right:4,bottom:2,top:2},
+    borderColor:$nzbget.grayBorder
+}
+
+.NZBGetTVRArrayLineLeft {
+    borderPadding:{top:-1},
+    textAlign:'left',
+    width:'FILL'
+}
+
+.NZBGetTVRArrayLineRight {
+    borderPadding:{left:-1, top:-1},
+    width:100,
+    textAlign:'right'
+}
+
+
+.NZBGetTVRButton {
+    rclass:'NZBGetButton',
+    width:'SIZE',
+}
+
+.NZBGetTVRBordered
+{
+    borderColor:$nzbget.grayBorder,
+    borderRadius:2
+}
+
+.NZBGetTVRValue {
+    rclass:'NZBGetTVRBordered',
+    maxLines:2,
+    ellipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL
+}
+
+.NZBGetTVRValue2 {
+    top:-4,
+    padding:{top:0}
+}
+
+.NZBGetTVRTextField {
+    rclass:'NZBGetTVRBordered',
+    backgroundColor:'white',
+    maxLines:2,
+    borderSelectedColor:'#74B9EF',
+    height:40,
+    ellipsize:Ti.UI.TEXT_ELLIPSIZE_TAIL,
+}
+
+.NZBGetBtn {
+    selectedColor:$themeColor,
+    rclass:'NZBGetNBRightButton',
+    padding:{top:5,bottom:5, left:5,right:5},
+    font:{family:app.iconicfonts.webhostinghub.fontFamily()}
+}
+.NZBGetActionBtn {
+    rclass:'NZBGetBtn',
+    padding:{top:5,bottom:5, left:5,right:5},
+    height:'SIZE',
+    width:'SIZE',
+    font:{family:app.iconicfonts.webhostinghub.fontFamily()}
+}
+
+#menuBtn {
+    rclass:'NZBGetBtn',
+    padding:{left:20, right:20},
+    title:app.iconicfonts.webhostinghub.icon('fa-ellipsis-vertical')
+}
+
+#editBtn {
+    rclass:'NZBGetBtn',
+    padding:{right:8},
+    title:app.iconicfonts.webhostinghub.icon('fa-edit')
+}
+
+#filterBtn {
+    rclass:'NZBGetBtn',
+    padding:{right:8},
+    title:app.iconicfonts.webhostinghub.icon('fa-filter')
+}
+
+#savecheckBtn {
+    rclass:'NZBGetBtn',
+    color:'#0055CC',
+    title:app.iconicfonts.webhostinghub.icon('whh-checkmark')
+}
+
+.NZBGetDetailsAlert {
+    layout:'vertical',
+    height:'SIZE'
+}
+
+
+.NZBGetAlertView {
+    backgroundColor:$alertViewBgColor,
+    opacity:1.0,
+    width:260,
+    height:'SIZE',
+    borderRadius:4,
+    disableHW:true,
+    layout:'vertical'
+}
+
+.NZBGetAlertTitle{
+    padding:{left:15, right:15},
+    top:5,
+    bottom:5,
+    textAlign:'center',
+    font:{size:18, weight:'bold'},
+    width:'FILL',
+    height:'SIZE'
+}
+.NZBGetAlertCenterHolder, .NZBGetAlertBHolder {
+    rasterize:true,
+    borderColor:'#EBEBEB',
+    borderWidth:1,
+}
+
+.NZBGetAlertCenterHolder {
+    borderPadding:{left:-1,right:-1, bottom:-1},
+    width:'FILL',
+    height:'SIZE'
+}
+
+.NZBGetAlertMessage{
+    rclass:'CustomAlertMessage',
+    padding:{top:10, bottom:10},
+    textAlign:'left',
+    font:{size:14}
+}
+
+.NZBGetAlertBHolder{
+    bubbleParent:false,
+    layout:'horizontal',
+    horizontalWrap:false,
+    width:'FILL',
+    bottom:0,
+    backgroundColor:'#F5F5F5',
+    height:$alertBtnHeight,
+    borderPadding:{left:-1,right:-1, bottom:-1}
+}
+
+#deleteBtn{
+    html:'<big><font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('whh-trash') + '</font></big> ' + _.capitalize(tr('delete')),
+    rclass:'NZBGetButtonRed'
+}
+
+#final_deleteBtn{
+    html:'<big><font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('whh-trash') + '</font></big> ' + _.capitalize(tr('deleteclean')),
+    rclass:'NZBGetButtonRed'
+}
+
+#clearBtn{
+    html:'<big><font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('whh-trash') + '</font></big> ' + _.capitalize(tr('clear')),
+    rclass:'NZBGetButtonRed'
+}
+
+#pp_againBtn {
+    text:tr('pprocessagain')
+}
+
+#down_againBtn {
+    text:tr('download_again')
+}
+
+#ppparamsBtn {
+    text:tr('ppparams')
+}
+
+#setlimitBtn {
+    rclass:'NZBGetButtonBlue',
+    text:tr('setlimit')
+}
+
+#saveBtn {
+    rclass:'NZBGetButtonBlue',
+    text:tr('savechanges')
+}
+
+#submitBtn {
+    rclass:'NZBGetButtonBlue',
+    text:tr('submit')
+}
+
+#resumeBtn{
+    html:'<big><font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('awesome-play') + '</font></big> ' + tr('resume')
+}
+
+#pauseBtn{
+    html:'<big><font face="'+ app.iconicfonts.webhostinghub.fontFamily() + '">' + app.iconicfonts.webhostinghub.icon('awesome-pause') + '</font></big> ' + tr('pause')
+}
+
+#closeBtn {
+    text:tr('close')
+}
+
+#cancelBtn {
+    text:tr('cancel')
+}
+
+.NZBGetMessageView {
+    touchEnabled:false,
+    backgroundColor:'#bb000000',
+    borderRadius:6,
+    width:260,
+    textAlign:'center',
+    color:'white',
+    font:{size:14},
+    padding:{left:10,right:10,top:15,bottom:15},
+    bottom:40
+}
+
+#nzbGetSpeedLimitDesc {
+
+    left:5,
+    width:'FILL',
+    verticalAlign:'middle',
+    text:tr('newspeedlimit'),
+    font:{size:14}
+}
+
+#nzbGetSpeedLimitUnit {
+    right:0,
+    width:'SIZE',
+    verticalAlign:'middle',
+    height:'FILL',
+    padding:{left:5, right:5},
+    backgroundColor:'#EEEEEE',
+    text:'KB/s',
+    font:{size:14}
+}
+#nzbGetSpeedLimitTFHolder {
+    layout:'horizontal',
+    height:'SIZE',
+    right:5,
+    top:10,
+    bottom:10,
+    width:'FILL'
+}
+#nzbGetSpeedLimitTF {
+    rclass:'NZBGetRoundedBorderedView',
+    padding:{left:5,right:5},
+    borderRadius:[2,0,0,2],
+    borderSelectedColor:'#74B9EF',
+    keyboardType:Ti.UI.KEYBOARD_NUMBER_PAD,
+    left:3,
+    width:'FILL',
+    hintText:'none',
+    height:40,
+    backgroundColor:'white',
+    font:{size:14},
+}
+
+#nzbGetCurrentSpeedLimit {
+    top:0,
+    height:'SIZE',
+    bottom:10,
+    right:5,
+    color:'#5E5E5E',
+    font:{size:14}
+}
+
+.NZBGetLVHeader {
+    rclass:'NZBGetBorderView',
+    layout:'horizontal',
+    backgroundColor:$nzbget.navBarColor,
+    width:'FILL',
+    height:22,
+    borderPadding:{left:-1,right:-1,top:-1},
+    color:'white',
+    font:{size:12},
+    padding:{left:10, top:2, bottom:2}
+}
+
+.NZBGetLVHeaderNumber {
+    color:'white',
+    backgroundColor:'#3A87AD',
+    font:{size:12},
+    left:10,
+    height:16,
+    borderRadius:8,
+    clipChildren:false,
+    verticalAlign:'center',
+    padding:{left:8, right:8, top:app.deviceinfo.isAndroid?-2:0}
+}
+
+.NZBGetLVHeaderTitle {
+    color:'#A9A9A9',
+    font:{size:12},
+    left:10
+}
+
+
+.NZBGetLoadingIndicator {
+    height:60,
+    width:60,
+    backgroundColor:'#bb000000',
+    borderRadius:4,
+    stye:Ti.UI.ActivityIndicatorStyle.BIG
+}
+
+#nzbMessageOptionAlert {
+    title:tr('menu'),
+}
+
+NZBGetActionMenu {
+    backgroundColor:'#66ffffff'
+}
+
+.NZBGetActionMenuView {
+    top:5,
+    height:'SIZE',
+    width:'SIZE',
+    backgroundColor:$nzbget.navBarColor,
+    borderColor:'#dddddd',
+    borderPadding:{left:-1,top:-1}
+}
+
+.NZBGetActionMenuBtnHolder {
+    layout:'horizontal',
+    horizontalWrap:true,
+    height:'SIZE',
+    width:'SIZE',
+    bottom:10
+
+}
+.NZBGetTopToolbar{
+    backgroundColor:$nzbget.navBarColor,
+    width:'FILL', 
+    height:'SIZE', 
+    layout:'vertical'
+}
+.NZBGetBottomToolbar{
+    width:'FILL', 
+    height:'SIZE', 
+    layout:'vertical'
+}
+
+
+.NZBGetSearchRow {
+    rclass:'IDRow NZBGetRowBordered',
+    height:80
+}
+.NZBGetSearchRowImage
+{
+    rclass:'IDRowImage',
+    height:'FILL',
+    width:50,
+    top:0,
+    bottom:0,
+    transition: {
+        style: Ti.UI.TransitionStyle.FADE
+    }
+}
+
+.NZBGetSearchRowTitle {
+    rclass:'IDRowTitle',
+    top:0,
+    maxLines:2
+}
+
+.NZBGetSearchRowSubtitle {
+    rclass:'IDRowSubtitle NZBGetRSubtitle',
+    verticalAlign:'top',
+   height:'FILL',
+}
+.NZBGetSearchRowSubLabelHolder {
+    width:'FILL',
+    height:20
+}
+
+.NZBGetSearchRowSubabelLeft {
+    rclass:'NZBGetRSubtitle NZBGetLabelLeft'
+}
+
+.NZBGetSearchRowSubabelRight {
+    rclass:'NZBGetRSubtitle NZBGetLabelRight'
+}
+
+
+#categoryBtn {
+    left:4,
+    right:4,
+    width:80,
+    text:'',
+    height:'34'
+}
+
+.NZBGetHostRow {
+    rclass:'NZBGetRow',
+    layout:'horizontal',
+    height:50,
+}
+
+
+.NZBGetHostTitle {
+    rclass:'NZBGetTVRTitle',
+    padding:{top:0,},
+    width:130,
+    verticalAlign:'center',
+    font:{weight:'bold'}
+}
+
+#nzbGetHostHeader {
+    rclass:'NZBGetLVHeader',
+    height:50
+}
+
+#nzbGetHostSwitch {
+    backgroundColor:$nzbget.navBarColor,
+    tintColor:$nzbget.navBarColor,
+}

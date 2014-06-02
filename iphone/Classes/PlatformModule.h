@@ -17,7 +17,6 @@
 	NSString *architecture;
 	NSNumber *processorCount;
 	NSString *username;
-	NSString *address;
 	NSString *ostype;
 	NSNumber *availableMemory;
 	TiPlatformDisplayCaps *capabilities;
@@ -33,7 +32,6 @@
 @property(readonly,nonatomic) NSString *macaddress;
 @property(readonly,nonatomic) NSNumber *processorCount;
 @property(readonly,nonatomic) NSString *username;
-@property(readonly,nonatomic) NSString *address;
 @property(readonly,nonatomic) NSString *ostype;
 @property(readonly,nonatomic) NSNumber *availableMemory;
 @property(readonly,nonatomic) TiPlatformDisplayCaps *displayCaps;

@@ -28,6 +28,8 @@
 -(void)prepareViewHolder:(UIView*)holder;
 -(BOOL)isTransitionVertical;
 -(BOOL)isTransitionPush;
--(void)reverseADTransition;
+-(void)reverseADTransitionForSourceRect:(CGRect)rect;
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
+-(Class) adTransitionClass;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)_orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed;
 @end

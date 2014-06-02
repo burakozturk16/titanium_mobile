@@ -266,6 +266,7 @@ DEFINE_EXCEPTIONS
 	[upSwipeRecognizer release];
 	[downSwipeRecognizer release];
 	[longPressRecognizer release];
+	[runningAnimation release];
 	proxy = nil;
 	touchDelegate = nil;
 	childViews = nil;
@@ -322,6 +323,8 @@ DEFINE_EXCEPTIONS
     self.clipsToBounds = self.layer.masksToBounds = clipChildren = YES;
     self.userInteractionEnabled = YES;
     self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+//    self.layer.shouldRasterize = YES;
+    self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
     _touchEnabled = YES;
@@ -616,6 +619,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     if (clipChildren && usePathAsBorder && (!self.layer.mask || [self.layer.mask isKindOfClass:[CAShapeLayer class]]))
     {
         [self applyPathToLayersMask:self.layer path:path];
+        if (_bgLayer)
+        {
+            [self applyPathToLayersShadow:_bgLayer path:path];
+        }
         
     }
     else if (!usePathAsBorder) {
@@ -1332,6 +1339,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	_dispatchPressed = [TiUtils boolValue:arg def:_dispatchPressed];
 }
 
+-(BOOL)dispatchPressed
+{
+	return _dispatchPressed;
+}
+
 -(BOOL) touchEnabled {
 	return _touchEnabled;
 }
@@ -1362,6 +1374,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
     clipChildren = [TiUtils boolValue:arg];
     self.clipsToBounds = [self clipChildren];
+}
+
+
+-(void)setRasterize_:(id)arg
+{
+    self.layer.shouldRasterize = [TiUtils boolValue:arg def:self.layer.shouldRasterize];
 }
 
 -(BOOL)clipChildren
@@ -1802,11 +1820,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)recognizedLongPress:(UILongPressGestureRecognizer*)recognizer 
 { 
     if ([recognizer state] == UIGestureRecognizerStateBegan) {
-        CGPoint p = [recognizer locationInView:self];
-        NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-                               NUMFLOAT(p.x), @"x",
-                               NUMFLOAT(p.y), @"y",
-                               nil];
+        NSDictionary *event = [TiUtils dictionaryFromGesture:recognizer inView:self];
         [self.proxy fireEvent:@"longpress" withObject:event checkForListener:NO];
     }
 }
@@ -1928,6 +1942,10 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(UIControlState)realStateForState:(UIControlState)state
 {
     if ([self enabledForBgState]) {
+//        TiUIView * parentView = [[(TiViewProxy*)proxy parent] view];
+//        if (parentView && [parentView dispatchPressed]) {
+//            return [parentView realStateForState:state];
+//        }
         if (viewState != -1)
             state = viewState;
         return state;
@@ -2295,7 +2313,6 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         self.superview.alpha = 1.0f;
     }
     //Render the layer in the image context
-    //Render the layer in the image context
     UIGraphicsBeginImageContextWithOptions(visibleRect.size, NO, 1.0);
     CGContextRef context = UIGraphicsGetCurrentContext();
     CGContextTranslateCTM(context, -visibleRect.origin.x, -visibleRect.origin.y);
@@ -2318,9 +2335,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         else {
             properties = [NSArray arrayWithObject:[TiUtils stringValue:firstArg]];
         }
-        NSDictionary* options;
+        NSDictionary* options = nil;
         ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary)
-        [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterBoxBlur]] forKey:@"filters"];
+        if (![options objectForKey:@"filters"]) {
+            [options setValue:[NSArray arrayWithObject:[NSNumber numberWithInt:TiImageHelperFilterIOSBlur]] forKey:@"filters"];
+        }
         UIImage* result = [[TiImageHelper imageFiltered:[image autorelease] withOptions:options] retain];
         if ([options objectForKey:@"callback"]) {
             id callback = [options objectForKey:@"callback"];

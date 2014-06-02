@@ -47,7 +47,7 @@
 //        TiUIView *holderView = [holderViewProxy getOrCreateView];
         TiUIView *transitionView = [transitionAnimation.transitionViewProxy getOrCreateView];
         
-        if (transitionView != nil && holderView!=nil && transitionView != holderView)
+        if (!transitionAnimation.closeTransition && transitionView != nil && holderView!=nil && transitionView != holderView)
         {
             // we need to first make sure our new view that we're transitioning to is sized but we don't want
             // to add to the view hiearchry inside the animation block or you'll get the sizings as part of the

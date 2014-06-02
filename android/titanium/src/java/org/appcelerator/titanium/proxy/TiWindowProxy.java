@@ -38,7 +38,6 @@ import android.view.View;
 @Kroll.proxy(propertyAccessors={
 	TiC.PROPERTY_EXIT_ON_CLOSE,
 	TiC.PROPERTY_FULLSCREEN,
-	TiC.PROPERTY_NAV_BAR_HIDDEN,
 	TiC.PROPERTY_TITLE,
 	TiC.PROPERTY_TITLEID,
 	TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE
@@ -54,7 +53,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 	private static WeakReference<TiWindowProxy> waitingForOpen;
 
-	protected boolean opened, opening;
+	protected boolean opened, opening, closing;
 	protected boolean focused;
 	protected int[] orientationModes = null;
 	protected TiViewProxy tabGroup;
@@ -157,6 +156,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	@Kroll.method
 	public void close(@Kroll.argument(optional = true) Object arg)
 	{
+        closing = true;
 		if (winManager != null && winManager.handleClose(this, arg)) {
 			return;
 		}
@@ -183,10 +183,22 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 		TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_CLOSE), options);
 	}
+	
+	@Override
+    public void releaseViews(boolean activityFinishing)
+    {
+        super.releaseViews(activityFinishing);
+        closeFromActivity(activityFinishing);
+    }
+    
 
 	public void closeFromActivity(boolean activityIsFinishing)
 	{
 		if (!opened) { return; }
+		closing = false;
+		opened = false;
+        activity = null;
+        parent = null;
 
 		KrollDict data = null;
 		if (activityIsFinishing) {
@@ -199,9 +211,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 			data = new KrollDict();
 			data.put("_closeFromActivityForcedToDestroy", true);
 		}
-		opened = false;
-		activity = null;
-		parent = null;
+		
 
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
@@ -441,7 +451,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 	 * Sub-classes will need to call handlePostOpen after their window is visible
 	 * so any pending dialogs can successfully show after the window is opened
 	 */
-	public void handlePostOpen()
+	protected void handlePostOpen()
 	{
 		opening = false;
 		opened = true;

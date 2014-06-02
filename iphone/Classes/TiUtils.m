@@ -21,6 +21,7 @@
 #import "Base64Transcoder.h"
 #import "TiExceptionHandler.h"
 #import "SVGKit.h"
+#import "TiFileSystemHelper.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -196,15 +197,61 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return iphone4;
 }
 
-+(void)queueAnalytics:(NSString*)type name:(NSString*)name data:(NSDictionary*)data
++(NSDate *)dateValue:(id)value def:(NSDate *)def
 {
-	NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:
-						   VAL_OR_NSNULL(type),@"type",
-						   VAL_OR_NSNULL(name),@"name",
-						   VAL_OR_NSNULL(data),@"data",
-						   nil];
-	WARN_IF_BACKGROUND_THREAD;	//NSNotificationCenter is not threadsafe!
-	[[NSNotificationCenter defaultCenter] postNotificationName:kTiAnalyticsNotification object:nil userInfo:event];
+	if ([value isKindOfClass:[NSDate class]])
+	{
+		return value;
+	}
+    else {
+        int milliseconds = [self intValue:value def:-1];
+        if (milliseconds != -1) {
+            return [[[NSDate alloc] initWithTimeIntervalSince1970:milliseconds/1000] autorelease];
+        }
+    }
+	return def;
+}
+
+
++(NSDate *)dateValue:(id)object
+{
+	return [self dateValue:object def:nil];
+}
+
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def exists:(BOOL*) exists
+{
+	if ([properties isKindOfClass:[NSDictionary class]])
+	{
+		id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+		{
+			if (exists != NULL) *exists = YES;
+			return nil;
+		}
+		if (value != nil)
+		{
+			if (exists != NULL)
+			{
+				*exists = YES;
+			}
+			return [self dateValue:value];
+		}
+	}
+	if (exists != NULL)
+	{
+		*exists = NO;
+	}
+	return def;
+	
+}
+
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)props def:(NSDate *)def;
+{
+	return [self dateValue:name properties:props def:def exists:NULL];
+}
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)props;
+{
+	return [self dateValue:name properties:props def:nil exists:NULL];
 }
 
 +(NSString *)UTCDateForDate:(NSDate*)data
@@ -386,7 +433,8 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	return CGRectMake(0, 0, 0, 0);
 }
 
-+(CGPoint)pointValue:(id)value
+
++(CGPoint)pointValue:(id)value def:(CGPoint)defaultValue
 {
 	if ([value isKindOfClass:[TiPoint class]])
 	{
@@ -396,7 +444,12 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 	{
 		return CGPointMake([[value objectForKey:@"x"] floatValue],[[value objectForKey:@"y"] floatValue]);
 	}
-	return CGPointMake(0,0);
+	return defaultValue;
+}
+
++(CGPoint)pointValue:(id)value
+{
+	return [self pointValue:value def:CGPointZero];
 }
 
 +(CGPoint)pointValue:(id)value valid:(BOOL*)isValid
@@ -620,7 +673,7 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
 		if (!CGSizeEqualToSize(newSize, imageSize))
 		{
 			image = [UIImageResize resizedImage:newSize interpolationQuality:kCGInterpolationLow image:image hires:NO];
-            imageSize = [image size];
+//            imageSize = [image size];
 		}
 	}
 	return image;
@@ -756,7 +809,12 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	{
 		return [NSURL URLWithString:relativeString];
 	}
-
+    
+    if ([relativeString hasPrefix:@"file://"])
+	{
+        return [NSURL fileURLWithPath:[TiFileSystemHelper pathFromComponents:@[relativeString]]];
+    }
+    
 	NSURL *result = nil;
 		
 	// don't bother if we don't at least have a path and it's not remote
@@ -778,6 +836,9 @@ If the new path starts with / and the base url is app://..., we have to massage 
 			}
 		}
 	}
+//    else {
+//        relativeString = [relativeString stringByReplacingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
+//    }
 
 	result = [NSURL URLWithString:relativeString relativeToURL:rootPath];
 
@@ -1569,7 +1630,7 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 		}
 		if ([appurlstr hasPrefix:@"/"])
 		{
-			leadingSlashRemoved = YES;
+//			leadingSlashRemoved = YES;
 			appurlstr = [appurlstr substringFromIndex:1];
 		}
 #if TARGET_IPHONE_SIMULATOR
@@ -2120,6 +2181,52 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
 			NUMBOOL(code==0), @"success",
 			NUMINT(code), @"code",
 			message,@"error", nil];
+}
+
++(UIView*)UIViewWithFrame:(CGRect)frame
+{
+    UIView *view = [[UIView alloc] initWithFrame:frame];
+//    view.layer.shouldRasterize = YES;
+    view.layer.rasterizationScale = [[UIScreen mainScreen] scale];
+    return [view autorelease];
+}
+
++(NSString*)jsonStringify:(id)value error:(NSError**)error
+{
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:value
+                                                       options:kNilOptions
+                                                         error:error];
+    if (jsonData == nil || [jsonData length] == 0) {
+        return nil;
+    } else {
+        NSString *str = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        return [str autorelease];
+    }
+
+}
++(id)jsonParse:(NSString*)value error:(NSError**)error;
+{
+    return [NSJSONSerialization JSONObjectWithData: [value dataUsingEncoding: NSUTF8StringEncoding]
+                                            options: NSJSONReadingMutableContainers
+                                              error: error];
+}
++(NSString*)jsonStringify:(id)value
+{
+    NSError *error = nil;
+    NSString *r = [self jsonStringify:value error:&error];
+    if(error != nil) {
+        NSLog(@"Could not stringify JSON. Error: %@", error);
+    }
+    return r;
+}
++(id)jsonParse:(NSString*)value
+{
+    NSError *error = nil;
+    id r = [self jsonParse:value error:&error];
+    if(error != nil) {
+        NSLog(@"Could not parse JSON. Error: %@", error);
+    }
+    return r;
 }
 
 @end

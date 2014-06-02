@@ -48,6 +48,9 @@ BOOL applicationInMemoryPanic = NO;
 TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run on main thread, or else there is a risk of deadlock!
 
 @interface TiApp()
+{
+    NSUserDefaults *defaultsObject;
+}
 - (void)checkBackgroundServices;
 - (void)appBoot;
 @end
@@ -61,12 +64,13 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 }
 
 @synthesize window, remoteNotificationDelegate, controller;
-@synthesize disableNetworkActivityIndicator;
+//@synthesize disableNetworkActivityIndicator;
 @synthesize remoteNotification;
 @synthesize pendingCompletionHandlers;
 @synthesize backgroundTransferCompletionHandlers;
 @synthesize localNotification;
-@synthesize appBooted = _appBooted;
+@synthesize appBooted;
+@synthesize userDefaults;
 
 +(void)initialize
 {
@@ -97,32 +101,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 +(TiContextGroupRef)contextGroup
 {
 	return [sharedApp contextGroup];
-}
-
-
--(void)startNetwork
-{
-	ENSURE_UI_THREAD_0_ARGS;
-	if (OSAtomicIncrement32(&networkActivityCount) == 1)
-	{
-		[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:!disableNetworkActivityIndicator];
-	}
-}
-
--(void)stopNetwork
-{
-	ENSURE_UI_THREAD_0_ARGS;
-	if (OSAtomicDecrement32(&networkActivityCount) == 0)
-	{
-		[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
-	}
-}
-
-- (void)setDisableNetworkActivityIndicator:(BOOL)value
-{
-	disableNetworkActivityIndicator = value;
-//	[ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: !disableNetworkActivityIndicator];
-	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:(!disableNetworkActivityIndicator && (networkActivityCount > 0))];
 }
 
 -(NSDictionary*)launchOptions
@@ -354,8 +332,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     
 	// preload font matching table
 	[DTCoreTextFontDescriptor asyncPreloadFontLookupTable];
-
-    [ASIHTTPRequest setShouldUpdateNetworkActivityIndicator: NO];
     
 	// nibless window
 	window = [[TouchCapturingWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
@@ -645,6 +621,12 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 
 }
 
+- (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask
+ didResumeAtOffset:(int64_t)fileOffset
+expectedTotalBytes:(int64_t)expectedTotalBytes {
+
+}
+
 - (void)URLSessionDidFinishEventsForBackgroundURLSession:(NSURLSession *)session
 {
     [[NSNotificationCenter defaultCenter] postNotificationName:kTiURLSessionEventsCompleted object:self userInfo:nil];
@@ -760,8 +742,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
 {
 	//FunctionName();
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiPausedNotification object:self];
-	[TiUtils queueAnalytics:@"ti.background" name:@"ti.background" data:nil];
-
+	
 	if (backgroundServices==nil)
 	{
 		return;
@@ -801,8 +782,6 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     [launchOptions removeObjectForKey:@"source"];
 
 	[[NSNotificationCenter defaultCenter] postNotificationName:kTiResumeNotification object:self];
-	
-	[TiUtils queueAnalytics:@"ti.foreground" name:@"ti.foreground" data:nil];
     
 	if (backgroundServices==nil)
 	{
@@ -936,6 +915,7 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
     }
 	RELEASE_TO_NIL(backgroundServices);
 	RELEASE_TO_NIL(localNotification);
+	RELEASE_TO_NIL(defaultsObject);
 	[super dealloc];
 }
 
@@ -1098,6 +1078,99 @@ TI_INLINE void waitForMemoryPanicCleared();   //WARNING: This must never be run 
         }
     }
     return props;
+}
+
+// Returns an NSDictionary with the license data from license.json
++(NSDictionary *)license
+{
+    static NSDictionary* license;
+    
+    if(license == nil) {
+        // Get the props from the encrypted json file
+        NSString *tiLicensePath = [[TiHost resourcePath] stringByAppendingPathComponent:@"_license_.json"];
+        NSData *jsonData = [TiUtils loadAppResource: [NSURL fileURLWithPath:tiLicensePath]];
+        
+        if (jsonData==nil) {
+            // Not found in encrypted file, this means we're in development mode, get it from the filesystem
+            jsonData = [NSData dataWithContentsOfFile:tiLicensePath];
+        }
+        
+        NSString *errorString = nil;
+        // Get the JSON data and create the NSDictionary.
+        if(jsonData) {
+            NSError *error = nil;
+            license = [[NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error] retain];
+            errorString = [error localizedDescription];
+        } else {
+            // If we have no data...
+            // This should never happen on a Titanium app using the node.js CLI
+            errorString = @"File not found";
+        }
+        if(errorString != nil) {
+            // Let the developer know that we could not load the tiapp.xml properties.
+            DebugLog(@"[ERROR] Could not load _license_.json properties, error was %@", errorString);
+            // Create an empty dictioary to avoid running this code over and over again.
+            license = [[NSDictionary dictionary] retain];
+        }
+    }
+    return license;
+}
+
+- (void)registerDefaultsFromSettingsBundle
+{
+	[defaultsObject synchronize];
+	
+	NSString *settingsBundle = [[NSBundle mainBundle] pathForResource:@"Settings" ofType:@"bundle"];
+	
+	if(!settingsBundle)
+	{
+        return;
+	}
+	
+	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:[settingsBundle stringByAppendingPathComponent:@"Root.plist"]];
+	NSArray *preferences = [settings objectForKey:@"PreferenceSpecifiers"];
+	NSMutableDictionary *defaultsToRegister = [[NSMutableDictionary alloc] initWithCapacity:[preferences count]];
+    
+	for (NSDictionary *prefSpecification in preferences)
+	{
+		NSString *key = [prefSpecification objectForKey:@"Key"];
+		if (key)
+		{
+			// check if value readable in userDefaults
+			id currentObject = [defaultsObject objectForKey:key];
+			if (currentObject == nil)
+			{
+				// not readable: set value from Settings.bundle
+				id objectToSet = [prefSpecification objectForKey:@"DefaultValue"];
+				[defaultsToRegister setObject:objectToSet forKey:key];
+			}
+			else
+			{
+				// already readable: don't touch
+			}
+		}
+	}
+	
+	[defaultsObject registerDefaults:defaultsToRegister];
+	[defaultsToRegister release];
+	[defaultsObject synchronize];
+}
+
+
+-(NSUserDefaults*)userDefaults {
+    if (defaultsObject == nil) {
+        defaultsObject = [[NSUserDefaults standardUserDefaults] retain];
+        [self registerDefaultsFromSettingsBundle];
+    }
+    return defaultsObject;
+}
+
++(void)TiNSLog:(NSString*) message
+{
+#pragma push
+#undef NSLog
+    NSLog(@"%@",message);
+#pragma pop
 }
 
 @end

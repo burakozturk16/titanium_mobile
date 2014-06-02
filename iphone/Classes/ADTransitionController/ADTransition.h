@@ -52,10 +52,20 @@ typedef enum {
 @property (nonatomic, readonly) NSTimeInterval duration; // abstract
 
 + (ADTransition *)nullTransition;
-- (ADTransition *)reverseTransition;
+- (ADTransition *)reverseTransitionForSourceRect:(CGRect)rect;
 - (NSArray *)getCircleApproximationTimingFunctions;
 - (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewOlder;
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer;
++(ADTransitionOrientation)reversedOrientation:(ADTransitionOrientation)orientation;
+
+- (id)initWithDuration:(CFTimeInterval)duration;
+- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect;
+- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed;
++(void)inverseTOFromInAnimation:(CABasicAnimation*)animation;
+-(BOOL)needsPerspective;
 @end

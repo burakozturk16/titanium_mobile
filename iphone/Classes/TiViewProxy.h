@@ -43,7 +43,7 @@ enum
 	TiRefreshViewEnqueued,
 };
 
-@class TiAction, TiBlob, TiViewAnimationStep, TiViewController;
+@class TiAction, TiBlob, TiViewAnimationStep, TiViewController, TiWindowProxy;
 //For TableRows, we need to have minimumParentHeightForWidth:
 
 /**
@@ -69,7 +69,7 @@ enum
 	TiViewProxy *parent;
 	pthread_rwlock_t childrenLock;
 	NSMutableArray *children;
-	NSMutableArray *pendingAdds;
+//	NSMutableArray *pendingAdds;
 
 #pragma mark Visual components
 	TiUIView *view;
@@ -199,7 +199,6 @@ enum
 -(void)setReadyToCreateView:(BOOL)ready recursive:(BOOL)recursive;
 -(void)clearView:(BOOL)recurse;
 -(TiUIView*)getOrCreateView;
--(void)processPendingAdds;
 -(void)fakeOpening;
 
 -(void)setParent:(TiViewProxy*)parent_ checkForOpen:(BOOL)check;
@@ -297,6 +296,7 @@ enum
  @return The parent view
  */
 -(UIView *)parentViewForChild:(TiViewProxy *)child;
+-(TiWindowProxy*)getParentWindow;
 
 #pragma mark Event trigger methods
 
@@ -338,13 +338,19 @@ enum
 
 /**
  Tells the view proxy that a view will be attached to it.
- @see viewDidAttach
+ @see viewDidInitialize
  */
--(void)viewWillAttach; // Need this for video player & possibly other classes which override newView
+-(void)viewWillInitialize; // Need this for video player & possibly other classes which override newView
+
+/**
+ Tells the view proxy that a view was initialized.
+ @see viewWillInitialize
+ */
+-(void)viewDidInitialize;
 
 /**
  Tells the view proxy that a view was attached to it.
- @see viewWillAttach
+ @see viewWillInitialize
  */
 -(void)viewDidAttach;
 
@@ -361,6 +367,7 @@ enum
 -(void)viewDidDetach;
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
 
 -(void)viewWillAppear:(BOOL)animated;
 -(void)viewWillDisappear:(BOOL)animated;
@@ -581,7 +588,7 @@ enum
  @param class The child class looked for
  @param child The child view
  */
--(id)getNextChildrenOfClass:(Class)class afterChild:(TiViewProxy*)child;
+-(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiViewProxy*)child;
 
 +(NSArray*)layoutProperties;
 +(NSSet*)transferableProperties;

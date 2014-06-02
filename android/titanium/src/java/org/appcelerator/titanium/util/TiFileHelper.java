@@ -147,6 +147,85 @@ public class TiFileHelper implements Handler.Callback
 		}
 		return _instance;
 	}
+	
+	public String getNativePath(String path) throws FileNotFoundException
+	{
+        Context context = softContext.get();
+        if (context != null) {
+            if (isTitaniumResource(path)) {
+                String[] parts = path.split(":");
+                if (parts.length != 3) {
+                    Log.w(TAG, "Malformed titanium resource url, resource not loaded: " + path);
+                    throw new FileNotFoundException();
+                }
+                @SuppressWarnings("unused")
+                String titanium = parts[0];
+                String section = parts[1];
+                String resid = parts[2];
+
+                if (TI_RESOURCE_PREFIX.equals(section)) {
+                    return "/org/appcelerator/titanium/res/drawable/" + resid + ".png";
+                } else if ("Sys".equals(section)) {
+                    Integer id = systemIcons.get(resid);
+                    if (id != null) {
+                        return resid;
+                    } else {
+                        throw new FileNotFoundException();
+                    }
+                } else {
+                   throw new FileNotFoundException();
+                }
+            } else if (URLUtil.isNetworkUrl(path)) {
+                return path;
+            } else if (path.startsWith(RESOURCE_ROOT_ASSETS)) {
+                int len = "file:///android_asset/".length();
+                path = path.substring(len);
+                boolean found = false;
+                
+                if (foundResourcePathCache.contains(path)) {
+                    found = true;
+                } else if (!notFoundResourcePathCache.contains(path)) {
+                    String base = path.substring(0, path.lastIndexOf("/"));
+                    
+                    synchronized(resourcePathCache) {
+                        if (!resourcePathCache.contains(base)) {
+                            String[] paths;
+                            try {
+                                paths = context.getAssets().list(base);
+                                for(int i = 0; i < paths.length; i++) {
+                                    foundResourcePathCache.add(base + '/' + paths[i]);
+                                }
+                                resourcePathCache.add(base);
+                                if (foundResourcePathCache.contains(path)) {
+                                    found = true;
+                                }
+                            } catch (IOException e) {
+                            }
+                        }
+                        if (!found) {
+                            notFoundResourcePathCache.add(path);
+                        }
+                    }
+                }
+                if (found) {
+                    return path;
+                }
+                else throw new FileNotFoundException();
+            } else if (path.startsWith(SD_CARD_PREFIX)) {
+                File file = new File(path);
+                if (file.exists()) {
+                    return path;
+                }
+                else throw new FileNotFoundException();
+            } else if (URLUtil.isFileUrl(path)) {
+                return path;
+            } else {
+                path = joinPaths("Resources", path);
+                return path;
+            }
+        }
+        return null;
+    }
 
 	public InputStream openInputStream(String path, boolean report)
 		throws IOException

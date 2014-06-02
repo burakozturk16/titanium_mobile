@@ -17,6 +17,10 @@
 @property (nonatomic, readonly) NSString *EVENT_ACCESSIBILITY_LAYOUT_CHANGED;
 @property (nonatomic, readonly) NSString *EVENT_ACCESSIBILITY_SCREEN_CHANGED;
 
+
+@property (nonatomic, readonly) NSString *BACKGROUNDREFRESH_STATUS_AVAILABLE;
+@property (nonatomic, readonly) NSString *BACKGROUNDREFRESH_STATUS_DENIED;
+@property (nonatomic, readonly) NSString *BACKGROUNDREFRESH_STATUS_RESTRICTED;
 @end
 
 #endif

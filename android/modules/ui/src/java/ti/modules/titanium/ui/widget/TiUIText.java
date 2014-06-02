@@ -15,6 +15,7 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
@@ -22,6 +23,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.text.Editable;
 import android.text.InputType;
@@ -44,7 +46,7 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.content.res.ColorStateList;
 
-public class TiUIText extends TiUIView
+public class TiUIText extends TiUINonViewGroupView
 	implements TextWatcher, OnEditorActionListener, OnFocusChangeListener
 {
 	private static final String TAG = "TiUIText";
@@ -180,7 +182,10 @@ public class TiUIText extends TiUIView
 			LinearLayout.LayoutParams params;
 
 			leftPane = new TiCompositeLayout(context);
+			leftPane.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			leftPane.setFocusable(false);
 			leftPane.setId(100);
+			leftPane.setVisibility(View.GONE);
 			leftPane.setTag("leftPane");
 			params = createBaseParams();
 			params.gravity = Gravity.CENTER;
@@ -193,7 +198,10 @@ public class TiUIText extends TiUIView
 
 			rightPane = new TiCompositeLayout(context);
 			rightPane.setId(300);
+			rightPane.setVisibility(View.GONE);
 			rightPane.setTag("rightPane");
+			rightPane.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
+			rightPane.setFocusable(false);
 			params = createBaseParams();
 			params.gravity = Gravity.CENTER;
 			layout.addView(rightPane, params);
@@ -405,10 +413,7 @@ public class TiUIText extends TiUIView
 			}
 		}
 
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
-		}
-
+		
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			String textAlign = d.optString(TiC.PROPERTY_TEXT_ALIGN, "left");
 			String verticalAlign = d.optString(TiC.PROPERTY_VERTICAL_ALIGN, "middle");
@@ -419,6 +424,11 @@ public class TiUIText extends TiUIView
 			|| d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)
 			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
 			handleKeyboard(d);
+		}
+		
+		//password mask changes the font, so let's do this afterwards
+		if (d.containsKey(TiC.PROPERTY_FONT)) {
+			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
 		
 		//the order is important because returnKeyType must overload keyboard return key defined
@@ -481,7 +491,7 @@ public class TiUIText extends TiUIView
 			this.disabledColor = TiConvert.toColor(newValue);
 			updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_HINT_TEXT)) {
-			realtv.setHint((String) newValue);
+			realtv.setHint(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_ELLIPSIZE)) {
 			if (TiConvert.toBoolean(newValue)) {
 				realtv.setEllipsize(TruncateAt.END);
@@ -499,6 +509,9 @@ public class TiUIText extends TiUIView
 				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
 			KrollDict d = proxy.getProperties();
 			handleKeyboard(d);
+			if (getProxy().hasProperty(TiC.PROPERTY_FONT)) {
+				TiUIHelper.styleText(realtv, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
+			}
 		} else if (key.equals(TiC.PROPERTY_RETURN_KEY_TYPE)) {
 			handleReturnKeyType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
@@ -658,7 +671,7 @@ public class TiUIText extends TiUIView
 			if (actionId != EditorInfo.IME_ACTION_NEXT) blur();
 		}
 
-		Boolean enableReturnKey = (Boolean) proxy.getProperty(TiC.PROPERTY_ENABLE_RETURN_KEY);
+		Boolean enableReturnKey = proxy.getProperties().optBoolean(TiC.PROPERTY_ENABLE_RETURN_KEY, true);
 		if (enableReturnKey != null && enableReturnKey && v.getText().length() == 0) {
 			return true;
 		}
@@ -772,9 +785,13 @@ public class TiUIText extends TiUIView
 
 		if (passwordMask) {
 			textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_PASSWORD;
+			Typeface origTF = realtv.getTypeface();
 			// Sometimes password transformation does not work properly when the input type is set after the transformation method.
 			// This issue has been filed at http://code.google.com/p/android/issues/detail?id=7092
 			realtv.setInputType(textTypeAndClass);
+			// Workaround for https://code.google.com/p/android/issues/detail?id=55418 since setInputType
+			// with InputType.TYPE_TEXT_VARIATION_PASSWORD sets the typeface to monospace.
+			realtv.setTypeface(origTF);
 			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.
@@ -809,6 +826,20 @@ public class TiUIText extends TiUIView
 			return;
 		}
 		realtv.setSelection(start, end);
+	}
+	
+	public KrollDict getSelection() {
+		KrollDict result = new KrollDict(2);
+		int start = realtv.getSelectionStart();
+		result.put(TiC.PROPERTY_LOCATION, start);
+		if (start != -1) {
+			int end = realtv.getSelectionEnd();
+			result.put(TiC.PROPERTY_LENGTH, end - start);
+		} else {
+			result.put(TiC.PROPERTY_LENGTH, -1);
+		}
+		
+		return result;
 	}
 
 	public void handleReturnKeyType(int type)

@@ -28,40 +28,40 @@
     }
 }
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     
-    CABasicAnimation * inSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
-    inSwipeAnimation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.1: 0.7: 0.1: 1];
-    inSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
+    CABasicAnimation * inAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
+    inAnimation.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.1: 0.7: 0.1: 1];
+    inAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     
     CABasicAnimation * outSwipeAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     outSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     
-    switch (orientation) {
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
-            inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(viewWidth, 0.0f, 0.0f)];
+            inAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(viewWidth, 0.0f, 0.0f)];
             outSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(outScale*viewWidth, 0.0f, 0.0f)];
         }
             break;
         case ADTransitionLeftToRight:
         {
-            inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(- viewWidth, 0.0f, 0.0f)];
+            inAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(- viewWidth, 0.0f, 0.0f)];
             outSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(- outScale*viewWidth, 0.0f, 0.0f)];
         }
             break;
         case ADTransitionTopToBottom:
         {
-            inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, - viewHeight, 0.0f)];
+            inAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, - viewHeight, 0.0f)];
             outSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, - outScale*viewHeight, 0.0f)];
         }
             break;
         case ADTransitionBottomToTop:
         {
-            inSwipeAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, viewHeight, 0.0f)];
+            inAnimation.fromValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, viewHeight, 0.0f)];
             outSwipeAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DMakeTranslation(0.0f, outScale*viewHeight, 0.0f)];
         }
             break;
@@ -69,7 +69,7 @@
             NSAssert(FALSE, @"Unhandled ADTransitionOrientation");
             break;
     }
-    inSwipeAnimation.duration = duration;
+    inAnimation.duration = duration;
     outSwipeAnimation.duration = duration;
     
     CABasicAnimation * outPositionAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
@@ -86,18 +86,7 @@
     [outAnimation setAnimations:@[outSwipeAnimation, outPositionAnimation]];
     outAnimation.duration = duration;
     
-    
-    
-    self = [super initWithInAnimation:inSwipeAnimation andOutAnimation:outAnimation];
-    return self;
-}
-
-- (ADTransition *)reverseTransition {
-    ADDualTransition *reverse = (ADDualTransition*)[super reverseTransition];
-    reverse.outAnimation.timingFunction = [[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear] inverseFunction];
-    reverse.outAnimation.duration = reverse.outAnimation.duration/2;
-    reverse.inAnimation.duration = reverse.inAnimation.duration/2;
-    return reverse;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer

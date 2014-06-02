@@ -332,6 +332,7 @@
         settingData = NO;
         hideOnSearch = YES; // Legacy behavior
 		filterCaseInsensitive = YES; // defaults to true on search
+		filterAnchored = NO; // defaults to false on search
 		searchString = @"";
 		defaultSeparatorInsets = UIEdgeInsetsZero;
 	}
@@ -1361,7 +1362,7 @@
 		ourSearchAttribute = @"title";
 	}
 	
-	NSStringCompareOptions searchOpts = (filterCaseInsensitive ? NSCaseInsensitiveSearch : 0);
+	NSStringCompareOptions searchOpts = (filterCaseInsensitive ? NSCaseInsensitiveSearch : 0) | (filterAnchored ? NSAnchoredSearch : 0);
 	
 	for (TiUITableViewSectionProxy * thisSection in [(TiUITableViewProxy *)[self proxy] internalSections]) 
 	{
@@ -1935,6 +1936,11 @@
 	}, NO);
 }
 
+-(void)setFilterAnchored_:(id)anchoredBool
+{
+	filterAnchored = [TiUtils boolValue:anchoredBool];
+}
+
 -(void)setFilterCaseInsensitive_:(id)caseBool
 {
 	filterCaseInsensitive = [TiUtils boolValue:caseBool];
@@ -2025,7 +2031,7 @@
             return;
         }
 		tableHeaderPullView = [[UIView alloc] initWithFrame:CGRectMake(0.0f, 0.0f - self.tableView.bounds.size.height, self.tableView.bounds.size.width, self.tableView.bounds.size.height)];
-		tableHeaderPullView.backgroundColor = [UIColor lightGrayColor];
+		tableHeaderPullView.backgroundColor = [UIColor clearGrayColor];
 		UIView *view = [value getOrCreateView];
 		[[self tableView] addSubview:tableHeaderPullView];
 		[tableHeaderPullView addSubview:view];
@@ -2135,6 +2141,11 @@ return result;	\
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)ourTableView
 {
+    //TIMOB-15526
+    if (ourTableView != tableview && ourTableView.backgroundColor == [UIColor clearColor]) {
+        ourTableView.backgroundColor = [UIColor whiteColor];
+    }
+
 	RETURN_IF_SEARCH_TABLE_VIEW(1);
     // One quirk of UITableView is that it really hates having 0 sections. Instead, supply 1 section, no rows.
 	int result = [(TiUITableViewProxy *)[self proxy] sectionCount];

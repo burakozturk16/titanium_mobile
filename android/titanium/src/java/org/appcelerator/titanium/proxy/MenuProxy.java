@@ -140,7 +140,6 @@ public class MenuProxy extends KrollProxy
 		synchronized(menuMap) {
 			menuMap.put(item, mip);
 		}
-		
 		return mip;
 	}
 
@@ -187,9 +186,7 @@ public class MenuProxy extends KrollProxy
 		MenuItemProxy mip = null;
 		MenuItem item = menu.findItem(itemId);
 		if (item != null) {
-			synchronized(menuMap) {
-				mip = menuMap.get(item);
-			}
+			return findItem(item);
 		}
 		
 		return mip;
@@ -202,11 +199,12 @@ public class MenuProxy extends KrollProxy
 		MenuItem item = menu.getItem(index);
 		
 		if (item != null) {
-			mip = menuMap.get(item);
+			mip = findItem(item);
 		}
 				
 		return mip;
 	}
+	
 	
 	public MenuItemProxy findItem(MenuItem item) {
 		synchronized(menuMap) {
@@ -322,13 +320,12 @@ public class MenuProxy extends KrollProxy
 	public MenuItemProxy[] getItems() {
 		int len = menu.size();
 		MenuItemProxy[] proxies = new MenuItemProxy[len];
-		synchronized(menuMap) {
-			for (int i = 0; i < len; i++) {
-				MenuItem mi = menu.getItem(i);
-				MenuItemProxy mip = menuMap.get(mi);
-				proxies[i] = mip;
-			}
+		for (int i = 0; i < len; i++) {
+			MenuItem mi = menu.getItem(i);
+			MenuItemProxy mip = findItem(mi);
+			proxies[i] = mip;
 		}
+
 		return proxies;
 	}
 	

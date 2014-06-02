@@ -713,7 +713,7 @@ public class TiImageView extends MaskableView implements Handler.Callback, OnCli
 			view.setScaleType(ScaleType.MATRIX);
 			view.setAdjustViewBounds(false);
 		} else {
-			if (viewWidthDefined && viewHeightDefined) {
+			if (viewWidthDefined || viewHeightDefined) {
 				view.setAdjustViewBounds(false);
 				view.setScaleType(wantedScaleType);
 			}

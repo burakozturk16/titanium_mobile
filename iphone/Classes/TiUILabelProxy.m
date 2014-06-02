@@ -76,15 +76,19 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
         options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
+                    NSHTMLTextDocumentType, NSDocumentTypeDocumentAttribute,
                     [NSNumber numberWithInt:kCTLeftTextAlignment], DTDefaultTextAlignment,
                     [NSNumber numberWithInt:0], DTDefaultFontStyle,
                     @"Helvetica", DTDefaultFontFamily,
-                     [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
+                    @"Helvetica", NSFontAttributeName,
+                    [NSNumber numberWithFloat:(17 / kDefaultFontSize)], NSTextSizeMultiplierDocumentOption,
                     [NSNumber numberWithInt:kCTLineBreakByWordWrapping], DTDefaultLineBreakMode, nil] retain];
-        
         if ([TiUtils isIOS6OrGreater])
         {
             [options setObject:@YES forKey:DTUseiOS6Attributes];
+            if ([TiUtils isIOS7OrGreater])
+            {
+            }
         }
     }
     return self;
@@ -111,7 +115,12 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     switch (_contentType) {
         case kContentTypeHTML:
         {
-            _realLabelContent = [[NSAttributedString alloc] initWithHTMLData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
+//            if ([TiUtils isIOS7OrGreater]) {
+//                _realLabelContent = [[NSAttributedString alloc] initWithData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil error:nil];
+//            }
+//            else {
+                _realLabelContent = [[NSAttributedString alloc] initWithHTMLData:[contentString dataUsingEncoding:NSUTF8StringEncoding] options:options documentAttributes:nil];
+//            }
             break;
         }
         default:
@@ -301,8 +310,10 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
     [options setValue:[NSNumber numberWithInt:traitsDefault] forKey:DTDefaultFontStyle];
     if (webFont.family)
         [options setValue:webFont.family forKey:DTDefaultFontFamily];
-    else
+    else {
+        [options setObject:@"Helvetica" forKey:NSFontAttributeName];
         [options setValue:@"Helvetica" forKey:DTDefaultFontFamily];
+    }
     [options setValue:[NSNumber numberWithFloat:(webFont.size / kDefaultFontSize)] forKey:NSTextSizeMultiplierDocumentOption];
     
     //we need to reset the text to update default paragraph settings

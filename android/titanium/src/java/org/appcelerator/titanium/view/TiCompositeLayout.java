@@ -329,7 +329,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			
 			int widthPadding = getViewWidthPadding(child, params, this);
 			int heightPadding = getViewHeightPadding(child, params, this);
-			constrainChild(child, params, (w - horizontalRowWidth), wMode, h, hMode, widthPadding, heightPadding);
+			constrainChild(child, params, horizontalNoWrap?(w - horizontalRowWidth):w, wMode, h, hMode, widthPadding, heightPadding);
 
 			int childWidth = child.getMeasuredWidth() + widthPadding;
 			int childHeight = child.getMeasuredHeight() + heightPadding;
@@ -487,13 +487,28 @@ public class TiCompositeLayout extends FreeLayout implements
 			} else {
 				if (p.autoFillsWidth) {
 					childDimension = LayoutParams.MATCH_PARENT;
-				} else {
-					// Look for sizeFill conflicts
-					hasSizeFillConflict(child, sizeFillConflicts, true);
-					checkedForConflict = true;
-					if (sizeFillConflicts[0] == HAS_SIZE_FILL_CONFLICT) {
+				} else if (!p.sizeOrFillWidthEnabled) {
+					TiDimension left = p.optionLeft;
+					TiDimension centerX = p.optionCenterX;
+					TiDimension right = p.optionRight;
+					if (left != null) {
+						if (centerX != null) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						} else if (right != null) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						}
+					} else if (centerX != null && right != null) {
 						childDimension = LayoutParams.MATCH_PARENT;
 					}
+					else {
+						// Look for sizeFill conflicts
+						hasSizeFillConflict(child, sizeFillConflicts, true);
+						checkedForConflict = true;
+						if (sizeFillConflicts[0] == HAS_SIZE_FILL_CONFLICT) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						}
+					}
+					
 				}
 			}
 			
@@ -518,10 +533,24 @@ public class TiCompositeLayout extends FreeLayout implements
 				if (p.autoFillsHeight
 						|| (checkedForConflict && sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT)) {
 					childDimension = LayoutParams.MATCH_PARENT;
-				} else if (!checkedForConflict) {
-					hasSizeFillConflict(child, sizeFillConflicts, true);
-					if (sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT) {
+				} else if (!p.sizeOrFillHeightEnabled) {
+					TiDimension top = p.optionTop;
+					TiDimension centerY = p.optionCenterY;
+					TiDimension bottom = p.optionBottom;
+					if (top != null) {
+						if (centerY != null) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						} else if (bottom != null) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						}
+					} else if (centerY != null && bottom != null) {
 						childDimension = LayoutParams.MATCH_PARENT;
+					}
+					else if (!checkedForConflict){
+						hasSizeFillConflict(child, sizeFillConflicts, true);
+						if (sizeFillConflicts[1] == HAS_SIZE_FILL_CONFLICT) {
+							childDimension = LayoutParams.MATCH_PARENT;
+						}
 					}
 				}
 			}
@@ -530,9 +559,6 @@ public class TiCompositeLayout extends FreeLayout implements
 					MeasureSpec.makeMeasureSpec(height, hMode), heightPadding,
 					childDimension);
 			child.measure(widthSpec, heightSpec);
-			
-			
-			
 		}
 		boolean needsRecompute = false;
 		int childWidth = child.getMeasuredWidth();

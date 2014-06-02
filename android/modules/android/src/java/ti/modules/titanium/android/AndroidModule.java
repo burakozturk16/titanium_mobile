@@ -7,11 +7,14 @@
 package ti.modules.titanium.android;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
@@ -248,6 +251,7 @@ public class AndroidModule extends KrollModule
 	@Kroll.constant public static final int NAVIGATION_MODE_TABS = ActionBar.NAVIGATION_MODE_TABS;
 
 	protected RProxy r;
+	private static String _AppActivityClassName = null;
 
 	public AndroidModule()
 	{
@@ -302,6 +306,36 @@ public class AndroidModule extends KrollModule
 		}
 		return r;
 	}
+	
+	private static String capitalize(String line)
+	{
+		return Character.toUpperCase(line.charAt(0)) + line.substring(1).toLowerCase();
+	}
+	public static String getMainActivityName(){
+		Pattern pattern = Pattern.compile("[^A-Za-z0-9_]");
+		ITiAppInfo appInfo = TiApplication.getInstance().getAppInfo();
+		String str = appInfo.getName();
+		String className = "";
+		String[] splitStr = pattern.split(str);
+		for (int i = 0; i < splitStr.length; i++) {
+			className = className + capitalize(splitStr[i]);
+		}
+		Pattern pattern2 = Pattern.compile("^[0-9]");
+		Matcher matcher = pattern2.matcher(className);
+		if (matcher.matches()) {
+			className = "_" + className;
+		}
+		return appInfo.getId() + "." + className + "Activity";
+	}
+	
+	@Kroll.getProperty(name="appActivityClassName")
+	public String getAppActivityClassName() {
+		if (_AppActivityClassName == null) {
+			_AppActivityClassName = getMainActivityName();
+		}
+		return _AppActivityClassName;
+	}
+
 
 	@Kroll.method
 	public void startService(IntentProxy intentProxy)

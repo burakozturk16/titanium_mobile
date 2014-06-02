@@ -131,14 +131,14 @@
         }
         CGContextClip(ctx);
     }
-    else if (layer.clipWidth > 0)
-    {
-        CGFloat halfWidth = layer.clipWidth / 2.0f;
-        CGContextAddRect(ctx, CGRectInset(rect, halfWidth, halfWidth));
-        CGContextSetLineWidth(ctx, layer.clipWidth);
-        CGContextReplacePathWithStrokedPath(ctx);
-        CGContextClip(ctx);
-    }
+//    else if (layer.clipWidth > 0)
+//    {
+//        CGFloat halfWidth = layer.clipWidth / 2.0f;
+//        CGContextAddRect(ctx, CGRectInset(rect, halfWidth, halfWidth));
+//        CGContextSetLineWidth(ctx, layer.clipWidth);
+//        CGContextReplacePathWithStrokedPath(ctx);
+//        CGContextClip(ctx);
+//    }
 
     if (color) {
         CGContextSetFillColorWithColor(ctx, [color CGColor]);
@@ -503,12 +503,12 @@
     runningAnimation = nil;
 }
 
-//
+
 //static NSArray *animationKeys;
 //+ (NSArray *)animationKeys
 //{
 //    if (!animationKeys)
-//        animationKeys = [@[@"customPropAnim"] retain];
+//        animationKeys = [@[@"shadowPath"] retain];
 //    
 //    return animationKeys;
 //}

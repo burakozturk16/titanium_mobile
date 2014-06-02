@@ -63,6 +63,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_ANDROID_VOLUP = "androidvolup";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_AUTHENTICATION = "authentication";
 
 	/**
 	 * @module.api
@@ -153,6 +158,16 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String EVENT_FOCUSED = "focused";
+
+        /**
+         * @module.api
+         */
+        public static final String EVENT_SELECTED = "selected";
+
+        /**
+         * @module.api
+         */
+        public static final String EVENT_UNSELECTED = "unselected";
 
 	/**
 	 * @module.api
@@ -538,13 +553,21 @@ public class TiC
 	 */
 	public static final String EVENT_USER_LEAVE_HINT = "userleavehint";
 	
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_PROXIMITY = "proximity";
+
+	/**
+	 * @module.api
+	 */
+	public static final String EVENT_SSL_ERROR = "sslerror";
+	
 
 	/**
 	 * @module.api
 	 */
 	public static final String EVENT_UNFOCUSED = "unfocused";
-	public static final String INTENT_PROPERTY_ENTER_ANIMATION = "activityEnterAnimation";
-	public static final String INTENT_PROPERTY_EXIT_ANIMATION = "activityExitAnimation";
 	public static final String INTENT_PROPERTY_FINISH_ROOT = "finishRoot";
 	public static final String INTENT_PROPERTY_IS_TAB = "isTab";
 	public static final String INTENT_PROPERTY_LAYOUT = "layout";
@@ -617,6 +640,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ACTIVE_TAB = "activeTab";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_SWIPEABLE = "swipeable";
 
 	/**
 	 * @module.api
@@ -1014,6 +1042,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CALENDAR_VIEW_SHOWN = "calendarViewShown";
+	
+	/**
+	 * @module.api
+	 */	
+	public static final String PROPERTY_CAMERA_FLASH_MODE = "cameraFlashMode";
 
 	/**
 	 * @module.api
@@ -1265,7 +1298,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_DISPLAY_HOME_AS_UP = "displayHomeAsUp";
 
-	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_DISTANCE = "distance";
+
 	/**
 	 * @module.api
 	 */
@@ -1364,17 +1401,28 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_FILTER_ANCHORED = "filterAnchored";
+	
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_FILTER_CASE_INSENSITIVE = "filterCaseInsensitive";
 	
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_FIRSTNAME = "firstName";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FLAG_SECURE = "flagSecure";
 
 	/**
 	 * @module.api
 	 */
 	public static final String PROPERTY_FLAGS = "flags";
+
 
 	/**
 	 * @module.api
@@ -1385,6 +1433,21 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FONT = "font";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FONTFAMILY = "fontFamily";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FONTWEIGHT = "fontWeight";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FONTSIZE = "fontSize";
 
 	/**
 	 * @module.api
@@ -1400,6 +1463,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FONT_SIZE = "font-size";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FOOTER_DIVIDERS_ENABLED = "footerDividersEnabled";
 
 	/**
 	 * @module.api
@@ -1462,6 +1530,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_HEADER = "header";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_HEADER_DIVIDERS_ENABLED = "headerDividersEnabled";
 
 	/**
 	 * @module.api
@@ -1579,6 +1652,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_IMAGES = "images";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_INCLUDE_FONT_PADDING = "includeFontPadding";
+	
 	/**
 	 * @module.api
 	 */
@@ -1760,6 +1838,7 @@ public class TiC
 	public static final String PROPERTY_MAX = "max";
 
 	public static final String PROPERTY_MAX_AGE = "maxAge";
+	public static final String PROPERTY_MAX_DISTANCE = "maxDistance";
 
 	/**
 	 * @module.api
@@ -1841,6 +1920,7 @@ public class TiC
 	public static final String PROPERTY_MIN = "min";
 
 	public static final String PROPERTY_MIN_AGE = "minAge";
+	public static final String PROPERTY_MIN_DISTANCE = "minDistance";
 	/**
 	 * @module.api
 	 */
@@ -2754,6 +2834,10 @@ public class TiC
 	 */
 	public static final String PROPERTY_WINDOW = "window";
 
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_WINDOW_FLAGS = "windowFlags";
 	/**
 	 * @module.api
 	 */

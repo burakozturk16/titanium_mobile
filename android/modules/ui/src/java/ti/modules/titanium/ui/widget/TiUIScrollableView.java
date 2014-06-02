@@ -257,7 +257,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	
 	private void setCurrentPageIndex(int newPage, boolean animated)
 	{
-		if (newPage == mCurIndex) return;
+		if (mViews == null || mCurIndex >= mViews.size() || newPage == mCurIndex) return;
 		mCurIndex = newPage;
 		proxy.setProperty(TiC.PROPERTY_CURRENT_PAGE, mCurIndex);
 		updateCacheSize();
@@ -377,7 +377,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		{
 			setCurrentPageIndex(index, true);
 		}
-		((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
+		if (mCurIndex != -1 && mCurIndex < mViews.size()) {
+	        ((ScrollableViewProxy)proxy).fireScroll(mCurIndex, positionFloat, mViews.get(mCurIndex));
+		}
 
 		// Note that we didn't just fire a `dragend`.  See the above comment
 		// in `onPageSelected`.
@@ -609,6 +611,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	{
 		if (!mViews.contains(proxy)) {
 			proxy.setActivity(this.proxy.getActivity());
+			proxy.setParent(this.proxy);
 			mViews.add(proxy);
 			getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 			mAdapter.notifyDataSetChanged();
@@ -620,6 +623,8 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		if (view instanceof Number) {
 			int viewIndex = TiConvert.toInt(view);
 			if (viewIndex >= 0 && viewIndex < mViews.size()) {
+				TiViewProxy proxy = (TiViewProxy)mViews.get(viewIndex);
+				proxy.setParent(null);
 				mViews.remove(viewIndex);
 				getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 				mAdapter.notifyDataSetChanged();
@@ -627,6 +632,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		} else if (view instanceof TiViewProxy) {
 			TiViewProxy proxy = (TiViewProxy)view;
 			if (mViews.contains(proxy)) {
+				proxy.setParent(null);
 				mViews.remove(proxy);
 				getProxy().setProperty(TiC.PROPERTY_VIEWS, mViews.toArray());
 				mAdapter.notifyDataSetChanged();
@@ -680,7 +686,9 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 	private void move(int index, boolean animated)
 	{
 		if (index < 0 || index >= mViews.size()) {
-			Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.");
+			if (Log.isDebugModeEnabled()) {
+				Log.w(TAG, "Request to move to index " + index+ " ignored, as it is out-of-bounds.", Log.DEBUG_MODE);
+			}
 			return;
 		}
 		//we dont to update page during scroll but immediately. Otherwise if we jump multiple page, we will have multiple events!
@@ -736,6 +744,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			mPager.removeAllViews();
 			for (TiViewProxy viewProxy : mViews) {
 				viewProxy.releaseViews(true);
+				viewProxy.setParent(null);
 			}
 			mViews.clear();
 		}
@@ -762,6 +771,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 				if (views[i] instanceof TiViewProxy) {
 					TiViewProxy tv = (TiViewProxy)views[i];
 					tv.setActivity(activity);
+					tv.setParent(this.proxy);
 					mViews.add(tv);
 					changed = true;
 				}
@@ -789,6 +799,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 		if (mViews != null) {
 			for (TiViewProxy viewProxy : mViews) {
 				viewProxy.releaseViews(true);
+				viewProxy.setParent(null);
 			}
 			mViews.clear();
 		}

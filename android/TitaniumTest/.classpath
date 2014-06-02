@@ -3,15 +3,18 @@
 	<classpathentry exported="true" kind="lib" path="lib/titanium-verify.jar"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/titanium"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/kroll-apt.jar"/>
-	<classpathentry exported="true" kind="lib" path="/titanium/bin/titanium.jar"/>
-	<classpathentry exported="true" kind="lib" path="/titanium-ui/bin/titanium-ui.jar"/>
 	<classpathentry kind="src" path="gen"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+<<<<<<< HEAD
 	<classpathentry combineaccessrules="false" kind="src" path="/titanium-dist"/>
+=======
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-dist"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/titanium-filesystem.jar"/>
+	<classpathentry exported="true" kind="lib" path="/titanium-dist/lib/titanium-media.jar"/>
+>>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

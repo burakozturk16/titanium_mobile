@@ -41,6 +41,7 @@ import ti.modules.titanium.ui.widget.searchview.TiUISearchView;
 import yaochangwei.pulltorefreshlistview.widget.RefreshableListView.OnPullListener;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -380,6 +381,14 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		        wrapper.onTouchEvent(event);
 		        return super.onTouchEvent(event);
 		    }
+			@Override
+		    protected void dispatchDraw(Canvas canvas) {
+		        try {
+		            super.dispatchDraw(canvas);
+		        } catch (IndexOutOfBoundsException e) {
+		            // samsung error
+		        }
+		    }
 		};
 		listView.setDuplicateParentStateEnabled(true);
 		
@@ -603,6 +612,20 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			setSeparatorColor(color);
 		}
 
+		if (d.containsKey(TiC.PROPERTY_FOOTER_DIVIDERS_ENABLED)) {
+			boolean enabled = TiConvert.toBoolean(d, TiC.PROPERTY_FOOTER_DIVIDERS_ENABLED, false);
+			listView.setFooterDividersEnabled(enabled);
+		} else {
+			listView.setFooterDividersEnabled(false);
+		}
+		
+		if (d.containsKey(TiC.PROPERTY_HEADER_DIVIDERS_ENABLED)) {
+			boolean enabled = TiConvert.toBoolean(d, TiC.PROPERTY_HEADER_DIVIDERS_ENABLED, false);
+			listView.setHeaderDividersEnabled(enabled);
+		} else {
+			listView.setHeaderDividersEnabled(false);
+		}
+		
 		if (d.containsKey(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR)) {
 			listView.setVerticalScrollBarEnabled(TiConvert.toBoolean(d, TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR, true));
 		}
@@ -612,22 +635,19 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 		
 		ListViewProxy listProxy = (ListViewProxy) proxy;
-		if (d.containsKey(TiC.PROPERTY_SECTIONS)) {
-			//if user didn't append/modify/delete sections before this is called, we process sections
-			//as usual. Otherwise, we process the preloadSections, which should also contain the section(s)
-			//from this dictionary as well as other sections that user append/insert/deleted prior to this.
-			if (!listProxy.isPreload()) {
-				processSections((Object[])d.get(TiC.PROPERTY_SECTIONS));
-			} else {
-				processSections(listProxy.getPreloadSections().toArray());
-			}
-		} else if (listProxy.isPreload()) {
-			//if user didn't specify 'sections' property upon creation of listview but append/insert it afterwards
-			//we process them instead.
-			processSections(listProxy.getPreloadSections().toArray());
+		if (listProxy.isPreload()) {
+		    //if user didn't append/modify/delete sections before this is called, we process sections
+            //as usual. Otherwise, we process the preloadSections, which should also contain the section(s)
+            //from this dictionary as well as other sections that user append/insert/deleted prior to this.
+		    //if user didn't specify 'sections' property upon creation of listview but append/insert it afterwards
+            //we process them instead.
+		    Object[] array = listProxy.getPreloadSections().toArray();
+            proxy.setProperty(TiC.PROPERTY_SECTIONS, array);
+            processSections(array);
+            listProxy.clearPreloadSections();
+		} else if (d.containsKey(TiC.PROPERTY_SECTIONS)) {
+			processSections((Object[])d.get(TiC.PROPERTY_SECTIONS));
 		}
-
-		listProxy.clearPreloadSections();
 
 		if (proxy.hasProperty(TiC.PROPERTY_SEPARATOR_COLOR)) {
 			setSeparatorColor(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_SEPARATOR_COLOR)));
@@ -679,11 +699,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 
 		//Have to add header and footer before setting adapter
-		listView.addHeaderView(headerView);
-		listView.addFooterView(footerView);
+		listView.addHeaderView(headerView, null, false);
+		listView.addFooterView(footerView, null, false);
 
 		listView.setAdapter(adapter);
-
 		super.processProperties(d);
 		
 	}
@@ -892,11 +911,17 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		templatesByBinding.put(defaultTemplateKey, defaultTemplate);
 		if(templates != null) {
 			for (String key : templates.keySet()) {
-				//Here we bind each template with a key so we can use it to look up later
-				KrollDict properties = new KrollDict((HashMap)templates.get(key));
-				TiListViewTemplate template = new TiListViewTemplate(key, properties);
-				template.setType(getItemType());
-				templatesByBinding.put(key, template);
+				HashMap templateDict = (HashMap)templates.get(key);
+				if (templateDict != null) {
+					//Here we bind each template with a key so we can use it to look up later
+					KrollDict properties = new KrollDict((HashMap)templates.get(key));
+					TiListViewTemplate template = new TiListViewTemplate(key, properties);
+					template.setType(getItemType());
+					templatesByBinding.put(key, template);
+				}
+				else {
+					Log.e(TAG, "null template definition: " + key);
+				}
 			}
 		}
 	}
@@ -1125,8 +1150,8 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	    }
 	}
 	
-	public void scrollToItem(int sectionIndex, int sectionItemIndex, boolean animated) {
-		int position = findItemPosition(sectionIndex, sectionItemIndex);
+	protected void scrollToItem(int sectionIndex, int sectionItemIndex, boolean animated) {
+		final int position = findItemPosition(sectionIndex, sectionItemIndex);
 		if (position > -1) {
 			if (animated)
 				listView.smoothScrollToPosition(position + 1);
@@ -1192,6 +1217,11 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	{
 		this.searchText = text;
 		reFilter(text);
+	}
+	
+	public ListSectionProxy[] getSections()
+	{
+		return sections.toArray(new ListSectionProxy[sections.size()]);
 	}
 	
 	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {

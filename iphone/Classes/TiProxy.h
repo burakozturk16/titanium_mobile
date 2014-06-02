@@ -354,4 +354,6 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 -(void)applyProperties:(id)args;
 -(NSString*)apiName;
+-(id)objectOfClass:(Class)theClass fromArg:(id)arg;
++(id)objectOfClass:(Class)theClass fromArg:(id)arg inContext:(id<TiEvaluator>)context_;
 @end

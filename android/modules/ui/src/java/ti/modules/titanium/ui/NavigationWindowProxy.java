@@ -16,6 +16,7 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollProxyListener;
+import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -30,6 +31,7 @@ import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
+import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
@@ -47,7 +49,6 @@ import android.app.Activity;
 import android.os.Message;
 import android.util.Pair;
 import android.view.View;
-
 import android.view.ViewGroup;
 
 @SuppressWarnings({"unchecked", "rawtypes", "serial"})
@@ -634,9 +635,17 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 		}
 	}
 	
+    @Override
+	public void releaseViews(boolean activityFinishing)
+    {
+        super.releaseViews(activityFinishing);
+        clearWindowsStack(activityFinishing);
+    }
+    
+	
 	@Override
 	public boolean shouldExitOnClose() {
-		if (windows.size() == 1) {
+		if (closing || windows.size() == 1) {
 			return super.shouldExitOnClose();
 		}
 		return false;
@@ -654,8 +663,10 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 				fireEvent(TiC.EVENT_ANDROID_BACK, false, false);
 				return true;
 			}
-			poping = true;
-			return popCurrentWindow(null);
+			if (windows.size() >= 2) {
+				poping = true;
+				return popCurrentWindow(null);
+			}
 		}
 		return false;
 	}
@@ -696,24 +707,31 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 	public void onPause(Activity activity) {		
 	}
 	
-	public void clearWindowsStack(){
+    public void clearWindowsStack(){
+        clearWindowsStack(false);
+    }
+    
+    public void clearWindowsStack(final boolean activityFinishing){
 		if (windows.size() == 0) return;
 		ViewGroup viewToRemoveFrom = (ViewGroup) getParentViewForChild();
-		for (int i = 0; i < windows.size(); i++) {
-			TiWindowProxy proxy = windows.get(i);
-			View viewToRemove = proxy.getOuterView();
-			if (viewToRemove != null) {
-				viewToRemoveFrom.removeView(viewToRemove);
-			}
-			proxy.closeFromActivity(false);
-		}
+        if (viewToRemoveFrom != null) {
+            for (int i = 0; i < windows.size(); i++) {
+                TiWindowProxy proxy = windows.get(i);
+                View viewToRemove = proxy.getOuterView();
+                if (viewToRemove != null ) {
+                    viewToRemoveFrom.removeView(viewToRemove);
+                }
+                proxy.closeFromActivity(activityFinishing);
+            }
+        }
+		
 		windows.clear();
 	}
 
 	public void onStop(Activity activity) {
 	}
 
-	public void onDestroy(Activity activity) {		
+	public void onDestroy(Activity activity) {
 		clearWindowsStack();
 	}
 	@Override

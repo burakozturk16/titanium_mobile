@@ -3,12 +3,8 @@
 
 @implementation TiTransitionCross
 
-- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADCrossTransition alloc] initWithDuration:duration sourceRect:sourceRect];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADCrossTransition class];
 }
 
 @end

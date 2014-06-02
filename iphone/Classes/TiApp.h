@@ -112,6 +112,11 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 +(NSDictionary *)tiAppProperties;
 
+/**
+ * Returns a read-only dictionary of the license
+ */
++(NSDictionary *)license;
+
 /*
  Convenience method to returns root view controller for TiApp instance.
  @return The application's root view controller.
@@ -142,31 +147,6 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  @return Current device UUID.
  */
 -(NSString*)remoteDeviceUUID;
-
-/**
- Tells application to show network activity indicator.
- 
- Every call of startNetwork should be paired with <stopNetwork>.
- @see stopNetwork
- */
--(void)startNetwork;
-
-/**
- Tells application to hide network activity indicator.
- 
- Every call of stopNetwork should have corresponding <startNetwork> call.
- @see startNetwork
- */
--(void)stopNetwork;
-
-/**
- Prevents network activity indicator from showing.
- Setting this property to YES disables appearance of network activity indicator when startNetwork is called.
- In case network activity indicator is currently visible, it will be hidden.
- @see startNetwork
- @see stopNetwork
- */
-@property (nonatomic, assign) BOOL disableNetworkActivityIndicator;
 
 -(void)showModalError:(NSString*)message;
 
@@ -212,6 +192,12 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
 -(void)stopBackgroundService:(TiProxy*)proxy;
 -(void)completionHandler:(id)key withResult:(int)result;
 -(void)completionHandlerForBackgroundTransfer:(id)key;
+
+@property(nonatomic,readonly) NSUserDefaults *userDefaults;
+
+//TiNSLog is just a wrapper around NSLog for modules override
+//if you override it make sure to undef NSLog 
++(void)TiNSLog:(NSString*) message;
 
 @end
 

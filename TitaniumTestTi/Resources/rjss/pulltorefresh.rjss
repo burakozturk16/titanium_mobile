@@ -1,0 +1,44 @@
+PullToRefresh {
+	height:50
+}
+
+.PullToRefreshArrow {
+	color: '#576c89',
+	font:{family:app.iconicfonts.webhostinghub.fontFamily(), size:34},
+	text:app.iconicfonts.webhostinghub.icon('awesome-circle-arrow-down'),
+}
+
+.PullToRefreshLabel {
+	color: '#576c89',
+	font: {
+		size: 13,
+		weight: 'bold'
+		},
+	textAlign: 'left',
+	left: 5
+}
+
+.NZBPTR
+{
+    labelClass:'NZBPTRLabel',
+    arrowClass:'NZBPTRArrow'
+}
+
+.NZBListViewInfoLabel
+{
+    font:{size:14, weight:'bold'},
+    shadowColor:'white',
+    shadowRadius:2,
+    shadowOffset:{x:0,y:1},
+    textAlign:'center',
+    color:'#3A87AD'
+}
+
+.NZBPTRLabel{
+    rclass:'PullToRefreshLabel NZBListViewInfoLabel',
+    textAlign:'left'
+}
+.NZBPTRArrow{
+    rclass:'PullToRefreshArrow NZBListViewInfoLabel',
+    font:{size:24}
+}

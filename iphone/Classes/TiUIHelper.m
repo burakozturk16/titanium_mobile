@@ -24,8 +24,8 @@
         return;
     }
     layer.masksToBounds = NO;
-    layer.shouldRasterize = YES;
-    layer.rasterizationScale = [[UIScreen mainScreen] scale];
+//    layer.shouldRasterize = YES;
+//    layer.rasterizationScale = [[UIScreen mainScreen] scale];
     TiShadow* data = [TiUIHelper getShadow:args];
     layer.shadowOffset = data.shadowOffset;
     layer.shadowOpacity = 1.0f;

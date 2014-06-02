@@ -14,7 +14,7 @@ CGPoint ADRectCenter(CGRect rect) {
 
 @implementation ADZoomTransition
 
-- (id)initWithSourceRect:(CGRect)sourceRect andTargetRect:(CGRect)targetRect forDuration:(double)duration {
+- (id)initWithSourceRect:(CGRect)sourceRect andTargetRect:(CGRect)targetRect forDuration:(double)duration orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed {
     CABasicAnimation * zoomAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     CATransform3D transform = CATransform3DIdentity;
     CGPoint sourceCenter = ADRectCenter(sourceRect);
@@ -24,17 +24,22 @@ CGPoint ADRectCenter(CGRect rect) {
     zoomAnimation.fromValue = [NSValue valueWithCATransform3D:transform];
     zoomAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     zoomAnimation.duration = duration;
+    
+    if (reversed) {
+        NSValue* old = zoomAnimation.fromValue;
+        zoomAnimation.fromValue = zoomAnimation.toValue;
+        zoomAnimation.toValue = old;
+    }
 
     CABasicAnimation * outAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
     outAnimation.fromValue = @-0.001;
     outAnimation.toValue = @-0.001;
     outAnimation.duration = duration;
 
-    self = [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
-- (id)initWithScale:(CGFloat)scale forDuration:(double)duration {
+- (id)initWithScale:(CGFloat)scale forDuration:(double)duration orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed {
     CABasicAnimation * zoomAnimation = [CABasicAnimation animationWithKeyPath:@"transform"];
     CATransform3D transform = CATransform3DIdentity;
     transform = CATransform3DScale(transform, scale, scale, 1.0f);
@@ -42,13 +47,18 @@ CGPoint ADRectCenter(CGRect rect) {
     zoomAnimation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
     zoomAnimation.duration = duration;
     
+    if (reversed) {
+        NSValue* old = zoomAnimation.fromValue;
+        zoomAnimation.fromValue = zoomAnimation.toValue;
+        zoomAnimation.toValue = old;
+    }
+    
     CABasicAnimation * outAnimation = [CABasicAnimation animationWithKeyPath:@"zPosition"];
     outAnimation.fromValue = @-0.001;
     outAnimation.toValue = @-0.001;
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:zoomAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

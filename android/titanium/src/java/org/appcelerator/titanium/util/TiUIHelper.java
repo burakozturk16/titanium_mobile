@@ -244,6 +244,12 @@ public class TiUIHelper
 						baseActivity.addDialog(baseActivity.new DialogWrapper(dialog, true, new WeakReference<TiBaseActivity>(baseActivity)));
 						dialog.setOwnerActivity(activity);
 					}
+					dialog.setOnShowListener(new DialogInterface.OnShowListener(){
+				        @Override
+				        public void onShow(DialogInterface dialog) {
+				        	TiApplication.getInstance().cancelPauseEvent();
+				        }
+					});
 					dialog.show();
 
 				}
@@ -1170,7 +1176,7 @@ public class TiUIHelper
 
 		if (imm != null) {
 			boolean useForce = (Build.VERSION.SDK_INT <= Build.VERSION_CODES.DONUT || Build.VERSION.SDK_INT >= 8) ? true : false;
-			String model = TiPlatformHelper.getModel(); 
+			String model = TiPlatformHelper.getInstance().getModel(); 
 			if (model != null && model.toLowerCase().startsWith("droid")) {
 				useForce = true;
 			}

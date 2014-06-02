@@ -9,5 +9,4 @@
 #import "ADDualTransition.h"
 
 @interface ADGlueTransition : ADDualTransition
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect;
 @end

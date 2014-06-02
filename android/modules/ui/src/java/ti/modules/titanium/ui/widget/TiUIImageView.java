@@ -477,12 +477,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 						if (imageSources == null || j >= imageSources.size()) {
 							break topLoop;
 						}
-						Bitmap b;
-						try {
-							b = imageSources.get(j).getBitmap(true);
-						} catch (FileNotFoundException e1) {
-							b = null;
-						}
+						Bitmap b = imageSources.get(j).getBitmap(true);
 						BitmapWithIndex bIndex = new BitmapWithIndex(b,j);
 						while (waitTime < duration * imageSources.size()) {
 							try {
@@ -562,12 +557,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 			if (!imageref.isNetworkUrl()) {
-				Drawable drawable = null;
-				try {
-					drawable = imageref.getDrawable();
-				} catch (FileNotFoundException e) {
-					Log.e(TAG, "Could not find image for url " + imageref.getUrl(), e);
-				}
+				Drawable drawable = imageref.getDrawable();
 				if (drawable != null) {
 					if (mMemoryCache.get(hash) == null && drawable instanceof BitmapDrawable) {
 						mMemoryCache.put(hash, ((BitmapDrawable) drawable).getBitmap());
@@ -929,12 +919,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 				}
 			}
 			else {
-				Drawable drawable = null;
-				try {
-					drawable = imageref.getDrawable();
-				} catch (FileNotFoundException e) {
-					Log.e(TAG, "Could not find image for url " + imageref.getUrl(), e);
-				}
+				Drawable drawable = imageref.getDrawable();
 				if (drawable != null) {
 					if (mMemoryCache.get(hash) == null && drawable instanceof BitmapDrawable) {
 						mMemoryCache.put(hash, ((BitmapDrawable) drawable).getBitmap());
@@ -970,11 +955,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		}
 		// Have to set default image in the UI thread to make sure it shows before the image
 		// is ready. Don't need to retry decode because we don't want to block UI.
-		try {
-			setDrawable(defaultImageSource.getDrawable());
-		} catch (FileNotFoundException e) {
-			setImage(null);
-		}
+		setDrawable(defaultImageSource.getDrawable());
 	}
 
 	@Override
@@ -1230,10 +1211,7 @@ public class TiUIImageView extends TiUINonViewGroupView implements OnLifecycleEv
 		if (view != null) {
 			Drawable drawable = view.getImageDrawable();
 			if (drawable == null && imageSources != null && imageSources.size() == 1) {
-				try {
-					drawable = imageSources.get(0).getDrawable();
-				} catch (FileNotFoundException e) {
-				}
+				drawable = imageSources.get(0).getDrawable();
 			}
 			if (drawable != null) {
 				Bitmap bitmap = null;

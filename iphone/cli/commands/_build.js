@@ -362,7 +362,10 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 									} else if (cli.argv['device-id'] == undefined && config.get('ios.autoSelectDevice', true)) {
 										findTargetDevices(cli.argv.target, function (err, devices) {
 											if (cli.argv.target == 'device') {
-												cli.argv['device-id'] = 'itunes';
+												var dev = devices.filter(function (d) {
+														return d.udid != 'itunes' && d.udid != 'all';
+													}).shift();
+												cli.argv['device-id'] = dev ? dev.udid : 'itunes';
 												callback();
 											} else if (cli.argv.target == 'simulator') {
 												// for simulator builds, --device-id is a simulator profile and is not
@@ -745,6 +748,7 @@ iOSBuilder.prototype.config = function config(logger, config, cli) {
 											// purposely fall through!
 
 										case 'dist-appstore':
+                                            if (value === 'dist-appstore')_t.conf.options['deploy-type'].values = ['production'];
 											_t.conf.options['device-id'].required = false;
 											_t.conf.options['distribution-name'].required = true;
 											_t.conf.options['pp-uuid'].required = true;
@@ -885,11 +889,15 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 	// figure out the min-ios-ver that this app is going to support
 	var defaultMinIosSdk = this.packageJson.minIosVersion;
 	this.minIosVer = cli.tiapp.ios && cli.tiapp.ios['min-ios-ver'] || defaultMinIosSdk;
+	this.minIosVerMessage = null; // we store the message below in this variable so that we can output info stuff after validation
 	if (version.gte(this.iosSdkVersion, '6.0') && version.lt(this.minIosVer, defaultMinIosSdk)) {
+		this.minIosVerMessage = __('Building for iOS %s; using %s as minimum iOS version', version.format(this.iosSdkVersion, 2).cyan, defaultMinIosSdk.cyan);
 		this.minIosVer = defaultMinIosSdk;
 	} else if (version.lt(this.minIosVer, defaultMinIosSdk)) {
+		this.minIosVerMessage = __('The %s of the iOS section in the tiapp.xml is lower than minimum supported version: Using %s as minimum', 'min-ios-ver'.cyan, version.format(defaultMinIosSdk, 2).cyan);
 		this.minIosVer = defaultMinIosSdk;
 	} else if (version.gt(this.minIosVer, this.iosSdkVersion)) {
+		this.minIosVerMessage = __('The %s of the iOS section in the tiapp.xml is greater than the specified %s: Using %s as minimum', 'min-ios-ver'.cyan, 'ios-version'.cyan, version.format(this.iosSdkVersion, 2).cyan);
 		this.minIosVer = this.iosSdkVersion;
 	}
 
@@ -898,27 +906,29 @@ iOSBuilder.prototype.validate = function (logger, config, cli) {
 	// args based on the sim profile values
 	if ((this.target == 'device' || this.target == 'simulator') && deviceId) {
 		for (var i = 0, l = this.devices.length; i < l; i++) {
-			if (this.devices[i].id == deviceId) {
-				if (this.target == 'device') {
-					if (this.devices[i].id != 'itunes' && version.lt(this.devices[i].productVersion, this.minIosVer)) {
-						logger.error(__('This app does not support the device "%s"', this.devices[i].name) + '\n');
-						logger.log(__("The device is running iOS %s, however the app's the minimum iOS version is set to %s", this.devices[i].productVersion.cyan, version.format(this.minIosVer, 2, 3).cyan));
-						logger.log(__('In order to install this app on this device, lower the %s to %s in the tiapp.xml:', '<min-ios-ver>'.cyan, version.format(this.devices[i].productVersion, 2, 2).cyan));
-						logger.log();
-						logger.log('<ti:app xmlns:ti="http://ti.appcelerator.org">'.grey);
-						logger.log('    <ios>'.grey);
-						logger.log(('        <min-ios-ver>' + version.format(this.devices[i].productVersion, 2, 2) + '</min-ios-ver>').magenta);
-						logger.log('    </ios>'.grey);
-						logger.log('</ti:app>'.grey);
-						logger.log();
-						process.exit(0);
-					}
-				} else if (this.target == 'simulator') {
-					cli.argv.retina = !!this.devices[i].retina;
-					cli.argv.tall = !!this.devices[i].tall;
-					cli.argv['sim-64bit'] = !!this.devices[i]['64bit'];
-					cli.argv['sim-type'] = this.devices[i].type;
+			if (this.target == 'device') {
+				if (this.devices[i].id == 'all' || this.devices[i].id == 'itunes') {
+					continue;
 				}
+
+				if ((deviceId == 'all' || deviceId == this.devices[i].id) && version.lt(this.devices[i].productVersion, this.minIosVer)) {
+					logger.error(__('This app does not support the device "%s"', this.devices[i].name) + '\n');
+					logger.log(__("The device is running iOS %s, however the app's the minimum iOS version is set to %s", this.devices[i].productVersion.cyan, version.format(this.minIosVer, 2, 3).cyan));
+					logger.log(__('In order to install this app on this device, lower the %s to %s in the tiapp.xml:', '<min-ios-ver>'.cyan, version.format(this.devices[i].productVersion, 2, 2).cyan));
+					logger.log();
+					logger.log('<ti:app xmlns:ti="http://ti.appcelerator.org">'.grey);
+					logger.log('    <ios>'.grey);
+					logger.log(('        <min-ios-ver>' + version.format(this.devices[i].productVersion, 2, 2) + '</min-ios-ver>').magenta);
+					logger.log('    </ios>'.grey);
+					logger.log('</ti:app>'.grey);
+					logger.log();
+					process.exit(0);
+				}
+			} else if (this.target == 'simulator' && this.devices[i].id == deviceId) {
+				cli.argv.retina = !!this.devices[i].retina;
+				cli.argv.tall = !!this.devices[i].tall;
+				cli.argv['sim-64bit'] = !!this.devices[i]['64bit'];
+				cli.argv['sim-type'] = this.devices[i].type;
 				break;
 			}
 		}
@@ -1318,10 +1328,7 @@ iOSBuilder.prototype.initialize = function initialize(next) {
 	var argv = this.cli.argv;
 
 	this.titaniumIosSdkPath = afs.resolvePath(__dirname, '..', '..');
-	this.titaniumSdkVersion = path.basename(path.join(this.titaniumIosSdkPath, '..'));
-
 	this.templatesDir = path.join(this.titaniumIosSdkPath, 'templates', 'build');
-
 	this.platformName = path.basename(this.titaniumIosSdkPath); // the name of the actual platform directory which will some day be "ios"
 
 	this.moduleSearchPaths = [ this.projectDir, afs.resolvePath(this.titaniumIosSdkPath, '..', '..', '..', '..') ];
@@ -1383,6 +1390,7 @@ iOSBuilder.prototype.loginfo = function loginfo(next) {
 	this.logger.info(__('Deploy type: %s', this.deployType.cyan));
 	this.logger.info(__('Building for target: %s', this.target.cyan));
 	this.logger.info(__('Building using iOS SDK: %s', version.format(this.iosSdkVersion, 2).cyan));
+	this.minIosVerMessage && this.logger.info(this.minIosVerMessage);
 
 	if (this.buildOnly) {
 		this.logger.info(__('Performing build only'));
@@ -2458,20 +2466,8 @@ iOSBuilder.prototype.copyTitaniumLibraries = function copyTitaniumLibraries(next
 	dest = path.join(dir, 'libti_ios_profiler.a');
 	fs.existsSync(dest) || afs.copyFileSync(path.join(this.titaniumIosSdkPath, 'libti_ios_profiler.a'), dest, { logger: this.logger.debug });
 
-
-	var src = path.join(this.titaniumIosSdkPath, 'libexternals');
-	dest = path.join(this.buildDir, 'libexternals');
-	var files = [];
-	if (fs.statSync(src).isDirectory()) {
-		files = fs.readdirSync(src);
-	}
-	var logger = this.logger;
-	files.map(function (filename) {
-		var from = path.join(src, filename),
-			to = path.join(dest, filename);
-		fs.existsSync(to) || afs.copyFileSync(from, to, { logger: logger.debug });
-	});
-	next();
+	afs.copyDirRecursive(path.join(this.titaniumIosSdkPath, 'libexternals'), 
+		path.join(this.buildDir, 'libexternals'), next);
 };
 
 iOSBuilder.prototype.compileJSSFiles = function compileJSSFiles(next) {
@@ -2510,6 +2506,9 @@ iOSBuilder.prototype.invokeXcodeBuild = function invokeXcodeBuild(next) {
 		gccDefs.push('DEBUG=1');
 		gccDefs.push('TI_VERSION=' + this.titaniumSdkVersion);
 	}
+    else if (this.deployType == 'development') {
+        gccDefs.push('DEBUG=1');
+    }
 
 	if (/simulator|device|dist\-adhoc/.test(this.target)) {
 		this.tiapp.ios && this.tiapp.ios.enablecoverage && gccDefs.push('KROLL_COVERAGE=1');
@@ -2929,9 +2928,11 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 							this.cli.createHook('build.ios.compileJsFile', this, function (r, from, to, cb2) {
 								fs.writeFile(to, r.contents, cb2);
 							})(r, from, to, cb);
+						} else if (symlinkFiles) {
+							copyFile.call(this, from, to, cb);
 						} else {
+							// we've already read in the file, so just write the original contents
 							this.logger.debug(__('Copying %s => %s', from.cyan, to.cyan));
-
 							fs.writeFile(to, r.contents, cb);
 						}
 					})(from, to, done);
@@ -2953,6 +2954,36 @@ iOSBuilder.prototype.copyResources = function copyResources(finished) {
 				JSON.stringify(props)
 			);
 			this.encryptJS && jsFilesToEncrypt.push('_app_props__json');
+
+            // write the license file
+            var licenseFile = path.join(this.encryptJS ? this.buildAssetsDir : this.xcodeAppDir, '_license_.json'),
+            license = JSON.parse(fs.readFileSync(path.join(this.platformPath, '..', 'license.json')));
+            iosLicenses = license['ios'];
+            for(var key in iosLicenses) {
+                if(iosLicenses.hasOwnProperty(key)) {
+                    license[key] = iosLicenses[key];
+                }
+            }
+            delete license['ios'];
+            delete license['android'];
+            this.modules.forEach(function (module) {
+                var moduleLicenseFile = path.join(module.modulePath, 'license.json');
+                if (fs.existsSync(moduleLicenseFile)) {
+                    moduleLicense = JSON.parse(fs.readFileSync(moduleLicenseFile));
+                    if (moduleLicense) {
+                        for(var key in moduleLicense) {
+                            if(moduleLicense.hasOwnProperty(key)) {
+                                license[key] = moduleLicense[key];
+                            }
+                        }
+                    }
+                }
+            });
+            fs.writeFileSync(
+                licenseFile,
+                JSON.stringify(license)
+            );
+            this.encryptJS && jsFilesToEncrypt.push('_license_.json');
 
 			if (!jsFilesToEncrypt.length) {
 				// nothing to encrypt, continue

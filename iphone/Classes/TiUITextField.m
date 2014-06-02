@@ -191,7 +191,7 @@
             
             [self.placeholder drawInRect:placeholderRect withAttributes:attr];
             
-            
+            [style release];
         } else {
             [self.placeholder drawInRect:placeholderRect
                                 withFont:self.font

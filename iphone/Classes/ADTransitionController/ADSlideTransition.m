@@ -10,15 +10,15 @@
 
 @implementation ADSlideTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     const CGFloat scaleFactor = 0.7f;
 
     CATransform3D inTranslationTransform;
     CATransform3D outTranslationTransform;
-    switch (orientation) {
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
             inTranslationTransform = CATransform3DTranslate(CATransform3DIdentity, viewWidth, 0, 0);
@@ -93,8 +93,7 @@
     outAnimation.animations = @[outKeyFrameTransformAnimation, outKeyFrameOpacityAnimation, outZPositionAnimation];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

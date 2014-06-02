@@ -56,7 +56,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
                 return;
             }
         }
-        NSLog(@"[%@] %@", [severity uppercaseString], [args componentsJoinedByString:@" "]);
+        [TiApp TiNSLog:[NSString stringWithFormat:@"[%@] %@", [severity uppercaseString], [args componentsJoinedByString:@" "]]];
         fflush(stderr);
     }
 }
@@ -96,7 +96,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 
 -(void)timestamp:(NSArray*)args
 {
-	NSLog(@"[TIMESTAMP] %f %@", [NSDate timeIntervalSinceReferenceDate], [self transform:[args objectAtIndex:0]]);
+    [TiApp TiNSLog:[NSString stringWithFormat:@"[TIMESTAMP] %f %@", [NSDate timeIntervalSinceReferenceDate], [self transform:[args objectAtIndex:0]]]];
 	fflush(stderr);
 }
 
@@ -126,7 +126,7 @@ extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 	id source = [args objectAtIndex:1];
 	id message = [args objectAtIndex:2];
 	
-	NSLog(@"[ERROR] %@:%@ %@",source,lineNumber,message);
+    [TiApp TiNSLog:[NSString stringWithFormat:@"[ERROR] %@:%@ %@",source,lineNumber,message]];
 	fflush(stderr);
 }
 

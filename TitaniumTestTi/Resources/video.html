@@ -1,0 +1,66 @@
+<html>
+<head>
+	<style type="text/css">
+		html, body, div {
+			margin: 0;
+			border: 0 none;
+			padding: 0;
+		}
+		html, body, div {
+			height: 100%;
+			width: 100%;
+		}
+	</style>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no target-densitydpi=device-dpi" />
+</head>
+<body>
+	<script type="text/javascript">
+		function log(_message) {
+			if (typeof Ti !== 'undefined') Ti.API.debug(_message);
+		}
+		// Load the IFrame Player API code asynchronously.
+		var tag = document.createElement('script');
+		tag.src = "https://www.youtube.com/player_api";
+		var firstScriptTag = document.getElementsByTagName('script')[0];
+		firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+		var player;
+		function onYouTubeIframeAPIReady(){
+			log("onYouTubeIframeAPIReady");
+			player=new YT.Player( "ytplayer",{
+				events:{
+					onReady:onPlayerReady,
+					onStateChange:change_quality
+				},
+				'videoId': '{videoId}',
+				width:'100%',
+				height:'100%',
+				'playerVars': {
+					// autoplay:1,
+					showsearch: 0,
+					playsinline:1,
+					wmode: 'transparent',
+					iv_load_policy: 3,
+					rel:0,
+					showinfo:0,
+					modestbranding:1,
+					html5:1,
+				}
+			});
+		}
+		function onPlayerReady(event){
+			log("onPlayerReady");
+			event.target.setPlaybackQuality('hd720');
+			// event.target.playVideo();
+		}
+		var quality_set = false;
+		var change_quality = function(event){
+			if (event.data == YT.PlayerState.BUFFERING) {
+				event.target.setPlaybackQuality('hd720');
+			}
+		};
+	</script>
+	<div id="ytplayer"></div>
+	</body>
+</html>

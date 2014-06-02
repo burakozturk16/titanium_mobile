@@ -4,12 +4,9 @@
 
 @implementation TiTransitionFlip
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADFlipTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
-    }
-    return self;
+
+-(Class) adTransitionClass {
+    return [ADFlipTransition class];
 }
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
 {
@@ -23,15 +20,15 @@
         multiplier = 1;
     }
     
-    float percent = ABS(position);
+//    float percent = ABS(position);
     int viewWidth = view.bounds.size.width;
-    int viewHeight = view.bounds.size.height;
+//    int viewHeight = view.bounds.size.height;
     CATransform3D transform = CATransform3DIdentity;
     if ([self isTransitionVertical]) {
         
     }
     else {
-        CGFloat halfWidth = viewWidth / 2;
+//        CGFloat halfWidth = viewWidth / 2;
         CGFloat realAngle = -kAngle * position * multiplier;
         CGFloat translateX = -position * viewWidth;
         if (adjust) transform = CATransform3DTranslate(transform, translateX, 0,0);

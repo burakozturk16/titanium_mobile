@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
-
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -20,12 +19,13 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
-
 import android.graphics.Bitmap;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
 import android.text.TextUtils;
 
+@SuppressLint("NewApi")
 @Kroll.proxy(propertyAccessors = {
 	TiC.PROPERTY_CLASS_NAME,
 	TiC.PROPERTY_PACKAGE_NAME,
@@ -186,8 +186,15 @@ public class IntentProxy extends KrollProxy
 			intent.putExtra(key, (Integer) value);
 		} else if (value instanceof Long) {
 			intent.putExtra(key, (Long) value);
-		}
-		else {
+		} else if (value instanceof Object[]) {
+			try {
+				Object[] objVal = (Object[]) value;
+				String[] stringArray = Arrays.copyOf(objVal, objVal.length, String[].class);
+				intent.putExtra(key, stringArray);
+			} catch (Exception ex) {
+				Log.e(TAG, "Error unimplemented put conversion ", ex.getMessage());
+			}
+		} else {
 			Log.w(TAG, "Warning unimplemented put conversion for " + value.getClass().getCanonicalName() + " trying String");
 			intent.putExtra(key, TiConvert.toString(value));
 		}

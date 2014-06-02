@@ -425,13 +425,16 @@ static NSDictionary* replaceKeysForRow;
             viewLayout->width = TiDimensionAutoFill;
         }
         
-        if (viewproxy.parent == nil)
-        {
-            
-            TiViewProxy* proxy = [self initWrapperProxy];
-            [proxy add:viewproxy];
-        }
-        return [viewproxy.parent getAndPrepareViewForOpening:self.tableView.bounds];
+//        if (viewproxy.parent == nil)
+//        {
+//            
+//            TiViewProxy* wrapperProxy = [self initWrapperProxy];
+//            [wrapperProxy add:viewproxy];
+//            return [wrapperProxy getAndPrepareViewForOpening:self.tableView.bounds];
+//        }
+//        else {
+            return [viewproxy getAndPrepareViewForOpening:self.tableView.bounds];
+//        }
     }
     return nil;
 }
@@ -533,6 +536,7 @@ static NSDictionary* replaceKeysForRow;
     RELEASE_TO_NIL(filteredIndices);
     RELEASE_TO_NIL(filteredTitles);
     if (searchActive) {
+        BOOL hasResults = NO;
         //Initialize
         if(_searchResults == nil) {
             _searchResults = [[NSMutableArray alloc] init];
@@ -553,6 +557,7 @@ static NSDictionary* replaceKeysForRow;
                 id theValue = [self valueWithKey:@"searchableText" atIndexPath:thePath];
                 if (theValue!=nil && [[TiUtils stringValue:theValue] rangeOfString:self.searchString options:searchOpts].location != NSNotFound) {
                     (thisSection != nil) ? [thisSection addObject:thePath] : [singleSection addObject:thePath];
+                    hasResults = YES;
                 }
             }
             if (thisSection != nil) {
@@ -582,6 +587,11 @@ static NSDictionary* replaceKeysForRow;
                 [_searchResults addObject:singleSection];
             }
             [singleSection release];
+        }
+        if (!hasResults) {
+            if ([(TiViewProxy*)self.proxy _hasListeners:@"noresults" checkParent:NO]) {
+                [self.proxy fireEvent:@"noresults" withObject:nil propagate:NO reportSuccess:NO errorCode:0 message:nil];
+            }
         }
         
     } else {
@@ -1327,6 +1337,11 @@ static NSDictionary* replaceKeysForRow;
 {
     NSUInteger sectionCount = 0;
     
+    //TIMOB-15526
+    if (tableView != _tableView && tableView.backgroundColor == [UIColor clearColor]) {
+        tableView.backgroundColor = [UIColor whiteColor];
+    }
+
     if (_searchResults != nil) {
         sectionCount = [_searchResults count];
     } else {

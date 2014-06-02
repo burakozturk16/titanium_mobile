@@ -38,11 +38,11 @@ else (width is invalid)
 
 CGSize minmaxSize(LayoutConstraint * constraint, CGSize size, CGSize parentSize)
 {
-    CGSize result;
-    result.width = MAX(TiDimensionCalculateValueDef(constraint->minimumWidth, parentSize.width, size.width),size.width);
-    result.height = MAX(TiDimensionCalculateValueDef(constraint->minimumHeight, parentSize.height, size.height),size.height);
-    result.width = MIN(TiDimensionCalculateValueDef(constraint->maximumWidth, parentSize.width, size.width),size.width);
-    result.height = MIN(TiDimensionCalculateValueDef(constraint->maximumHeight, parentSize.height, size.height),size.height);
+    CGSize result = size;
+    result.width = MAX(TiDimensionCalculateValueDef(constraint->minimumWidth, parentSize.width, result.width),result.width);
+    result.height = MAX(TiDimensionCalculateValueDef(constraint->minimumHeight, parentSize.height, result.height),result.height);
+    result.width = MIN(TiDimensionCalculateValueDef(constraint->maximumWidth, parentSize.width, result.width),result.width);
+    result.height = MIN(TiDimensionCalculateValueDef(constraint->maximumHeight, parentSize.height, result.height),result.height);
     return result;
 }
 
@@ -270,7 +270,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
     CGFloat centerX = 0.0f;
     
     BOOL horizontal = parentConstraint && TiLayoutRuleIsHorizontal(parentConstraint->layoutStyle);
-    BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(parentConstraint);
+//    BOOL horizontalWrap = horizontal && TiLayoutFlagsHasHorizontalWrap(parentConstraint);
     BOOL horizontalNoWrap = horizontal && !TiLayoutFlagsHasHorizontalWrap(parentConstraint);
     BOOL vertical = parentConstraint && TiLayoutRuleIsVertical(parentConstraint->layoutStyle);
     

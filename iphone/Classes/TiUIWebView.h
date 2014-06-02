@@ -7,9 +7,9 @@
 #ifdef USE_TI_UIWEBVIEW
 
 #import "TiUIView.h"
+#import "APSHTTPRequest.h"
 
-
-@interface TiUIWebView : TiUIView<UIWebViewDelegate> {
+@interface TiUIWebView : TiUIView<UIWebViewDelegate, APSHTTPRequestDelegate> {
 @private
 	UIWebView *webview;
 	UIActivityIndicatorView *spinner;
@@ -26,7 +26,7 @@
 	SEL reloadMethod;
     
     BOOL willHandleTouches;
-    
+    BOOL willHandleUrl;
     NSString* lastValidLoad;
 }
 

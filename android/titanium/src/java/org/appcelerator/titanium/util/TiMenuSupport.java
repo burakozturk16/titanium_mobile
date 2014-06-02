@@ -96,4 +96,11 @@ public class TiMenuSupport
 		}
 		proxy = null;
 	}
+
+    public Menu getMenu() {
+        if (menuProxy != null) {
+            return menuProxy.getMenu();
+        }
+        return null;
+    }
 }

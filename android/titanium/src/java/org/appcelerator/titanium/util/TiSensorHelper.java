@@ -78,8 +78,6 @@ public class TiSensorHelper
 		if (sensor != null) {
 			Log.d(TAG, "Disabling Listener: " + sensor.getName(), Log.DEBUG_MODE);
 			sensorManager.unregisterListener(listener, sensor);
-		} else {
-			Log.e(TAG, "Unable to unregister, sensor is null");
 		}
 	}
 

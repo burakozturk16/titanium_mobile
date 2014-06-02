@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2013 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -22,7 +22,6 @@ import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.OnWindowFocusChangedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnHomePressedEvent;
-import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.proxy.ActionBarProxy;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.IntentProxy;
@@ -38,6 +37,7 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
+import org.appcelerator.aps.analytics.APSAnalytics;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -54,15 +54,18 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
 import com.actionbarsherlock.app.ActionBar;
 import com.actionbarsherlock.app.SherlockFragmentActivity;
 
 import android.view.KeyEvent;
+
 import com.actionbarsherlock.view.Menu;
 import com.actionbarsherlock.view.MenuItem;
 
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 
 /**
@@ -104,7 +107,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	public TiWindowProxy lwWindow;
 	public boolean isResumed = false;
 	
-	static boolean isPaused = true;
+	private boolean isPaused = false;
 	
 	private boolean fullscreen = false;
 	private boolean defaultFullscreen = false;
@@ -564,21 +567,30 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
 		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		boolean hasSoftInputMode = softInputMode != -1;
+		int windowFlags = getIntentInt(TiC.PROPERTY_WINDOW_FLAGS, 0);
+		final Window window = getWindow();
 		
 //	    getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
+		window.requestFeature(Window.FEATURE_PROGRESS);
+		window.requestFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+		
 		setFullscreen(fullscreen);
 		setNavBarHidden(navBarHidden);	
-
+		
+		if (windowFlags > 0) {
+			window.addFlags(windowFlags);
+		}
+		
 		if (modal) {
 			if (Build.VERSION.SDK_INT < TiC.API_LEVEL_ICE_CREAM_SANDWICH) {
 				// This flag is deprecated in API 14. On ICS, the background is not blurred but straight black.
-				getWindow().addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
+				window.addFlags(WindowManager.LayoutParams.FLAG_BLUR_BEHIND);
 			}
 		}
 
 		if (hasSoftInputMode) {
 			Log.d(TAG, "windowSoftInputMode: " + softInputMode, Log.DEBUG_MODE);
-			getWindow().setSoftInputMode(softInputMode);
+			window.setSoftInputMode(softInputMode);
 		}
 
 		boolean useActivityWindow = getIntentBoolean(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, false);
@@ -596,6 +608,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onCreate(Bundle savedInstanceState)
 	{
+		TiApplication.getInstance().activityStarted(this);
 		Log.d(TAG, "Activity " + this + " onCreate", Log.DEBUG_MODE);
 
 		inForeground = true;
@@ -643,7 +656,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		// Doing this on every create in case the activity is externally created.
-		TiPlatformHelper.intializeDisplayMetrics(this);
+		TiPlatformHelper.getInstance().intializeDisplayMetrics(this);
 
 		if (layout == null) {
 			layout = createLayout();
@@ -663,8 +676,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		windowCreated();
 
 		if (activityProxy != null) {
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_CREATE, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_CREATE, null);
 		}
 
 		// set the current activity back to what it was originally
@@ -697,6 +709,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	public boolean isInForeground()
 	{
 		return inForeground;
+	}
+	
+	public boolean isActivityPaused()
+	{
+		return isPaused;
 	}
 
 	protected void sendMessage(final int msgId)
@@ -925,6 +942,13 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 
 		return menuHelper.onCreateOptionsMenu(super.onCreateOptionsMenu(menu), menu);
 	}
+	
+	public Menu getMenu() {
+	    if (menuHelper != null) {
+	        return menuHelper.getMenu();
+	    }
+	    return null;
+	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
@@ -1104,7 +1128,14 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 		super.onWindowFocusChanged(hasFocus);
 	}
-
+	
+	@Override
+    public void startActivity(Intent intent) {
+		//this activity onPause is called before the new activity onCreate :s
+		//this prevent unwanted pause events to be sent
+		super.startActivity(intent);
+    }
+	
 	@Override
 	/**
 	 * When this activity pauses, this method sets the current activity to null, fires a javascript 'pause' event,
@@ -1112,9 +1143,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onPause() 
 	{
+		TiApplication.getInstance().activityPaused(this); //call before setting inForeground
 		inForeground = false;
 		super.onPause();
 		isResumed = false;
+		isPaused = true;
 
 		Log.d(TAG, "Activity " + this + " onPause", Log.DEBUG_MODE);
 
@@ -1139,9 +1172,8 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		releaseDialogs(this.isFinishing());
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_PAUSE, null);
+			activityProxy.fireEvent(TiC.EVENT_PAUSE, null);
 		}
-		TiApplication.getInstance().activityPaused(this);
 
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
@@ -1155,8 +1187,8 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		// Checkpoint for ti.end event
-		if (tiApp != null) {
-			tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppEndEvent());
+		if (tiApp != null && tiApp.collectAnalytics()) {
+			APSAnalytics.sendSessionBackgroundEvent();
 		}
 	}
 
@@ -1167,6 +1199,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onResume()
 	{
+		TiApplication.getInstance().activityResumed(this);
 		inForeground = true;
 		super.onResume();
 		if (isFinishing()) {
@@ -1191,14 +1224,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		TiApplication.updateActivityTransitionState(false);
 		
 		if (activityProxy != null) {
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_RESUME, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_RESUME, null);
 		}
 		
-		TiApplication.getInstance().activityResumed(this);
-		TiApplication.getInstance().setStartingActivity(false);
-
-
 		synchronized (lifecycleListeners.synchronizedList()) {
 			for (OnLifecycleEvent listener : lifecycleListeners.nonNull()) {
 				try {
@@ -1211,17 +1239,20 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		isResumed = true;
+		isPaused = false;
 
 		// Checkpoint for ti.start event
-		String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
-		tiApp.postAnalyticsEvent(TiAnalyticsEventFactory.createAppStartEvent(tiApp, deployType));
+		//String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
+        if (tiApp.collectAnalytics()) {
+            APSAnalytics.sendSessionForegroundEvent();
+        }
 	}
 	
-	@Override
-	public void startActivity(Intent intent)	{
-		TiApplication.getInstance().setStartingActivity(true);
-		super.startActivity(intent);
-	}
+//	@Override
+//	public void startActivity(Intent intent)	{
+//		TiApplication.getInstance().setStartingActivity(true);
+//		super.startActivity(intent);
+//	}
 	
 	@Override
 	/**
@@ -1261,8 +1292,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			Activity tempCurrentActivity = tiApp.getCurrentActivity();
 			tiApp.setCurrentActivity(this, this);
 
-			// Fire the sync event with a timeout, so the main thread won't be blocked too long to get an ANR. (TIMOB-13253)
-			activityProxy.fireSyncEvent(TiC.EVENT_START, null, 4000);
+			activityProxy.fireEvent(TiC.EVENT_START, null);
 
 			// set the current activity back to what it was originally
 			tiApp.setCurrentActivity(this, tempCurrentActivity);
@@ -1290,6 +1320,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	protected void onStop()
 	{
+		TiApplication.getInstance().activityStopped(this);
 		inForeground = false;
 		super.onStop();
 
@@ -1303,7 +1334,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_STOP, null);
+			activityProxy.fireEvent(TiC.EVENT_STOP, null);
 		}
 
 		synchronized (lifecycleListeners.synchronizedList()) {
@@ -1347,7 +1378,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			Activity tempCurrentActivity = tiApp.getCurrentActivity();
 			tiApp.setCurrentActivity(this, this);
 
-			activityProxy.fireSyncEvent(TiC.EVENT_RESTART, null);
+			activityProxy.fireEvent(TiC.EVENT_RESTART, null);
 
 			// set the current activity back to what it was originally
 			tiApp.setCurrentActivity(this, tempCurrentActivity);
@@ -1371,7 +1402,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 
 		if (activityProxy != null) {
-			activityProxy.fireSyncEvent(TiC.EVENT_USER_LEAVE_HINT, null);
+			activityProxy.fireEvent(TiC.EVENT_USER_LEAVE_HINT, null);
 		}
 
 		super.onUserLeaveHint();
@@ -1497,7 +1528,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		if (!onDestroyFired) {
 			if (activityProxy != null) {
-				activityProxy.fireSyncEvent(TiC.EVENT_DESTROY, null);
+				activityProxy.fireEvent(TiC.EVENT_DESTROY, null);
 			}
 			onDestroyFired = true;
 		}
@@ -1593,6 +1624,13 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			return true;
 		}
 		return false;
+	}
+	
+	@Override
+	protected Dialog onCreateDialog (int id, Bundle args) {
+		Log.d(TAG, "onCreateDialog");
+		TiApplication.getInstance().cancelPauseEvent();
+		return super.onCreateDialog(id, args);
 	}
 }
 

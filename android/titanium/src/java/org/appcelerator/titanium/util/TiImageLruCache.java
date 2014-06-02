@@ -7,10 +7,13 @@
 package org.appcelerator.titanium.util;
 
 import org.appcelerator.titanium.TiC;
-
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.support.v4.util.LruCache;
 
+@SuppressLint("NewApi")
 public class TiImageLruCache extends LruCache<Integer, Bitmap>
 {
 	// Get max available VM memory, exceeding this amount will throw an

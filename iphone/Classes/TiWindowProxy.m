@@ -21,10 +21,11 @@
 @implementation TiWindowProxy
 {
     BOOL readyToBeLayout;
+    BOOL _isManaged;
 }
 
 @synthesize tab = tab;
-@synthesize isManaged;
+@synthesize isManaged = _isManaged;
 
 -(id)init
 {
@@ -34,6 +35,7 @@
         opening = NO;
         opened = NO;
         readyToBeLayout = NO;
+        _isManaged = NO;
 	}
 	return self;
 }
@@ -109,6 +111,14 @@
         readyToBeLayout = YES;
     }
     [super setSandboxBounds:rect];
+}
+
+-(BOOL)isManaged
+{
+    if (parent) {
+        return [[self getParentWindow] isManaged];
+    }
+    return _isManaged;
 }
 
 #pragma mark - Utility Methods
@@ -271,7 +281,9 @@
     
     if (!isModal && (tab==nil)) {
         openAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
-        [self rememberProxy:openAnimation];
+        if (openAnimation) {
+            [self rememberProxy:openAnimation];
+        }
     }
     [self updateOrientationModes];
     
@@ -318,10 +330,10 @@
 -(void)close:(id)args
 {
     //I am not open. Go Away
-    if (opening) {
-        DebugLog(@"Window is opening. Ignoring this close call");
-        return;
-    }
+//    if (opening) {
+//        DebugLog(@"Window is opening. Ignoring this close call");
+//        return;
+//    }
     
     if (!opened) {
         DebugLog(@"Window is not open. Ignoring this close call");
@@ -347,7 +359,9 @@
     
     //TODO Argument Processing
     closeAnimation = [[TiAnimation animationFromArg:args context:[self pageContext] create:NO] retain];
-    [self rememberProxy:closeAnimation];
+    if (closeAnimation) {
+        [self rememberProxy:closeAnimation];
+    }
 
     //GO ahead and call close on UI thread
     TiThreadPerformOnMainThread(^{
@@ -377,8 +391,10 @@
 {
     TiRootViewController* theController = [[TiApp app] controller];
     if (isModal || (tab != nil) || self.isManaged) {
-        [self forgetProxy:closeAnimation];
-        RELEASE_TO_NIL(closeAnimation);
+        if (closeAnimation) {
+            [self forgetProxy:closeAnimation];
+            RELEASE_TO_NIL(closeAnimation);
+        }
     }
     if ( (!self.isManaged) && (!isModal) && (closeAnimation != nil) && ([theController topPresentedController] != [theController topContainerController]) ){
         DeveloperLog(@"[WARN] The top View controller is not a container controller. This window will close behind the presented controller without animations.")
@@ -448,8 +464,21 @@
         if ([self handleFocusEvents]) {
             [self fireEvent:@"blur" propagate:NO];
         }
+        [super blur:nil];
         [[self view] setAccessibilityElementsHidden:YES];
     }
+}
+
+-(void)blur:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	[self resignFocus];
+}
+
+-(void)focus:(id)args
+{
+	ENSURE_UI_THREAD_1_ARG(args)
+	[self gainFocus];
 }
 
 -(TiProxy *)topWindow
@@ -627,15 +656,18 @@
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [self refreshViewIfNeeded];
+    [super willAnimateRotationToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     [self setFakeAnimationOfDuration:duration andCurve:[CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut]];
+    [super willRotateToInterfaceOrientation:toInterfaceOrientation duration:duration];
 }
 -(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
 {
     [self removeFakeAnimation];
+    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
 }
 
 #pragma mark - TiAnimation Delegate Methods

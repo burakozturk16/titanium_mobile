@@ -13,6 +13,7 @@ import org.appcelerator.titanium.util.TiConvert;
 
 import android.content.Context;
 import android.graphics.Point;
+import android.graphics.PointF;
 
 public class TiPoint {
 	private TiDimension x, y;
@@ -79,9 +80,10 @@ public class TiPoint {
 	}
 	
 	public Point compute(Context context, int width, int height) {
-		Point result = new Point();
-		result.x  = x.getAsPixels(context, width, height);
-		result.y  = y.getAsPixels(context, width, height);
-		return result;
+		return new Point(x.getAsPixels(context, width, height), y.getAsPixels(context, width, height));
+	}
+	
+	public PointF computeFloat(Context context, int width, int height) {
+		return new PointF((float)x.getPixels(context, width, height), (float)y.getPixels(context, width, height));
 	}
 }
