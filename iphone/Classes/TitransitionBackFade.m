@@ -3,12 +3,7 @@
 
 @implementation TitransitionBackFade
 
-- (id)initWithDuration:(CFTimeInterval)duration
-{
-    if (self = [super init]) {
-        _adTransition = [[ADBackFadeTransition alloc] initWithDuration:duration];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADBackFadeTransition class];
 }
-
 @end

@@ -8,19 +8,21 @@ package org.appcelerator.titanium.util;
 
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import org.appcelerator.kroll.common.Log;
-
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.IntentSender.SendIntentException;
+import android.os.Build;
 import android.os.Bundle;
 
 /**
  * An implementation of {@link TiActivitySupport} interface.
  */
+@SuppressLint("NewApi")
 public class TiActivitySupportHelper
 	implements TiActivitySupport
 {
@@ -71,6 +73,7 @@ public class TiActivitySupportHelper
 	/**
 	 * Refer to {@link TiActivitySupport#launchIntentSenderForResult(IntentSender, int, Intent, int, int, int, Bundle, TiActivityResultHandler)} for more details.
 	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 	public void launchIntentSenderForResult(IntentSender intent, final int code, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options, final TiActivityResultHandler resultHandler)
 	{
 		TiActivityResultHandler wrapper = new TiActivityResultHandler() {

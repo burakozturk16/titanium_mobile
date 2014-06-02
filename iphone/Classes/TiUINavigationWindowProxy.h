@@ -13,13 +13,11 @@
 #define AD_SYSTEM_VERSION_GREATER_THAN_7 ([[[UIDevice currentDevice] systemVersion] compare:@"7" options:NSNumericSearch] == NSOrderedDescending)
 
 
-@interface TiUINavigationWindowProxy : TiWindowProxy<ADTransitionControllerDelegate,TiOrientationController,TiTab> {
+@interface TiUINavigationWindowProxy : TiWindowProxy<UINavigationControllerDelegate, ADTransitionControllerDelegate,TiOrientationController,TiTab> {
 @private
     id navController;
     TiWindowProxy *rootWindow;
     TiWindowProxy *current;
-    BOOL transitionIsAnimating;
-    BOOL transitionWithGesture;
 }
 
 //Private API

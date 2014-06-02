@@ -5,7 +5,11 @@
  */
 package com.titanium.test;
 
-import org.appcelerator.kroll.common.Log;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.appcelerator.kroll.common.TiConfig;
 import org.appcelerator.kroll.runtime.v8.V8Runtime;
 import org.appcelerator.kroll.KrollExternalModule;
@@ -14,12 +18,17 @@ import org.appcelerator.kroll.KrollModuleInfo;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiRootActivity;
+import akylas.shapes.*;
+import akylas.commonjs.*;
+import akylas.slidemenu.*;
+import akylas.millenoki.vpn.*;
 
 
 public final class TitaniumtestApplication extends TiApplication
 {
 	private static final String TAG = "TitaniumtestApplication";
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void onCreate()
 	{
@@ -27,18 +36,27 @@ public final class TitaniumtestApplication extends TiApplication
 
 		appInfo = new TitaniumtestAppInfo(this);
 		postAppInfo();
-
-
+		
+		HashMap<String,Class[]> modules = new HashMap<String, Class[]>() {
+		     {
+			      put("akylas.shapes", new Class[]{akylas.shapes.AkylasShapesBootstrap.class, akylas.shapes.AkylasShapesModule.class});
+			      put("akylas.commonjs", new Class[]{akylas.commonjs.AkylasCommonjsBootstrap.class, akylas.commonjs.AkylasCommonjsModule.class});
+			      put("akylas.slidemenu", new Class[]{akylas.slidemenu.AkylasSlidemenuBootstrap.class, akylas.slidemenu.AkylasSlidemenuModule.class});
+			      put("akylas.mapbox", new Class[]{akylas.mapbox.AkylasMapboxBootstrap.class, akylas.mapbox.AkylasMapboxModule.class});
+			      put("akylas.millenoki.vpn", new Class[]{akylas.millenoki.vpn.MillenokiVpnBootstrap.class, akylas.millenoki.vpn.MillenokiVpnModule.class});
+		     }
+		 };
 
 		V8Runtime runtime = new V8Runtime();
-
-		runtime.addExternalModule("akylas.shapes",
-				(Class<? extends KrollExternalModule>) akylas.shapes.AkylasShapesBootstrap.class);
-		runtime.addExternalModule("akylas.commonjs",
-				(Class<? extends KrollExternalModule>) akylas.commonjs.AkylasCommonjsBootstrap.class);
+		Iterator it = modules.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry pairs = (Map.Entry)it.next();
+	        runtime.addExternalModule((String) pairs.getKey(),
+					(Class<? extends KrollExternalModule>) (((Class[])(pairs.getValue()))[0]));
+	    }
 		runtime.addExternalCommonJsModule("akylas.commonjs", akylas.commonjs.CommonJsSourceProvider.class);
-		runtime.addExternalModule("akylas.slidemenu",
-				(Class<? extends KrollExternalModule>) akylas.slidemenu.AkylasSlidemenuBootstrap.class);
+
+		
 
 		KrollRuntime.init(this, runtime);
 		
@@ -51,18 +69,17 @@ public final class TitaniumtestApplication extends TiApplication
 		KrollModuleInfo moduleInfo;
 
 		try {
-			akylas.shapes.AkylasShapesModule.onAppCreate(this);
-			akylas.commonjs.AkylasCommonjsModule.onAppCreate(this);
-			akylas.slidemenu.AkylasSlidemenuModule.onAppCreate(this);
+			it = modules.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Map.Entry pairs = (Map.Entry)it.next();
+		        
+		        Method method = ((((Class[])(pairs.getValue()))[1])).getMethod("onAppCreate", TiApplication.class);
+		        method.invoke(null,this);
+		        moduleInfo = new KrollModuleInfo((String) pairs.getKey(),(String) pairs.getKey(), "","", "", "","", "");
+				KrollModule.addCustomModuleInfo(moduleInfo);
+		    }
 		} catch (Exception e) {
 		}
-
-		moduleInfo = new KrollModuleInfo("akylas.shapes","akylas.shapes", "","", "", "","", "");
-		KrollModule.addCustomModuleInfo(moduleInfo);
-		moduleInfo = new KrollModuleInfo("akylas.slidemenu","akylas.slidemenu", "","", "", "","", "");
-		KrollModule.addCustomModuleInfo(moduleInfo);
-		moduleInfo = new KrollModuleInfo("akylas.commonjs","akylas.commonjs", "","", "", "","", "");
-		KrollModule.addCustomModuleInfo(moduleInfo);
 	}
 
 	@Override

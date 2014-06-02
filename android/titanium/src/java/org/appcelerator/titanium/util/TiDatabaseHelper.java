@@ -1,126 +1,99 @@
-/**
- * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
- * Licensed under the terms of the Apache Public License
- * Please see the LICENSE included with this distribution for details.
- */
 package org.appcelerator.titanium.util;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.TiFileProxy;
+import org.appcelerator.titanium.io.TiBaseFile;
+import org.appcelerator.titanium.io.TiFileFactory;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDoneException;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.database.sqlite.SQLiteStatement;
 
+public class TiDatabaseHelper {
+    private static String TAG = "TiDatabaseHelper";
 
-public class TiDatabaseHelper extends SQLiteOpenHelper
-{
-	private static final String TAG = "TiDbHelper";
+    private static SQLiteDatabase openDatabase(final String name) {
+        return TiApplication.getInstance().openOrCreateDatabase(name, Context.MODE_PRIVATE, null);
+    }
+    
+    public static SQLiteDatabase getDatabase(final KrollProxy proxy, final String url, boolean writable) throws IOException
+    {
+        
+        String path;
+        if (url.startsWith("."))
+            path = proxy.resolveUrl(null, url);
+        else
+            path = proxy.resolveUrl("appdata://", url);
+        TiBaseFile file = TiFileFactory.createTitaniumFile(new String[] { path }, false);
+        return getDatabase(file, writable);
+    }
+    
+    public static SQLiteDatabase getDatabase(final TiBaseFile srcFile, boolean writable) throws IOException {
+        
+        final String name  = srcFile.getNativeFile().getName();
+        try {
+            String path = srcFile.nativePath();
+            if (!path.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)) {
+                return SQLiteDatabase.openDatabase(path.replace("file://", ""), null, (writable?SQLiteDatabase.OPEN_READWRITE:SQLiteDatabase.OPEN_READONLY) | SQLiteDatabase.NO_LOCALIZED_COLLATORS);
+            }
 
-	private static final String name = "Titanium";
-	private static final int version = 1;
+            Context ctx = TiApplication.getInstance();
+            for (String dbname : ctx.databaseList())
+            {
+                if (dbname.equals(name))
+                {
+                    return openDatabase(name);
+                }
+            }
 
-	public TiDatabaseHelper(Context context)
-	{
-		super(context,name,null,version);
-	}
-	public void setPlatformParam (String key, String value)
-	{
-		String platformSQL = "insert into platform values (?,?)";
-		SQLiteDatabase db = null;
-		try
-		{
-			db = getWritableDatabase();
-			SQLiteStatement platformInsertStatement = db.compileStatement(platformSQL);
-			platformInsertStatement.bindString(1,key);
-			platformInsertStatement.bindString(2,value);
-			platformInsertStatement.executeInsert();
-			platformInsertStatement.close();
-		}
-		catch (Exception e)
-		{
-			Log.e(TAG, "Problem saving data to platform: ", e);
-		}
-		finally
-		{
-			if (db != null) {
-				db.close();
-			}
-		}
-	}
-	public void updatePlatformParam (String key, String value)
-	{
-		deletePlatformParam(key);
-		setPlatformParam(key, value);
-	}
-	public void deletePlatformParam (String key)
-	{
-		String platformSQL = "delete from platform where name = ?";
-		SQLiteDatabase db = null;
-		try
-		{
-			db = getWritableDatabase();
-			SQLiteStatement platformInsertStatement = db.compileStatement(platformSQL);
-			platformInsertStatement.bindString(1,key);
-			platformInsertStatement.executeInsert();
-			platformInsertStatement.close();
-		}
-		catch (Exception e)
-		{
-			Log.e(TAG, "Problem deleting data from platform: ", e);
-		}
-		finally
-		{
-			if (db != null) {
-				db.close();
-			}
-		}
-	}
-	public String getPlatformParam (String key, String def)
-	{
-		String platformSQL = "select value from platform where name = ?";
-		SQLiteDatabase db = null;
-		try
-		{
-			db = getReadableDatabase();
-			SQLiteStatement platformSelectStatement = db.compileStatement(platformSQL);
-			platformSelectStatement.bindString(1,key);
-			String result = platformSelectStatement.simpleQueryForString();
-			platformSelectStatement.close();
-			if (result == null)
-			{
-				return def;
-			}
-			return result;
-		}
-		catch (SQLiteDoneException e) 
-		{
-			// This is not an error, so fallthrough and let it return the default.
-			Log.i(TAG, "No value in database for platform key: '" + key + "' returning supplied default '" + def + "'");
-		}
-		catch (Exception e)
-		{
-			Log.e(TAG, "Problem retrieving data from platform: ", e);
-		}
-		finally
-		{
-			if (db != null) {
-				db.close();
-			}
-		}
-		return def;
-	}
-	public void onCreate(SQLiteDatabase db)
-	{
-		String platformSQL = "create table platform(name TEXT,value TEXT)";
-		db.execSQL(platformSQL);
-	}
-	public void onOpen(SQLiteDatabase db)
-	{
-	}
-	public void onUpgrade(SQLiteDatabase db,int from,int to)
-	{
-	}
+            File dbPath = ctx.getDatabasePath(name);
+    
+            Log.d(TAG , "db path is = " + dbPath, Log.DEBUG_MODE);
+    
+            if (srcFile.isFile()) {
+                InputStream is = null;
+                OutputStream os = null;
+    
+                byte[] buf = new byte[8096];
+                int count = 0;
+                try
+                {
+                    is = new BufferedInputStream(srcFile.getInputStream());
+                    os = new BufferedOutputStream(new FileOutputStream(dbPath));
+    
+                    while((count = is.read(buf)) != -1) {
+                        os.write(buf, 0, count);
+                    }
+                }
+                finally
+                {
+                    try { is.close(); } catch (Exception ig) { }
+                    try { os.close(); } catch (Exception ig) { }
+                }
+            }
+            
+            return openDatabase(name);
+    
+        } catch (SQLException e) {
+            String msg = "Error installing database: " + name + " msg=" + e.getMessage();
+            Log.e(TAG, msg, e);
+            throw e;
+        }
+        catch (IOException e) {
+            String msg = "Error installing database: " + name + " msg=" + e.getMessage();
+            Log.e(TAG, msg, e);
+            throw e;
+        }
+    }
 }

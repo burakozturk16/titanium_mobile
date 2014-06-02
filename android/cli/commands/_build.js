@@ -412,6 +412,9 @@ AndroidBuilder.prototype.config = function config(logger, config, cli) {
 						desc: __('the skin for the Android emulator; deprecated, use --device-id'),
 						hint: __('skin')
 					},
+					'build-type': {
+						hidden: true
+					},
 					'debug-host': {
 						hidden: true
 					},
@@ -903,6 +906,7 @@ AndroidBuilder.prototype.config = function config(logger, config, cli) {
 AndroidBuilder.prototype.validate = function validate(logger, config, cli) {
 	this.target = cli.argv.target;
 	this.deployType = /^device|emulator$/.test(this.target) && cli.argv['deploy-type'] ? cli.argv['deploy-type'] : this.deployTypes[this.target];
+	this.buildType = cli.argv['build-type'] || '';
 
 	// ti.deploytype is deprecated and so we force the real deploy type
 	if (cli.tiapp.properties['ti.deploytype']) {
@@ -1341,7 +1345,7 @@ AndroidBuilder.prototype.validate = function validate(logger, config, cli) {
 			if (!emu) {
 				logger.error(__('Unable find emulator "%s"', deviceId) + '\n');
 				process.exit(1);
-			} else if (!emu.sdcard) {
+			} else if (!emu.sdcard && emu.type != 'genymotion') {
 				logger.error(__('The selected emulator "%s" does not have an SD card.', emu.name));
 				if (this.profilerPort) {
 					logger.error(__('An SD card is required for profiling.') + '\n');
@@ -1656,34 +1660,6 @@ AndroidBuilder.prototype.run = function run(logger, config, cli, finished) {
 };
 
 AndroidBuilder.prototype.doAnalytics = function doAnalytics(next) {
-	var cli = this.cli,
-		eventName = 'android.' + cli.argv.target;
-
-	if (cli.argv.target == 'dist-playstore') {
-		eventName = "android.distribute.playstore";
-	} else if (this.allowDebugging && this.debugPort) {
-		eventName += '.debug';
-	} else if (this.allowProfiling && this.profilerPort) {
-		eventName += '.profile';
-	} else {
-		eventName += '.run';
-	}
-
-	cli.addAnalyticsEvent(eventName, {
-		dir: cli.argv['project-dir'],
-		name: cli.tiapp.name,
-		publisher: cli.tiapp.publisher,
-		url: cli.tiapp.url,
-		image: cli.tiapp.icon,
-		appid: cli.tiapp.id,
-		description: cli.tiapp.description,
-		type: cli.argv.type,
-		guid: cli.tiapp.guid,
-		version: cli.tiapp.version,
-		copyright: cli.tiapp.copyright,
-		date: (new Date()).toDateString()
-	});
-
 	next();
 };
 
@@ -1767,8 +1743,10 @@ AndroidBuilder.prototype.initialize = function initialize(next) {
 	// files
 	this.buildManifestFile          = path.join(this.buildDir, 'build-manifest.json');
 	this.androidManifestFile        = path.join(this.buildDir, 'AndroidManifest.xml');
-	this.unsignedApkFile            = path.join(this.buildBinDir, 'app-unsigned.apk');
-	this.apkFile                    = path.join(this.buildBinDir, this.tiapp.name + '.apk');
+
+	var suffix = this.debugPort || this.profilerPort ? '-dev' + (this.debugPort ? '-debug' : '') + (this.profilerPort ? '-profiler' : '') : '';
+	this.unsignedApkFile            = path.join(this.buildBinDir, 'app-unsigned' + suffix + '.apk');
+	this.apkFile                    = path.join(this.buildBinDir, this.tiapp.name + suffix + '.apk');
 
 	next();
 };
@@ -2039,13 +2017,6 @@ AndroidBuilder.prototype.checkIfShouldForceRebuild = function checkIfShouldForce
 		return true;
 	}
 
-	if (this.tiapp['navbar-hidden'] != manifest['navbar-hidden']) {
-		this.logger.info(__('Forcing rebuild: tiapp.xml navbar-hidden changed since last build'));
-		this.logger.info('  ' + __('Was: %s', manifest['navbar-hidden']));
-		this.logger.info('  ' + __('Now: %s', this.tiapp['navbar-hidden']));
-		return true;
-	}
-
 	if (this.minSDK != manifest.minSDK) {
 		this.logger.info(__('Forcing rebuild: Android minimum SDK changed since last build'));
 		this.logger.info('  ' + __('Was: %s', manifest.minSDK));
@@ -2140,13 +2111,8 @@ AndroidBuilder.prototype.createBuildDirs = function createBuildDirs(next) {
 
 	fs.existsSync(this.buildDir) || wrench.mkdirSyncRecursive(this.buildDir);
 
-	var dir;
-
-	// remove the previous deploy.json file which contains debugging/profiling info
-	fs.existsSync(dir = path.join(this.buildDir, 'bin', 'deploy.json')) && fs.unlinkSync(dir);
-
 	// make directories if they don't already exist
-	dir = this.buildAssetsDir;
+	var dir = this.buildAssetsDir;
 	if (this.forceRebuild) {
 		fs.existsSync(dir) && wrench.rmdirSyncRecursive(dir);
 		Object.keys(this.lastBuildFiles).forEach(function (file) {
@@ -2172,6 +2138,21 @@ AndroidBuilder.prototype.createBuildDirs = function createBuildDirs(next) {
 	fs.existsSync(dir = path.join(this.buildResDir, 'values')) || wrench.mkdirSyncRecursive(dir);
 	fs.existsSync(dir = this.buildSrcDir)                      || wrench.mkdirSyncRecursive(dir);
 
+	// create the deploy.json file which contains debugging/profiling info
+	var deployJsonFile = path.join(this.buildBinAssetsDir, 'deploy.json'),
+		deployData = {
+			debuggerEnabled: !!this.debugPort,
+			debuggerPort: this.debugPort || -1,
+			profilerEnabled: !!this.profilerPort,
+			profilerPort: this.profilerPort || -1
+		};
+
+	fs.existsSync(deployJsonFile) && fs.unlinkSync(deployJsonFile);
+
+	if (deployData.debuggerEnabled || deployData.profilerEnabled) {
+		fs.writeFileSync(deployJsonFile, JSON.stringify(deployData));
+	}
+
 	next();
 };
 
@@ -2186,8 +2167,10 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		relSplashScreenRegExp = /^default\.(9\.png|png|jpg)$/,
 		drawableResources = {},
 		jsFiles = {},
+		moduleResPackages = this.moduleResPackages = [],
 		jsFilesToEncrypt = this.jsFilesToEncrypt = [],
 		htmlJsFiles = this.htmlJsFiles = {},
+		symlinkFiles = process.platform != 'win32' && this.config.get('android.symlinkResources', true),
 		_t = this;
 
 	function copyDir(opts, callback) {
@@ -2203,7 +2186,7 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 	function copyFile(from, to, next) {
 		var d = path.dirname(to);
 		fs.existsSync(d) || wrench.mkdirSyncRecursive(d);
-		if (process.platform != 'win32' && this.config.get('android.symlinkResources', true)) {
+		if (symlinkFiles) {
 			fs.existsSync(to) && fs.unlinkSync(to);
 			this.logger.debug(__('Symlinking %s => %s', from.cyan, to.cyan));
 			if (next) {
@@ -2445,6 +2428,17 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 		});
 	});
 
+	//get the respackgeinfo files if they exist
+	this.modules.forEach(function (module) {
+		var respackagepath = path.join(module.modulePath,'respackageinfo');
+		if (fs.existsSync(respackagepath)) {
+			var data = fs.readFileSync(respackagepath).toString().split('\n').shift().trim();
+			if(data.length > 0) {
+				this.moduleResPackages.push(data);
+			}
+		}
+	}, this);
+
 	var platformPaths = [
 		path.join(this.projectDir, 'platform', 'android')
 	];
@@ -2546,9 +2540,11 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 							this.cli.createHook('build.android.compileJsFile', this, function (r, from, to, cb2) {
 								fs.writeFile(to, r.contents, cb2);
 							})(r, from, to, cb);
+						} else if (symlinkFiles) {
+							copyFile.call(this, from, to, cb);
 						} else {
+							// we've already read in the file, so just write the original contents
 							this.logger.debug(__('Copying %s => %s', from.cyan, to.cyan));
-
 							fs.writeFile(to, r.contents, cb);
 						}
 					})(from, to, done);
@@ -2571,6 +2567,36 @@ AndroidBuilder.prototype.copyResources = function copyResources(next) {
 			);
 			this.encryptJS && jsFilesToEncrypt.push('_app_props_.json');
 			delete this.lastBuildFiles[appPropsFile];
+
+           // write the license file
+            var licenseFile = path.join(this.encryptJS ? this.buildAssetsDir : this.buildBinAssetsResourcesDir, '_license_.json'),
+            license = JSON.parse(fs.readFileSync(path.join(this.platformPath, '..', 'license.json')));
+            androidLicenses = license['android'];
+            for(var key in androidLicenses) {
+                if(androidLicenses.hasOwnProperty(key)) {
+                    license[key] = androidLicenses[key];
+                }
+            }
+            delete license['ios'];
+            delete license['android'];
+            this.modules.forEach(function (module) {
+                var moduleLicenseFile = path.join(module.modulePath, 'license.json');
+                if (fs.existsSync(moduleLicenseFile)) {
+                    moduleLicense = JSON.parse(fs.readFileSync(moduleLicenseFile));
+                    if (moduleLicense) {
+                        for(var key in moduleLicense) {
+                            if(moduleLicense.hasOwnProperty(key)) {
+                                license[key] = moduleLicense[key];
+                            }
+                        }
+                    }
+                }
+            });
+            fs.writeFileSync(
+                licenseFile,
+                JSON.stringify(license)
+            );
+            this.encryptJS && jsFilesToEncrypt.push('_license_.json');
 
 			if (!jsFilesToEncrypt.length) {
 				// nothing to encrypt, continue
@@ -3114,6 +3140,9 @@ AndroidBuilder.prototype.writeXmlFile = function writeXmlFile(srcOrDoc, dest) {
 	if (destExists) {
 		// we're merging
 		destDoc = (new DOMParser({ errorHandler: function(){} }).parseFromString(fs.readFileSync(dest).toString(), 'text/xml')).documentElement;
+		xml.forEachAttr(destDoc, function (attr) {
+			root.setAttribute(attr.name, attr.value);
+		});
 		if (typeof srcOrDoc == 'string') {
 			this.logger.debug(__('Merging %s => %s', srcOrDoc.cyan, dest.cyan));
 		}
@@ -3123,6 +3152,10 @@ AndroidBuilder.prototype.writeXmlFile = function writeXmlFile(srcOrDoc, dest) {
 			this.logger.debug(__('Copying %s => %s', srcOrDoc.cyan, dest.cyan));
 		}
 	}
+
+	xml.forEachAttr(srcDoc, function (attr) {
+		root.setAttribute(attr.name, attr.value);
+	});
 
 	switch (filename) {
 		case 'arrays.xml':
@@ -3289,7 +3322,11 @@ AndroidBuilder.prototype.generateTheme = function generateTheme(next) {
 	if (!fs.existsSync(themeFile)) {
 		this.logger.info(__('Generating %s', themeFile.cyan));
 
-		var flags = 'Theme.Sherlock';
+		var flags = 'Theme.Titanium';
+        var baseTheme = "BaseTheme";
+        if ( this.tiapp['theme']) {
+            baseTheme = this.tiapp['theme'];
+        }
 		if ((this.tiapp.fullscreen || this.tiapp['statusbar-hidden']) && this.tiapp['navbar-hidden']) {
 			flags += '.NoActionBar.Fullscreen';
 		} else if (this.tiapp['navbar-hidden']) {
@@ -3297,7 +3334,8 @@ AndroidBuilder.prototype.generateTheme = function generateTheme(next) {
 		}
 
 		fs.writeFileSync(themeFile, ejs.render(fs.readFileSync(path.join(this.templatesDir, 'theme.xml')).toString(), {
-			flags: flags
+			flags: flags,
+            baseTheme:baseTheme
 		}));
 	}
 
@@ -3516,7 +3554,7 @@ AndroidBuilder.prototype.generateAndroidManifest = function generateAndroidManif
 
 	// add the analytics service
 	if (this.tiapp.analytics) {
-		var tiAnalyticsService = 'org.appcelerator.titanium.analytics.TiAnalyticsService';
+		var tiAnalyticsService = 'org.appcelerator.aps.analytics.APSAnalyticsService';
 		finalAndroidManifest.application.service || (finalAndroidManifest.application.service = {});
 		finalAndroidManifest.application.service[tiAnalyticsService] = {
 			name: tiAnalyticsService,
@@ -3612,6 +3650,7 @@ AndroidBuilder.prototype.packageApp = function packageApp(next) {
 			'-S', this.buildResDir,
 			'-I', this.androidTargetSDK.androidJar,
 			'-I', path.join(this.platformPath, 'titanium.jar'),
+			'-I', path.join(this.platformPath, 'aps-analytics.jar'),
 			'-F', this.ap_File
 		];
 
@@ -3624,7 +3663,7 @@ AndroidBuilder.prototype.packageApp = function packageApp(next) {
 		);
 	}
 
-	if (!Object.keys(this.resPackages).length) {
+	if ( (!Object.keys(this.resPackages).length) && (!this.moduleResPackages.length) ) {
 		return runAapt();
 	}
 
@@ -3634,6 +3673,11 @@ AndroidBuilder.prototype.packageApp = function packageApp(next) {
 	Object.keys(this.resPackages).forEach(function(resFile){
 		namespaces && (namespaces+=':');
 		namespaces += this.resPackages[resFile];
+	}, this);
+
+	this.moduleResPackages.forEach(function (data) {
+		namespaces && (namespaces+=':');
+		namespaces += data;
 	}, this);
 
 	args.push('--extra-packages', namespaces);
@@ -4103,7 +4147,6 @@ AndroidBuilder.prototype.writeBuildManifest = function writeBuildManifest(callba
 		guid: this.tiapp.guid,
 		icon: this.tiapp.icon,
 		fullscreen: this.tiapp.fullscreen,
-		'navbar-hidden': this.tiapp['navbar-hidden'],
 		skipJSMinification: !!this.cli.argv['skip-js-minify'],
 		mergeCustomAndroidManifest: this.config.get('android.mergeCustomAndroidManifest', false),
 		encryptJS: this.encryptJS,

@@ -34,6 +34,8 @@ exports.desc = __('builds a project');
 exports.extendedDesc = 'Builds an existing app or module project.';
 
 exports.config = function (logger, config, cli) {
+	fields.setup({ colors: cli.argv.colors });
+
 	return function (finished) {
 		cli.createHook('build.config', function (callback) {
 			ti.platformOptions(logger, config, cli, 'build', function (platformConf) {
@@ -107,11 +109,6 @@ exports.config = function (logger, config, cli) {
 								// make sure the tiapp.xml is sane
 								ti.validateTiappXml(logger, config, tiapp);
 
-								// check that the Titanium SDK version is correct
-								if (!ti.validateCorrectSDK(logger, config, cli, 'build')) {
-									throw new cli.GracefulShutdown;
-								}
-
 								return projectDir;
 							},
 							desc: __('the directory containing the project'),
@@ -171,6 +168,11 @@ exports.config = function (logger, config, cli) {
 exports.validate = function (logger, config, cli) {
 	// TODO: set the type to 'app' for now, but we'll need to determine if the project is an app or a module
 	cli.argv.type = 'app';
+
+	// check that the Titanium SDK version is correct
+	if (!ti.validateCorrectSDK(logger, config, cli, 'build')) {
+		return false;
+	}
 
 	ti.validatePlatform(logger, cli, 'platform');
 

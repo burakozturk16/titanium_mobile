@@ -228,12 +228,12 @@ public class TiDimension
 		this.valueType = type;
 	}
 
-	protected double getPixels(Context context, int width, int height)
+	public double getPixels(Context context, int width, int height)
 	{
 		switch (units) {
 			case TypedValue.COMPLEX_UNIT_PX:
 			case COMPLEX_UNIT_UNDEFINED:
-				return (int) this.value;
+				return this.value;
 			case COMPLEX_UNIT_PERCENT:
 				return getPercentPixels(width, height);
 			case TypedValue.COMPLEX_UNIT_DIP:
@@ -247,11 +247,7 @@ public class TiDimension
 		}
 		return -1;
 	}
-	protected double getPixels(View parent)
-	{
-		return getPixels(parent.getContext(), parent.getMeasuredWidth(), parent.getMeasuredHeight());
-	}
-
+	
 	/**
 	 * Calculates and returns the number of pixels, depending on the type.
 	 * It also takes screen/view density into consideration.

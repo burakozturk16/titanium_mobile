@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.titanium.test" android:versionCode="1" android:versionName="1">
-	<uses-sdk android:minSdkVersion="10" android:targetSdkVersion="17"/>
+	<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
 
 	<!-- TI_MANIFEST -->
 	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
@@ -43,12 +43,11 @@
 		<activity android:name="org.appcelerator.titanium.TiActivity"
 			android:configChanges="keyboardHidden|orientation|screenSize" />
 		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@style/Theme.Titanium.Translucent"/>
-		<activity android:name="org.appcelerator.titanium.TiModalActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize"/>
-		<activity android:name="ti.modules.titanium.ui.TiTabActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize" />
 		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
 		<!-- TI_SERVICES -->
+		<service
+            android:name="org.aps.analytics.APSAnalyticsService" >
+        </service>
 
 	</application>
 

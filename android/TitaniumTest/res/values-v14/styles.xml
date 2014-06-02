@@ -1,5 +1,9 @@
-<resources> <style name="AppBaseTheme" parent="@style/Theme.Sherlock">
+<resources> 
+    <style name="AppBaseTheme" parent="@style/Theme.Sherlock">
 <!--          <item name="actionBarStyle">@style/ActionBarTheme</item>
  --><!--     	<item name="android:windowActionBarOverlay">true</item>
- -->        </style>	
+ -->        </style>
+ <style name="TiEditText" parent="@android:style/Widget.EditText">
+<item name="android:textCursorDrawable">@null</item>
+			</style>	
 </resources>

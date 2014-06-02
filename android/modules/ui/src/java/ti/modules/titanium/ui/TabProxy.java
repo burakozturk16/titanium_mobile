@@ -213,12 +213,6 @@ public class TabProxy extends ViewProxy
 			window.fireEvent(TiC.EVENT_OPEN, null, false);
 		}
 		
-		//When tab loses focus, we hide the soft keyboard.
-		Activity currentActivity = TiApplication.getAppCurrentActivity();
-		if (!focused && currentActivity != null) {
-			TiUIHelper.showSoftKeyboard(currentActivity.getWindow().getDecorView(), false);
-		}
-
 		// The focus and blur events for tab changes propagate like so:
 		//    window -> tab -> tab group
 		//    
@@ -246,6 +240,14 @@ public class TabProxy extends ViewProxy
 
 	void onSelectionChanged(boolean selected)
 	{
+		if (!selected) {
+			//When tab selection changes, we hide the soft keyboard.
+			Activity currentActivity = TiApplication.getAppCurrentActivity();
+			if (currentActivity != null) {
+				TiUIHelper.showSoftKeyboard(currentActivity.getWindow().getDecorView(), false);
+			}
+		}
+
 		((TiUIAbstractTab) view).onSelectionChange(selected);
 	}
 

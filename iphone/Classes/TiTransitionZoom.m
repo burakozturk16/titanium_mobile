@@ -3,17 +3,13 @@
 
 @implementation TiTransitionZoom
 
-- (id)initWithSourceRect:(CGRect)sourceRect andTargetRect:(CGRect)targetRect forDuration:(double)duration
-{
-    if (self = [super init]) {
-        _adTransition = [[ADZoomTransition alloc] initWithSourceRect:sourceRect andTargetRect:targetRect forDuration:duration];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADZoomTransition class];
 }
 
-- (id)initWithScale:(CGFloat)scale forDuration:(double)duration {
+- (id)initWithScale:(CGFloat)scale forDuration:(double)duration orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed {
     if (self = [super init]) {
-        _adTransition = [[ADZoomTransition alloc] initWithScale:scale forDuration:duration];
+        _adTransition = [[ADZoomTransition alloc] initWithScale:scale forDuration:duration orientation:orientation reversed:reversed];
     }
     return self;
 }

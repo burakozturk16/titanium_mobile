@@ -25,6 +25,7 @@ import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
+import android.content.DialogInterface.OnShowListener;
 import android.support.v4.view.ViewCompat;
 import android.widget.ListView;
 import android.widget.Button;
@@ -292,6 +293,12 @@ public class TiUIDialog extends TiUIView
 				}
 			});
 			dialog = getBuilder().create();
+			dialog.setOnShowListener(new DialogInterface.OnShowListener(){
+		        @Override
+		        public void onShow(DialogInterface dialog) {
+		        	TiApplication.getInstance().cancelPauseEvent();
+		        }
+			});
 			dialog.setCancelable(hideOnClick);
 
 

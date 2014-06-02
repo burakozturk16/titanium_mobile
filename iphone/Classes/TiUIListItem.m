@@ -295,6 +295,7 @@ DEFINE_EXCEPTIONS
 {
 	[_proxy detachView];
 	[_proxy cleanup];
+	[_proxy deregisterProxy:[_proxy pageContext]];
 	_proxy.listItem = nil;
 	_proxy.modelDelegate = nil;
     _viewHolder.proxy = nil;
@@ -308,7 +309,7 @@ DEFINE_EXCEPTIONS
 
 - (void)prepareForReuse
 {
-	RELEASE_TO_NIL(_dataItem);
+//	RELEASE_TO_NIL(_dataItem);
     [_proxy prepareForReuse];
 	[super prepareForReuse];
 }
@@ -407,6 +408,11 @@ static NSArray* handledKeys;
 
 - (void)setDataItem:(NSDictionary *)dataItem
 {
+    if (dataItem == (_dataItem)) return;
+    if (_dataItem) {
+        RELEASE_TO_NIL(_dataItem)
+        [(TiViewProxy*)self.proxy dirtyItAll];
+    }
 	_dataItem = [dataItem retain];
     [_proxy setDataItem:_dataItem];
 }
@@ -430,6 +436,14 @@ static NSArray* handledKeys;
 {
     UIColor *color = newValue != nil ? [[TiUtils colorValue:newValue] _color] : [UIColor blackColor];
     [self.textLabel setTextColor:color];
+}
+
+-(void)setTintColor_:(id)newValue
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        UIColor *color = newValue != nil ? [[TiUtils colorValue:newValue] _color] : [UIColor blackColor];
+        [self.textLabel setTintColor:color];
+    }
 }
 
 -(void)setFont_:(id)fontValue

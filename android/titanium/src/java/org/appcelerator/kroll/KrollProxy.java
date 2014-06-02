@@ -8,10 +8,8 @@ package org.appcelerator.kroll;
 
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -593,10 +591,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	public void updateKrollObjectProperties(HashMap<String, Object>props)
 	{
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
-			doUpdateKrollObjectProperties(getProperties());
+			doUpdateKrollObjectProperties(props);
 
 		} else {
-			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, getProperties());
+			Message message = getRuntimeHandler().obtainMessage(MSG_UPDATE_KROLL_PROPERTIES, props);
 			message.sendToTarget();
 		}
 	}
@@ -935,7 +933,16 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 				}
 			}
 			dict.put(TiC.EVENT_PROPERTY_TYPE, event);
-			onEventFired(event, dict);
+//			onEventFired(event, dict);
+			HashMap<Integer, KrollEventCallback> listeners = eventListeners.get(event);
+            if (listeners != null) {
+                for (Integer listenerId : listeners.keySet()) {
+                    KrollEventCallback callback = listeners.get(listenerId);
+                    if (callback != null) {
+                        callback.call(dict);
+                    }
+                }
+            }
 		}
 
 		if (data != null) {
@@ -1440,15 +1447,15 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	public void onEventFired(String event, Object data)
 	{
-		HashMap<Integer, KrollEventCallback> listeners = eventListeners.get(event);
-		if (listeners != null) {
-			for (Integer listenerId : listeners.keySet()) {
-				KrollEventCallback callback = listeners.get(listenerId);
-				if (callback != null) {
-					callback.call(data);
-				}
-			}
-		}
+//		HashMap<Integer, KrollEventCallback> listeners = eventListeners.get(event);
+//		if (listeners != null) {
+//			for (Integer listenerId : listeners.keySet()) {
+//				KrollEventCallback callback = listeners.get(listenerId);
+//				if (callback != null) {
+//					callback.call(data);
+//				}
+//			}
+//		}
 	}
 	
 	public boolean hasNonJSEventListener(String event)

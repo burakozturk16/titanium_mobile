@@ -162,54 +162,49 @@ DEFINE_EXCEPTIONS
 
 -(void)setColor_:(id)color
 {
-	if (color!=nil)
-	{
-		TiColor *c = [TiUtils colorValue:color];
-        UIColor* color = (c!=nil)?[c _color]:nil;
-        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
-        [dict setObject:color forKey:UITextAttributeTextColor];
-        [super setTitleTextAttributes:dict forState:UIControlStateNormal];
-	}
+    UIColor * newColor = [[TiUtils colorValue:color] _color];
+    if (newColor == nil) {
+        newColor = [UIColor darkTextColor];
+    }
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateNormal]];
+    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [super setTitleTextAttributes:dict forState:UIControlStateNormal];
 }
 
 -(void)setHighlightedColor_:(id)color
 {
-	if (color!=nil)
-	{
-        TiColor *c = [TiUtils colorValue:color];
-        UIColor* color = (c!=nil)?[c _color]:nil;
-        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
-        [dict setObject:color forKey:UITextAttributeTextColor];
-        [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
-	}
+    UIColor * newColor = [[TiUtils colorValue:color] _color];
+    if (newColor == nil) {
+        newColor = [UIColor lightTextColor];
+    }
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
+    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
 }
 
 -(void)setSelectedColor_:(id)color
 {
-	if (color!=nil)
-	{
-        TiColor *c = [TiUtils colorValue:color];
-        UIColor* color = (c!=nil)?[c _color]:nil;
-        
-        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
-        [dict setObject:color forKey:UITextAttributeTextColor];
-        [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
-        dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateSelected]];
-        [dict setObject:color forKey:UITextAttributeTextColor];
-        [super setTitleTextAttributes:dict forState:UIControlStateSelected];
-	}
+    UIColor * newColor = [[TiUtils colorValue:color] _color];
+    if (newColor == nil) {
+        newColor = [UIColor lightTextColor];
+    }
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateHighlighted]];
+    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [super setTitleTextAttributes:dict forState:UIControlStateHighlighted];
+    dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateSelected]];
+    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [super setTitleTextAttributes:dict forState:UIControlStateSelected];
 }
 
 -(void)setDisabledColor_:(id)color
 {
-	if (color!=nil)
-	{
-        TiColor *c = [TiUtils colorValue:color];
-        UIColor* color = (c!=nil)?[c _color]:nil;
-        NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateDisabled]];
-        [dict setObject:color forKey:UITextAttributeTextColor];
-        [super setTitleTextAttributes:dict forState:UIControlStateDisabled];
-	}
+    UIColor * newColor = [[TiUtils colorValue:color] _color];
+    if (newColor == nil) {
+        newColor = [UIColor lightTextColor];
+    }
+    NSMutableDictionary* dict = [NSMutableDictionary dictionaryWithDictionary:[self titleTextAttributesForState:UIControlStateDisabled]];
+    [dict setObject:newColor forKey:UITextAttributeTextColor];
+    [super setTitleTextAttributes:dict forState:UIControlStateDisabled];
 }
 
 

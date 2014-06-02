@@ -7,6 +7,7 @@
 
 #import "TiUIiOSAdView.h"
 #import "TiUtils.h"
+#import "APSAnalytics.h"
 
 #ifdef USE_TI_UIIOSADVIEW
 
@@ -75,9 +76,7 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 	if (TI_APPLICATION_ANALYTICS)
 	{
 		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:[banner currentContentSizeIdentifier],@"size",nil];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:data,@"data",@"ti.iad.load",@"name",@"ti.iad.load",@"type",nil];
-		WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-		[[NSNotificationCenter defaultCenter] postNotificationName:kTiAnalyticsNotification object:nil userInfo:event]; 
+        [APSAnalytics sendCustomEvent:@"ti.iad.load" withType:@"ti.iad.load" data:data];
 	}
 	[(TiUIiOSAdViewProxy*) self.proxy fireLoad:nil];
 }
@@ -87,9 +86,7 @@ extern NSString * const TI_APPLICATION_ANALYTICS;
 	if (TI_APPLICATION_ANALYTICS)
 	{
 		NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:[banner currentContentSizeIdentifier],@"size",nil];
-		NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:data,@"data",@"ti.iad.action",@"name",@"ti.iad.action",@"type",nil];
-		WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
-		[[NSNotificationCenter defaultCenter] postNotificationName:kTiAnalyticsNotification object:nil userInfo:event]; 
+        [APSAnalytics sendCustomEvent:@"ti.iad.action" withType:@"ti.iad.action" data:data];
 	}
 	if ([self.proxy _hasListeners:@"action"])
 	{

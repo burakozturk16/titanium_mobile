@@ -84,7 +84,7 @@
     for (TiAnimation* animation in pending) {
         [self removePendingAnimation:animation];
     }
-    
+    [pending release];
 	pthread_rwlock_rdlock(&runningLock);
     NSArray* running = [[NSArray alloc] initWithArray:_runningAnimations];
     [_runningAnimations removeAllObjects];
@@ -133,8 +133,8 @@
     {
         TiThreadPerformOnMainThread(^{
             [animation.animation cancel];
+            animation.animation = nil;
         }, YES);
-        animation.animation = nil;
     }
     [self removeRunningAnimation:animation];
 }

@@ -6,12 +6,8 @@
 @implementation TiTransitionSlide
 
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
-{
-    if (self = [super init]) {
-        _adTransition = [[ADSlideTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
-    }
-    return self;
+-(Class) adTransitionClass {
+    return [ADSlideTransition class];
 }
 
 -(void)transformView:(UIView*)view withPosition:(CGFloat)position adjustTranslation:(BOOL)adjust size:(CGSize)size
@@ -50,14 +46,14 @@
     }
     else
     {
-        float percent;
+//        float percent;
         if (currentPercent > 0.66f) { // first half
-            percent = 3*currentPercent - 2;
+//            percent = 3*currentPercent - 2;
             alpha = 0.0f;
             percent = 1;
         }
         else {
-            percent = 3*currentPercent - 1;
+//            percent = 3*currentPercent - 1;
             scaleFactor = kScaleFactor;
             alpha  = (1-percent)*0.5f;
         }

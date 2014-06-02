@@ -473,12 +473,19 @@ typedef enum
 +(NSString*)stringValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(CGPoint)pointValue:(NSString*)name properties:(NSDictionary*)properties;
++(CGPoint)pointValue:(id)value def:(CGPoint)defaultValue;
 
 +(TiColor*)colorValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
+
++(NSDate *)dateValue:(id)value def:(NSDate *)def;
++(NSDate *)dateValue:(id)object;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def;
++(NSDate *)dateValue:(NSString*)name properties:(NSDictionary*)properties def:(NSDate *)def exists:(BOOL*) exists;
 
 +(NSDictionary*)pointToDictionary:(CGPoint)point;
 +(NSDictionary*)dictionaryFromTouch:(UITouch*)touch inView:(UIView*)view;
@@ -502,6 +509,12 @@ typedef enum
 +(TiScriptError*) scriptErrorValue:(id)value;
 
 +(UITextAlignment)textAlignmentValue:(id)alignment;
+
++(NSString*)jsonStringify:(id)value;
++(id)jsonParse:(NSString*)value;
+
++(NSString*)jsonStringify:(id)value error:(NSError**)error;
++(id)jsonParse:(NSString*)value error:(NSError**)error;;
 
 +(UIControlContentVerticalAlignment)contentVerticalAlignmentValue:(id)alignment;
 +(UIControlContentHorizontalAlignment)contentHorizontalAlignmentValue:(id)alignment;
@@ -551,8 +564,6 @@ typedef enum
 +(UIBarStyle)barStyleForColor:(TiColor *)color;
 
 +(void)applyColor:(TiColor *)color toNavigationController:(UINavigationController *)navController;
-
-+(void)queueAnalytics:(NSString*)type name:(NSString*)name data:(NSDictionary*)data;
 
 /**
  Whether or not the current device interface idiom is iPad.
@@ -656,5 +667,7 @@ typedef enum
  @param message The optional string describing the error.
  */
 + (NSMutableDictionary *)dictionaryWithCode:(int)code message:(NSString *)message;
+
++(UIView*)UIViewWithFrame:(CGRect)frame;
 
 @end

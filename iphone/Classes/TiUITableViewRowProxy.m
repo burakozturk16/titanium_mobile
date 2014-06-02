@@ -175,15 +175,6 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
         [self detachView];
     }
 	table = newTable;
-    
-    //use that time to make sure we dont have pendingAdds (would make scrolling a lot slower)
-    [self processPendingAdds];
-}
-
--(void)processPendingAdds
-{
-    ENSURE_UI_THREAD_0_ARGS
-    [super processPendingAdds];
 }
 
 -(id)_initWithPageContext:(id<TiEvaluator>)context_ args:(NSArray*)args
@@ -799,9 +790,25 @@ TiProxy * DeepScanForProxyOfViewContainingPoint(UIView * targetView, CGPoint poi
     [self fakeOpening];
 }
 
+-(void)configureTintColor:(UITableViewCell*)cell
+{
+    if ([TiUtils isIOS7OrGreater]) {
+        UIColor* theTint = nil;
+        id theColor = [self valueForUndefinedKey:@"tintColor"];
+        if (theColor != nil) {
+            theTint = [[TiUtils colorValue:theColor] color];
+        }
+        if (theTint == nil) {
+            theTint = [[table tableView] tintColor];
+        }
+        [cell performSelector:@selector(setTintColor:) withObject:theTint];
+    }
+}
+
 -(void)initializeTableViewCell:(UITableViewCell*)cell
 {
 	modifyingRow = YES;
+	[self configureTintColor:cell];
 	[self configureTitle:cell];
 	[self configureSelectionStyle:cell];
 	[self configureLeftSide:cell];

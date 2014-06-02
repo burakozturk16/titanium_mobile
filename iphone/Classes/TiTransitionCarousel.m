@@ -8,10 +8,13 @@
 @end
 @implementation TiTransitionCarousel
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect
+-(Class) adTransitionClass {
+    return [ADCarrouselTransition class];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed
 {
-    if (self = [super init]) {
-        _adTransition = [[ADCarrouselTransition alloc] initWithDuration:duration orientation:orientation sourceRect:sourceRect];
+    if (self = [super initWithDuration:duration orientation:orientation sourceRect:sourceRect reversed:reversed]) {
         _faceNb = 4;
     }
     return self;

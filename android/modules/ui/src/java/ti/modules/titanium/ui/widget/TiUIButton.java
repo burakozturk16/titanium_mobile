@@ -140,11 +140,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), value);
 
 			if (drawableRef != null && !drawableRef.isTypeNull()) {
-				try {
-					imageDrawable = drawableRef.getDrawable();
-				} catch (FileNotFoundException e) {
-					imageDrawable = null;
-				}
+				imageDrawable = drawableRef.getDrawable();
 			}
 			else {
 				imageDrawable = null;
@@ -258,11 +254,7 @@ public class TiUIButton extends TiUINonViewGroupView
 			TiDrawableReference drawableRef = TiDrawableReference.fromObject(proxy.getActivity(), newValue);
 
 			if (drawableRef != null) {
-				try {
-					imageDrawable = drawableRef.getDrawable();
-				} catch (FileNotFoundException e) {
-					imageDrawable = null;
-				}
+				imageDrawable = drawableRef.getDrawable();
 			}
 			else {
 				imageDrawable = null;

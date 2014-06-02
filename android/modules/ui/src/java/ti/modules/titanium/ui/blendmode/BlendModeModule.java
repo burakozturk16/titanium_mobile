@@ -2,12 +2,12 @@ package ti.modules.titanium.ui.blendmode;
 
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
-
+import android.annotation.SuppressLint;
 import android.graphics.PorterDuff.Mode;
 import android.os.Build;
-
 import ti.modules.titanium.ui.UIModule;
 
+@SuppressLint("NewApi")
 @Kroll.module(parentModule=UIModule.class)
 public class BlendModeModule extends KrollModule {
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);

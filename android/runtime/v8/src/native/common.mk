@@ -26,6 +26,10 @@ CFLAGS += -Wno-conversion-null
 # cf https://groups.google.com/forum/?fromgroups=#!topic/android-ndk/Q8ajOD37LR0
 CFLAGS += -Wno-psabi
 
+ifeq ($(TARGET_ARCH_ABI),x86)
+    LOCAL_CFLAGS += -mtune=atom -mssse3 -mfpmath=sse
+endif
+
 CLEAN_GEN := rm -f $(GENERATED_DIR)/*
 CLEAN_OBJ := rm -rf $(OBJ_DIR)/*
 

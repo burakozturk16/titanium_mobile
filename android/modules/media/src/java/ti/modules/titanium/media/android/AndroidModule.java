@@ -68,23 +68,19 @@ public class AndroidModule extends KrollModule
 		WallpaperManager wm = WallpaperManager.getInstance(ctx);
 		TiDrawableReference ref = TiDrawableReference.fromBlob(getActivity(), image);
 		Bitmap b = null;
-		if (scale) {
-			b = ref.getBitmap(wm.getDesiredMinimumWidth());
-		} else {
-			try {
+		try {
+			if (scale) {
+				b = ref.getBitmap(wm.getDesiredMinimumWidth());
+			} else {
 				b = ref.getBitmap();
-			} catch (FileNotFoundException e) {
-				b = null;
 			}
-		}
-		if (b != null) {
-			try {
+			if (b != null) {
 				wm.setBitmap(b);
-			} catch (IOException e) {
-				Log.e(TAG, "Unable to set wallpaper bitmap", e);
+			} else {
+				Log.w(TAG, "Unable to get bitmap to set wallpaper");
 			}
-		} else {
-			Log.w(TAG, "Unable to get bitmap to set wallpaper");
+		} catch (IOException e) {
+			Log.e(TAG, "Unable to set wallpaper bitmap:", e);
 		}
 	}
 

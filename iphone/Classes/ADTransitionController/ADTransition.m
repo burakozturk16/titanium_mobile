@@ -26,12 +26,45 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     return self;
 }
 
-+ (ADTransition *)nullTransition {
-    return [[[ADTransition alloc] init] autorelease];
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
+    if (self = [self init]) {
+        self.orientation = orientation;
+        _duration = duration;
+        if (reversed) {
+            if (self.type == ADTransitionTypePush) {
+                self.type = ADTransitionTypePop;
+            } else if (self.type == ADTransitionTypePop) {
+                self.type = ADTransitionTypePush;
+            }
+        }
+        self.isReversed = reversed;
+    }
+    return self;
 }
 
-- (ADTransition *)reverseTransition {
-    return nil;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed {
+    return [self initWithDuration:duration orientation:orientation sourceRect:CGRectZero reversed:reversed];
+
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect reversed:(BOOL)reverse {
+    return [self initWithDuration:duration orientation:ADTransitionLeftToRight sourceRect:sourceRect reversed:NO];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration sourceRect:(CGRect)sourceRect {
+    return [self initWithDuration:duration sourceRect:sourceRect reversed:NO];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration {
+    return [self initWithDuration:duration sourceRect:CGRectZero reversed:NO];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
+    return [self initWithDuration:duration orientation:orientation sourceRect:sourceRect reversed:NO];
+}
+
++ (ADTransition *)nullTransition {
+    return [[[ADTransition alloc] init] autorelease];
 }
 
 - (void)dealloc {
@@ -95,11 +128,13 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
 
 -(void)finishedTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
     [self _teardownLayers:@[viewIn?[viewIn layer]:[NSNull null], viewOut?[viewOut layer]:[NSNull null]]];
+    [viewIn.layer removeAnimationForKey:kAdKey];
+    [viewOut.layer removeAnimationForKey:kAdKey];
 }
 
 -(void)startTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
-    [viewIn.layer removeAnimationForKey:kAdKey];
-    [viewOut.layer removeAnimationForKey:kAdKey];
+//    [viewIn.layer removeAnimationForKey:kAdKey];
+//    [viewOut.layer removeAnimationForKey:kAdKey];
 }
 
 - (void)transitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
@@ -109,5 +144,40 @@ NSString * ADTransitionAnimationOutValue = @"ADTransitionAnimationOutValue";
     }];
     
     [self startTransitionFromView:viewOut toView:viewIn inside:viewContainer];
+}
+
+- (ADTransition *)reverseTransitionForSourceRect:(CGRect)rect {
+    
+    return [[[self class] alloc] initWithDuration:self.duration orientation:self.orientation sourceRect:rect reversed:!self.isReversed];
+}
+
++(ADTransitionOrientation)reversedOrientation:(ADTransitionOrientation)orientation {
+    switch (orientation) {
+        case ADTransitionRightToLeft:
+            return ADTransitionLeftToRight;
+            break;
+        case ADTransitionLeftToRight:
+            return ADTransitionRightToLeft;
+            break;
+        case ADTransitionTopToBottom:
+            return ADTransitionBottomToTop;
+            break;
+        case ADTransitionBottomToTop:
+            return ADTransitionTopToBottom;
+            break;
+        default:
+            return orientation;
+            break;
+    }
+}
+
++(void)inverseTOFromInAnimation:(CABasicAnimation*)animation {
+    id oldValue = animation.fromValue;
+    animation.fromValue = animation.toValue;
+    animation.toValue = oldValue;
+}
+
+-(BOOL)needsPerspective {
+    return NO;
 }
 @end

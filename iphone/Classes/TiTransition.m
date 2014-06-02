@@ -20,6 +20,18 @@
     return self;
 }
 
+-(Class) adTransitionClass {
+    return [ADTransition class];
+}
+
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)_orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed
+{
+    if (self = [super init]) {
+        _adTransition = [[[self adTransitionClass] alloc] initWithDuration:duration orientation:_orientation sourceRect:sourceRect reversed:reversed];
+    }
+    return self;
+}
+
 -(void)dealloc
 {
     [super dealloc];
@@ -67,10 +79,10 @@
     return _adTransition && _adTransition.orientation;
 }
 
--(void)reverseADTransition
+-(void)reverseADTransitionForSourceRect:(CGRect)rect
 {
     if (_adTransition) {
-        ADTransition* reverse = [_adTransition reverseTransition];
+        ADTransition* reverse = [_adTransition reverseTransitionForSourceRect:rect];
         _adTransition = [reverse retain];
     }
 }

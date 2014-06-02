@@ -7,17 +7,17 @@
 #ifdef USE_TI_GEOLOCATION
 
 #import "GeolocationModule.h"
-#import "ASIFormDataRequest.h"
 #import "TiApp.h"
 #import "TiEvaluator.h"
 #import "SBJSON.h"
 #import <sys/utsname.h>
 #import "NSData+Additions.h"
+#import "APSAnalytics.h"
 
 extern NSString * const TI_APPLICATION_GUID;
 extern BOOL const TI_APPLICATION_ANALYTICS;
 
-@interface GeolocationCallback : NSObject
+@interface GeolocationCallback : NSObject<APSHTTPRequestDelegate>
 {
 	id<TiEvaluator> context;
 	KrollCallback *callback;
@@ -57,13 +57,19 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 		NSString *value = [TiUtils stringValue:[params objectForKey:key]];
 		[url appendFormat:@"%@=%@&",key,[value stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 	}
-	ASIFormDataRequest *request = [ASIFormDataRequest requestWithURL:[NSURL URLWithString:url]];	
-	[request setDelegate:self];
-	[request addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[request setRequestMethod:@"GET"];
-	[request setDefaultResponseEncoding:NSUTF8StringEncoding];
-	[request setAllowCompressedResponse:YES];
-	[request startAsynchronous];
+
+    APSHTTPRequest *req = [[APSHTTPRequest alloc] init];
+    [req setShowActivity:YES];
+    [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
+    [req setUrl:[NSURL URLWithString:url]];
+    [req setDelegate:self];
+    [req setMethod:@"GET"];
+    // Place it in the main thread since we're not using a queue and yet we need the
+    // delegate methods to be called...
+    TiThreadPerformOnMainThread(^{
+        [req send];
+        [req autorelease];
+    }, NO);
 }
 
 -(void)requestSuccess:(NSString*)data
@@ -76,27 +82,24 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	[context fireEvent:callback withObject:event remove:NO thisObject:nil];
 }
 
--(void)requestFinished:(ASIHTTPRequest *)request
+-(void)request:(APSHTTPRequest*)request onLoad:(APSHTTPResponse*)response
 {
-	[[TiApp app] stopNetwork];
-
-	if (request!=nil && [request error]==nil)
+	if (request!=nil && [response error]==nil)
 	{
-		NSString *data = [request responseString];
+		NSString *data = [response responseString];
 		[self requestSuccess:data];
 	}
 	else 
 	{
-		[self requestError:[request error]];
+		[self requestError:[response error]];
 	}
 	
 	[self autorelease];
 }
 
--(void)requestFailed:(ASIHTTPRequest *)request
+-(void)request:(APSHTTPRequest *)request onError:(APSHTTPResponse *)response
 {
-	[[TiApp app] stopNetwork];
-	[self requestError:[request error]];
+	[self requestError:[response error]];
 	[self autorelease];
 }
 
@@ -158,9 +161,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 @end
 
-
+@interface GeolocationModule()
+@property(nonatomic,readwrite,retain) CLLocation* lastLocation;
+@end
 
 @implementation GeolocationModule
+@synthesize lastLocation;
 
 #pragma mark Internal
 
@@ -496,8 +502,6 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)performGeo:(NSString*)direction address:(NSString*)address callback:(GeolocationCallback*)callback
 {
-	[[TiApp app] startNetwork];
-	
 	id aguid = TI_APPLICATION_GUID;
 	id sid = [[TiApp app] sessionId];
 	
@@ -802,6 +806,28 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 	return data;
 }
 
+-(BOOL)locationFarEnough:(CLLocation*) loc1 fromLocation:(CLLocation*) loc2{
+    if (!loc2) return true;
+    float dist = [loc2 distanceFromLocation:loc1];
+    return dist > distance;
+}
+
+-(NSMutableArray*)locationsDictionary:(NSArray*)newLocations;
+{
+    NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[newLocations count]];
+    for (CLLocation* loc in newLocations) {
+        if ([self locationFarEnough:loc fromLocation:self.lastLocation]) {
+            self.lastLocation = loc;
+            NSDictionary* dict = [self locationDictionary:loc];
+            if (dict) {
+                [result addObject:dict];
+            }
+        }
+        
+    }
+	return [result autorelease];
+}
+
 -(NSDictionary*)headingDictionary:(CLHeading*)newHeading
 {
 	long long ts = (long long)[[newHeading timestamp] timeIntervalSince1970] * 1000;
@@ -886,19 +912,14 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 #pragma mark Geolacation Analytics
 
 -(void)fireApplicationAnalyticsIfNeeded:(NSArray *)locations{
+    if (!TI_APPLICATION_ANALYTICS) return;
     static BOOL analyticsSend = NO;
 	[lastLocationDict release];
 	lastLocationDict = [[self locationDictionary:[locations lastObject]] copy];
-    if (TI_APPLICATION_ANALYTICS && !analyticsSend)
+    if (!analyticsSend)
 	{
         analyticsSend = YES;
-        NSDictionary *fromdict = [self locationDictionary:[locations objectAtIndex:0]];//This location could be same as todict value.
-        
-        NSDictionary *data = [NSDictionary dictionaryWithObjectsAndKeys:lastLocationDict,@"to",fromdict,@"from",nil];
-        NSDictionary *geo = [NSDictionary dictionaryWithObjectsAndKeys:data,@"data",@"ti.geo",@"name",@"ti.geo",@"type",nil];
-        
-        WARN_IF_BACKGROUND_THREAD;	//NSNotificationCenter is not threadsafe!
-        [[NSNotificationCenter defaultCenter] postNotificationName:kTiAnalyticsNotification object:nil userInfo:geo];
+        [APSAnalytics sendAppGeoEvent:locations];
     }
 }
 
@@ -928,11 +949,17 @@ MAKE_SYSTEM_PROP(ACTIVITYTYPE_OTHER_NAVIGATION, CLActivityTypeOtherNavigation);
 //Using new delegate instead of the old deprecated method - (void)locationManager:didUpdateToLocation:fromLocation:
 
 -(void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations{
-    NSDictionary *todict = [self locationDictionary:[locations lastObject]];
+    NSMutableArray* coords = [self locationsDictionary:locations];
+    if (!coords || [coords count] == 0) return;
+    NSDictionary *todict = [coords lastObject];
+    [coords removeLastObject];
     
 	//Must use dictionary because of singleshot.
 	NSMutableDictionary *event = [TiUtils dictionaryWithCode:0 message:nil];
 	[event setObject:todict forKey:@"coords"];
+    if ([coords count] > 0) {
+        [event setObject:coords forKey:@"olderCoords"];
+    }
     if ([self _hasListeners:@"location"])
 	{
 		[self fireEvent:@"location" withObject:event];

@@ -19,5 +19,7 @@
 
 - (id)initWithDuration:(CFTimeInterval)duration;
 - (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation;
+- (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation reversed: (BOOL)reversed;
+- (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed ;
 - (void)finishInit;
 @end

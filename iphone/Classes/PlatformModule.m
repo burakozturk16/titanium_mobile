@@ -13,14 +13,6 @@
 #import <mach/mach.h>
 #import <sys/utsname.h>
 
-#import <sys/types.h>
-#import <sys/socket.h>
-#import <ifaddrs.h>
-#import <arpa/inet.h>
-
-NSString* const WIFI_IFACE = @"en0";
-NSString* const DATA_IFACE = @"pdp_ip0";
-
 @implementation PlatformModule
 
 @synthesize name, model, version, architecture, processorCount, username, ostype, availableMemory;
@@ -114,7 +106,6 @@ NSString* const DATA_IFACE = @"pdp_ip0";
 	RELEASE_TO_NIL(architecture);
 	RELEASE_TO_NIL(processorCount);
 	RELEASE_TO_NIL(username);
-	RELEASE_TO_NIL(address);
 	RELEASE_TO_NIL(ostype);
 	RELEASE_TO_NIL(availableMemory);
 	RELEASE_TO_NIL(capabilities);
@@ -156,35 +147,6 @@ NSString* const DATA_IFACE = @"pdp_ip0";
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceBatteryStateDidChangeNotification object:device];
 		[[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceBatteryLevelDidChangeNotification object:device];
 	}
-}
-
--(NSString*)getIface:(NSString*)iname mask:(BOOL)mask
-{
-    struct ifaddrs* head = NULL;
-    struct ifaddrs* ifaddr = NULL;
-    getifaddrs(&head);
-    
-    NSString* str = nil;
-    for (ifaddr = head; ifaddr != NULL; ifaddr = ifaddr->ifa_next) {
-        if (ifaddr->ifa_addr->sa_family == AF_INET &&
-            !strcmp(ifaddr->ifa_name, [iname UTF8String])) {
-            
-            char ipaddr[20];
-            struct sockaddr_in* addr;
-            if (mask) {
-                addr = (struct sockaddr_in*)ifaddr->ifa_netmask;
-            }
-            else {
-                addr = (struct sockaddr_in*)ifaddr->ifa_addr;
-            }
-            inet_ntop(addr->sin_family, &(addr->sin_addr), ipaddr, 20);
-            str = [NSString stringWithUTF8String:ipaddr];
-            break;
-        }
-    }
-    
-    freeifaddrs(head);
-    return str;
 }
 
 #pragma mark Public APIs
@@ -304,49 +266,6 @@ NSString* const DATA_IFACE = @"pdp_ip0";
 	return NUMFLOAT([[UIDevice currentDevice] batteryLevel]);
 }
 
--(NSString*)address
-{
-#if TARGET_IPHONE_SIMULATOR
-    // Assume classical ethernet and wifi interfaces
-    NSArray* interfaces = [NSArray arrayWithObjects:@"en0", @"en1", nil];
-    for (NSString* interface in interfaces) {
-        NSString* iface = [self getIface:interface mask:NO];
-        if (iface) {
-            return iface;
-        }
-    }
-    return nil;
-#else
-    return [self getIface:WIFI_IFACE mask:NO];
-#endif
-}
-
--(NSString*)dataAddress
-{
-#if TARGET_IPHONE_SIMULATOR
-    return nil; // Handy shortcut
-#else
-    return [self getIface:DATA_IFACE mask:NO];
-#endif
-}
-
-// Only available for the local wifi; why would you want it for the data network?
--(NSString*)netmask
-{
-#if TARGET_IPHONE_SIMULATOR
-    // Assume classical ethernet and wifi interfaces
-    NSArray* interfaces = [NSArray arrayWithObjects:@"en0", @"en1", nil];
-    for (NSString* interface in interfaces) {
-        NSString* iface = [self getIface:interface mask:YES];
-        if (iface) {
-            return iface;
-        }
-    }
-    return nil;
-#else
-    return [self getIface:WIFI_IFACE mask:YES];
-#endif
-}
 
 MAKE_SYSTEM_PROP(BATTERY_STATE_UNKNOWN,UIDeviceBatteryStateUnknown);
 MAKE_SYSTEM_PROP(BATTERY_STATE_UNPLUGGED,UIDeviceBatteryStateUnplugged);

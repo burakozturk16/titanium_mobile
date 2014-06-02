@@ -10,19 +10,18 @@
 
 @implementation ADFadeTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration {
-    CABasicAnimation * inFadeAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    inFadeAnimation.fromValue = @0.0f;
-    inFadeAnimation.toValue = @1.0f;
-    inFadeAnimation.duration = duration;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
+    CABasicAnimation * inAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    inAnimation.fromValue = @0.0f;
+    inAnimation.toValue = @1.0f;
+    inAnimation.duration = duration;
     
-    CABasicAnimation * outFadeAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
-    outFadeAnimation.fromValue = @1.0f;
-    outFadeAnimation.toValue = @0.0f;
-    outFadeAnimation.duration = duration;
+    CABasicAnimation * outAnimation = [CABasicAnimation animationWithKeyPath:@"opacity"];
+    outAnimation.fromValue = @1.0f;
+    outAnimation.toValue = @0.0f;
+    outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inFadeAnimation andOutAnimation:outFadeAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
 }
 
 @end

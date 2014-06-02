@@ -31,6 +31,7 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiDownloadListener;
 import org.appcelerator.titanium.util.TiDownloadManager;
 import org.appcelerator.titanium.util.TiFileHelper;
+import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiImageLruCache;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
@@ -290,7 +291,7 @@ public class TiDrawableReference
 	 * @throws FileNotFoundException 
 	 * @module.api
 	 */
-	public Bitmap getBitmap() throws FileNotFoundException
+	public Bitmap getBitmap()
 	{
 		return getBitmap(false);
 	}
@@ -307,26 +308,21 @@ public class TiDrawableReference
 	 * @throws FileNotFoundException 
 	 * @module.api
 	 */
-	public Bitmap getBitmap(boolean needRetry) throws FileNotFoundException
+	public Bitmap getBitmap(boolean needRetry)
 	{
 		if(isTypeBlob())
 		{
 			Bitmap bitmap = blob.getImage();
 			if (bitmap != null) return bitmap;
 		}
-		InputStream is;
+		InputStream is = null;
+		Bitmap b = null;
 		try {
 			is = getInputStream();
-		} catch (FileNotFoundException e) {
-			return null;
-		}
-		Bitmap b = null;
-		BitmapFactory.Options opts = new BitmapFactory.Options();
-		opts.inInputShareable = true;
-		opts.inPurgeable = true;
-		opts.inPreferredConfig = Bitmap.Config.RGB_565;
-
-		try {
+			BitmapFactory.Options opts = new BitmapFactory.Options();
+			opts.inInputShareable = true;
+			opts.inPurgeable = true;
+			opts.inPreferredConfig = Bitmap.Config.RGB_565;
 			if (needRetry) {
 				for (int i = 0; i < decodeRetries; i++) {
 					// getInputStream() fails sometimes but after retry it will get
@@ -387,6 +383,8 @@ public class TiDrawableReference
 					Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage(), e);
 				}
 			}
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, "Could not get Bitmap: " + e.getMessage(), e);
 		} finally {
 			if (is == null) {
 				Log.w(TAG, "Could not open stream to get bitmap");
@@ -402,9 +400,12 @@ public class TiDrawableReference
 		return b;
 	}
 	
-	private Drawable getSVG() throws FileNotFoundException {
-		InputStream is = getInputStream();
-		return new SVGDrawable(SVGFlyweightFactory.getInstance().get(is, url, TiApplication.getInstance().getCurrentActivity()));
+	private Drawable getSVG() {
+		try {
+			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(getInputStream(), url, TiApplication.getInstance().getCurrentActivity()));
+		} catch (FileNotFoundException e) {
+			return null;
+		}
 	}
 
 	private Resources getResources()
@@ -464,7 +465,7 @@ public class TiDrawableReference
 	 * makes the corresponding drawable.
 	 * @throws FileNotFoundException 
 	 */
-	public Drawable getDrawable() throws FileNotFoundException
+	public Drawable getDrawable()
 	{
 		return getDrawable(false);
 	}
@@ -474,7 +475,7 @@ public class TiDrawableReference
 	 * makes a BitmapDrawable with default attributes.
 	 * @throws FileNotFoundException 
 	 */
-	public Drawable getDrawable(boolean needsRetry) throws FileNotFoundException
+	public Drawable getDrawable(boolean needsRetry)
 	{
 		if (isSVG()) {
 			return getSVG();
@@ -514,11 +515,7 @@ public class TiDrawableReference
 		srcHeight = orig.height;
 		if (srcWidth <= 0 || srcHeight <= 0) {
 			Log.w(TAG, "Bitmap bounds could not be determined.  If bitmap is loaded, it won't be scaled.");
-			try {
-				return getBitmap();
-			} catch (FileNotFoundException e) {
-				return null;
-			}
+			return getBitmap();
 		}
 		double aspectRatio = (double)srcWidth/(double)srcHeight;
 		destHeight = (int) ((double)destWidth / aspectRatio);
@@ -630,11 +627,7 @@ public class TiDrawableReference
 
 		if (srcWidth <= 0 || srcHeight <= 0) {
 			Log.w(TAG, "Bitmap bounds could not be determined. If bitmap is loaded, it won't be scaled.");
-			try {
-				return getBitmap();
-			} catch (FileNotFoundException e) {
-				return null;
-			}
+			return getBitmap();
 		}
 
 		if (parent == null) {
@@ -651,20 +644,12 @@ public class TiDrawableReference
 
 		// If src and dest width/height are same, no need to go through all the sampling and scaling jazz.
 		if (srcWidth == destWidth && srcHeight == destHeight) {
-			try {
-				return getBitmap();
-			} catch (FileNotFoundException e) {
-				return null;
-			}
+			return getBitmap();
 		}
 
 		if (destWidth <= 0 || destHeight <= 0) {
 			// If we can't determine the size, then return null instead of an unscaled bitmap
-			try {
-				return getBitmap();
-			} catch (FileNotFoundException e) {
-				return null;
-			}
+			return getBitmap();
 		}
 
 		InputStream is;
@@ -975,36 +960,7 @@ public class TiDrawableReference
 			}
 		}
 
-		try {
-			if (path == null) {
-				Log.e(TAG,
-					"Path of image file could not determined. Could not create an exifInterface from an invalid path.");
-				return 0;
-			}
-
-			// Remove path prefix
-			if (path.startsWith(FILE_PREFIX)) {
-				path = path.replaceFirst(FILE_PREFIX, "");
-			}
-
-			ExifInterface exifInterface = new ExifInterface(path);
-			orientation = exifInterface.getAttributeInt(ExifInterface.TAG_ORIENTATION, 0);
-
-			if (orientation == ExifInterface.ORIENTATION_ROTATE_90) {
-				orientation = 90;
-			} else if (orientation == ExifInterface.ORIENTATION_ROTATE_180) {
-				orientation = 180;
-			} else if (orientation == ExifInterface.ORIENTATION_ROTATE_270) {
-				orientation = 270;
-			} else {
-				orientation = 0;
-			}
-
-		} catch (IOException e) {
-			Log.e(TAG, "Error creating exifInterface, could not determine orientation.", Log.DEBUG_MODE);
-		}
-
-		return orientation;
+		return TiImageHelper.getOrientation(path);
 
 	}
 

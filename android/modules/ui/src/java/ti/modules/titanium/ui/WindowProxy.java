@@ -45,7 +45,8 @@ import android.view.WindowManager;
 	TiC.PROPERTY_MODAL,
 	TiC.PROPERTY_ACTIVITY,
 	TiC.PROPERTY_URL,
-	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
+	TiC.PROPERTY_WINDOW_PIXEL_FORMAT,
+	TiC.PROPERTY_FLAG_SECURE
 })
 public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 {
@@ -65,7 +66,6 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	// This flag is just for a temporary use. We won't need it after the lightweight window
 	// is completely removed.
 	private boolean lightweight = false;
-
 
 	public WindowProxy()
 	{
@@ -215,6 +215,9 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 	protected void handleOpen(KrollDict options)
 	{
 		Activity topActivity = TiApplication.getAppCurrentActivity();
+		//null can happen when app is closed as soon as it is opened
+		if (topActivity == null) return;
+		
 		Intent intent = new Intent(topActivity, TiActivity.class);
 		fillIntent(topActivity, intent);
 
@@ -227,11 +230,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
 			topActivity.startActivity(intent);
 			topActivity.overridePendingTransition(0, 0); // Suppress default transition.
-		} else if (options.containsKey(TiC.INTENT_PROPERTY_ENTER_ANIMATION)
-			|| options.containsKey(TiC.INTENT_PROPERTY_EXIT_ANIMATION)) {
+		} else if (options.containsKey(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION)
+			|| options.containsKey(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION)) {
 			topActivity.startActivity(intent);
-			topActivity.overridePendingTransition(TiConvert.toInt(options.get(TiC.INTENT_PROPERTY_ENTER_ANIMATION), 0),
-				TiConvert.toInt(options.get(TiC.INTENT_PROPERTY_EXIT_ANIMATION), 0));
+			topActivity.overridePendingTransition(options.optInt(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, 0),
+                    options.optInt(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, 0));
 		} else {
 			topActivity.startActivity(intent);
 		}
@@ -251,10 +254,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			activity.finish();
 			if (!animated) {
 				activity.overridePendingTransition(0, 0); // Suppress default transition.
-			} else if (options.containsKey(TiC.INTENT_PROPERTY_ENTER_ANIMATION)
-				|| options.containsKey(TiC.INTENT_PROPERTY_EXIT_ANIMATION)) {
-				activity.overridePendingTransition(TiConvert.toInt(options.get(TiC.INTENT_PROPERTY_ENTER_ANIMATION), 0),
-					TiConvert.toInt(options.get(TiC.INTENT_PROPERTY_EXIT_ANIMATION), 0));
+			} else if (options.containsKey(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION)
+				|| options.containsKey(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION)) {
+				activity.overridePendingTransition(
+				        options.optInt(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, 0),
+				        options.optInt(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, 0));
 			}
 
 			// Finishing an activity is not synchronous, so we remove the activity from the activity stack here
@@ -327,7 +331,7 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		opened = true;
 		opening = false;
 		
-		if (parent == null) {
+		if (parent == null && windowActivity != null) {
 			TiBaseActivity activity = windowActivity.get();
 			// Fire the open event after setContentView() because getActionBar() need to be called
 			// after setContentView(). (TIMOB-14914)
@@ -399,18 +403,42 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 
 	private void fillIntent(Activity activity, Intent intent)
 	{
+		int windowFlags = 0;
+		if (hasProperty(TiC.PROPERTY_WINDOW_FLAGS)) {
+			windowFlags = TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_FLAGS), 0);
+		}
+		
+		//Set the fullscreen flag
 		if (hasProperty(TiC.PROPERTY_FULLSCREEN)) {
-			intent.putExtra(TiC.PROPERTY_FULLSCREEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN), false));
+			boolean flagVal = TiConvert.toBoolean(getProperty(TiC.PROPERTY_FULLSCREEN), false);
+			if (flagVal) {
+				windowFlags = windowFlags | WindowManager.LayoutParams.FLAG_FULLSCREEN;
+			}
 		}
-		if (hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)) {
-			intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN), false));
+		
+		//Set the secure flag
+		if (hasProperty(TiC.PROPERTY_FLAG_SECURE)) {
+			boolean flagVal = TiConvert.toBoolean(getProperty(TiC.PROPERTY_FLAG_SECURE), false);
+			if (flagVal) {
+				windowFlags = windowFlags | WindowManager.LayoutParams.FLAG_SECURE;
+			}
 		}
+		
+		//Stuff flags in intent
+		intent.putExtra(TiC.PROPERTY_WINDOW_FLAGS, windowFlags);
+		
 		if (hasProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE)) {
 			intent.putExtra(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE), -1));
 		}
 		if (hasProperty(TiC.PROPERTY_EXIT_ON_CLOSE)) {
 			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, TiConvert.toBoolean(getProperty(TiC.PROPERTY_EXIT_ON_CLOSE), false));
+		} else {
+			intent.putExtra(TiC.INTENT_PROPERTY_FINISH_ROOT, activity.isTaskRoot());
 		}
+		if (hasProperty(TiC.PROPERTY_NAV_BAR_HIDDEN)) {
+			intent.putExtra(TiC.PROPERTY_NAV_BAR_HIDDEN, TiConvert.toBoolean(getProperty(TiC.PROPERTY_NAV_BAR_HIDDEN), false));
+		}
+
 		boolean modal = false;
 		if (hasProperty(TiC.PROPERTY_MODAL)) {
 			modal = TiConvert.toBoolean(getProperty(TiC.PROPERTY_MODAL), false);
@@ -422,6 +450,11 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		if (modal || hasProperty(TiC.PROPERTY_OPACITY) || (hasProperty(TiC.PROPERTY_BACKGROUND_COLOR) && 
 				Color.alpha(TiConvert.toColor(getProperty(TiC.PROPERTY_BACKGROUND_COLOR))) < 255 )) {
 			intent.setClass(activity, TiTranslucentActivity.class);
+		} else if (hasProperty(TiC.PROPERTY_BACKGROUND_COLOR)) {
+			int bgColor = TiConvert.toColor(properties, TiC.PROPERTY_BACKGROUND_COLOR);
+			if (Color.alpha(bgColor) < 0xFF) {
+				intent.setClass(activity, TiTranslucentActivity.class);
+			}
 		}
 		if (hasProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT)) {
 			intent.putExtra(TiC.PROPERTY_WINDOW_PIXEL_FORMAT, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT), PixelFormat.UNKNOWN));

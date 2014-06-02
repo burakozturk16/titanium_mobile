@@ -190,7 +190,7 @@ static BOOL alertShowing = NO;
 	if ([self _hasListeners:@"click"]) {
         NSMutableDictionary *event = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                             [NSNumber numberWithInt:buttonIndex],@"index",
-                            [NSNumber numberWithInt:[alertView cancelButtonIndex]],@"cancel",
+                            [NSNumber numberWithBool:(buttonIndex == [alertView cancelButtonIndex])],@"cancel",
                             nil];
 
         if ([alertView alertViewStyle] == UIAlertViewStylePlainTextInput || [alertView alertViewStyle] == UIAlertViewStyleSecureTextInput) {

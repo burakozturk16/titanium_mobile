@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiContext;
@@ -65,6 +66,10 @@ public class KrollModule extends KrollProxy
 	{
 		this();
 		this.tiContext = tiContext;
+	}
+	
+	public void onAppTerminate(TiApplication app)
+	{
 	}
 
 	@Override

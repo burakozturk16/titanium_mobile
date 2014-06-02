@@ -147,12 +147,13 @@ public class AndroidModule extends KrollModule
 		String name = null;
 
 		if ((creationArgs.length > 0) && (creationArgs[0] instanceof HashMap)) {
-			Object nameProperty = ((HashMap) creationArgs[0]).get(TiC.PROPERTY_NAME);
-			if (nameProperty instanceof String) {
-				if (tiLocation.isProvider((String) nameProperty)) {
-					name = (String) nameProperty;
-				}
-			}
+		    name = TiConvert.toString(creationArgs[0], TiC.PROPERTY_NAME);
+//			Object nameProperty = ((HashMap) creationArgs[0]).get(TiC.PROPERTY_NAME);
+//			if (nameProperty instanceof String) {
+//				if (tiLocation.isProvider((String) nameProperty)) {
+//					name = (String) nameProperty;
+//				}
+//			}
 		}
 
 		if (name != null) {

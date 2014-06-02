@@ -10,7 +10,7 @@
 #import "TiFilesystemFileProxy.h"
 #import "TiFilesystemBlobProxy.h"
 #import "TiFilesystemFileStreamProxy.h"
-#import "TiHost.h"
+#import "TiFileSystemHelper.h"
 
 #if TARGET_IPHONE_SIMULATOR 
 extern NSString * TI_APPLICATION_RESOURCE_DIR;
@@ -20,59 +20,12 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 
 -(void)dealloc
 {
-    RELEASE_TO_NIL(_resourcesDirectory);
-    RELEASE_TO_NIL(_applicationDirectory);
-    RELEASE_TO_NIL(_applicationSupportDirectory);
-    RELEASE_TO_NIL(_applicationDataDirectory);
-    RELEASE_TO_NIL(_applicationCacheDirectory);
-    RELEASE_TO_NIL(_tempDirectory);
 	[super dealloc];
-}
-
-// internal
--(id)resolveFile:(id)arg
-{
-	if ([arg isKindOfClass:[TiFilesystemFileProxy class]])
-	{
-		return [arg path];
-	}
-	return [TiUtils stringValue:arg];
 }
 
 -(NSString*)apiName
 {
     return @"Ti.Filesystem";
-}
-
--(NSString*)pathFromComponents:(NSArray*)args
-{
-	NSString * newpath;
-	id first = [args objectAtIndex:0];
-	if ([first hasPrefix:@"file://"])
-	{
-		NSURL * fileUrl = [NSURL URLWithString:first];
-		//Why not just crop? Because the url may have some things escaped that need to be unescaped.
-		newpath =[fileUrl path];
-	}
-	else if ([first characterAtIndex:0]!='/')
-	{
-		NSURL* url = [NSURL URLWithString:[self resourcesDirectory]];
-        newpath = [[url path] stringByAppendingPathComponent:[self resolveFile:first]];
-	}
-	else 
-	{
-		newpath = [self resolveFile:first];
-	}
-	
-	if ([args count] > 1)
-	{
-		for (int c=1;c<[args count];c++)
-		{
-			newpath = [newpath stringByAppendingPathComponent:[self resolveFile:[args objectAtIndex:c]]];
-		}
-	}
-    
-    return [newpath stringByStandardizingPath];
 }
 
 -(id)createTempFile:(id)args
@@ -99,7 +52,7 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 	
 	//allow variadic file components to be passed
 	NSArray *pathComponents = [args subarrayWithRange:NSMakeRange(1, [args count] - 1 )];
-	NSString *path = [self pathFromComponents:pathComponents];
+	NSString *path = [TiFileSystemHelper pathFromComponents:pathComponents];
     
 	NSArray *payload = [NSArray arrayWithObjects:path, fileMode, nil];
 
@@ -128,63 +81,49 @@ extern NSString * TI_APPLICATION_RESOURCE_DIR;
 	return NUMBOOL(NO);
 }
 
-#define fileURLify(foo)	[[NSURL fileURLWithPath:foo isDirectory:YES] absoluteString]
-
 -(NSString*)resourcesDirectory
 {
-    if (_resourcesDirectory == nil)
-        _resourcesDirectory = [fileURLify([TiHost resourcePath]) retain];
-	return _resourcesDirectory;
+	return [TiFileSystemHelper resourcesDirectory];
 }
 
 -(NSString*)applicationDirectory
 {
-    if (_applicationDirectory == nil)
-        _applicationDirectory = fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationDirectory, NSUserDomainMask, YES) objectAtIndex:0]);
-	return _applicationDirectory;
+	return [TiFileSystemHelper applicationDirectory];
 }
 
 -(NSString*)applicationSupportDirectory
 {
-    if (_applicationSupportDirectory == nil)
-        _applicationSupportDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
-	return _applicationSupportDirectory;
+	return [TiFileSystemHelper applicationSupportDirectory];
 }
 
 -(NSString*)applicationDataDirectory
 {
-    if (_applicationDataDirectory == nil)
-        _applicationDataDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
-	return _applicationDataDirectory;
+	return [TiFileSystemHelper applicationDataDirectory];
 }
 
 -(NSString*)applicationCacheDirectory
 {
-    if (_applicationCacheDirectory == nil)
-        _applicationCacheDirectory = [fileURLify([NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex:0]) retain];
-	return _applicationCacheDirectory;
+	return [TiFileSystemHelper applicationCacheDirectory];
 }
 
 -(NSString*)tempDirectory
 {
-    if (_tempDirectory == nil)
-        _tempDirectory = [fileURLify(NSTemporaryDirectory()) retain];
-	return _tempDirectory;
+	return [TiFileSystemHelper tempDirectory];
 }
 
 -(NSString*)separator
 {
-	return @"/";
+	return [TiFileSystemHelper separator];
 }
 
 -(NSString*)lineEnding
 {
-	return @"\n";
+	return [TiFileSystemHelper lineEnding];
 }
 
 -(id)getFile:(id)args
 {
-	NSString* newpath = [self pathFromComponents:args];
+	NSString* newpath = [TiFileSystemHelper pathFromComponents:args];
     
 	if ([newpath hasSuffix:@".html"]||
 		 [newpath hasSuffix:@".js"]||

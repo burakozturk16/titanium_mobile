@@ -6,6 +6,7 @@
 import os, subprocess, sys, glob, string, optparse, subprocess
 import zipfile
 from datetime import date
+import imp
 
 cwd = os.path.abspath(os.path.dirname(sys._getframe(0).f_code.co_filename))
 os.chdir(cwd)
@@ -67,7 +68,7 @@ def generate_doc(config):
 	return documentation
 
 def compile_js(manifest,config):
-	js_file = os.path.join(cwd,'assets','__MODULE_ID__.js')
+	js_file = os.path.join(cwd,'assets','akylas.mapbox.js')
 	if not os.path.exists(js_file): return
 
 	from compiler import Compiler
@@ -97,7 +98,7 @@ def compile_js(manifest,config):
 
 	from tools import splice_code
 
-	assets_router = os.path.join(cwd,'Classes','___PROJECTNAMEASIDENTIFIER___ModuleAssets.m')
+	assets_router = os.path.join(cwd,'Classes','AkylasMapboxModuleAssets.m')
 	splice_code(assets_router, 'asset', root_asset_content)
 	splice_code(assets_router, 'resolve_asset', module_asset_content)
 
@@ -159,27 +160,27 @@ def zip_dir(zf,dir,basepath,ignoreExt=[]):
 
 def glob_libfiles():
 	files = []
+	moduleid = manifest['moduleid']
 	for libfile in glob.glob('build/**/*.a'):
-		if libfile.find('Release-')!=-1:
+		if libfile.find(moduleid)!=-1:
 			files.append(libfile)
 	return files
 
 def build_module(manifest,config):
 	from tools import ensure_dev_path
 	ensure_dev_path()
-
-	rc = os.system("xcodebuild -sdk iphoneos -configuration Release")
+	buildpath = os.path.join(cwd, "build")
+	rc = os.system("xcodebuild -sdk iphoneos -configuration Release build CONFIGURATION_BUILD_DIR=\"%s\"" % os.path.join(buildpath, "iphoneos"))
 	if rc != 0:
 		die("xcodebuild failed")
-	rc = os.system("xcodebuild -sdk iphonesimulator -configuration Release")
+	rc = os.system("xcodebuild -sdk iphonesimulator -configuration Release build CONFIGURATION_BUILD_DIR=\"%s\"" % os.path.join(buildpath, "iphonesimulator"))
 	if rc != 0:
 		die("xcodebuild failed")
-    # build the merged library using lipo
+	# build the merged library using lipo
 	moduleid = manifest['moduleid']
 	libpaths = ''
 	for libfile in glob_libfiles():
 		libpaths+='%s ' % libfile
-
 	os.system("lipo %s -create -output build/lib%s.a" %(libpaths,moduleid))
 	
 def generate_apidoc(apidoc_build_path):
@@ -196,7 +197,7 @@ def generate_apidoc(apidoc_build_path):
 		return False
 		
 	if not os.path.exists(apidoc_build_path):
-	    os.makedirs(apidoc_build_path)
+		os.makedirs(apidoc_build_path)
 	ti_root = string.strip(subprocess.check_output(["echo $TI_ROOT"], shell=True))
 	if not len(ti_root) > 0:
 		warn("Not generating documentation from the apidoc folder. The titanium_mobile repo could not be found.")
@@ -251,7 +252,6 @@ def package_module(manifest,mf,config):
 
 if __name__ == '__main__':
 	global options
-	
 	parser = optparse.OptionParser()
 	parser.add_option("-s", "--skip-docs",
 			dest="skip_docs",
@@ -264,21 +264,17 @@ if __name__ == '__main__':
 	validate_license()
 	config = read_ti_xcconfig()
 
-	sdk = find_sdk(config)
-	sys.path.insert(0,os.path.join(sdk,'iphone'))
-	sys.path.append(os.path.join(sdk, "common"))
+	command = 'package'
 	args = sys.argv
 	if (len(args) > 1):
 		command = args[1]
-		if (command == 'compilejs'):
-			compile_js(manifest,config)
-			sys.exit(0)
-		elif(command == 'build'):
-			compile_js(manifest,config)
-			build_module(manifest,config)
-			sys.exit(0)
-	compile_js(manifest,config)
-	build_module(manifest,config)
-	package_module(manifest,mf,config)
+	modulePath = os.path.dirname(os.path.abspath(args[0]))
+
+	sdk = find_sdk(config)
+	sys.path.insert(0,os.path.join(sdk,'iphone'))
+	sys.path.append(os.path.join(sdk, "common"))
+	sys.path.append(os.path.join(sdk, "module", 'iphone'))
+	import module
+	module.buildModule(modulePath, command, options, manifest, mf, config)
 	sys.exit(0)
 

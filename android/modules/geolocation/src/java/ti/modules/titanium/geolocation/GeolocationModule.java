@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -16,11 +16,13 @@ import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.common.TiMessenger;
+import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.util.TiConvert;
-import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 
 import ti.modules.titanium.geolocation.TiLocation.GeocodeResponseHandler;
 import ti.modules.titanium.geolocation.android.AndroidModule;
@@ -140,7 +142,8 @@ public class GeolocationModule extends KrollModule
 	public boolean legacyModeActive = true;
 
 	protected static final int MSG_ENABLE_LOCATION_PROVIDERS = KrollModule.MSG_LAST_ID + 100;
-	protected static final int MSG_LAST_ID = MSG_ENABLE_LOCATION_PROVIDERS;
+	protected static final int MSG_DISABLE_LOCATION_PROVIDERS = KrollModule.MSG_LAST_ID + 101;
+	protected static final int MSG_LAST_ID = MSG_DISABLE_LOCATION_PROVIDERS;
 
 	private static final String TAG = "GeolocationModule";
 	private static final double SIMPLE_LOCATION_PASSIVE_DISTANCE = 0.0;
@@ -151,6 +154,7 @@ public class GeolocationModule extends KrollModule
 	private static final double SIMPLE_LOCATION_GPS_TIME = 3000;
 	private static final double SIMPLE_LOCATION_NETWORK_DISTANCE_RULE = 200;
 	private static final double SIMPLE_LOCATION_NETWORK_MIN_AGE_RULE = 60000;
+	public static final double SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE = 0.0001;
 
 	private TiCompass tiCompass;
 	private boolean compassListenersRegistered = false;
@@ -175,7 +179,7 @@ public class GeolocationModule extends KrollModule
 	public GeolocationModule()
 	{
 		super("geolocation");
-
+		
 		tiLocation = new TiLocation();
 		tiCompass = new TiCompass(this, tiLocation);
 
@@ -192,8 +196,8 @@ public class GeolocationModule extends KrollModule
 		simpleLocationProviders.put(PROVIDER_PASSIVE, new LocationProviderProxy(PROVIDER_PASSIVE, SIMPLE_LOCATION_PASSIVE_DISTANCE, SIMPLE_LOCATION_PASSIVE_TIME, this));
 
 		// create these now but we don't want to include these in the rule set unless the simple GPS provider is enabled
-		simpleLocationGpsRule = new LocationRuleProxy(PROVIDER_GPS, null, null, null);
-		simpleLocationNetworkRule = new LocationRuleProxy(PROVIDER_NETWORK, SIMPLE_LOCATION_NETWORK_DISTANCE_RULE, SIMPLE_LOCATION_NETWORK_MIN_AGE_RULE, null);
+		simpleLocationGpsRule = new LocationRuleProxy(PROVIDER_GPS, null, null, null, 0.0, null);
+		simpleLocationNetworkRule = new LocationRuleProxy(PROVIDER_NETWORK, SIMPLE_LOCATION_NETWORK_DISTANCE_RULE, SIMPLE_LOCATION_NETWORK_MIN_AGE_RULE, null, SIMPLE_LOCATION_NETWORK_MIN_DISTANCE_RULE, null);
 	}
 
 	/**
@@ -206,6 +210,14 @@ public class GeolocationModule extends KrollModule
 		this();
 	}
 
+
+	@Override
+	public void onAppTerminate(TiApplication app)
+	{
+		tiCompass.unregisterListener();
+		disableLocationProviders();
+	}
+	
 	/**
 	 * @see org.appcelerator.kroll.KrollProxy#handleMessage(android.os.Message)
 	 */
@@ -219,6 +231,11 @@ public class GeolocationModule extends KrollModule
 
 				return true;
 			}
+			case MSG_DISABLE_LOCATION_PROVIDERS: {
+				doDisableLocationProviders();
+                ((AsyncResult) message.obj).setResult(null);
+				return true;
+			}
 		}
 
 		return super.handleMessage(message);
@@ -226,6 +243,7 @@ public class GeolocationModule extends KrollModule
 
 	private void doAnalytics(Location location)
 	{
+        if (!TiApplication.getInstance().collectAnalytics()) return;
 		if (!sentAnalytics) {
 			tiLocation.doAnalytics(location);
 			sentAnalytics = true;
@@ -528,11 +546,7 @@ public class GeolocationModule extends KrollModule
 				enableLocationProviders(locationProviders);
 
 				// fire off an initial location fix if one is available
-				lastLocation = tiLocation.getLastKnownLocation();
-				if (lastLocation != null) {
-					fireEvent(TiC.EVENT_LOCATION, buildLocationEvent(lastLocation, tiLocation.locationManager.getProvider(lastLocation.getProvider())));
-					doAnalytics(lastLocation);
-				}
+				onLocationChanged(tiLocation.getLastKnownLocation());
 			}
 		}
 
@@ -586,12 +600,27 @@ public class GeolocationModule extends KrollModule
 	/**
 	 * Retrieves the last obtained location and returns it as JSON.
 	 * 
-	 * @return			String representing the last geolocation event
+	 * @return			JSON representing the last geolocation event
 	 */
 	@Kroll.method @Kroll.getProperty
-	public String getLastGeolocation()
+	public KrollDict getLastGeolocation()
 	{
-		return TiAnalyticsEventFactory.locationToJSONString(lastLocation);
+	    if (lastLocation == null) {
+	        lastLocation = tiLocation.getLastKnownLocation();
+	    }
+	    if (lastLocation != null) {
+	        KrollDict coordinates = new KrollDict();
+	        coordinates.put(TiC.PROPERTY_LATITUDE, lastLocation.getLatitude());
+	        coordinates.put(TiC.PROPERTY_LONGITUDE, lastLocation.getLongitude());
+	        coordinates.put(TiC.PROPERTY_ALTITUDE, lastLocation.getAltitude());
+	        coordinates.put(TiC.PROPERTY_ACCURACY, lastLocation.getAccuracy());
+	        coordinates.put(TiC.PROPERTY_ALTITUDE_ACCURACY, null); // Not provided
+	        coordinates.put(TiC.PROPERTY_HEADING, lastLocation.getBearing());
+	        coordinates.put(TiC.PROPERTY_SPEED, lastLocation.getSpeed());
+	        coordinates.put(TiC.PROPERTY_TIMESTAMP, lastLocation.getTime());
+	        return coordinates;
+	    }
+	    return null;
 	}
 
 	/**
@@ -653,6 +682,25 @@ public class GeolocationModule extends KrollModule
 		}
 	}
 
+	
+	private void doDisableLocationProviders()
+	{
+		for (LocationProviderProxy locationProvider : legacyLocationProviders.values()) {
+			tiLocation.locationManager.removeUpdates(locationProvider);
+		}
+
+		for (LocationProviderProxy locationProvider : simpleLocationProviders.values()) {
+			tiLocation.locationManager.removeUpdates(locationProvider);
+		}
+
+		if (androidModule != null) {
+			for (LocationProviderProxy locationProvider : androidModule.manualLocationProviders.values()) {
+				tiLocation.locationManager.removeUpdates(locationProvider);
+			}
+		}
+		Log.d(TAG, "doDisableLocationProviders done");
+	}
+	
 	/**
 	 * Enables the specified location behavior mode by registering the associated 
 	 * providers with the OS.  Even if the specified mode is currently active, the 
@@ -669,7 +717,7 @@ public class GeolocationModule extends KrollModule
 	private void doEnableLocationProviders(HashMap<String, LocationProviderProxy> locationProviders)
 	{
 		if (numLocationListeners > 0) {
-			disableLocationProviders();
+			doDisableLocationProviders();
 
 			Iterator<String> iterator = locationProviders.keySet().iterator();
 			while(iterator.hasNext()) {
@@ -686,18 +734,13 @@ public class GeolocationModule extends KrollModule
 	 */
 	private void disableLocationProviders()
 	{
-		for (LocationProviderProxy locationProvider : legacyLocationProviders.values()) {
-			tiLocation.locationManager.removeUpdates(locationProvider);
-		}
+		if (KrollRuntime.getInstance().isRuntimeThread()) {
+			doDisableLocationProviders();
 
-		for (LocationProviderProxy locationProvider : simpleLocationProviders.values()) {
-			tiLocation.locationManager.removeUpdates(locationProvider);
-		}
-
-		if (androidModule != null) {
-			for (LocationProviderProxy locationProvider : androidModule.manualLocationProviders.values()) {
-				tiLocation.locationManager.removeUpdates(locationProvider);
-			}
+		} else {
+            TiMessenger.sendBlockingRuntimeMessage(getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS));
+//			Message message = getRuntimeHandler().obtainMessage(MSG_DISABLE_LOCATION_PROVIDERS);
+//			message.sendToTarget();
 		}
 	}
 
@@ -804,7 +847,7 @@ public class GeolocationModule extends KrollModule
 	private boolean shouldUseUpdate(Location newLocation)
 	{
 		boolean passed = false;
-
+		if (newLocation == null) return passed;
 		if (getManualMode()) {
 			if (androidModule.manualLocationRules.size() > 0) {
 				for(LocationRuleProxy rule : androidModule.manualLocationRules) {

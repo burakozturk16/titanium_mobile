@@ -194,7 +194,7 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 		id type = [args objectAtIndex:0];
 		id obj = [args count] > 1 ? [args objectAtIndex:1] : nil;
 		
-		DebugLog(@"[DEBUG] Firing app event: %@",type);
+//		DebugLog(@"[DEBUG] Firing app event: %@",type);
 		
 		NSArray *array = [appListeners objectForKey:type];
 		
@@ -285,13 +285,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 - (void)setDisableNetworkActivityIndicator:(NSNumber *)value
 {
-	BOOL yn = [TiUtils boolValue:value];
-	[TiApp app].disableNetworkActivityIndicator = yn;
+	[APSHTTPRequest setDisableNetworkActivityIndicator:[TiUtils boolValue:value]];
 }
 
 - (NSNumber *)disableNetworkActivityIndicator
 {
-	return NUMBOOL([TiApp app].disableNetworkActivityIndicator);
+	return NUMBOOL([APSHTTPRequest disableNetworkActivityIndicator]);
 }
 
 //To fire the keyboard frame change event.
@@ -329,6 +328,10 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 
 -(void)didReceiveMemoryWarning:(NSNotification*)notification
 {
+    if([self _hasListeners:@"memorywarning"]) {
+        [self fireEvent:@"memorywarning" withObject:nil];
+    }
+
 	RELEASE_TO_NIL(properties);
 #ifdef USE_TI_APPIOS
     [self forgetProxy:iOS];
@@ -545,6 +548,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 -(id)copyright
 {
 	return TI_APPLICATION_COPYRIGHT;
+}
+
+-(id)license
+{
+	return [TiApp license];
 }
 
 -(id)uRL

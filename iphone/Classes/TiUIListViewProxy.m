@@ -32,7 +32,7 @@ static NSArray* keysToGetFromListView;
 {
 	if (keysToGetFromListView == nil)
 	{
-		keysToGetFromListView = [[NSArray arrayWithObjects:@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
+		keysToGetFromListView = [[NSArray arrayWithObjects:@"tintColor",@"accessoryType",@"selectionStyle",@"selectedBackgroundColor",@"selectedBackgroundImage",@"selectedBackgroundGradient", @"unHighlightOnSelect", nil] retain];
 	}
 	return keysToGetFromListView;
 }
@@ -136,7 +136,7 @@ static NSDictionary* listViewKeysToReplace;
 		TiThreadPerformOnMainThread(^{
             if (animated)
             {
-                [self processUpdateActions];
+			[self processUpdateActions];
             }
             else {
                 [UIView setAnimationsEnabled:NO];
@@ -178,7 +178,6 @@ static NSDictionary* listViewKeysToReplace;
 {
 	UITableView *tableView = self.listView.tableView;
 	BOOL removeHead = NO;
-	BOOL begin = YES;
     CGPoint offset;
 	while (YES) {
 		void (^block)(UITableView *) = nil;
@@ -192,16 +191,13 @@ static NSDictionary* listViewKeysToReplace;
 		}
 		pthread_mutex_unlock(&_operationQueueMutex);
 		if (block != nil) {
-			if (begin) {
-                offset = [tableView contentOffset];
-				[tableView beginUpdates];
-				begin = NO;
-			}
+            offset = [tableView contentOffset];
+			[tableView beginUpdates];
 			block(tableView);
-			Block_release(block);
-		} else {
 			[tableView endUpdates];
             [tableView setContentOffset:offset animated:NO];
+			Block_release(block);
+		} else {
 			[self.listView updateIndicesForVisibleRows];
 			return;
 		}
@@ -241,9 +237,10 @@ static NSDictionary* listViewKeysToReplace;
 	return keySequence;
 }
 
-- (void)viewDidAttach
+- (void)viewDidInitialize
 {
 	[self.listView tableView];
+    [super viewDidInitialize];
 }
 
 - (void)willShow
@@ -280,9 +277,9 @@ static NSDictionary* listViewKeysToReplace;
             [insertedSections replaceObjectAtIndex:i withObject:section];
         }
         else {
-            ENSURE_TYPE(section, TiUIListSectionProxy);
+		ENSURE_TYPE(section, TiUIListSectionProxy);
         }
-        [self rememberProxy:section];
+		[self rememberProxy:section];
     }
 	[self dispatchBlock:^(UITableView *tableView) {
 		[_sections enumerateObjectsUsingBlock:^(TiUIListSectionProxy *section, NSUInteger idx, BOOL *stop) {
@@ -320,9 +317,9 @@ static NSDictionary* listViewKeysToReplace;
             section = [[[TiUIListSectionProxy alloc] _initWithPageContext:[self executionContext] args:[NSArray arrayWithObject:section]] autorelease];
         }
         else {
-            ENSURE_TYPE(section, TiUIListSectionProxy);
+		ENSURE_TYPE(section, TiUIListSectionProxy);
         }
-        [self rememberProxy:section];
+		[self rememberProxy:section];
         [insertedSections addObject:section];
     }
 	[self dispatchUpdateAction:^(UITableView *tableView) {
@@ -589,14 +586,17 @@ static NSDictionary* listViewKeysToReplace;
 	return [_sections objectAtIndex:[sectionIndex integerValue]];
 }
 
+NSArray* sliceArray(NSArray* array, int startIndex) {
+    return [array subarrayWithRange:NSMakeRange(startIndex,[array count] -1)];
+}
 
 - (TiUIListSectionProxy *)getItemAt:(id)args
 {
 	ENSURE_ARG_COUNT(args, 2);
     TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
-        return [section getItemAt:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+//        NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:1]];
+        return [section getItemAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] getItemAt item index is out of range");
@@ -608,7 +608,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 2);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section appendItems:[NSArray arrayWithObject:[args objectAtIndex:1]]];
+        [section appendItems:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] appendItems:section item index is out of range");
@@ -620,7 +620,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section insertItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section insertItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] insertItemsAt item index is out of range");
@@ -632,7 +632,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 4);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section replaceItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], [args objectAtIndex:3], nil]];
+        [section replaceItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] replaceItemsAt item index is out of range");
@@ -644,7 +644,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section deleteItemsAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section deleteItemsAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] deleteItemsAt item index is out of range");
@@ -656,7 +656,7 @@ static NSDictionary* listViewKeysToReplace;
 	ENSURE_ARG_COUNT(args, 3);
 	TiUIListSectionProxy* section = [self getSectionAt:args];
     if (section){
-        [section updateItemAt:[NSArray arrayWithObjects:[args objectAtIndex:1], [args objectAtIndex:2], nil]];
+        [section updateItemAt:sliceArray(args, 1)];
     }
     else {
         DebugLog(@"[WARN] updateItemAt item index is out of range");

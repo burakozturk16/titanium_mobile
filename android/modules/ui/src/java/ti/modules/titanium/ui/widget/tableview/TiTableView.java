@@ -69,6 +69,7 @@ public class TiTableView extends FrameLayout
 
 	private TableViewProxy proxy;
 	private boolean filterCaseInsensitive = true;
+	private boolean filterAnchored = false;
 	private StateListDrawable selector;
 
 	public interface OnItemClickedListener {
@@ -120,8 +121,15 @@ public class TiTableView extends FrameLayout
 						if (filterCaseInsensitive) {
 							t = t.toLowerCase();
 						}
-						if(t.indexOf(filter) < 0) {
+						if (filterAnchored) {
+						    if(!t.startsWith(filter)) {
 							keep = false;
+							}
+						}
+						else {
+						    if(t.indexOf(filter) < 0) {
+							keep = false;
+							}
 						}
 					}
 					if (keep) {
@@ -546,6 +554,8 @@ public class TiTableView extends FrameLayout
 		}
 		if (longClick && !longClickFired) {
 			return itemLongClickListener.onLongClick(event);
+		} else if (longClickFired) {
+			return true;
 		} else {
 			return false; // standard (not-long) click handling has no return value.
 		}
@@ -639,6 +649,10 @@ public class TiTableView extends FrameLayout
 
 	public void setFilterAttribute(String filterAttribute) {
 		this.filterAttribute = filterAttribute;
+	}
+
+	public void setFilterAnchored(boolean filterAnchored) {
+		this.filterAnchored  = filterAnchored;
 	}
 
 	public void setFilterCaseInsensitive(boolean filterCaseInsensitive) {

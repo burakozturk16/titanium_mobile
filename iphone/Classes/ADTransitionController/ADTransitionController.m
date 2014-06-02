@@ -360,9 +360,13 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 #pragma mark -
 #pragma mark Pop
+
+-(ADTransition*)lastTransitionReversed {
+    return [[_transitions lastObject] reverseTransitionForSourceRect:_containerView.bounds];
+}
 - (UIViewController *)popViewController {
     if ([_transitions count] > 0) {
-        UIViewController * viewController = [self popViewControllerWithTransition:[[_transitions lastObject] reverseTransition]];
+        UIViewController * viewController = [self popViewControllerWithTransition:[self lastTransitionReversed]];
         return viewController;
     }
     return nil;
@@ -417,7 +421,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 - (NSArray *)popToViewController:(UIViewController *)viewController {
     if ([_transitions count] > 0) {
-        NSArray * viewControllers = [self popToViewController:viewController withTransition:[[_transitions lastObject] reverseTransition]];
+        NSArray * viewControllers = [self popToViewController:viewController withTransition:[self lastTransitionReversed]];
         return viewControllers;
     }
     return nil;
@@ -470,7 +474,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 
 - (NSArray *)popToRootViewController {
     if ([_transitions count] > 0) {
-        NSArray * viewControllers = [self popToRootViewControllerWithTransition:[[_transitions lastObject] reverseTransition]];
+        NSArray * viewControllers = [self popToRootViewControllerWithTransition:[self lastTransitionReversed]];
         return viewControllers;
     }
     return nil;
@@ -592,7 +596,7 @@ NSString * ADTransitionControllerAssociationKey = @"ADTransitionControllerAssoci
 #pragma mark UIToolbar
 
 - (void)setToolbarHidden:(BOOL)hidden animated:(BOOL)animated {
-    CGFloat toolbarHeight = _toolbar.frame.size.height;
+//    CGFloat toolbarHeight = _toolbar.frame.size.height;
     if (animated) {
         [UIView beginAnimations:nil context:NULL];
     }

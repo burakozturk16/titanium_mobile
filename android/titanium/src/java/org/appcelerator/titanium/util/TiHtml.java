@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
@@ -43,7 +44,7 @@ import android.text.style.UnderlineSpan;
 
 public class TiHtml {
 	private static final String TAG = "TiHtml";
-	
+
 	public static class RoundedRectDrawable extends ShapeDrawable {
 	    private final Paint fillpaint, strokepaint;
 	    public RoundedRectDrawable(int radius, int fillColor, int strokeColor, int strokeWidth) {
@@ -127,7 +128,13 @@ public class TiHtml {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private static class FormattingVisitor implements NodeVisitor {
         private SpannableStringBuilder mSpannableStringBuilder = new SpannableStringBuilder();
-        private Html.ImageGetter mImageGetter;
+        private Html.ImageGetter mImageGetter = new Html.ImageGetter() {
+			
+			@Override
+			public Drawable getDrawable(String source) {
+				return null;
+			}
+		};
     
         private static final float[] HEADER_SIZES = {
             1.5f, 1.4f, 1.3f, 1.2f, 1.1f, 1f,
@@ -193,6 +200,14 @@ public class TiHtml {
 
             if (img != null) {
                 d = img.getDrawable(src);
+                if (d != null) {
+                	int len = text.length();
+                    text.append("\uFFFC");
+
+                    text.setSpan(new ImageSpan(d, src), len, text.length(),
+                                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+                
             }
 
 //            if (d == null) {
@@ -201,11 +216,7 @@ public class TiHtml {
 //                d.setBounds(0, 0, d.getIntrinsicWidth(), d.getIntrinsicHeight());
 //            }
 
-            int len = text.length();
-            text.append("\uFFFC");
-
-            text.setSpan(new ImageSpan(d, src), len, text.length(),
-                         Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            
         }
 
         private static void startFont(SpannableStringBuilder text,

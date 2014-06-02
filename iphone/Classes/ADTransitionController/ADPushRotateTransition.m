@@ -10,8 +10,7 @@
 
 @implementation ADPushRotateTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     const CGFloat viewWidth = sourceRect.size.width;
     const CGFloat viewHeight = sourceRect.size.height;
     const CGFloat angle = M_PI / 2.0f;
@@ -87,8 +86,18 @@
     
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    if (reversed) {
+        [ADTransition inverseTOFromInAnimation:outOpacityAnimation];
+        [ADTransition inverseTOFromInAnimation:inSwipeAnimation];
+        [ADTransition inverseTOFromInAnimation:outRotationAnimation];
+    }
+    
+    return [super initWithInAnimation:reversed?outAnimation:inAnimation andOutAnimation:reversed?inAnimation:outAnimation orientation:orientation reversed:reversed];
 }
+
+-(BOOL)needsPerspective {
+    return YES;
+}
+
 
 @end

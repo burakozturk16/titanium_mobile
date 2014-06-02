@@ -39,6 +39,7 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.View.MeasureSpec;
 import android.widget.TextView;
 import android.graphics.Typeface;
 import android.text.Layout;
@@ -159,8 +160,21 @@ public class TiUILabel extends TiUINonViewGroupView
 		
 		@Override
 	    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+			
 			int maxHeight = 0;
 	        int maxWidth = 0;
+	        
+	        //those lines try to fix the TextView using a min when set to MeasureSpec.AT_MOST
+			if (layoutParams.optionWidth == null && layoutParams.autoFillsWidth) {
+				int w = MeasureSpec.getSize(widthMeasureSpec);
+				widthMeasureSpec = MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY);
+            }
+			if (layoutParams.optionHeight == null && layoutParams.autoFillsHeight) {
+				int h = MeasureSpec.getSize(heightMeasureSpec);
+				heightMeasureSpec = MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY);
+            }
+			//
+			
 	        if (textView.getVisibility() != GONE) {
                 measureChildWithMargins(textView, widthMeasureSpec, 0, heightMeasureSpec, 0);
                 final LayoutParams lp = (LayoutParams) textView.getLayoutParams();
@@ -291,6 +305,7 @@ public class TiUILabel extends TiUINonViewGroupView
 			if (hm == 0) h = 100000;
 			
 			
+			
 			if (w > 0) {
 				if (needsResizing) {
 					refitText(this.getText().toString(), w);
@@ -399,7 +414,8 @@ public class TiUILabel extends TiUINonViewGroupView
 
 		@Override
 		public void setMaxLines(int maxLines) {
-			super.setMaxLines(maxLines);
+			
+			super.setMaxLines((maxLines == 0)?Integer.MAX_VALUE:maxLines);
 			if (maxLines == Integer.MAX_VALUE) maxLines = 0;
 			this.maxLines = maxLines;
 			updateEllipsize();
@@ -1019,6 +1035,9 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_HIGHLIGHTED_COLOR)) {
 			textView.setHighlightColor(TiConvert.toColor(d, TiC.PROPERTY_HIGHLIGHTED_COLOR));
 		}
+		if (d.containsKey(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
+			textView.setIncludeFontPadding(TiConvert.toBoolean(d, TiC.PROPERTY_INCLUDE_FONT_PADDING, true));
+		}
 		if (d.containsKey(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(textView, d.getKrollDict(TiC.PROPERTY_FONT));
 		}
@@ -1152,6 +1171,8 @@ public class TiUILabel extends TiUINonViewGroupView
 		} else if (key.equals(TiC.PROPERTY_VERTICAL_ALIGN)) {
 			TiUIHelper.setAlignment(textView, null, TiConvert.toString(newValue));
 			tv.requestLayout();
+		} else if (key.equals(TiC.PROPERTY_INCLUDE_FONT_PADDING)) {
+			textView.setIncludeFontPadding(TiConvert.toBoolean(newValue, true));
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(textView, (HashMap) newValue);
 			tv.requestLayout();

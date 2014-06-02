@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ADNavigationControllerDelegate : NSObject <UINavigationControllerDelegate>
+@interface ADNavigationControllerDelegate : NSObject
+@property (nonatomic, assign) BOOL isInteractive;
+@property (nonatomic, assign) BOOL isInteracting;
+@property (nonatomic, retain) id<UINavigationControllerDelegate> delegate;
 
+- (void)manageNavigationController:(UINavigationController *)navigationController;
+
+- (UIScreenEdgePanGestureRecognizer *)panGestureRecognizerForLeftEdgeOfViewController:(UIViewController *)viewController;
 @end

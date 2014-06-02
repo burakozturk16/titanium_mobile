@@ -185,6 +185,24 @@
 	[self makeViewPerformSelector:@selector(removeView:) withObject:args createIfNeeded:YES waitUntilDone:NO];
 }
 
+-(int)indexFromArg:(id)args
+{
+	int pageNum = 0;
+	if ([args isKindOfClass:[TiViewProxy class]])
+	{
+		[self lockViews];
+		pageNum = [[self viewProxies] indexOfObject:args];
+		[self unlockViews];
+	}
+	else
+	{
+		pageNum = [TiUtils intValue:args];
+	}
+	
+	return pageNum;
+}
+
+
 -(void)scrollToView:(id)args
 {	//TODO: Refactor this properly.
 	[self makeViewPerformSelector:@selector(scrollToView:) withObject:args createIfNeeded:YES waitUntilDone:NO];

@@ -13,10 +13,21 @@
 @synthesize outAnimation = _outAnimation;
 
 - (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation {
-    if (self = [self init]) {
+    return [self initWithInAnimation:inAnimation andOutAnimation:outAnimation reversed:NO];
+}
+
+- (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation reversed:(BOOL)reversed {
+    return[self initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:ADTransitionLeftToRight reversed:reversed];
+}
+
+- (id)initWithInAnimation:(CAAnimation *)inAnimation andOutAnimation:(CAAnimation *)outAnimation orientation:(ADTransitionOrientation)orientation reversed:(BOOL)reversed {
+    if (self = [super initWithDuration:_inAnimation.duration orientation:orientation sourceRect:CGRectZero reversed:reversed]) {
         _inAnimation = [inAnimation retain];
         _outAnimation = [outAnimation retain];
-        _duration = _inAnimation.duration;
+        if (reversed) {
+            _inAnimation.timingFunction = [_inAnimation.timingFunction inverseFunction];
+            _outAnimation.timingFunction = [_outAnimation.timingFunction inverseFunction];
+        }
         [self finishInit];
     }
     return self;
@@ -39,30 +50,8 @@
     [_inAnimation setValue:ADTransitionAnimationInValue forKey:ADTransitionAnimationKey]; // See 'Core Animation Extensions To Key-Value Coding' : "while the key “someKey” is not a declared property of the CALayer class, however you can still set a value for the key “someKey” "
     _outAnimation.delegate = self;
     [_outAnimation setValue:ADTransitionAnimationOutValue forKey:ADTransitionAnimationKey];
-    _inAnimation.fillMode = _outAnimation.fillMode = kCAFillModeForwards;
+    _inAnimation.fillMode = _outAnimation.fillMode = kCAFillModeBoth;
     _inAnimation.removedOnCompletion = _outAnimation.removedOnCompletion = NO;
-}
-
-- (ADTransition *)reverseTransition {
-    CAAnimation * inAnimationCopy = [self.inAnimation copy];
-    CAAnimation * outAnimationCopy = [self.outAnimation copy];
-    ADDualTransition * reversedTransition = [[[self class] alloc] initWithInAnimation:outAnimationCopy // Swapped
-                                                                      andOutAnimation:inAnimationCopy];
-    reversedTransition.isReversed = YES;
-    reversedTransition.delegate = self.delegate; // Pointer assignment
-    reversedTransition.inAnimation.speed = -1.0 * reversedTransition.inAnimation.speed;
-    reversedTransition.outAnimation.speed = -1.0 * reversedTransition.outAnimation.speed;
-    reversedTransition.inAnimation.timingFunction = [reversedTransition.outAnimation.timingFunction inverseFunction];
-    reversedTransition.outAnimation.timingFunction = [reversedTransition.outAnimation.timingFunction inverseFunction];
-    [outAnimationCopy release];
-    [inAnimationCopy release];
-    reversedTransition.type = ADTransitionTypeNull;
-    if (self.type == ADTransitionTypePush) {
-        reversedTransition.type = ADTransitionTypePop;
-    } else if (self.type == ADTransitionTypePop) {
-        reversedTransition.type = ADTransitionTypePush;
-    }
-    return [reversedTransition autorelease];
 }
 
 -(void)prepareTransitionFromView:(UIView *)viewOut toView:(UIView *)viewIn inside:(UIView *)viewContainer {
@@ -83,11 +72,7 @@
 #pragma mark -
 #pragma mark CAAnimationDelegate
 - (void)animationDidStop:(CAAnimation *)animation finished:(BOOL)flag {
-    if ([[animation valueForKey:ADTransitionAnimationKey] isEqualToString:ADTransitionAnimationOutValue]) {
-        _outAnimation.delegate = nil;
-    }
     if ([[animation valueForKey:ADTransitionAnimationKey] isEqualToString:ADTransitionAnimationInValue]) {
-        _inAnimation.delegate = nil;
         [super animationDidStop:animation finished:flag];
     }
 }

@@ -8,8 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import "ADTransition.h"
+#import "ADPercentDrivenInteractiveTransition.h"
 
-@interface ADTransitioningDelegate : NSObject <UIViewControllerTransitioningDelegate, UIViewControllerAnimatedTransitioning, ADTransitionDelegate>
+@interface ADTransitioningDelegate : ADPercentDrivenInteractiveTransition <ADTransitionDelegate>
 @property (nonatomic, retain) ADTransition * transition;
 - (id)initWithTransition:(ADTransition *)transition;
 @end

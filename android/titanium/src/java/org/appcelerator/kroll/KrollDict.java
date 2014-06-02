@@ -309,4 +309,42 @@ public class KrollDict
 		keys.removeAll(thatkeys);
 		return keys;
     }
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+    public static HashMap merge ( HashMap map1, HashMap map2 )
+	{
+	    if ( map1 == null || map2 == null )
+	    {
+	        if ( map1 != null )
+	        {
+	           return new HashMap( map1 );
+	        }
+	        if ( map2 != null )
+	        {
+	           return new HashMap( map2 );
+	        }
+	        return null;
+	    }
+	    HashMap merged = new HashMap(map1);
+
+	    Set<String> allKeys = new HashSet<String>();
+	    allKeys.addAll( map2.keySet() );
+
+	    for ( String key : allKeys )
+	    {
+	        Object v1 = merged.get( key );
+	        Object v2 = map2.get( key );
+	        if ( v1 instanceof HashMap || v2 instanceof HashMap )
+	        {
+	            HashMap m1 = v1 instanceof HashMap ? (HashMap) v1 : null;
+	            HashMap m2 = v2 instanceof HashMap ? (HashMap) v2 : null;
+	            merged.put( key, merge( m1, m2 ) );
+	        }
+	        else {
+	            merged.put(key, v2);
+	        }
+
+	    }
+	    return merged;
+	}
 }

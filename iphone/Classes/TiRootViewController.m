@@ -812,7 +812,9 @@
 -(void)willOpenWindow:(id<TiWindowProtocol>)theWindow
 {
     [self dismissKeyboard];
-    [[containedWindows lastObject] resignFocus];
+    if ([containedWindows lastObject] != theWindow) {
+        [[containedWindows lastObject] resignFocus];
+    }
     if ([theWindow isModal]) {
         if (![modalWindows containsObject:theWindow]) {
             [modalWindows addObject:theWindow];

@@ -10,6 +10,7 @@
 #import "TiUIListViewProxy.h"
 #import "TiUIListView.h"
 #import "TiUIListItem.h"
+#import "NSDictionary+Merge.h"
 
 @interface TiUIListSectionProxy ()
 @property (nonatomic, readonly) id<TiUIListViewDelegate> dispatcher;
@@ -305,13 +306,14 @@
 			DebugLog(@"[WARN] ListView: Update item index is out of range");
 			return;
 		}
-		[_items replaceObjectAtIndex:itemIndex withObject:item];
+        NSDictionary* currentItem = [[_items objectAtIndex:itemIndex] dictionaryByMergingWith:item force:YES];
+		if (currentItem)[_items replaceObjectAtIndex:itemIndex withObject:currentItem];
 		NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:itemIndex inSection:_sectionIndex], nil];
 		BOOL forceReload = (animation != UITableViewRowAnimationNone);
 		if (!forceReload) {
 			TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
-			if ((cell != nil) && ([cell canApplyDataItem:item])) {
-				cell.dataItem = item;
+			if ((cell != nil) && ([cell canApplyDataItem:currentItem])) {
+				cell.dataItem = currentItem;
                 [cell setNeedsLayout];
 			} else {
 				forceReload = YES;

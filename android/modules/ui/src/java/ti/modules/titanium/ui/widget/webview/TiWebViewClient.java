@@ -149,6 +149,9 @@ public class TiWebViewClient extends WebViewClient
 		if (this.username != null && this.password != null) {
 			handler.proceed(this.username, this.password);
 		}
+		else {
+			webView.getProxy().fireEvent(TiC.EVENT_AUTHENTICATION);
+		}
 	}
 
 	public void setBasicAuthentication(String username, String password)
@@ -166,6 +169,10 @@ public class TiWebViewClient extends WebViewClient
 		 * is not ignored
 		 */
 		KrollProxy webViewProxy = this.webView.getProxy();
+		
+		KrollDict data = new KrollDict();
+		data.put(TiC.ERROR_PROPERTY_CODE, error.getPrimaryError());
+		webView.getProxy().fireSyncEvent(TiC.EVENT_SSL_ERROR, data);
 
 		boolean ignoreSslError = false;
 		try {

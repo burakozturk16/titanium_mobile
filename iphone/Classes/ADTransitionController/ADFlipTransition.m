@@ -11,8 +11,7 @@
 
 @implementation ADFlipTransition
 
-- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect {
-    self.orientation = orientation;
+- (id)initWithDuration:(CFTimeInterval)duration orientation:(ADTransitionOrientation)orientation sourceRect:(CGRect)sourceRect reversed:(BOOL)reversed {
     CGFloat viewWidth = sourceRect.size.width;
     CGFloat viewHeight = sourceRect.size.height;
     
@@ -21,7 +20,8 @@
     CATransform3D inPivotTransform = CATransform3DIdentity;
     CATransform3D outPivotTransform = CATransform3DIdentity;
     
-    switch (orientation) {
+    ADTransitionOrientation rOrient = reversed?[ADTransition reversedOrientation:orientation]:orientation;
+    switch (rOrient) {
         case ADTransitionRightToLeft:
         {
             zTranslationAnimation.values = @[@0.0f, @(-viewWidth * 0.5f), @0.0f];
@@ -73,8 +73,11 @@
     [outAnimation setAnimations:@[outFlipAnimation, zTranslationAnimation]];
     outAnimation.duration = duration;
     
-    self = [super initWithInAnimation:inAnimation andOutAnimation:outAnimation];
-    return self;
+    return [super initWithInAnimation:inAnimation andOutAnimation:outAnimation orientation:orientation reversed:reversed];
+}
+
+-(BOOL)needsPerspective {
+    return YES;
 }
 
 @end
