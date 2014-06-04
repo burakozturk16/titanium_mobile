@@ -98,8 +98,9 @@ public class TiUIActivityIndicator extends TiUIView
 		if (d.containsKey(TiC.PROPERTY_COLOR)) {
 			label.setTextColor(TiConvert.toColor(d, TiC.PROPERTY_COLOR));
 		}
-
-		view.invalidate();
+        if (view != null) {
+            view.invalidate();
+        }
 	}
 
 	@Override
