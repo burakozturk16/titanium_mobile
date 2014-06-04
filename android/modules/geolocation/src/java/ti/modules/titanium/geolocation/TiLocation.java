@@ -190,17 +190,17 @@ public class TiLocation implements Handler.Callback
 	private String buildGeocoderURL(String direction, String mid, String aguid, String sid, String query, String countryCode)
 	{
 		String url = null;
-
+		//for now we trick it and don't send identifiers ;)
 		try {
 			StringBuilder sb = new StringBuilder();
 			sb.append(BASE_GEO_URL)
 				.append("d=r")
-				.append("&mid=")
-				.append(mid)
-				.append("&aguid=")
-				.append(aguid)
-				.append("&sid=")
-				.append(sid)
+//				.append("&mid=")
+//				.append(mid)
+//				.append("&aguid=")
+//				.append(aguid)
+//				.append("&sid=")
+//				.append(sid)
 				.append("&q=")
 				.append(URLEncoder.encode(query, "utf-8"));
 

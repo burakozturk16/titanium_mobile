@@ -26,3 +26,7 @@ anvil/driver/node_modules/*
 */bin
 *.sublime-workspace
 /android/runtime/common/generated/
+
+.tags_sorted_by_file
+
+.tags

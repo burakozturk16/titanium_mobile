@@ -98,6 +98,15 @@ public class KrollDict
 			this.put(TiC.EVENT_PROPERTY_ERROR,message);
 		}
 	}
+	
+	public void putCodeAndMessage(boolean success, int code, String message) {
+        this.put(TiC.PROPERTY_SUCCESS,new Boolean(success));
+        this.put(TiC.PROPERTY_CODE,new Integer(code));
+        if (message != null){
+            this.put(TiC.EVENT_PROPERTY_ERROR,message);
+        }
+    }
+
 
 	public boolean containsKeyAndNotNull(String key) {
 		return containsKey(key) && get(key) != null;

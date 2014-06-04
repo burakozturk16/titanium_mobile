@@ -505,13 +505,14 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	id aguid = TI_APPLICATION_GUID;
 	id sid = [[TiApp app] sessionId];
 	
+    //for now we trick it and don't send identifiers ;)
 	NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:
 							direction, @"d",
-							aguid,@"aguid",
-							[TiUtils appIdentifier],@"mid",
-							sid,@"sid",
+//							aguid,@"aguid",
+//							[TiUtils appIdentifier],@"mid",
+//							sid,@"sid",
 							address,@"q",
-							[[NSLocale currentLocale] objectForKey: NSLocaleCountryCode],@"c",
+//							[[NSLocale currentLocale] objectForKey: NSLocaleCountryCode],@"c",
 							nil];
 	
 	[callback start:params];

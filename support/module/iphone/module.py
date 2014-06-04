@@ -48,7 +48,8 @@ def generate_doc(config):
     return documentation
 
 def compile_js(manifest,config):
-    js_file = os.path.join(cwd,'assets','akylas.mapbox.js')
+    moduleid = manifest['moduleid']
+    js_file = os.path.join(cwd,'assets',moduleid + '.js')
     if not os.path.exists(js_file): return
 
     from compiler import Compiler
@@ -57,7 +58,7 @@ def compile_js(manifest,config):
     except:
         import simplejson as json
 
-    compiler = Compiler(cwd, manifest['moduleid'], manifest['name'], 'commonjs')
+    compiler = Compiler(cwd, moduleid, manifest['name'], 'commonjs')
     root_asset, module_assets = compiler.compile_module()
 
     root_asset_content = """
@@ -78,7 +79,12 @@ def compile_js(manifest,config):
 
     from tools import splice_code
 
-    assets_router = os.path.join(cwd,'Classes','AkylasMapboxModuleAssets.m')
+
+    paths = glob.glob(os.path.join(cwd,'Classes','*ModuleAssets.m' ));
+    if (len(paths) == 0):
+        return;
+    assets_router = paths[0]
+    print(assets_router)
     splice_code(assets_router, 'asset', root_asset_content)
     splice_code(assets_router, 'resolve_asset', module_asset_content)
 

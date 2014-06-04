@@ -236,7 +236,7 @@ public class TiHTTPClient
 				if (c != null) {
 					c.response = response;
 					c.setReadyState(READY_STATE_HEADERS_RECEIVED);
-					c.setStatus(response.getStatusLine().getStatusCode());
+                    c.setStatus(response.getStatusLine().getStatusCode());
 					c.setStatusText(response.getStatusLine().getReasonPhrase());
 					c.setReadyState(READY_STATE_LOADING);
 				}
@@ -535,7 +535,7 @@ public class TiHTTPClient
 
 		if (readyState == READY_STATE_DONE) {
 			KrollDict data = new KrollDict();
-			data.putCodeAndMessage(TiC.ERROR_CODE_NO_ERROR, null);
+			data.putCodeAndMessage(true, this.status, null);
 			dispatchCallback("onload", data);
 		}
 	}
