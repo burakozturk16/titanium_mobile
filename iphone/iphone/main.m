@@ -11,12 +11,12 @@
 //XCode give some reasonable values
 
 NSString * const TI_APPLICATION_DEPLOYTYPE = @"development";
-NSString * const TI_APPLICATION_ID = @"com.appcelerator.kitchensink.xcode";
+NSString * const TI_APPLICATION_ID = @"com.akylas.titanium.ks";
 NSString * const TI_APPLICATION_PUBLISHER = @"Appcelerator";
 NSString * const TI_APPLICATION_URL = @"http://www.appcelerator.com";
-NSString * const TI_APPLICATION_NAME = @"Kitchen Sink (XCode)";
+NSString * const TI_APPLICATION_NAME = @"Akylas Kitchen Sink (XCode)";
 NSString * const TI_APPLICATION_VERSION = @"1.0";
-NSString * const TI_APPLICATION_DESCRIPTION = @"Kitchen Sink from XCode";
+NSString * const TI_APPLICATION_DESCRIPTION = @"Akylas Kitchen Sink from XCode";
 NSString * const TI_APPLICATION_COPYRIGHT = @"Appcelerator";
 NSString * const TI_APPLICATION_GUID = @"25FE4B6E-7DA9-4344-B55B-25195570860F";
 BOOL const TI_APPLICATION_ANALYTICS = NO;
