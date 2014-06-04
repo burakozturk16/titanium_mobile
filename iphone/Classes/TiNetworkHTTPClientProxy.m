@@ -291,7 +291,7 @@ extern NSString * const TI_APPLICATION_GUID;
         [event setObject:@"error" forKey:@"type"];
         [self fireCallback:@"onerror" withArg:event withSource:self];
     } else if(hasOnload) {
-        NSMutableDictionary * event = [TiUtils dictionaryWithCode:0 message:nil];
+        NSMutableDictionary * event = [TiUtils dictionaryWithCode:responseCode message:nil];
         [event setObject:@"load" forKey:@"type"];
         [self fireCallback:@"onload" withArg:event withSource:self];
     }
