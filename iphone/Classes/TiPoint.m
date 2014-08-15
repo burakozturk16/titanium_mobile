@@ -41,6 +41,11 @@
 		xDimension = TiDimensionFromObject([object objectForKey:@"x"]);
 		yDimension = TiDimensionFromObject([object objectForKey:@"y"]);
 	}
+	else if ([object isKindOfClass:[NSArray class]])
+	{
+		xDimension = TiDimensionFromObject([object objectAtIndex:0]);
+		yDimension = TiDimensionFromObject([object objectAtIndex:1]);
+	}
 	else
 	{
 		xDimension = TiDimensionUndefined;

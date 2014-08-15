@@ -14,6 +14,7 @@
 @class WebFont;
 @class TiScriptError;
 @class TiPoint;
+@class Ti2DMatrix;
 
 /*	NOTE TO MODULE DEVELOPERS:
  *	The following 4 imports will be going away as it's better to simply
@@ -480,6 +481,13 @@ typedef enum
 +(TiDimension)dimensionValue:(NSString*)name properties:(NSDictionary*)properties;
 
 +(TiPoint*)tiPointValue:(NSString*)name properties:(NSDictionary*)properties;
+
++(Ti2DMatrix*)matrixValue:(id)value;
++(Ti2DMatrix*)matrixValue:(id)value def:(Ti2DMatrix*)def;
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties;
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def;
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def exists:(BOOL*) exists;
+
 
 +(NSDate *)dateValue:(id)value def:(NSDate *)def;
 +(NSDate *)dateValue:(id)object;

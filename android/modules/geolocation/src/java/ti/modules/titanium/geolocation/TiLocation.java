@@ -120,8 +120,8 @@ public class TiLocation implements Handler.Callback
 	public Location getLastKnownLocation()
 	{
 		Location latestKnownLocation = null;
-
-		for (String provider : knownProviders) {
+        List<String> providerNames = locationManager.getProviders(true);
+		for (String provider : providerNames) {
 			Location lastKnownLocation = null;
 			try {
 				lastKnownLocation = locationManager.getLastKnownLocation(provider);
@@ -138,6 +138,9 @@ public class TiLocation implements Handler.Callback
 			}
 
 			if ((latestKnownLocation == null) || (lastKnownLocation.getTime() > latestKnownLocation.getTime())) {
+                if (Log.isDebugModeEnabled()) {
+                    Log.i(TAG, "found last know location for [" + provider + "]: " + lastKnownLocation.toString());
+                }
 				latestKnownLocation = lastKnownLocation;
 			}
 		}

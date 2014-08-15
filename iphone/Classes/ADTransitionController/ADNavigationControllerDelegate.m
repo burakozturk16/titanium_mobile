@@ -40,14 +40,20 @@
             if ([toVC.transitioningDelegate isKindOfClass:[ADTransitioningDelegate class]]) {
                 self.currentTransition = (ADTransitioningDelegate *)toVC.transitioningDelegate;
                 self.currentTransition.transition.type = ADTransitionTypePush;
-                break;
             }
+            else {
+                self.currentTransition = nil;
+            }
+            break;
         case UINavigationControllerOperationPop:
             if ([fromVC.transitioningDelegate isKindOfClass:[ADTransitioningDelegate class]]){
                 self.currentTransition = (ADTransitioningDelegate *)fromVC.transitioningDelegate;
                 self.currentTransition.transition.type = ADTransitionTypePop;
-                break;
             }
+            else {
+                self.currentTransition = nil;
+            }
+            break;
         case UINavigationControllerOperationNone:
         default:
             self.currentTransition = nil;

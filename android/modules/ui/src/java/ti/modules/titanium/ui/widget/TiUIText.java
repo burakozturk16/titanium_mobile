@@ -215,20 +215,32 @@ public class TiUIText extends TiUINonViewGroupView
 
 		public void setLeftView(Object leftView) {
 			leftPane.removeAllViews();
-			if (leftView == null){
-				leftPane.setVisibility(View.GONE);
-				this.leftView = null;
-			} else if (leftView instanceof TiViewProxy) {
-				this.leftView = (TiViewProxy)leftView;
-				leftPane.addView((this.leftView.getOrCreateView()).getOuterView());
-				leftPane.setVisibility(View.VISIBLE);
-			} else if (leftView instanceof View) {
-				leftPane.addView((View)leftView);
-				leftPane.setVisibility(View.VISIBLE);
-			} else {
-				leftPane.setVisibility(View.GONE);
-				Log.e(TAG, "Invalid type for rightView");
-			}
+			if (this.leftView != null) {
+                this.leftView.releaseViews(false);
+                this.leftView.setParent(null);
+                this.leftView = null;
+            }
+			if (leftView instanceof HashMap) {
+                this.leftView = (TiViewProxy)proxy.createProxyFromTemplate((HashMap) leftView,
+                       proxy, true);
+                if (this.leftView != null) {
+                    this.leftView.updateKrollObjectProperties();
+                }
+            }
+            else if (leftView instanceof TiViewProxy) {
+                this.leftView = (TiViewProxy)leftView;
+            }
+            
+            if (this.leftView != null) {
+                leftPane.addView((this.leftView.getOrCreateView()).getOuterView());
+                leftPane.setVisibility(View.VISIBLE);
+            }
+            else if (leftView instanceof View) {
+                leftPane.addView((View)leftView);
+                leftPane.setVisibility(View.VISIBLE);
+            } else {
+                leftPane.setVisibility(View.GONE);
+            }
 		}
 
 		public TiViewProxy getLeftView()
@@ -243,19 +255,32 @@ public class TiUIText extends TiUINonViewGroupView
 
 		public void setRightView(Object rightView) {
 			rightPane.removeAllViews();
-			if (rightView == null){
-				rightPane.setVisibility(View.GONE);
-			} else if (rightView instanceof TiViewProxy) {
-				this.rightView = (TiViewProxy)rightView;
-				rightPane.addView((this.rightView.getOrCreateView()).getOuterView());
-				rightPane.setVisibility(View.VISIBLE);
-			} else if (rightView instanceof View) {
-				rightPane.addView((View)rightView);
-				rightPane.setVisibility(View.VISIBLE);
-			} else {
-				rightPane.setVisibility(View.GONE);
-				Log.e(TAG, "Invalid type for rightView");
-			}
+            if (this.rightView != null) {
+                this.rightView.releaseViews(false);
+                this.rightView.setParent(null);
+                this.rightView = null;
+            }
+            if (rightView instanceof HashMap) {
+                this.rightView = (TiViewProxy)proxy.createProxyFromTemplate((HashMap) rightView,
+                       proxy, true);
+                if (this.rightView != null) {
+                    this.rightView.updateKrollObjectProperties();
+                }
+            }
+            else if (rightView instanceof TiViewProxy) {
+                this.rightView = (TiViewProxy)rightView;
+            }
+            
+            if (this.rightView != null) {
+                rightPane.addView((this.rightView.getOrCreateView()).getOuterView());
+                rightPane.setVisibility(View.VISIBLE);
+            }
+            else if (rightView instanceof View) {
+                rightPane.addView((View)rightView);
+                rightPane.setVisibility(View.VISIBLE);
+            } else {
+                rightPane.setVisibility(View.GONE);
+            }
 		}
 
 		public void hideLeftView()

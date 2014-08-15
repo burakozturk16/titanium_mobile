@@ -37,6 +37,7 @@ import org.appcelerator.titanium.transition.Transition;
 import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiUIHelper;
+import org.appcelerator.titanium.view.KrollProxyReusableListener;
 
 import com.actionbarsherlock.app.ActionBar;
 import com.nineoldandroids.animation.Animator;
@@ -60,7 +61,7 @@ import android.view.ViewGroup;
 	TiC.PROPERTY_URL,
 	TiC.PROPERTY_WINDOW_PIXEL_FORMAT
 })
-public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent, KrollProxyListener
+public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEvent, TiActivityWindow, interceptOnBackPressedEvent, TiWindowManager, interceptOnHomePressedEvent, KrollProxyReusableListener
 {
 	private static final String TAG = "NavigationWindowProxy";
 
@@ -789,4 +790,19 @@ public class NavigationWindowProxy extends WindowProxy implements OnLifecycleEve
 
 	@Override
 	public void listenerRemoved(String type, int count, KrollProxy proxy) {}
+
+	
+	////ONLY USED FOR LISTVIEW AND SUCH
+    @Override
+    public void setReusing(boolean value) {
+    }
+
+    @Override
+    public void setAdditionalEventData(KrollDict dict) {
+    }
+
+    @Override
+    public KrollDict getAdditionalEventData() {
+        return null;
+    }
 }

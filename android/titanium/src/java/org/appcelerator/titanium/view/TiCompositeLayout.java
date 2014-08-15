@@ -1161,7 +1161,6 @@ public class TiCompositeLayout extends FreeLayout implements
 		public TiDimension optionBottom = null;
 		public TiDimension optionWidth = null;
 		public TiDimension optionHeight = null;
-		public Ti2DMatrix optionTransform = null;
 		
 		
 		public TiDimension maxWidth = null;
@@ -1219,7 +1218,6 @@ public class TiCompositeLayout extends FreeLayout implements
 			optionBottom = params.optionBottom;
 			optionWidth = params.optionWidth;
 			optionHeight = params.optionHeight;
-			optionTransform = params.optionTransform;
 			sizeOrFillHeightEnabled = params.sizeOrFillHeightEnabled;
 			sizeOrFillWidthEnabled = params.sizeOrFillWidthEnabled;
 		}

@@ -10,6 +10,7 @@ package ti.modules.titanium.ui.widget.listview;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
@@ -160,10 +161,10 @@ public class TiListViewTemplate {
 	}
 	
 	
-	public ListItemProxy generateCellProxy(KrollDict data)
+	public ListItemProxy generateCellProxy(KrollDict data, KrollProxy proxy)
 	{
-		ListItemProxy proxy = (ListItemProxy) TiViewProxy.createTypeViewFromDict(properties, "Ti.UI.ListItem");
-		return proxy;
+		ListItemProxy result = (ListItemProxy) proxy.createTypeViewFromDict(properties, "Ti.UI.ListItem");
+		return result;
 	}
 
 	public void updateOrMergeWithDefaultProperties(KrollDict data) {

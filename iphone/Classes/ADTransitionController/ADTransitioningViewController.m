@@ -34,12 +34,12 @@
 - (void)setTransition:(ADTransition *)transition {
     [_transition release];
     _transition = nil;
-    if (transition) {
-        _transition = [transition retain];
-        if ((!AD_SYSTEM_VERSION_GREATER_THAN_7 || ![transition isKindOfClass:[ADModernPushTransition class]])) {
-            [_customTransitioningDelegate release]; _customTransitioningDelegate = [[ADTransitioningDelegate alloc] initWithTransition:transition];
-            [super setTransitioningDelegate:_customTransitioningDelegate]; // don't call the setter of the current class
-        }
+    [_customTransitioningDelegate release];
+    _customTransitioningDelegate = nil;
+    _transition = [transition retain];
+    if ((!AD_SYSTEM_VERSION_GREATER_THAN_7 || ![transition isKindOfClass:[ADModernPushTransition class]])) {
+        _customTransitioningDelegate = [[ADTransitioningDelegate alloc] initWithTransition:transition];
+        [super setTransitioningDelegate:_customTransitioningDelegate]; // don't call the setter of the current class
     }
     else {
         [super setTransitioningDelegate:nil];

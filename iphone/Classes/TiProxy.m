@@ -213,7 +213,7 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 
 @synthesize pageContext, executionContext;
 @synthesize modelDelegate;
-
+@synthesize eventOverrideDelegate = eventOverrideDelegate;
 
 #pragma mark Private
 
@@ -964,6 +964,10 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	{
 		return;
 	}
+    
+    if (eventOverrideDelegate != nil) {
+        obj = [eventOverrideDelegate overrideEventObject:obj forEvent:type fromViewProxy:self];
+    }
 	
 	TiBindingEvent ourEvent;
 	
@@ -1269,14 +1273,20 @@ DEFINE_EXCEPTIONS
     return @"Ti.Proxy";
 }
 
-+ (id)createProxy:(NSString*)qualifiedName withProperties:(NSDictionary*)properties inContext:(id<TiEvaluator>)context
++(CFMutableDictionaryRef)classNameLookup
 {
-	static dispatch_once_t onceToken;
+    static dispatch_once_t onceToken;
 	static CFMutableDictionaryRef classNameLookup;
 	dispatch_once(&onceToken, ^{
 		classNameLookup = CFDictionaryCreateMutable(kCFAllocatorDefault, 1, &kCFTypeDictionaryKeyCallBacks, NULL);
 	});
-	Class proxyClass = (Class)CFDictionaryGetValue(classNameLookup, qualifiedName);
+    return classNameLookup;
+}
+
+
++(Class)proxyClassFromString:(NSString*)qualifiedName
+{
+    Class proxyClass = (Class)CFDictionaryGetValue([TiProxy classNameLookup], qualifiedName);
 	if (proxyClass == nil) {
 		NSString *titanium = [NSString stringWithFormat:@"%@%s",@"Ti","tanium."];
 		if ([qualifiedName hasPrefix:titanium]) {
@@ -1287,14 +1297,22 @@ DEFINE_EXCEPTIONS
 		if (proxyClass==nil) {
 			DebugLog(@"[WARN] Attempted to load %@: Could not find class definition.", className);
 			@throw [NSException exceptionWithName:@"org.appcelerator.module"
-										reason:[NSString stringWithFormat:@"Class not found: %@", qualifiedName]
-										userInfo:nil];
+                                           reason:[NSString stringWithFormat:@"Class not found: %@", qualifiedName]
+                                         userInfo:nil];
 		}
-		CFDictionarySetValue(classNameLookup, qualifiedName, proxyClass);
+		CFDictionarySetValue([TiProxy classNameLookup], qualifiedName, proxyClass);
 	}
-	NSArray *args = properties != nil ? [NSArray arrayWithObject:properties] : nil;
-	return [[[proxyClass alloc] _initWithPageContext:context args:args
-			 ] autorelease];
+    return proxyClass;
+}
+
++ (id)createProxy:(Class)proxyClass withProperties:(NSDictionary*)properties inContext:(id<TiEvaluator>)context
+{
+    if (proxyClass) {
+        NSArray *args = properties != nil ? [NSArray arrayWithObject:properties] : nil;
+        return [[[proxyClass alloc] _initWithPageContext:context args:args
+                 ] autorelease];
+    }
+	return nil;
 }
 
 -(id)objectOfClass:(Class)theClass fromArg:(id)arg {
@@ -1312,4 +1330,88 @@ DEFINE_EXCEPTIONS
     if (arg == nil || ![arg isKindOfClass:[NSDictionary class]]) return nil;
 	return [[[[theClass class] alloc] _initWithPageContext:context_ args:[NSArray arrayWithObject:arg]] autorelease];
 }
+
+
+#pragma mark - View Templates
+
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents
+{
+	
+	id<TiEvaluator> context = self.executionContext;
+	if (context == nil) {
+		context = self.pageContext;
+	}
+    [self unarchiveFromTemplate:viewTemplate_ withEvents:withEvents inContext:context];
+}
+
+
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents inContext:(id<TiEvaluator>)context
+{
+	TiProxyTemplate *viewTemplate = [TiProxyTemplate templateFromViewTemplate:viewTemplate_];
+	if (viewTemplate == nil) {
+		return;
+	}
+	
+	[self _initWithProperties:viewTemplate.properties];
+	if (withEvents && [viewTemplate.events count] > 0) {
+		[context.krollContext invokeBlockOnThread:^{
+			[viewTemplate.events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, NSArray *list, BOOL *stop) {
+				[list enumerateObjectsUsingBlock:^(KrollWrapper *wrapper, NSUInteger idx, BOOL *stop) {
+					[self addEventListener:[NSArray arrayWithObjects:eventName, wrapper, nil]];
+				}];
+			}];
+		}];
+	}
+}
+
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context
+{
+	return [[self class] createFromDictionary:dictionary rootProxy:rootProxy inContext:context defaultType:nil];
+}
+
+// Returns protected proxy, caller should do forgetSelf.
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context defaultType:(NSString*)defaultType
+{
+	if (dictionary == nil) {
+		return nil;
+	}
+    NSString* type = [dictionary objectForKey:@"type"];
+    
+	if (type == nil) type = defaultType;
+    TiProxy *proxy = [[self class] createProxy:[[self class] proxyClassFromString:type] withProperties:nil inContext:context];
+    [context.krollContext invokeBlockOnThread:^{
+        [context registerProxy:proxy];
+        [proxy rememberSelf];
+    }];
+    [proxy unarchiveFromDictionary:dictionary rootProxy:rootProxy];
+    return proxy;
+}
+
+- (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy
+{
+	if (dictionary == nil) {
+		return;
+	}
+	
+	id<TiEvaluator> context = self.executionContext;
+	if (context == nil) {
+		context = self.pageContext;
+	}
+	NSDictionary* properties = (NSDictionary*)[dictionary objectForKey:@"properties"];
+    if (properties == nil) properties = dictionary;
+	[self _initWithProperties:properties];
+    NSString* bindId = [dictionary objectForKey:@"bindId"];
+    if (bindId) {
+        [rootProxy setValue:self forKey:bindId];
+    }
+	NSDictionary* events = (NSDictionary*)[dictionary objectForKey:@"events"];
+	if ([events count] > 0) {
+		[context.krollContext invokeBlockOnThread:^{
+			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, KrollCallback *listener, BOOL *stop) {
+                [self addEventListener:[NSArray arrayWithObjects:eventName, listener, nil]];
+			}];
+		}];
+	}
+}
+
 @end

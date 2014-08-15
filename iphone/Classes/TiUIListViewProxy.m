@@ -10,7 +10,7 @@
 #import "TiUIListView.h"
 #import "TiUIListItem.h"
 #import "TiUtils.h"
-#import "TiViewTemplate.h"
+#import "TiProxyTemplate.h"
 #import "TiTableView.h"
 
 @interface TiUIListViewProxy ()

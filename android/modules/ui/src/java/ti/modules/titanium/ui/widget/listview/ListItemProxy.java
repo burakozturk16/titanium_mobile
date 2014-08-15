@@ -27,14 +27,14 @@ public class ListItemProxy extends TiViewProxy
 {
 	protected WeakReference<TiViewProxy> listProxy;
 	
-	private HashMap<String, ViewItem> viewsMap;
-	private List<TiViewProxy> nonBindingViews;
-	private ViewItem viewItem;
+	private HashMap<String, ProxyListItem> bindingsMap;
+	private List<KrollProxy> nonBindingProxies;
+	private ProxyListItem listItem;
 	
 	public ListItemProxy()
 	{
-		viewsMap = new HashMap<String, ViewItem>();
-		nonBindingViews = new ArrayList();
+		bindingsMap = new HashMap<String, ProxyListItem>();
+		nonBindingProxies = new ArrayList();
 	}
 	
 	@Override
@@ -101,8 +101,8 @@ public class ListItemProxy extends TiViewProxy
 	public void release()
 	{
 		super.release();
-		viewsMap.clear();
-		nonBindingViews.clear();
+		bindingsMap.clear();
+		nonBindingProxies.clear();
 		if (listProxy != null) {
 			listProxy = null;
 		}
@@ -115,40 +115,46 @@ public class ListItemProxy extends TiViewProxy
 	}
 	
 
-	public TiViewProxy getViewProxyFromBinding(String binding) {
-		ViewItem viewItem = viewsMap.get(binding);
+	public KrollProxy getProxyFromBinding(String binding) {
+		ProxyListItem viewItem = bindingsMap.get(binding);
 		if (viewItem != null) {
-			return viewItem.getViewProxy();
+			return viewItem.getProxy();
 		}
 		return null;
 	}
 	
 	@Override
-	protected void addBinding(String bindId, TiViewProxy bindingProxy)
+	protected void addBinding(String bindId, KrollProxy arg)
 	{
-		super.addBinding(bindId, bindingProxy);
+		super.addBinding(bindId, arg);
+		KrollProxy bindingProxy = null;
+        if (arg instanceof KrollProxy)
+            bindingProxy = (KrollProxy) arg;
+        if (bindingProxy == null) {
+            return;
+        }
 		if (bindId != null) {
-			ViewItem viewItem = new ViewItem(bindingProxy, bindingProxy.getProperties());
-			viewsMap.put(bindId, viewItem);
+			ProxyListItem viewItem = new ProxyListItem(bindingProxy, bindingProxy.getProperties());
+			bindingsMap.put(bindId, viewItem);
 		}
 		else {
-			nonBindingViews.add(bindingProxy);
+			nonBindingProxies.add(bindingProxy);
 		}
 		
 	}
 	
-	public HashMap<String, ViewItem> getViewsMap() {
-		return viewsMap;
+	public HashMap<String, ProxyListItem> getBindings() {
+		return bindingsMap;
 	}
 	
-	public List<TiViewProxy> getNonBindedViews() {
-		return nonBindingViews;
+	public List<KrollProxy> getNonBindedProxies() {
+		return nonBindingProxies;
 	}
 	
-	public ViewItem getViewItem() {
-		if (viewItem == null) {
-			viewItem = new ViewItem(this, getProperties());
+	public ProxyListItem getListItem() {
+		if (listItem == null) {
+			listItem = new ProxyListItem(this, getProperties());
 		}
-		return viewItem;
+		return listItem;
 	}
 }

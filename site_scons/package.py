@@ -91,6 +91,15 @@ def zip_dir(zf,dir,basepath,subs=None,cb=None, ignore_paths=None, ignore_files=N
 		for name in ignoreDirs:
 			if name in dirs:
 				dirs.remove(name)	# don't visit ignored directories
+		for  dd  in  dirs:
+			from_ = os.path.join(root, dd)
+			if os.path.islink(from_):
+				to_ = from_.replace(dir, basepath, 1)
+				a  =  zipfile.ZipInfo()
+				a.filename  = to_
+				a.create_system  = 3
+				a.external_attr  = 2716663808L
+				zf.writestr(a,os.readlink(from_))
 		for file in files:
 			skip = False
 			if ignore_paths != None:
@@ -104,7 +113,13 @@ def zip_dir(zf,dir,basepath,subs=None,cb=None, ignore_paths=None, ignore_files=N
 			e = os.path.splitext(file)
 			if len(e)==2 and e[1] in ignoreExtensions: continue
 			to_ = from_.replace(dir, basepath, 1)
-			if subs!=None:
+			if os.path.islink(from_):
+				a  =  zipfile.ZipInfo()
+				a.filename  =  to_
+				a.create_system  =  3
+				a.external_attr  =  2716663808L
+				zf.writestr(a,  os.readlink(from_))
+			elif subs!=None:
 				c = open(from_).read()
 				for key in subs:
 					c = c.replace(key,subs[key])
@@ -113,6 +128,11 @@ def zip_dir(zf,dir,basepath,subs=None,cb=None, ignore_paths=None, ignore_files=N
 				zf.writestr(to_,c)
 			else:
 				zf.write(from_, to_)
+
+def zipdir2(zf, dir):
+	for root, dirs, files in os.walk(dir):
+		for file in files:
+			zf.write(os.path.join(root, file))
 
 def zip2zip(src_zip, dest_zip, prepend_path=None):
 	for zinfo in src_zip.infolist():

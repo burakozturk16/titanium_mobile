@@ -5,12 +5,8 @@
  * Please see the LICENSE included with this distribution for details.
  */
 
-#ifndef RELEASE_TO_NIL
-#define RELEASE_TO_NIL(x) { if (x!=nil) { [x release]; x = nil; } }
-#endif
-
 #ifndef DebugLog
-#if defined(DEBUG) || defined(DEVELOPER)
+#if defined(APSHTTP_DEBUG) || defined(DEVELOPER)
 #define DebugLog(...) { NSLog(__VA_ARGS__); }
 #else
 #define DebugLog(...) {}
@@ -20,5 +16,4 @@
 #import "APSHTTPRequest.h"
 #import "APSHTTPResponse.h"
 #import "APSHTTPPostForm.h"
-#import "APSHTTPOperation.h"
 #import "APSHTTPHelper.h"

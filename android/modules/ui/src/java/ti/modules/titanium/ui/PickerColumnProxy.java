@@ -107,14 +107,17 @@ public class PickerColumnProxy extends ViewProxy implements PickerRowListener
 		}
 	}
 
+    @Override
+	public KrollProxy createProxyFromTemplate(HashMap template_,
+            KrollProxy rootProxy, boolean updateKrollProperties) {
+        return KrollProxy.createProxy(PickerRowProxy.class, null, new Object[] { template_ }, null);
+    }
 	@Override
-	public void add(Object args, @Kroll.argument(optional = true) Object index)
+    protected void addProxy(Object args, final int index)
 	{
 		TiViewProxy child = null;
-		if (args instanceof TiViewProxy)
+		if (args instanceof TiViewProxy) {
 			child = (TiViewProxy) args;
-		else if (args instanceof HashMap) {
-			child = (PickerRowProxy) KrollProxy.createProxy(PickerRowProxy.class, null, new Object[] { args }, null);
 		}
 		if (TiApplication.isUIThread()) {
 			handleAddRow(child);
@@ -154,7 +157,7 @@ public class PickerColumnProxy extends ViewProxy implements PickerRowListener
 	
 
 	@Override
-	public void remove(TiViewProxy o)
+	public void removeProxy(Object o)
 	{
 		if (TiApplication.isUIThread() || peekView() == null) {
 			handleRemoveRow(o);
@@ -164,7 +167,7 @@ public class PickerColumnProxy extends ViewProxy implements PickerRowListener
 		}
 	}
 
-	private void handleRemoveRow(TiViewProxy o)
+	private void handleRemoveRow(Object o)
 	{
 		if (o == null)return;
 		if (o instanceof PickerRowProxy) {

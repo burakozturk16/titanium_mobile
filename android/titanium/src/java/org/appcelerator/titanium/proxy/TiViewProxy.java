@@ -10,13 +10,10 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.appcelerator.kroll.KrollDict;
-import org.appcelerator.kroll.KrollEventFunction;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
@@ -139,9 +136,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 999;
 
-	protected ArrayList<TiViewProxy> children;
-	protected WeakReference<TiViewProxy> parent;
-
 	protected TiUIView view;
 	private boolean isDecorView = false;
 
@@ -150,7 +144,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	private static int defaultTransitionStyle = TransitionHelper.Types.kTransitionSwipe.ordinal();
 	private static int defaultTransitionSubStyle = TransitionHelper.SubTypes.kRightToLeft.ordinal();
 	
-	private HashMap<String, Object> propertiesToUpdateNativeSide = null;
 	protected ArrayList<HashMap> pendingTransitions;
 	protected Object pendingTransitionLock;
 
@@ -169,33 +162,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 //		setProperty(TiC.PROPERTY_KEEP_SCREEN_ON, false);
 //		setProperty(TiC.PROPERTY_ENABLED, true);
 	}
-
-	@Override
-	public void handleCreationDict(KrollDict options)
-	{
-		boolean needsToUpdateProps = false;
-		if (options == null) {
-			return;
-		}
-		if (options.containsKey(TiC.PROPERTY_PROPERTIES)) {
-			super.handleCreationDict(options.getKrollDict(TiC.PROPERTY_PROPERTIES));
-			needsToUpdateProps = true;
-		}
-		else {
-			super.handleCreationDict(options);
-		}
-		if (options.containsKey(TiC.PROPERTY_CHILD_TEMPLATES) || options.containsKey(TiC.PROPERTY_EVENTS)) {
-			initFromTemplate(options, this, true, true);
-		}
-		if (needsToUpdateProps) {
-			updateKrollObjectProperties();
-		}
-		else {
-		    //we don't need to update them all, bindings might be there though
-		    updatePropertiesNativeSide();
-		}
-	}
-
 
 	//This handler callback is tied to the UI thread.
 	public boolean handleMessage(Message msg)
@@ -350,10 +316,6 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 				handleBlurBackground((HashMap) msg.obj);
 				return true;
 			}
-			case MSG_INSERT_VIEW_AT : {
-				handleInsertAt((HashMap) msg.obj);
-				return true;
-			}
 		}
 		return super.handleMessage(msg);
 	}
@@ -490,8 +452,10 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	{
 		this.view = null;
 		//we must use getChildren because of the controls trick in TableViewRowProxy
-		for (TiViewProxy child:getChildren()) { 
-			child.clearViews();
+		for (KrollProxy child:getChildren()) { 
+		    if (child instanceof TiViewProxy) {
+	            ((TiViewProxy) child).clearViews();
+		    }
 		}
 	}
 
@@ -621,13 +585,15 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		// tree. Allows defaults to be added and keys removed.
 		if (children != null) {
 			try {
-				for (TiViewProxy p : children) {
-					TiUIView cv = p.getOrCreateView(enableModelListener, processProperties);
-					view.add(cv);
-					if (p instanceof TiWindowProxy && !((TiWindowProxy)p).isOpenedOrOpening()) {
-						((TiWindowProxy)p).onWindowActivityCreated();
-						p.focus();
-					}
+				for (KrollProxy p : children) {
+				    if (p instanceof TiViewProxy) {
+    					TiUIView cv = ((TiViewProxy) p).getOrCreateView(enableModelListener, processProperties);
+    					view.add(cv);
+    					if (p instanceof TiWindowProxy && !((TiWindowProxy)p).isOpenedOrOpening()) {
+    						((TiWindowProxy)p).onWindowActivityCreated();
+    						((TiViewProxy) p).focus();
+    					}
+				    }
 				}
 			} catch (ConcurrentModificationException e) {
 				Log.e(TAG, e.getMessage(), e);
@@ -642,31 +608,15 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		realizeViews(view, true);
 	}
 	
-	public void reloadProperties()
-	{
-		view.processProperties(getProperties());
-		// Use a copy so bundle can be modified as it passes up the inheritance
-		// tree. Allows defaults to be added and keys removed.
-		if (children != null) {
-			try {
-				for (TiViewProxy p : children) {
-					p.reloadProperties();
-				}
-			} catch (ConcurrentModificationException e) {
-				Log.e(TAG, e.getMessage(), e);
-			}
-		}
-	}
-
 	public void releaseViews(boolean activityFinishing)
 	{
 		if (view != null) {
 			view.blur();
-			if  (children != null) {
-				for (TiViewProxy p : children) {
-					p.releaseViews(activityFinishing);
-				}
-			}
+			for (KrollProxy child:getChildren()) { 
+	            if (child instanceof TiViewProxy) {
+	                ((TiViewProxy) child).releaseViews(activityFinishing);
+	            }
+	        }
 			view.release();
 			view = null;
 			viewRealised = false;
@@ -675,122 +625,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		KrollRuntime.suggestGC();
 	}
 	
-	protected void addPropToUpdateNativeSide(String key, Object value) 
-	{
-		if (propertiesToUpdateNativeSide == null) 
-		{
-			propertiesToUpdateNativeSide = new HashMap<String, Object>();
-		}
-		propertiesToUpdateNativeSide.put(key, value);
-	}
+
+
 	
-	public void updatePropertiesNativeSide() 
-	{
-		if (propertiesToUpdateNativeSide != null) 
-		{
-			updateKrollObjectProperties(propertiesToUpdateNativeSide);
-			propertiesToUpdateNativeSide = null;
-		}
-	}
-	
-	
-	protected void addBinding(String bindId, TiViewProxy bindingProxy)
-	{
-		if (bindId == null) return;
-		setProperty(bindId, bindingProxy);
-		addPropToUpdateNativeSide(bindId, bindingProxy);
-	}
-	
-	@SuppressWarnings("unchecked")
-	protected void initFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
-		if (rootProxy != null) {
-			rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),this);
-		}
-		if (recursive && template_.containsKey(TiC.PROPERTY_CHILD_TEMPLATES)) {
-			Object childProperties = template_
-					.get(TiC.PROPERTY_CHILD_TEMPLATES);
-			if (childProperties instanceof Object[]) {
-				Object[] propertiesArray = (Object[]) childProperties;
-				for (int i = 0; i < propertiesArray.length; i++) {
-					Object childDict = propertiesArray[i];
-					if (childDict instanceof TiViewProxy) {
-						this.add((TiViewProxy) childDict);
-					} else {
-						TiViewProxy childProxy = createViewFromTemplate(
-								(HashMap) childDict, rootProxy, updateKrollProperties);
-						if (childProxy != null){
-							if (updateKrollProperties) childProxy.updateKrollObjectProperties();
-							this.add(childProxy);
-						}
-					}
-				}
-			}
-		}
-		if (template_.containsKey(TiC.PROPERTY_EVENTS)) {
-			Object events = template_
-					.get(TiC.PROPERTY_EVENTS);
-			if (events instanceof HashMap) {
-				Iterator entries = ((HashMap)events).entrySet().iterator();
-				while (entries.hasNext()) {
-				    Map.Entry entry = (Map.Entry) entries.next();
-				    String key = (String)entry.getKey();
-				    Object value = entry.getValue();
-				    if (value instanceof KrollFunction) {
-						addEventListener(key, new KrollEventFunction(getKrollObject(), (KrollFunction) value));
-				    }
-				}
-			}
-		}
-	}
-	
-	public static TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateKrollProperties) {
-		return createViewFromTemplate(template_, rootProxy, updateKrollProperties, true);
-	}
-	@SuppressWarnings("unchecked")
-	public static TiViewProxy createViewFromTemplate(HashMap template_,
-			TiViewProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
-		String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
-				"Ti.UI.View");
-		Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
-				.get(TiC.PROPERTY_PROPERTIES) : template_;
-		try {
-			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
-					.forName(APIMap.getProxyClass(type));
-			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
-					new Object[] { properties }, null);
-			if (proxy == null)
-				return null;
-			proxy.initFromTemplate(template_, rootProxy, updateKrollProperties, recursive);
-			if (updateKrollProperties) {
-				rootProxy.updatePropertiesNativeSide();
-			}
-			return proxy;
-		} catch (Exception e) {
-			Log.e(TAG, "Error creating view from template: " + e.toString());
-			return null;
-		}
-	}
-	
-	@SuppressWarnings("unchecked")
-	public static TiViewProxy createTypeViewFromDict(HashMap template_,
-			String type) {
-		Object properties = template_.get(TiC.PROPERTY_PROPERTIES);
-		try {
-			Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
-					.forName(APIMap.getProxyClass(type));
-			TiViewProxy proxy = (TiViewProxy) KrollProxy.createProxy(cls, null,
-					new Object[] { properties }, null);
-			if (proxy == null)
-				return null;
-			proxy.initFromTemplate(template_, proxy, false, true);
-			return proxy;
-		} catch (Exception e) {
-			Log.e(TAG, "Error creating view from dict: " + e.toString());
-			return null;
-		}
-	}
 
 	/**
 	 * Implementing classes should use this method to create and return the appropriate view.
@@ -799,255 +636,57 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	 * @module.api
 	 */
 	public abstract TiUIView createView(Activity activity);
-
-	/**
-	 * Adds a child to this view proxy.
-	 * @param child The child view proxy to add.
-	 * @module.api
-	 */
-	@Kroll.method
-	public void add(Object args, @Kroll.argument(optional = true) Object index)
-	{
-		if (args instanceof Object[]) {
-			int i = -1; // no index by default
-			if (index instanceof Number) {
-				i = ((Number) index).intValue();
-			}
-			int arrayIndex = i;
-			for (Object obj : (Object[]) args) {
-				add(obj, Integer.valueOf(arrayIndex));
-				if (arrayIndex != -1)
-					arrayIndex++;
-			}
-			return;
-		} else if (args instanceof HashMap) {
-			TiViewProxy childProxy = createViewFromTemplate((HashMap) args,
-					this, true);
-			if (childProxy != null) {
-				childProxy.updateKrollObjectProperties();
-				add(childProxy);
-			}
-		} else {
-			TiViewProxy child = null;
-			if (args instanceof TiViewProxy)
-				child = (TiViewProxy) args;
-			
-			if (child == null) {
-				Log.e(TAG, "Add called with a null child");
-				return;
-			}
 	
-			int i = -1; // no index by default
-			if (index instanceof Number) {
-				i = ((Number)index).intValue();
-			}
-			
+	protected void handleChildAdded(KrollProxy child, int index) {
+	    if (peekView() != null) {
+            if (TiApplication.isUIThread()) {
+                handleAdd((TiViewProxy) child, index);
+                return;
+            }
+            TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, index, 0), child);
+
+        }
+    }
 	
-			if (children == null) {
-				children = new ArrayList<TiViewProxy>();
-			}
-			
-			if (peekView() != null) {
-				if (TiApplication.isUIThread()) {
-					handleAdd(child, i);
-					return;
-				}
-	
-				
-				TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ADD_CHILD, i, 0), child);
-	
-			} else {
-				if (i >= 0) {
-					children.add(i, child);
-				}
-				else {
-					children.add(child);
-				}
-				child.parent = new WeakReference<TiViewProxy>(this);
-			}
-		}
-	}
+    public void handleAdd(TiViewProxy child, int index)
+    {
+        child.setActivity(getActivity());
+        if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
+            TiWindowProxy childWin = (TiWindowProxy)child;
+            childWin.onWindowActivityCreated();
+            childWin.focus();
+        }
+        if (view != null) {
+            
+            if (this instanceof DecorViewProxy) {
+                child.isDecorView = true;
+            }
+            TiUIView cv = child.getOrCreateView();
+            view.insertAt(cv, index);
+        }
+    }
 
-@Kroll.method
-	public void replaceAt(Object params)
-	{
-		if (!(params instanceof HashMap)) {
-			Log.e(TAG, "Argument for replaceAt must be a dictionary");
-			return;
-		}
-		@SuppressWarnings("rawtypes")
-		HashMap options = (HashMap) params;
-		Integer position = -1;
-		if(options.containsKey("position")) {
-			position = (Integer) options.get("position");
-		}
-		if(children != null && children.size() > position) {
-			TiViewProxy childToRemove = children.get(position);
-			insertAt(params);
-			remove(childToRemove);
-		}
-	}
-	
+	protected void handleChildRemoved(KrollProxy child) {
+	    if (peekView() != null) {
+            if (TiApplication.isUIThread()) {
+                handleRemove((TiViewProxy) child);
+                return;
+            }
 
-	/**
-	 * Adds a child to this view proxy in the specified position. This is useful for "vertical" and
-	 * "horizontal" layouts.
-	 * @param params A Dictionary containing a TiViewProxy for the view and an int for the position 
-	 * @module.api
-	 */
-	@Kroll.method
-	public void insertAt(Object params)
-	{
-		if (!(params instanceof HashMap)) {
-			Log.e(TAG, "Argument for insertAt must be a dictionary");
-			return;
-		}
-		@SuppressWarnings("rawtypes")
-		HashMap options = (HashMap) params;
+            TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_REMOVE_CHILD), child);
+        }
+    }
 
-		if (children == null) {
-			children = new ArrayList<TiViewProxy>();
-		}
-
-
-		if (view != null) {
-			if (TiApplication.isUIThread()) {
-				handleInsertAt(options);
-				return;
-			}
-			getMainHandler().obtainMessage(MSG_INSERT_VIEW_AT, options).sendToTarget();
-		} else {
-			handleInsertAt(options);
-		}
-	}
-
-	private void handleInsertAt(@SuppressWarnings("rawtypes") HashMap options)
-	{
-		TiViewProxy child = null;
-		Integer position = -1;
-		if(options.containsKey("view")) {
-			child = (TiViewProxy) options.get("view");
-		}
-		if(options.containsKey("position")) {
-			position = (Integer) options.get("position");
-		}
-		if(child == null) {
-			Log.e(TAG, "insertAt must be contain a view");
-			return;
-		}
-		handleAdd(child, position);
-	}
-
-	public void add(TiViewProxy child)
-	{
-		add(child, Integer.valueOf(-1));
-	}
-
-	public void handleAdd(TiViewProxy child, int index)
-	{
-		children.remove(child);
-		if (index >= 0) {
-			children.add(index, child);
-		}
-		else {
-			children.add(child);
-		}
-		child.parent = new WeakReference<TiViewProxy>(this);
-		child.setActivity(getActivity());
-		if (child instanceof TiWindowProxy && !((TiWindowProxy)child).isOpenedOrOpening()) {
-			TiWindowProxy childWin = (TiWindowProxy)child;
-			childWin.onWindowActivityCreated();
-			childWin.focus();
-		}
-		if (view != null) {
-			
-			if (this instanceof DecorViewProxy) {
-				child.isDecorView = true;
-			}
-			TiUIView cv = child.getOrCreateView();
-			view.insertAt(cv, index);
-		}
-	}
-	
-	private void handleAdd(TiViewProxy child)
-	{
-		handleAdd(child, -1);
-	}
-
-	/**
-	 * Removes a view from this view proxy, releasing the underlying native view if it exists.
-	 * @param child The child to remove.
-	 * @module.api
-	 */
-	@Kroll.method
-	public void remove(TiViewProxy child)
-	{
-		if (child == null) {
-			Log.e(TAG, "Add called with null child");
-			return;
-		}
-
-		if (peekView() != null) {
-			if (TiApplication.isUIThread()) {
-				handleRemove(child);
-				return;
-			}
-
-			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_REMOVE_CHILD), child);
-
-		} else {
-			if (children != null) {
-				children.remove(child);
-				if (child.parent != null && child.parent.get() == this) {
-					child.parent = null;
-				}
-			}
-		}
-	}
-
-	/**
-	 * tries to remove this view from it parent
-	 * @module.api
-	 */
-	@Kroll.method
-	public void removeFromParent()
-	{
-		if (parent != null) {
-			getParent().remove(this);
-		}
-	}
-
-	/**
-	 * Removes all children views.
-	 * @module.api
-	 */
-	@Kroll.method
-	public void removeAllChildren()
-	{
-		if (children != null) {
-			//children might be altered while we loop through it (threading)
-			//so we first copy children as it was when asked to remove all children
-			ArrayList<TiViewProxy> childViews = new ArrayList<TiViewProxy>();
-			childViews.addAll(children);
-			for (TiViewProxy child : childViews) {
-				remove(child);
-			}
-		}
-	}
-
-	public void handleRemove(TiViewProxy child)
-	{
-		if (children != null) {
-			children.remove(child);
-			if (view != null) {
-				view.remove(child.peekView());
-			}
-			if (child != null) {
-				child.releaseViews(false);
-				child.setActivity(null);
-			}
-		}
-	}
+    public void handleRemove(TiViewProxy child)
+    {
+        if (view != null) {
+            view.remove(child.peekView());
+        }
+        if (child != null) {
+            child.releaseViews(false);
+            child.setActivity(null);
+        }
+    }
 
 	@Kroll.method
 	public void show(@Kroll.argument(optional=true) KrollDict options)
@@ -1172,8 +811,8 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (view != null) {
 			if (!view.blur()) {
 				if (children != null) {
-					for (TiViewProxy child : children) {
-						if (child.handleBlur()) return true;
+					for (KrollProxy child : children) {
+						if (((TiViewProxy) child).handleBlur()) return true;
 					}
 				}
 			} else return true;
@@ -1264,57 +903,12 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		return view.toImage(scale);
 	}
-	
-	/**
-	 * @return The parent view proxy of this view proxy.
-	 * @module.api
-	 */
-	@Kroll.getProperty @Kroll.method
-	public TiViewProxy getParent()
-	{
-		if (this.parent == null) {
-			return null;
-		}
 
-		return this.parent.get();
-	}
-
-	public void setParent(TiViewProxy parent)
-	{
-		if (parent == null) {
-			this.parent = null;
-			return;
-		}
-
-		this.parent = new WeakReference<TiViewProxy>(parent);
-	}
 
 	@Override
 	public KrollProxy getParentForBubbling()
 	{
 		return getParent();
-	}
-
-	@Override
-	public void setActivity(Activity activity)
-	{
-		super.setActivity(activity);
-		if (children != null) {
-			for (TiViewProxy child : children) {
-				child.setActivity(activity);
-			}
-		}
-	}
-
-	/**
-	 * @return An array of the children view proxies of this view.
-	 * @module.api
-	 */
-	@Kroll.getProperty @Kroll.method
-	public TiViewProxy[] getChildren()
-	{
-		if (children == null) return new TiViewProxy[0];
-		return children.toArray(new TiViewProxy[children.size()]);
 	}
 
 	@Override
@@ -1548,7 +1142,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		if (!checkBorderProps(oldProxy, newProxy)) {
 			return false;
 		}
-		View ourView = oldProxy.getParent().parentViewForChild(oldProxy);
+		View ourView = ((TiViewProxy) oldProxy.getParent()).parentViewForChild(oldProxy);
 		View parentView = (View)peekView().getNativeView().getParent();
 	    if (parentView != ourView)
 	    {
@@ -1557,20 +1151,24 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 		
 	    if (deep) {
 			try {
-				TiViewProxy[] oldproxies = getChildren();
-				TiViewProxy[] newproxies = newProxy.getChildren();
+				KrollProxy[] oldproxies = getChildren();
+				KrollProxy[] newproxies = newProxy.getChildren();
 				if (oldproxies.length != newproxies.length) {
 					return false;
 				}
 				for (int i = 0; i < oldproxies.length; i++) {
-					TiViewProxy newSubProxy = newproxies[i];
-					TiViewProxy oldSubProxy = oldproxies[i];
-		            TiUIView oldview = oldSubProxy.peekView();
-		            if (oldview == null){
-		                return false;
-		            }
-					if (!oldSubProxy.validateTransferToProxy(newSubProxy, true))
-						return false;
+					KrollProxy newSubProxy = newproxies[i];
+					KrollProxy oldSubProxy = oldproxies[i];
+					if (newSubProxy instanceof TiViewProxy && 
+					        oldSubProxy instanceof TiViewProxy) {
+					    TiUIView oldview = ((TiViewProxy) oldSubProxy).peekView();
+	                    if (oldview == null){
+	                        return false;
+	                    }
+	                    if (!((TiViewProxy) oldSubProxy).validateTransferToProxy((TiViewProxy) newSubProxy, true))
+	                        return false;
+					}
+		            
 				}
 			} catch (ConcurrentModificationException e) {
 				Log.e(TAG, e.getMessage(), e);
@@ -1725,9 +1323,11 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 	public boolean containsView(TiViewProxy proxy)
 	{
 		if (proxy == this)return true;
-		for (TiViewProxy child:getChildren()) { 
-			if (child.containsView(proxy)) return true;
-		}
+		for (KrollProxy child:getChildren()) { 
+            if (child instanceof TiViewProxy) {
+                if (((TiViewProxy) child).containsView(proxy)) return true;
+            }
+        }
 		return false;
 	}
 

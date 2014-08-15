@@ -7,7 +7,7 @@
 #import "TiProxy.h"
 #import "TiUIView.h"
 #import "TiRect.h"
-#import "TiViewTemplate.h"
+#import "TiProxyTemplate.h"
 #import <pthread.h>
 #import "TiAnimatableProxy.h"
 #import "TiViewController.h"
@@ -18,12 +18,6 @@
 @protocol TiProxyObserver
 @optional
 -(void)proxyDidRelayout:(id)sender;
-
-@end
-
-@protocol TiViewEventOverrideDelegate <NSObject>
-@required
-- (NSDictionary *)overrideEventObject:(NSDictionary *)eventObject forEvent:(NSString *)eventType fromViewProxy:(TiViewProxy *)viewProxy;
 
 @end
 
@@ -65,11 +59,6 @@ enum
     BOOL readyToCreateView;
     BOOL defaultReadyToCreateView;
 
-#pragma mark Parent/Children relationships
-	TiViewProxy *parent;
-	pthread_rwlock_t childrenLock;
-	NSMutableArray *children;
-//	NSMutableArray *pendingAdds;
 
 #pragma mark Visual components
 	TiUIView *view;
@@ -109,7 +98,6 @@ enum
     NSMutableDictionary *layoutPropDictionary;
     
     id observer;
-	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
     TiViewController* controller;
 }
 
@@ -127,11 +115,6 @@ enum
  */
 @property(nonatomic,readwrite,assign) BOOL parentVisible; // For tableview magic ONLY
 
-/**
- Returns children view proxies for the proxy.
- */
-@property(nonatomic,readonly) NSArray *children;
-
 -(void)startLayout:(id)arg;//Deprecated since 3.0.0
 -(void)finishLayout:(id)arg;//Deprecated since 3.0.0
 -(void)updateLayout:(id)arg;//Deprecated since 3.0.0
@@ -139,24 +122,6 @@ enum
 -(void)processTempProperties:(NSDictionary*)arg;
 -(BOOL)_hasListeners:(NSString *)type checkParent:(BOOL)check;
 -(void)setProxyObserver:(id)arg;
-
-/**
- Tells the view proxy to add a child proxy.
- @param arg A single proxy to add or NSArray of proxies.
- */
--(void)add:(id)arg;
-
-/**
- Tells the view proxy to remove a child proxy.
- @param arg A single proxy to remove.
- */
--(void)remove:(id)arg;
-
-/**
- Tells the view proxy to remove all child proxies.
- @param arg Ignored.
- */
--(void)removeAllChildren:(id)arg;
 
 /**
  Tells the view proxy to set visibility on a child proxy to _YES_.
@@ -207,14 +172,6 @@ enum
 
 #pragma mark nonpublic accessors not related to Housecleaning
 
-/**
- Provides access to parent proxy of the view proxy.
- @see add:
- @see remove:
- @see children
- */
-@property(nonatomic, assign) TiViewProxy *parent;
-//TODO: make this a proper readwrite property declaration.
 
 /**
  Provides access to layout properties of the underlying view.
@@ -234,8 +191,6 @@ enum
 
 //NOTE: DO NOT SET VIEW UNLESS IN A TABLE VIEW, AND EVEN THEN.
 @property(nonatomic,readwrite,retain)TiUIView * view;
-
-@property (nonatomic,readwrite,assign) id<TiViewEventOverrideDelegate> eventOverrideDelegate;
 
 /**
  Returns language conversion table.
@@ -595,9 +550,6 @@ enum
 
 - (void)prepareForReuse;
 
-- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
-+ (TiViewProxy *)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context;
-
 //+ (TiViewProxy *)unarchiveFromTemplate:(id)viewTemplate inContext:(id<TiEvaluator>)context;
 
 /**
@@ -675,6 +627,7 @@ Set the animation on its view and all it's children
  */
 -(UIViewController*) hostingController;
 -(TiUIView*) getAndPrepareViewForOpening:(CGRect)bounds;
+-(TiUIView*) getAndPrepareViewForOpening;
 +(void)reorderViewsInParent:(UIView*)parentView;
 @end
 

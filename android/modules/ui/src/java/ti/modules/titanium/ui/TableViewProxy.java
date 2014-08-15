@@ -18,6 +18,7 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.proxy.ParentingProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
@@ -352,7 +353,7 @@ public class TableViewProxy extends ViewProxy
 			}
 		} else if (row instanceof TableViewRowProxy) {
 			TableViewRowProxy rowProxy = (TableViewRowProxy) row;
-			TiViewProxy section = rowProxy.getParent();
+			ParentingProxy section = rowProxy.getParent();
 			if (section instanceof TableViewSectionProxy) {
 				((TableViewSectionProxy) section).remove(rowProxy);
 				getTableView().setModelDirty();

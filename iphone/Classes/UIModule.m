@@ -287,9 +287,8 @@ DEFINE_SUBPROXY_AS(ListViewSeparatorStyle, TableViewSeparatorStyle, listViewSepa
 	{
 		return [[[Ti2DMatrix alloc] init] autorelease];
 	}
-	ENSURE_SINGLE_ARG(args,NSDictionary);
-	Ti2DMatrix *matrix = [[Ti2DMatrix alloc] initWithProperties:args];
-	return [matrix autorelease];
+    ENSURE_SINGLE_ARG_OR_NIL(args , NSObject);
+	return [Ti2DMatrix matrixWithObject:args];
 }
 #endif
 

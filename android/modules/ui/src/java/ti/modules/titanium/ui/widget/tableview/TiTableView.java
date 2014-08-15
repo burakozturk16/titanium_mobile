@@ -224,8 +224,8 @@ public class TiTableView extends FrameLayout
 					TiViewProxy oldProxy = v.getRowData().proxy;
 					//last check, verify that we can transfer proxy
 					Boolean canreproxy = true;
-					TiViewProxy[] oldproxies = oldProxy.getChildren();
-					TiViewProxy[] newproxies = newProxy.getChildren();
+					KrollProxy[] oldproxies = oldProxy.getChildren();
+					KrollProxy[] newproxies = newProxy.getChildren();
 					if (oldproxies.length != newproxies.length)
 					{
 						canreproxy = false;
@@ -233,10 +233,10 @@ public class TiTableView extends FrameLayout
 					else
 					{
 						for (int i = 0; i < oldproxies.length; i++) {
-							TiViewProxy newSubProxy = newproxies[i];
-							TiViewProxy oldSubProxy = oldproxies[i];
+						    KrollProxy newSubProxy = newproxies[i];
+						    KrollProxy oldSubProxy = oldproxies[i];
 							
-							if (oldSubProxy.validateTransferToProxy(newSubProxy, true) == false)
+							if (!(oldSubProxy instanceof TiViewProxy) || (oldSubProxy.getClass().equals(newSubProxy.getClass())) || ((TiViewProxy) oldSubProxy).validateTransferToProxy((TiViewProxy) newSubProxy, true) == false)
 							{
 								canreproxy = false;
 								break;

@@ -42,6 +42,13 @@ typedef enum {
 } TiProxyBridgeType;
 
 
+
+@protocol TiViewEventOverrideDelegate <NSObject>
+@required
+- (NSDictionary *)overrideEventObject:(NSDictionary *)eventObject forEvent:(NSString *)eventType fromViewProxy:(TiProxy *)viewProxy;
+
+@end
+
 /**
  The proxy delegate protocol
  */
@@ -121,6 +128,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 	KrollObject * pageKrollObject;
 	id<TiEvaluator> pageContext;
 	id<TiEvaluator> executionContext;
+    
+	id<TiViewEventOverrideDelegate> eventOverrideDelegate;
 }
 
 /* Convenience method, especially for autoloading modules. The selector
@@ -301,6 +310,8 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 -(void)removeEventListener:(NSArray*)args;
 
 
+-(void)_listenerAdded:(NSString*)type count:(int)count;
+-(void)_listenerRemoved:(NSString*)type count:(int)count;
 
 -(void)fireEvent:(id)args;
 -(void)fireEvent:(NSString*)type withObject:(id)obj;
@@ -350,10 +361,19 @@ void DoProxyDelegateReadValuesWithKeysFromProxy(id<TiProxyDelegate> target, id<N
 
 -(void)setExecutionContext:(id<TiEvaluator>)context;
 
-+ (id)createProxy:(NSString *)qualifiedName withProperties:(NSDictionary *)properties inContext:(id<TiEvaluator>)context;
++ (id)createProxy:(Class)proxyClass withProperties:(NSDictionary*)properties inContext:(id<TiEvaluator>)context;
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context;
++ (TiProxy *)createFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy inContext:(id<TiEvaluator>)context defaultType:(NSString*)defaultType;
 
 -(void)applyProperties:(id)args;
 -(NSString*)apiName;
 -(id)objectOfClass:(Class)theClass fromArg:(id)arg;
 +(id)objectOfClass:(Class)theClass fromArg:(id)arg inContext:(id<TiEvaluator>)context_;
++(CFMutableDictionaryRef)classNameLookup;
+- (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy;
+- (void)unarchiveFromTemplate:(id)viewTemplate_ withEvents:(BOOL)withEvents;
++(Class)proxyClassFromString:(NSString*)qualifiedName;
+
+@property (nonatomic,readwrite,assign) id<TiViewEventOverrideDelegate> eventOverrideDelegate;
+
 @end

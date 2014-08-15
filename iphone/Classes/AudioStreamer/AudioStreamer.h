@@ -132,7 +132,6 @@ extern NSString * const ASStatusChangedNotification;
 
 - (id)initWithURL:(NSURL *)aURL;
 + (NSString*)stringForErrorCode:(AudioStreamerErrorCode)code;
-- (void)seekToTime:(NSNumber*)arg;
 
 @end
 

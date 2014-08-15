@@ -320,21 +320,21 @@ public class KrollDict
     }
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-    public static HashMap merge ( HashMap map1, HashMap map2 )
+    public static KrollDict merge ( HashMap map1, HashMap map2 )
 	{
 	    if ( map1 == null || map2 == null )
 	    {
 	        if ( map1 != null )
 	        {
-	           return new HashMap( map1 );
+	           return new KrollDict( map1 );
 	        }
 	        if ( map2 != null )
 	        {
-	           return new HashMap( map2 );
+	           return new KrollDict( map2 );
 	        }
 	        return null;
 	    }
-	    HashMap merged = new HashMap(map1);
+	    KrollDict merged = new KrollDict(map1);
 
 	    Set<String> allKeys = new HashSet<String>();
 	    allKeys.addAll( map2.keySet() );

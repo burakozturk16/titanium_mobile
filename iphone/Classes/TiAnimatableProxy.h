@@ -1,7 +1,7 @@
-#import "TiProxy.h"
+#import "TiParentingProxy.h"
 #import "TiAnimation.h"
 
-@interface TiAnimatableProxy : TiProxy<TiAnimationDelegate>
+@interface TiAnimatableProxy : TiParentingProxy<TiAnimationDelegate>
 @property(nonatomic,assign) BOOL animating;
 
 -(void)animate:(id)arg;

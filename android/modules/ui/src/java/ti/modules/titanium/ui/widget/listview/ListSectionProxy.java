@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
@@ -22,6 +24,7 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
+import org.appcelerator.titanium.view.KrollProxyReusableListener;
 import org.appcelerator.titanium.view.TiTouchDelegate;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -699,11 +702,11 @@ public class ListSectionProxy extends ViewProxy {
 		}
 	}
 
-	public void appendExtraEventData(TiUIView view, int itemIndex, int sectionIndex, String bindId, String itemId) {
-		KrollDict existingData = view.getAdditionalEventData();
+	public void appendExtraEventData(KrollProxyReusableListener listener, int itemIndex, int sectionIndex, String bindId, String itemId) {
+		KrollDict existingData = listener.getAdditionalEventData();
 		if (existingData == null) {
 			existingData = new KrollDict();
-			view.setAdditionalEventData(existingData);
+			listener.setAdditionalEventData(existingData);
 		}
 
 		// itemIndex = realItemIndex + header (if exists). We want the real item
@@ -753,7 +756,7 @@ public class ListSectionProxy extends ViewProxy {
 		} else {
 			listItemProperties = new KrollDict();
 		}
-		ViewItem rootItem = itemProxy.getViewItem();
+		ProxyListItem rootItem = itemProxy.getListItem();
 		
 		for (Map.Entry<String, String> entry : toPassProps.entrySet()) {
 			String inProp = entry.getKey();
@@ -773,37 +776,39 @@ public class ListSectionProxy extends ViewProxy {
 		appendExtraEventData(listItem, itemIndex, sectionIndex,
 				TiC.PROPERTY_PROPERTIES, itemId);
 
-		HashMap<String, ViewItem> views = itemProxy.getViewsMap();
+		HashMap<String, ProxyListItem> views = itemProxy.getBindings();
 		// Loop through all our views and apply default properties
 		for (String binding : views.keySet()) {
 			DataItem dataItem = template.getDataItem(binding);
-			ViewItem viewItem = views.get(binding);
-			TiUIView view = viewItem.getViewProxy().peekView();
-			if (view == null)
+			ProxyListItem viewItem = views.get(binding);
+			KrollProxyListener modelListener = (KrollProxyListener) viewItem.getProxy().getModelListener();
+			if (modelListener == null || !(modelListener instanceof KrollProxyReusableListener))
 				continue;
-			view.setTouchDelegate((TiTouchDelegate) listItem);
+			if (modelListener instanceof TiUIView) {
+	            ((TiUIView)modelListener).setTouchDelegate((TiTouchDelegate) listItem);
+            }
 			// update extra event data for views
-			appendExtraEventData(view, itemIndex, sectionIndex, binding, itemId);
+			appendExtraEventData((KrollProxyReusableListener) modelListener, itemIndex, sectionIndex, binding, itemId);
 			// if binding is contain in data given to us, process that data,
 			// otherwise
 			// apply default properties.
 			if (reusing) {
-				view.setReusing(true);
+			    ((KrollProxyReusableListener) modelListener).setReusing(true);
 			}
-			if (data.containsKey(binding) && view != null) {
+			if (data.containsKey(binding) && modelListener != null) {
 				KrollDict properties = new KrollDict(
 						(HashMap) data.get(binding));
 				KrollDict diffProperties = viewItem
 						.generateDiffProperties(properties);
 				if (!diffProperties.isEmpty()) {
-					view.processProperties(diffProperties);
+				    modelListener.processProperties(diffProperties);
 				}
 
-			} else if (dataItem != null && view != null) {
+			} else if (dataItem != null && modelListener != null) {
 				KrollDict diffProperties = viewItem
 						.generateDiffProperties(null);
 				if (!diffProperties.isEmpty()) {
-					view.processProperties(diffProperties);
+				    modelListener.processProperties(diffProperties);
 				}
 			} else {
 				Log.w(TAG, "Sorry, " + binding
@@ -811,18 +816,22 @@ public class ListSectionProxy extends ViewProxy {
 						Log.DEBUG_MODE);
 			}
 			if (reusing) {
-				view.setReusing(false);
+			    ((KrollProxyReusableListener) modelListener).setReusing(false);
 			}
 		}
 		
-		for (TiViewProxy viewProxy : itemProxy.getNonBindedViews()) {
-			TiUIView view = viewProxy.peekView();
-			view.setTouchDelegate((TiTouchDelegate) listItem);
-			appendExtraEventData(view, itemIndex, sectionIndex, null, itemId);
+		for (KrollProxy theProxy : itemProxy.getNonBindedProxies()) {
+		    KrollProxyListener modelListener = (KrollProxyListener) theProxy.getModelListener();
+		    if (modelListener instanceof KrollProxyReusableListener) {
+		        if (modelListener instanceof TiUIView) {
+	                ((TiUIView)modelListener).setTouchDelegate((TiTouchDelegate) listItem);
+	            }
+	            appendExtraEventData((KrollProxyReusableListener) modelListener, itemIndex, sectionIndex, null, itemId);
+            }
 		}
 
 		// process listItem properties
-		KrollDict listItemDiff = itemProxy.getViewItem()
+		KrollDict listItemDiff = itemProxy.getListItem()
 				.generateDiffProperties(listItemProperties);
 		if (!listItemDiff.isEmpty()) {
 			listItem.processProperties(listItemDiff);

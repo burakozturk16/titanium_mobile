@@ -7,18 +7,22 @@ import java.util.Map;
 
 public class APIMap {
 
-    private static final Map<String, String> PROXY_MAP = createProxyMap();
+    private static Map<String, String> PROXY_MAP = createProxyMap();
 
     private static Map<String, String> createProxyMap() {
         Map<String, String> result = new HashMap<String, String>();
         <#list apis?keys as api>
         	result.put("${api}", "${apis[api]}");
 		</#list>
-        return Collections.unmodifiableMap(result);
+        return result;
     }
     
     public static String getProxyClass(String apiName_) {
     	apiName_ = apiName_.replaceFirst("^(Titanium|Ti)\\.", "");
     	return PROXY_MAP.get(apiName_);
+    }
+
+    public static void addMapping(Map<String, String> map) {
+        PROXY_MAP.putAll(map);
     }
 }

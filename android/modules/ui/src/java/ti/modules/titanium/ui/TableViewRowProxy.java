@@ -18,6 +18,7 @@ import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.proxy.ParentingProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -131,15 +132,14 @@ public class TableViewRowProxy extends ViewProxy
 	}
 
 	@Override
-	public void add(Object args, @Kroll.argument(optional = true) Object index)
+    protected void addProxy(Object args, final int index)
 	{
 		TiViewProxy child = null;
 		if (args instanceof TiViewProxy)
 			child = (TiViewProxy) args;
-		else if (args instanceof HashMap) {
-			child = (TiViewProxy) KrollProxy.createProxy(TiViewProxy.class, null, new Object[] { args }, null);
+		if (child == null) {
+		    return;
 		}
-		
 		if (controls == null) {
 			controls = new ArrayList<TiViewProxy>();
 		}
@@ -151,11 +151,17 @@ public class TableViewRowProxy extends ViewProxy
 	}
 
 	@Override
-	public void remove(TiViewProxy control)
+	public void remove(Object args)
 	{
 		if (controls == null) {
 			return;
 		}
+		TiViewProxy control = null;
+        if (args instanceof TiViewProxy)
+            control = (TiViewProxy) args;
+        if (control == null) {
+            return;
+        }
 		control.setParent(null);
 		controls.remove(control);
 		if (tableViewItem != null) {
@@ -171,7 +177,7 @@ public class TableViewRowProxy extends ViewProxy
 
 	public TableViewProxy getTable()
 	{
-		TiViewProxy parent = getParent();
+	    ParentingProxy parent = getParent();
 		while (!(parent instanceof TableViewProxy) && parent != null) {
 			parent = parent.getParent();
 		}

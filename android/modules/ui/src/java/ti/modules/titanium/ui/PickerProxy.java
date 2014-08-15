@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -154,7 +155,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 		} else {
 			useSpinner = value;
 			if (children != null && children.size() > 0) {
-				for (TiViewProxy child : children) {
+				for (KrollProxy child : children) {
 					if (child instanceof PickerColumnProxy) {
 						((PickerColumnProxy)child).setUseSpinner(value);
 					}
@@ -185,7 +186,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	}
 
 	@Override
-	public void remove(TiViewProxy child)
+	public void removeProxy(Object child)
 	{
 		if (TiApplication.isUIThread() || peekView() == null) {
 			handleRemoveColumn(child);
@@ -194,7 +195,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 		}
 	}
 
-	private void handleRemoveColumn(TiViewProxy child)
+	private void handleRemoveColumn(Object child)
 	{
 		int index = -1;
 		if (children.contains(child)){
@@ -209,7 +210,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	// We need a special add() method above and beyond the TiViewProxy add() because
 	// because we can also accept array of PickerRowProxys
 	@Kroll.method
-	public void add(TiViewProxy child, @Kroll.argument(optional = true) Object index)
+	public void add(Object child, @Kroll.argument(optional = true) Object index)
 	{
 		if (!isPlainPicker()) {
 			Log.w(TAG, "Attempt to add to date/time or countdown picker ignored.");
@@ -488,7 +489,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 		if (column == null) {
 			return null;
 		}
-		TiViewProxy[] rowArray = column.getChildren();
+		KrollProxy[] rowArray = column.getChildren();
 		if (rowArray == null || rowIndex >= rowArray.length || (!(rowArray[rowIndex] instanceof PickerRowProxy))){
 			return null;
 		} else {

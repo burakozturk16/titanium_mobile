@@ -22,6 +22,7 @@
 #import "TiExceptionHandler.h"
 #import "SVGKit.h"
 #import "TiFileSystemHelper.h"
+#import	"Ti2DMatrix.h"
 
 // for checking version
 #import <sys/utsname.h>
@@ -640,6 +641,20 @@ bool Base64AllocAndEncodeData(const void *inInputData, size_t inInputDataSize, c
     return def;
 }
 
+
++(Ti2DMatrix*)matrixValue:(id)value
+{
+	return [Ti2DMatrix matrixWithObject:value];
+}
+
++(Ti2DMatrix*)matrixValue:(id)value def:(Ti2DMatrix*)def
+{
+    Ti2DMatrix* result = [Ti2DMatrix matrixWithObject:value];
+    if (result)
+        return result;
+    return def;
+}
+
 +(id)valueFromDimension:(TiDimension)dimension
 {
 	switch (dimension.type)
@@ -1083,6 +1098,35 @@ If the new path starts with / and the base url is app://..., we have to massage 
 	
 }
 
+
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties def:(Ti2DMatrix*)def exists:(BOOL*) exists
+{
+	if ([properties isKindOfClass:[NSDictionary class]])
+	{
+		id value = [properties objectForKey:name];
+        if (value == [NSNull null])
+		{
+			if (exists != NULL) *exists = YES;
+			return nil;
+		}
+		if (value != nil)
+		{
+			if (exists != NULL)
+			{
+				*exists = YES;
+			}
+			return [self matrixValue:value];
+		}
+	}
+	if (exists != NULL)
+	{
+		*exists = NO;
+	}
+	return def;
+	
+}
+
+
 +(int)intValue:(NSString*)name properties:(NSDictionary*)props def:(int)def;
 {
 	return [self intValue:name properties:props def:def exists:NULL];
@@ -1172,6 +1216,13 @@ If the new path starts with / and the base url is app://..., we have to massage 
 {
 	return [self tiPointValue:name properties:properties def:nil exists:NULL];
 }
+
+
++(Ti2DMatrix*)matrixValue:(NSString*)name properties:(NSDictionary*)properties
+{
+	return [self matrixValue:name properties:properties def:nil exists:NULL];
+}
+
 
 
 +(NSDictionary*)dictionaryFromTouchableEvent:(id)touch inView:(UIView*)view

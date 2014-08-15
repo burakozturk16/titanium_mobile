@@ -206,8 +206,6 @@
 		24D06FE911D0219B00F615D8 /* TiUIiOSAdView.m in Sources */ = {isa = PBXBuildFile; fileRef = 24D06FE711D0219B00F615D8 /* TiUIiOSAdView.m */; };
 		24D0700611D0253D00F615D8 /* TiUIiOSProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24D0700511D0253D00F615D8 /* TiUIiOSProxy.m */; };
 		24D0700711D0253D00F615D8 /* TiUIiOSProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 24D0700511D0253D00F615D8 /* TiUIiOSProxy.m */; };
-		24D5C75911E6364F00F097E2 /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 24D5C75811E6364F00F097E2 /* libtiverify.a */; };
-		24D5C75A11E6364F00F097E2 /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 24D5C75811E6364F00F097E2 /* libtiverify.a */; };
 		24D8E3BB119B9D8A00F8CAA6 /* TiUITableViewAction.m in Sources */ = {isa = PBXBuildFile; fileRef = 243EC7D6112634AF00639DF4 /* TiUITableViewAction.m */; };
 		24D8E3BC119B9D8A00F8CAA6 /* TiFile.m in Sources */ = {isa = PBXBuildFile; fileRef = 24F5AEB3111F9DE9005C9199 /* TiFile.m */; };
 		24D8E3BE119B9D8A00F8CAA6 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; };
@@ -479,9 +477,9 @@
 		502A68E616EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68D916EEAA7500661EF6 /* TiUIListViewProxy.m */; };
 		502A68E716EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68D916EEAA7500661EF6 /* TiUIListViewProxy.m */; };
 		502A68E816EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68D916EEAA7500661EF6 /* TiUIListViewProxy.m */; };
-		502A68EB16F0428500661EF6 /* TiViewTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiViewTemplate.m */; };
-		502A68EC16F0428500661EF6 /* TiViewTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiViewTemplate.m */; };
-		502A68ED16F0428500661EF6 /* TiViewTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiViewTemplate.m */; };
+		502A68EB16F0428500661EF6 /* TiProxyTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiProxyTemplate.m */; };
+		502A68EC16F0428500661EF6 /* TiProxyTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiProxyTemplate.m */; };
+		502A68ED16F0428500661EF6 /* TiProxyTemplate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502A68EA16F0428500661EF6 /* TiProxyTemplate.m */; };
 		502E9D2416CAFB9D00C1BD26 /* libti_ios_profiler.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 502E9D2316CAFB9D00C1BD26 /* libti_ios_profiler.a */; };
 		5081CEF815F8100E00C881D8 /* TiExceptionHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5081CEF715F8100E00C881D8 /* TiExceptionHandler.m */; };
 		5081CEF915F8100E00C881D8 /* TiExceptionHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = 5081CEF715F8100E00C881D8 /* TiExceptionHandler.m */; };
@@ -649,6 +647,9 @@
 		D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603918609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
 		D535603A18609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */ = {isa = PBXBuildFile; fileRef = D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */; };
+		D5370D94194749DF000E30FC /* TiParentingProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5370D93194749DF000E30FC /* TiParentingProxy.m */; };
+		D5370D95194749DF000E30FC /* TiParentingProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5370D93194749DF000E30FC /* TiParentingProxy.m */; };
+		D5370D96194749DF000E30FC /* TiParentingProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D5370D93194749DF000E30FC /* TiParentingProxy.m */; };
 		D53D20F516A08FF600D36D2C /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5691303168F0F4200C3F89F /* CoreText.framework */; };
 		D53D20F716A0900000D36D2C /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915AB168F16FA00C3F89F /* ImageIO.framework */; };
 		D53D20F816A0900B00D36D2C /* CoreData.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56915C2168F192B00C3F89F /* CoreData.framework */; };
@@ -661,6 +662,9 @@
 		D5412E1719012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
 		D5412E1819012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
 		D5412E1919012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */; };
+		D544CEA11949AA8900419D57 /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D544CEA01949AA8900419D57 /* libtiverify.a */; };
+		D544CEA21949AA8900419D57 /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D544CEA01949AA8900419D57 /* libtiverify.a */; };
+		D544CEA31949AA8900419D57 /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D544CEA01949AA8900419D57 /* libtiverify.a */; };
 		D54C7CEF1811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
 		D54C7CF01811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
 		D54C7CF11811565A00F592A9 /* TiTransitionSlide.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */; };
@@ -742,25 +746,19 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
-<<<<<<< HEAD
-=======
-		D5809D5019129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
-		D5809D5119129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
-		D5809D5219129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; };
-		D5809D5319129CEB005A1F02 /* APSHTTPOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4919129CEB005A1F02 /* APSHTTPOperation.m */; };
-		D5809D5419129CEB005A1F02 /* APSHTTPOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4919129CEB005A1F02 /* APSHTTPOperation.m */; };
-		D5809D5519129CEB005A1F02 /* APSHTTPOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4919129CEB005A1F02 /* APSHTTPOperation.m */; };
-		D5809D5619129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; };
-		D5809D5719129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; };
-		D5809D5819129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; };
-		D5809D5919129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; };
-		D5809D5A19129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; };
-		D5809D5B19129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; };
-		D5809D5C19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; };
-		D5809D5D19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; };
-		D5809D5E19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; };
+		D5809D5019129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5119129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5219129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5619129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5719129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5819129CEB005A1F02 /* APSHTTPPostForm.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5919129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5A19129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5B19129CEB005A1F02 /* APSHTTPRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4D19129CEB005A1F02 /* APSHTTPRequest.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5C19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5D19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D5809D5E19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EAE18AA8872007EF771 /* AdSupport.framework */; };
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
@@ -776,7 +774,6 @@
 		D58DCBD217FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
 		D58DCBD317FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
 		D58DCBD417FF193D0011FE0E /* TiTransitionHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D58DCBD117FF193D0011FE0E /* TiTransitionHelper.m */; };
-		D58ED9061928F49F00BA0E04 /* libakylas.charts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */; };
 		D58ED9071928F49F00BA0E04 /* libakylas.commonjs.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8FB1928E6F800BA0E04 /* libakylas.commonjs.a */; };
 		D58ED9081928F49F00BA0E04 /* libakylas.map.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8E91928E6F700BA0E04 /* libakylas.map.a */; };
 		D58ED9091928F49F00BA0E04 /* libakylas.shapes.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D58ED8EF1928E6F700BA0E04 /* libakylas.shapes.a */; };
@@ -1181,7 +1178,6 @@
 		DABB37B412E8CB280026A6EA /* libxml2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 24EB0A57111E1BAE001DC2D1 /* libxml2.dylib */; };
 		DABB37B512E8CB280026A6EA /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 24597034118FF66300519F79 /* StoreKit.framework */; };
 		DABB37B612E8CB280026A6EA /* libTiCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 242E8E3011BA39FD0046A0D0 /* libTiCore.a */; };
-		DABB37B712E8CB280026A6EA /* libtiverify.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 24D5C75811E6364F00F097E2 /* libtiverify.a */; };
 		DABDEB08128B5A8F00C85FEA /* AudioStreamerCUR.m in Sources */ = {isa = PBXBuildFile; fileRef = DA9FF582128A1F3600457759 /* AudioStreamerCUR.m */; };
 		DABF3ECF134D210400836137 /* TiBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = DABF3ECE134D210400836137 /* TiBuffer.m */; };
 		DABF3ED0134D210400836137 /* TiBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = DABF3ECE134D210400836137 /* TiBuffer.m */; };
@@ -1245,16 +1241,7 @@
 		};
 /* End PBXBuildRule section */
 
-<<<<<<< HEAD
-=======
 /* Begin PBXContainerItemProxy section */
-		D58ED8E11928E6F700BA0E04 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = akylas.charts;
-		};
 		D58ED8E81928E6F700BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */;
@@ -1282,13 +1269,6 @@
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
 			remoteInfo = akylas.commonjs;
-		};
-		D58ED8FC1928F48B00BA0E04 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = akylas.charts;
 		};
 		D58ED8FE1928F48E00BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -1320,7 +1300,6 @@
 		};
 /* End PBXContainerItemProxy section */
 
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 /* Begin PBXFileReference section */
 		1D0061BF160283820016BBEE /* TiBindingRunLoop.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBindingRunLoop.h; sourceTree = "<group>"; };
 		1D0061C0160283820016BBEE /* TiBindingRunLoop.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBindingRunLoop.m; sourceTree = "<group>"; };
@@ -1665,7 +1644,6 @@
 		24D06FE711D0219B00F615D8 /* TiUIiOSAdView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TiUIiOSAdView.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
 		24D0700411D0253D00F615D8 /* TiUIiOSProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = TiUIiOSProxy.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		24D0700511D0253D00F615D8 /* TiUIiOSProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; lineEnding = 0; path = TiUIiOSProxy.m; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objc; };
-		24D5C75811E6364F00F097E2 /* libtiverify.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiverify.a; path = ../lib/libtiverify.a; sourceTree = SOURCE_ROOT; };
 		24D8E4B1119B9D8A00F8CAA6 /* Titanium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Titanium.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		24DD042A116A6C58006FD6E1 /* TiToolbar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiToolbar.h; sourceTree = "<group>"; };
 		24DD0455116A6F02006FD6E1 /* TiTabGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTabGroup.h; sourceTree = "<group>"; };
@@ -1779,8 +1757,8 @@
 		502A68D716EEAA7500661EF6 /* TiUIListView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIListView.m; sourceTree = "<group>"; };
 		502A68D816EEAA7500661EF6 /* TiUIListViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIListViewProxy.h; sourceTree = "<group>"; };
 		502A68D916EEAA7500661EF6 /* TiUIListViewProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIListViewProxy.m; sourceTree = "<group>"; };
-		502A68E916F0428500661EF6 /* TiViewTemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiViewTemplate.h; sourceTree = "<group>"; };
-		502A68EA16F0428500661EF6 /* TiViewTemplate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiViewTemplate.m; sourceTree = "<group>"; };
+		502A68E916F0428500661EF6 /* TiProxyTemplate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiProxyTemplate.h; sourceTree = "<group>"; };
+		502A68EA16F0428500661EF6 /* TiProxyTemplate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiProxyTemplate.m; sourceTree = "<group>"; };
 		502E9D2316CAFB9D00C1BD26 /* libti_ios_profiler.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libti_ios_profiler.a; path = ../lib/libti_ios_profiler.a; sourceTree = "<group>"; };
 		5081CEF615F8100E00C881D8 /* TiExceptionHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiExceptionHandler.h; sourceTree = "<group>"; };
 		5081CEF715F8100E00C881D8 /* TiExceptionHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiExceptionHandler.m; sourceTree = "<group>"; };
@@ -1867,7 +1845,6 @@
 		B606EF38190B10A800663EFC /* SBJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SBJSON.h; sourceTree = "<group>"; };
 		B606EF48190B14ED00663EFC /* Reachability.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Reachability.h; sourceTree = "<group>"; };
 		B606EF49190B14ED00663EFC /* Reachability.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Reachability.m; sourceTree = "<group>"; };
-		B606EF5F190B42FB00663EFC /* libAPSHTTPClient.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libAPSHTTPClient.a; path = ../Classes/APSHTTPClient/libAPSHTTPClient.a; sourceTree = "<group>"; };
 		B6465C2118D1011C003C51A8 /* TiNetworkCookieProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiNetworkCookieProxy.h; sourceTree = "<group>"; };
 		B6465C2218D1011C003C51A8 /* TiNetworkCookieProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiNetworkCookieProxy.m; sourceTree = "<group>"; };
 		B6A0A2AF180DF4DA00E3FAA6 /* TiUIiOSTransitionAnimationProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSTransitionAnimationProxy.h; sourceTree = "<group>"; };
@@ -2042,10 +2019,13 @@
 		D52DF22C18C7A0550076FB71 /* libMapbox.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libMapbox.a; path = "../../../../ios/MapBox/MapView/build/Debug-iphoneos/libMapbox.a"; sourceTree = "<group>"; };
 		D535603618609A2800F8DEFD /* TiHLSLayerAnimationStep.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiHLSLayerAnimationStep.h; path = Animation/TiHLSLayerAnimationStep.h; sourceTree = "<group>"; };
 		D535603718609A2800F8DEFD /* TiHLSLayerAnimationStep.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiHLSLayerAnimationStep.m; path = Animation/TiHLSLayerAnimationStep.m; sourceTree = "<group>"; };
+		D5370D92194749DF000E30FC /* TiParentingProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiParentingProxy.h; sourceTree = "<group>"; };
+		D5370D93194749DF000E30FC /* TiParentingProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiParentingProxy.m; sourceTree = "<group>"; };
 		D5412E101900156C00B720DF /* ADPercentDrivenInteractiveTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADPercentDrivenInteractiveTransition.h; path = ../Classes/ADTransitionController/ADPercentDrivenInteractiveTransition.h; sourceTree = "<group>"; };
 		D5412E111900156C00B720DF /* ADPercentDrivenInteractiveTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADPercentDrivenInteractiveTransition.m; path = ../Classes/ADTransitionController/ADPercentDrivenInteractiveTransition.m; sourceTree = "<group>"; };
 		D5412E1519012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "UIGestureRecognizer+ADNavTransition.h"; path = "../Classes/ADTransitionController/UIGestureRecognizer+ADNavTransition.h"; sourceTree = "<group>"; };
 		D5412E1619012A0D00B720DF /* UIGestureRecognizer+ADNavTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIGestureRecognizer+ADNavTransition.m"; path = "../Classes/ADTransitionController/UIGestureRecognizer+ADNavTransition.m"; sourceTree = "<group>"; };
+		D544CEA01949AA8900419D57 /* libtiverify.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtiverify.a; path = ../lib/libtiverify.a; sourceTree = "<group>"; };
 		D54C7CED1811565A00F592A9 /* TiTransitionSlide.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSlide.h; sourceTree = "<group>"; };
 		D54C7CEE1811565A00F592A9 /* TiTransitionSlide.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSlide.m; sourceTree = "<group>"; };
 		D54C7CF21811570B00F592A9 /* TiTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransition.m; sourceTree = "<group>"; };
@@ -2105,13 +2085,9 @@
 		D57007F718255C520063F7FE /* TiTransitionSwipeDualFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSwipeDualFade.h; sourceTree = "<group>"; };
 		D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwipeDualFade.m; sourceTree = "<group>"; };
 		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
-<<<<<<< HEAD
-=======
 		D5809D4519129CEB005A1F02 /* APSHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPClient.h; sourceTree = "<group>"; };
 		D5809D4619129CEB005A1F02 /* APSHTTPHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPHelper.h; sourceTree = "<group>"; };
 		D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APSHTTPHelper.m; sourceTree = "<group>"; };
-		D5809D4819129CEB005A1F02 /* APSHTTPOperation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPOperation.h; sourceTree = "<group>"; };
-		D5809D4919129CEB005A1F02 /* APSHTTPOperation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APSHTTPOperation.m; sourceTree = "<group>"; };
 		D5809D4A19129CEB005A1F02 /* APSHTTPPostForm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPPostForm.h; sourceTree = "<group>"; };
 		D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APSHTTPPostForm.m; sourceTree = "<group>"; };
 		D5809D4C19129CEB005A1F02 /* APSHTTPRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPRequest.h; sourceTree = "<group>"; };
@@ -2119,7 +2095,6 @@
 		D5809D4E19129CEB005A1F02 /* APSHTTPResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPResponse.h; sourceTree = "<group>"; };
 		D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APSHTTPResponse.m; sourceTree = "<group>"; };
 		D5818EAE18AA8872007EF771 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		D58791E8183E790F007F5BF1 /* TiTransitionPerspective.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionPerspective.h; sourceTree = "<group>"; };
@@ -2138,7 +2113,6 @@
 		D59DD42618096186002FDCDF /* ADModernPushTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADModernPushTransition.m; path = ../Classes/ADTransitionController/ADModernPushTransition.m; sourceTree = "<group>"; };
 		D59EC23B180FDC5D00FDDD11 /* TiTransitionFold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionFold.h; sourceTree = "<group>"; };
 		D59EC23C180FDC5D00FDDD11 /* TiTransitionFold.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionFold.m; sourceTree = "<group>"; };
-		D5A016AB192607F10005158A /* akylas.charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.charts.xcodeproj; path = ../../../modules/akylas_modules/charts/ios/akylas.charts.xcodeproj; sourceTree = "<group>"; };
 		D5A016C91926109E0005158A /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		D5AADFA917EC32A6008987EF /* UIControl+TiUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIControl+TiUIView.h"; sourceTree = "<group>"; };
 		D5AADFAA17EC32A6008987EF /* UIControl+TiUIView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIControl+TiUIView.m"; sourceTree = "<group>"; };
@@ -2281,13 +2255,10 @@
 		D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Merge.m"; sourceTree = "<group>"; };
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
-<<<<<<< HEAD
-=======
 		D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libresolv.dylib; path = usr/lib/libresolv.dylib; sourceTree = SDKROOT; };
 		D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.shapes.xcodeproj; path = ../../../modules/akylas_modules/shapes/ios/akylas.shapes.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.slidemenu.xcodeproj; path = ../../../modules/akylas_modules/slidemenu/ios/akylas.slidemenu.xcodeproj; sourceTree = "<group>"; };
 		D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.commonjs.xcodeproj; path = ../../../modules/akylas_modules/commonjs/ios/akylas.commonjs.xcodeproj; sourceTree = "<group>"; };
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 		D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiAnimatedImage.h; sourceTree = "<group>"; };
 		D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiAnimatedImage.m; sourceTree = "<group>"; };
 		D930111C16DA9D61002E25C2 /* TiCalendarRecurrenceRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiCalendarRecurrenceRule.h; sourceTree = "<group>"; };
@@ -2344,9 +2315,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-<<<<<<< HEAD
-=======
-				D58ED9061928F49F00BA0E04 /* libakylas.charts.a in Frameworks */,
 				D58ED9071928F49F00BA0E04 /* libakylas.commonjs.a in Frameworks */,
 				D58ED9081928F49F00BA0E04 /* libakylas.map.a in Frameworks */,
 				D58ED9091928F49F00BA0E04 /* libakylas.shapes.a in Frameworks */,
@@ -2354,7 +2322,6 @@
 				D5A016CA1926109E0005158A /* Accelerate.framework in Frameworks */,
 				312E36C1190B06D9008EAB8D /* libAPSAnalytics.a in Frameworks */,
 				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 				D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */,
 				D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */,
@@ -2369,6 +2336,7 @@
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				288765FD0DF74451002DB57D /* CoreGraphics.framework in Frameworks */,
 				24CA8C76111167B60084E2DE /* AddressBook.framework in Frameworks */,
+				D544CEA11949AA8900419D57 /* libtiverify.a in Frameworks */,
 				D5B6C728181124C200A2612A /* libDTCoreText.a in Frameworks */,
 				24CA8C78111167B60084E2DE /* AddressBookUI.framework in Frameworks */,
 				24CA8C7C111167B60084E2DE /* CFNetwork.framework in Frameworks */,
@@ -2390,7 +2358,6 @@
 				242E8E3111BA39FD0046A0D0 /* libTiCore.a in Frameworks */,
 				242EA11611BD956F0046A0D0 /* ExternalAccessory.framework in Frameworks */,
 				D5B9289318C1EEC200E26393 /* GPUImage.framework in Frameworks */,
-				24D5C75911E6364F00F097E2 /* libtiverify.a in Frameworks */,
 				DAA4B2AE134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				508DB8FD16D431F100F9910E /* libti_ios_profiler.a in Frameworks */,
 			);
@@ -2421,6 +2388,7 @@
 				24D8E49F119B9D8A00F8CAA6 /* CoreLocation.framework in Frameworks */,
 				24D8E4A1119B9D8A00F8CAA6 /* MessageUI.framework in Frameworks */,
 				24D8E4A2119B9D8A00F8CAA6 /* MobileCoreServices.framework in Frameworks */,
+				D544CEA21949AA8900419D57 /* libtiverify.a in Frameworks */,
 				24D8E4A3119B9D8A00F8CAA6 /* OpenGLES.framework in Frameworks */,
 				24D8E4A4119B9D8A00F8CAA6 /* QuartzCore.framework in Frameworks */,
 				24D8E4A5119B9D8A00F8CAA6 /* SystemConfiguration.framework in Frameworks */,
@@ -2434,7 +2402,6 @@
 				D52539A0183A8787006FF1BB /* libCoconutKitAnimation.a in Frameworks */,
 				24D8E4AC119B9D8A00F8CAA6 /* StoreKit.framework in Frameworks */,
 				242E8E3211BA39FE0046A0D0 /* libTiCore.a in Frameworks */,
-				24D5C75A11E6364F00F097E2 /* libtiverify.a in Frameworks */,
 				DAA4B2AF134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				DADE76D613D65C6F0079FC75 /* libicucore.dylib in Frameworks */,
 				508DB8FC16D431F000F9910E /* libti_ios_profiler.a in Frameworks */,
@@ -2466,6 +2433,7 @@
 				DABB37A712E8CB280026A6EA /* CFNetwork.framework in Frameworks */,
 				DABB37A812E8CB280026A6EA /* CoreLocation.framework in Frameworks */,
 				DABB37AA12E8CB280026A6EA /* MessageUI.framework in Frameworks */,
+				D544CEA31949AA8900419D57 /* libtiverify.a in Frameworks */,
 				DABB37AB12E8CB280026A6EA /* MobileCoreServices.framework in Frameworks */,
 				DABB37AC12E8CB280026A6EA /* OpenGLES.framework in Frameworks */,
 				DABB37AD12E8CB280026A6EA /* QuartzCore.framework in Frameworks */,
@@ -2480,7 +2448,6 @@
 				DABB37B412E8CB280026A6EA /* libxml2.dylib in Frameworks */,
 				DABB37B512E8CB280026A6EA /* StoreKit.framework in Frameworks */,
 				DABB37B612E8CB280026A6EA /* libTiCore.a in Frameworks */,
-				DABB37B712E8CB280026A6EA /* libtiverify.a in Frameworks */,
 				DAA4B2B0134E3DBD00AB6011 /* libti_ios_debugger.a in Frameworks */,
 				DADE76D713D65C7D0079FC75 /* libicucore.dylib in Frameworks */,
 			);
@@ -2579,7 +2546,6 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
-				D5B9289218C1EEC200E26393 /* GPUImage.framework */,
 				D55795071837BEF90057DD41 /* CoconutKitAnimation */,
 				D5B6C6DD1811249F00A2612A /* DT */,
 				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
@@ -2840,6 +2806,8 @@
 				24CA8A0F111161FD0084E2DE /* XHRBridge.h */,
 				24CA8AB0111161FD0084E2DE /* TiProxy.m */,
 				24CA8AB1111161FD0084E2DE /* TiProxy.h */,
+				D5370D92194749DF000E30FC /* TiParentingProxy.h */,
+				D5370D93194749DF000E30FC /* TiParentingProxy.m */,
 				24CA8AAB111161FD0084E2DE /* TiTab.h */,
 				24CA8AD0111161FD0084E2DE /* TiEvaluator.h */,
 				24CA8AE0111161FE0084E2DE /* TiBlob.m */,
@@ -2876,8 +2844,8 @@
 				1D1029A715F9769100372EC0 /* TiBindingEvent.m */,
 				5081CEF615F8100E00C881D8 /* TiExceptionHandler.h */,
 				5081CEF715F8100E00C881D8 /* TiExceptionHandler.m */,
-				502A68E916F0428500661EF6 /* TiViewTemplate.h */,
-				502A68EA16F0428500661EF6 /* TiViewTemplate.m */,
+				502A68E916F0428500661EF6 /* TiProxyTemplate.h */,
+				502A68EA16F0428500661EF6 /* TiProxyTemplate.m */,
 				D51F03D71808411F005B4EE2 /* TiImageHelper.h */,
 				D51F03D81808411F005B4EE2 /* TiImageHelper.m */,
 				D5FD09DA1830EFE2000FF4C5 /* TiAnimatedImage.h */,
@@ -3590,15 +3558,13 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-<<<<<<< HEAD
-=======
+				D5B9289218C1EEC200E26393 /* GPUImage.framework */,
 				D5A016C91926109E0005158A /* Accelerate.framework */,
-				B606EF5F190B42FB00663EFC /* libAPSHTTPClient.a */,
 				D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */,
 				D52DF22C18C7A0550076FB71 /* libMapbox.a */,
 				D5818EAE18AA8872007EF771 /* AdSupport.framework */,
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 				D525399E183A8787006FF1BB /* libCoconutKitAnimation.a */,
+				D544CEA01949AA8900419D57 /* libtiverify.a */,
 				D5B6C727181124C200A2612A /* libDTCoreText.a */,
 				D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */,
 				D585BC8817E630CD0062275E /* CoreMedia.framework */,
@@ -3612,7 +3578,6 @@
 				84BBA58716570F90006B8C22 /* Security.framework */,
 				D5691303168F0F4200C3F89F /* CoreText.framework */,
 				DAA4B2AD134E3DBD00AB6011 /* libti_ios_debugger.a */,
-				24D5C75811E6364F00F097E2 /* libtiverify.a */,
 				242E8E3011BA39FD0046A0D0 /* libTiCore.a */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
@@ -3815,8 +3780,6 @@
 				D5809D4519129CEB005A1F02 /* APSHTTPClient.h */,
 				D5809D4619129CEB005A1F02 /* APSHTTPHelper.h */,
 				D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */,
-				D5809D4819129CEB005A1F02 /* APSHTTPOperation.h */,
-				D5809D4919129CEB005A1F02 /* APSHTTPOperation.m */,
 				D5809D4A19129CEB005A1F02 /* APSHTTPPostForm.h */,
 				D5809D4B19129CEB005A1F02 /* APSHTTPPostForm.m */,
 				D5809D4C19129CEB005A1F02 /* APSHTTPRequest.h */,
@@ -4036,17 +3999,13 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
-				D5A016AB192607F10005158A /* akylas.charts.xcodeproj */,
 				D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */,
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
 				D5E75A70187C58F00016542B /* icon@2x.png */,
-<<<<<<< HEAD
-=======
 				D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */,
 				D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */,
 				D5EE1B9F1860A11400579573 /* akylas.shapes.xcodeproj */,
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 			);
 			name = _dependencies_;
 			sourceTree = "<group>";
@@ -4111,17 +4070,6 @@
 			name = transitions;
 			sourceTree = "<group>";
 		};
-<<<<<<< HEAD
-		D585BBE017E62F350062275E /* GPUImage */ = {
-=======
-		D58ED8DD1928E6F700BA0E04 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D58ED8E41928E6F700BA0E04 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -4131,7 +4079,6 @@
 			sourceTree = "<group>";
 		};
 		D58ED8EA1928E6F700BA0E04 /* Products */ = {
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 			isa = PBXGroup;
 			children = (
 				D58ED8EF1928E6F700BA0E04 /* libakylas.shapes.a */,
@@ -4373,14 +4320,10 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
-<<<<<<< HEAD
-=======
 				D58ED9051928F49600BA0E04 /* PBXTargetDependency */,
 				D58ED9031928F49300BA0E04 /* PBXTargetDependency */,
 				D58ED9011928F49000BA0E04 /* PBXTargetDependency */,
 				D58ED8FF1928F48E00BA0E04 /* PBXTargetDependency */,
-				D58ED8FD1928F48B00BA0E04 /* PBXTargetDependency */,
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 			);
 			name = "Titanium-KitchenSink";
 			productName = Titanium;
@@ -4456,13 +4399,7 @@
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* CustomTemplate */;
 			projectDirPath = "";
-<<<<<<< HEAD
-=======
 			projectReferences = (
-				{
-					ProductGroup = D58ED8DD1928E6F700BA0E04 /* Products */;
-					ProjectRef = D5A016AB192607F10005158A /* akylas.charts.xcodeproj */;
-				},
 				{
 					ProductGroup = D58ED8F61928E6F800BA0E04 /* Products */;
 					ProjectRef = D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */;
@@ -4480,7 +4417,6 @@
 					ProjectRef = D5EE1BD91860ABD100579573 /* akylas.slidemenu.xcodeproj */;
 				},
 			);
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 			projectRoot = "";
 			targets = (
 				1D6058900D05DD3D006BFB54 /* Titanium-KitchenSink */,
@@ -4490,16 +4426,7 @@
 		};
 /* End PBXProject section */
 
-<<<<<<< HEAD
-=======
 /* Begin PBXReferenceProxy section */
-		D58ED8E21928E6F700BA0E04 /* libakylas.charts.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libakylas.charts.a;
-			remoteRef = D58ED8E11928E6F700BA0E04 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		D58ED8E91928E6F700BA0E04 /* libakylas.map.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -4530,7 +4457,6 @@
 		};
 /* End PBXReferenceProxy section */
 
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 /* Begin PBXResourcesBuildPhase section */
 		1D60588D0D05DD3D006BFB54 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
@@ -4577,7 +4503,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp -Rf \"$PROJECT_DIR/../../demos/KitchenSink/Resources/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\" \nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/facebook/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/ui/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\n\"$PROJECT_DIR/../../support/common/localecompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios simulator \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\"\n\"$PROJECT_DIR/../../support/common/css/csscompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios \"$PROJECT_DIR/../Resources\"";
+			shellScript = "cp -Rf \"$PROJECT_DIR/../../demos/KitchenSink/Resources/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\" \nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\nmkdir -p \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/mopub\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/facebook/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/facebook/images\"\ncp -Rf \"$PROJECT_DIR/../Resources/modules/ui/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/ui/images\"\ncp -Rf \"/Volumes/data/dev/titanium/modules/akylas_modules/mopub/ios/assets/.\" \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app/modules/mopub/\"\n\"$PROJECT_DIR/../../support/common/localecompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios simulator \"$TARGET_BUILD_DIR/$PRODUCT_NAME.app\"\n\"$PROJECT_DIR/../../support/common/css/csscompiler.py\" \"$PROJECT_DIR/../../demos/KitchenSink\" ios \"$PROJECT_DIR/../Resources\"";
 		};
 		24CA8D03111169070084E2DE /* Post-Compile */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -4658,7 +4584,6 @@
 			files = (
 				243ECCB21126984E00639DF4 /* TiUITableViewAction.m in Sources */,
 				243ECCB71126986F00639DF4 /* TiFile.m in Sources */,
-				D5809D5319129CEB005A1F02 /* APSHTTPOperation.m in Sources */,
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				D5216934183A10AC00FBB24B /* CAAnimation+Blocks.m in Sources */,
 				24CA895B111161050084E2DE /* AFItemView.m in Sources */,
@@ -4701,6 +4626,7 @@
 				24CA8B68111161FE0084E2DE /* WebFont.m in Sources */,
 				D54C7D1618115C3C00F592A9 /* TiTransitionZoom.m in Sources */,
 				24CA8B6A111161FE0084E2DE /* UIModule.m in Sources */,
+				D5370D94194749DF000E30FC /* TiParentingProxy.m in Sources */,
 				24CA8B6C111161FE0084E2DE /* TiViewProxy.m in Sources */,
 				24CA8B70111161FE0084E2DE /* TiUtils.m in Sources */,
 				24CA8B71111161FE0084E2DE /* TiUIWindowProxy.m in Sources */,
@@ -4983,7 +4909,7 @@
 				502A68E316EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				D512A7B3187F1813004E3AB1 /* ADTransitioningViewController.m in Sources */,
 				502A68E616EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
-				502A68EB16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				502A68EB16F0428500661EF6 /* TiProxyTemplate.m in Sources */,
 				D5C8C97017EF45C900F54C19 /* ADCubeTransition.m in Sources */,
 				84C3870217417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815C168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
@@ -5126,7 +5052,6 @@
 				D5216940183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */,
 				24D8E428119B9D8A00F8CAA6 /* TiProxy.m in Sources */,
 				24D8E429119B9D8A00F8CAA6 /* TiPoint.m in Sources */,
-				D5809D5419129CEB005A1F02 /* APSHTTPOperation.m in Sources */,
 				D56E669A180C3B9000F1B737 /* TiTransitionSwipe.m in Sources */,
 				24D8E42C119B9D8A00F8CAA6 /* TiModule.m in Sources */,
 				24D8E42D119B9D8A00F8CAA6 /* TiMediaVideoPlayerProxy.m in Sources */,
@@ -5323,6 +5248,7 @@
 				B6465C2418D10126003C51A8 /* TiNetworkCookieProxy.m in Sources */,
 				2BDEA4F514490546004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F7F14883A3700F5424C /* TiDOMValidator.m in Sources */,
+				D5370D95194749DF000E30FC /* TiParentingProxy.m in Sources */,
 				DAA72344156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8215901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				D56E669F180C3BEB00F1B737 /* TiTransitionCarousel.m in Sources */,
@@ -5346,7 +5272,7 @@
 				502A68E416EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E716EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				D5C8C97117EF45C900F54C19 /* ADCubeTransition.m in Sources */,
-				502A68EC16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				502A68EC16F0428500661EF6 /* TiProxyTemplate.m in Sources */,
 				D5C92DA8182AA88F0072D117 /* TouchDelegate_Views.m in Sources */,
 				D590815D168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
 				D5908160168B593B00362307 /* TiUIHorizontalTableViewProxy.m in Sources */,
@@ -5488,7 +5414,6 @@
 				D5216941183A598500FBB24B /* TiTransitionAnimationStep.m in Sources */,
 				DABB370312E8CB280026A6EA /* TiProxy.m in Sources */,
 				DABB370412E8CB280026A6EA /* TiPoint.m in Sources */,
-				D5809D5519129CEB005A1F02 /* APSHTTPOperation.m in Sources */,
 				D56E669B180C3B9000F1B737 /* TiTransitionSwipe.m in Sources */,
 				DABB370712E8CB280026A6EA /* TiModule.m in Sources */,
 				DABB370812E8CB280026A6EA /* TiMediaVideoPlayerProxy.m in Sources */,
@@ -5685,6 +5610,7 @@
 				B6465C2518D10126003C51A8 /* TiNetworkCookieProxy.m in Sources */,
 				2BDEA4F614490547004EC750 /* TiUIiOSTabbedBarProxy.m in Sources */,
 				844E1F8014883A3700F5424C /* TiDOMValidator.m in Sources */,
+				D5370D96194749DF000E30FC /* TiParentingProxy.m in Sources */,
 				DAA72345156D642400757987 /* TiConsole.m in Sources */,
 				2B353A8315901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				D56E66A0180C3BEB00F1B737 /* TiTransitionCarousel.m in Sources */,
@@ -5708,7 +5634,7 @@
 				502A68E516EEAA7500661EF6 /* TiUIListView.m in Sources */,
 				502A68E816EEAA7500661EF6 /* TiUIListViewProxy.m in Sources */,
 				D5C8C97217EF45C900F54C19 /* ADCubeTransition.m in Sources */,
-				502A68ED16F0428500661EF6 /* TiViewTemplate.m in Sources */,
+				502A68ED16F0428500661EF6 /* TiProxyTemplate.m in Sources */,
 				D5C92DA9182AA88F0072D117 /* TouchDelegate_Views.m in Sources */,
 				84C3870417417CB800970D26 /* TiSelectedCellbackgroundView.m in Sources */,
 				D590815E168B593B00362307 /* TiUIHorizontalTableView.m in Sources */,
@@ -5741,14 +5667,7 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
-<<<<<<< HEAD
-=======
 /* Begin PBXTargetDependency section */
-		D58ED8FD1928F48B00BA0E04 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = akylas.charts;
-			targetProxy = D58ED8FC1928F48B00BA0E04 /* PBXContainerItemProxy */;
-		};
 		D58ED8FF1928F48E00BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = akylas.map;
@@ -5771,7 +5690,6 @@
 		};
 /* End PBXTargetDependency section */
 
->>>>>>> 499d277b9693fdb3f7973828dda5cb0f4cadea7e
 /* Begin XCBuildConfiguration section */
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -5779,12 +5697,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/ios/GPUImage/build,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -5793,12 +5705,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -5830,23 +5736,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/ios/GPUImage/build,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"$(inherited)",
 					"-weak_framework",
@@ -5869,23 +5763,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -5911,21 +5794,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -5952,6 +5824,7 @@
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../libexternals\"";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_THUMB_SUPPORT = NO;
@@ -5975,6 +5848,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 					"\"$(SRCROOT)/../libexternals\"",
+					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
@@ -5996,6 +5870,7 @@
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../libexternals\"";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_THUMB_SUPPORT = NO;
@@ -6019,6 +5894,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 					"\"$(SRCROOT)/../libexternals\"",
+					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
 				);
 				OTHER_CFLAGS = "-DTI_POST_1_2";
 				OTHER_LDFLAGS = "-ObjC";
@@ -6037,6 +5913,7 @@
 				CLANG_CXX_LIBRARY = "libstdc++";
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				FRAMEWORK_SEARCH_PATHS = "\"$(SRCROOT)/../libexternals\"";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_PREPROCESSOR_DEFINITIONS = "TI_VERSION=$(TI_VERSION)";
 				GCC_THUMB_SUPPORT = NO;
@@ -6060,6 +5937,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../lib\"",
 					"\"$(SRCROOT)/../libexternals\"",
+					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
 				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
@@ -6081,12 +5959,6 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/ios/GPUImage/build,
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_CPP_RTTI = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -6095,12 +5967,6 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DDEBUG",
 					"-DTI_POST_1_2",
@@ -6132,23 +5998,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6174,23 +6029,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6222,23 +6066,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",
@@ -6270,21 +6103,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					/Volumes/data/dev/titanium/titanium_mobile/iphone/libexternals,
-					/Volumes/data/dev/titanium/modules/akylas_modules/mapbox/ios/../../timap/ios,
-				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = Titanium_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
 				INFOPLIST_FILE = Titanium.plist;
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../lib\"",
-					"\"$(SRCROOT)/../Classes/APSAnalytics\"",
-					"\"$(SRCROOT)/../Classes/APSHTTPClient\"",
-				);
 				OTHER_CFLAGS = (
 					"-DIPAD",
 					"-DTI_POST_1_2",

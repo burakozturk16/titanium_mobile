@@ -9,12 +9,15 @@ package org.appcelerator.kroll;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.APIMap;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -23,9 +26,11 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.ActivityProxy;
+import org.appcelerator.titanium.proxy.ParentingProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.util.TiUrl;
+import org.appcelerator.titanium.view.KrollProxyReusableListener;
 
 import android.app.Activity;
 import android.os.Handler;
@@ -87,6 +92,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	private KrollDict langConversionTable = null;
 	private boolean bubbleParent = true;
+	
+    private HashMap<String, Object> propertiesToUpdateNativeSide = null;
 
 	public static final String PROXY_ID_PREFIX = "proxy$";
 
@@ -1373,6 +1380,12 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		setModelListener(modelListener, true);
 	}
 	
+	public KrollProxyListener getModelListener()
+    {
+        return modelListener;
+    }
+    
+	
 	public void setModelListener(KrollProxyListener modelListener , Boolean applyProps)
 	{
 		// Double-setting the same modelListener can potentially have weird side-effects.
@@ -1513,5 +1526,107 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	{
 		return "Ti.Proxy";
 	}
+	
+   protected void addPropToUpdateNativeSide(String key, Object value) 
+    {
+        if (propertiesToUpdateNativeSide == null) 
+        {
+            propertiesToUpdateNativeSide = new HashMap<String, Object>();
+        }
+        propertiesToUpdateNativeSide.put(key, value);
+    }
+    
+    public void updatePropertiesNativeSide() 
+    {
+        if (propertiesToUpdateNativeSide != null) 
+        {
+            updateKrollObjectProperties(propertiesToUpdateNativeSide);
+            propertiesToUpdateNativeSide = null;
+        }
+    }
+    
+    protected void addBinding(String bindId, KrollProxy bindingProxy)
+    {
+        if (bindId == null) return;
+        setProperty(bindId, bindingProxy);
+        addPropToUpdateNativeSide(bindId, bindingProxy);
+    }
+	
+	@SuppressWarnings("unchecked")
+    protected void initFromTemplate(HashMap template_,
+            KrollProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
+        if (rootProxy != null && template_.containsKey(TiC.PROPERTY_BIND_ID)) {
+            rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),this);
+        }
+        if (template_.containsKey(TiC.PROPERTY_EVENTS)) {
+            Object events = template_
+                    .get(TiC.PROPERTY_EVENTS);
+            if (events instanceof HashMap) {
+                Iterator entries = ((HashMap)events).entrySet().iterator();
+                while (entries.hasNext()) {
+                    Map.Entry entry = (Map.Entry) entries.next();
+                    String key = (String)entry.getKey();
+                    Object value = entry.getValue();
+                    if (value instanceof KrollFunction) {
+                        addEventListener(key, new KrollEventFunction(getKrollObject(), (KrollFunction) value));
+                    }
+                }
+            }
+        }
+    }
+    
+    public KrollProxy createProxyFromTemplate(HashMap template_,
+            KrollProxy rootProxy, boolean updateKrollProperties) {
+        return createProxyFromTemplate(template_, rootProxy, updateKrollProperties, true);
+    }
+    @SuppressWarnings("unchecked")
+    public KrollProxy createProxyFromTemplate(HashMap template_,
+            KrollProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
+        String type = TiConvert.toString(template_, TiC.PROPERTY_TYPE,
+                "Ti.UI.View");
+        Object properties = (template_.containsKey(TiC.PROPERTY_PROPERTIES)) ? template_
+                .get(TiC.PROPERTY_PROPERTIES) : template_;
+        try {
+            Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+                    .forName(APIMap.getProxyClass(type));
+            KrollProxy proxy = KrollProxy.createProxy(cls, null,
+                    new Object[] { properties }, null);
+            if (proxy == null)
+                return null;
+            proxy.initFromTemplate(template_, rootProxy, updateKrollProperties, recursive);
+            if (updateKrollProperties) {
+                rootProxy.updatePropertiesNativeSide();
+            }
+            return proxy;
+        } catch (Exception e) {
+            Log.e(TAG, "Error creating view from template: " + e.toString());
+            return null;
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public KrollProxy createTypeViewFromDict(HashMap template_,
+            String type) {
+        Object properties = template_.get(TiC.PROPERTY_PROPERTIES);
+        try {
+            Class<? extends KrollProxy> cls = (Class<? extends KrollProxy>) Class
+                    .forName(APIMap.getProxyClass(type));
+            KrollProxy proxy = createProxy(cls, null,
+                    new Object[] { properties }, null);
+            if (proxy == null)
+                return null;
+            proxy.initFromTemplate(template_, proxy, false, true);
+            return proxy;
+        } catch (Exception e) {
+            Log.e(TAG, "Error creating view from dict: " + e.toString());
+            return null;
+        }
+    }
+    public void reloadProperties()
+    {
+        if (modelListener != null) {
+            modelListener.processProperties(getProperties());
+        }
+    }
 }
 

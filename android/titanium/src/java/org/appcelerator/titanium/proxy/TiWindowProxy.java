@@ -527,8 +527,8 @@ public abstract class TiWindowProxy extends TiViewProxy
 		return winManager;
 	}
 	
-	private TiWindowProxy findParentWindow(TiViewProxy proxy) {
-		TiViewProxy parent = proxy.getParent();
+	private TiWindowProxy findParentWindow(ParentingProxy proxy) {
+		ParentingProxy parent = proxy.getParent();
 		if (parent == null) return null;
 		if (parent instanceof TiWindowProxy) {
 			return (TiWindowProxy)parent;

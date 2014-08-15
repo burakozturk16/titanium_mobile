@@ -28,9 +28,12 @@
 -(void)dealloc
 {
 	RELEASE_TO_NIL_AUTORELEASE(rootWindow);
-    RELEASE_TO_NIL(_navigationDelegate);
+    if (_navigationDelegate) {
+        _navigationDelegate.delegate = nil;
+        RELEASE_TO_NIL(_navigationDelegate);
+    }
     RELEASE_TO_NIL(navController);
-    RELEASE_TO_NIL(current);
+    RELEASE_TO_NIL_AUTORELEASE(current);
     RELEASE_TO_NIL(_defaultTransition);
     RELEASE_TO_NIL(popRecognizer);
 	[super dealloc];
@@ -120,7 +123,6 @@ else{\
         [rootWindow open:nil];
         [rootWindow windowWillOpen];
         [rootWindow windowDidOpen];
-        current = [rootWindow retain];
     }
     return [rootWindow hostingController];
 }
@@ -160,9 +162,9 @@ else{\
 	TiWindowProxy *window = [args objectAtIndex:0];
 	ENSURE_TYPE(window,TiWindowProxy);
     
-    if (window == current) return;
+    if (window == current || (window == rootWindow && [rootWindow opening])) return;
 
-    if ((window == rootWindow && ![rootWindow opening]) || [self controllerForWindow:window] != nil) {
+    if ([self controllerForWindow:window] != nil) {
         TiThreadPerformOnMainThread(^{
             [self popOnUIThread:args];
         }, YES);
@@ -249,31 +251,32 @@ else{\
 
 - (void)navController:(id)transitionController willShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-    if (current != nil) {
-        UIViewController *curController = [current hostingController];
-        NSArray* curStack = [navController viewControllers];
+    TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
+    if (current != theWindow) {
+        
         BOOL winclosing = NO;
-        if (![curStack containsObject:curController]) {
-            winclosing = YES;
-        } else {
-            NSUInteger curIndex = [curStack indexOfObject:curController];
-            if (curIndex > 1) {
-                UIViewController* currentPopsTo = [curStack objectAtIndex:(curIndex - 1)];
-                if (currentPopsTo == viewController) {
-                    winclosing = YES;
+        if (current != nil) {
+            UIViewController *curController = [current hostingController];
+            NSArray* curStack = [navController viewControllers];
+            if (![curStack containsObject:curController]) {
+                winclosing = YES;
+            } else {
+                NSUInteger curIndex = [curStack indexOfObject:curController];
+                if (curIndex > 1) {
+                    UIViewController* currentPopsTo = [curStack objectAtIndex:(curIndex - 1)];
+                    if (currentPopsTo == viewController) {
+                        winclosing = YES;
+                    }
                 }
             }
         }
-        
         
         BOOL transitionWithGesture = NO;
         if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
             transitionWithGesture = _navigationDelegate.isInteracting;
             if (!transitionWithGesture) {
-                ADTransition* transition = [((ADTransitioningViewController*)viewController) transition];
-                if (transition) {
-                    [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:transition];
-                }
+                ADTransition* transition = [(ADTransitioningViewController*)(winclosing?[current hostingController]:viewController) transition];
+                [self fireEvent:winclosing?@"closeWindow":@"openWindow" forController:viewController transition:transition];
             }
         }
         if (winclosing && !transitionWithGesture) {
@@ -283,7 +286,6 @@ else{\
             [current windowWillClose];
         }
     }
-    TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
     if ((theWindow != rootWindow) && [theWindow opening]) {
 //        [theWindow windowWillOpen];
         [theWindow setAnimating:YES];
@@ -292,7 +294,8 @@ else{\
 
 - (void)navController:(id)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
 {
-    if (current != nil) {
+    TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
+    if (theWindow != current && current != nil) {
         UIViewController* oldController = [current hostingController];
         
         if (![[navController viewControllers] containsObject:oldController]) {
@@ -301,9 +304,9 @@ else{\
             [current close:nil];
         }
     }
-    RELEASE_TO_NIL(current);
-    TiWindowProxy* theWindow = (TiWindowProxy*)[(TiViewController*)viewController proxy];
-    if ((theWindow != rootWindow) && [theWindow opening]) {
+    
+    RELEASE_TO_NIL_AUTORELEASE(current);
+    if ([theWindow opening]) {
         [theWindow setAnimating:NO];
         [theWindow windowDidOpen];
     }
@@ -376,15 +379,15 @@ else{\
     }
 }
 
-- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
-{
-    [self fireEvent:@"openWindow" forController:viewController transition:transition];
-}
-
-- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
-{
-    [self fireEvent:@"closeWindow" forController:viewController transition:transition];
-}
+//- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+//{
+//    [self fireEvent:@"openWindow" forController:viewController transition:transition];
+//}
+//
+//- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+//{
+//    [self fireEvent:@"closeWindow" forController:viewController transition:transition];
+//}
 
 -(ADTransition*) lastTransition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
@@ -630,6 +633,7 @@ else{\
 	NSMutableArray* newControllerStack = [NSMutableArray arrayWithArray:[navController viewControllers]];
 	[newControllerStack removeObject:windowController];
 	[navController setViewControllers:newControllerStack];
+    [window setIsManaged:NO];
     [window setTab:nil];
 	[window setParentOrientationController:nil];
 	
@@ -646,21 +650,29 @@ else{\
 {
     TiThreadPerformOnMainThread(^{
         if (navController != nil) {
+            if (_navigationDelegate) {
+                _navigationDelegate.delegate = nil;
+                RELEASE_TO_NIL(_navigationDelegate);
+            }
             [navController setDelegate:nil];
             NSArray* currentControllers = [[navController viewControllers] retain];
             [navController setViewControllers:[NSMutableArray array]];
             
             for (TiViewController* viewController in currentControllers) {
-                TiWindowProxy* win = (TiWindowProxy *)[viewController proxy];
+                TiWindowProxy* win = [(TiWindowProxy *)[viewController proxy] retain];
+                [win setIsManaged:NO];
                 [win setTab:nil];
                 [win setParentOrientationController:nil];
                 [win close:nil];
+                RELEASE_TO_NIL_AUTORELEASE(win);
             }
             [[navController view] removeFromSuperview];
+            [navController setViewControllers:nil];
             RELEASE_TO_NIL(navController);
-            RELEASE_TO_NIL(current);
             RELEASE_TO_NIL(currentControllers);
         }
+        RELEASE_TO_NIL_AUTORELEASE(rootWindow);
+        RELEASE_TO_NIL_AUTORELEASE(current);
     },YES);
 }
 
@@ -668,14 +680,14 @@ else{\
 #pragma mark - TiWindowProtocol
 -(void)viewWillAppear:(BOOL)animated
 {
-    if ([self viewAttached]) {
+    if (navController) {
         [navController viewWillAppear:animated];
     }
     [super viewWillAppear:animated];
 }
 -(void)viewWillDisappear:(BOOL)animated
 {
-    if ([self viewAttached]) {
+    if (navController) {
         [navController viewWillDisappear:animated];
     }
     [super viewWillDisappear:animated];
@@ -683,7 +695,7 @@ else{\
 
 -(void)viewDidAppear:(BOOL)animated
 {
-    if ([self viewAttached]) {
+    if (navController) {
         [navController viewDidAppear:animated];
     }
     [super viewDidAppear:animated];

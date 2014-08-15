@@ -519,11 +519,10 @@ typedef void (^PermissionBlock)(BOOL granted)
 		}
 		
 		// allow a transform on the preview image
-		id transform = [args objectForKey:@"transform"];
+		Ti2DMatrix* transform = [TiUtils matrixValue:@"transform" properties:args];
 		if (transform!=nil)
 		{
             CGSize size = [picker view].bounds.size;
-			ENSURE_TYPE(transform,Ti2DMatrix);
 			[picker setCameraViewTransform:[transform matrixInViewSize:size andParentSize:size]];
 		}
 		else if (cameraView!=nil)

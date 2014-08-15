@@ -1097,6 +1097,72 @@ public class TiConvert
 	}
 	
 	/**
+     * Converts value into A matrix object and returns it
+     * @param value the value to convert.
+     * @return a Ti2DMatrix instance.
+     * @module.api
+     */
+    @SuppressWarnings("unchecked")
+    public static Ti2DMatrix toMatrix(Object value)
+    {
+        if (value instanceof Ti2DMatrix) {
+            return (Ti2DMatrix)value;
+
+        } else if (value instanceof HashMap) {
+            return new Ti2DMatrix((HashMap)value);
+        } else if (value instanceof String) {
+            return new Ti2DMatrix((String)value);
+        }
+        else if (value.getClass().getSuperclass().equals(Ti2DMatrix.class)) {
+            return new Ti2DMatrix((Ti2DMatrix)value); // case of _2DMatrixProxy
+        }
+        return null;
+    }
+    
+    /**
+     * convert value to a Ti2DMatrix, if can't return def
+     * @param value the value to convert.
+     * @param def the default value to return
+     * @return an Ti2DMatrix value.
+     * @module.api
+     */
+    public static Ti2DMatrix toMatrix(Object value, Ti2DMatrix def)
+    {
+        Ti2DMatrix result = toMatrix(value);
+        if (result == null) {
+            result = def;
+        }
+        return result;
+    }
+    
+    /**
+     * Takes a value out of a hash table then attempts to convert it using {@link #toMatrix(Object)}.
+     * @param hashMap the hash map to search.
+     * @param key the lookup key.
+     * @return an Ti2DMatrix value.
+     * @module.api
+     */
+    public static Ti2DMatrix toMatrix(HashMap<String, Object> hashMap, String key)
+    {
+        return toMatrix(hashMap.get(key));
+    }
+
+    /**
+     * Takes a value out of a hash table then attempts to convert it using {@link #toMatrix(Object)} for more details.
+     * @param hashMap the hash map to search.
+     * @param key the lookup key.
+     * @param def the default value to return.
+     * @return an Ti2DMatrix value.
+     * @module.api
+     */
+    public static Ti2DMatrix toMatrix(HashMap<String, Object> hashMap, String key, Ti2DMatrix def)
+    {
+        if (hashMap != null)
+            return toMatrix(hashMap.get(key), def);
+        return def;
+    }
+	
+	/**
 	 * Converts an array of boxed objects into a primitive Shadow array.
 	 * @param inArray array that contains HashMap objects
 	 * @return a primitive Shadow array

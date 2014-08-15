@@ -21,7 +21,6 @@ import com.trevorpage.tpsvg.SVGDrawable;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Rect;

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -137,17 +138,17 @@ public class TiUINativePicker extends TiUIPicker
 			if (column == null) {
 				return;
 			}
-			TiViewProxy[] rowArray = column.getChildren();
+			KrollProxy[] rowArray = column.getChildren();
 			if (rowArray == null || rowArray.length == 0) {
 				return;
 			}
-			ArrayList<TiViewProxy> rows = new ArrayList<TiViewProxy>(Arrays.asList(rowArray));
+			ArrayList<KrollProxy> rows = new ArrayList<KrollProxy>(Arrays.asList(rowArray));
 			// At the moment we're using the simple spinner layouts provided
 			// in android because we're only supporting a piece of text, which
 			// is fetched via PickerRowProxy.toString().  If we allow 
 			// anything beyond a string, we'll have to implement our own
 			// layouts (maybe our own Adapter too.)
-			ArrayAdapter<TiViewProxy> adapter = new ArrayAdapter<TiViewProxy>(
+			ArrayAdapter<KrollProxy> adapter = new ArrayAdapter<KrollProxy>(
 					spinner.getContext(), 
 					android.R.layout.simple_spinner_item, 
 					rows);

@@ -356,7 +356,7 @@ static NSDictionary* replaceKeysForRow;
 	NSMutableDictionary *templates = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
 	NSMutableDictionary *measureProxies = [[NSMutableDictionary alloc] initWithCapacity:[args count]];
 	[(NSDictionary *)args enumerateKeysAndObjectsUsingBlock:^(NSString *key, id obj, BOOL *stop) {
-		TiViewTemplate *template = [TiViewTemplate templateFromViewTemplate:obj];
+		TiProxyTemplate *template = [TiProxyTemplate templateFromViewTemplate:obj];
 		if (template != nil) {
 			[templates setObject:template forKey:key];
             
@@ -403,7 +403,7 @@ static NSDictionary* replaceKeysForRow;
         if (context == nil) {
             context = proxy.pageContext;
         }
-        viewproxy = [[TiViewProxy class] unarchiveFromDictionary:value rootProxy:proxy inContext:context];
+        viewproxy = (TiViewProxy*)[[TiViewProxy class] createFromDictionary:value rootProxy:proxy inContext:context];
         [context.krollContext invokeBlockOnThread:^{
             [proxy rememberProxy:viewproxy];
             [viewproxy forgetSelf];
@@ -518,7 +518,7 @@ static NSDictionary* replaceKeysForRow;
             templateId = _defaultItemTemplate;
         }
         if (![templateId isKindOfClass:[NSNumber class]]) {
-            TiViewTemplate *template = [_templates objectForKey:templateId];
+            TiProxyTemplate *template = [_templates objectForKey:templateId];
             theValue = [template.properties objectForKey:replaceKey];
         }
         if (theValue == nil) {
@@ -776,7 +776,7 @@ static NSDictionary* replaceKeysForRow;
         if (context == nil) {
             context = self.proxy.pageContext;
         }
-        args = [[TiViewProxy class] unarchiveFromDictionary:args rootProxy:self.proxy inContext:context];
+        args = [[self.proxy class] createFromDictionary:args rootProxy:self.proxy inContext:context];
         [context.krollContext invokeBlockOnThread:^{
             [self.proxy rememberProxy:args];
             [args forgetSelf];

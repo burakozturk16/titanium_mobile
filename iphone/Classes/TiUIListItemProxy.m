@@ -314,7 +314,7 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 #pragma mark - Static
 
-- (void)buildBindingsForViewProxy:(TiViewProxy *)viewProxy intoDictionary:(NSMutableDictionary *)dict
+- (void)buildBindingsForViewProxy:(TiProxy *)viewProxy intoDictionary:(NSMutableDictionary *)dict
 {
     NSInteger templateStyle = TiUIListItemTemplateStyleCustom;
     if ([viewProxy isKindOfClass:[TiUIListItemProxy class]]) { //toplevel
@@ -333,10 +333,13 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
             break;
         default:
         {
-            NSArray* myChildren = [viewProxy children];
-            [myChildren enumerateObjectsUsingBlock:^(TiViewProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
-                [self buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
-            }];
+            if ([viewProxy isKindOfClass:[TiParentingProxy class]]) {
+                NSArray* myChildren = [(TiParentingProxy*)viewProxy children];
+                [myChildren enumerateObjectsUsingBlock:^(TiProxy *childViewProxy, NSUInteger idx, BOOL *stop) {
+                    [self buildBindingsForViewProxy:childViewProxy intoDictionary:dict];
+                }];
+            }
+            
             if (![viewProxy isKindOfClass:[TiUIListItemProxy class]]) {
                 id bindId = [viewProxy valueForKey:@"bindId"];
                 if (bindId != nil) {
@@ -409,9 +412,11 @@ static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventO
 
 static void SetEventOverrideDelegateRecursive(NSArray *children, id<TiViewEventOverrideDelegate> eventOverrideDelegate)
 {
-	[children enumerateObjectsUsingBlock:^(TiViewProxy *child, NSUInteger idx, BOOL *stop) {
+	[children enumerateObjectsUsingBlock:^(TiProxy *child, NSUInteger idx, BOOL *stop) {
 		child.eventOverrideDelegate = eventOverrideDelegate;
-		SetEventOverrideDelegateRecursive(child.children, eventOverrideDelegate);
+        if ([child isKindOfClass:[TiParentingProxy class]]) {
+            SetEventOverrideDelegateRecursive(((TiParentingProxy*)child).children, eventOverrideDelegate);
+        }
 	}];
 }
 

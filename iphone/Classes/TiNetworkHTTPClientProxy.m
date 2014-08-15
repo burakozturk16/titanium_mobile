@@ -46,9 +46,7 @@ extern NSString * const TI_APPLICATION_GUID;
     if(httpRequest == nil) {
         httpRequest = [[APSHTTPRequest alloc] init];
         [httpRequest setDelegate:self];
-        [httpRequest addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-        [httpRequest addRequestHeader:[NSString stringWithFormat:@"%s-%s%s-%s", "X","Tita","nium","Id"] value:TI_APPLICATION_GUID];
-        
+        [httpRequest addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];        
     }
 }
 
@@ -143,37 +141,45 @@ extern NSString * const TI_APPLICATION_GUID;
     if(args != nil) {
         ENSURE_ARRAY(args);
         NSInteger dataIndex = 0;
+        
         form = [[[APSHTTPPostForm alloc] init] autorelease];
+        NSString* contentType = [[self responseHeaders] objectForKey:@"Content-Type"];
+        
         id arg = [args objectAtIndex:0];
         if([arg isKindOfClass:[NSDictionary class]]) {
             NSDictionary *dict = (NSDictionary*)arg;
-            for(NSString *key in dict) {
-                id value = [dict objectForKey:key];
-                if([value isKindOfClass:[TiBlob class]]|| [value isKindOfClass:[TiFile class]]) {
-                    TiBlob *blob;
-                    NSString *name;
-                    NSString *mime;
-                    if([value isKindOfClass:[TiBlob class]]) {
-                        blob = (TiBlob*)value;
-                        if([blob path] != nil) {
-                            name = [[blob path] lastPathComponent];
-                        } else {
-                            name = [NSString stringWithFormat:@"file%i", dataIndex++];
+            if ([contentType rangeOfString:@"json"].location != NSNotFound) {
+                [form setJSONData:dict];
+            }
+            else {
+                for(NSString *key in dict) {
+                    id value = [dict objectForKey:key];
+                    if([value isKindOfClass:[TiBlob class]]|| [value isKindOfClass:[TiFile class]]) {
+                        TiBlob *blob;
+                        NSString *name;
+                        NSString *mime;
+                        if([value isKindOfClass:[TiBlob class]]) {
+                            blob = (TiBlob*)value;
+                            if([blob path] != nil) {
+                                name = [[blob path] lastPathComponent];
+                            } else {
+                                name = [NSString stringWithFormat:@"file%i", dataIndex++];
+                            }
+                        }else{
+                            blob = [(TiFile*)value blob];
+                            name = [[(TiFile*)value path] lastPathComponent];
                         }
-                    }else{
-                        blob = [(TiFile*)value blob];
-                        name = [[(TiFile*)value path] lastPathComponent];
+                        mime = [blob mimeType];
+                        if(mime != nil) {
+                            [form addFormData:[blob data] fileName:name fieldName:key contentType:mime];
+                        } else {
+                            [form addFormData:[blob data] fileName:name fieldName:key];
+                        }
                     }
-                    mime = [blob mimeType];
-                    if(mime != nil) {
-                        [form addFormData:[blob data] fileName:name fieldName:key contentType:mime];
-                    } else {
-                        [form addFormData:[blob data] fileName:name fieldName:key];
+                    else {
+                        [form addFormKey:key
+                                andValue:[TiUtils stringValue:value]];
                     }
-                }
-                else {
-                    [form addFormKey:key
-                            andValue:[TiUtils stringValue:value]];
                 }
             }
         } else if ([arg isKindOfClass:[TiBlob class]] || [arg isKindOfClass:[TiFile class]]) {

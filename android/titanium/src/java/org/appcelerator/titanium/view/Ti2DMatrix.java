@@ -7,6 +7,9 @@
 package org.appcelerator.titanium.view;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
@@ -17,11 +20,8 @@ import org.appcelerator.titanium.util.AffineTransform;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 
-import com.nineoldandroids.view.ViewHelper;
-
 import android.content.Context;
 import android.graphics.Matrix;
-
 import android.view.View;
 
 @Kroll.proxy
@@ -29,7 +29,16 @@ public class Ti2DMatrix extends KrollProxy {
 	public static final TiPoint DEFAULT_ANCHOR_VALUE = new TiPoint("50%", "50%");
 	public static final TiPoint DEFAULT_TRANSLATETO_VALUE = new TiPoint(0, 0);
 	public static final float VALUE_UNSPECIFIED = Float.MIN_VALUE;
+	
 
+	private static String NUMBER_REGEX_1  = "[0-9]*";
+	private static String NUMBER_REGEX_2 = "[-+]?" + NUMBER_REGEX_1;
+	private static String NUMBER_REGEX_EXT = "(?:system|px|dp|dip|sp|sip|mm|cm|pt|in|%)?";
+	private static String NUMBER_REGEX = NUMBER_REGEX_2 + "\\.?" + NUMBER_REGEX_1 + NUMBER_REGEX_EXT;
+	private static String ANCHOR_REGEX = "a(" + NUMBER_REGEX + "\\s*,\\s*" + NUMBER_REGEX + ")";
+
+	private static String REGEX = "(\\.\\.\\.|i|o|(?:a" + NUMBER_REGEX + "\\s*,\\s*" + NUMBER_REGEX + ")?(?:r" + NUMBER_REGEX + "|[st]" + NUMBER_REGEX + "\\s*(?:,\\s*" + NUMBER_REGEX + ")?))";
+	
 	public ArrayList<Operation> operations = new ArrayList<Operation>();
 
 	public TiPoint anchor;
@@ -60,6 +69,57 @@ public class Ti2DMatrix extends KrollProxy {
 			translateTo = DEFAULT_TRANSLATETO_VALUE;
 			rotateOf = 0;
 			this.type = type;
+		}
+		
+		public Operation(String string) {
+		    scaleToX = scaleToY = 1;
+            translateTo = DEFAULT_TRANSLATETO_VALUE;
+            rotateOf = 0;
+
+            Pattern p = Pattern.compile(ANCHOR_REGEX);
+            Matcher m = p.matcher(string);
+            if (m.find()) {
+                String anchorString = m.group(1);
+                string = m.replaceAll("");
+                this.anchor = new TiPoint(anchorString.split(","));
+            }
+		    char key = string.charAt(0);
+            String theRest = string.substring(1);
+            switch(key)
+            {
+                case 't':
+                {
+                    String[] values = theRest.split(",");
+                    if (values.length > 1) {
+                        translateTo = new TiPoint(values);
+                    }
+                    else {
+                        translateTo = new TiPoint(values, values);
+                    }
+                    type = Operation.TYPE_TRANSLATE;
+                    break;
+                }
+                case 's':
+                {
+                    String[] values = theRest.split(",");
+                    scaleToX = TiConvert.toFloat(values[0]);
+                    if (values.length > 1) {
+                        scaleToY = TiConvert.toFloat(values[1]);
+                    }
+                    else {
+                        scaleToY = scaleToX;
+                    }
+                    type = Operation.TYPE_SCALE;
+                    break;
+                }
+                case 'r':
+                    rotateOf = TiConvert.toFloat(theRest);
+                    type = Operation.TYPE_ROTATE;
+                    break;
+                case 'i':
+                    type = Operation.TYPE_INVERT;
+                    break;
+            }
 		}
 
 		public void apply(Context context, int width, int height, int parentWidth, int parentHeight, AffineTransform transform) {
@@ -96,6 +156,37 @@ public class Ti2DMatrix extends KrollProxy {
 				break;
 			}
 		}
+		
+		public String toString()
+	    {
+	        String result = "";
+	        if (anchor != null) {
+	            result = String.format("a%s,%s", anchor.getXString(), anchor.getYString());
+	        }
+	        switch (type) {
+            case TYPE_SCALE:
+                if (scaleToX == scaleToY) {
+                    result += String.format("s%s", Double.valueOf(scaleToX).toString());
+                }
+                else {
+                    result += String.format("s%s,%s", Double.valueOf(scaleToX).toString()
+                            , Double.valueOf(scaleToY).toString());
+                }
+            case TYPE_TRANSLATE:
+                result += String.format("t%s,%s", translateTo.getXString(), translateTo.getYString());
+                break;
+            case TYPE_ROTATE:
+                result += String.format("r%s", Double.valueOf(rotateOf).toString());
+                break;
+            case TYPE_MULTIPLY:
+                result = multiplyWith.toString();
+                break;
+            case TYPE_INVERT:
+                result = "i";
+                break;
+            }
+	        return result;
+	    }
 	}
 
 	// protected Operation op;
@@ -106,6 +197,20 @@ public class Ti2DMatrix extends KrollProxy {
 	public Ti2DMatrix(AffineTransform transform) {
 		this.transform = transform;
 	}
+	
+	public Ti2DMatrix(String string) {
+	    Pattern p = Pattern.compile(REGEX);
+        Matcher m = p.matcher(string);
+        while (m.find()) {
+            String group = m.group(1);
+            if (group == "o") {
+                ownFrameCoord = true;
+            }
+            else {
+                operations.add(new Operation(group));
+            }
+        }
+    }
 
 	public Ti2DMatrix(Ti2DMatrix prev) {
 		if (prev != null) {
@@ -114,6 +219,16 @@ public class Ti2DMatrix extends KrollProxy {
 			operations.addAll(prev.operations);
 		}
 	}
+	
+	public Ti2DMatrix(HashMap map) {
+        if (map instanceof KrollDict) {
+            handleCreationDict((KrollDict) map);
+        }
+        else {
+            handleCreationDict(new KrollDict(map));
+        }
+    }
+
 
 	@Override
 	public void handleCreationDict(KrollDict dict) {
@@ -280,5 +395,16 @@ public class Ti2DMatrix extends KrollProxy {
 	public Matrix getMatrix(Context context, int width, int height, int parentWidth, int parentHeight) {
 		AffineTransform transform = getAffineTransform(context, width, height, parentWidth, parentHeight);
 		return (transform != null) ? transform.toMatrix() : null;
+	}
+	
+	public String toString()
+	{
+	    String result = ownFrameCoord?"o":"";
+	    for (Operation op : operations) {
+            if (op != null) {
+                result += op.toString();
+            }
+        }
+	    return result;
 	}
 }

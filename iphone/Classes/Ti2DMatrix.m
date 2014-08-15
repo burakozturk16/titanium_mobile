@@ -7,6 +7,15 @@
 #import "Ti2DMatrix.h"
 #import "TiPoint.h"
 
+#define NUMBER_REGEX_1 @"[0-9]*"
+#define NUMBER_REGEX_2 @"[-+]?" NUMBER_REGEX_1
+#define NUMBER_REGEX_EXT @"(?:system|px|dp|dip|sp|sip|mm|cm|pt|in|%)?"
+#define NUMBER_REGEX NUMBER_REGEX_2 @"\\.?" NUMBER_REGEX_1 NUMBER_REGEX_EXT
+#define ANCHOR_REGEX @"a(" NUMBER_REGEX @"\\s*,\\s*" NUMBER_REGEX @")"
+
+#define REGEX @"(\\.\\.\\.|i|o|(?:a" NUMBER_REGEX @"\\s*,\\s*" NUMBER_REGEX @")?(?:r" NUMBER_REGEX @"|[st]" NUMBER_REGEX @"\\s*(?:,\\s*" NUMBER_REGEX @")?))"
+
+
 typedef enum
 {
 	AffineOpTranslate = 0,
@@ -25,6 +34,8 @@ typedef enum
 @property(nonatomic,retain) NSMutableArray* operations;
 @property(nonatomic,retain) TiPoint* anchor;
 -(id)initWithMatrix:(Ti2DMatrix*)matrix_;
++(TiPoint *)defaultAnchor;
+-(NSString *)toString:(id)unused;
 
 @end
 
@@ -105,12 +116,72 @@ typedef enum
         scaleX = 1;
         scaleY = 1;
         _anchor = [matrix.anchor copy];
-        _translateValue = [[TiPoint alloc] init];
-        [_translateValue setPoint:CGPointZero];
+//        _translateValue = [[TiPoint alloc] init];
+//        [_translateValue setPoint:CGPointZero];
 	}
 	return self;
 }
 
+-(id)initWithString:(NSString*)string
+{
+	if (self = [super init])
+	{
+        __block NSString* stringToUse = string;
+        angle = 0;
+        scaleX = 1;
+        scaleY = 1;
+        NSError *error = NULL;
+        NSRegularExpression *regex = [NSRegularExpression
+                                      regularExpressionWithPattern:ANCHOR_REGEX
+                                      options:NSRegularExpressionCaseInsensitive
+                                      error:&error];
+        [regex enumerateMatchesInString:string options:0 range:NSMakeRange(0, [string length]) usingBlock:^(NSTextCheckingResult *match, NSMatchingFlags flags, BOOL *stop){
+            NSString* sub = [string substringWithRange:match.range];
+            if ([sub length] > 0) {
+                stringToUse = [stringToUse stringByReplacingCharactersInRange:match.range withString:@""];
+                _anchor = [[TiPoint alloc] initWithObject:[sub componentsSeparatedByString:@","]];
+            }
+        }];
+        unichar key = [stringToUse characterAtIndex:0];
+        NSString* theRest = [stringToUse substringFromIndex:1];
+        switch(key)
+        {
+            case 't':
+            {
+                NSArray* values = [theRest componentsSeparatedByString:@","];
+                if ([values count] > 1) {
+                    _translateValue = [[TiPoint alloc] initWithObject:values];
+                }
+                else {
+                    _translateValue = [[TiPoint alloc] initWithObject:@[[values objectAtIndex:0], [values objectAtIndex:0]]];
+                }
+                type = AffineOpTranslate;
+                break;
+            }
+            case 's':
+            {
+                NSArray* values = [theRest componentsSeparatedByString:@","];
+                scaleX = [[values objectAtIndex:0] floatValue];
+                if ([values count] > 1) {
+                    scaleY = [[values objectAtIndex:1] floatValue];
+                }
+                else {
+                    scaleY = scaleX;
+                }
+                type = AffineOpScale;
+                break;
+            }
+            case 'r':
+                angle = degreesToRadians([theRest floatValue]);
+                type = AffineOpRotate;
+                break;
+            case 'i':
+                type = AffineOpInverse;
+                break;
+        }
+	}
+	return self;
+}
 
 -(void)dealloc
 {
@@ -140,7 +211,7 @@ typedef enum
 {
     CGPoint anchor;
     if (type == AffineOpRotate || type == AffineOpScale) {
-        anchor = [_anchor pointWithinSize:size];
+        anchor = [(_anchor?_anchor:[Ti2DMatrix defaultAnchor]) pointWithinSize:size];
         anchor.x = decale.width - anchor.x;
         anchor.y = decale.height - anchor.y;
     }
@@ -194,18 +265,85 @@ typedef enum
     CGSize decale = CGSizeMake(size.width/2, size.height/2);
     return [self apply:transform inSize:size andParentSize:parentSize decale:decale];
 }
+
+-(NSString*)toString
+{
+    NSString* result = @"";
+    if (_anchor == [Ti2DMatrix defaultAnchor]){
+        result = [NSString stringWithFormat:@"a%@,%@", _anchor.x, _anchor.y];
+    }
+    CGPoint anchor;
+    switch (type) {
+        case AffineOpTranslate: {
+            result = [result stringByAppendingFormat:@"t%@,%@", _translateValue.x, _translateValue.y];
+            break;
+        }
+        case AffineOpRotate: {
+            result = [result stringByAppendingFormat:@"r%@", NUMFLOAT(radiansToDegrees(angle))];
+            break;
+        }
+        case AffineOpScale: {
+            if (scaleX == scaleY) {
+                result = [result stringByAppendingFormat:@"s%@", NUMFLOAT(scaleX)];
+            } else {
+                result = [result stringByAppendingFormat:@"s%@,%@", NUMFLOAT(scaleX), NUMFLOAT(scaleY)];
+            }
+            break;
+        }
+        case AffineOpMultiply: {
+            result = [_multiplyValue toString:nil];
+        }
+        case AffineOpInverse: {
+            result = @"i";
+            break;
+        }
+        default:
+            break;
+    }
+    return result;
+}
 @end
 
 
 @implementation Ti2DMatrix
 @synthesize operations = _operations, anchor = _anchor;
+
+
++(Ti2DMatrix*)matrixWithObject:(id)object
+{
+    if ([object isKindOfClass:[Ti2DMatrix class]])
+    {
+        return object;
+    }
+    else if ([object isKindOfClass:[NSString class]])
+    {
+        return [[[Ti2DMatrix alloc] initWithString:object] autorelease];
+    }
+    else if ([object isKindOfClass:[NSDictionary class]])
+    {
+        return [[[Ti2DMatrix alloc] initWithProperties:object] autorelease];
+    }
+    return nil;
+}
+
+
++(TiPoint *)defaultAnchor
+{
+	static TiPoint * defaultAnchor;
+	static dispatch_once_t onceToken;
+	dispatch_once(&onceToken, ^{
+		defaultAnchor = [[TiPoint alloc] initWithObject:[NSDictionary dictionaryWithObjectsAndKeys:@"50%", @"x", @"50%", @"y", nil]];
+	});
+	return defaultAnchor;
+}
+
 -(id)init
 {
 	if (self = [super init])
 	{
         _ownFrameCoord = NO;
         _operations = [[NSMutableArray alloc] init];
-        _anchor = [[TiPoint alloc] initWithObject:[NSDictionary dictionaryWithObjectsAndKeys:@"50%", @"x", @"50%", @"y", nil]];
+        _anchor = nil;
 	}
 	return self;
 }
@@ -247,7 +385,7 @@ typedef enum
         [super _initWithProperties:dict_];
         if ([dict_ objectForKey:@"anchorPoint"]!=nil)
 		{
-            [_anchor setValues:[dict_ objectForKey:@"anchorPoint"]];
+            _anchor = [[TiPoint alloc] initWithObject:[dict_ objectForKey:@"anchorPoint"]];
 		}
 		if ([dict_ objectForKey:@"rotate"]!=nil)
 		{
@@ -267,6 +405,36 @@ typedef enum
 	}
 	return self;
 }
+
+-(id)initWithString:(NSString*)string
+{
+	if (self = [self init])
+	{
+        NSError *error = NULL;
+        NSRegularExpression *regex = [NSRegularExpression
+                                      regularExpressionWithPattern:REGEX
+                                      options:NSRegularExpressionCaseInsensitive
+                                      error:&error];
+        [regex enumerateMatchesInString:string options:0 range:NSMakeRange(0, [string length]) usingBlock:^(NSTextCheckingResult *match, NSMatchingFlags flags, BOOL *stop){
+            NSString* sub = [string substringWithRange:match.range];
+            if ([sub length] > 0) {
+                if ([sub isEqualToString:@"o"]) {
+                    _ownFrameCoord = YES;
+                }
+                else {
+                    [_operations addObject:[[[AffineOp alloc] initWithString:sub] autorelease]];
+                }
+            }
+        }];
+	}
+	return self;
+}
+
+-(void)parseString:(NSString*)string
+{
+    
+}
+
 
 -(NSString*)apiName
 {
@@ -297,7 +465,12 @@ typedef enum
 -(void)setAnchorPoint:(id)args
 {
     ENSURE_SINGLE_ARG_OR_NIL(args, NSDictionary)
-    [_anchor setValues:args];
+    if (_anchor = nil) {
+        _anchor = [[TiPoint alloc] initWithObject:args];
+    }
+    else {
+        [_anchor setValues:args];
+    }
 }
 
 -(Ti2DMatrix*)translate:(id)args
@@ -365,6 +538,16 @@ typedef enum
 -(id)description
 {
 	return @"[object Ti2DMatrix]";
+}
+
+-(NSString*)toString:(id)unused
+{
+    NSString* result = _ownFrameCoord?@"o":@"";
+    
+    for (AffineOp* op in _operations) {
+       result = [result stringByAppendingString:[op toString]];
+    }
+    return result;
 }
 
 @end

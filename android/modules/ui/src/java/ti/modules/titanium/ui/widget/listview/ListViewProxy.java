@@ -189,7 +189,7 @@ public class ListViewProxy extends TiViewProxy {
 	}
 	
 	@Kroll.method
-	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
+	public KrollProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
 		TiUIView listView = peekView();
 		if (listView != null) {
 			return ((TiListView) listView).getChildByBindId(sectionIndex, itemIndex, bindId);

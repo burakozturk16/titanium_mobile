@@ -30,7 +30,6 @@
 
 - (void)startInteractiveTransition:(id<UIViewControllerContextTransitioning>)transitionContext
 {
-    NSLog(@"startInteractiveTransition");
     _transitionContext = transitionContext;
     _duration = [self transitionDuration:transitionContext];
     
@@ -40,18 +39,12 @@
 
 - (void)updateInteractiveTransition:(CGFloat)percentComplete
 {
-    NSLog(@"updateInteractiveTransition %f", percentComplete);
-    
-//    UIViewController * toViewController = [_transitionCo dntext viewControllerForKey:UITransitionContextToViewControllerKey];
-    
-
     [self.transitionContext updateInteractiveTransition:percentComplete];
     self.containerLayer.timeOffset =  self.pausedTime + MAX(0, self.duration * percentComplete);
 }
 
 - (void)cancelInteractiveTransition
 {
-    NSLog(@"cancelInteractiveTransition");
     self.containerLayer.speed = -1.0;
     self.containerLayer.beginTime = CACurrentMediaTime();
     [self.transitionContext cancelInteractiveTransition];
@@ -59,7 +52,6 @@
 
 - (void)finishInteractiveTransition
 {
-    NSLog(@"finishInteractiveTransition");
     [self.transitionContext finishInteractiveTransition];
     [self resumeLayer:self.containerLayer];
 }

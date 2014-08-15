@@ -49,4 +49,5 @@ public interface KrollProxyListener
 	 * @module.api
 	 */
 	public void listenerRemoved(String type, int count, KrollProxy proxy);
+
 }

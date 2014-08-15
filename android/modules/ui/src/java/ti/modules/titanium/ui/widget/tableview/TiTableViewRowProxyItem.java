@@ -18,6 +18,7 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.proxy.ParentingProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
@@ -238,12 +239,13 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 	}
 
-	protected void applyChildProperties(TiViewProxy viewProxy, TiUIView view)
+	protected void applyChildProperties(KrollProxy viewProxy, TiUIView view)
 	{
+	    if (!(viewProxy instanceof ParentingProxy)) return;
 		int i = 0;
-		TiViewProxy childProxies[] = viewProxy.getChildren();
+		KrollProxy childProxies[] = ((ParentingProxy) viewProxy).getChildren();
 		for (TiUIView childView : view.getChildren()) {
-			TiViewProxy childProxy = childProxies[i];
+		    KrollProxy childProxy = childProxies[i];
 			childView.processProperties(childProxy.getProperties());
 			applyChildProperties(childProxy, childView);
 			i++;
@@ -630,7 +632,7 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		}
 	}
 	
-	KrollDict getOnlyChangedProperties(TiViewProxy oldProxy, TiViewProxy newProxy)
+	KrollDict getOnlyChangedProperties(KrollProxy oldProxy, KrollProxy newProxy)
 	{
 		KrollDict realProps = new KrollDict();
 		KrollDict oldprops = oldProxy.getProperties();
@@ -648,24 +650,29 @@ public class TiTableViewRowProxyItem extends TiBaseTableViewItem
 		return realProps;
 	}
 	
-	protected void associateProxies(TiViewProxy[] proxies, List<TiUIView> views)
+	protected void associateProxies(KrollProxy[] proxies, List<TiUIView> views)
 	{
 		int i = 0;
 		for (TiUIView view : views) {
 			if (proxies.length < (i+1)) {
 				break;
 			}
-			TiViewProxy proxy = proxies[i];
-			TiViewProxy oldProxy = view.getProxy();
-			proxy.setView(view);
-			view.setProxy(proxy);
+			KrollProxy proxy = proxies[i];
+			KrollProxy oldProxy = view.getProxy();
+			if (!(oldProxy instanceof TiViewProxy) || (oldProxy.getClass().equals(proxy.getClass())))
+			{
+			    continue;
+			}
+			((TiViewProxy) proxy).setView(view);
+			view.setProxy((TiViewProxy) proxy);
 			proxy.setModelListener(view, false); //applying proxy properties
 			view.registerForTouch();
 			view.registerForKeyPress();
 			view.processProperties(getOnlyChangedProperties(oldProxy, proxy));
-			associateProxies(proxy.getChildren(), view.getChildren());
+			if (proxy instanceof ParentingProxy) {
+	            associateProxies(((ParentingProxy) proxy).getChildren(), view.getChildren());
+			}
 			i++;
 		}
 	}
-
 }

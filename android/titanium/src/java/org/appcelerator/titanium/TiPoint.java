@@ -8,7 +8,6 @@ package org.appcelerator.titanium;
 
 import java.util.HashMap;
 
-import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.titanium.util.TiConvert;
 
 import android.content.Context;
@@ -17,6 +16,7 @@ import android.graphics.PointF;
 
 public class TiPoint {
 	private TiDimension x, y;
+	private String xString, yString;
 
 	/*
 	 * Create a new point with the 'x' and 'y'
@@ -24,7 +24,9 @@ public class TiPoint {
 	 */
 	public TiPoint(double x, double y) {
 		this.x = new TiDimension(x, TiDimension.TYPE_LEFT);
+		this.xString = Double.toString(x);
 		this.y = new TiDimension(y, TiDimension.TYPE_TOP);
+        this.yString = Double.toString(y);
 	}
 
 	/*
@@ -42,20 +44,26 @@ public class TiPoint {
 	 * properties is missing, the default values will be used.
 	 */
 	public TiPoint(HashMap object, double defaultValueX, double defaultValueY) {
-		x = TiConvert.toTiDimension(object.get(TiC.PROPERTY_X), TiDimension.TYPE_LEFT);
+	    xString = TiConvert.toString(object.get(TiC.PROPERTY_X));
+		x = TiConvert.toTiDimension(xString, TiDimension.TYPE_LEFT);
 		if (x == null) {
+	        this.xString = Double.toString(defaultValueX);
 			x = new TiDimension(defaultValueX, TiDimension.TYPE_LEFT);
 		}
 
-		y = TiConvert.toTiDimension(object.get(TiC.PROPERTY_Y), TiDimension.TYPE_TOP);
+        yString = TiConvert.toString(object.get(TiC.PROPERTY_Y));
+		y = TiConvert.toTiDimension(yString, TiDimension.TYPE_TOP);
 		if (y == null) {
+            this.xString = Double.toString(defaultValueY);
 			y = new TiDimension(defaultValueY, TiDimension.TYPE_TOP);
 		}
 	}
 	
 	public TiPoint(Object xObj, Object yObj) {
-		x = TiConvert.toTiDimension(xObj, TiDimension.TYPE_LEFT);
-		y = TiConvert.toTiDimension(yObj, TiDimension.TYPE_TOP);
+        xString = TiConvert.toString(xObj);
+        yString = TiConvert.toString(yObj);
+		x = TiConvert.toTiDimension(xString, TiDimension.TYPE_LEFT);
+		y = TiConvert.toTiDimension(yString, TiDimension.TYPE_TOP);
 	}
 	
 	
@@ -67,17 +75,36 @@ public class TiPoint {
 	 */
 	public TiPoint(String x, String y)
 	{
-		this.x = new TiDimension(x, TiDimension.TYPE_LEFT);
-		this.y = new TiDimension(y, TiDimension.TYPE_TOP);
+	    xString = x;
+        yString = y;
+		this.x = new TiDimension(xString, TiDimension.TYPE_LEFT);
+		this.y = new TiDimension(yString, TiDimension.TYPE_TOP);
 	}
 
-	public TiDimension getX() {
+	public TiPoint(String[] values) {
+	    if (values.length > 1) {
+	        xString = values[0];
+	        yString = values[1];
+	        this.x = new TiDimension(xString, TiDimension.TYPE_LEFT);
+	        this.y = new TiDimension(yString, TiDimension.TYPE_TOP);
+	    }
+    }
+
+    public TiDimension getX() {
 		return x;
 	}
 
 	public TiDimension getY() {
 		return y;
 	}
+	
+	public String getXString() {
+        return xString;
+    }
+
+    public String getYString() {
+        return yString;
+    }
 	
 	public Point compute(Context context, int width, int height) {
 		return new Point(x.getAsPixels(context, width, height), y.getAsPixels(context, width, height));

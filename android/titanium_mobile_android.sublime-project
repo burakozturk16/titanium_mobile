@@ -1,0 +1,59 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"name": "titanium",
+			"path": "titanium/src/java/org/appcelerator"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "ui",
+			"path": "modules/ui/src/java/ti/modules/titanium/ui"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "app",
+			"path": "modules/app/src/java/ti/modules/titanium/app"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "platform",
+			"path": "modules/platform/src/java/ti/modules/titanium/platform"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "utils",
+			"path": "modules/utils/src/java/ti/modules/titanium/utils"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "network",
+			"path": "modules/network/src/java/ti/modules/titanium/network"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/Volumes/data/dev/titanium/titanium_mobile/demos/KitchenSink/Resources/examples"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/usr/local/lib/node_modules/titanium/node_modules"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "modules/filesystem"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "runtime"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "modules/shape"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "TitaniumTest"
+		}
+	]
+}

@@ -7,22 +7,14 @@
 
 #import <Foundation/Foundation.h>
 
-typedef enum {
-	APSRequestAuthNone = 0,
-	APSRequestAuthBasic = 1,
-	APSRequestAuthDigest = 2,
-    APSRequestAuthChallange = 3
-} APSRequestAuth;
-
-typedef enum {
+typedef NS_ENUM(NSInteger, APSRequestError) {
 	APSRequestErrorCancel = 0
-} APSRequestError;
+};
 
 
 @class APSHTTPResponse;
 @class APSHTTPRequest;
 @class APSHTTPPostForm;
-@class APSHTTPOperation;
 
 @protocol APSConnectionDelegate <NSURLConnectionDelegate>
 @optional
@@ -45,45 +37,35 @@ typedef enum {
 
 @end
 
-@interface APSHTTPRequest : NSObject<NSURLConnectionDelegate, NSURLConnectionDataDelegate>
-{
-    long long _expectedDownloadResponseLength;
-    NSURLConnection *_connection;
-    NSMutableDictionary *_headers;
-    APSHTTPOperation* _operation;
-}
+@interface APSHTTPRequest : NSObject
 
-@property(nonatomic, readonly) NSMutableURLRequest *request;
-@property(nonatomic, retain) NSURL *url;
-@property(nonatomic, retain) NSString *method;
-@property(nonatomic, retain) NSString *filePath;
-@property(nonatomic, retain) NSString *requestUsername;
-@property(nonatomic, retain) NSString *requestPassword;
-@property(nonatomic, retain) APSHTTPPostForm *postForm;
-@property(nonatomic, readonly) APSHTTPResponse* response;
-@property(nonatomic, assign) NSObject<APSHTTPRequestDelegate>* delegate;
-@property(nonatomic, assign) NSObject<APSConnectionDelegate>* connectionDelegate;
-@property(nonatomic) NSTimeInterval timeout;
-@property(nonatomic) BOOL sendDefaultCookies;
-@property(nonatomic) BOOL redirects;
-@property(nonatomic) BOOL synchronous;
-@property(nonatomic) BOOL validatesSecureCertificate;
-@property(nonatomic) BOOL cancelled;
-@property(nonatomic) BOOL showActivity;
-@property(nonatomic) APSRequestAuth authType;
-@property(nonatomic, retain) NSOperationQueue *theQueue;
-@property(nonatomic, retain) NSDictionary *userInfo;
-@property(nonatomic, retain) NSURLAuthenticationChallenge* authenticationChallenge;
-@property(nonatomic, retain) NSURLCredential* challengedCredential;
-@property (nonatomic) NSURLCredentialPersistence persistence;
-@property(nonatomic) int authRetryCount;
+@property(nonatomic, strong, readwrite) NSURL                            *url;
+@property(nonatomic, strong, readwrite) NSString                         *method;
+@property(nonatomic, strong, readwrite) NSString                         *filePath;
+@property(nonatomic, strong, readwrite) NSString                         *requestUsername;
+@property(nonatomic, strong, readwrite) NSString                         *requestPassword;
+@property(nonatomic, strong, readwrite) APSHTTPPostForm                  *postForm;
+@property(nonatomic, strong, readonly ) APSHTTPResponse                  *response;
+@property(nonatomic, weak,   readwrite) NSObject<APSHTTPRequestDelegate> *delegate;
+@property(nonatomic, weak,   readwrite) NSObject<APSConnectionDelegate>  *connectionDelegate;
+@property(nonatomic, assign, readwrite) NSTimeInterval                   timeout;
+@property(nonatomic, assign, readwrite) BOOL                             sendDefaultCookies;
+@property(nonatomic, assign, readwrite) BOOL                             redirects;
+@property(nonatomic, assign, readwrite) BOOL                             synchronous;
+@property(nonatomic, assign, readwrite) BOOL                             validatesSecureCertificate;
+@property(nonatomic, assign, readwrite) BOOL                             cancelled;
+@property(nonatomic, strong, readwrite) NSOperationQueue                 *theQueue;
+@property(nonatomic, assign, readwrite) NSURLRequestCachePolicy          cachePolicy;
+@property(nonatomic, assign, readwrite) BOOL 							 showActivity;
+@property(nonatomic, strong, readwrite) NSURLAuthenticationChallenge	 *authenticationChallenge;
+@property(nonatomic, strong, readwrite) NSURLCredential					 *challengedCredential;
+@property (nonatomic)                   NSURLCredentialPersistence       persistence;
+@property(nonatomic, strong, readonly)  NSMutableURLRequest              *request;
+@property(nonatomic, assign, readwrite) int                              authRetryCount;
+// Only used in Titanium ImageLoader
+@property(nonatomic, strong, readwrite) NSDictionary                     *userInfo;
+
 -(void)send;
 -(void)abort;
 -(void)addRequestHeader:(NSString*)key value:(NSString*)value;
--(void)setCachePolicy:(NSURLRequestCachePolicy)cache;
--(void)connection:(NSURLConnection*)connection didFailWithError:(NSError*)error;
--(NSURLConnection*)connection;
-+(void)setDisableNetworkActivityIndicator:(BOOL)value;
-+ (BOOL)disableNetworkActivityIndicator;
-
 @end

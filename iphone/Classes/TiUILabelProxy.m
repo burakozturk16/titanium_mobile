@@ -76,7 +76,7 @@ static inline CTLineBreakMode UILineBreakModeToCTLineBreakMode(UILineBreakMode l
         _padding = UIEdgeInsetsZero;
         attributeTextNeedsUpdate = YES;
         options = [[NSMutableDictionary dictionaryWithObjectsAndKeys:
-                    NSHTMLTextDocumentType, NSDocumentTypeDocumentAttribute,
+//                    NSHTMLTextDocumentType, NSDocumentTypeDocumentAttribute,
                     [NSNumber numberWithInt:kCTLeftTextAlignment], DTDefaultTextAlignment,
                     [NSNumber numberWithInt:0], DTDefaultFontStyle,
                     @"Helvetica", DTDefaultFontFamily,

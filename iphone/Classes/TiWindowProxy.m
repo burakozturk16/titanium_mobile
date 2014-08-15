@@ -419,8 +419,22 @@
     [self replaceValue:val forKey:@"modal" notification:NO];
 }
 
+-(TiViewProxy*)topParent
+{
+    TiViewProxy* result = parent;
+    while ([result parent]) {
+        result = [result parent];
+    }
+    return result;
+}
+
 -(BOOL)isModal
 {
+    TiViewProxy* topParent = [self topParent];
+    if ([topParent isKindOfClass:[TiWindowProxy class]])
+    {
+        return [(TiWindowProxy*)topParent isModal];
+    }
     return isModal;
 }
 

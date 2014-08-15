@@ -10,7 +10,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -67,7 +66,7 @@ public class PickerRowProxy extends ViewProxy
 	}
 	
 	@Override
-	public void remove(TiViewProxy child)
+	public void remove(Object child)
 	{
 		Log.w(TAG, "PickerRow does not support child controls");
 	}

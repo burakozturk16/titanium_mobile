@@ -22,7 +22,7 @@ import com.nineoldandroids.animation.ValueAnimator;
 
 @SuppressWarnings({"rawtypes"})
 @Kroll.proxy
-public class AnimatableProxy extends KrollProxy {
+public class AnimatableProxy extends ParentingProxy {
 	private static final String TAG = "AnimatableProxy";
 	protected ArrayList<TiAnimator> pendingAnimations;
 	protected ArrayList<TiAnimator> runningAnimations;

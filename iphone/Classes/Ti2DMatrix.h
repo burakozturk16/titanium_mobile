@@ -11,6 +11,7 @@
  */
 @interface Ti2DMatrix : TiProxy {
 }
++(Ti2DMatrix*)matrixWithObject:(id)object;
 
 /**
  Initializes the proxy with properties.

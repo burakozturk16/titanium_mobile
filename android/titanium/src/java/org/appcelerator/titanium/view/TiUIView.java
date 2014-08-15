@@ -89,7 +89,7 @@ import android.widget.AdapterView;
  * A TiUIView is responsible for creating and maintaining a native Android View instance.
  */
 public abstract class TiUIView
-	implements KrollProxyListener, OnFocusChangeListener, Handler.Callback
+	implements KrollProxyReusableListener, OnFocusChangeListener, Handler.Callback
 {
 
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
@@ -447,11 +447,11 @@ public abstract class TiUIView
 		return points;
 	}
 
-	public void applyTransform(Ti2DMatrix timatrix)
+	public void applyTransform(Object timatrix)
 	{
 		View view = getOuterView();
 		if (view != null) {
-			layoutParams.matrix = timatrix;
+			layoutParams.matrix = TiConvert.toMatrix(timatrix);
 			view.setLayoutParams(layoutParams);
 			ViewParent viewParent = view.getParent();
 			if (view.getVisibility() == View.VISIBLE && viewParent instanceof View) {
@@ -839,7 +839,7 @@ public abstract class TiUIView
 			Log.w(TAG, "Focus state changed to " + TiConvert.toString(newValue)
 					+ " not honored until next focus event.", Log.DEBUG_MODE);
 		} else if (key.equals(TiC.PROPERTY_TRANSFORM)) {
-				applyTransform((Ti2DMatrix)newValue);
+				applyTransform(newValue);
 		} else if (key.equals(TiC.PROPERTY_ANCHOR_POINT)) {
 			applyAnchorPoint(newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
@@ -2184,29 +2184,13 @@ public abstract class TiUIView
 		}
 		
 		if (options.containsKey(TiC.PROPERTY_TRANSFORM)) {
-			Ti2DMatrix matrix = (Ti2DMatrix) options.get(TiC.PROPERTY_TRANSFORM);
-			if (matrix != null && matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
-			{
-				matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
-			}
-			else if(matrix == null) {
-				matrix = new Ti2DMatrix();
-			}
-			
+			Ti2DMatrix matrix = TiConvert.toMatrix(options, TiC.PROPERTY_TRANSFORM);
 			if (parentView instanceof FreeLayout) {
 				Ti2DMatrixEvaluator evaluator = new Ti2DMatrixEvaluator(view);
 				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix);
 				list.add(anim);
 				if (needsReverse) {
-					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
-					if (matrix != null && matrix.getClass().getSuperclass().equals(Ti2DMatrix.class))
-					{
-						matrix = new Ti2DMatrix(matrix); //case of _2DMatrixProxy
-					}
-					else if(matrix == null) {
-						matrix = new Ti2DMatrix();
-					}
-					listReverse.add(ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix));
+					listReverse.add(ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, getLayoutParams().matrix));
 				}
 			}
 			else {
@@ -2219,7 +2203,7 @@ public abstract class TiUIView
 				propertiesList.add(PropertyValuesHolder.ofFloat("scaleY", (float)decompose.scaleY));
 				list.add(ObjectAnimator.ofPropertyValuesHolder(AnimatorProxy.NEEDS_PROXY ?AnimatorProxy.wrap(view) : view,propertiesList.toArray(new PropertyValuesHolder[0])));
 				if (needsReverse) {
-					matrix = (Ti2DMatrix) properties.get(TiC.PROPERTY_TRANSFORM);
+					matrix = TiConvert.toMatrix(properties, TiC.PROPERTY_TRANSFORM);
 					decompose = matrix.getAffineTransform(view).decompose();
 					propertiesList = new ArrayList<PropertyValuesHolder>();
 					propertiesList.add(PropertyValuesHolder.ofFloat("translationX", (float)decompose.translateX));

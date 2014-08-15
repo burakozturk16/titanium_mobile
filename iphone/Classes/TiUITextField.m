@@ -326,24 +326,38 @@
 
 -(void)setLeftButton_:(id)value
 {
+    TiViewProxy *vp = nil;
+    id<TiEvaluator> context = self.proxy.executionContext;
+    if (context == nil) {
+        context = self.proxy.pageContext;
+    }
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
-		TiViewProxy *vp = (TiViewProxy*)value;
+		vp = (TiViewProxy*)value;
+    } else if ([value isKindOfClass:[NSDictionary class]]) {
+        vp = [[self.proxy class] createFromDictionary:value rootProxy:self.proxy inContext:context];
+    }
+    
+    UIView* leftView = [[self textWidgetView] leftView];
+	if ([leftView isKindOfClass:[TiUIView class]]){
+        [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
+        [self.proxy forgetProxy:vp];
+        leftView = nil;
+    }
+    if (vp) {
+        [context.krollContext invokeBlockOnThread:^{
+            [self.proxy rememberProxy:vp];
+            [vp forgetSelf];
+        }];
         LayoutConstraint* constraint = [vp layoutProperties];
         if (TiDimensionIsUndefined(constraint->left))
         {
             constraint->left = TiDimensionDip(0);
         }
-		[[self textWidgetView] setLeftView:[vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds]];
-	}
-	else
-	{
-		UIView* leftView = [[self textWidgetView] leftView];
-        if ([leftView isKindOfClass:[TiUIView class]]){
-            [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
-            [[self textWidgetView] setLeftView:nil];
-        }
-	}
+		leftView = [vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds];
+
+    }
+    [[self textWidgetView] setLeftView:leftView];
 }
 
 -(void)setLeftButtonMode_:(id)value
@@ -353,24 +367,39 @@
 
 -(void)setRightButton_:(id)value
 {
+	TiViewProxy *vp = nil;
+    id<TiEvaluator> context = self.proxy.executionContext;
+    if (context == nil) {
+        context = self.proxy.pageContext;
+    }
 	if ([value isKindOfClass:[TiViewProxy class]])
 	{
-		TiViewProxy *vp = (TiViewProxy*)value;
+		vp = (TiViewProxy*)value;
+    } else if ([value isKindOfClass:[NSDictionary class]]) {
+        
+        vp = [[self.proxy class] createFromDictionary:value rootProxy:self.proxy inContext:context];
+    }
+    
+    UIView* rightView = [[self textWidgetView] rightView];
+	if ([rightView isKindOfClass:[TiUIView class]]){
+        [((TiViewProxy*)[((TiUIView*)rightView) proxy]) detachView];
+        [self.proxy forgetProxy:vp];
+        rightView = nil;
+    }
+    if (vp) {
+        [context.krollContext invokeBlockOnThread:^{
+            [self.proxy rememberProxy:vp];
+            [vp forgetSelf];
+        }];
         LayoutConstraint* constraint = [vp layoutProperties];
         if (TiDimensionIsUndefined(constraint->right))
         {
             constraint->right = TiDimensionDip(0);
         }
-		[[self textWidgetView] setRightView:[vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds]];
-	}
-	else
-	{
-        UIView* rightView = [[self textWidgetView] rightView];
-        if ([rightView isKindOfClass:[TiUIView class]]){
-            [((TiViewProxy*)[((TiUIView*)rightView) proxy]) detachView];
-            [[self textWidgetView] setRightView:nil];
-        }
-	}
+		rightView = [vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds];
+        
+    }
+    [[self textWidgetView] setRightView:rightView];
 }
 
 -(void)setRightButtonMode_:(id)value

@@ -18,6 +18,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
+import org.appcelerator.titanium.proxy.ParentingProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiColorHelper;
 import org.appcelerator.titanium.util.TiConvert;
@@ -287,7 +288,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				LayoutParams params = new LayoutParams();
 				params.autoFillsWidth = true;
 				itemContent.setLayoutParams(params);
-				ListItemProxy itemProxy = template.generateCellProxy(data);
+				ListItemProxy itemProxy = template.generateCellProxy(data, proxy);
 				itemProxy.setListProxy(getProxy());
 				section.generateCellContent(sectionIndex, data, itemProxy, itemContent, template, sectionItemIndex, content);
 			}
@@ -932,15 +933,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			viewProxy = (TiViewProxy)object;
 		}
 		else if(object instanceof HashMap) {
-			viewProxy = proxy.createViewFromTemplate((HashMap) object, parent, true);
+			viewProxy = (TiViewProxy) proxy.createProxyFromTemplate((HashMap) object, parent, true);
 		}
 		else return null;
 		TiUIView tiView = viewProxy.peekView();
 		if (tiView != null) {
-			TiViewProxy parentProxy = viewProxy.getParent();
+			ParentingProxy parentProxy = viewProxy.getParent();
 			//Remove parent view if possible
-			if (parentProxy != null) {
-				TiUIView parentView = parentProxy.peekView();
+			if (parentProxy != null && parentProxy instanceof TiViewProxy) {
+				TiUIView parentView = ((TiViewProxy) parentProxy).peekView();
 				if (parentView != null) {
 					parentView.remove(tiView);
 				}
@@ -1224,7 +1225,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		return sections.toArray(new ListSectionProxy[sections.size()]);
 	}
 	
-	public TiViewProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
+	public KrollProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
 		int position = findItemPosition(sectionIndex, itemIndex);
 		if (position > -1) {
 			View content = listView.getChildAt(position);
