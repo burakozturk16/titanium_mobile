@@ -37,7 +37,6 @@ import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiWeakList;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 import org.appcelerator.titanium.view.TiCompositeLayout.LayoutArrangement;
-import org.appcelerator.aps.analytics.APSAnalytics;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -54,25 +53,23 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.KeyEvent;
-
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
+import com.appcelerator.analytics.APSAnalytics;
+
 /**
  * The base class for all non tab Titanium activities. To learn more about Activities, see the
  * <a href="http://developer.android.com/reference/android/app/Activity.html">Android Activity documentation</a>.
  */
-public abstract class TiBaseActivity extends SherlockFragmentActivity
+public abstract class TiBaseActivity extends ActionBarActivity
 	implements TiActivitySupport/*, ITiWindowHandler*/
 {
 	private static final String TAG = "TiBaseActivity";
@@ -113,7 +110,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	private boolean defaultFullscreen = false;
 	private boolean navBarHidden = false;
 	private boolean defaultNavBarHidden = false;
-	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN |  WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+	private int defaultSoftInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN |  WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN;
 	private int softInputMode = defaultSoftInputMode;
 
 	public class DialogWrapper {
@@ -549,12 +546,17 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		final ActionBar actionBar = getSupportActionBar();
 		if (actionBar != null) {
-			if (hidden) {
-				actionBar.hide();
-			}
-			else {
-				actionBar.show();
-			}
+		    try {
+		        if (hidden) {
+	                actionBar.hide();
+	            }
+	            else {
+	                actionBar.show();
+	            }
+            } catch (NullPointerException e) {
+                //no internal action bar
+            }
+			
 		}
 	}
 	
@@ -565,7 +567,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		defaultFullscreen = fullscreen = getIntentBoolean(TiC.PROPERTY_FULLSCREEN, false);
 		defaultNavBarHidden = navBarHidden = getIntentBoolean(TiC.PROPERTY_NAV_BAR_HIDDEN, false);
 		boolean modal = getIntentBoolean(TiC.PROPERTY_MODAL, false);
-		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+		softInputMode = getIntentInt(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE, defaultSoftInputMode);
 		boolean hasSoftInputMode = softInputMode != -1;
 		int windowFlags = getIntentInt(TiC.PROPERTY_WINDOW_FLAGS, 0);
 		final Window window = getWindow();
@@ -622,11 +624,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			return;
 		}
 
-		// If all the activities has been killed and the runtime has been disposed, we cannot recover one
-		// specific activity because the info of the top-most view proxy has been lost (TiActivityWindows.dispose()).
-		// In this case, we have to restart the app.
+		// If all the activities has been killed and the runtime has been disposed or the app's hosting process has
+		// been killed, we cannot recover one specific activity because the info of the top-most view proxy has been
+		// lost (TiActivityWindows.dispose()). In this case, we have to restart the app.
 		if (TiBaseActivity.isUnsupportedReLaunch(this, savedInstanceState)) {
-			Log.w(TAG, "Runtime has been disposed. Finishing.");
+			Log.w(TAG, "Runtime has been disposed or app has been killed. Finishing.");
 			super.onCreate(savedInstanceState);
 			tiApp.scheduleRestart(250);
 			finish();
@@ -637,7 +639,6 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 
 		// create the activity proxy here so that it is accessible from the activity in all cases
 		activityProxy = new ActivityProxy(this);
-		
 
 		// Increment the reference count so we correctly clean up when all of our activities have been destroyed
 		KrollRuntime.incrementActivityRefCount();
@@ -665,6 +666,13 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			layout.setKeepScreenOn(intent.getBooleanExtra(TiC.PROPERTY_KEEP_SCREEN_ON, layout.getKeepScreenOn()));
 		}
 
+		// Set the theme of the activity before calling super.onCreate().
+		// On 2.3 devices, it does not work if the theme is set after super.onCreate.
+		int theme = getIntentInt(TiC.PROPERTY_THEME, -1);
+		if (theme != -1) {
+			this.setTheme(theme);
+		}
+
 		super.onCreate(savedInstanceState);
 		
 		// we only want to set the current activity for good in the resume state but we need it right now.
@@ -676,6 +684,7 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		windowCreated();
 
 		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_CREATE, null);
 			activityProxy.fireEvent(TiC.EVENT_CREATE, null);
 		}
 
@@ -1086,6 +1095,16 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		}
 	}
 
+	private void dispatchCallback(String name, KrollDict data) {
+		if (data == null) {
+			data = new KrollDict();
+		}
+
+		data.put("source", activityProxy);
+
+		activityProxy.callPropertyAsync(name, new Object[] { data });
+	}
+
 	private void releaseDialogs(boolean finish)
 	{
 		//clean up dialogs when activity is pausing or finishing
@@ -1145,6 +1164,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		TiApplication.getInstance().activityPaused(this); //call before setting inForeground
 		inForeground = false;
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_PAUSE, null);
+		}
 		super.onPause();
 		isResumed = false;
 		isPaused = true;
@@ -1186,9 +1208,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 			}
 		}
 
-		// Checkpoint for ti.end event
-		if (tiApp != null && tiApp.collectAnalytics()) {
-			APSAnalytics.sendSessionBackgroundEvent();
+		// Checkpoint for ti.background event
+		if (tiApp != null && TiApplication.getInstance().isAnalyticsEnabled()) {
+			APSAnalytics.getInstance().sendAppBackgroundEvent();
 		}
 	}
 
@@ -1201,6 +1223,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		TiApplication.getInstance().activityResumed(this);
 		inForeground = true;
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_RESUME, null);
+		}
 		super.onResume();
 		if (isFinishing()) {
 			return;
@@ -1241,11 +1266,11 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 		isResumed = true;
 		isPaused = false;
 
-		// Checkpoint for ti.start event
+		// Checkpoint for ti.foreground event
 		//String deployType = tiApp.getAppProperties().getString("ti.deploytype", "unknown");
-        if (tiApp.collectAnalytics()) {
-            APSAnalytics.sendSessionForegroundEvent();
-        }
+		if(TiApplication.getInstance().isAnalyticsEnabled()){
+		    APSAnalytics.getInstance().sendAppForegroundEvent();
+		}
 	}
 	
 //	@Override
@@ -1263,6 +1288,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	protected void onStart()
 	{
 		inForeground = true;
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_START, null);
+		}
 		super.onStart();
 		if (isFinishing()) {
 			return;
@@ -1322,6 +1350,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	{
 		TiApplication.getInstance().activityStopped(this);
 		inForeground = false;
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_STOP, null);
+		}
 		super.onStop();
 
 		Log.d(TAG, "Activity " + this + " onStop", Log.DEBUG_MODE);
@@ -1358,6 +1389,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	protected void onRestart()
 	{
 		inForeground = true;
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_RESTART, null);
+		}
 		super.onRestart();
 
 		Log.d(TAG, "Activity " + this + " onRestart", Log.DEBUG_MODE);
@@ -1416,6 +1450,9 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	protected void onDestroy()
 	{
 		Log.d(TAG, "Activity " + this + " onDestroy", Log.DEBUG_MODE);
+		if (activityProxy != null) {
+			dispatchCallback(TiC.PROPERTY_ON_DESTROY, null);
+		}
 
 		inForeground = false;
 		TiApplication tiApp = getTiApp();
@@ -1617,10 +1654,12 @@ public abstract class TiBaseActivity extends SherlockFragmentActivity
 	 */
 	public static boolean isUnsupportedReLaunch(Activity activity, Bundle savedInstanceState)
 	{
-		// If all the activities has been killed and the runtime has been disposed, we have to relaunch
-		// the app.
-		if (KrollRuntime.getInstance().getRuntimeState() == KrollRuntime.State.DISPOSED &&
-				savedInstanceState != null && !(activity instanceof TiLaunchActivity)) {
+		// We have to relaunch the app if
+		// 1. all the activities have been killed and the runtime has been disposed or
+		// 2. the app's hosting process has been killed. In this case, onDestroy or any other method
+		// is not called. We can check the status of the root activity to detect this situation.
+		if (savedInstanceState != null && !(activity instanceof TiLaunchActivity) &&
+				(KrollRuntime.isDisposed() || TiApplication.getInstance().rootActivityLatch.getCount() != 0)) {
 			return true;
 		}
 		return false;

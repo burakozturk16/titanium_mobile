@@ -32,8 +32,18 @@
         }
 	}
     [super setFrame:frame];
-    if (needsLayout)
-        [(TiViewProxy*)self.proxy parentSizeWillChange];
+    if (needsLayout) {
+        if ([[self.layer animationKeys] count] > 0) {
+            [(TiViewProxy*)self.proxy performBlockWithoutLayout:^{
+                [(TiViewProxy*)self.proxy parentSizeWillChange];
+            }];
+            
+            [(TiViewProxy*)self.proxy refreshViewOrParent];
+        }
+        else {
+            [(TiViewProxy*)self.proxy parentSizeWillChange];
+        }
+    }
 }
 
 @end

@@ -377,6 +377,11 @@ DEFINE_EXCEPTIONS
 	return imageView;
 }
 
+//-(UIView*)viewForHitTest
+//{
+//    return imageView;
+//}
+
 - (id)accessibilityElement
 {
 	return [self imageView];
@@ -450,10 +455,10 @@ DEFINE_EXCEPTIONS
 {
 	int position = [TiUtils intValue:pos];
 	NSURL *theurl = [TiUtils toURL:[_images objectAtIndex:position] proxy:self.proxy];
-	UIImage *theimage = [[ImageLoader sharedLoader] loadImmediateImage:theurl];
+	id theimage = [[ImageLoader sharedLoader] loadImmediateImage:theurl];
 	if (theimage==nil)
 	{
-		theimage = [[ImageLoader sharedLoader] loadRemote:theurl];
+		theimage = [[ImageLoader sharedLoader] loadRemote:theurl withOptions:[self.proxy valueForUndefinedKey:@"httpOptions"]];
 	}
 	if (theimage==nil)
 	{
@@ -743,16 +748,42 @@ DEFINE_EXCEPTIONS
     [self startTimerWithEvent:@"resume"];
 }
 
--(void)setAnimatedImageAtIndex:(int)i
+-(id)index_
 {
+    if (_animatedImage) {
+        return @([_animatedImage index]);
+    }
+    return @(0);
+}
+
+-(void)setIndex_:(id)arg
+{
+    ENSURE_SINGLE_ARG(arg, NSNumber)
     if (_animatedImage) {
         [self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
         [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
-        [_animatedImage setAnimatedImageAtIndex:i];
+        [_animatedImage setAnimatedImageAtIndex:[arg intValue]];
         return;
     }
 }
 
+-(id)progress_ {
+    if (_animatedImage) {
+        return @([_animatedImage progress]);
+    }
+    return @(1);
+}
+
+
+-(void)setProgress_:(id)arg
+{
+    ENSURE_SINGLE_ARG(arg, NSNumber)
+    if (_animatedImage) {
+        [self.proxy replaceValue:NUMBOOL(NO) forKey:@"animating" notification:NO];
+        [self.proxy replaceValue:NUMBOOL(NO) forKey:@"paused" notification:NO];
+        [_animatedImage setProgress:[arg floatValue]];
+    }
+}
 
 -(void)setWidth_:(id)width_
 {
@@ -788,8 +819,8 @@ DEFINE_EXCEPTIONS
 
 -(void)setImage_:(id)arg
 {
-
-    if (_currentImageSource == arg) return;
+    if (!configurationSet)return;
+    if (_currentImageSource && _currentImageSource == arg && _currentImage) return;
     _currentImageSource = arg;
     
 	[self removeAllImagesFromContainer];
@@ -812,6 +843,7 @@ DEFINE_EXCEPTIONS
     
 	if (arg==nil || [arg isEqual:@""] || [arg isKindOfClass:[NSNull class]])
 	{
+        [self loadDefaultImage];
 		return;
 	}
 	
@@ -845,6 +877,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setImages_:(id)args
 {
+    if (!configurationSet)return;
 	BOOL running = (timer!=nil);
     usingNewMethod = NO;
 	
@@ -919,6 +952,7 @@ DEFINE_EXCEPTIONS
 
 -(void)setAnimatedImages_:(id)args
 {
+    if (!configurationSet)return;
 	ENSURE_TYPE_OR_NIL(args,NSArray);
     if (args == nil) {
         RELEASE_TO_NIL(_animatedImage);
@@ -971,6 +1005,17 @@ DEFINE_EXCEPTIONS
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSDictionary)
     self.transition = arg;
+}
+
+-(void)configurationSet
+{
+    [super configurationSet];
+    [self setImage_:[self.proxy valueForKey:@"image"]];
+    if ([self.proxy valueForKey:@"images"]) {
+        [self setImages_:[self.proxy valueForKey:@"images"]];
+    } else if ([self.proxy valueForKey:@"animatedImages"]) {
+        [self setAnimatedImages_:[self.proxy valueForKey:@"animatedImages"]];
+    }
 }
 
 -(void)setPreventDefaultImage_:(id)value

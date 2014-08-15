@@ -123,6 +123,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  An array of `NSTextCheckingResult` objects for links detected or manually added to the label text.
  */
 @property (readonly, nonatomic, strong) NSArray *links;
+- (void)setLinks:(NSArray *)links;
 
 /**
  A dictionary containing the `NSAttributedString` attributes to be applied to links detected or manually added to the label text. The default link style is blue and underlined.
@@ -140,6 +141,8 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
  A dictionary containing the `NSAttributedString` attributes to be applied to links when they are in the inactive state, which is triggered a change in `tintColor` in iOS 7. If `nil` or an empty `NSDictionary`, inactive links will not be styled. The default inactive link style is gray and unadorned.
  */
 @property (nonatomic, strong) NSDictionary *inactiveLinkAttributes;
+
+-(void)initLinksStyle;
 
 ///---------------------------------------
 /// @name Acccessing Text Style Attributes
@@ -249,6 +252,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 @property (nonatomic, strong) NSString *paddingAttributeProperty;
 @property (nonatomic, strong) NSString *strikeOutAttributeProperty;
 @property (nonatomic, strong) NSString *backgroundColorAttributeProperty;
+@property (nonatomic, strong) NSString *linkAttributeProperty;
 
 
 ///--------------------------------------------
@@ -293,6 +297,7 @@ extern NSString * const kTTTBackgroundCornerRadiusAttributeName;
 afterInheritingLabelAttributesAndConfiguringWithBlock:(NSMutableAttributedString *(^)(NSMutableAttributedString *mutableAttributedString))block;
 
 - (CFIndex)characterIndexAtPoint:(CGPoint)p;
+- (NSTextCheckingResult *)linkAtPoint:(CGPoint)p;
 ///----------------------------------
 /// @name Accessing the Text Attributes
 ///----------------------------------

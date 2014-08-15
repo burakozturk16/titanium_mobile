@@ -1,8 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="lib" path="lib/titanium.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/kroll-common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-network"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-ui"/>
 	<classpathentry kind="src" path="gen"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/titanium-dist"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/titanium-geolocation"/>
+	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-filesystem.jar" sourcepath="/titanium-filesystem"/>
+	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-media.jar"/>
+	<classpathentry kind="lib" path="/titanium-dist/lib/titanium-app.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

@@ -85,10 +85,9 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 {
 	[appListeners removeAllObjects];
 	RELEASE_TO_NIL(appListeners);
-	RELEASE_TO_NIL(properties);
+	FORGET_AND_RELEASE(properties);
 #ifdef USE_TI_APPIOS
-    [self forgetProxy:iOS];
-	RELEASE_TO_NIL(iOS);
+	FORGET_AND_RELEASE(iOS);
 #endif	
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[super dealloc];
@@ -242,10 +241,10 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 	if (properties == nil)
 	{
 		properties = [[TiAppPropertiesProxy alloc] _initWithPageContext:[self executionContext]];
+        [self rememberProxy:properties];
 	}
 	return properties;
 }
-
 -(void)setIdleTimerDisabled:(NSNumber*)value
 {
 	[UIApplication sharedApplication].idleTimerDisabled = [TiUtils boolValue:value];
@@ -331,11 +330,11 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
     if([self _hasListeners:@"memorywarning"]) {
         [self fireEvent:@"memorywarning" withObject:nil];
     }
-
-	RELEASE_TO_NIL(properties);
+    //this creates a"message send to deallocated instance" in TiThreadProcessPendingMainThreadBlocks
+    // when releasing thisAction(). It should not happen :s
+//	FORGET_AND_RELEASE(properties);
 #ifdef USE_TI_APPIOS
-    [self forgetProxy:iOS];
-	RELEASE_TO_NIL(iOS);
+	FORGET_AND_RELEASE(iOS);
 #endif
 	[super didReceiveMemoryWarning:notification];
 }
@@ -593,6 +592,12 @@ extern BOOL const TI_APPLICATION_ANALYTICS;
 -(NSNumber*)keyboardVisible
 {
     return NUMBOOL([[[TiApp app] controller] keyboardVisible]);
+}
+
+- (NSNumber *)inBackground
+{
+    UIApplicationState state = [UIApplication sharedApplication].applicationState;
+	return NUMBOOL(state == UIApplicationStateBackground);
 }
 
 -(void)setForceSplashAsSnapshot:(id)args

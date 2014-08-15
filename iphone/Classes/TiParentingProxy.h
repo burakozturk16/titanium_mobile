@@ -22,6 +22,8 @@
  */
 @property(nonatomic, assign) TiParentingProxy *parent;
 
+-(BOOL)_hasListeners:(NSString *)type checkParent:(BOOL)check;
+
 /**
  Tells the view proxy to add a child proxy.
  @param arg A single proxy to add or NSArray of proxies.
@@ -33,6 +35,7 @@
  */
 
 -(void)addProxy:(id)child atIndex:(NSInteger)position shouldRelayout:(BOOL)shouldRelayout;
+- (TiProxy *)createChildFromObject:(id)object;
 
 /**
  Tells the view proxy to remove a child proxy.
@@ -46,5 +49,14 @@
  @param arg Ignored.
  */
 -(void)removeAllChildren:(id)arg;
+
+
+/**
+ get the next children of a certain class starting from a child
+ @param class The child class looked for
+ @param child The child view
+ */
+-(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiProxy*)child;
+-(BOOL)containsChild:(TiProxy*)child;
 
 @end

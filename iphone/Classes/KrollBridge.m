@@ -27,6 +27,7 @@
 extern BOOL const TI_APPLICATION_ANALYTICS;
 extern NSString * const TI_APPLICATION_DEPLOYTYPE;
 extern NSString * const TI_APPLICATION_GUID;
+extern NSString * const TI_APPLICATION_BUILD_TYPE;
 
 NSString * TitaniumModuleRequireFormat = @"(function(exports){"
 		"var __OXP=exports;var module={'exports':exports};var __dirname=\"%@\";var __filename=\"%@\";\n%@;\n"
@@ -61,13 +62,18 @@ void TiBindingRunLoopAnnounceStart(TiBindingRunLoop runLoop);
 		
 		// pre-cache a few modules we always use
 		TiModule *ui = [host moduleNamed:@"UI" context:pageContext_];
-		[self addModule:@"UI" module:ui];
+		if (ui) [self addModule:@"UI" module:ui];
 		TiModule *api = [host moduleNamed:@"API" context:pageContext_];
-		[self addModule:@"API" module:api];
+		if (api) [self addModule:@"API" module:api];
 		
-		if (TI_APPLICATION_ANALYTICS) {
-			//This should enable analytics.
-			[APSAnalytics enableWithAppKey:TI_APPLICATION_GUID withDeployType:TI_APPLICATION_DEPLOYTYPE];
+		if (TI_APPLICATION_ANALYTICS)
+		{
+            APSAnalytics *sharedAnalytics = [APSAnalytics sharedInstance];
+            if (TI_APPLICATION_BUILD_TYPE != nil || (TI_APPLICATION_BUILD_TYPE.length > 0)) {
+                [sharedAnalytics performSelector:@selector(setBuildType:) withObject:TI_APPLICATION_BUILD_TYPE];
+            }
+            [sharedAnalytics performSelector:@selector(setSDKVersion:) withObject:[NSString stringWithFormat:@"ti.%@",[module performSelector:@selector(version)]]];
+			[sharedAnalytics enableWithAppKey:TI_APPLICATION_GUID andDeployType:TI_APPLICATION_DEPLOYTYPE];
 		}
 	}
 	return self;

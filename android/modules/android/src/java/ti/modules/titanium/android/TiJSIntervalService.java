@@ -37,14 +37,14 @@ public class TiJSIntervalService extends TiJSService
 	}
 
 	@Override
-	protected void executeServiceCode(ServiceProxy proxy)
+	protected void executeServiceCode()
 	{
 		final String EXTRA_NAME = "interval";
 
 		IntentProxy intentProxy = proxy.getIntent();
 		if (intentProxy == null || !intentProxy.hasExtra(EXTRA_NAME)) {
 			Log.w(TAG, "The intent is missing the extra value '" + EXTRA_NAME + "', therefore the code will be executed only once.");
-			super.executeServiceCode(proxy);
+			super.executeServiceCode();
 			return;
 		}
 
@@ -58,7 +58,7 @@ public class TiJSIntervalService extends TiJSService
 
 		if (interval < 0) {
 			Log.w(TAG, "The intent's extra '" + EXTRA_NAME + "' value is negative or non-numeric, therefore the code will be executed only once.");
-			super.executeServiceCode(proxy);
+			super.executeServiceCode();
 			return;
 		}
 

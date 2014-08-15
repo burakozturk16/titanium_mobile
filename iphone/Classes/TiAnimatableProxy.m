@@ -29,10 +29,14 @@
 
 -(void)dealloc
 {
+	pthread_rwlock_rdlock(&pendingLock);
 	RELEASE_TO_NIL(_pendingAnimations);
-	RELEASE_TO_NIL(_runningAnimations);
-	pthread_rwlock_destroy(&runningLock);
+	pthread_rwlock_unlock(&runningLock);
 	pthread_rwlock_destroy(&pendingLock);
+	pthread_rwlock_rdlock(&runningLock);
+	RELEASE_TO_NIL(_runningAnimations);
+	pthread_rwlock_unlock(&runningLock);
+	pthread_rwlock_destroy(&runningLock);
 	[super dealloc];
 }
 
@@ -54,7 +58,6 @@
         [self forgetProxy:animation];
         [_pendingAnimations removeObject:animation];
     }
-    [_pendingAnimations removeObject:animation];
 	pthread_rwlock_unlock(&pendingLock);
 }
 
@@ -75,25 +78,41 @@
 	pthread_rwlock_unlock(&runningLock);
 }
 
--(void)cancelAllAnimations:(id)arg
-{
+-(void)cancelPending {
     pthread_rwlock_rdlock(&pendingLock);
-    NSArray* pending = [[NSArray alloc] initWithArray:_pendingAnimations];
-    [_pendingAnimations removeAllObjects];
+    if ([_pendingAnimations count] == 0) {
+        pthread_rwlock_unlock(&pendingLock);
+        return;
+    }
+    NSArray* pending = _pendingAnimations;
+    _pendingAnimations = [NSMutableArray new];
     pthread_rwlock_unlock(&pendingLock);
     for (TiAnimation* animation in pending) {
         [self removePendingAnimation:animation];
     }
     [pending release];
-	pthread_rwlock_rdlock(&runningLock);
-    NSArray* running = [[NSArray alloc] initWithArray:_runningAnimations];
-    [_runningAnimations removeAllObjects];
-	pthread_rwlock_unlock(&runningLock);
+}
+
+-(void)cancelRunning {
+    pthread_rwlock_rdlock(&runningLock);
+    if ([_pendingAnimations count] == 0) {
+        pthread_rwlock_unlock(&runningLock);
+        return;
+    }
+    NSArray* running = _runningAnimations;
+    _runningAnimations = [NSMutableArray new];
+    pthread_rwlock_unlock(&runningLock);
     for (TiAnimation* animation in running) {
         [self removeRunningAnimation:animation];
         [animation cancelWithReset:animation.restartFromBeginning];
     }
     [running release];
+}
+
+-(void)cancelAllAnimations:(id)arg
+{
+    [self cancelPending];
+    [self cancelRunning];
 }
 
 -(void)cancelAnimation:(TiAnimation *)animation shouldReset:(BOOL)reset
@@ -142,14 +161,13 @@
 -(void)handlePendingAnimation
 {
     pthread_rwlock_rdlock(&pendingLock);
-    
     if ([_pendingAnimations count] == 0) {
         pthread_rwlock_unlock(&pendingLock);
         return;
     }
     
-    NSArray* pending = [[NSArray alloc] initWithArray:_pendingAnimations];
-    [_pendingAnimations removeAllObjects];
+    NSArray* pending = _pendingAnimations;
+    _pendingAnimations = [NSMutableArray new];
 	pthread_rwlock_unlock(&pendingLock);
     for (TiAnimation* anim in pending) {
         [self handlePendingAnimation:anim];

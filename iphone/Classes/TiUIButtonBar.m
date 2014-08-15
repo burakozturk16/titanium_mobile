@@ -220,6 +220,9 @@
 	int newIndex = [(UISegmentedControl *)sender selectedSegmentIndex];
 	
 	[self.proxy replaceValue:NUMINT(newIndex) forKey:@"index" notification:NO];
+    if ([self.proxy.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
+        [self.proxy.eventOverrideDelegate viewProxy:self.proxy updatedValue:NUMINT(newIndex) forType:@"index"];
+    }
 	
 	if (newIndex == selectedIndex)
 	{

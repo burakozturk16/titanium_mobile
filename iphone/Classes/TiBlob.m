@@ -211,7 +211,7 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 		case TiBlobTypeData:
 		{
             if (image == nil) {
-                image = [UIImage imageWithData:data];
+                image = [[UIImage imageWithData:data] retain];
             }
             break;
 		}
@@ -222,9 +222,22 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 	return image;
 }
 
+-(id)representedObject
+{
+    if ([mimetype isEqualToString:MIMETYPE_PNG] ||
+        [mimetype isEqualToString:MIMETYPE_JPEG]) {
+        return [self image];
+    }
+    
+    else {
+        return [self text];
+    }
+}
+
 -(void)setData:(NSData*)data_
 {
 	RELEASE_TO_NIL(data);
+	RELEASE_TO_NIL(image);
 	type = TiBlobTypeData;
 	data = [data_ retain];
 }
@@ -425,6 +438,19 @@ static NSString *const MIMETYPE_JPEG = @"image/jpeg";
 {
     [self ensureImageLoaded];
     return self;
+}
+
+
+-(id)toJSON
+{
+    id represented = [self representedObject];
+    if ([represented isKindOfClass:[UIImage class]]) {
+        return [NSString stringWithFormat:@"%@",@{@"type": @"image",
+                 @"width":@(((UIImage*)represented).size.width),
+                 @"height":@(((UIImage*)represented).size.height)
+                 }] ;
+    }
+    return [NSNull null];
 }
 
 -(id)toString:(id)args

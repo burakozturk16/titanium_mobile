@@ -9,12 +9,13 @@ package ti.modules.titanium.ui.widget.tabgroup;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiUIHelper;
-import com.actionbarsherlock.app.ActionBar;
+
 import ti.modules.titanium.ui.TabProxy;
 import android.annotation.SuppressLint;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.ActionBar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;

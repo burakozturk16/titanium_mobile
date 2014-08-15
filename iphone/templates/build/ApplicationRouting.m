@@ -39,8 +39,10 @@ extern NSData* filterDataInRange(NSData* thedata, NSRange range);
 	{
 		key = [keys objectAtIndex: i];
 		if ([key hasPrefix:path]) {
-			NSString* value = [[key substringFromIndex:[pathToCompare length]] stringByReplacingOccurrencesOfString:@"_" withString:@"."];
-			[result addObject: value];
+            NSString* value = [key substringFromIndex:[pathToCompare length]];
+            value = [[value componentsSeparatedByString:@"/"] objectAtIndex:0];
+            value = [value stringByReplacingOccurrencesOfString:@"_" withString:@"."];
+            [result addObject: value];
 		}
 	}
 	NSArray* array = [NSArray arrayWithArray:result];

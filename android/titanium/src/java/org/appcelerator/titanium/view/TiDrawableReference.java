@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
@@ -83,7 +84,8 @@ public class TiDrawableReference
 	private int resourceId = UNKNOWN;
 	private String url;
 	private TiBlob blob;
-	private TiBaseFile file;
+    private TiBaseFile file;
+    private HttpURLConnection http;
 	private DrawableReferenceType type;
 	private boolean oomOccurred = false;
 	private boolean anyDensityFalse = false;
@@ -124,7 +126,7 @@ public class TiDrawableReference
 		total = total * constant + type.ordinal();
 		total = total * constant + (url == null ? 0 : url.hashCode());
 		total = total * constant + (blob == null ? 0 : blob.hashCode());
-		total = total * constant + (file == null ? 0 : file.hashCode());
+        total = total * constant + (file == null ? 0 : file.hashCode());
 		total = total * constant + resourceId;
 		return total;
 	}
@@ -250,6 +252,20 @@ public class TiDrawableReference
 			return fromObject(activity, null);
 		}
 	}
+	
+	   /**
+     * Creates and returns a TiDrawableReference with type DrawableReferenceType.HTTP.
+     * @param activity the referenced activity.
+     * @param http the referenced httpurlconnection.
+     * @return A ready instance of TiDrawableReference.
+     */
+    public static TiDrawableReference fromHttp(Activity activity, HttpURLConnection http)
+    {
+        TiDrawableReference ref = new TiDrawableReference(activity, DrawableReferenceType.URL);
+        ref.http = http;
+        ref.url = http.getURL().toString();
+        return ref;
+    }
 
 	public boolean isNetworkUrl()
 	{
@@ -270,7 +286,12 @@ public class TiDrawableReference
 	{
 		return type == DrawableReferenceType.BLOB;
 	}
-	
+    
+    public boolean isTypeHttp()
+    {
+        return type == DrawableReferenceType.URL && http != null;
+    }
+    
 	public boolean isSVG()
 	{
 		return (url != null && url.endsWith(".svg"));
@@ -383,7 +404,7 @@ public class TiDrawableReference
 					Log.e(TAG, "Unable to load bitmap. Not enough memory: " + e.getMessage(), e);
 				}
 			}
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			Log.e(TAG, "Could not get Bitmap: " + e.getMessage(), e);
 		} finally {
 			if (is == null) {
@@ -403,7 +424,7 @@ public class TiDrawableReference
 	private Drawable getSVG() {
 		try {
 			return new SVGDrawable(SVGFlyweightFactory.getInstance().get(getInputStream(), url, TiApplication.getInstance().getCurrentActivity()));
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			return null;
 		}
 	}
@@ -655,7 +676,7 @@ public class TiDrawableReference
 		InputStream is;
 		try {
 			is = getInputStream();
-		} catch (FileNotFoundException e1) {
+		} catch (IOException e1) {
 			return null;
 		}
 		if (is == null) {
@@ -805,7 +826,7 @@ public class TiDrawableReference
 		InputStream stream = null;
 		try {
 			stream = getInputStream();
-		} catch (FileNotFoundException e1) {
+		} catch (IOException e1) {
 			 return bounds;
 		}
 
@@ -840,27 +861,33 @@ public class TiDrawableReference
 	 * @return InputStream or null if problem getting it (check logcat in that case)
 	 * @throws FileNotFoundException 
 	 */
-	public InputStream getInputStream() throws FileNotFoundException
+	public InputStream getInputStream() throws IOException
 	{
 		InputStream stream = null;
 
 		if (isTypeUrl() && url != null) {
-			try {
-				if (url.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)
-					&& TiFastDev.isFastDevEnabled()) {
-					TiBaseFile tbf = TiFileFactory.createTitaniumFile(new String[] { url }, false);
-					if (!tbf.exists()) throw new FileNotFoundException();
-					stream = tbf.getInputStream();
-				} else {
-					stream = TiFileHelper.getInstance().openInputStream(url, false);
-				}
-			} catch (FileNotFoundException e) {
-				Log.e(TAG, "file not found with url " + url, e);
-				throw e;
-			}
-			catch (IOException e) {
-					Log.e(TAG, "Problem opening stream with url " + url + ": " + e.getMessage(), e);
-			}
+		    if (http != null) {
+	            stream = http.getInputStream();
+		    }
+		    else {
+		        try {
+	                if (url.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)
+	                    && TiFastDev.isFastDevEnabled()) {
+	                    TiBaseFile tbf = TiFileFactory.createTitaniumFile(new String[] { url }, false);
+	                    if (!tbf.exists()) throw new FileNotFoundException();
+	                    stream = tbf.getInputStream();
+	                } else {
+	                    stream = TiFileHelper.getInstance().openInputStream(url, false);
+	                }
+	            } catch (FileNotFoundException e) {
+	                Log.e(TAG, "file not found with url " + url, e);
+	                throw e;
+	            }
+	            catch (IOException e) {
+	                    Log.e(TAG, "Problem opening stream with url " + url + ": " + e.getMessage(), e);
+	            }
+		    }
+			
 
 		} else if (isTypeFile() && file != null) {
 			if (!file.exists()) throw new FileNotFoundException();
@@ -951,7 +978,7 @@ public class TiDrawableReference
 			InputStream is;
 			try {
 				is = getInputStream();
-			} catch (FileNotFoundException e) {
+			} catch (IOException e) {
 				return 0;
 			}
 			if (is != null) {

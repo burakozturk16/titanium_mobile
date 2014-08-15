@@ -1031,7 +1031,7 @@ public class TiUIScrollableView extends TiUIView implements  ViewPager.OnPageCha
 			super(context, TiUIScrollableView.this);      
 			setFocusable(true);
 			setFocusableInTouchMode(true);
-			setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);			
+			setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
 		}
 		
 		private Point mCenter = new Point();

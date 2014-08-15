@@ -7,7 +7,6 @@
 package org.appcelerator.titanium.proxy;
 
 import java.util.List;
-
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
@@ -22,16 +21,17 @@ import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiFileHelper;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.util.TiUrl;
-import org.appcelerator.titanium.view.TiUIView;
-
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.MenuItem.OnActionExpandListener;
-
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Message;
+import android.support.v4.view.MenuItemCompat;
+import android.view.MenuItem;
+import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
-import android.view.ViewGroup;
 
+@SuppressLint("NewApi")
 @Kroll.proxy
 public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 {
@@ -60,10 +60,11 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 	private static final int MSG_SET_TITLE = MSG_FIRST_ID + 215;
 	private static final int MSG_SET_TITLE_CONDENSED = MSG_FIRST_ID + 216;
 	private static final int MSG_ACTION_VIEW_EXPANDED = MSG_FIRST_ID + 217;
+	private static final boolean ICS = Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 
 	protected static final int MSG_LAST_ID = MSG_FIRST_ID + 1000;
 
-	private final class ActionExpandListener implements OnActionExpandListener {
+    private final class ActionExpandListener implements OnActionExpandListener {
 		public boolean onMenuItemActionCollapse(MenuItem item) {
 			fireEvent(TiC.EVENT_COLLAPSE, null);
 			return true;
@@ -74,13 +75,29 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 			return true;
 		}
 	}
+	
+	private final class CompatActionExpandListener implements MenuItemCompat.OnActionExpandListener {
+        public boolean onMenuItemActionCollapse(MenuItem item) {
+            fireEvent(TiC.EVENT_COLLAPSE, null);
+            return true;
+        }
 
-	protected MenuItemProxy(MenuItem item)
+        public boolean onMenuItemActionExpand(MenuItem item) {
+            fireEvent(TiC.EVENT_EXPAND, null);
+            return true;
+        }
+    }
+
+    protected MenuItemProxy(MenuItem item)
 	{
 		this.item = item;
 		setModelListener(this, false);
 
-		item.setOnActionExpandListener(new ActionExpandListener());
+		if (ICS) {
+            item.setOnActionExpandListener(new ActionExpandListener());
+        } else {
+            MenuItemCompat.setOnActionExpandListener(item, new CompatActionExpandListener());
+        }
 	}
 
 	@Override
@@ -165,7 +182,7 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 				return true;
 			}
 			case MSG_ACTION_VIEW_EXPANDED: {
-				result.setResult(item.isActionViewExpanded());
+				result.setResult(isAppCompatActionViewExpanded());
 				return true;
 			}
 			
@@ -357,7 +374,11 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 			final View v = ((TiViewProxy) view).getOrCreateView().getOuterView();
 			TiMessenger.postOnMain(new Runnable() {
 				public void run() {
-					item.setActionView(v);
+					if (ICS) {
+	                    item.setActionView(v);
+	                } else {
+	                    MenuItemCompat.setActionView(item, v);
+	                }
 				}
 			});
 		} else {
@@ -368,7 +389,11 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 	public void setShowAsAction(final int flag) {
 		TiMessenger.postOnMain(new Runnable() {
 			public void run() {
-				item.setShowAsAction(flag);
+				if (ICS) {
+	                item.setShowAsAction(flag);
+                } else {
+                    MenuItemCompat.setShowAsAction(item, flag);
+                }
 			}
 		});
 	}
@@ -377,7 +402,11 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 	public void collapseActionView() {
 		TiMessenger.postOnMain(new Runnable() {
 			public void run() {
-				item.collapseActionView();
+				if (ICS) {
+                    item.collapseActionView();
+                } else {
+                    MenuItemCompat.collapseActionView(item);
+                }
 			}
 		});
 	}
@@ -386,15 +415,28 @@ public class MenuItemProxy extends KrollProxy implements KrollProxyListener
 	public void expandActionView() {
 		TiMessenger.postOnMain(new Runnable() {
 			public void run() {
-				item.expandActionView();
+				if (ICS) {
+				    item.expandActionView();
+		        } else {
+		            MenuItemCompat.expandActionView(item);
+		        }
 			}
 		});
 	}
+	
+	private boolean isAppCompatActionViewExpanded() {
+        if (ICS) {
+            return item.isActionViewExpanded();
+        } else {
+            return MenuItemCompat.isActionViewExpanded(item);
+        }
+    }
+
 
 	@Kroll.method @Kroll.getProperty
 	public boolean isActionViewExpanded() {
 		if (TiApplication.isUIThread()) {
-			return item.isActionViewExpanded();
+			return isAppCompatActionViewExpanded();
 		}
 
 		return (Boolean) TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_ACTION_VIEW_EXPANDED));

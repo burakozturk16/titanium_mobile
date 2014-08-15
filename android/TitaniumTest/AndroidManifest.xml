@@ -1,56 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="com.titanium.test" android:versionCode="1" android:versionName="1">
-	<uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
+    package="com.akylas.titanium.ks"
+    android:versionCode="1"
+    android:versionName="1" >
 
-	<!-- TI_MANIFEST -->
-	<uses-feature android:name="android.hardware.telephony" android:required="false"/>
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-	<uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-	<uses-permission android:name="android.permission.INTERNET"/>
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-	<uses-permission android:name="android.permission.READ_CONTACTS"/>
-		<application 
-		android:label="TitaniumTest" android:name="TitaniumtestApplication"
-			android:theme="@style/Theme.Titanium.Translucent"
-		android:debuggable="true" android:allowBackup="false"
-		android:hardwareAccelerated="true">
+    <uses-sdk
+        android:minSdkVersion="9"
+        android:targetSdkVersion="14" />
+    
+<!--     <supports-screens android:anyDensity="true"
+                android:largeScreens="false"
+                android:normalScreens="true" android:smallScreens="true" android:xlargeScreens="false"/>
+     -->
+    <!-- TI_MANIFEST -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
 
-		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="com.akylas.titanium.ks.permission.C2D_MESSAGE"/>
+    <permission android:name="com.akylas.titanium.ks.permission.C2D_MESSAGE" android:protectionLevel="signature"/>
+    
+<!--     <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+    <permission
+        android:name="com.titanium.test.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+    <uses-permission android:name="com.titanium.test.permission.MAPS_RECEIVE" /> -->
+
+    <application
+        android:name="TitaniumtestApplication"
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:label="TitaniumTest"
+        android:theme="@style/Theme.Titanium" >
+         <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="5077000" />
+         <meta-data
+            android:name="com.google.android.maps.v2.API_KEY"
+            android:value="AIzaSyA4DiNxX9WbOV6anySJHjGeyW9CJf3AhZ0" />
+
+        <!-- 
+     		<receiver android:name="ti.modules.titanium.android.BootUpReceiver"
 			android:enabled="true"
         	android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
 		    <intent-filter>
 		        <action android:name="android.intent.action.BOOT_COMPLETED" />
 		    </intent-filter>
 		</receiver>
-		<!-- TI_APPLICATION -->
+        -->
+        <receiver android:name="akylas.location.locationmanager.PassiveLocationChangedReceiver" />
+        <receiver android:name="akylas.location.StartupIntentReceiver"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+                
+        <!-- TI_APPLICATION -->
 
-		<activity android:name=".TitaniumtestActivity"
-			android:label="TitaniumTest"
-			android:theme="@style/Theme.Titanium.SplashScreen"
-			android:configChanges="keyboardHidden|orientation|screenSize">
+        <activity
+            android:name="com.akylas.titanium.ks.TitaniumtestActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:label="TitaniumTest"
+            android:theme="@style/Theme.Titanium.SplashScreen" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
-		<!-- TI_ACTIVITIES -->
+        <!-- TI_ACTIVITIES -->
 
-		<activity android:name="org.appcelerator.titanium.TiActivity"
-			android:configChanges="keyboardHidden|orientation|screenSize" />
-		<activity android:name="org.appcelerator.titanium.TiTranslucentActivity" android:configChanges="keyboardHidden|orientation|screenSize" android:theme="@style/Theme.Titanium.Translucent"/>
-		<activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
-		<!-- TI_SERVICES -->
-		<service
-            android:name="org.aps.analytics.APSAnalyticsService" >
+        <activity
+            android:name="org.appcelerator.titanium.TiActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" />
+        <activity
+            android:name="org.appcelerator.titanium.TiTranslucentActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:theme="@style/Theme.Titanium.Translucent" />
+        <activity android:name="ti.modules.titanium.ui.android.TiPreferencesActivity" />
+        <!-- TI_SERVICES -->
+
+<!--         <activity
+            android:name="akylas.millenoki.vpn.FakedActivityToPrepareVPN"
+            android:theme="@style/Theme.Titanium.Translucent" />
+
+        <service
+            android:name="akylas.millenoki.vpn.MillenokiVpnService"
+            android:permission="android.permission.BIND_VPN_SERVICE" >
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service> -->
+        <service android:name="org.aps.analytics.APSAnalyticsService" >
         </service>
 
-	</application>
+        
+<!--         <receiver android:name="akylas.millenoki.vpn.StartupIntentReceiver"
+			android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+			</intent-filter>
+		</receiver>
+		 -->
+<!--         <receiver android:name="akylas.millenoki.location.PassiveLocationChangedReceiver" />
+        <receiver android:name="akylas.millenoki.location.StartupIntentReceiver"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver> -->
+        
+<!--         <receiver android:name="akylas.millenoki.vpn.ConnectChangeReceiver"
+			android:permission="android.permission.ACCESS_NETWORK_STATE">
+			<intent-filter>
+				<action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+			</intent-filter>
+		</receiver> -->
+		
+		<service android:name="ti.modules.titanium.network.GCMIntentService" android:exported="false"/>
+        <receiver android:name="ti.modules.titanium.network.GCMBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
+                <category android:name="com.akylas.push"/>
+            </intent-filter>
+        </receiver>
+    </application>
 
-	<!-- TI_PERMISSIONS -->
-	
+    <!-- TI_PERMISSIONS -->
+
 </manifest>

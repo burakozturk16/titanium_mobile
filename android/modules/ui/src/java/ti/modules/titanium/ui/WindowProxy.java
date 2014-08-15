@@ -9,6 +9,8 @@ package ti.modules.titanium.ui;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -21,12 +23,14 @@ import org.appcelerator.titanium.TiBaseActivity;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiDimension;
 import org.appcelerator.titanium.TiTranslucentActivity;
+import org.appcelerator.titanium.animation.TiAnimator;
 import org.appcelerator.titanium.proxy.ActivityProxy;
 import org.appcelerator.titanium.proxy.DecorViewProxy;
 import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.proxy.TiWindowProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiCompositeLayout;
+import org.appcelerator.titanium.util.TiRHelper;
 import org.appcelerator.titanium.view.TiUIView;
 
 import android.app.Activity;
@@ -150,7 +154,16 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 			option = (HashMap<String, Object>) arg;
 		}
 		if (option != null) {
-			properties.putAll(option);
+		    KrollDict props = new KrollDict(option);
+		    Set<String> propsToKeep = new HashSet<String>();
+            propsToKeep.add(TiC.PROPERTY_FULLSCREEN);
+            propsToKeep.add(TiC.PROPERTY_ORIENTATION_MODES);
+            propsToKeep.add(TiC.PROPERTY_LIGHTWEIGHT);
+            propsToKeep.add(TiC.PROPERTY_MODAL);
+            propsToKeep.add(TiC.PROPERTY_NAV_BAR_HIDDEN);
+            propsToKeep.add(TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE);
+            props.keySet().retainAll(propsToKeep);
+			properties.putAll(props);
 		}
 
 		if (hasProperty(TiC.PROPERTY_ORIENTATION_MODES)) {
@@ -224,43 +237,69 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		int windowId = TiActivityWindows.addWindow(this);
 		intent.putExtra(TiC.INTENT_PROPERTY_USE_ACTIVITY_WINDOW, true);
 		intent.putExtra(TiC.INTENT_PROPERTY_WINDOW_ID, windowId);
-
-		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+		
+        int enterAnimation = TiConvert.toInt(options, TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, -1);
+        int exitAnimation = TiConvert.toInt(options, TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, -1);
+        
+        boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+        if (options.containsKey("_anim")) {
+            animated = false;
+            animateInternal(options.get("_anim"), null);
+        }
 		if (!animated) {
 			intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
-			topActivity.startActivity(intent);
-			topActivity.overridePendingTransition(0, 0); // Suppress default transition.
-		} else if (options.containsKey(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION)
-			|| options.containsKey(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION)) {
-			topActivity.startActivity(intent);
-			topActivity.overridePendingTransition(options.optInt(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, 0),
-                    options.optInt(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, 0));
-		} else {
-			topActivity.startActivity(intent);
+			enterAnimation = 0;
+            exitAnimation = 0;
 		}
+		
+        topActivity.startActivity(intent);
+        if (enterAnimation != -1 || exitAnimation != -1) {
+            topActivity.overridePendingTransition(enterAnimation, exitAnimation);
+        }
 	}
+	
+	private TiAnimator _closingAnim;
+    @Override
+    public void animationFinished(TiAnimator animation) {
+        super.animationFinished(animation);
+        if (_closingAnim == animation) {
+            TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
+            if (activity != null && !activity.isFinishing()) {
+                activity.finish();
+                activity.overridePendingTransition(0, 0);
+             // Finishing an activity is not synchronous, so we remove the activity from the activity stack here
+                TiApplication.removeFromActivityStack(activity);
+                windowActivity = null;
+            }
+        }
+    }
 
 	@Override
 	protected void handleClose(KrollDict options)
 	{
-		if (windowActivity == null) {
+        TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
+		if (activity == null) {
 			//we must have been opened without creating the activity.
 			closeFromActivity(true);
 			return;
 		}
-		boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
-		TiBaseActivity activity = (windowActivity != null) ? windowActivity.get() : null;
-		if (activity != null && !activity.isFinishing()) {
+		if (!activity.isFinishing()) {
+		    if (options.containsKey("_anim")) {
+		        _closingAnim = animateInternal(options.get("_anim"), null);
+		        return;
+            }
 			activity.finish();
-			if (!animated) {
-				activity.overridePendingTransition(0, 0); // Suppress default transition.
-			} else if (options.containsKey(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION)
-				|| options.containsKey(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION)) {
-				activity.overridePendingTransition(
-				        options.optInt(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, 0),
-				        options.optInt(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, 0));
-			}
-
+	        
+	        int enterAnimation = TiConvert.toInt(options, TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION, -1);
+	        int exitAnimation = TiConvert.toInt(options, TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION, -1);
+	        boolean animated = TiConvert.toBoolean(options, TiC.PROPERTY_ANIMATED, true);
+	        if (!animated) {
+	            enterAnimation = 0;
+	            exitAnimation = 0;
+	        }
+	        if (enterAnimation != -1 || exitAnimation != -1) {
+	            activity.overridePendingTransition(enterAnimation, exitAnimation);
+	        }
 			// Finishing an activity is not synchronous, so we remove the activity from the activity stack here
 			TiApplication.removeFromActivityStack(activity);
 			windowActivity = null;
@@ -458,6 +497,19 @@ public class WindowProxy extends TiWindowProxy implements TiActivityWindow
 		}
 		if (hasProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT)) {
 			intent.putExtra(TiC.PROPERTY_WINDOW_PIXEL_FORMAT, TiConvert.toInt(getProperty(TiC.PROPERTY_WINDOW_PIXEL_FORMAT), PixelFormat.UNKNOWN));
+		}
+
+		// Set the theme property
+		if (hasProperty(TiC.PROPERTY_THEME)) {
+			String theme = TiConvert.toString(getProperty(TiC.PROPERTY_THEME));
+			if (theme != null) {
+				try {
+					intent.putExtra(TiC.PROPERTY_THEME,
+						TiRHelper.getResource("style." + theme.replaceAll("[^A-Za-z0-9_]", "_")));
+				} catch (Exception e) {
+					Log.w(TAG, "Cannot find the theme: " + theme);
+				}
+			}
 		}
 	}
 

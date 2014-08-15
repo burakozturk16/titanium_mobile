@@ -856,7 +856,7 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
 	}
 	ENSURE_UI_THREAD(showModalError,message);
 	TiErrorController *error = [[[TiErrorController alloc] initWithError:message] autorelease];
-	[controller presentModalViewController:error animated:YES];
+    [self showModalController:error animated:YES];
 }
 
 -(void)attachModal:(UIViewController*)modalController toController:(UIViewController*)presentingController animated:(BOOL)animated
@@ -1078,6 +1078,15 @@ expectedTotalBytes:(int64_t)expectedTotalBytes {
         }
     }
     return props;
+}
+
++(id) defaultUnit {
+    static id unit;
+    
+    if(unit == nil) {
+        unit = [[TiApp tiAppProperties] objectForKey:@"ti.ui.defaultunit"];
+    }
+    return unit;
 }
 
 // Returns an NSDictionary with the license data from license.json

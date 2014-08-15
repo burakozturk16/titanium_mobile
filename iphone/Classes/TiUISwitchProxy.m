@@ -17,6 +17,13 @@
                                               @"value", nil]];
 }
 
+-(void)_configure
+{
+    //to get the shadow on ios7
+	[self replaceValue:NUMBOOL(NO) forKey:@"clipChildren" notification:NO];
+	[super _configure];
+}
+
 -(UIViewAutoresizing)verifyAutoresizing:(UIViewAutoresizing)suggestedResizing
 {
 	return suggestedResizing & ~(UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth);

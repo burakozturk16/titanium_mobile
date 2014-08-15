@@ -57,7 +57,9 @@
     }
     if ([string isEqualToString:[(id)[self textWidgetView] text]]) return;
     [(id)[self textWidgetView] setText:string];
-    [(TiUITextWidgetProxy*)[self proxy] noteValueChange:string];
+    if (configurationSet) {
+        [(TiUITextWidgetProxy*)[self proxy] noteValueChange:string];
+    }
 }
 
 -(void)setMaxLength_:(id)value
@@ -158,6 +160,10 @@
 	return [[self textWidgetView] resignFirstResponder];
 }
 
+-(BOOL)willBecomeFirstResponder {
+    [[TiApp controller] didKeyboardFocusOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)[self proxy]];
+}
+
 -(BOOL)becomeFirstResponder
 {
 	return [[self textWidgetView] becomeFirstResponder];
@@ -193,7 +199,6 @@
 		return;
 	}
 
-	[[TiApp controller] didKeyboardFocusOnProxy:(TiViewProxy<TiKeyboardFocusableView> *)ourProxy];
 
 	if ([ourProxy _hasListeners:@"focus"])
 	{

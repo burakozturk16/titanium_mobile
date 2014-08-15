@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -203,7 +204,11 @@ public class TiFileProxy extends KrollProxy
 	public String[] getDirectoryListing()
 	{
 		List<String> dl = tbf.getDirectoryListing();
-		return dl != null ? dl.toArray(new String[0]) : null;
+		if (dl != null) {
+	        Collections.sort(dl);
+		    return dl.toArray(new String[0]);
+		}
+		return null;
 	}
 
 	@Kroll.getProperty @Kroll.method

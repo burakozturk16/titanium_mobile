@@ -26,6 +26,7 @@
     NSDictionary* _propertiesForItems;
 }
 @synthesize propertiesForItems = _propertiesForItems;
+@synthesize autoResizeOnImageLoad;
 
 static NSArray* keysToGetFromListView;
 -(NSArray *)keysToGetFromListView
@@ -58,6 +59,7 @@ static NSDictionary* listViewKeysToReplace;
 		_operationQueue = [[NSMutableArray alloc] initWithCapacity:10];
 		pthread_mutex_init(&_operationQueueMutex,NULL);
 		pthread_rwlock_init(&_markerLock,NULL);
+        autoResizeOnImageLoad = NO;
     }
     return self;
 }
@@ -136,7 +138,7 @@ static NSDictionary* listViewKeysToReplace;
 		TiThreadPerformOnMainThread(^{
             if (animated)
             {
-			[self processUpdateActions];
+                [self processUpdateActions];
             }
             else {
                 [UIView setAnimationsEnabled:NO];
@@ -247,6 +249,19 @@ static NSDictionary* listViewKeysToReplace;
 {
 	[self.listView deselectAll:YES];
 	[super willShow];
+}
+
+-(BOOL)shouldHighlightCurrentListItem {
+    return [self.listView shouldHighlightCurrentListItem];
+}
+
+- (NSIndexPath *) nextIndexPath:(NSIndexPath *) indexPath {
+    return [self.listView nextIndexPath:indexPath];
+}
+
+-(TiTableView*)tableView
+{
+    return self.listView.tableView;
 }
 
 #pragma mark - Public API
@@ -675,6 +690,12 @@ NSArray* sliceArray(NSArray* array, int startIndex) {
 	[self makeViewPerformSelector:@selector(closePullView:) withObject:args createIfNeeded:NO waitUntilDone:NO];
 }
 
+-(void)hideDeleteButton:(id)args {
+    [self dispatchUpdateAction:^(UITableView *tableView) {
+		[tableView setEditing:NO animated:YES];
+	} animated:YES];
+}
+
 #pragma mark - Marker Support
 - (void)setMarker:(id)args;
 {
@@ -700,6 +721,17 @@ NSArray* sliceArray(NSArray* array, int startIndex) {
             RELEASE_TO_NIL(marker);
         }
         pthread_rwlock_unlock(&_markerLock);
+    }
+}
+
+
+-(void)didOverrideEvent:(NSString*)type forItem:(TiUIListItemProxy*)item
+{
+    if ([type isEqualToString:@"load"] && [self autoResizeOnImageLoad]) {
+        [self dispatchUpdateAction:^(UITableView *tableView) {
+            [item dirtyItAll];
+            [item.listItem setNeedsLayout];
+        } animated:NO];
     }
 }
 

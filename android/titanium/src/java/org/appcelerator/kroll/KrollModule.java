@@ -71,6 +71,14 @@ public class KrollModule extends KrollProxy
 	public void onAppTerminate(TiApplication app)
 	{
 	}
+	
+	public void onAppPaused()
+    {
+    }
+	
+	public void onAppResumed()
+    {
+    }
 
 	@Override
 	protected void initActivity(Activity activity)

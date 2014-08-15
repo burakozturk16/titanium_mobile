@@ -68,6 +68,10 @@ public class ProxyListItem {
 		else
 			currentProperties.put(key, value);
 	}
+	
+	public void setCurrentProperty(String key, Object value) {
+	    currentProperties.put(key, value);
+    }
 
 	public boolean containsKey(String key) {
 		return initialProperties.containsKey(key);

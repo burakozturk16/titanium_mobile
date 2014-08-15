@@ -117,6 +117,11 @@ DEFINE_DEF_INT_PROP(maxLength,-1);
     return CGSizeZero;
 }
 
+-(BOOL)canBeNextResponder
+{
+    return [super canBeNextResponder] && [[(TiUITextWidget*)view textWidgetView] canBecomeFirstResponder];
+}
+
 @end
 
 

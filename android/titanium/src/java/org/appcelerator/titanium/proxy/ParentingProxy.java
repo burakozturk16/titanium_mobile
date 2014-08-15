@@ -10,6 +10,7 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiC;
+import org.appcelerator.titanium.util.TiConvert;
 
 import android.app.Activity;
 
@@ -75,7 +76,12 @@ public class ParentingProxy extends KrollProxy {
                 for (int i = 0; i < propertiesArray.length; i++) {
                     Object childDict = propertiesArray[i];
                     if (childDict instanceof TiViewProxy) {
-                        this.add((TiViewProxy) childDict);
+                        TiViewProxy child = (TiViewProxy) childDict;
+                        String bindId = TiConvert.toString(child.getProperty(TiC.PROPERTY_BIND_ID) , null);
+                        if (bindId != null) {
+                            rootProxy.addBinding(bindId, child);
+                        }
+                        this.add(child);
                     } else {
                         KrollProxy childProxy = createProxyFromTemplate(
                                 (HashMap) childDict, rootProxy, updateKrollProperties);
@@ -158,19 +164,29 @@ public class ParentingProxy extends KrollProxy {
                     arrayIndex++;
             }
             return;
-        } else if (args instanceof HashMap) {
-            KrollProxy childProxy = createProxyFromTemplate((HashMap) args,
-                    this, true);
-            if (childProxy != null) {
-                childProxy.updateKrollObjectProperties();
-                add(childProxy);
-            }
         } else {
-            int i = -1; // no index by default
-            if (index instanceof Number) {
-                i = ((Number)index).intValue();
+            KrollProxy child = null;
+            if (args instanceof HashMap) {
+                child = createProxyFromTemplate((HashMap) args,
+                        this, true);
+                if (child != null) {
+                    child.updateKrollObjectProperties();
+                }
+            } else {
+                child = (KrollProxy) args;
+                String bindId = TiConvert.toString(child.getProperty(TiC.PROPERTY_BIND_ID) , null);
+                if (bindId != null) {
+                    addBinding(bindId, child);
+                }
             }
-            addProxy(args, i);
+            if (child != null) {
+                int i = -1; // no index by default
+                if (index instanceof Number) {
+                    i = ((Number)index).intValue();
+                }
+                addProxy(child, i);
+            }
+            
         }
     }
     

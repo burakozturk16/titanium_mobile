@@ -1,13 +1,6 @@
 {
   "app_modules": [
     {
-      "class_name": "ti.modules.titanium.locale.LocaleModule",
-      "api_name": "Locale",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
-    {
       "class_name": "ti.modules.titanium.media.MediaModule",
       "api_name": "Media",
       "bindings": [],
@@ -64,22 +57,8 @@
       "on_app_create": null
     },
     {
-      "class_name": "ti.modules.titanium.xml.XMLModule",
-      "api_name": "XML",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
-    {
       "class_name": "ti.modules.titanium.network.NetworkModule",
       "api_name": "Network",
-      "bindings": [],
-      "external_child_modules": [],
-      "on_app_create": null
-    },
-    {
-      "class_name": "ti.modules.titanium.database.DatabaseModule",
-      "api_name": "Database",
       "bindings": [],
       "external_child_modules": [],
       "on_app_create": null

@@ -29,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
@@ -126,7 +127,8 @@ public class TiConvert
 			d.put(key,dict);
 
 		} else {
-			throw new IllegalArgumentException("Unsupported property type " + value.getClass().getName());
+			throw new IllegalArgumentException("Unsupported property type "
+				+ (value == null ? "null" : value.getClass().getName()));
 		}
 
 		return value;
@@ -311,7 +313,7 @@ public class TiConvert
 				handled = dirty = true;
 			}
 			else if (key.equals(TiC.PROPERTY_TRANSFORM) && withMatrix) {
-				layoutParams.matrix = (Ti2DMatrix) hashMap.get(key);
+				layoutParams.matrix = TiConvert.toMatrix(hashMap, key);
 				handled = dirty = true;
 			}
 			else if (key.equals(TiC.PROPERTY_ANCHOR_POINT) && withMatrix) {
@@ -453,7 +455,7 @@ public class TiConvert
 			return Integer.parseInt((String) value);
 
 		} else {
-			throw new NumberFormatException("Unable to convert " + value);
+			throw new NumberFormatException("Unable to convert " + (value == null ? "null" : value));
 		}
 	}
 
@@ -590,7 +592,7 @@ public class TiConvert
 			return Double.parseDouble((String) value);
 
 		} else {
-			throw new NumberFormatException("Unable to convert " + value.getClass().getName());
+			throw new NumberFormatException("Unable to convert " + (value == null ? "null" : value.getClass().getName()));
 		}
 	}
 	
@@ -1013,10 +1015,10 @@ public class TiConvert
 	public static RectF toRect(HashMap<String, Object>  map)
 	{
 		KrollDict dict = new KrollDict((HashMap<String, Object>)map);
-		float left = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_X);
-		float top = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_Y);
-		float width = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_WIDTH);
-		float height = TiUIHelper.getRawSizeOrZero(dict, TiC.PROPERTY_HEIGHT);
+		float left = TiUIHelper.getInPixels(dict, TiC.PROPERTY_X);
+		float top = TiUIHelper.getInPixels(dict, TiC.PROPERTY_Y);
+		float width = TiUIHelper.getInPixels(dict, TiC.PROPERTY_WIDTH);
+		float height = TiUIHelper.getInPixels(dict, TiC.PROPERTY_HEIGHT);
 		return new RectF(left, top, left + width, top + height);
 	}
 	/**
@@ -1059,13 +1061,13 @@ public class TiConvert
 		} else if (value instanceof HashMap<?,?>) {
 			KrollDict dict = new KrollDict((HashMap<String, Object>)value);
 			RectF result = new RectF();
-				result.left = TiUIHelper.getRawSizeOrZero(dict,
+				result.left = TiUIHelper.getInPixels(dict,
 						TiC.PROPERTY_LEFT);
-				result.right = TiUIHelper.getRawSizeOrZero(dict,
+				result.right = TiUIHelper.getInPixels(dict,
 						TiC.PROPERTY_RIGHT);
-				result.top = TiUIHelper.getRawSizeOrZero(dict,
+				result.top = TiUIHelper.getInPixels(dict,
 						TiC.PROPERTY_TOP);
-				result.bottom = TiUIHelper.getRawSizeOrZero(dict,
+				result.bottom = TiUIHelper.getInPixels(dict,
 						TiC.PROPERTY_BOTTOM);
 			return result;
 		}
@@ -1096,6 +1098,24 @@ public class TiConvert
 		return null;
 	}
 	
+    @SuppressWarnings("unchecked")
+    public static PointF toPointF(Object value)
+    {
+        if (value instanceof PointF) {
+            return (PointF)value;
+    
+        } else if (value instanceof HashMap || value instanceof KrollDict) {
+            HashMap hashmap = (HashMap)value;
+            
+            return new PointF(TiConvert.toFloat(hashmap, TiC.PROPERTY_X, 0.0f),
+                    TiConvert.toFloat(hashmap, TiC.PROPERTY_Y, 0.0f));
+        }
+    
+        return null;
+    }
+
+	
+    public static Ti2DMatrix IDENTITY_MATRIX = new Ti2DMatrix();
 	/**
      * Converts value into A matrix object and returns it
      * @param value the value to convert.
@@ -1113,10 +1133,10 @@ public class TiConvert
         } else if (value instanceof String) {
             return new Ti2DMatrix((String)value);
         }
-        else if (value.getClass().getSuperclass().equals(Ti2DMatrix.class)) {
+        else if (value != null && value.getClass().getSuperclass().equals(Ti2DMatrix.class)) {
             return new Ti2DMatrix((Ti2DMatrix)value); // case of _2DMatrixProxy
         }
-        return null;
+        return IDENTITY_MATRIX;
     }
     
     /**

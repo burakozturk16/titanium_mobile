@@ -240,7 +240,9 @@
 	BOOL animated = [TiUtils boolValue:@"animated" properties:properties def:NO];
 	UISlider * ourSlider = [self sliderView];
 	[ourSlider setValue:newValue animated:animated];
-	[self sliderChanged:ourSlider];
+    if (configurationSet) {
+        [self sliderChanged:ourSlider];
+    }
 }
 
 -(void)setValue_:(id)value
@@ -248,9 +250,9 @@
 	[self setValue_:value withObject:nil];
 }
 
--(void)setEnabled_:(id)value
+-(void)setCustomUserInteractionEnabled:(BOOL)value
 {
-    [super setEnabled_:value];
+    [super setCustomUserInteractionEnabled:value];
 	[[self sliderView] setEnabled:[self interactionEnabled]];
 }
 
@@ -272,12 +274,21 @@ USE_PROXY_FOR_VERIFY_AUTORESIZING
 - (IBAction)sliderChanged:(id)sender
 {
 	NSNumber * newValue = [NSNumber numberWithFloat:[(UISlider *)sender value]];
-	[self.proxy replaceValue:newValue forKey:@"value" notification:NO];
+    id current = [self.proxy valueForUndefinedKey:@"value"];
 	
-    if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+	//No need to setValue, because it's already been set.
+    if ((current != newValue) && ![current isEqual:newValue])
 	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
-	}
+        [self.proxy replaceValue:newValue forKey:@"value" notification:NO];
+        if ([self.proxy.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
+            [self.proxy.eventOverrideDelegate viewProxy:self.proxy updatedValue:newValue forType:@"value"];
+        }
+        
+        if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+        {
+            [self.proxy fireEvent:@"change" withObject:@{@"value":newValue} propagate:NO checkForListener:NO];
+        }
+    }
 }
 
 -(IBAction)sliderBegin:(id)sender

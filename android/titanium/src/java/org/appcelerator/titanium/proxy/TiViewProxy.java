@@ -6,7 +6,6 @@
  */
 package org.appcelerator.titanium.proxy;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -18,7 +17,6 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
-import org.appcelerator.kroll.common.APIMap;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -387,6 +385,37 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 
 		return dict;
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public boolean getTouchPassThrough() {
+        if (view != null)
+            return view.getTouchPassThrough();
+        return false;
+    }
+
+    @Kroll.getProperty
+    @Kroll.method
+    public boolean getDispatchPressed() {
+        if (view != null)
+            return view.getDispatchPressed();
+        return false;
+    }
+
+    @Kroll.getProperty
+    @Kroll.method
+    public boolean getPreventListViewSelection() {
+        if (view != null)
+            return view.getPreventListViewSelection();
+        return false;
+    }
+
+    @Kroll.getProperty @Kroll.method
+    public boolean getClipChildren() {
+        if (view  != null)
+            return view.getClipChildren();
+        return false;
+    }
 
 	public void clearView()
 	{
@@ -600,7 +629,7 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			}
 		}
 
-		handlePendingAnimation(true);
+		handlePendingAnimation();
 	}
 	
 	public void realizeViews(TiUIView view)
@@ -812,7 +841,9 @@ public abstract class TiViewProxy extends AnimatableProxy implements Handler.Cal
 			if (!view.blur()) {
 				if (children != null) {
 					for (KrollProxy child : children) {
-						if (((TiViewProxy) child).handleBlur()) return true;
+					    if (child instanceof TiViewProxy) {
+					        if (((TiViewProxy) child).handleBlur()) return true;
+					    }
 					}
 				}
 			} else return true;

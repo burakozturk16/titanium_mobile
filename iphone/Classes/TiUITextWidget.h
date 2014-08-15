@@ -39,6 +39,7 @@
 #pragma mark - Titanium Internal Use Only
 -(void)updateKeyboardStatus;
 -(NSDictionary*)selectedRange;
+-(BOOL)willBecomeFirstResponder;
 @end
 
 #endif

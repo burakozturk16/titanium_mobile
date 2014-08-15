@@ -30,10 +30,15 @@ public class TiBaseListViewItem extends TiCompositeLayout{
 	}
 	
 	
-	public void setCurrentItem(int sectionIndex, int itemIndex)
+	public void setCurrentItem(int sectionIndex, int itemIndex, ListSectionProxy sectionProxy)
 	{
 		this.sectionIndex = sectionIndex;
 		this.itemIndex = itemIndex;
+		((ListItemProxy) getView().getProxy()).setCurrentItem(sectionIndex, itemIndex, sectionProxy);
+	}
+	
+	public int getItemIndex() {
+	    return itemIndex;
 	}
 	
 	public KrollProxy getViewProxyFromBinding(String binding) {

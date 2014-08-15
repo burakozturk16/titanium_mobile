@@ -1,0 +1,8 @@
+<resources> 
+	<style name="myEditText" parent="@android:style/Widget.Holo.Light.EditText">
+        <item name="android:textCursorDrawable">@null</item>
+    </style>
+    <style name="Theme.Titanium" parent="BaseTheme">
+        <item name="android:editTextStyle">@style/myEditText</item>
+    </style>
+</resources>

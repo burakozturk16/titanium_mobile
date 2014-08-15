@@ -243,7 +243,7 @@ public class GeolocationModule extends KrollModule
 
 	private void doAnalytics(Location location)
 	{
-        if (!TiApplication.getInstance().collectAnalytics()) return;
+        if (!TiApplication.getInstance().isAnalyticsEnabled()) return;
 		if (!sentAnalytics) {
 			tiLocation.doAnalytics(location);
 			sentAnalytics = true;

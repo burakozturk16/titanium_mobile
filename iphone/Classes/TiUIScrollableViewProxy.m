@@ -12,6 +12,16 @@
 @implementation TiUIScrollableViewProxy
 @synthesize viewProxies, verticalLayout;
 
+NSArray* keySequence;
+
+-(NSArray*)keySequence
+{
+	if (keySequence == nil) {
+		keySequence = [[NSArray alloc] initWithObjects:@"views",@"currentPage",nil];
+	}
+	return keySequence;
+}
+
 +(NSSet*)transferableProperties
 {
     NSSet *common = [TiViewProxy transferableProperties];

@@ -1042,7 +1042,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_CALENDAR_VIEW_SHOWN = "calendarViewShown";
-	
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_CALLBACK = "callback";
+
 	/**
 	 * @module.api
 	 */	
@@ -1218,6 +1223,12 @@ public class TiC
 	 */
 	public static final String PROPERTY_CURVE = "curve";
 
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_CUSTOM_VIEW = "customView";
+
+    /**
 	/**
 	 * @module.api
 	 */
@@ -1282,6 +1293,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_DISABLE_HW = "disableHW";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_DISABLE_LINK_STYLE = "disableLinkStyle";
 
 	/**
 	 * @module.api
@@ -1352,6 +1368,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_END_PLAYBACK_TIME = "endPlaybackTime";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_ERROR = "error";
 
 	/**
 	 * @module.api
@@ -1448,6 +1469,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_FONTSIZE = "fontSize";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_FONTSTYLE = "fontStyle";
 
 	/**
 	 * @module.api
@@ -1566,10 +1592,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_HIDE_ANNOTATION_WHEN_TOUCH_MAP = "hideAnnotationWhenTouchMap";
 
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_HIDE_ON_CLICK = "hideOnClick";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_HIDE_ON_CLICK = "hideOnClick";
 
 	/**
 	 * @module.api
@@ -1606,6 +1633,11 @@ public class TiC
 	 */
 	public static final String PROPERTY_HTTP_ONLY = "httponly";
 
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_HTTP_OPTIONS = "httpOptions";
+    
 	/**
 	 * @module.api
 	 */
@@ -1631,6 +1663,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_ID = "id";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_INDEX = "index";
 
 	/**
 	 * @module.api
@@ -1832,6 +1869,17 @@ public class TiC
 	 */
 	public static final String PROPERTY_MAP_TYPE = "mapType";
 
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_MASK = "mask";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_MASK_CHAR = "maskChar";
+
+
 	/**
 	 * @module.api
 	 */
@@ -2011,6 +2059,41 @@ public class TiC
 	/**
 	 * @module.api
 	 */
+	public static final String PROPERTY_ON_CREATE = "onCreate";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_START = "onStart";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_RESUME = "onResume";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_RESTART = "onRestart";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_PAUSE = "onPause";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_STOP = "onStop";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_ON_DESTROY = "onDestroy";
+
+	/**
+	 * @module.api
+	 */
 	public static final String PROPERTY_ON_CREATE_WINDOW = "onCreateWindow";
 
 	/**
@@ -2062,6 +2145,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_OVER_SCROLL_MODE = "overScrollMode";
+	
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_OVERRIDE_CURRENT_ANIMATION = "overrideCurrentAnimation";
 
 	/**
 	 * @module.api
@@ -2177,7 +2265,17 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_PREFERRED_PROVIDER = "preferredProvider";
-	
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_PREVENT_LISTVIEW_SELECTION = "preventListViewSelection";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_PROGRESS = "progress";
+    
 	/**
 	 * @module.api
 	 */
@@ -2324,7 +2422,12 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SCROLL_ENABLED = "scrollEnabled";
-
+    
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_SCROLL_HIDES_KEYBOARD = "scrollHidesKeyboard";
+    
 	/**
 	 * @module.api
 	 */
@@ -2349,7 +2452,10 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SEARCH_VIEW = "searchView";
-	
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_SEARCH_VIEW_EXTERNAL = "searchViewExternal";	
 	/**
 	 * @module.api
 	 */
@@ -2409,6 +2515,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_SELECTION_INDICATOR = "selectionIndicator";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_SENDER_ID = "senderId";
 
 	/**
 	 * @module.api
@@ -2570,10 +2681,15 @@ public class TiC
 	 */
 	public static final String PROPERTY_SUBTITLEID = "subtitleid";
 
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_SUCCESS = "success";
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_SUCCESS = "success";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_SUPPRESS_RETURN = "suppressReturn";
 
 	/**
 	 * @module.api
@@ -2600,11 +2716,16 @@ public class TiC
 	 */
 	public static final String PROPERTY_TABS_BACKGROUND_SELECTED_COLOR = "tabsBackgroundSelectedColor";
 
-	/**
-	 * @module.api
-	 */
-	public static final String PROPERTY_TAG = "tag";
-	
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_TAG = "tag";
+
+    /**
+     * @module.api
+     */
+    public static final String PROPERTY_TAP_OUT_DISMISS = "tapOutDismiss";
+    
 	/**
 	 * @module.api
 	 */
@@ -2624,6 +2745,11 @@ public class TiC
 	 * @module.api
 	 */
 	public static final String PROPERTY_TEXTID = "textid";
+
+	/**
+	 * @module.api
+	 */
+	public static final String PROPERTY_THEME = "theme";
 
 	/**
 	 * @module.api

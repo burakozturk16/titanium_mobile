@@ -26,6 +26,10 @@
 #import "TiViewAnimationStep.h"
 #import "TiBorderLayer.h"
 
+@interface TiViewProxy()
+-(UIViewController*)getContentController;
+@end
+
 @interface CALayer (Additions)
 - (void)bringToFront;
 - (void)sendToBack;
@@ -136,8 +140,10 @@ void OffsetScrollViewForRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFlo
 	{
 		offsetPoint.y = MAX(0,maxOffset);
 	}
-
-	[scrollView setContentOffset:offsetPoint animated:YES];
+    CGPoint currentOffset = scrollView.contentOffset;
+    if (!CGPointEqualToPoint(currentOffset, offsetPoint)) {
+        [scrollView setContentOffset:offsetPoint animated:YES];
+    }
 }
 
 void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScrollView * scrollView,CGFloat keyboardTop,CGFloat minimumContentHeight,CGRect responderRect)
@@ -198,7 +204,8 @@ NSArray* listenerArray = nil;
     TiBorderLayer* _borderLayer;
     BOOL _shouldHandleSelection;
     BOOL _customUserInteractionEnabled;
-    BOOL _touchEnabled;
+    BOOL _propagateParentEnabled;
+    BOOL _setEnabledFromParent;
     BOOL _dispatchPressed;
     
     BOOL needsToSetBackgroundImage;
@@ -279,9 +286,9 @@ DEFINE_EXCEPTIONS
 
 -(void)detach
 {
-    if (proxy != nil && [(TiViewProxy*)proxy view] == self)
+    if (proxy != nil && [[self viewProxy] view] == self)
     {
-        [(TiViewProxy*)proxy detachView];
+        [[self viewProxy] detachView];
     }
     else {
         NSArray* subviews = [self subviews];
@@ -300,6 +307,10 @@ DEFINE_EXCEPTIONS
         self.proxy = nil;
         self.touchDelegate = nil;
     }
+}
+
+-(TiViewProxy*)viewProxy {
+    return (TiViewProxy*)proxy;
 }
 
 -(void)removeFromSuperview
@@ -327,13 +338,14 @@ DEFINE_EXCEPTIONS
     self.layer.rasterizationScale = [[UIScreen mainScreen] scale];
     backgroundOpacity = 1.0f;
     _customUserInteractionEnabled = YES;
-    _touchEnabled = YES;
     _dispatchPressed = NO;
     animateBgdTransition = NO;
     _backgroundPadding = _borderPadding = UIEdgeInsetsZero;
     viewState = -1;
     radii = NULL;
     usePathAsBorder = NO;
+    _propagateParentEnabled = YES;
+    _setEnabledFromParent = YES;
     _nonRetina = NO;
 }
 
@@ -366,16 +378,16 @@ DEFINE_EXCEPTIONS
 
 -(void)ensureGestureListeners
 {
-    if ([(TiViewProxy*)proxy _hasListeners:@"swipe"]) {
+    if ([[self viewProxy] _hasListeners:@"swipe"]) {
         [[self gestureRecognizerForEvent:@"uswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"dswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"rswipe"] setEnabled:YES];
         [[self gestureRecognizerForEvent:@"lswipe"] setEnabled:YES];
     }
-    if ([(TiViewProxy*)proxy _hasListeners:@"pinch"]) {
+    if ([[self viewProxy] _hasListeners:@"pinch"]) {
          [[self gestureRecognizerForEvent:@"pinch"] setEnabled:YES];
     }
-    if ([(TiViewProxy*)proxy _hasListeners:@"longpress"]) {
+    if ([[self viewProxy] _hasListeners:@"longpress"]) {
         [[self gestureRecognizerForEvent:@"longpress"] setEnabled:YES];
     }
 }
@@ -415,7 +427,7 @@ DEFINE_EXCEPTIONS
 	
 	[self updateTouchHandling];
 	 
-	super.backgroundColor = nil;
+	super.backgroundColor = [UIColor clearColor]; //carefull it seems that nil is different from clear :s
 	self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
 }
 
@@ -643,7 +655,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    if (![(TiViewProxy*)proxy viewLayedOut]) return;
+    if (![[self viewProxy] viewLayedOut]) return;
     if (radii != NULL)
     {
         [self updatePathForClipping:bounds];
@@ -659,6 +671,23 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         [self.layer.mask setFrame:bounds];
     }
     [self updateTransform];
+}
+
+
+-(void)setFrame:(CGRect)frame
+{
+	[super setFrame:frame];
+    if (![self viewProxy].canBeResizedByFrame) return;
+	// this happens when a view is added to another view but not
+	// through the framework (such as a tableview header) and it
+	// means we need to force the layout of our children
+	if (childrenInitialized==NO &&
+		CGRectIsEmpty(frame)==NO &&
+		[self.proxy isKindOfClass:[TiViewProxy class]])
+	{
+		childrenInitialized=YES;
+		[(TiViewProxy*)self.proxy layoutChildren:NO];
+	}
 }
 
 -(void)updateBounds:(CGRect)newBounds
@@ -706,6 +735,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 {
 	[self updateTransform];
 	[super didMoveToSuperview];
+    if ([self.superview isKindOfClass:[TiUIView class]])
+    {
+        BOOL parentEnabled = [(TiUIView*)self.superview customUserInteractionEnabled];
+        if (!parentEnabled && _customUserInteractionEnabled) {
+            [self setEnabled_:@(parentEnabled && _customUserInteractionEnabled)];
+        }
+    }
 }
 
 -(void)updateTransform
@@ -835,35 +871,77 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     return _bgLayer;
 }
 
+-(void)setBackgroundGradient:(TiGradient*)gradient forState:(UIControlState)state
+{
+    if (!gradient) {
+        [_bgLayer setGradient:gradient forState:state];
+    }
+    else {
+        [[self getOrCreateCustomBackgroundLayer] setGradient:gradient forState:state];
+    }
+}
+
+-(void)setBackgroundImage:(id)image forState:(UIControlState)state
+{
+    if (!image) {
+        [_bgLayer setImage:image forState:state];
+    }
+    else {
+        [[self getOrCreateCustomBackgroundLayer] setImage:image forState:state];
+    }
+}
+
+-(void)setBackgroundColor:(UIColor*)color forState:(UIControlState)state
+{
+    if (!color) {
+        [_bgLayer setColor:color forState:state];
+    }
+    else {
+        [[self getOrCreateCustomBackgroundLayer] setColor:color forState:state];
+    }
+}
+
+-(void)setBackgroundInnerShadows:(NSArray*)shadow forState:(UIControlState)state
+{
+    if (!shadow) {
+        [_bgLayer setInnerShadows:shadow forState:state];
+    }
+    else {
+        [[self getOrCreateCustomBackgroundLayer] setInnerShadows:shadow forState:state];
+    }
+}
+
 -(void) setBackgroundGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateNormal];
+    [self setBackgroundGradient:newGradient forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-//    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateSelected];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+    [self setBackgroundGradient:newGradient forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundHighlightedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+    [self setBackgroundGradient:newGradient forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateCustomBackgroundLayer] setGradient:newGradient forState:UIControlStateDisabled];
+    [self setBackgroundGradient:newGradient forState:UIControlStateDisabled];
 }
 -(void)setBackgroundColor:(UIColor*)color
 {
     // this trick is to prevent tableviewcell from changing our color. When we want
     // to actually change our color, lets call super!
 }
+
+
+
 -(void) setBackgroundColor_:(id)color
 {
     UIColor* uicolor;
@@ -886,27 +964,23 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
     else
     {
-        [[self getOrCreateCustomBackgroundLayer] setColor:uicolor forState:UIControlStateNormal];
+        [self setBackgroundColor:[TiUtils colorValue:color].color forState:UIControlStateNormal];
     }
 }
 
 -(void) setBackgroundSelectedColor_:(id)color
 {
-    UIColor* uiColor = [TiUtils colorValue:color].color;
-//    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateSelected];
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
+    [self setBackgroundColor:[TiUtils colorValue:color].color forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundHighlightedColor_:(id)color
 {
-    UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateHighlighted];
+    [self setBackgroundColor:[TiUtils colorValue:color].color forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledColor_:(id)color
 {
-    UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateCustomBackgroundLayer] setColor:uiColor forState:UIControlStateDisabled];
+    [self setBackgroundColor:[TiUtils colorValue:color].color forState:UIControlStateDisabled];
 }
 
 -(UIImage*)convertToUIImage:(id)arg
@@ -958,13 +1032,14 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	return nil;
 }
 
--(void) setBackgroundImage_:(id)image
+-(void) setBackgroundImage_:(id)arg
 {
     if (!configurationSet) {
         needsToSetBackgroundImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateNormal];
+    id image = [self loadImageOrSVG:arg];
+    [self setBackgroundImage:image forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedImage_:(id)arg
@@ -974,26 +1049,27 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         return;
     }
     id image = [self loadImageOrSVG:arg];
-    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateHighlighted];
-//    [[self getOrCreateCustomBackgroundLayer] setImage:image forState:UIControlStateSelected];
+    [self setBackgroundImage:image forState:UIControlStateHighlighted];
 }
 
--(void) setBackgroundHighlightedImage_:(id)image
+-(void) setBackgroundHighlightedImage_:(id)arg
 {
     if (!configurationSet) {
         needsToSetBackgroundSelectedImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateHighlighted];
+    id image = [self loadImageOrSVG:arg];
+    [self setBackgroundImage:image forState:UIControlStateHighlighted];
 }
 
--(void) setBackgroundDisabledImage_:(id)image
+-(void) setBackgroundDisabledImage_:(id)arg
 {
     if (!configurationSet) {
         needsToSetBackgroundDisabledImage = YES;
         return;
     }
-    [[self getOrCreateCustomBackgroundLayer] setImage:[self loadImageOrSVG:image] forState:UIControlStateDisabled];
+    id image = [self loadImageOrSVG:arg];
+    [self setBackgroundImage:image forState:UIControlStateDisabled];
 }
 
 -(void) setBackgroundInnerShadows_:(id)value
@@ -1007,7 +1083,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }];
     }
     
-    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateNormal];
+    [self setBackgroundInnerShadows:result forState:UIControlStateNormal];
 }
 
 -(void) setBackgroundSelectedInnerShadows_:(id)value
@@ -1021,8 +1097,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }];
     }
     
-//    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateSelected];
-    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+    [self setBackgroundInnerShadows:result forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundHighlightedInnerShadows_:(id)value
@@ -1035,8 +1110,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             [(id)result addObject:[TiUIHelper getShadow:obj]];
         }];
     }
-    
-    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateHighlighted];
+    [self setBackgroundInnerShadows:result forState:UIControlStateHighlighted];
 }
 
 -(void) setBackgroundDisabledInnerShadows_:(id)value
@@ -1050,7 +1124,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
         }];
     }
     
-    [[self getOrCreateCustomBackgroundLayer] setInnerShadows:result forState:UIControlStateDisabled];
+    [self setBackgroundInnerShadows:result forState:UIControlStateDisabled];
 }
 
 
@@ -1169,53 +1243,94 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
     }
 }
 
+
+-(void)setBorderGradient:(TiGradient*)gradient forState:(UIControlState)state
+{
+    if (!gradient) {
+        [_borderLayer setGradient:gradient forState:state];
+    }
+    else {
+        [[self getOrCreateBorderLayer] setGradient:gradient forState:state];
+    }
+}
+
+-(void)setBorderImage:(id)image forState:(UIControlState)state
+{
+    if (!image) {
+        [_borderLayer setImage:image forState:state];
+    }
+    else {
+        [[self getOrCreateBorderLayer] setImage:image forState:state];
+    }
+}
+
+-(void)setBorderColor:(UIColor*)color forState:(UIControlState)state
+{
+    if (!color) {
+        [_borderLayer setColor:color forState:state];
+    }
+    else {
+        [[self getOrCreateBorderLayer] setColor:color forState:state];
+    }
+}
+
+-(void)setBorderInnerShadows:(NSArray*)shadow forState:(UIControlState)state
+{
+    if (!shadow) {
+        [_borderLayer setInnerShadows:shadow forState:state];
+    }
+    else {
+        [[self getOrCreateBorderLayer] setInnerShadows:shadow forState:state];
+    }
+}
+
+
 -(void)setBorderColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateNormal];
+    [self setBorderColor:uiColor forState:UIControlStateNormal];
 }
 
 -(void) setBorderSelectedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+    [self setBorderColor:uiColor forState:UIControlStateHighlighted];
 }
 
 -(void) setBorderHighlightedColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateHighlighted];
+    [self setBorderColor:uiColor forState:UIControlStateHighlighted];
 }
 
 -(void) setBorderDisabledColor_:(id)color
 {
     UIColor* uiColor = [TiUtils colorValue:color].color;
-    [[self getOrCreateBorderLayer] setColor:uiColor forState:UIControlStateDisabled];
+    [self setBorderColor:uiColor forState:UIControlStateDisabled];
 }
 
 -(void) setBorderGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateNormal];
+    [self setBorderGradient:newGradient forState:UIControlStateNormal];
 }
 
 -(void) setBorderSelectedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-//    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateSelected];
-    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+    [self setBorderGradient:newGradient forState:UIControlStateHighlighted];
 }
 
 -(void) setBorderHighlightedGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateHighlighted];
+    [self setBorderGradient:newGradient forState:UIControlStateHighlighted];
 }
 
 -(void) setBorderDisabledGradient_:(id)newGradientDict
 {
     TiGradient * newGradient = [TiGradient gradientFromObject:newGradientDict proxy:self.proxy];
-    [[self getOrCreateBorderLayer] setGradient:newGradient forState:UIControlStateDisabled];
+    [self setBorderGradient:newGradient forState:UIControlStateDisabled];
 }
 
 -(void)setBorderWidth_:(id)w
@@ -1330,14 +1445,55 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(void)setTouchEnabled_:(id)arg
 {
-	_touchEnabled = [TiUtils boolValue:arg def:_touchEnabled];
+	self.userInteractionEnabled  = [TiUtils boolValue:arg def:self.userInteractionEnabled];
+    changedInteraction = YES;
+}
+
+-(BOOL)customUserInteractionEnabled {
+    return _customUserInteractionEnabled;
+}
+
+-(void)setPropagateParentEnabled_:(id)arg
+{
+	_propagateParentEnabled  = [TiUtils boolValue:arg def:YES];
+}
+
+-(void)setEnabledFromParent_:(id)arg
+{
+	_setEnabledFromParent  = [TiUtils boolValue:arg def:YES];
+}
+
+-(void)setCustomUserInteractionEnabled:(BOOL)value
+{
+    _customUserInteractionEnabled = value;
+}
+
+-(void)setEnabled:(id)arg calledFromParent:(BOOL)calledFromParent
+{
+    BOOL newValue = [TiUtils boolValue:arg def:[self interactionDefault]];
+    if (!calledFromParent || _setEnabledFromParent) {
+        if (newValue != _customUserInteractionEnabled) {
+            [self setCustomUserInteractionEnabled:newValue];
+            [self setBgState:UIControlStateNormal];
+            changedInteraction = YES;
+        }
+    }
+    if (changedInteraction || (calledFromParent && _propagateParentEnabled)) {
+        for (TiUIView * thisView in [self childViews])
+        {
+            if ([thisView isKindOfClass:[TiUIView class]])
+            {
+                BOOL originalValue = [[((TiUIView*)thisView).proxy valueForUndefinedKey:@"enabled"] boolValue];
+                [thisView setEnabled:arg calledFromParent:YES];
+            }
+        }
+    }
+    
 }
 
 -(void)setEnabled_:(id)arg
 {
-	_customUserInteractionEnabled = [TiUtils boolValue:arg def:[self interactionDefault]];
-    [self setBgState:UIControlStateNormal];
-    changedInteraction = YES;
+    [self setEnabled:arg calledFromParent:NO];
 }
 
 -(void)setDispatchPressed_:(id)arg
@@ -1345,13 +1501,13 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	_dispatchPressed = [TiUtils boolValue:arg def:_dispatchPressed];
 }
 
--(BOOL)dispatchPressed
+-(id)dispatchPressed_
 {
-	return _dispatchPressed;
+	return @(_dispatchPressed);
 }
 
--(BOOL) touchEnabled {
-	return _touchEnabled;
+-(id) touchEnabled_ {
+	return @(self.userInteractionEnabled);
 }
 
 -(void)setTouchPassThrough_:(id)arg
@@ -1366,8 +1522,8 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 }
 
 
--(BOOL)touchPassThrough {
-    return touchPassThrough;
+-(id)touchPassThrough_ {
+    return @(touchPassThrough);
 }
 
 -(UIView *)backgroundWrapperView
@@ -1390,7 +1546,12 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 
 -(BOOL)clipChildren
 {
-    return (clipChildren && ([[self shadowLayer] shadowOpacity] == 0));
+    return clipChildren && ([[self shadowLayer] shadowOpacity] == 0);
+}
+
+-(id)clipChildren_
+{
+    return @([self clipChildren]);
 }
 
 
@@ -1894,7 +2055,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 	// be handled at all.. NOTE: we don't turn off the views interactionEnabled
 	// property since we need special handling ourselves and if we turn it off
 	// on the view, we'd never get this event
-	if (hitView == [self viewForHitTest] && (touchPassThrough || (hasTouchListeners == NO && _touchEnabled==NO)))
+	if (hitView == [self viewForHitTest] && (touchPassThrough || (hasTouchListeners == NO && self.userInteractionEnabled==NO)))
 	{
 		return nil;
 	}
@@ -1918,7 +2079,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(void)handleControlEvents:(UIControlEvents)events
 {
 	// For subclasses (esp. buttons) to override when they have event handlers.
-	TiViewProxy* parentProxy = [(TiViewProxy*)proxy parent];
+	TiViewProxy* parentProxy = [[self viewProxy] parent];
 	if ([parentProxy viewAttached] && [parentProxy canHaveControllerParent]) {
 		[[parentProxy view] handleControlEvents:events];
 	}
@@ -1948,7 +2109,7 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
 -(UIControlState)realStateForState:(UIControlState)state
 {
     if ([self enabledForBgState]) {
-//        TiUIView * parentView = [[(TiViewProxy*)proxy parent] view];
+//        TiUIView * parentView = [[[self viewProxy] parent] view];
 //        if (parentView && [parentView dispatchPressed]) {
 //            return [parentView realStateForState:state];
 //        }
@@ -2365,6 +2526,11 @@ CGPathRef CGPathCreateRoundiiRect( const CGRect rect, const CGFloat* radii)
             }
         [result release];
     });
+}
+
+-(UIViewController*)getContentController
+{
+    return ([[self viewProxy] getContentController]);
 }
 
 @end

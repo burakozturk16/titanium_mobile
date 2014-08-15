@@ -18,6 +18,7 @@
 @property(nonatomic,readonly) TiViewProxy* proxy;
 
 -(id)initWithProxy:(TiProxy*)proxy;
+-(void)detachProxy;
 
 @end
 

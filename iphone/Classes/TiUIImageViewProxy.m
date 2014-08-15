@@ -12,6 +12,7 @@
 #import "TiApp.h"
 #import "TiFile.h"
 #import "TiBlob.h"
+#import "TiSVGImage.h"
 
 #define DEBUG_IMAGEVIEW
 #define DEFAULT_IMAGEVIEW_INTERVAL 200
@@ -60,6 +61,9 @@ static NSArray* imageKeySequence;
         NSDictionary *event = [NSDictionary dictionaryWithObjectsAndKeys:stateString,@"state", [blob autorelease], @"image", nil];
         
         [self fireEvent:@"load" withObject:event];
+    }
+    else if(eventOverrideDelegate) {
+        [eventOverrideDelegate overrideEventObject:nil forEvent:@"load" fromViewProxy:self];
     }
 }
 
@@ -163,17 +167,17 @@ static NSArray* imageKeySequence;
 	if (imageValue!=nil)
 	{
 		NSURL *url_ = [TiUtils toURL:[TiUtils stringValue:imageValue] proxy:self];
-		UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:url_];
+		id theimage = [[ImageLoader sharedLoader] loadImmediateImage:url_];
 		
-		if (image!=nil)
+		if (theimage == nil)
 		{
-			return [[[TiBlob alloc] initWithImage:image] autorelease];
+            theimage = [[ImageLoader sharedLoader] loadRemote:url_ withOptions:[self valueForUndefinedKey:@"httpOptions"]];
 		}
 
 		// we're on the non-UI thread, we need to block to load
-
-		image = [[ImageLoader sharedLoader] loadRemote:url_];
-		return [[[TiBlob alloc] initWithImage:image] autorelease];
+        TiUIImageView* imageView = (TiUIImageView*)[self view];
+        UIImage *imageToUse = [imageView prepareImage:[imageView convertToUIImage:theimage]];
+		return [[[TiBlob alloc] initWithImage:imageToUse] autorelease];
 	}
 	return nil;
 }
@@ -183,7 +187,117 @@ static NSArray* imageKeySequence;
 	
 }
 
-USE_VIEW_FOR_CONTENT_SIZE
+-(CGSize) imageSize {
+    CGSize _imagesize = CGSizeMake(TiDimensionCalculateValue(layoutProperties.width, 0.0),
+                                   TiDimensionCalculateValue(layoutProperties.height,0.0));
+    if ([TiUtils boolValue:[self valueForKey:@"hires"]])
+    {
+        _imagesize.width *= 2;
+        _imagesize.height *= 2;
+    }
+    return _imagesize;
+}
+
+-(UIImage*)rotatedImage:(UIImage*)originalImage
+{
+    //If autorotate is set to false and the image orientation is not UIImageOrientationUp create new image
+    if (![TiUtils boolValue:[self valueForUndefinedKey:@"autorotate"] def:YES] && (originalImage.imageOrientation != UIImageOrientationUp)) {
+        UIImage* theImage = [UIImage imageWithCGImage:[originalImage CGImage] scale:[originalImage scale] orientation:UIImageOrientationUp];
+        return theImage;
+    }
+    else {
+        return originalImage;
+    }
+}
+
+-(CGSize)contentSizeForSize:(CGSize)size andImageSize:(CGSize)imageSize
+{
+    CGSize result = size;
+    if (CGSizeEqualToSize(size, CGSizeZero)) {
+        result = CGSizeMake(imageSize.width, imageSize.height);
+    }
+    else if(size.width == 0 && imageSize.height>0) {
+        result.width = (size.height*imageSize.width/imageSize.height);
+    }
+    else if(size.height == 0 && imageSize.width > 0) {
+        result.height = (size.width*imageSize.height/imageSize.width);
+    }
+    else if(imageSize.height == 0 || imageSize.width == 0) {
+    }
+    else {
+        BOOL autoSizeWidth = [(TiViewProxy*)self widthIsAutoSize];
+        BOOL autoSizeHeight = [(TiViewProxy*)self heightIsAutoSize];
+        if (!autoSizeWidth && ! autoSizeHeight) {
+            result = size;
+        }
+        else if(autoSizeWidth && autoSizeHeight) {
+            float ratio = imageSize.width/imageSize.height;
+            float viewratio = size.width/size.height;
+            if(viewratio > ratio) {
+                result.height = MIN(size.height, imageSize.height);
+                result.width = (result.height*imageSize.width/imageSize.height);
+            }
+            else {
+                result.width = MIN(size.width, imageSize.width);
+                result.height = (result.width*imageSize.height/imageSize.width);
+            }        }
+        else if(autoSizeHeight) {
+            result.width = size.width;
+            result.height = result.width*imageSize.height/imageSize.width;
+        }
+        else {
+            result.height = size.height;
+            result.width = (result.height*imageSize.width/imageSize.height);
+        }
+    }
+    result.width = ceilf(result.width);
+    result.height = ceilf(result.height);
+    return result;
+}
+
+-(CGSize)contentSizeForSize:(CGSize)size
+{
+    if (view != nil)
+        return [(TiUIView*)view contentSizeForSize:size];
+    else
+    {
+        id value = [self valueForKey:@"image"];
+        if (value == nil && ![TiUtils boolValue:@"preventDefaultImage" def:NO]) {
+            value = [self valueForKey:@"defaultImage"];
+        }
+        if (value != nil)
+        {
+            NSURL* url = [self sanitizeURL:value];
+            UIImage *image = [[ImageLoader sharedLoader] loadImmediateImage:url withSize:[self imageSize]];
+            if (image) {
+                CGSize result = CGSizeZero;
+                UIImage* imageToUse = nil;
+                if ([image isKindOfClass:[UIImage class]]) {
+                    imageToUse = [self rotatedImage:image];
+                }
+                else if([image isKindOfClass:[TiSVGImage class]]) {
+                    result.height = image.size.height;
+                    result.width = image.size.width;
+                    result =  [(TiSVGImage*)image imageForSize:[self imageSize]].size;
+                }
+                else {
+                    return result;
+                }
+                float factor = 1.0f;
+                float screenScale = [UIScreen mainScreen].scale;
+                if ([TiUtils boolValue:[self  valueForKey:@"hires"] def:[TiUtils isRetinaDisplay]])
+                {
+                    factor /= screenScale;
+                }
+                result.width = imageToUse.size.width * factor;
+                result.height = imageToUse.size.height * factor;
+                return [self contentSizeForSize:size andImageSize:result];
+            }
+            
+        }
+    }
+    return CGSizeZero;
+}
 
 #pragma mark Handling ImageLoader
 
@@ -206,7 +320,7 @@ USE_VIEW_FOR_CONTENT_SIZE
 	if (hires) {
 		info = [NSDictionary dictionaryWithObject:hires forKey:@"hires"];
 	}
-	urlRequest = [[[ImageLoader sharedLoader] loadImage:url delegate:self userInfo:info] retain];
+	urlRequest = [[[ImageLoader sharedLoader] loadImage:url delegate:self options:[self valueForUndefinedKey:@"httpOptions"] userInfo:info] retain];
 }
 
 -(void)cancelPendingImageLoads

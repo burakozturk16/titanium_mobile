@@ -16,6 +16,7 @@
     BOOL _reverse;
 }
 @property (nonatomic,readonly) NSInteger index;
+@property (nonatomic,assign) float progress;
 @property (nonatomic,readonly) BOOL paused;
 @property (nonatomic,readonly) BOOL stopped;
 @property (nonatomic,assign) BOOL autoreverse;

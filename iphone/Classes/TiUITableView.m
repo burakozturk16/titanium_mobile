@@ -341,11 +341,7 @@
 
 -(void)dealloc
 {
-	if (searchField!=nil)
-	{
-		[searchField setDelegate:nil];
-		RELEASE_TO_NIL(searchField);
-	}
+    RELEASE_WITH_DELEGATE(searchField)
 	RELEASE_TO_NIL(tableController);
     
     searchController.searchResultsDataSource =  nil;
@@ -1816,10 +1812,7 @@
 -(void)setSearch_:(id)search
 {
 	ENSURE_TYPE_OR_NIL(search,TiUISearchBarProxy);
-	if (searchField!=nil)
-	{
-		[searchField setDelegate:nil];
-	}
+    RELEASE_WITH_DELEGATE(searchField)
 	RELEASE_TO_NIL(searchField);
 	RELEASE_TO_NIL(tableController);
 	RELEASE_TO_NIL(searchController);

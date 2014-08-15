@@ -6,24 +6,36 @@
  */
 package org.appcelerator.titanium.util;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.ref.SoftReference;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.util.KrollStreamHelper;
+import org.appcelerator.titanium.TiApplication;
 
+import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Pair;
 
 /**
  * Manages the asynchronous opening of InputStreams from URIs so that
@@ -56,23 +68,33 @@ public class TiDownloadManager implements Handler.Callback
 		threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 	}
 
-	public void download(URI uri, TiDownloadListener listener)
+	public void download(URI uri, HashMap options, TiDownloadListener listener)
 	{
 		if (TiResponseCache.peek(uri)) {
-			sendMessage(uri, MSG_FIRE_DOWNLOAD_FINISHED);
+			sendMessage(uri, null, MSG_FIRE_DOWNLOAD_FINISHED);
 		} else {
-			startDownload(uri, listener);
+			startDownload(uri, options, listener);
 		}
 	}
-
-	private void sendMessage(URI uri, int what)
+	
+	public void download(URI uri, TiDownloadListener listener)
+    {
+        download(uri, null, listener);
+    }
+	
+	private void sendMessage(URI uri, HttpURLConnection connection, int what)
 	{
 		Message msg = handler.obtainMessage(what);
-		msg.obj = uri;
+		if (connection == null) {
+	        msg.obj = uri;
+		}
+		else {
+	        msg.obj = Pair.create(uri,connection);
+		}
 		msg.sendToTarget();
 	}
 
-	protected void startDownload(URI uri, TiDownloadListener listener)
+	protected void startDownload(URI uri, HashMap options, TiDownloadListener listener)
 	{
 		String hash = DigestUtils.shaHex(uri.toString());
 		ArrayList<SoftReference<TiDownloadListener>> listenerList = null;
@@ -94,12 +116,12 @@ public class TiDownloadManager implements Handler.Callback
 		synchronized (downloadingURIs) {
 			if (!downloadingURIs.contains(hash)) {
 				downloadingURIs.add(hash);
-				threadPool.execute(new DownloadJob(uri));
+				threadPool.execute(new DownloadJob(uri, options));
 			}
 		}
 	}
 
-	protected void handleFireDownloadMessage(URI uri, int what)
+	protected void handleFireDownloadMessage(URI uri, HttpURLConnection connection, int what)
 	{
 		ArrayList<SoftReference<TiDownloadListener>> toRemove = new ArrayList<SoftReference<TiDownloadListener>>();
 		synchronized (listeners) {
@@ -109,9 +131,9 @@ public class TiDownloadManager implements Handler.Callback
 				TiDownloadListener downloadListener = listener.get();
 				if (downloadListener != null) {
 					if (what == MSG_FIRE_DOWNLOAD_FINISHED) {
-						downloadListener.downloadTaskFinished(uri);
+						downloadListener.downloadTaskFinished(uri, connection);
 					} else {
-						downloadListener.downloadTaskFailed(uri);
+						downloadListener.downloadTaskFailed(uri, connection);
 					}
 					toRemove.add(listener);
 				}
@@ -125,21 +147,117 @@ public class TiDownloadManager implements Handler.Callback
 	protected class DownloadJob implements Runnable
 	{
 		protected URI uri;
+		protected HashMap<String, Object> options;
 
 		public DownloadJob(URI uri)
 		{
 			this.uri = uri;
 		}
+		
+		public DownloadJob(URI uri, HashMap<String, Object> options)
+        {
+            this.uri = uri;
+            this.options = options;
+        }
 
+        protected String getHeader(Map<String, List<String>> headers,
+                String header) {
+            List<String> values = headers.get(header);
+            if (values == null || values.size() == 0) {
+                return null;
+            }
+            return values.get(values.size() - 1);
+        }
+        
+        private Map<String, List<String>> makeLowerCaseHeaders(Map<String, List<String>> origHeaders)
+        {
+            Map<String, List<String>> headers = new HashMap<String, List<String>>(origHeaders.size());
+            for (String key : origHeaders.keySet()) {
+                if (key != null) {
+                    headers.put(key.toLowerCase(), origHeaders.get(key));
+                }
+            }
+            return headers;
+        }
+        
 		public void run()
 		{
 			try {
-				OkHttpClient client = new OkHttpClient();
-				URL url = uri.toURL();
-				HttpURLConnection http = client.open(url);
-				InputStream stream = http.getInputStream();
-				KrollStreamHelper.pump(stream, null);
-				stream.close();
+                OkHttpClient client = new OkHttpClient();
+                URL url = uri.toURL();
+                HttpURLConnection http = client.open(url);
+                http.setUseCaches(true);
+                http.addRequestProperty("TiCache", "true");
+                http.addRequestProperty("Cache-Control", "no-cached");
+                http.addRequestProperty("User-Agent", TiApplication.getInstance().getUserAgent());
+                http.addRequestProperty("X-Requested-With", "XMLHttpRequest");
+
+                if (options != null) {
+                    Object value = options.get("headers");
+                    if (value != null && value instanceof HashMap) {
+                        HashMap<String, Object> headers = (HashMap<String, Object>)value;
+                        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                            http.addRequestProperty(entry.getKey(), TiConvert.toString(entry.getValue()));
+                        }
+                    }
+                    if (options.containsKey("timeout")) {
+                        int timeout = TiConvert.toInt(options, "timeout");
+                        client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+                    }
+                    if (options.containsKey("autoRedirect")) {
+                        http.setInstanceFollowRedirects(TiConvert.toBoolean(options, "autoRedirect"));
+                    }
+                    if (options.containsKey("method"))
+                    {
+                        Object data = options.get("data");
+                        if (data instanceof String) {
+                            http.setRequestProperty("Content-Type", "charset=utf-8");
+                        }
+                        else if (data instanceof HashMap) {
+                            http.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+                        }
+                        String dataToSend =  TiConvert.toString(data);
+                        if (dataToSend != null) {
+                            byte[] outputInBytes = dataToSend.getBytes("UTF-8");
+                            OutputStream os = http.getOutputStream();
+                            os.write( outputInBytes );
+                            os.close();
+                        }
+                        
+                        http.setRequestMethod(TiConvert.toString(options, "method"));
+                    }
+                }
+                else {
+                    int timeout = 20000;
+                    client.setConnectTimeout(timeout, TimeUnit.MILLISECONDS);
+                    
+                }
+                
+                for (Map.Entry<String, List<String>> k : http.getHeaderFields().entrySet()) {
+                    for (String v : k.getValue()){
+                         Log.d(TAG, k.getKey() + ":" + v);
+                    }
+                }
+                
+                int code = http.getResponseCode();
+                boolean success = code >= 200 && code < 300;
+                boolean nocache = false;
+                if (success) {
+                    Map<String, List<String>> headers = makeLowerCaseHeaders(http
+                            .getHeaderFields());
+                    String cacheControl = getHeader(headers, "cache-control");
+                    if (cacheControl != null
+                            && cacheControl
+                                    .matches("^.*(no-cache|no-store|must-revalidate).*")) {
+                        nocache = true;
+//                        TiResponseCache.getDefault().put(uri, http);
+                    }
+                }
+                if (nocache == false) {
+                    InputStream stream = http.getInputStream();
+                    KrollStreamHelper.pump(stream, null);
+                    stream.close();
+                }
 
 				synchronized (downloadingURIs) {
 					downloadingURIs.remove(DigestUtils.shaHex(uri.toString()));
@@ -153,11 +271,16 @@ public class TiDownloadManager implements Handler.Callback
 				}
 				for (SoftReference<TiDownloadListener> listener : listenerList) {
 					if (listener.get() != null) {
-						listener.get().postDownload(uri);
+//					    if (success) {
+		                       listener.get().postDownload(uri, http);
+//					    }
+//					    else {
+//					        listener.get().downloadTaskFailed(uri, http);
+//					    }
 					}
 				}
 
-				sendMessage(uri, MSG_FIRE_DOWNLOAD_FINISHED);
+				sendMessage(uri, http, success?MSG_FIRE_DOWNLOAD_FINISHED:MSG_FIRE_DOWNLOAD_FAILED);
 			} catch (Exception e) {
 				
 				synchronized (downloadingURIs) {
@@ -165,7 +288,7 @@ public class TiDownloadManager implements Handler.Callback
 				}				
 				
 				// fire a download fail event if we are unable to download
-				sendMessage(uri, MSG_FIRE_DOWNLOAD_FAILED);
+				sendMessage(uri, null, MSG_FIRE_DOWNLOAD_FAILED);
 				Log.e(TAG, "Exception downloading " + uri, e);
 			}
 		}
@@ -176,8 +299,14 @@ public class TiDownloadManager implements Handler.Callback
 		switch (msg.what) {
 			case MSG_FIRE_DOWNLOAD_FINISHED:
 			case MSG_FIRE_DOWNLOAD_FAILED:
-				handleFireDownloadMessage((URI) msg.obj, msg.what);
-				return true;
+			    if (msg.obj instanceof Pair) {
+			        Pair<Object, Object> pair= (Pair<Object, Object>) msg.obj; 
+	                handleFireDownloadMessage((URI) pair.first, (HttpURLConnection) pair.second, msg.what);
+			    }
+			    else {
+                    handleFireDownloadMessage((URI) msg.obj, null, msg.what);
+			    }
+			    return true;
 		}
 		return false;
 	}

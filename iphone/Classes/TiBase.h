@@ -448,6 +448,19 @@ return ivarName;	\
 [self forgetProxy:x]; \
 RELEASE_TO_NIL(x); \
 }
+    
+#define FORGET_AND_RELEASE_WITH_DELEGATE(x) \
+{\
+[self forgetProxy:x]; \
+[x setDelegate:nil]; \
+RELEASE_TO_NIL(x); \
+}
+    
+#define RELEASE_WITH_DELEGATE(x) \
+{\
+[x setDelegate:nil]; \
+RELEASE_TO_NIL(x); \
+}
 
  //MUST BE NEGATIVE, as it inhabits the same space as UIBarButtonSystemItem
 enum {
@@ -551,6 +564,16 @@ return value;\
 #endif
     
 #define VAL_OR_NSNULL(foo)	(((foo) != nil)?((id)foo):[NSNull null])
+    
+#define NULL_OR_EMPTY(value) (!value || [value isKindOfClass:[NSNull class]] || ([value isKindOfClass:[NSString class]] && [value length] == 0))
+    
+#define ARE_DIFFERENT_NULL_OR_EMPTY(value1, value2, areDifferent) \
+{\
+BOOL oldNullEmpty = NULL_OR_EMPTY(value1);\
+BOOL newNullEmpty = NULL_OR_EMPTY(value2);\
+if (!oldNullEmpty && !newNullEmpty) areDifferent = (![value1 isEqual:value2]);\
+else areDifferent = (oldNullEmpty != newNullEmpty);\
+}\
 
 #define FunctionName(formatString, ...) NSLog((@"%s " formatString), __PRETTY_FUNCTION__, ##__VA_ARGS__);
 

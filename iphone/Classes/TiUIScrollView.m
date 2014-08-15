@@ -90,7 +90,7 @@
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event 
 {
     if (!self.dragging && !self.zooming && !self.tracking 
-        && self.userInteractionEnabled && (touchedContentView == nil) ) {
+        && self.userInteractionEnabled && (touchedContentView == nil) && [[event touchesForView:self] count] > 0) {
         [touchHandler processTouchesEnded:touches withEvent:event];
     }		
 	[super touchesEnded:touches withEvent:event];
@@ -111,8 +111,8 @@
 
 - (void) dealloc
 {
+	RELEASE_WITH_DELEGATE(scrollView);
 	RELEASE_TO_NIL(wrapperView);
-	RELEASE_TO_NIL(scrollView);
 	[super dealloc];
 }
 
@@ -145,6 +145,13 @@
 	}
 	return scrollView;
 }
+
+
+-(UIView*)viewForHitTest
+{
+    return scrollView;
+}
+
 
 - (id)accessibilityElement
 {
@@ -262,8 +269,10 @@
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)visibleBounds
 {
-	//Treat this as a size change
-	[(TiViewProxy *)[self proxy] willChangeSize];
+    if ([self flexibleContentWidth] || [self flexibleContentHeight])
+	{
+		needsHandleContentSize = YES;
+	}
     [super frameSizeChanged:frame bounds:visibleBounds];
 }
 

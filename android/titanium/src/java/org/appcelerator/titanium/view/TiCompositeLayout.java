@@ -25,7 +25,6 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.MeasureSpec;
 import android.view.ViewGroup.OnHierarchyChangeListener;
 import android.view.MotionEvent;
 
@@ -278,6 +277,19 @@ public class TiCompositeLayout extends FreeLayout implements
 		}
 		return false;
 	}
+	
+	public TiCompositeLayout.LayoutParams getChildParams(View child) {
+        TiCompositeLayout.LayoutParams params;
+        if (child.getLayoutParams() instanceof TiCompositeLayout.LayoutParams) {
+            params = (TiCompositeLayout.LayoutParams) child
+                    .getLayoutParams();
+        }
+        else {
+            params = new TiCompositeLayout.LayoutParams(child.getLayoutParams());
+            child.setLayoutParams(params);
+        }
+        return params;
+	}
 
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -312,8 +324,7 @@ public class TiCompositeLayout extends FreeLayout implements
 					|| child.getVisibility() == View.GONE) {
 				continue;
 			}
-			TiCompositeLayout.LayoutParams params = (TiCompositeLayout.LayoutParams) child
-					.getLayoutParams();
+			TiCompositeLayout.LayoutParams params = getChildParams(child);
 			Boolean needsProcessing = true;
 			if (horizontalNoWrap && viewShouldFillHorizontalLayout(child, params)) {
 				autoFillWidthViews.add(child);
@@ -463,12 +474,14 @@ public class TiCompositeLayout extends FreeLayout implements
 
 	protected void constrainChild(View child, LayoutParams p, int width, int wMode, int height,
 			int hMode, int widthPadding, int heightPadding) {
+        int widthSpec;
+        int heightSpec;
 		if (p.fullscreen) {
-			int newWidthSpec = MeasureSpec.makeMeasureSpec(width,
+		    widthSpec = MeasureSpec.makeMeasureSpec(width,
 					MeasureSpec.EXACTLY);
-			int newHeightSpec = MeasureSpec.makeMeasureSpec(height,
+		    heightSpec = MeasureSpec.makeMeasureSpec(height,
 						MeasureSpec.EXACTLY);
-			child.measure(newWidthSpec, newHeightSpec);
+			child.measure(widthSpec, heightSpec);
 		}
 		else {
 			int sizeFillConflicts[] = { NOT_SET, NOT_SET };
@@ -514,7 +527,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			
 			
 	
-			int widthSpec = ViewGroup.getChildMeasureSpec(
+			widthSpec = ViewGroup.getChildMeasureSpec(
 					MeasureSpec.makeMeasureSpec(width, wMode), widthPadding,
 					childDimension);
 			// If autoFillsHeight is false, and optionHeight is null, then we use
@@ -555,7 +568,7 @@ public class TiCompositeLayout extends FreeLayout implements
 				}
 			}
 	
-			int heightSpec = ViewGroup.getChildMeasureSpec(
+			heightSpec = ViewGroup.getChildMeasureSpec(
 					MeasureSpec.makeMeasureSpec(height, hMode), heightPadding,
 					childDimension);
 			child.measure(widthSpec, heightSpec);
@@ -563,7 +576,6 @@ public class TiCompositeLayout extends FreeLayout implements
 		boolean needsRecompute = false;
 		int childWidth = child.getMeasuredWidth();
 		int childHeight = child.getMeasuredHeight();
-		int newWidthSpec = 0, newHeightSpec = 0;
 		
 		//if the child is a composite layout this will be done in its onMeasure
 		if (!(child instanceof TiCompositeLayout)) {
@@ -572,8 +584,8 @@ public class TiCompositeLayout extends FreeLayout implements
 				if (p.minWidth != null) newWidth = Math.max(newWidth, p.minWidth.getAsPixels(getContext(), width, height));
 				if (p.maxWidth != null) newWidth = Math.min(newWidth, p.maxWidth.getAsPixels(getContext(), width, height));
 				if (newWidth != childWidth) {
-					newWidthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
-					childWidth = getMeasuredWidth(width, newWidthSpec);
+					widthSpec = MeasureSpec.makeMeasureSpec(newWidth, MeasureSpec.EXACTLY);
+					childWidth = getMeasuredWidth(width, widthSpec);
 					needsRecompute = true;
 				}
 			}
@@ -583,8 +595,8 @@ public class TiCompositeLayout extends FreeLayout implements
 				if (p.minHeight != null) newHeight = Math.max(newHeight, p.minHeight.getAsPixels(getContext(), width, height));
 				if (p.maxHeight != null) newHeight = Math.min(newHeight, p.maxHeight.getAsPixels(getContext(), width, height));
 				if (newHeight != childHeight) {
-					newHeightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
-					childHeight = getMeasuredHeight(height, newHeightSpec);
+					heightSpec = MeasureSpec.makeMeasureSpec(newHeight, MeasureSpec.EXACTLY);
+					childHeight = getMeasuredHeight(height, heightSpec);
 					needsRecompute = true;
 				}
 			}
@@ -600,16 +612,16 @@ public class TiCompositeLayout extends FreeLayout implements
 					childHeight = (int) (childHeight * fraction + (1 - fraction)
 							* startRect.height());
 					
-					newWidthSpec = MeasureSpec.makeMeasureSpec(childWidth,
+					widthSpec = MeasureSpec.makeMeasureSpec(childWidth,
 						MeasureSpec.EXACTLY);
-					newHeightSpec = MeasureSpec.makeMeasureSpec(childHeight,
+					heightSpec = MeasureSpec.makeMeasureSpec(childHeight,
 							MeasureSpec.EXACTLY);
 					needsRecompute = true;
 				}
 			}
 		}
 		if (needsRecompute) {
-			child.measure(newWidthSpec, newHeightSpec);
+			child.measure(widthSpec, heightSpec);
 		}
 	}
 
@@ -794,8 +806,7 @@ public class TiCompositeLayout extends FreeLayout implements
 			if (count > 1) { // No need to sort one item.
 				for (int i = 0; i < count; i++) {
 					View child = getChildAt(i);
-					TiCompositeLayout.LayoutParams params = (TiCompositeLayout.LayoutParams) child
-							.getLayoutParams();
+		            TiCompositeLayout.LayoutParams params = getChildParams(child);
 					params.index = i;
 					viewSorter.add(child);
 				}
@@ -823,9 +834,7 @@ public class TiCompositeLayout extends FreeLayout implements
 					|| child.getVisibility() == View.INVISIBLE)
 				continue;
 
-			TiCompositeLayout.LayoutParams params = (LayoutParams) child
-					.getLayoutParams();
-
+            TiCompositeLayout.LayoutParams params = getChildParams(child);
 			currentHeight = getChildSize(child, params, left, top, bottom,
 					right, currentHeight, horizontal, vertical, firstVisibleChild);
 			
@@ -1221,8 +1230,12 @@ public class TiCompositeLayout extends FreeLayout implements
 			sizeOrFillHeightEnabled = params.sizeOrFillHeightEnabled;
 			sizeOrFillWidthEnabled = params.sizeOrFillWidthEnabled;
 		}
+		
+		public LayoutParams(ViewGroup.LayoutParams source) {
+            super(source);
+        }
 
-		public boolean autoSizeHeight() {
+        public boolean autoSizeHeight() {
 			return ((!this.sizeOrFillHeightEnabled && !this.autoFillsHeight && this.optionHeight == null) || (this.sizeOrFillHeightEnabled && !this.autoFillsHeight));
 		}
 
@@ -1308,9 +1321,15 @@ public class TiCompositeLayout extends FreeLayout implements
 	
 	@Override
 	public boolean dispatchTouchEvent(MotionEvent event) {
-		TiUIView view = (this.view == null ? null : this.view.get());
-		if (view != null && view.touchPassThrough(this, event)) return false;
+	    boolean touchPassThrough = touchPassThrough(event);
+	    if (touchPassThrough) return false;
 		return super.dispatchTouchEvent(event);
+	}
+	
+	public boolean touchPassThrough(MotionEvent event) {
+	    TiUIView view = (this.view == null ? null : this.view.get());
+	    if (view != null) return view.touchPassThrough(this, event);
+	    return false;
 	}
 
 	private void setNeedsSort(boolean value) {

@@ -174,14 +174,14 @@ exports.detect = function detect(config, opts, finished) {
 											id: 'IOS_XCODE_TOO_OLD',
 											type: 'warning',
 											message: __('Xcode %s is too old and is no longer supported by Titanium SDK %s.', '__' + info.version + '__', manifestJson.version) + '\n' +
-												__('The minimumm supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, appc.version.parseMin(iosPackageJson.vendorDependencies.xcode))
+												__('The minimum supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, appc.version.parseMin(iosPackageJson.vendorDependencies.xcode))
 										});
 									} else if (info.supported == 'maybe') {
 										issues.push({
 											id: 'IOS_XCODE_TOO_NEW',
 											type: 'warning',
-											message: __('Xcode %s is too new and may or may not work with Titanium SDK %s.', '__' + info.version + '__', manifestJson.version) + '\n' +
-												__('The maximum supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, appc.version.parseMax(iosPackageJson.vendorDependencies.xcode)) + '\n'
+											message: __('Xcode %s may or may not work with Titanium SDK %s.', '__' + info.version + '__', manifestJson.version) + '\n' +
+												__('The maximum supported Xcode version by Titanium SDK %s is Xcode %s.', manifestJson.version, appc.version.parseMax(iosPackageJson.vendorDependencies.xcode, true)) + '\n'
 										});
 									}
 
@@ -365,9 +365,8 @@ exports.detect = function detect(config, opts, finished) {
 												invalid = expired || cert.validity.notBefore > now;
 
 											dest.developer || (dest.developer = []);
-
 											dest.developer.push({
-												name: cert.subject.getField('CN').value.substring(iphoneDev.length).trim(),
+												name: appc.encoding.decodeOctalUTF8(cert.subject.getField('CN').value.substring(iphoneDev.length)).trim(),
 												before: cert.validity.notBefore,
 												after: cert.validity.notAfter,
 												expired: expired,
@@ -396,7 +395,7 @@ exports.detect = function detect(config, opts, finished) {
 											dest.distribution || (dest.distribution = []);
 
 											dest.distribution.push({
-												name: cert.subject.getField('CN').value.substring(iphoneDist.length).trim(),
+												name: appc.encoding.decodeOctalUTF8(cert.subject.getField('CN').value.substring(iphoneDist.length)).trim(),
 												before: cert.validity.notBefore,
 												after: cert.validity.notAfter,
 												expired: expired,

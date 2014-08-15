@@ -143,6 +143,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(void)ensureGestureListeners;
 
 #pragma mark Framework
+-(TiViewProxy*)viewProxy;
 
 /**
  Performs view's initialization procedure.
@@ -224,6 +225,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(BOOL)interactionDefault; 
 
 -(BOOL)interactionEnabled;
+-(void)setCustomUserInteractionEnabled:(BOOL)value;
 
 /**
  Whether or not the view has any touchable listeners attached.
@@ -290,6 +292,7 @@ void ModifyScrollViewForKeyboardHeightAndContentHeightWithResponderRect(UIScroll
 -(NSDictionary*)dictionaryFromTouch:(UITouch*)touch;
 
 -(NSDictionary*)dictionaryFromGesture:(UIGestureRecognizer*)gesture;
+-(UIViewController*)getContentController;
 
 @end
 

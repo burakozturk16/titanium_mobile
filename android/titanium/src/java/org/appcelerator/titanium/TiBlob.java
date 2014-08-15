@@ -70,10 +70,10 @@ public class TiBlob extends KrollProxy
 	public static final int TYPE_STRING = 3;
 	
 	/**
-	 * Represents a Blob that contains stream data.
+	 * Represents a Blob that contains stream data that needs to be converted to base64.
 	 * @module.api
 	 */
-	public static final int TYPE_STREAM = 4;
+	public static final int TYPE_STREAM_BASE64 = 4;
 
 	private int type;
 	private Object data;
@@ -115,13 +115,13 @@ public class TiBlob extends KrollProxy
 	}
 	
 	/**
-	 * Creates a blob from a stream.
+	 * Creates a blob from a stream to convert to base64.
 	 * @param stream the stream used to create blob.
 	 * @return new instane of TiBlob.
 	 */
-	public static TiBlob blobFromStream(InputStream stream, String mimeType)
+	public static TiBlob blobFromStreamBase64(InputStream stream, String mimeType)
 	{
-		return new TiBlob(TYPE_STREAM, stream, mimeType);
+		return new TiBlob(TYPE_STREAM_BASE64, stream, mimeType);
 	}
 
 	/**
@@ -216,7 +216,7 @@ public class TiBlob extends KrollProxy
 		}
 
 		// If the MIME-type is "image/*" or undetermined, try to decode the file / data into a bitmap.
-		if (mt == null || mt.startsWith("image/")) {
+		if (mimetype == null || mimetype.startsWith("image/")) {
 			// Query the dimensions of a bitmap without allocating the memory for its pixels
 			BitmapFactory.Options opts = new BitmapFactory.Options();
 			opts.inJustDecodeBounds = true;
@@ -276,7 +276,7 @@ public class TiBlob extends KrollProxy
 					}
 				}
 				break;
-			case TYPE_STREAM:
+			case TYPE_STREAM_BASE64:
 				InputStream inStream = (InputStream)data;
 				if (inStream != null) {
 					try {
@@ -323,8 +323,8 @@ public class TiBlob extends KrollProxy
 					return sizeOf(image);
 				}
 				return ((byte[])getData()).length;
-			case TYPE_STREAM:
-				throw new IllegalStateException("Not yet implemented. TYPE_STREAM");
+			case TYPE_STREAM_BASE64:
+				throw new IllegalStateException("Not yet implemented. TYPE_STREAM_BASE64");
 			default:
 				// this is probably overly expensive.. is there a better way?
 				return getBytes().length;
@@ -345,7 +345,7 @@ public class TiBlob extends KrollProxy
 				Log.e(TAG, e.getMessage(), e);
 				return null;
 			}
-			case TYPE_STREAM:
+			case TYPE_STREAM_BASE64:
 				return (InputStream)data;
 			default:
 				return new ByteArrayInputStream(getBytes());
@@ -376,8 +376,8 @@ public class TiBlob extends KrollProxy
 				break;
 			case TYPE_FILE :
 				throw new IllegalStateException("Not yet implemented. TYPE_FILE");
-			case TYPE_STREAM :
-				throw new IllegalStateException("Not yet implemented. TYPE_STREAM");
+			case TYPE_STREAM_BASE64 :
+				throw new IllegalStateException("Not yet implemented. TYPE_STREAM_BASE64");
 				// break;
 			default :
 				throw new IllegalArgumentException("Unknown Blob type id " + type);
@@ -408,8 +408,8 @@ public class TiBlob extends KrollProxy
 					Log.w(TAG, "Unable to convert to string.");
 				}
 				break;
-			case TYPE_STREAM :
-				throw new IllegalStateException("Not yet implemented. TYPE_STREAM");
+			case TYPE_STREAM_BASE64 :
+				throw new IllegalStateException("Not yet implemented. TYPE_STREAM_BASE64");
 		}
 
 		return result;

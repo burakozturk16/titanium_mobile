@@ -24,6 +24,7 @@
 -(TiLabel*)label;
 -(void)setPadding:(UIEdgeInsets)inset;
 -(void)setReusing:(BOOL)value;
+-(int)characterIndexAtPoint:(CGPoint)p;
 @end
 
 

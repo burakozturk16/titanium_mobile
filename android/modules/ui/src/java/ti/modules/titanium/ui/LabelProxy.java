@@ -10,6 +10,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
 import ti.modules.titanium.ui.widget.TiUILabel;
@@ -63,4 +64,16 @@ public class LabelProxy extends ViewProxy
 	{
 		return "Ti.UI.Label";
 	}
+	
+
+    @Override
+    public boolean shouldFireChange(Object oldValue, Object newValue)
+    {
+        boolean oldNullEmpty = oldValue == null || (oldValue instanceof String && TiConvert.toString(oldValue).length() == 0);
+        boolean newNullEmpty = newValue == null || (oldValue instanceof String && TiConvert.toString(newValue).length() == 0);
+        
+        if (!oldNullEmpty && !newNullEmpty) return (!oldValue.equals(newValue));
+        return oldNullEmpty != newNullEmpty;
+        
+    }
 }

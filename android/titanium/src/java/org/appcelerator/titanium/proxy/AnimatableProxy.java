@@ -106,28 +106,38 @@ public class AnimatableProxy extends ParentingProxy {
 	@Kroll.method
 	public void animate(Object arg,
 			@Kroll.argument(optional = true) KrollFunction callback) {
-		synchronized (pendingAnimationLock) {
-			TiAnimator pendingAnimation = createAnimator();
-			if (arg instanceof HashMap) {
-				HashMap options = (HashMap) arg;
-				pendingAnimation.setOptions(options);
-			} else if (arg instanceof TiAnimation) {
-				TiAnimation anim = (TiAnimation) arg;
-				pendingAnimation.setAnimation(anim);
-			} else {
-				throw new IllegalArgumentException(
-						"Unhandled argument to animate: "
-								+ arg.getClass().getSimpleName());
-			}
-
-			if (callback != null) {
-				pendingAnimation.setCallback(callback);
-			}
-			pendingAnimations.add(pendingAnimation);
-
-		}
-		handlePendingAnimation();
+	    animateInternal(arg, callback);
 	}
+	
+    public TiAnimator animateInternal(Object arg, KrollFunction callback) {
+        TiAnimator pendingAnimation;
+        synchronized (pendingAnimationLock) {
+            if (arg instanceof TiAnimator) {
+                pendingAnimation = (TiAnimator)arg;
+            }
+            else {
+                pendingAnimation = createAnimator();
+                if (arg instanceof HashMap) {
+                    HashMap options = (HashMap) arg;
+                    pendingAnimation.setOptions(options);
+                } else if (arg instanceof TiAnimation) {
+                    TiAnimation anim = (TiAnimation) arg;
+                    pendingAnimation.setAnimation(anim);
+                } else {
+                    throw new IllegalArgumentException(
+                            "Unhandled argument to animate: "
+                                    + arg.getClass().getSimpleName());
+                }
+            }
+            if (callback != null) {
+                pendingAnimation.setCallback(callback);
+            }
+            pendingAnimations.add(pendingAnimation);
+
+        }
+        handlePendingAnimation();
+        return pendingAnimation;
+    }
 	
 	protected void prepareAnimatorSet(TiAnimatorSet tiSet) {
 		tiSet.aboutToBePrepared();

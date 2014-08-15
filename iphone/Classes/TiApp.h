@@ -117,6 +117,8 @@ TI_INLINE void waitForMemoryPanicCleared()   //WARNING: This must never be run o
  */
 +(NSDictionary *)license;
 
++(id) defaultUnit;
+
 /*
  Convenience method to returns root view controller for TiApp instance.
  @return The application's root view controller.

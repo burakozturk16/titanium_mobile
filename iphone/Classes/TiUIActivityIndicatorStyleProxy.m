@@ -19,6 +19,7 @@
 MAKE_SYSTEM_PROP(PLAIN,UIActivityIndicatorViewStyleWhite);
 MAKE_SYSTEM_PROP(BIG,UIActivityIndicatorViewStyleWhiteLarge);
 MAKE_SYSTEM_PROP(DARK,UIActivityIndicatorViewStyleGray);
+MAKE_SYSTEM_PROP(BIG_DARK,3);
 
 @end
 

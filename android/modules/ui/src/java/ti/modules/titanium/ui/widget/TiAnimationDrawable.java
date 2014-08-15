@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import org.appcelerator.kroll.common.Log;
+
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
@@ -22,6 +24,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
 	private boolean actualReverse = false;
 //	private int duration = 50;
 	List<Integer> durations;
+	private final String TAG = "TiAnimationDrawable";
 
     public TiAnimationDrawable() {
         super();
@@ -100,6 +103,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
 
     public void pauseOrResume() {
         if (isRunning()) {
+            Log.d(TAG, "pauseOrResume isRunning");
         	if (paused) {
         		resume();
         	} else {
@@ -107,8 +111,18 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         	}
         }
         else{
-        	start();
+            Log.d(TAG, "pauseOrResume not running");
+            start();
         }
+    }
+    
+    public void setFrame(int frame) {
+        pause();
+        setFrame(reverse?getNumberOfFrames()-frame:frame, false, false);
+    }
+    
+    public void setProgress(float progress) {
+        setFrame(Math.round((reverse?1-progress:progress) * getNumberOfFrames()));
     }
     
     private void resetCurrFrame(){
@@ -162,6 +176,7 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
      * @param duration How long in milliseconds the frame should appear
      */
     public void addFrame(Drawable frame, int duration) {
+        Log.d(TAG, "addFrame");
     	durations.add((Integer)duration);
 
         mAnimationState.addChild(frame);
@@ -231,14 +246,22 @@ public class TiAnimationDrawable extends DrawableContainer implements Runnable, 
         if (unschedule) {
             unscheduleSelf(this);
         }
+        Log.d(TAG, "mAnimationState " + frame + ", " + unschedule + ", " + animate);
         if (animate) {
             // Unscheduling may have clobbered this value; restore it to record that we're animating
             mCurFrame = frame;
             scheduleSelf(this, SystemClock.uptimeMillis() + durations.get(frame));
         }
     }
+    
+    public int getCurrentFrame() {
+        return mCurFrame;
+    }
 
-
+    public float getProgress() {
+        return (float)mCurFrame / mAnimationState.getChildCount();
+    }
+    
     @Override
     public Drawable mutate() {
         if (!mMutated && super.mutate() == this) {

@@ -57,6 +57,7 @@ typedef enum {
 	APSHTTPRequest *request;
 	NSObject<ImageLoaderDelegate>* delegate;
 	NSDictionary* userInfo;
+	NSDictionary* options;
 	NSURL *url;
 	CGSize imageSize;
 	BOOL completed;
@@ -135,7 +136,8 @@ typedef enum {
  @return The loaded image.
  @see loadImage:delegate:userInfo:
 */
--(UIImage *)loadRemote:(NSURL*)url;
+-(id)loadRemote:(NSURL*)url;
+-(id)loadRemote:(NSURL*)url withOptions:(NSDictionary*)options_;
 
 /**
  Tells the loader to return previously loaded image with URL.
@@ -195,13 +197,15 @@ typedef enum {
  Tells the loader to load image from URL with delegate.
  @param url The image URL.
  @param delegate The loader delegate.
+ @param options all request options.
  @param userInfo The additional properties to be assigned to the request.
  @return The image load request.
  @see loadRemote:
  */
 -(ImageLoaderRequest*)loadImage:(NSURL*)url 
 					   delegate:(NSObject<ImageLoaderDelegate>*)delegate 
-					   userInfo:(NSDictionary*)userInfo;
+					   options:(NSDictionary*)options
+                       userInfo:(NSDictionary*)userInfo;
 
 /*
  Tells the image loader to suspend its activities.

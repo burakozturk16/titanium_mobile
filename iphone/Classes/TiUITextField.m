@@ -98,7 +98,8 @@
 
 -(BOOL)becomeFirstResponder
 {
-    if (self.isEnabled) {
+    if (self.isEnabled && self.canBecomeFirstResponder) {
+        [(TiUITextWidget*)touchHandler willBecomeFirstResponder];
         if ([super becomeFirstResponder])
         {
             becameResponder = YES;
@@ -107,6 +108,8 @@
     }
     return NO;
 }
+
+
 
 
 -(BOOL)isFirstResponder
@@ -120,13 +123,13 @@
     CGRect result = UIEdgeInsetsInsetRect(bounds, _padding);
     if ([self leftView]){
         CGRect rect = [self leftViewRectForBounds:result];
-        CGFloat width = rect.origin.x - rect.size.width;
-        result.origin.y +=width;
+        CGFloat width = rect.origin.x + rect.size.width;
+        result.origin.x +=width;
         result.size.width -= width;
     }
     if ([self rightView]){
         CGRect rect = [self rightViewRectForBounds:result];
-        CGFloat width = result.size.width - rect.origin.x;
+        CGFloat width = bounds.size.width - rect.origin.x;
         result.size.width -= width;
     }
     return result;
@@ -170,6 +173,9 @@
         switch (self.contentVerticalAlignment) {
             case UIControlContentVerticalAlignmentTop:
                 placeholderRect = rect;
+                //strangely needed :s
+                placeholderRect.origin.y = _padding.top;
+                placeholderRect.size.height -= _padding.top + _padding.bottom;
                 break;
             case UIControlContentVerticalAlignmentCenter:
                 placeholderRect = CGRectMake(rect.origin.x, (rect.size.height - size.height)/2, rect.size.width, size.height);
@@ -206,6 +212,9 @@
 
 
 @implementation TiUITextField
+{
+    BOOL _editing;
+}
 
 #pragma mark Internal
 
@@ -227,13 +236,15 @@
 {
 	if (textWidgetView==nil)
 	{
-		textWidgetView = [[TiTextField alloc] initWithFrame:CGRectZero];
-		((TiTextField *)textWidgetView).delegate = self;
-		((TiTextField *)textWidgetView).text = @"";
-		((TiTextField *)textWidgetView).textAlignment = UITextAlignmentLeft;
-		((TiTextField *)textWidgetView).contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-		[(TiTextField *)textWidgetView configure];
-		[(TiTextField *)textWidgetView setTouchHandler:self];
+        TiTextField* textfield = [[TiTextField alloc] initWithFrame:CGRectZero];
+        textWidgetView = textfield;
+//        textfield.backgroundColor = [UIColor clearColor];
+		textfield.delegate = self;
+		textfield.text = @"";
+		textfield.textAlignment = UITextAlignmentLeft;
+		textfield.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+		[textfield configure];
+		[textfield setTouchHandler:self];
 		[self addSubview:textWidgetView];
 		self.clipsToBounds = YES;
 		WARN_IF_BACKGROUND_THREAD_OBJ;	//NSNotificationCenter is not threadsafe!
@@ -267,10 +278,10 @@
     return [self textWidgetView].enabled && [super enabledForBgState];
 }
 
--(void)setEnabled_:(id)value
+-(void)setCustomUserInteractionEnabled:(BOOL)value
 {
-	BOOL _trulyEnabled = ([TiUtils boolValue:value def:YES] && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
-    [super setEnabled_:_trulyEnabled];
+	BOOL _trulyEnabled = (value && [TiUtils boolValue:[[self proxy] valueForUndefinedKey:@"editable"] def:YES]);
+    [super setCustomUserInteractionEnabled:_trulyEnabled];
 	[[self textWidgetView] setEnabled:_trulyEnabled];
 }
 
@@ -326,36 +337,24 @@
 
 -(void)setLeftButton_:(id)value
 {
-    TiViewProxy *vp = nil;
-    id<TiEvaluator> context = self.proxy.executionContext;
-    if (context == nil) {
-        context = self.proxy.pageContext;
-    }
-	if ([value isKindOfClass:[TiViewProxy class]])
-	{
-		vp = (TiViewProxy*)value;
-    } else if ([value isKindOfClass:[NSDictionary class]]) {
-        vp = [[self.proxy class] createFromDictionary:value rootProxy:self.proxy inContext:context];
-    }
-    
+    TiViewProxy* vp = ( TiViewProxy*)[(TiUITextWidgetProxy*)self.proxy createChildFromObject:value];
     UIView* leftView = [[self textWidgetView] leftView];
 	if ([leftView isKindOfClass:[TiUIView class]]){
-        [((TiViewProxy*)[((TiUIView*)leftView) proxy]) detachView];
-        [self.proxy forgetProxy:vp];
+        TiViewProxy* oldVp = (TiViewProxy*)[((TiUIView*)leftView) proxy];
+        [oldVp detachView];
+        [oldVp setParent:nil];
+        [self.proxy forgetProxy:oldVp];
         leftView = nil;
     }
     if (vp) {
-        [context.krollContext invokeBlockOnThread:^{
-            [self.proxy rememberProxy:vp];
-            [vp forgetSelf];
-        }];
+        [vp setParent:(TiParentingProxy*)self.proxy];
         LayoutConstraint* constraint = [vp layoutProperties];
         if (TiDimensionIsUndefined(constraint->left))
         {
             constraint->left = TiDimensionDip(0);
         }
-		leftView = [vp getAndPrepareViewForOpening:[self textWidgetView].leftView.bounds];
-
+		leftView = [vp getAndPrepareViewForOpening:[self textWidgetView].bounds];
+        
     }
     [[self textWidgetView] setLeftView:leftView];
 }
@@ -367,36 +366,23 @@
 
 -(void)setRightButton_:(id)value
 {
-	TiViewProxy *vp = nil;
-    id<TiEvaluator> context = self.proxy.executionContext;
-    if (context == nil) {
-        context = self.proxy.pageContext;
-    }
-	if ([value isKindOfClass:[TiViewProxy class]])
-	{
-		vp = (TiViewProxy*)value;
-    } else if ([value isKindOfClass:[NSDictionary class]]) {
-        
-        vp = [[self.proxy class] createFromDictionary:value rootProxy:self.proxy inContext:context];
-    }
-    
+    TiViewProxy* vp = ( TiViewProxy*)[(TiUITextWidgetProxy*)self.proxy createChildFromObject:value];
     UIView* rightView = [[self textWidgetView] rightView];
 	if ([rightView isKindOfClass:[TiUIView class]]){
-        [((TiViewProxy*)[((TiUIView*)rightView) proxy]) detachView];
-        [self.proxy forgetProxy:vp];
+        TiViewProxy* oldVp = (TiViewProxy*)[((TiUIView*)rightView) proxy];
+        [oldVp detachView];
+        [oldVp setParent:nil];
+        [self.proxy forgetProxy:oldVp];
         rightView = nil;
     }
     if (vp) {
-        [context.krollContext invokeBlockOnThread:^{
-            [self.proxy rememberProxy:vp];
-            [vp forgetSelf];
-        }];
+        [vp setParent:(TiParentingProxy*)self.proxy];
         LayoutConstraint* constraint = [vp layoutProperties];
         if (TiDimensionIsUndefined(constraint->right))
         {
             constraint->right = TiDimensionDip(0);
         }
-		rightView = [vp getAndPrepareViewForOpening:[self textWidgetView].rightView.bounds];
+		rightView = [vp getAndPrepareViewForOpening:[self textWidgetView].bounds];
         
     }
     [[self textWidgetView] setRightView:rightView];
@@ -425,6 +411,7 @@
 
 - (void)textFieldDidBeginEditing:(UITextField *)tf
 {
+    _editing = YES;
     TiUITextWidgetProxy * ourProxy = (TiUITextWidgetProxy *)[self proxy];
     
     //TIMOB-14563. Set the right text value.
@@ -459,6 +446,8 @@
 
 - (void)textFieldDidEndEditing:(UITextField *)tf
 {
+    if (!_editing) return;
+    _editing = NO;
     [self setViewState:-1];
 	[self textWidget:tf didBlurWithText:[tf text]];
 }

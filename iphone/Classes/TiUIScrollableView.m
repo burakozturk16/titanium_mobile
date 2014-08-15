@@ -30,7 +30,7 @@
 
 -(void)dealloc
 {
-	RELEASE_TO_NIL(scrollview);
+	RELEASE_WITH_DELEGATE(scrollview);
 	RELEASE_TO_NIL(pageControl);
     RELEASE_TO_NIL(pageControlBackgroundColor);
     RELEASE_TO_NIL(_transition);
@@ -48,6 +48,7 @@
         verticalLayout = NO;
         switchPageAnimationDuration = 250;
         cacheSize = 3;
+        currentPage = -1; //so that the first change event is sent
         pageControlHeight=20;
         pageControlBackgroundColor = [[UIColor blackColor] retain];
         pagingControlOnTop = NO;
@@ -146,6 +147,12 @@
 	}
 	return scrollview;
 }
+
+-(UIView*)viewForHitTest
+{
+    return scrollview;
+}
+
 
 -(void)refreshPageControl
 {
@@ -731,7 +738,7 @@
 	int newPage = [TiUtils intValue:page];
 	int viewsCount = [[self proxy] viewCount];
 
-	if (newPage >=0 && newPage < viewsCount)
+	if (newPage >=0 && newPage < viewsCount && newPage != currentPage)
 	{
         [self setContentOffsetForPage:newPage animated:NO];
 		lastPage = newPage;

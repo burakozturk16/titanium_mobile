@@ -37,10 +37,12 @@ import android.os.Message;
 	TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR,
 	TiC.PROPERTY_SEPARATOR_COLOR,
 	TiC.PROPERTY_SEARCH_TEXT,
-	TiC.PROPERTY_SEARCH_VIEW,
+    TiC.PROPERTY_SEARCH_VIEW,
+    TiC.PROPERTY_SEARCH_VIEW_EXTERNAL,
 	TiC.PROPERTY_CASE_INSENSITIVE_SEARCH,
 	TiC.PROPERTY_HEADER_DIVIDERS_ENABLED,
-	TiC.PROPERTY_FOOTER_DIVIDERS_ENABLED
+	TiC.PROPERTY_FOOTER_DIVIDERS_ENABLED,
+	TiC.PROPERTY_SCROLL_HIDES_KEYBOARD
 })
 public class ListViewProxy extends TiViewProxy {
 
@@ -77,7 +79,8 @@ public class ListViewProxy extends TiViewProxy {
 	public void handleCreationArgs(KrollModule createdInModule, Object[] args) {
 		preloadSections = new ArrayList<ListSectionProxy>();
 		defaultValues.put(TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE, UIModule.LIST_ITEM_TEMPLATE_DEFAULT);
-		defaultValues.put(TiC.PROPERTY_CASE_INSENSITIVE_SEARCH, true);
+        defaultValues.put(TiC.PROPERTY_CASE_INSENSITIVE_SEARCH, true);
+        defaultValues.put(TiC.PROPERTY_ROW_HEIGHT, 40);
 		super.handleCreationArgs(createdInModule, args);
 		
 	}

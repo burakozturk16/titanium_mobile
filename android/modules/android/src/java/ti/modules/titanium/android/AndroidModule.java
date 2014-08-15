@@ -6,10 +6,12 @@
  */
 package ti.modules.titanium.android;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -22,8 +24,7 @@ import org.appcelerator.titanium.proxy.IntentProxy;
 import org.appcelerator.titanium.proxy.RProxy;
 import org.appcelerator.titanium.proxy.ServiceProxy;
 import org.appcelerator.titanium.util.TiConvert;
-
-import com.actionbarsherlock.app.ActionBar;
+import org.appcelerator.titanium.util.TiIntentHelper;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -36,7 +37,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.LabeledIntent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.media.AudioManager;
+import android.support.v7.app.ActionBar;
 import android.view.MenuItem;
 
 @SuppressLint("InlinedApi")
@@ -294,10 +302,34 @@ public class AndroidModule extends KrollModule
 	}
 
 	@Kroll.method
-	public IntentProxy createIntentChooser(IntentProxy target, String title)
+	public IntentProxy createIntentChooser(Object target, String title)
 	{
-		return new IntentProxy(Intent.createChooser(target.getIntent(), title));
+	    Intent targetIntent = IntentProxy.intentFromObject(target);
+	    if (targetIntent != null) {
+	        return new IntentProxy(Intent.createChooser(targetIntent, title));
+	    }
+	    return null;
 	}
+	
+
+    @Kroll.method
+    public IntentProxy createlabelIntent(String packagename, String label, int icon)
+    {
+        return new IntentProxy(new LabeledIntent(packagename, label, icon));
+    }
+    
+    @Kroll.method
+    public IntentProxy createPackageIntent(String packagename)
+    {
+        PackageManager pm = TiApplication.getInstance().getApplicationContext().getPackageManager();
+        ApplicationInfo info;
+        try {
+            info = pm.getApplicationInfo(packagename, 0);
+            return new IntentProxy(new LabeledIntent(info.packageName, info.loadLabel(pm), info.icon));
+        } catch (NameNotFoundException e) {
+            return null;
+        }
+    }
 
 	@Kroll.getProperty(name="R")
 	public RProxy getR() {
@@ -431,4 +463,12 @@ public class AndroidModule extends KrollModule
 	{
 		return "Ti.Android";
 	}
+	
+	@Kroll.method
+    public Object[] queryIntentActivities(String action, String type)
+    {
+	    Intent intent = new Intent(action);
+	    intent.setType(type);
+        return TiIntentHelper.queryIntentActivities(intent);
+    }
 }

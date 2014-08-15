@@ -28,10 +28,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
-import com.actionbarsherlock.app.ActionBar;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.util.TypedValue;
 
 @SuppressLint("InlinedApi")
@@ -62,6 +62,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	private static final int MSG_SET_DISPLAY_SHOW_TITLE = MSG_FIRST_ID + 115;
 
 	private static final String SHOW_HOME_AS_UP = "showHomeAsUp";
+	private static final String HOME_BUTTON_ENABLED = "homeButtonEnabled";
 	private static final String BACKGROUND_IMAGE = "backgroundImage";
 	private static final String TITLE = "title";
 	private static final String LOGO = "logo";
@@ -77,7 +78,14 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 	public ActionBarProxy(TiBaseActivity activity)
 	{
 		super();
-		actionBar = activity.getSupportActionBar();
+		try {
+		    actionBar = activity.getSupportActionBar();
+		    //trick to actually know if the internal action bar exists
+	        actionBar.isShowing();
+        } catch (NullPointerException e) {
+            //no internal action bar
+            actionBar = null;
+        }
 		themeIconDrawable = getActionBarIcon(activity);
 		themeBackgroundDrawable = getActionBarBackground(activity);
 		setModelListener(this, false);
@@ -88,7 +96,7 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
             int[] styleAttrs) throws ResourceNotFoundException {
         // Need to get resource id of style pointed to from the theme attr
         TypedValue outValue = new TypedValue();
-    	int resourceId = TiRHelper.getResource("com.actionbarsherlock.R$", "attr.actionBarStyle");
+    	int resourceId = TiRHelper.getResource("android.support.v7.appcompat.R$", "attr.actionBarStyle");
        context.getTheme().resolveAttribute(resourceId, outValue, true);
         final int styleResId =  outValue.resourceId;
 
@@ -433,7 +441,11 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 
 	private void handlesetNavigationMode(int navigationMode)
 	{
-		actionBar.setNavigationMode(navigationMode);
+	    if (actionBar != null) {
+	        actionBar.setNavigationMode(navigationMode);
+        } else {
+            Log.w(TAG, "ActionBar is not enabled");
+        }
 	}
 
 	private void handleSetLogo(String url)
@@ -533,7 +545,10 @@ public class ActionBarProxy extends KrollProxy implements KrollProxyListener
 				getMainHandler().obtainMessage(MSG_RESET_BACKGROUND).sendToTarget();
 			}
 		}
-		activateHomeButton(properties.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
+		
+		if (properties.containsKey(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED)) {
+	        activateHomeButton(properties.get(TiC.PROPERTY_ON_HOME_ICON_ITEM_SELECTED) != null);
+        }
 		
 		setDisplayHomeAsUp(properties.optBoolean(TiC.PROPERTY_DISPLAY_HOME_AS_UP, false));
 		if (properties.containsKey(TiC.PROPERTY_BACKGROUND_IMAGE)) {

@@ -9,6 +9,7 @@
 #import "TiUIHelper.h"
 #import "TiBase.h"
 #import "TiUtils.h"
+#import "TiViewProxy.h"
 @implementation TiShadow
 @end
 
@@ -71,6 +72,31 @@
         result.shadowBlurRadius = 3.0f; //same as Android
     }
     return [result autorelease];
+}
+
+
++(TiViewProxy*)findViewProxyWithBindIdUnder:(UIView *)view containingPoint:(CGPoint)point
+{
+	if (!CGRectContainsPoint([view bounds], point)) {
+		return nil;
+	}
+	for (UIView *subview in [view subviews]) {
+		TiViewProxy *viewProxy = [self findViewProxyWithBindIdUnder:subview containingPoint:[view convertPoint:point toView:subview]];
+		if (viewProxy != nil) {
+			id bindId = [viewProxy valueForKey:@"bindId"];
+			if (bindId != nil) {
+				return viewProxy;
+			}
+		}
+	}
+	if ([view isKindOfClass:[TiUIView class]]) {
+		TiViewProxy *viewProxy = (TiViewProxy *)[(TiUIView *)view proxy];
+		id bindId = [viewProxy valueForKey:@"bindId"];
+		if (bindId != nil) {
+			return viewProxy;
+		}
+	}
+	return nil;
 }
 
 @end

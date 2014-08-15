@@ -58,6 +58,7 @@
  */
 - (void)mergeStylesheet:(DTCSSStylesheet *)stylesheet;
 
+- (void)removeStyleForKey:(NSString *)key;
 
 /**
  @name Accessing Style Information

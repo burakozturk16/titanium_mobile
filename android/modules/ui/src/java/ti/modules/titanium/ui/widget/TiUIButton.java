@@ -6,7 +6,6 @@
  */
 package ti.modules.titanium.ui.widget;
 
-import java.io.FileNotFoundException;
 import java.util.HashMap;
 
 import org.appcelerator.kroll.KrollDict;
@@ -60,17 +59,12 @@ public class TiUIButton extends TiUINonViewGroupView
 				TiUIHelper.firePostLayoutEvent(TiUIButton.this);
 			}
 
-			@Override
-			public void setPressed(boolean pressed) {
-				super.setPressed(pressed);
-				if (dispatchPressed == true && childrenHolder != null) {
-					int count = childrenHolder.getChildCount();
-					for (int i = 0; i < count; i++) {
-			            final View child = childrenHolder.getChildAt(i);
-			            child.setPressed(pressed);
-			        }
-				}
-			}
+            @Override
+            public void dispatchSetPressed(boolean pressed) {
+                if (childrenHolder != null && dispatchPressed) {
+                    childrenHolder.setPressed(pressed);
+                }
+            }
 
 			@Override
 			public boolean dispatchTouchEvent(MotionEvent event) {

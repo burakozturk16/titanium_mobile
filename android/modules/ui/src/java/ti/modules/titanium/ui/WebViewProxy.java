@@ -19,7 +19,6 @@ import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.TiLifecycle.OnLifecycleEvent;
 import org.appcelerator.titanium.TiLifecycle.interceptOnBackPressedEvent;
-import org.appcelerator.titanium.proxy.TiViewProxy;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.view.TiUIView;
 
@@ -195,6 +194,10 @@ public class WebViewProxy extends ViewProxy
 					return true;
 				}
 				case MSG_RELEASE:
+					TiUIWebView webView = (TiUIWebView) peekView();
+					if (webView != null) {
+						webView.destroyWebViewBinding();
+					}
 					super.releaseViews(true);
 					return true;
 				case MSG_PAUSE:

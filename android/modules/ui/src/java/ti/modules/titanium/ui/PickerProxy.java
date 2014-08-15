@@ -17,6 +17,7 @@ import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.AsyncResult;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
@@ -38,7 +39,6 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.os.Message;
-import android.util.Log;
 import android.widget.DatePicker;
 import android.widget.TimePicker;
 
@@ -213,7 +213,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	public void add(Object child, @Kroll.argument(optional = true) Object index)
 	{
 		if (!isPlainPicker()) {
-			Log.w(TAG, "Attempt to add to date/time or countdown picker ignored.");
+			Log.w(TAG, "Attempt to add to date/time or countdown picker ignored.", Log.DEBUG_MODE);
 			return;
 		}
 		if (TiApplication.isUIThread() || peekView() == null) {
@@ -240,7 +240,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 				addColumns(obj);
 			}
 		} else {
-			Log.w(TAG, "Unexpected type not added to picker: " + child.getClass().getName());
+			Log.w(TAG, "Unexpected type not added to picker: " + child.getClass().getName(), Log.DEBUG_MODE);
 		}
 	}
 
@@ -250,7 +250,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 			if (obj instanceof PickerColumnProxy) {
 				addColumn((PickerColumnProxy)obj);
 			} else {
-				Log.w(TAG, "Unexpected type not added to picker: " + obj.getClass().getName());
+				Log.w(TAG, "Unexpected type not added to picker: " + obj.getClass().getName(), Log.DEBUG_MODE);
 			}
 		}
 	}
@@ -258,7 +258,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	private void addColumn(PickerColumnProxy column)
 	{
 		prepareColumn(column);
-		super.add(column, new Integer(-1));
+		super.add(column, null);
 		if (peekView() instanceof TiUIPicker) {
 			((TiUIPicker)peekView()).onColumnAdded(children.indexOf(column));
 		}
@@ -318,7 +318,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	public void setSelectedRow(int column, int row, @Kroll.argument(optional=true) boolean animated)
 	{
 		if (!isPlainPicker()) {
-			Log.w(TAG, "Selecting row in date/time or countdown picker is not supported.");
+			Log.w(TAG, "Selecting row in date/time or countdown picker is not supported.", Log.DEBUG_MODE);
 			return;
 		}
 		TiUIView view = peekView();
@@ -333,7 +333,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 			if (preselectedRows.size() >= (column + 1)) {
 				preselectedRows.remove(column);
 			}
-			preselectedRows.add(column, new Integer(row));
+			preselectedRows.add(column, Integer.valueOf(row));
 			return;
 		}
 
@@ -343,9 +343,9 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 
 		} else {
 			KrollDict dict = new KrollDict();
-			dict.put("column", new Integer(column));
-			dict.put("row", new Integer(row));
-			dict.put("animated", new Boolean(animated));
+			dict.put("column", Integer.valueOf(column));
+			dict.put("row", Integer.valueOf(row));
+			dict.put("animated", Boolean.valueOf(animated));
 
 			TiMessenger.sendBlockingMainMessage(getMainHandler().obtainMessage(MSG_SELECT_ROW), dict);
 		}
@@ -355,7 +355,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	public PickerRowProxy getSelectedRow(int columnIndex)
 	{
 		if (!isPlainPicker()) {
-			Log.w(TAG, "Cannot get selected row in date/time or countdown picker.");
+			Log.w(TAG, "Cannot get selected row in date/time or countdown picker.", Log.DEBUG_MODE);
 			return null;
 		}
 		if (!(peekView() instanceof TiUIPicker)) {
@@ -375,7 +375,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	public PickerColumnProxy[] getColumns()
 	{
 		if (!isPlainPicker()) {
-			Log.w(TAG, "Cannot get columns from date/time or countdown picker.");
+			Log.w(TAG, "Cannot get columns from date/time or countdown picker.", Log.DEBUG_MODE);
 			return null;
 		}
 		if (children == null) {
@@ -389,7 +389,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 	public void setColumns(Object passedColumns)
 	{
 		if (!isPlainPicker()) {
-			Log.w(TAG, "Cannot set columns in date/time or countdown picker.");
+			Log.w(TAG, "Cannot set columns in date/time or countdown picker.", Log.DEBUG_MODE);
 			return;
 		}
 		if (TiApplication.isUIThread() || peekView() == null) {
@@ -420,7 +420,7 @@ public class PickerProxy extends ViewProxy implements PickerColumnListener
 				columns = new Object[]{passedColumns};
 			}
 			if (!(columns[0] instanceof PickerColumnProxy)) {
-				Log.w(TAG, "Unexpected object type ignored for setColumns");
+				Log.w(TAG, "Unexpected object type ignored for setColumns", Log.DEBUG_MODE);
 			} else { 
 				for (Object o : columns) {
 					if (o instanceof PickerColumnProxy) {

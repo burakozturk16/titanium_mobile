@@ -78,9 +78,9 @@
 }
 
 
--(void)setEnabled_:(id)value
+-(void)setCustomUserInteractionEnabled:(BOOL)value
 {
-    [super setEnabled_:value];
+    [super setCustomUserInteractionEnabled:value];
 	[[self switchView] setEnabled:[self interactionEnabled]];
 }
 
@@ -98,13 +98,14 @@
         return;
     }
 	[ourSwitch setOn:newValue animated:animated];
-	
-	// Don't rely on switchChanged: - isOn can report erroneous values immediately after the value is changed!  
-	// This only seems to happen in 4.2+ - could be an Apple bug.
-    if ((reproxying == NO) && configurationSet && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
-	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:value forKey:@"value"] propagate:NO checkForListener:NO];
-	}
+    if (configurationSet) {
+        // Don't rely on switchChanged: - isOn can report erroneous values immediately after the value is changed!  
+        // This only seems to happen in 4.2+ - could be an Apple bug.
+        if ((reproxying == NO) && configurationSet && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+        {
+            [self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:value forKey:@"value"] propagate:NO checkForListener:NO];
+        }
+    }
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -131,12 +132,18 @@
 {
 	NSNumber * newValue = [NSNumber numberWithBool:[(UISwitch *)sender isOn]];
 	id current = [self.proxy valueForUndefinedKey:@"value"];
-    [self.proxy replaceValue:newValue forKey:@"value" notification:NO];
+    
 	
 	//No need to setValue, because it's already been set.
-    if ((current != newValue) && ![current isEqual:newValue] && [(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO])
+    if ((current != newValue) && ![current isEqual:newValue])
 	{
-		[self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
+        [self.proxy replaceValue:newValue forKey:@"value" notification:NO];
+        if ([self.proxy.eventOverrideDelegate respondsToSelector:@selector(viewProxy:updatedValue:forType:)]) {
+            [self.proxy.eventOverrideDelegate viewProxy:self.proxy updatedValue:newValue forType:@"value"];
+        }
+        if ([(TiViewProxy*)self.proxy _hasListeners:@"change" checkParent:NO]) {
+            [self.proxy fireEvent:@"change" withObject:[NSDictionary dictionaryWithObject:newValue forKey:@"value"] propagate:NO checkForListener:NO];
+        }
 	}
 }
 

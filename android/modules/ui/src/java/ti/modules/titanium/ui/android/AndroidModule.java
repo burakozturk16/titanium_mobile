@@ -121,10 +121,14 @@ public class AndroidModule extends KrollModule
 	{
 		try {
 			int resid = TiRHelper.getResource("xml." + prefsName);
-			PreferenceManager.setDefaultValues(TiApplication.getInstance().getBaseContext(), TiApplication.APPLICATION_PREFERENCES_NAME, Context.MODE_PRIVATE, resid, true);
+			if (resid != 0) {
+		         PreferenceManager.setDefaultValues(TiApplication.getInstance().getBaseContext(), TiApplication.APPLICATION_PREFERENCES_NAME, Context.MODE_PRIVATE, resid, true);
+			}
+			else {
+	            Log.d(TAG, "xml." + prefsName + " preferences not found.", Log.DEBUG_MODE);
+			}
 		} catch (TiRHelper.ResourceNotFoundException e) {
-			Log.d(TAG, "xml." + prefsName + " preferences not found.");
-			return ;
+			Log.d(TAG, "xml." + prefsName + " preferences not found.", Log.DEBUG_MODE);
 		}
 	}
 

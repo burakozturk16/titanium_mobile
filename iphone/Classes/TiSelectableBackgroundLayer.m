@@ -363,7 +363,14 @@
 
 - (void)setColor:(UIColor*)color forState:(UIControlState)state
 {
-    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    TiDrawable* drawable = nil;
+    if (!color) {
+        drawable = [self getDrawableForState:state];
+        if (!drawable) return;
+    }
+    else {
+        drawable = [self getOrCreateDrawableForState:state];
+    }
     drawable.color = color;
     if (readyToCreateDrawables) {
         [self updateDrawable:drawable];
@@ -376,7 +383,14 @@
 
 - (void)setImage:(id)image forState:(UIControlState)state
 {
-    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    TiDrawable* drawable = nil;
+    if (!image) {
+        drawable = [self getDrawableForState:state];
+        if (!drawable) return;
+    }
+    else {
+        drawable = [self getOrCreateDrawableForState:state];
+    }
     if ([image isKindOfClass:[UIImage class]])
         drawable.image = image;
     else if ([image isKindOfClass:[TiSVGImage class]])
@@ -392,7 +406,14 @@
 
 - (void)setGradient:(TiGradient*)gradient forState:(UIControlState)state
 {
-    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    TiDrawable* drawable = nil;
+    if (!gradient) {
+        drawable = [self getDrawableForState:state];
+        if (!drawable) return;
+    }
+    else {
+        drawable = [self getOrCreateDrawableForState:state];
+    }
     drawable.gradient = gradient;
     if (readyToCreateDrawables) {
         [self updateDrawable:drawable];
@@ -405,7 +426,14 @@
 
 - (void)setShadow:(NSShadow*)shadow forState:(UIControlState)state
 {
-    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    TiDrawable* drawable = nil;
+    if (!shadow) {
+        drawable = [self getDrawableForState:state];
+        if (!drawable) return;
+    }
+    else {
+        drawable = [self getOrCreateDrawableForState:state];
+    }
     drawable.shadow = shadow;
     if (readyToCreateDrawables) {
         [self updateDrawable:drawable];
@@ -417,7 +445,14 @@
 
 - (void)setInnerShadows:(NSArray*)shadows forState:(UIControlState)state
 {
-    TiDrawable* drawable = [self getOrCreateDrawableForState:state];
+    TiDrawable* drawable = nil;
+    if (!shadows) {
+        drawable = [self getDrawableForState:state];
+        if (!drawable) return;
+    }
+    else {
+        drawable = [self getOrCreateDrawableForState:state];
+    }
     drawable.innerShadows = shadows;
     if (readyToCreateDrawables) {
         [self updateDrawable:drawable];

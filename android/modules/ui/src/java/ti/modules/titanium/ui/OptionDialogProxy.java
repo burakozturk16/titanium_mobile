@@ -16,7 +16,7 @@ import ti.modules.titanium.ui.widget.TiUIDialog;
 import android.app.Activity;
 
 @Kroll.proxy(creatableInModule=UIModule.class, propertyAccessors = {
-	TiC.PROPERTY_ANDROID_VIEW,
+	TiC.PROPERTY_CUSTOM_VIEW,
 	TiC.PROPERTY_CANCEL,
 	TiC.PROPERTY_OPTIONS,
 	TiC.PROPERTY_SELECTED_INDEX,

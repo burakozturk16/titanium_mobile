@@ -117,6 +117,7 @@
         label.strokeWidthAttributeProperty = DTBackgroundStrokeWidthAttribute;
         label.cornerRadiusAttributeProperty = DTBackgroundCornerRadiusAttribute;
         label.paddingAttributeProperty = DTPaddingAttribute;
+        label.linkAttributeProperty = DTLinkAttribute;
         if ([TiUtils isIOS6OrGreater])
         {
             label.strikeOutAttributeProperty = NSStrikethroughStyleAttributeName;
@@ -134,17 +135,18 @@
 
 -(NSURL *)checkLinkAttributeForString:(NSAttributedString*)theString atPoint:(CGPoint)p
 {
+    if ([label.links count] == 0) return nil;
+    NSTextCheckingResult* result = [label linkAtPoint:p];
 
-    CFIndex idx = [label characterIndexAtPoint:p];
-    if (idx != NSNotFound) {
-        if(idx >= theString.string.length) {
-            return NO;
-        }
-        NSRange theRange = NSMakeRange(0, 0);
-        NSURL *url = [theString attribute:DTLinkAttribute atIndex:idx effectiveRange:&theRange];
-        return url;
+    if (result) {
+        return result.URL;
     }
     return nil;
+}
+
+- (int)characterIndexAtPoint:(CGPoint)p;
+{
+    return [label characterIndexAtPoint:p];
 }
 
 - (id)accessibilityElement
@@ -165,6 +167,9 @@
         return;
     }
     id content = [(TiUILabelProxy*)[self proxy] getLabelContent];
+    if ([content isKindOfClass:[NSAttributedString class]]){
+        
+    }
     [self transitionToText:content];
 }
 
@@ -181,6 +186,7 @@
     
     clone.touchDelegate = source.touchDelegate;
     clone.delegate = source.delegate;
+    [clone setLinks:source.links];
     return clone;
 }
 
@@ -236,9 +242,9 @@
 
 #pragma mark Public APIs
 
--(void)setEnabled_:(id)value
+-(void)setCustomUserInteractionEnabled:(BOOL)value
 {
-    [super setEnabled_:value];
+    [super setCustomUserInteractionEnabled:value];
 	[[self label] setEnabled:[self interactionEnabled]];
 }
 
@@ -252,6 +258,20 @@
     [[self label] setDataDetectorTypes:[TiUtils intValue:value]];
     //we need to update the text
     [self setAttributedTextViewContent];
+}
+
+-(void)setDisableLinkStyle_:(id)value {
+    BOOL currentlyDisabled = [self label].linkAttributes == nil;
+    BOOL disable = [TiUtils boolValue:value def:NO];
+    if (disable == currentlyDisabled) return;
+    if (disable) {
+        [self label].linkAttributes = nil;
+        [self label].activeLinkAttributes = nil;
+        [self label].inactiveLinkAttributes = nil;
+    }
+    else {
+        [[self label] initLinksStyle];
+    }
 }
 
 -(void)setColor_:(id)color

@@ -22,7 +22,6 @@
 
 -(UIButton*)button;
 
--(void)setEnabled_:(id)value;
 -(void)setPadding:(UIEdgeInsets)inset;
 
 @end

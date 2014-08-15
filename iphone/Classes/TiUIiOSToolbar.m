@@ -27,6 +27,7 @@
     if (toolBar == nil) {
         toolBar = [[UIToolbar alloc] initWithFrame:[self bounds]];
         [toolBar setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleBottomMargin];
+
         [self addSubview:toolBar];
         if ([TiUtils isIOS7OrGreater]) {
             id extendVal = [[self proxy] valueForUndefinedKey:@"extendBackground"];
@@ -61,25 +62,6 @@
 {
 	return [self toolBar];
 }
-
--(void)layoutSubviews
-{
-	CGRect ourBounds = [self bounds];
-	CGFloat height = ourBounds.size.height;	
-	if (height != [self verifyHeight:height])
-	{
-		[(TiViewProxy *)[self proxy] willChangeSize];
-		return;
-	}
-
-
-	CGRect toolBounds;
-	toolBounds.size = [[self toolBar] sizeThatFits:ourBounds.size];
-	toolBounds.origin.x = 0.0;
-	toolBounds.origin.y = hideTopBorder?-1.0:0.0;
-	[toolBar setFrame:toolBounds];
-}
-
 
 -(void)drawRect:(CGRect)rect
 {
@@ -117,21 +99,17 @@
 	{
 		NSMutableArray * result = [NSMutableArray arrayWithCapacity:[value count]];
 		Class proxyClass = [TiViewProxy class];
-		for (TiViewProxy * thisProxy in value) {
-			ENSURE_CLASS(thisProxy,proxyClass);
-			if (![thisProxy supportsNavBarPositioning])
+		for (id object in value) {
+            TiViewProxy* vp = ( TiViewProxy*)[(TiViewProxy*)self.proxy createChildFromObject:object];
+            if (!vp) continue;
+			if ([vp conformsToProtocol:@protocol(TiToolbarButton)])
 			{
-				//TODO: This is an exception that should have been raised long ago.
-				DebugLog(@"[ERROR] %@ does not support being in a toolbar!",thisProxy);
-				//continue;
+				[(id<TiToolbarButton>)vp setToolbar:(id<TiToolbar>)self.proxy];
 			}
-			if ([thisProxy conformsToProtocol:@protocol(TiToolbarButton)])
-			{
-				[(id<TiToolbarButton>)thisProxy setToolbar:(id<TiToolbar>)self.proxy];
-			}
-            [thisProxy windowWillOpen];
-			[result addObject:[thisProxy barButtonItem]];
-            [thisProxy windowDidOpen];
+            [vp setParent:(TiParentingProxy*)self.proxy];
+            [vp windowWillOpen];
+			[result addObject:[vp barButtonItem]];
+            [vp windowDidOpen];
 		}
 		[[self toolBar] setItems:result];
 	}
@@ -140,12 +118,15 @@
 		UIToolbar *toolbar = [self toolBar];
 		if (toolbar!=nil)
 		{
-			for (id thisProxy in [toolbar items])
+			for (id item in [toolbar items])
 			{
-				if ([thisProxy conformsToProtocol:@protocol(TiToolbarButton)])
-				{
-					[(id<TiToolbarButton>)thisProxy setToolbar:nil];
-				}
+                if ([item respondsToSelector:@selector(proxy)])
+                {
+                    TiViewProxy* p = (TiViewProxy*)[item performSelector:@selector(proxy)];
+                    [p removeBarButtonView];
+                    [p windowDidClose];
+                    [self.proxy forgetProxy:p];
+                }
 			}
 		}
 		[toolbar setItems:nil];
@@ -203,28 +184,31 @@
     }
 }
 
-
 -(void)setTranslucent_:(id)value
 {
-	[toolBar setTranslucent:[TiUtils boolValue:value]];
+	[[self toolBar] setTranslucent:[TiUtils boolValue:value]];
 }
 
+-(void)setStyle_:(id)value
+{
+	[[self toolBar] setBarStyle:[TiUtils intValue:value def:[self toolBar].barStyle]];
+}
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
+    [[self toolBar] setFrame:bounds];
 	[super frameSizeChanged:frame bounds:bounds];
-	CGFloat height = bounds.size.height;
-	
-	if (height != [self verifyHeight:height])
-	{
-		[(TiViewProxy *)[self proxy] willChangeSize];
-	}
+
 }
 
+-(CGSize)contentSizeForSize:(CGSize)size
+{
+    return [[self toolBar] sizeThatFits:size];
+}
 
 -(CGFloat)verifyHeight:(CGFloat)suggestedHeight
 {
-	CGFloat result = [[self toolBar] sizeThatFits:CGSizeZero].height;
+	CGFloat result = suggestedHeight;
 	if (hideTopBorder)
 	{
 		result -= 1.0;

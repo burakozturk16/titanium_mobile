@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.SoftReference;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -39,6 +40,7 @@ import com.trevorpage.tpsvg.SVGDrawable;
 import com.trevorpage.tpsvg.SVGFlyweightFactory;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -310,6 +312,96 @@ public class TiFileHelper implements Handler.Callback
 
 		return is;
 	}
+	
+    public AssetFileDescriptor openAssetFileDescriptor(String path)
+            throws IOException {
+        AssetFileDescriptor fd = null;
+
+        Context context = softContext.get();
+        if (context != null) {
+            if (isTitaniumResource(path)) {
+                String[] parts = path.split(":");
+                if (parts.length != 3) {
+                    Log.w(TAG,
+                            "Malformed titanium resource url, resource not loaded: "
+                                    + path);
+                    return null;
+                }
+                @SuppressWarnings("unused")
+                String titanium = parts[0];
+                String section = parts[1];
+                String resid = parts[2];
+
+                if (TI_RESOURCE_PREFIX.equals(section)) {
+//                    fd = TiFileHelper.class
+//                            .getResourceAsStream("/org/appcelerator/titanium/res/drawable/"
+//                                    + resid + ".png");
+                } else if ("Sys".equals(section)) {
+                    Integer id = systemIcons.get(resid);
+                    if (id != null) {
+                        fd = Resources.getSystem().openRawResourceFd(id);
+                    } else {
+                        Log.w(TAG, "Drawable not found for system id: " + path);
+                    }
+                } else {
+                    Log.e(TAG, "Unknown section identifier: " + section);
+                }
+            } else if (URLUtil.isNetworkUrl(path)) {
+//                if (TiApplication.isUIThread()) {
+//                    is = (InputStream) TiMessenger.sendBlockingRuntimeMessage(
+//                            getRuntimeHandler().obtainMessage(MSG_NETWORK_URL),
+//                            path);
+//                } else {
+//                    is = handleNetworkURL(path);
+//                }
+                throw new FileNotFoundException();
+            } else if (path.startsWith(RESOURCE_ROOT_ASSETS)) {
+                int len = "file:///android_asset/".length();
+                path = path.substring(len);
+                boolean found = false;
+
+                if (foundResourcePathCache.contains(path)) {
+                    found = true;
+                } else if (!notFoundResourcePathCache.contains(path)) {
+                    String base = path.substring(0, path.lastIndexOf("/"));
+
+                    synchronized (resourcePathCache) {
+                        if (!resourcePathCache.contains(base)) {
+                            String[] paths = context.getAssets().list(base);
+                            for (int i = 0; i < paths.length; i++) {
+                                foundResourcePathCache.add(base + '/'
+                                        + paths[i]);
+                            }
+                            resourcePathCache.add(base);
+                            if (foundResourcePathCache.contains(path)) {
+                                found = true;
+                            }
+                        }
+                        if (!found) {
+                            notFoundResourcePathCache.add(path);
+                        }
+                    }
+                }
+                if (found) {
+                    fd = context.getAssets().openFd(path);
+                } else
+                    throw new FileNotFoundException();
+            } else if (path.startsWith(SD_CARD_PREFIX)) {
+                File file = new File(path);
+                if (file.exists()) {
+                    fd = context.getAssets().openFd(path);
+                } else
+                    throw new FileNotFoundException();
+            } else if (URLUtil.isFileUrl(path)) {
+                throw new FileNotFoundException();
+            } else {
+                path = joinPaths("Resources", path);
+                fd = context.getAssets().openFd(path);
+            }
+        }
+
+        return fd;
+    }
 
 	private InputStream handleNetworkURL(String path) throws IOException
 	{
@@ -327,7 +419,9 @@ public class TiFileHelper implements Handler.Callback
 		}
 
 		URL u = new URL(path);
-		InputStream lis = u.openStream();
+		HttpURLConnection connection = (HttpURLConnection) u.openConnection();
+		connection.addRequestProperty("TiCache", "true");
+		InputStream lis = connection.getInputStream();
 		ByteArrayOutputStream bos = null;
 		try {
 			bos = new ByteArrayOutputStream(8192);

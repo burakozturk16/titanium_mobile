@@ -17,7 +17,6 @@ import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
-import org.appcelerator.titanium.TiProperties;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
 import org.appcelerator.titanium.util.TiResponseCache;
@@ -185,6 +184,12 @@ public class AppModule extends KrollModule implements SensorEventListener
 
 		return enabled;
 	}
+	
+
+    @Kroll.getProperty @Kroll.method
+    public boolean getInBackground() {
+        return TiApplication.getInstance().isPaused();
+    }
 
 	@Kroll.method(name = "_restart")
 	public void restart()

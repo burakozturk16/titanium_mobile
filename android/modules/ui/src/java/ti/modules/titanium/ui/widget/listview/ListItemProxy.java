@@ -11,6 +11,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollDict;
@@ -23,13 +24,24 @@ import ti.modules.titanium.ui.UIModule;
 import android.app.Activity;
 
 @Kroll.proxy(creatableInModule = UIModule.class)
-public class ListItemProxy extends TiViewProxy
+public class ListItemProxy extends TiViewProxy implements KrollProxy.SetPropertyChangeListener
 {
-	protected WeakReference<TiViewProxy> listProxy;
+    protected WeakReference<TiViewProxy> listProxy;
 	
 	private HashMap<String, ProxyListItem> bindingsMap;
 	private List<KrollProxy> nonBindingProxies;
 	private ProxyListItem listItem;
+	
+	public int sectionIndex = -1;
+    public int itemIndex = -1;
+    protected WeakReference<ListSectionProxy> sectionProxy;
+	
+	public void setCurrentItem(int sectionIndex, int itemIndex, ListSectionProxy sectionProxy)
+    {
+        this.sectionIndex = sectionIndex;
+        this.itemIndex = itemIndex;
+        this.sectionProxy = new WeakReference<ListSectionProxy>(sectionProxy);
+    }
 	
 	public ListItemProxy()
 	{
@@ -106,6 +118,9 @@ public class ListItemProxy extends TiViewProxy
 		if (listProxy != null) {
 			listProxy = null;
 		}
+		if (sectionProxy != null) {
+		    sectionProxy = null;
+        }
 	}
 
 	@Override
@@ -124,7 +139,7 @@ public class ListItemProxy extends TiViewProxy
 	}
 	
 	@Override
-	protected void addBinding(String bindId, KrollProxy arg)
+    public void addBinding(String bindId, KrollProxy arg)
 	{
 		super.addBinding(bindId, arg);
 		KrollProxy bindingProxy = null;
@@ -157,4 +172,21 @@ public class ListItemProxy extends TiViewProxy
 		}
 		return listItem;
 	}
+
+    @Override
+    public void onSetProperty(KrollProxy proxy, String name, Object value) {
+        for (Map.Entry<String, ProxyListItem> entry : bindingsMap.entrySet()) {
+            String key = entry.getKey();
+            ProxyListItem item = entry.getValue();
+            if (item.getProxy() == proxy) {
+                item.setCurrentProperty(name, value);
+                if (sectionProxy != null) {
+                    sectionProxy.get().updateItemAt(itemIndex, key, name, value);
+                }
+                return;
+            }
+        }
+    }
+	
+	
 }

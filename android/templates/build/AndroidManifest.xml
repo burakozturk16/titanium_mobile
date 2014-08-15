@@ -13,9 +13,9 @@
 
 	<application android:icon="@drawable/appicon"
 		android:label="<%- tiapp.name %>" android:name="<%- classname %>Application"
-		android:theme="@style/Theme"
-		android:debuggable="false">
+		android:theme="@style/Theme">
 
+        <provider android:name="org.appcelerator.titanium.TiContentProvider" android:authorities="<%- appid %>.provider" android:grantUriPermissions="true" android:exported="true" />﻿
 		<activity android:name=".<%- classname %>Activity"
 			android:label="@string/app_name" android:theme="@style/Theme.Titanium.SplashScreen"
 			android:configChanges="keyboardHidden|orientation">

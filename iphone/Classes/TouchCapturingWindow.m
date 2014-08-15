@@ -19,7 +19,7 @@
     //on ios7 there are at least 11 levels when showing videos controls and touching them! :s
     for (int i=0; i<11; i++) {
         if ([view isKindOfClass:[UIWebView class]]) {
-            TiUIView* tiview = (TiUIView*)[view superview];
+            TiUIView* tiview = ([[view superview] isKindOfClass:[TiUIView class]])?(TiUIView*)[view superview]:nil;
             if (tiview && [tiview interactionEnabled]) {
                 if (touch.phase == UITouchPhaseBegan) {
                     [tiview processTouchesBegan:[event allTouches] withEvent:event];

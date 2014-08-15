@@ -144,22 +144,12 @@ public class TiWebViewBinding
 	private Semaphore returnSemaphore = new Semaphore(0);
 	private String returnValue;
 
+    @JavascriptInterface
 	synchronized public String getJSValue(String expression)
 	{
 		// Don't try to evaluate js code again if the binding has already been destroyed
 		if (!destroyed) {
-			// see if this is an expression or a statement block
-			// Match ; followed by 0 or even quotes
-			Pattern pattern = Pattern.compile(";(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-			Matcher matcher = pattern.matcher(expression);
-			if (matcher.find()) {
-				String lastStmt = expression.substring(matcher.end(matcher.groupCount() - 1));
-				String stmtBlock = expression.substring(0, matcher.end(matcher.groupCount() - 1));
-				expression = stmtBlock + " return " + lastStmt;
-			} else {
-				expression = " return " + expression;
-			}
-			String code = "_TiReturn.setValue((function(){try{" + expression + "+\"\";}catch(ti_eval_err){return '';}})());";
+			String code = "_TiReturn.setValue((function(){try{return eval(\"" + expression + "\")+\"\";}catch(ti_eval_err){return '';}})());";
 			Log.d(TAG, "getJSValue:" + code, Log.DEBUG_MODE);
 			returnSemaphore.drainPermits();
 			synchronized (codeSnippets) {

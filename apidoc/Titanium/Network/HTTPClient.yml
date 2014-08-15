@@ -326,10 +326,11 @@ properties:
         On iOS, can only be set **after** calling [open](Titanium.Network.HTTPClient.open).
 
         
-        On Mobile Web and Tizen, can be set anytime prior to calling [send](Titanium.Network.HTTPClient.send).
+        On Android, Mobile Web and Tizen, can be set anytime prior to calling [send](Titanium.Network.HTTPClient.send).
         The file must be writable such as the application data directory or temp directory.
     type: String
-    platforms: [iphone, ipad, mobileweb, tizen]
+    platforms: [android, iphone, ipad, mobileweb, tizen]
+    since: {android: 3.4.0}
 
   - name: location
     summary: Absolute URL of the request.
@@ -597,8 +598,8 @@ methods:
     returns:
         type: Array<Object>
     parameters:
-      - name: url
-        summary: The [Uri](http://developer.android.com/reference/android/net/Uri.html) representing the end point of this connection.
+      - name: proxy
+        summary: The <Ti.Network.HTTPClient> representing this connection.
         type: Object
     platforms: [android]
 
@@ -611,8 +612,8 @@ methods:
     returns:
         type: Array<Object>
     parameters:
-      - name: url
-        summary: The [Uri](http://developer.android.com/reference/android/net/Uri.html) representing the end point of this connection.
+      - name: proxy
+        summary: The <Ti.Network.HTTPClient> representing this connection.
         type: Object
     platforms: [android]
 

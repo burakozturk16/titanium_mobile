@@ -21,6 +21,8 @@ import org.appcelerator.titanium.TiBlob;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiWindowManager;
 import org.appcelerator.titanium.animation.TiAnimation;
+import org.appcelerator.titanium.animation.TiAnimator;
+import org.appcelerator.titanium.animation.TiAnimatorSet;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiImageHelper;
 import org.appcelerator.titanium.util.TiOrientationHelper;
@@ -38,7 +40,8 @@ import android.view.View;
 @Kroll.proxy(propertyAccessors={
 	TiC.PROPERTY_EXIT_ON_CLOSE,
 	TiC.PROPERTY_FULLSCREEN,
-	TiC.PROPERTY_TITLE,
+    TiC.PROPERTY_ACTIVITY,
+    TiC.PROPERTY_TITLE,
 	TiC.PROPERTY_TITLEID,
 	TiC.PROPERTY_WINDOW_SOFT_INPUT_MODE
 })
@@ -113,6 +116,26 @@ public abstract class TiWindowProxy extends TiViewProxy
 			}
 		}
 	}
+	
+    @Override
+    protected void handlePendingAnimation()
+    {
+        if (!opened) return;
+        super.handlePendingAnimation();
+    }
+	   
+    private TiAnimator animatorFromArgs(HashMap args) {
+        if (args == null || 
+                args.isEmpty() ||
+                args.containsKey(TiC.PROPERTY_ACTIVITY_ENTER_ANIMATION) ||
+                args.containsKey(TiC.PROPERTY_ACTIVITY_EXIT_ANIMATION) ||
+                TiConvert.toBoolean(args, TiC.PROPERTY_ANIMATED, true) == false) {
+            return null;
+        }
+        TiAnimator pendingAnimation = createAnimator();
+        pendingAnimation.setOptions(args);
+        return pendingAnimation;
+    }
 
 	@Kroll.method @SuppressWarnings("unchecked")
 	public void open(@Kroll.argument(optional = true) Object arg)
@@ -133,12 +156,18 @@ public abstract class TiWindowProxy extends TiViewProxy
 
 			} else if (arg instanceof HashMap<?, ?>) {
 				options = new KrollDict((HashMap<String, Object>) arg);
-
-			} else if (arg instanceof TiAnimation) {
+			}
+			
+			if (arg instanceof TiAnimation) {
 				options = new KrollDict();
 				options.put("_anim", animation);
 			}
-
+			else if (options != null){
+			    TiAnimator animator = animatorFromArgs(new KrollDict(options));
+			    if (animator != null) {
+	                options.put("_anim", animator);
+			    }
+			}
 		} else {
 			options = new KrollDict();
 		}
@@ -164,14 +193,23 @@ public abstract class TiWindowProxy extends TiViewProxy
 		TiAnimation animation = null;
 
 		if (arg != null) {
-			if (arg instanceof HashMap<?, ?>) {
-				options = new KrollDict((HashMap<String, Object>) arg);
+		    if (arg instanceof KrollDict) {
+                options = (KrollDict) arg;
 
-			} else if (arg instanceof TiAnimation) {
-				options = new KrollDict();
-				options.put("_anim", animation);
-			}
-
+            } else if (arg instanceof HashMap<?, ?>) {
+                options = new KrollDict((HashMap<String, Object>) arg);
+            }
+            
+            if (arg instanceof TiAnimation) {
+                options = new KrollDict();
+                options.put("_anim", animation);
+            }
+            else if (options != null){
+                TiAnimator animator = animatorFromArgs(new KrollDict(options));
+                if (animator != null) {
+                    options.put("_anim", animator);
+                }
+            }
 		} else {
 			options = new KrollDict();
 		}
@@ -216,7 +254,7 @@ public abstract class TiWindowProxy extends TiViewProxy
 		// Once the window's activity is destroyed we will fire the close event.
 		// And it will dispose the handler of the window in the JS if the activity
 		// is not forced to destroy.
-		fireSyncEvent(TiC.EVENT_CLOSE, data);
+		fireSyncEvent(TiC.EVENT_CLOSE, data, false);
 	}
 
 	protected void releaseViewsForActivityForcedToDestroy()

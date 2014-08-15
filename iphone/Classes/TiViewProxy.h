@@ -114,13 +114,14 @@ enum
  Provides access to visibility of parent view proxy.
  */
 @property(nonatomic,readwrite,assign) BOOL parentVisible; // For tableview magic ONLY
+@property(nonatomic,readwrite,assign) BOOL preventListViewSelection; // For listview
+@property(nonatomic,readwrite,assign) BOOL canBeResizedByFrame;
 
 -(void)startLayout:(id)arg;//Deprecated since 3.0.0
 -(void)finishLayout:(id)arg;//Deprecated since 3.0.0
 -(void)updateLayout:(id)arg;//Deprecated since 3.0.0
 -(void)setTempProperty:(id)propVal forKey:(id)propName;
 -(void)processTempProperties:(NSDictionary*)arg;
--(BOOL)_hasListeners:(NSString *)type checkParent:(BOOL)check;
 -(void)setProxyObserver:(id)arg;
 
 /**
@@ -188,6 +189,8 @@ enum
 
 @property(nonatomic,retain) UIBarButtonItem * barButtonItem;
 -(TiUIView *)barButtonViewForSize:(CGSize)bounds;
+-(TiUIView *)barButtonViewForRect:(CGRect)bounds;
+-(UIBarButtonItem*)barButtonItemForRect:(CGRect)bounds;
 
 //NOTE: DO NOT SET VIEW UNLESS IN A TABLE VIEW, AND EVEN THEN.
 @property(nonatomic,readwrite,retain)TiUIView * view;
@@ -323,6 +326,7 @@ enum
 
 -(void)willAnimateRotationToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration;
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation;
 
 -(void)viewWillAppear:(BOOL)animated;
 -(void)viewWillDisappear:(BOOL)animated;
@@ -488,7 +492,8 @@ enum
 //This is the effect of refreshing the Z index via careful view placement.
 -(void)insertSubview:(UIView *)childView forProxy:(TiViewProxy *)childProxy;
 
-
+-(NSArray*)viewChildren;
+-(NSArray*)visibleChildren;
 #pragma mark Layout commands that need refactoring out
 
 -(void)determineSandboxBounds;
@@ -535,15 +540,9 @@ enum
 -(void)childWillResize:(TiViewProxy *)child withinAnimation:(TiViewAnimationStep*)animation;
 -(void)aboutToBeAnimated;
 
-//-(TiViewAnimation*)getRunningAnimation;
-//-(void)handleViewAnimation:(TiViewAnimation*)viewAnimation;
+-(TiViewAnimationStep*)runningAnimation;
+-(void)setRunningAnimation:(TiViewAnimationStep*)animation;
 
-/**
- get the next children of a certain class starting from a child
- @param class The child class looked for
- @param child The child view
- */
--(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiViewProxy*)child;
 
 +(NSArray*)layoutProperties;
 +(NSSet*)transferableProperties;
@@ -594,6 +593,7 @@ enum
  The current running animation
  */
 -(TiViewAnimationStep*)runningAnimation;
+-(void)performBlock:(void (^)(void))block withinOurAnimationOnProxy:(TiViewProxy*)viewProxy;
 
 /**
  Update the view if necessary
@@ -601,6 +601,7 @@ enum
 -(void)refreshViewIfNeeded;
 -(void)refreshViewIfNeeded:(BOOL)recursive;
 -(void)refreshViewOrParent;
+-(void)refreshView;
 
 /**
  Perform a block while preventing relayout

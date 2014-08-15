@@ -19,6 +19,8 @@ import org.appcelerator.titanium.view.TiUINonViewGroupView;
 import org.appcelerator.titanium.view.TiUIView;
 import org.appcelerator.titanium.view.TiCompositeLayout;
 
+import ti.modules.titanium.ui.UIModule;
+import br.com.sapereaude.maskedEditText.MaskedEditText;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
@@ -39,6 +41,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnFocusChangeListener;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.EditText;
@@ -51,45 +54,23 @@ public class TiUIText extends TiUINonViewGroupView
 {
 	private static final String TAG = "TiUIText";
 
-	public static final int RETURNKEY_GO = 0;
-	public static final int RETURNKEY_GOOGLE = 1;
-	public static final int RETURNKEY_JOIN = 2;
-	public static final int RETURNKEY_NEXT = 3;
-	public static final int RETURNKEY_ROUTE = 4;
-	public static final int RETURNKEY_SEARCH = 5;
-	public static final int RETURNKEY_YAHOO = 6;
-	public static final int RETURNKEY_DONE = 7;
-	public static final int RETURNKEY_EMERGENCY_CALL = 8;
-	public static final int RETURNKEY_DEFAULT = 9;
-	public static final int RETURNKEY_SEND = 10;
-
-	private static final int KEYBOARD_ASCII = 0;
-	private static final int KEYBOARD_NUMBERS_PUNCTUATION = 1;
-	private static final int KEYBOARD_URL = 2;
-	private static final int KEYBOARD_NUMBER_PAD = 3;
-	private static final int KEYBOARD_PHONE_PAD = 4;
-	private static final int KEYBOARD_EMAIL_ADDRESS = 5;
-	private static final int KEYBOARD_NAMEPHONE_PAD = 6;
-	private static final int KEYBOARD_DEFAULT = 7;
-	private static final int KEYBOARD_DECIMAL_PAD = 8;
 	
-	// UIModule also has these as values - there's a chance they won't stay in sync if somebody changes one without changing these
-	private static final int TEXT_AUTOCAPITALIZATION_NONE = 0;
-	private static final int TEXT_AUTOCAPITALIZATION_SENTENCES = 1;
-	private static final int TEXT_AUTOCAPITALIZATION_WORDS = 2;
-	private static final int TEXT_AUTOCAPITALIZATION_ALL = 3;
+	
 
 	private int selectedColor, color, disabledColor;
 	private boolean field;
 	private int maxLength = -1;
 	private boolean isTruncatingText = false;
 	private boolean disableChangeEvent = false;
+    protected boolean isEditable = true;
+    private boolean suppressReturn = true;
 
 	protected FocusFixedEditText tv;
 	protected TiEditText realtv;
 
-	public class TiEditText extends EditText 
+	public class TiEditText extends MaskedEditText 
 	{
+	    
 		public TiEditText(Context context) 
 		{
 			super(context);
@@ -117,8 +98,7 @@ public class TiUIText extends TiUINonViewGroupView
 					&& TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
 					return false;
 			}
-			if (proxy.hasProperty(TiC.PROPERTY_EDITABLE)
-					&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
+			if (!isEditable) {
 				return false;
 			}
 			return true;
@@ -127,17 +107,18 @@ public class TiUIText extends TiUINonViewGroupView
 		@Override
 	    protected void onMeasure(int widthMeasureSpec,int heightMeasureSpec) {
 			
-			//there is something really weird in the TextView where when using AT_MOST,
+			//In the TextView when using AT_MOST,
 			//it would size to Math.min(widthSize, width); which is NOT what we want
+		    // when using FILL
 			int widthMode = MeasureSpec.getMode(widthMeasureSpec);
 	        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 	        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
 	        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 	        
-	        if (widthMode == MeasureSpec.AT_MOST) {
+	        if (widthMode == MeasureSpec.AT_MOST && layoutParams.autoFillsWidth) {
 	        	widthMeasureSpec = MeasureSpec.makeMeasureSpec(widthSize, MeasureSpec.EXACTLY);
 	        }
-	        if (heightMode == MeasureSpec.AT_MOST) {
+	        if (heightMode == MeasureSpec.AT_MOST && layoutParams.autoFillsHeight) {
 	        	heightMeasureSpec = MeasureSpec.makeMeasureSpec(heightSize, MeasureSpec.EXACTLY);
 	        }
 			 super.onMeasure(widthMeasureSpec, heightMeasureSpec);
@@ -156,6 +137,38 @@ public class TiUIText extends TiUINonViewGroupView
 				return false;
 			return super.dispatchTouchEvent(event);
 		}
+		
+
+        @Override
+        public void dispatchSetPressed(boolean pressed) {
+            if (childrenHolder != null && dispatchPressed) {
+                childrenHolder.setPressed(pressed);
+            }
+        }
+        
+
+        @Override
+        public void clearFocus() {
+            //clear focused is called in setInputType and clearfocus request the focus
+            //in root even if we didnt have the focus. DUMB!
+            if (!hasFocus()) {
+                return;
+            } else {
+                super.clearFocus();
+            }
+        }
+        
+        @Override
+        public boolean dispatchKeyEventPreIme(KeyEvent event) {
+                InputMethodManager imm = getIMM();
+                if (imm != null && imm.isActive() && 
+                        event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                    //when hiding the keyboard with the back button also blur
+                    blur();
+                    return true;
+                }
+            return super.dispatchKeyEventPreIme(event);
+        }
 	}
 
 	public class FocusFixedEditText extends LinearLayout {
@@ -193,7 +206,7 @@ public class TiUIText extends TiUINonViewGroupView
 
 			editText = new TiEditText(context);
 			editText.setId(200);
-			params = new LinearLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1.0f);
+			params = new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
 			this.addView(editText, params);
 
 			rightPane = new TiCompositeLayout(context);
@@ -336,23 +349,41 @@ public class TiUIText extends TiUINonViewGroupView
 		public void setOnFocusChangeListener(OnFocusChangeListener l) {
 			editText.setOnFocusChangeListener(l);
 		}
+		
+		@Override
+	    public void clearFocus() {
+		    //clear focused is called in setInputType and clearfocus request the focus
+            //in root even if we didnt have the focus. DUMB!
+	        if (!hasFocus()) {
+	            return;
+	        } else {
+                super.clearFocus();
+	        }
+	    }
 	}
 
 	public TiUIText(final TiViewProxy proxy, boolean field)
 	{
 		super(proxy);
-		Log.d(TAG, "Creating a text field", Log.DEBUG_MODE);
-
+		Log.d(TAG, "Creating a text field2", Log.DEBUG_MODE);
+		this.focusKeyboardState = TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS;
+		this.isFocusable = true; //default to true
 		this.field = field;
 		tv = new FocusFixedEditText(getProxy().getActivity());
 		realtv = tv.getRealEditText();
+        realtv.setSingleLine(field);
 		if (field) {
-			realtv.setSingleLine();
 			realtv.setMaxLines(1);
+		}
+		else {
+//            realtv.setMaxLines(1000);
+//            realtv.setMinLines(2);
+//            realtv.setHorizontallyScrolling(false);
+//            realtv.setEllipsize(null);
+//            realtv.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
 		}
 		realtv.addTextChangedListener(this);
 		realtv.setOnEditorActionListener(this);
-		// realtv.setOnFocusChangeListener(this); // TODO refactor to TiUIView?
 		realtv.setIncludeFontPadding(true); 
 		if (field) {
 			realtv.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
@@ -386,25 +417,33 @@ public class TiUIText extends TiUINonViewGroupView
 	@Override
 	public void processProperties(KrollDict d)
 	{
+	 // Disable change event temporarily as we are setting the default value
+        disableChangeEvent = true;
+        
 		super.processProperties(d);
-
+		
 		if (d.containsKey(TiC.PROPERTY_ENABLED)) {
 			realtv.setEnabled(d.optBoolean(TiC.PROPERTY_ENABLED, true));
 		}
 
-		if (d.containsKey(TiC.PROPERTY_MAX_LENGTH) && field) {
+		if (d.containsKey(TiC.PROPERTY_MAX_LENGTH)) {
 			maxLength = TiConvert.toInt(d.get(TiC.PROPERTY_MAX_LENGTH), -1);
 		}
-
-		// Disable change event temporarily as we are setting the default value
-		disableChangeEvent = true;
-		if (d.containsKey(TiC.PROPERTY_VALUE)) {
-			realtv.setText(d.getString(TiC.PROPERTY_VALUE));
-			int pos = realtv.getText().length();
-			realtv.setSelection(pos);
-		}
-		disableChangeEvent = false;
 		
+		if (d.containsKey(TiC.PROPERTY_SUPPRESS_RETURN)) {
+            suppressReturn = d.optBoolean(TiC.PROPERTY_SUPPRESS_RETURN, true);
+        }
+		
+		if (d.containsKey(TiC.PROPERTY_MASK_CHAR)) {
+		    String charRep = d.getString(TiC.PROPERTY_MASK_CHAR);
+		    if (d!=null && d.size() > 0) {
+	            realtv.setCharRepresentation(charRep.charAt(0));
+		    }
+		    else {
+                realtv.setCharRepresentation('#');
+		    }
+        }
+
 		boolean needsColors = false;
 		if(d.containsKey(TiC.PROPERTY_COLOR)) {
 			needsColors = true;
@@ -422,9 +461,20 @@ public class TiUIText extends TiUINonViewGroupView
 			updateTextColors();
 		}
 
-		if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
-			realtv.setHint(d.getString(TiC.PROPERTY_HINT_TEXT));
-		}
+        if (d.containsKey(TiC.PROPERTY_HINT_TEXT)) {
+            realtv.setHint(d.getString(TiC.PROPERTY_HINT_TEXT));
+        }
+        
+        //set the mask after the hintText as it looks for its value
+        if (d.containsKey(TiC.PROPERTY_MASK)) {
+            realtv.setMask(d.getString(TiC.PROPERTY_MASK));
+        }
+
+        if (d.containsKey(TiC.PROPERTY_VALUE)) {
+            realtv.setText(d.getString(TiC.PROPERTY_VALUE));
+            int pos = realtv.getText().length();
+            realtv.setSelection(pos);
+        }
 		
 		if (d.containsKey(TiC.PROPERTY_HINT_COLOR)) {
 			realtv.setHintTextColor(d.optColor(TiC.PROPERTY_HINT_COLOR, Color.GRAY));
@@ -437,6 +487,10 @@ public class TiUIText extends TiUINonViewGroupView
 				realtv.setEllipsize(null);
 			}
 		}
+		
+        if (d.containsKey(TiC.PROPERTY_FONT)) {
+            TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
+        }
 
 		
 		if (d.containsKey(TiC.PROPERTY_TEXT_ALIGN) || d.containsKey(TiC.PROPERTY_VERTICAL_ALIGN)) {
@@ -445,21 +499,24 @@ public class TiUIText extends TiUINonViewGroupView
 			TiUIHelper.setAlignment(realtv, textAlign, verticalAlign);
 		}
 
-		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT)
-			|| d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)
-			|| d.containsKey(TiC.PROPERTY_EDITABLE)) {
+		if (!field || d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE) || d.containsKey(TiC.PROPERTY_AUTOCORRECT)
+			|| d.containsKey(TiC.PROPERTY_PASSWORD_MASK) || d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)) {
 			handleKeyboard(d);
 		}
 		
-		//password mask changes the font, so let's do this afterwards
-		if (d.containsKey(TiC.PROPERTY_FONT)) {
-			TiUIHelper.styleText(realtv, d.getKrollDict(TiC.PROPERTY_FONT));
+		
+		if (d.containsKey(TiC.PROPERTY_EDITABLE)) {
+		    isEditable = d.optBoolean(TiC.PROPERTY_EDITABLE, true);
 		}
+		boolean focusable = isEditable && isEnabled;
+		TiUIView.setFocusable(realtv, focusable);
+        TiUIView.setFocusable(tv, focusable);
+        realtv.setCursorVisible(focusable);
 		
 		//the order is important because returnKeyType must overload keyboard return key defined
 		// by keyboardType
 		if (d.containsKey(TiC.PROPERTY_RETURN_KEY_TYPE)) {
-			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), RETURNKEY_DEFAULT));
+			handleReturnKeyType(TiConvert.toInt(d.get(TiC.PROPERTY_RETURN_KEY_TYPE), UIModule.RETURNKEY_DEFAULT));
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_PADDING)) {
@@ -478,6 +535,7 @@ public class TiUIText extends TiUINonViewGroupView
 		if (d.containsKey(TiC.PROPERTY_RIGHT_BUTTON)) {
 			tv.setRightView(d.get(TiC.PROPERTY_RIGHT_BUTTON));
 		}
+        disableChangeEvent = false;
 	}
 
 
@@ -531,18 +589,23 @@ public class TiUIText extends TiUINonViewGroupView
 			tv.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_KEYBOARD_TYPE)
 			|| (key.equals(TiC.PROPERTY_AUTOCORRECT) || key.equals(TiC.PROPERTY_AUTOCAPITALIZATION)
-				|| key.equals(TiC.PROPERTY_PASSWORD_MASK) || key.equals(TiC.PROPERTY_EDITABLE))) {
+				|| key.equals(TiC.PROPERTY_PASSWORD_MASK))) {
 			KrollDict d = proxy.getProperties();
 			handleKeyboard(d);
-			if (getProxy().hasProperty(TiC.PROPERTY_FONT)) {
-				TiUIHelper.styleText(realtv, getProxy().getProperties().getKrollDict(TiC.PROPERTY_FONT));
-			}
+		} else if (key.equals(TiC.PROPERTY_EDITABLE)) {
+		    isEditable = TiConvert.toBoolean(newValue);
+		    boolean focusable = isEditable && isEnabled;
+            TiUIView.setFocusable(realtv, focusable);
+            TiUIView.setFocusable(tv, focusable);
+            realtv.setCursorVisible(focusable);
 		} else if (key.equals(TiC.PROPERTY_RETURN_KEY_TYPE)) {
-			handleReturnKeyType(TiConvert.toInt(newValue));
+            handleReturnKeyType(TiConvert.toInt(newValue));
 		} else if (key.equals(TiC.PROPERTY_FONT)) {
 			TiUIHelper.styleText(realtv, (HashMap) newValue);
 		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)){
 			TiUIHelper.linkifyIfEnabled(realtv, newValue);
+		} else if (key.equals(TiC.PROPERTY_AUTO_LINK)){
+            suppressReturn = TiConvert.toBoolean(newValue);
 		} else if (key.equals(TiC.PROPERTY_LEFT_BUTTON)){
 			tv.setLeftView(newValue);
 		} else if (key.equals(TiC.PROPERTY_RIGHT_BUTTON)){
@@ -573,16 +636,25 @@ public class TiUIText extends TiUINonViewGroupView
 			isTruncatingText = false;
 		}
 	}
-
+	
+    private boolean oldTextRequestLayout = false;
 	@Override
-	public void beforeTextChanged(CharSequence s, int start, int before, int count)
-	{
-
-	}
+    public void beforeTextChanged(CharSequence s, int start, int count,
+            int after) {
+        CharSequence oldText = s.subSequence(start, start + count);
+        boolean newLine = oldText.toString().contains("\n");
+        oldTextRequestLayout = (newLine && layoutParams.sizeOrFillHeightEnabled && !layoutParams.autoFillsHeight);
+    }
 
 	@Override
 	public void onTextChanged(CharSequence s, int start, int before, int count)
 	{
+	    //onTextChanged can be called when reusing a TiUIText in listview
+	    //In that case we dont want to report.
+	    if (disableChangeEvent || realtv.willMaskText()) {
+	        Log.d(TAG, "onTextChanged ignore as configuring", Log.DEBUG_MODE);
+	        return;
+	    }
 		//Since Jelly Bean, pressing the 'return' key won't trigger onEditorAction callback
 		//http://stackoverflow.com/questions/11311790/oneditoraction-is-not-called-after-enter-key-has-been-pressed-on-jelly-bean-em
 		//So here we need to handle the 'return' key manually
@@ -604,13 +676,26 @@ public class TiUIText extends TiUINonViewGroupView
 			// Can only set truncated text in afterTextChanged. Otherwise, it will crash.
 			return;
 		}
-		String newText = realtv.getText().toString();
-		if (!disableChangeEvent
-			&& (!isTruncatingText || (isTruncatingText && proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), newText) && hasListeners(TiC.EVENT_CHANGE)))) {
-			KrollDict data = new KrollDict();
-			data.put(TiC.PROPERTY_VALUE, newText);
-			proxy.setProperty(TiC.PROPERTY_VALUE, newText);
-			fireEvent(TiC.EVENT_CHANGE, data, false, false);
+		
+		boolean newLine = oldTextRequestLayout;
+		if (!newLine) {
+		    CharSequence newText = s.subSequence(start, start + count);
+	        newLine  = newText.toString().contains("\n");
+		}
+        
+		if (newLine && layoutParams.sizeOrFillHeightEnabled && !layoutParams.autoFillsHeight) {
+		    nativeView.requestLayout();
+		}
+		String text = realtv.getText().toString();
+		if (!isTruncatingText 
+			&& proxy.shouldFireChange(proxy.getProperty(TiC.PROPERTY_VALUE), text)) {
+            proxy.setProperty(TiC.PROPERTY_VALUE, text);
+		    if (hasListeners(TiC.EVENT_CHANGE)) {
+		        KrollDict data = new KrollDict();
+	            data.put(TiC.PROPERTY_VALUE, text);
+	            fireEvent(TiC.EVENT_CHANGE, data, false, false);
+		    }
+			
 		}
 	}
 
@@ -621,11 +706,18 @@ public class TiUIText extends TiUINonViewGroupView
 		realtv.setBackgroundDrawable(null);
 		realtv.postInvalidate();
 	}
-	 @Override
-	 public View getFocusView()
-	 {
-	 	return realtv;
-	 }
+	
+    @Override
+    public View getFocusView()
+    {
+    	return realtv;
+    }
+    
+    @Override
+    protected View getTouchView()
+    {
+        return realtv;
+    }
 
 	@Override
 	public void setVisibility(int visibility)
@@ -643,6 +735,7 @@ public class TiUIText extends TiUINonViewGroupView
 			Log.d(TAG, "onFocusChange "  + hasFocus + "  for FocusFixedEditText with text " + realtv.getText(), Log.DEBUG_MODE);
 		else
 			Log.d(TAG, "onFocusChange "  + hasFocus + "  for FocusFixedEditText  layout with text " + realtv.getText(), Log.DEBUG_MODE);
+		if (!v.isFocusable()) return;
 		if (hasFocus) {
 			Boolean clearOnEdit = (Boolean) proxy.getProperty(TiC.PROPERTY_CLEAR_ON_EDIT);
 			if (clearOnEdit != null && clearOnEdit) {
@@ -677,7 +770,15 @@ public class TiUIText extends TiUINonViewGroupView
 		proxy.setProperty(TiC.PROPERTY_VALUE, value);
 		Log.d(TAG, "ActionID: " + actionId + " KeyEvent: " + (keyEvent != null ? keyEvent.getKeyCode() : null),
 			Log.DEBUG_MODE);
-
+		
+        boolean result = false;
+        boolean shouldBlur = (actionId != EditorInfo.IME_ACTION_NEXT);
+        if (keyEvent == null) {
+        } else if (actionId == EditorInfo.IME_NULL) {
+            if (!suppressReturn) {
+                shouldBlur = false;
+            }
+        }
 		
 		//This is to prevent 'return' event from being fired twice when return key is hit. In other words, when return key is clicked,
 		//this callback is triggered twice (except for keys that are mapped to EditorInfo.IME_ACTION_NEXT or EditorInfo.IME_ACTION_DONE). The first check is to deal with those keys - filter out
@@ -692,51 +793,48 @@ public class TiUIText extends TiUINonViewGroupView
 				data.put(TiC.PROPERTY_VALUE, value);
 				fireEvent(TiC.EVENT_RETURN, data, false, false);
 			}
-			
-			if (actionId != EditorInfo.IME_ACTION_NEXT) blur();
-		}
+			if (shouldBlur) {
+	            blur();
+	        }
+		}		
 
-		Boolean enableReturnKey = proxy.getProperties().optBoolean(TiC.PROPERTY_ENABLE_RETURN_KEY, true);
-		if (enableReturnKey != null && enableReturnKey && v.getText().length() == 0) {
-			return true;
+		Boolean enableReturnKey = proxy.getProperties().optBoolean(TiC.PROPERTY_ENABLE_RETURN_KEY, false);
+		if (enableReturnKey && value.length() == 0) {
+			result = true;
 		}
+		
 		tv.setDescendantFocusability(ViewGroup.FOCUS_AFTER_DESCENDANTS);
-		return false;
+		return result;
 	}
 
 	public void handleKeyboard(KrollDict d) 
 	{
-		int type = KEYBOARD_ASCII;
+		int type = UIModule.KEYBOARD_ASCII;
 		boolean passwordMask = false;
-		boolean editable = true;
 		int autocorrect = InputType.TYPE_TEXT_FLAG_AUTO_CORRECT;
 		int autoCapValue = 0;
 
 		if (d.containsKey(TiC.PROPERTY_AUTOCORRECT) && !TiConvert.toBoolean(d, TiC.PROPERTY_AUTOCORRECT, true)) {
-			autocorrect = InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
-		}
-
-		if (d.containsKey(TiC.PROPERTY_EDITABLE)) {
-			editable = TiConvert.toBoolean(d, TiC.PROPERTY_EDITABLE, true);
+			autocorrect = 0;
 		}
 
 		if (d.containsKey(TiC.PROPERTY_AUTOCAPITALIZATION)) {
 
-			switch (TiConvert.toInt(d.get(TiC.PROPERTY_AUTOCAPITALIZATION), TEXT_AUTOCAPITALIZATION_NONE)) {
-				case TEXT_AUTOCAPITALIZATION_NONE:
+			switch (TiConvert.toInt(d.get(TiC.PROPERTY_AUTOCAPITALIZATION), UIModule.TEXT_AUTOCAPITALIZATION_NONE)) {
+				case UIModule.TEXT_AUTOCAPITALIZATION_NONE:
 					autoCapValue = 0;
 					break;
-				case TEXT_AUTOCAPITALIZATION_ALL:
+				case UIModule.TEXT_AUTOCAPITALIZATION_ALL:
 					autoCapValue = InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS | 
 						InputType.TYPE_TEXT_FLAG_CAP_SENTENCES |
 						InputType.TYPE_TEXT_FLAG_CAP_WORDS
 						;
 					break;
-				case TEXT_AUTOCAPITALIZATION_SENTENCES:
+				case UIModule.TEXT_AUTOCAPITALIZATION_SENTENCES:
 					autoCapValue = InputType.TYPE_TEXT_FLAG_CAP_SENTENCES;
 					break;
 				
-				case TEXT_AUTOCAPITALIZATION_WORDS:
+				case UIModule.TEXT_AUTOCAPITALIZATION_WORDS:
 					autoCapValue = InputType.TYPE_TEXT_FLAG_CAP_WORDS;
 					break;
 				default:
@@ -750,24 +848,23 @@ public class TiUIText extends TiUINonViewGroupView
 		}
 
 		if (d.containsKey(TiC.PROPERTY_KEYBOARD_TYPE)) {
-			type = TiConvert.toInt(d.get(TiC.PROPERTY_KEYBOARD_TYPE), KEYBOARD_DEFAULT);
+			type = TiConvert.toInt(d.get(TiC.PROPERTY_KEYBOARD_TYPE), UIModule.KEYBOARD_DEFAULT);
 		}
 
 		int typeModifiers = autocorrect | autoCapValue;
 		int textTypeAndClass = typeModifiers;
-		// For some reason you can't set both TYPE_CLASS_TEXT and TYPE_TEXT_FLAG_NO_SUGGESTIONS together.
-		// Also, we need TYPE_CLASS_TEXT for passwords.
-		if ((autocorrect != InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS || passwordMask) && type != KEYBOARD_DECIMAL_PAD) {
+		
+		if (type != UIModule.KEYBOARD_DECIMAL_PAD) {
 			textTypeAndClass = textTypeAndClass | InputType.TYPE_CLASS_TEXT;
 		}
 
 		realtv.setCursorVisible(true);
 		switch(type) {
-			case KEYBOARD_DEFAULT:
-			case KEYBOARD_ASCII:
+			case UIModule.KEYBOARD_DEFAULT:
+			case UIModule.KEYBOARD_ASCII:
 				// Don't need a key listener, inputType handles that.
 				break;
-			case KEYBOARD_NUMBERS_PUNCTUATION:
+			case UIModule.KEYBOARD_NUMBERS_PUNCTUATION:
 				textTypeAndClass |= (InputType.TYPE_CLASS_NUMBER | InputType.TYPE_CLASS_TEXT);
 				realtv.setKeyListener(new NumberKeyListener()
 				{
@@ -788,24 +885,28 @@ public class TiUIText extends TiUINonViewGroupView
 					}
 				});
 				break;
-			case KEYBOARD_URL:
+			case UIModule.KEYBOARD_URL:
 				Log.d(TAG, "Setting keyboard type URL-3", Log.DEBUG_MODE);
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
 				textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_URI;
 				break;
-			case KEYBOARD_DECIMAL_PAD:
+			case UIModule.KEYBOARD_DECIMAL_PAD:
 				textTypeAndClass |= (InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED);
-			case KEYBOARD_NUMBER_PAD:
+			case UIModule.KEYBOARD_NUMBER_PAD:
 				realtv.setKeyListener(DigitsKeyListener.getInstance(true,true));
 				textTypeAndClass |= InputType.TYPE_CLASS_NUMBER;
 				break;
-			case KEYBOARD_PHONE_PAD:
+			case UIModule.KEYBOARD_PHONE_PAD:
 				realtv.setKeyListener(DialerKeyListener.getInstance());
 				textTypeAndClass |= InputType.TYPE_CLASS_PHONE;
 				break;
-			case KEYBOARD_EMAIL_ADDRESS:
+			case UIModule.KEYBOARD_EMAIL:
 				textTypeAndClass |= InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS;
 				break;
+		}
+		
+		if (!field) {
+            textTypeAndClass |= InputType.TYPE_TEXT_FLAG_MULTI_LINE;
 		}
 
 		if (passwordMask) {
@@ -816,11 +917,11 @@ public class TiUIText extends TiUINonViewGroupView
 			realtv.setInputType(textTypeAndClass);
 			// Workaround for https://code.google.com/p/android/issues/detail?id=55418 since setInputType
 			// with InputType.TYPE_TEXT_VARIATION_PASSWORD sets the typeface to monospace.
+            realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 			realtv.setTypeface(origTF);
-			realtv.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
 			//turn off text UI in landscape mode b/c Android numeric passwords are not masked correctly in landscape mode.
-			if (type == KEYBOARD_NUMBERS_PUNCTUATION || type == KEYBOARD_DECIMAL_PAD || type == KEYBOARD_NUMBER_PAD) {
+			if (type == UIModule.KEYBOARD_NUMBERS_PUNCTUATION || type == UIModule.KEYBOARD_DECIMAL_PAD || type == UIModule.KEYBOARD_NUMBER_PAD) {
 				realtv.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
 			}
 
@@ -830,10 +931,7 @@ public class TiUIText extends TiUINonViewGroupView
 				realtv.setTransformationMethod(null);
 			}
 		}
-		if (!editable) {
-			realtv.setKeyListener(null);
-			realtv.setCursorVisible(false);
-		}
+        
 		
 		//setSingleLine() append the flag TYPE_TEXT_FLAG_MULTI_LINE to the current inputType, so we want to call this
 		//after we set inputType.
@@ -870,37 +968,37 @@ public class TiUIText extends TiUINonViewGroupView
 	public void handleReturnKeyType(int type)
 	{
 		switch(type) {
-			case RETURNKEY_GO:
+			case UIModule.RETURNKEY_GO:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
 				break;
-			case RETURNKEY_GOOGLE:
+			case UIModule.RETURNKEY_GOOGLE:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
 				break;
-			case RETURNKEY_JOIN:
+			case UIModule.RETURNKEY_JOIN:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 				break;
-			case RETURNKEY_NEXT:
+			case UIModule.RETURNKEY_NEXT:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_NEXT);
 				break;
-			case RETURNKEY_ROUTE:
+			case UIModule.RETURNKEY_ROUTE:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 				break;
-			case RETURNKEY_SEARCH:
+			case UIModule.RETURNKEY_SEARCH:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
 				break;
-			case RETURNKEY_YAHOO:
+			case UIModule.RETURNKEY_YAHOO:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
 				break;
-			case RETURNKEY_DONE:
+			case UIModule.RETURNKEY_DONE:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_DONE);
 				break;
-			case RETURNKEY_EMERGENCY_CALL:
+			case UIModule.RETURNKEY_EMERGENCY_CALL:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_GO);
 				break;
-			case RETURNKEY_DEFAULT:
+			case UIModule.RETURNKEY_DEFAULT:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_UNSPECIFIED);
 				break;
-			case RETURNKEY_SEND:
+			case UIModule.RETURNKEY_SEND:
 				realtv.setImeOptions(EditorInfo.IME_ACTION_SEND);
 				break;
 		}
@@ -910,14 +1008,12 @@ public class TiUIText extends TiUINonViewGroupView
 	}
 
 	@Override
-	public void focus()
+	public boolean focus()
 	{
-		if (tv != null && tv.getVisibility() == View.INVISIBLE) return;
-		if (proxy.hasProperty(TiC.PROPERTY_EDITABLE) 
-				&& !(TiConvert.toBoolean(proxy.getProperty(TiC.PROPERTY_EDITABLE)))) {
-			return;
+		if (!isEditable || (tv != null && tv.getVisibility() == View.INVISIBLE)) {
+			return false;
 		}
-		super.focus();
+		return super.focus();
 	}
 
 //	@Override

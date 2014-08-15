@@ -103,6 +103,7 @@ DEFINE_EXCEPTIONS
 -(void)configurationStart
 {
     configurationSet = NO;
+    [_viewHolder configurationStart];
     if (_bgSelectedView) {
         [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
     }
@@ -115,6 +116,7 @@ DEFINE_EXCEPTIONS
 {
 	// can be used to trigger things after all properties are set
     configurationSet = YES;
+    [_viewHolder configurationSet];
     if (_bgSelectedView) {
         [_bgSelectedView selectableLayer].readyToCreateDrawables = configurationSet;
     }
@@ -373,14 +375,18 @@ static NSArray* handledKeys;
 -(void)setSelected:(BOOL)yn animated:(BOOL)animated
 {
     [super setSelected:yn animated:animated];
-    [_viewHolder setSelected:yn animated:animated];
+    if ([self.proxy shouldHighlight]) {
+        [_viewHolder setSelected:yn animated:animated];
+    }
     if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
 -(void)setHighlighted:(BOOL)yn animated:(BOOL)animated
 {
     [super setHighlighted:yn animated:animated];
-    [_viewHolder setHighlighted:yn animated:animated];
+    if ([self.proxy shouldHighlight]) {
+        [_viewHolder setHighlighted:yn animated:animated];
+    }
     if (_unHighlightOnSelect && yn)[self unHighlight];
 }
 
@@ -476,7 +482,7 @@ static NSArray* handledKeys;
     
     if (!CGRectIsEmpty(frame))
 	{
-        CGRect currentbounds = [self bounds];
+        CGRect currentbounds = [_viewHolder bounds];
         CGRect newBounds = CGRectMake(0, 0, frame.size.width, frame.size.height);
         if (!CGRectEqualToRect(newBounds, currentbounds))
         {

@@ -41,6 +41,7 @@ static NSString * const kContentDataEncoding = @"kContentDataEncoding";
 static NSString * const kContentTextEncoding = @"kContentTextEncoding";
 static NSString * const kContentMimeType = @"kContentMimeType";
 static NSString * const kContentInjection = @"kContentInjection";
+static NSOperationQueue *_operationQueue = nil;
 
 
 NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
@@ -67,8 +68,19 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 @implementation TiUIWebView
 {
     APSHTTPRequest* _currentRequest;
+    BOOL _asyncLoad;
 }
 @synthesize reloadData, reloadDataProperties;
+
+- (id) init
+{
+	self = [super init];
+	if (self != nil)
+	{
+        _asyncLoad = NO;
+	}
+	return self;
+}
 
 -(void)dealloc
 {
@@ -191,13 +203,34 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 	return [self webview];
 }
 
++(NSOperationQueue*)operationQueue;
+{
+    if(_operationQueue == nil) {
+        _operationQueue = [[NSOperationQueue alloc] init];
+        [_operationQueue setMaxConcurrentOperationCount:4];
+    }
+    return _operationQueue;
+}
 -(void)loadURLRequest:(NSMutableURLRequest*)request
 {
 	if (basicCredentials!=nil)
 	{
 		[request setValue:basicCredentials forHTTPHeaderField:@"Authorization"];
 	}
-	[[self webview] loadRequest:request];
+    
+    if (_asyncLoad) {
+        [NSURLConnection sendAsynchronousRequest:request queue:[TiUIWebView operationQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error)
+         {
+             if (error == nil) {
+                 [[self webview] loadRequest:request];
+             }
+             else {
+                 [self webView:[self webview] didFailLoadWithError:error];
+             }
+         }];
+    } else {
+        [[self webview] loadRequest:request];
+    }
 }
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
@@ -545,6 +578,8 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 - (void)setUrl_:(id)args
 {
+	ENSURE_SINGLE_ARG_OR_NIL(args,NSString);
+    if (args == nil) return;
 	ignoreNextRequest = YES;
 	[self setReloadData:args];
 	[self setReloadDataProperties:nil];
@@ -552,7 +587,6 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 
 	RELEASE_TO_NIL(url);
 	RELEASE_TO_NIL(lastValidLoad);
-	ENSURE_SINGLE_ARG(args,NSString);
 	
 	url = [[TiUtils toURL:args proxy:(TiProxy*)self.proxy] retain];
 
@@ -584,6 +618,12 @@ NSString *HTMLTextEncodingNameForStringEncoding(NSStringEncoding encoding)
 {
     [[self proxy] replaceValue:arg forKey:@"handlePlatformUrl" notification:NO];
     willHandleUrl = [TiUtils boolValue:arg];
+}
+
+-(void)setAsyncLoad_:(id)arg
+{
+    [[self proxy] replaceValue:arg forKey:@"asyncLoad" notification:NO];
+    _asyncLoad = [TiUtils boolValue:arg def:NO];
 }
 
 - (void)ensureLocalProtocolHandler

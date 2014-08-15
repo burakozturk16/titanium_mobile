@@ -17,25 +17,57 @@
 #import "TiUIRefreshControlProxy.h"
 #endif
 #import "TiTableView.h"
+#import "TiUIHelper.h"
 
 #define GROUPED_MARGIN_WIDTH 18.0
+
+@interface WrapperViewProxy: TiViewProxy
+@end
+
+@implementation WrapperViewProxy
+
+- (id)initWithVerticalLayout:(BOOL)vertical
+{
+    self = [super init];
+    if (self) {
+        self.canBeResizedByFrame = YES;
+        LayoutConstraint* viewLayout = [self layoutProperties];
+        viewLayout->width = TiDimensionAutoFill;
+        viewLayout->height = TiDimensionAutoSize;
+        if (TiDimensionIsUndefined(viewLayout->top))
+        {
+            viewLayout->top = TiDimensionDip(0);
+        }
+        if (vertical) {
+            viewLayout->layoutStyle = TiLayoutRuleVertical;
+        }
+    }
+    return self;
+}
+- (void)dealloc
+{
+    [super dealloc];
+}
+@end
 
 @interface TiUIView(eventHandler);
 -(void)handleListenerRemovedWithEvent:(NSString *)event;
 -(void)handleListenerAddedWithEvent:(NSString *)event;
 @end
 
+
 @interface TiUIListView ()
 @property (nonatomic, readonly) TiUIListViewProxy *listViewProxy;
 @property (nonatomic,copy,readwrite) NSString * searchString;
 @end
 
-static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point);
 
 @implementation TiUIListView {
     TiTableView *_tableView;
     NSDictionary *_templates;
     id _defaultItemTemplate;
+    BOOL hideOnSearch;
+    BOOL searchViewAnimating;
 
     TiDimension _rowHeight;
     TiDimension _minRowHeight;
@@ -51,7 +83,6 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
     TiUISearchBarProxy *searchViewProxy;
     UITableViewController *tableController;
-    UISearchDisplayController *searchController;
 
     NSMutableArray * sectionTitles;
     NSMutableArray * sectionIndices;
@@ -60,21 +91,24 @@ static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoin
 
     UIView *_pullViewWrapper;
     CGFloat pullThreshhold;
+    BOOL _pullViewVisible;
 
     BOOL pullActive;
-    CGPoint tapPoint;
+//    CGPoint tapPoint;
     BOOL editing;
     BOOL pruneSections;
 
     BOOL caseInsensitiveSearch;
     NSString* _searchString;
     BOOL searchActive;
+	BOOL searchHidden;
     BOOL keepSectionsInSearch;
     NSMutableArray* _searchResults;
     UIEdgeInsets _defaultSeparatorInsets;
     
     NSMutableDictionary* _measureProxies;
     BOOL _scrollSuspendImageLoading;
+    BOOL _scrollHidesKeyboard;
     BOOL hasOnDisplayCell;
 }
 
@@ -102,6 +136,9 @@ static NSDictionary* replaceKeysForRow;
         allowsSelection = YES;
         _defaultSeparatorInsets = UIEdgeInsetsZero;
         _scrollSuspendImageLoading = NO;
+        _scrollHidesKeyboard = YES;
+        hideOnSearch = NO;
+        searchViewAnimating = NO;
     }
     return self;
 }
@@ -120,26 +157,29 @@ static NSDictionary* replaceKeysForRow;
     RELEASE_TO_NIL(_headerWrapper)
     if (_pullViewProxy)
     {
+		[_pullViewProxy setProxyObserver:nil];
         [_pullViewProxy detachView];
         RELEASE_TO_NIL(_pullViewProxy)
     }
     if (_headerViewProxy)
     {
+		[_headerViewProxy setProxyObserver:nil];
         [_headerViewProxy detachView];
         RELEASE_TO_NIL(_headerViewProxy)
     }
     if (_footerViewProxy)
     {
+		[_footerViewProxy setProxyObserver:nil];
         [_footerViewProxy detachView];
         RELEASE_TO_NIL(_footerViewProxy)
     }
     if (searchViewProxy)
     {
+		[searchViewProxy setProxyObserver:nil];
         [searchViewProxy detachView];
         RELEASE_TO_NIL(searchViewProxy)
     }
     RELEASE_TO_NIL(tableController)
-    RELEASE_TO_NIL(searchController)
     RELEASE_TO_NIL(sectionTitles)
     RELEASE_TO_NIL(sectionIndices)
     RELEASE_TO_NIL(filteredTitles)
@@ -151,13 +191,16 @@ static NSDictionary* replaceKeysForRow;
     [super dealloc];
 }
 
+-(TiViewProxy*)initWrapperProxyWithVerticalLayout:(BOOL)vertical
+{
+    WrapperViewProxy* theProxy = [[WrapperViewProxy alloc] initWithVerticalLayout:vertical];
+    [theProxy setParent:(TiParentingProxy*)self.proxy];
+    return [theProxy autorelease];
+}
+
 -(TiViewProxy*)initWrapperProxy
 {
-    TiViewProxy* theProxy = [[TiViewProxy alloc] init];
-    LayoutConstraint* viewLayout = [theProxy layoutProperties];
-    viewLayout->width = TiDimensionAutoFill;
-    viewLayout->height = TiDimensionAutoSize;
-    return theProxy;
+    return [self initWrapperProxyWithVerticalLayout:NO];
 }
 
 -(void)setHeaderFooter:(TiViewProxy*)theProxy isHeader:(BOOL)header
@@ -173,7 +216,7 @@ static NSDictionary* replaceKeysForRow;
 -(void)configureFooter
 {
     if (_footerViewProxy == nil) {
-        _footerViewProxy = [self initWrapperProxy];
+        _footerViewProxy = [[self initWrapperProxy] retain];
         [self setHeaderFooter:_footerViewProxy isHeader:NO];
     }
 }
@@ -181,7 +224,7 @@ static NSDictionary* replaceKeysForRow;
 -(TiViewProxy*)getOrCreateFooterHolder
 {
     if (_footerViewProxy == nil) {
-        _footerViewProxy = [self initWrapperProxy];
+        _footerViewProxy = [[self initWrapperProxy] retain];
         [self setHeaderFooter:_footerViewProxy isHeader:NO];
     }
     return _footerViewProxy;
@@ -190,12 +233,10 @@ static NSDictionary* replaceKeysForRow;
 -(TiViewProxy*)getOrCreateHeaderHolder
 {
     if (_headerViewProxy == nil) {
-        _headerViewProxy = [self initWrapperProxy];
-        LayoutConstraint* viewLayout = [_headerViewProxy layoutProperties];
-        viewLayout->layoutStyle = TiLayoutRuleVertical;
+        _headerViewProxy = [[self initWrapperProxyWithVerticalLayout:YES] retain];
         
-        _searchWrapper = [self initWrapperProxy];
-        _headerWrapper = [self initWrapperProxy];
+        _searchWrapper = [[self initWrapperProxy] retain];
+        _headerWrapper = [[self initWrapperProxy] retain];
         
         [_headerViewProxy add:@[_searchWrapper, _headerWrapper]];
         
@@ -231,6 +272,7 @@ static NSDictionary* replaceKeysForRow;
         _tableView.delegate = self;
         _tableView.dataSource = self;
         _tableView.touchDelegate = self;
+        
         if (TiDimensionIsDip(_rowHeight)) {
             [_tableView setRowHeight:_rowHeight.value];
         }
@@ -246,7 +288,6 @@ static NSDictionary* replaceKeysForRow;
         tapGestureRecognizer.delegate = self;
         [_tableView addGestureRecognizer:tapGestureRecognizer];
         [tapGestureRecognizer release];
-
         if ([TiUtils isIOS7OrGreater]) {
             _defaultSeparatorInsets = [_tableView separatorInset];
         }
@@ -259,7 +300,15 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)frameSizeChanged:(CGRect)frame bounds:(CGRect)bounds
 {
-    if (![searchController isActive]) {
+//        if (searchHidden)
+//        {
+//            if (searchViewProxy!=nil)
+//            {
+//                [self hideSearchScreen:nil];
+//            }
+//        }
+//    
+    if (!searchViewAnimating && ![[self searchController] isActive]) {
         [searchViewProxy ensureSearchBarHeirarchy];
         if (_searchWrapper != nil) {
             CGFloat rowWidth = [self computeRowWidth:_tableView];
@@ -386,57 +435,82 @@ static NSDictionary* replaceKeysForRow;
 	}
 }
 
--(TiViewProxy*)sectionViewProxy:(NSInteger)section forLocation:(NSString*)location section:(TiUIListSectionProxy**)sectionResult
+-(TiViewProxy*)sectionViewProxy:(NSInteger)section forLocation:(NSString*)location
 {
     TiUIListSectionProxy *proxy = [self.listViewProxy sectionForIndex:section];
-    //In the event that proxy is nil, this all flows out to returning nil safely anyways.
-    if (sectionResult!=nil) {
-        *sectionResult = proxy;
-    }
-    id value = [proxy valueForKey:location];
-    TiViewProxy* viewproxy = nil;
-    if ([value isKindOfClass:[TiViewProxy class]]) {
-        viewproxy = value;
-    }
-    else if ([value isKindOfClass:[NSDictionary class]]) {
-        id<TiEvaluator> context = proxy.executionContext;
-        if (context == nil) {
-            context = proxy.pageContext;
-        }
-        viewproxy = (TiViewProxy*)[[TiViewProxy class] createFromDictionary:value rootProxy:proxy inContext:context];
-        [context.krollContext invokeBlockOnThread:^{
-            [proxy rememberProxy:viewproxy];
-            [viewproxy forgetSelf];
-        }];
-    }
-    return viewproxy;
+    return [proxy sectionViewForLocation:location inListView:self];
 }
 
 -(UIView*)sectionView:(NSInteger)section forLocation:(NSString*)location section:(TiUIListSectionProxy**)sectionResult
 {
-    TiViewProxy* viewproxy = [self sectionViewProxy:section forLocation:location section:sectionResult];
+    TiViewProxy* viewproxy = [self sectionViewProxy:section forLocation:location];
     if (viewproxy!=nil) {
-        LayoutConstraint *viewLayout = [viewproxy layoutProperties];
-        //If height is not dip, explicitly set it to SIZE
-        if (viewLayout->height.type != TiDimensionTypeDip) {
-            viewLayout->height = TiDimensionAutoSize;
-        }
-        if (viewLayout->width.type == TiDimensionTypeUndefined) {
-            viewLayout->width = TiDimensionAutoFill;
-        }
-        
-//        if (viewproxy.parent == nil)
-//        {
-//            
-//            TiViewProxy* wrapperProxy = [self initWrapperProxy];
-//            [wrapperProxy add:viewproxy];
-//            return [wrapperProxy getAndPrepareViewForOpening:self.tableView.bounds];
-//        }
-//        else {
-            return [viewproxy getAndPrepareViewForOpening:self.tableView.bounds];
-//        }
+        return [viewproxy getAndPrepareViewForOpening:self.tableView.bounds];
     }
     return nil;
+}
+
+#pragma mark Searchbar-related IBActions
+
+
+- (IBAction) showSearchScreen: (id) sender
+{
+	[_tableView setContentOffset:CGPointZero animated:YES];
+}
+
+-(void)hideSearchScreen:(id)sender animated:(BOOL)animated
+{
+    if (!searchHidden || ![(TiViewProxy*)self.proxy viewReady]) {
+        return;
+    }
+    
+	// check to make sure we're not in the middle of a layout, in which case we
+	// want to try later or we'll get weird drawing animation issues
+	if (_tableView.bounds.size.width==0)
+	{
+		[self performSelector:@selector(hideSearchScreen:) withObject:sender afterDelay:0.1];
+		return;
+	}
+    
+    if ([[searchViewProxy view] isFirstResponder]) {
+        [[searchViewProxy view] resignFirstResponder];
+        [self makeRootViewFirstResponder];
+    }
+    
+    // This logic here is contingent on search controller deactivation
+    // (-[TiUITableView searchDisplayControllerDidEndSearch:]) triggering a hide;
+    // doing this ensures that:
+    //
+    // * The hide when the search controller was active is animated
+    // * The animation only occurs once
+    
+    if ([[self searchController] isActive]) {
+        [[self searchController] setActive:NO animated:YES];
+        searchActive = NO;
+        return;
+    }
+    
+    searchActive = NO;
+    if (![(TiViewProxy*)self.proxy viewReady]) {
+        return;
+    }
+    NSArray* visibleRows = [_tableView indexPathsForVisibleRows];
+    
+    // We only want to scroll if the following conditions are met:
+    // 1. The top row of the first section (and hence searchbar) are visible (or there are no rows)
+    // 2. The current offset is smaller than the new offset (otherwise the search is already hidden)
+    
+    if (searchHidden) {
+        CGPoint offset = CGPointMake(0,MAX(TI_NAVBAR_HEIGHT, searchViewProxy.view.frame.size.height));
+        if (([visibleRows count] == 0) ||
+            ([_tableView contentOffset].y < offset.y && [visibleRows containsObject:[NSIndexPath indexPathForRow:0 inSection:0]]))
+        {
+            [_tableView setContentOffset:offset animated:animated];
+        }
+    }
+}
+-(void)hideSearchScreen:(id)sender {
+    [self hideSearchScreen:sender animated:YES];
 }
 
 -(void)scrollToTop:(NSInteger)top animated:(BOOL)animated
@@ -460,15 +534,34 @@ static NSDictionary* replaceKeysForRow;
 	if (anim != nil)
 		animated = [anim boolValue];
     
-	[_tableView setContentOffset:CGPointMake(0,-_tableView.contentInset.top) animated:animated];
+    if (IOS_7) {
+        //we have to delay it on ios7 :s
+        double delayInSeconds = 0.01;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            [_tableView setContentOffset:CGPointMake(0,-_tableView.contentInset.top) animated:animated];
+        });
+    }
+    else {
+        [_tableView setContentOffset:CGPointMake(0,-_tableView.contentInset.top) animated:animated];
+    }
+    
 }
 
 -(void)showPullView:(NSNumber*)anim
 {
+    if (!_pullViewProxy) {
+        _pullViewVisible = YES;
+        return;
+    }
     BOOL animated = YES;
 	if (anim != nil)
 		animated = [anim boolValue];
 	[_tableView setContentOffset:CGPointMake(0,pullThreshhold) animated:animated];
+}
+
+-(BOOL)shouldHighlightCurrentListItem {
+    return [_tableView shouldHighlightCurrentListItem];
 }
 
 #pragma mark - Helper Methods
@@ -601,7 +694,7 @@ static NSDictionary* replaceKeysForRow;
 
 -(BOOL) isSearchActive
 {
-    return searchActive || [searchController isActive];
+    return searchActive || [[self searchController] isActive];
 }
 
 - (void)updateSearchResults:(id)unused
@@ -609,8 +702,8 @@ static NSDictionary* replaceKeysForRow;
     if (searchActive) {
         [self buildResultsForSearchText];
     }
-    if ([searchController isActive]) {
-        [[searchController searchResultsTableView] reloadData];
+    if ([self isSearchActive]) {
+        [[[self searchController] searchResultsTableView] reloadData];
     } else {
         [_tableView reloadData];
     }
@@ -648,7 +741,7 @@ static NSDictionary* replaceKeysForRow;
         } else {
             [_tableView setSeparatorInset:_defaultSeparatorInsets];
         }
-        if (![searchController isActive]) {
+        if (![self isSearchActive]) {
             [_tableView setNeedsDisplay];
         }
     }
@@ -738,20 +831,19 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)setHeaderView_:(id)args
 {
-    ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
-    [self tableView];
+    TiViewProxy* viewproxy = (TiViewProxy*)[(TiUIListViewProxy*)self.proxy createChildFromObject:args];
     [_headerWrapper removeAllChildren:nil];
-    if (args!=nil) {
-        [[self getOrCreateSearchWrapper] add:(TiViewProxy*) args];
+    if (viewproxy!=nil) {
+        [[self getOrCreateSearchWrapper] add:viewproxy];
     }
 }
 
 -(void)setFooterView_:(id)args
 {
-    ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
+    TiViewProxy* viewproxy = (TiViewProxy*)[(TiUIListViewProxy*)self.proxy createChildFromObject:args];
     [_footerViewProxy removeAllChildren:nil];
-    if (args!=nil) {
-        [[self getOrCreateFooterHolder] add:(TiViewProxy*) args];
+    if (viewproxy!=nil) {
+        [[self getOrCreateFooterHolder] add:viewproxy];
     }
 }
 
@@ -771,19 +863,8 @@ static NSDictionary* replaceKeysForRow;
 
 -(void)setPullView_:(id)args
 {
-    if ([args isKindOfClass:[NSDictionary class]]) {
-        id<TiEvaluator> context = self.proxy.executionContext;
-        if (context == nil) {
-            context = self.proxy.pageContext;
-        }
-        args = [[self.proxy class] createFromDictionary:args rootProxy:self.proxy inContext:context];
-        [context.krollContext invokeBlockOnThread:^{
-            [self.proxy rememberProxy:args];
-            [args forgetSelf];
-        }];
-    }
-    ENSURE_SINGLE_ARG_OR_NIL(args,TiViewProxy);
-    if (args == nil) {
+    TiViewProxy* viewproxy = (TiViewProxy*)[(TiUIListViewProxy*)self.proxy createChildFromObject:args];
+    if (viewproxy == nil) {
         [_pullViewProxy setProxyObserver:nil];
         [_pullViewProxy windowWillClose];
         [_pullViewWrapper removeFromSuperview];
@@ -810,7 +891,7 @@ static NSDictionary* replaceKeysForRow;
         }
         CGSize refSize = _tableView.bounds.size;
         [_pullViewWrapper setFrame:CGRectMake(0.0, 0.0 - refSize.height, refSize.width, refSize.height)];
-        _pullViewProxy = [args retain];
+        _pullViewProxy = [viewproxy retain];
         LayoutConstraint *viewLayout = [_pullViewProxy layoutProperties];
         //If height is not dip, explicitly set it to SIZE
         if (viewLayout->height.type != TiDimensionTypeDip) {
@@ -826,6 +907,10 @@ static NSDictionary* replaceKeysForRow;
         
         [_pullViewProxy setProxyObserver:self];
         [_pullViewWrapper addSubview:[_pullViewProxy getAndPrepareViewForOpening:_pullViewWrapper.bounds]];
+        if (_pullViewVisible) {
+            _pullViewVisible = NO;
+            [self showPullView:@(NO)];
+        }
     }
     
 }
@@ -895,6 +980,10 @@ static NSDictionary* replaceKeysForRow;
 	[[self tableView] setBounces:![TiUtils boolValue:value]];
 }
 
+-(void)setScrollHidesKeyboard_:(id)value
+{
+    _scrollHidesKeyboard = [TiUtils boolValue:value def:_scrollHidesKeyboard];
+}
 
 -(void)setOnDisplayCell_:(id)callback
 {
@@ -902,13 +991,19 @@ static NSDictionary* replaceKeysForRow;
 }
 
 #pragma mark - Search Support
+
+-(TiSearchDisplayController*) searchController
+{
+    return [searchViewProxy searchController];
+}
+
 -(void)setCaseInsensitiveSearch_:(id)args
 {
     caseInsensitiveSearch = [TiUtils boolValue:args def:YES];
     if (searchActive) {
         [self buildResultsForSearchText];
-        if ([searchController isActive]) {
-            [[searchController searchResultsTableView] reloadData];
+        if ([[self searchController] isActive]) {
+            [[[self searchController] searchResultsTableView] reloadData];
         } else {
             [_tableView reloadData];
         }
@@ -927,33 +1022,95 @@ static NSDictionary* replaceKeysForRow;
     [_tableView reloadData];
 }
 
+-(void)setSearchViewExternal_:(id)args {
+    ENSURE_TYPE_OR_NIL(args,TiUISearchBarProxy);
+    [self tableView];
+    if (searchViewProxy)
+    {
+		[searchViewProxy setProxyObserver:nil];
+        [searchViewProxy detachView];
+        searchViewProxy.canHaveSearchDisplayController = NO;
+        RELEASE_TO_NIL(searchViewProxy)
+    }
+    RELEASE_TO_NIL(tableController);
+    if (args != nil) {
+        searchViewProxy = [args retain];
+        [searchViewProxy setDelegate:self];
+        searchViewProxy.canHaveSearchDisplayController = YES;
+        tableController = [[UITableViewController alloc] init];
+        [TiUtils configureController:tableController withObject:nil];
+        tableController.tableView = [self tableView];
+		[tableController setClearsSelectionOnViewWillAppear:!allowsSelection];
+        
+        TiSearchDisplayController* searchController = [self searchController];
+        searchController.searchResultsDataSource = self;
+        searchController.searchResultsDelegate = self;
+        searchController.delegate = self;
+        searchHidden = NO;
+    }
+    keepSectionsInSearch = [TiUtils boolValue:[self.proxy valueForKey:@"keepSectionsInSearch"] def:NO];
+}
+
 -(void)setSearchView_:(id)args
 {
     ENSURE_TYPE_OR_NIL(args,TiUISearchBarProxy);
     [self tableView];
-    [searchViewProxy setDelegate:nil];
-    RELEASE_TO_NIL(searchViewProxy);
+    if (searchViewProxy)
+    {
+		[searchViewProxy setProxyObserver:nil];
+        [searchViewProxy detachView];
+        RELEASE_TO_NIL(searchViewProxy)
+    }
     RELEASE_TO_NIL(tableController);
-    RELEASE_TO_NIL(searchController);
-    [_searchWrapper removeAllChildren:nil];
 
     if (args != nil) {
         searchViewProxy = [args retain];
+        [searchViewProxy setReadyToCreateView:YES];
         [searchViewProxy setDelegate:self];
         tableController = [[UITableViewController alloc] init];
         [TiUtils configureController:tableController withObject:nil];
         tableController.tableView = [self tableView];
 		[tableController setClearsSelectionOnViewWillAppear:!allowsSelection];
-        searchController = [[UISearchDisplayController alloc] initWithSearchBar:[searchViewProxy searchBar] contentsController:tableController];
+        [[self getOrCreateSearchWrapper] add:searchViewProxy];
+        
+        TiSearchDisplayController* searchController = [self searchController];
         searchController.searchResultsDataSource = self;
         searchController.searchResultsDelegate = self;
         searchController.delegate = self;
-        [[self getOrCreateSearchWrapper] add:searchViewProxy];
-        keepSectionsInSearch = NO;
-    } else {
-        keepSectionsInSearch = [TiUtils boolValue:[self.proxy valueForKey:@"keepSectionsInSearch"] def:NO];
+        searchHidden = [TiUtils boolValue:[self.proxy valueForKey:@"searchHidden"] def:NO];
+        if (searchHidden)
+		{
+			[self hideSearchScreen:nil animated:NO];
+		}
     }
+    keepSectionsInSearch = [TiUtils boolValue:[self.proxy valueForKey:@"keepSectionsInSearch"] def:NO];
     
+}
+
+
+-(void)setSearchHidden_:(id)hide
+{
+	if ([TiUtils boolValue:hide])
+	{
+		searchHidden = YES;
+		if (searchViewProxy)
+		{
+			[self hideSearchScreen:nil];
+		}
+	}
+	else
+	{
+		searchHidden = NO;
+		if (searchViewProxy)
+		{
+			[self showSearchScreen:nil];
+		}
+	}
+}
+
+-(void)setHideSearchOnSelection_:(id)yn
+{
+    hideOnSearch = [TiUtils boolValue:yn def:NO];
 }
 
 #pragma mark - SectionIndexTitle Support
@@ -1088,9 +1245,7 @@ static NSDictionary* replaceKeysForRow;
     if (editingStyle == UITableViewCellEditingStyleDelete) {
         TiUIListSectionProxy* theSection = [[self.listViewProxy sectionForIndex:indexPath.section] retain];
         NSDictionary *theItem = [[theSection itemAtIndex:indexPath.row] retain];
-        
-        //Delete Data
-        [theSection deleteItemAtIndex:indexPath.row];
+
         
         //Fire the delete Event if required
         NSString *eventName = @"delete";
@@ -1098,6 +1253,7 @@ static NSDictionary* replaceKeysForRow;
         
             NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
                                                 theSection, @"section",
+                                                self.proxy, @"listView",
                                                 NUMINT(indexPath.section), @"sectionIndex",
                                                 NUMINT(indexPath.row), @"itemIndex",
                                                 nil];
@@ -1112,79 +1268,9 @@ static NSDictionary* replaceKeysForRow;
         }
         [theItem release];
         
-        BOOL emptySection = NO;
-        
-        if ([theSection itemCount] == 0) {
-            emptySection = YES;
-            if (pruneSections) {
-                [self.listViewProxy deleteSectionAtIndex:indexPath.section];
-            }
-        }
-        
-        BOOL emptyTable = NO;
-        NSUInteger sectionCount = [[self.listViewProxy sectionCount] unsignedIntValue];
-        if ( sectionCount == 0) {
-            emptyTable = YES;
-        }
-        
-        //Reload the data now.
-        [tableView beginUpdates];
-        if (emptyTable) {
-            //Table is empty. Just reload fake section with FADE animation to clear out header and footers
-            NSIndexSet *theSet = [NSIndexSet indexSetWithIndex:0];
-            [tableView reloadSections:theSet withRowAnimation:UITableViewRowAnimationFade];
-        } else if (emptySection) {
-            //Section is empty.
-            if (pruneSections) {
-                //Delete the section
-                
-                BOOL needsReload = (indexPath.section < sectionCount);
-                //If this is not the last section we need to set indices for all the sections coming in after this that are visible.
-                //Otherwise the events will not work properly since the indexPath stored in the cell will be incorrect.
-                
-                if (needsReload) {
-                    NSArray* visibleRows = [tableView indexPathsForVisibleRows];
-                    [visibleRows enumerateObjectsUsingBlock:^(NSIndexPath *vIndexPath, NSUInteger idx, BOOL *stop) {
-                        if (vIndexPath.section > indexPath.section) {
-                            //This belongs to the next section. So set the right indexPath otherwise events wont work properly.
-                            NSIndexPath *newIndex = [NSIndexPath indexPathForRow:vIndexPath.row inSection:(vIndexPath.section -1)];
-                            UITableViewCell* theCell = [tableView cellForRowAtIndexPath:vIndexPath];
-                            if ([theCell isKindOfClass:[TiUIListItem class]]) {
-                                ((TiUIListItem*)theCell).proxy.indexPath = newIndex;
-                            }
-                        }
-                    }];
-                }
-                NSIndexSet *deleteSet = [NSIndexSet indexSetWithIndex:indexPath.section];
-                [tableView deleteSections:deleteSet withRowAnimation:UITableViewRowAnimationFade];
-            } else {
-                //Just delete the row. Section stays
-                [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-            }
-        } else {
-            //Just delete the row.
-            BOOL needsReload = (indexPath.row < [theSection itemCount]);
-            //If this is not the last row need to set indices for all rows in the section following this row.
-            //Otherwise the events will not work properly since the indexPath stored in the cell will be incorrect.
-            
-            if (needsReload) {
-                NSArray* visibleRows = [tableView indexPathsForVisibleRows];
-                [visibleRows enumerateObjectsUsingBlock:^(NSIndexPath *vIndexPath, NSUInteger idx, BOOL *stop) {
-                    if ( (vIndexPath.section == indexPath.section) && (vIndexPath.row > indexPath.row) ) {
-                        //This belongs to the same section. So set the right indexPath otherwise events wont work properly.
-                        NSIndexPath *newIndex = [NSIndexPath indexPathForRow:(vIndexPath.row - 1) inSection:(vIndexPath.section)];
-                        UITableViewCell* theCell = [tableView cellForRowAtIndexPath:vIndexPath];
-                        if ([theCell isKindOfClass:[TiUIListItem class]]) {
-                            ((TiUIListItem*)theCell).proxy.indexPath = newIndex;
-                        }
-                    }
-                }];
-            }
-            [tableView deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
-        
-        }
-        [tableView endUpdates];
-        [theSection release];
+        BOOL asyncDelete = [TiUtils boolValue:[self.proxy valueForKey:@"asyncDelete"] def:NO];
+        if (asyncDelete) return;
+        [theSection deleteItemsAt:@[@(indexPath.row), @(1), @{@"animated":@(YES)}]];
     }
 }
 
@@ -1263,6 +1349,7 @@ static NSDictionary* replaceKeysForRow;
         if ([self.proxy _hasListeners:eventName]) {
             
             NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
+                                                self.proxy, @"listView",
                                                 theSection, @"section",
                                                 NUMINT(fromSectionIndex), @"sectionIndex",
                                                 NUMINT(fromRowIndex), @"itemIndex",
@@ -1303,6 +1390,7 @@ static NSDictionary* replaceKeysForRow;
             
             NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
                                                 fromSection, @"section",
+                                                self.proxy, @"listView",
                                                 NUMINT(fromSectionIndex), @"sectionIndex",
                                                 NUMINT(fromRowIndex), @"itemIndex",
                                                 toSection,@"targetSection",
@@ -1368,6 +1456,10 @@ static NSDictionary* replaceKeysForRow;
     }
 }
 
+-(UITableViewCell *) forceCellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return [_tableView cellForRowAtIndexPath:indexPath];
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
@@ -1416,11 +1508,13 @@ static NSDictionary* replaceKeysForRow;
             UITableViewCellStyle cellStyle = [templateId unsignedIntegerValue];
             cell = [[TiUIListItem alloc] initWithStyle:cellStyle position:position grouped:grouped reuseIdentifier:cellIdentifier proxy:cellProxy];
         } else {
+            [cell configurationStart];
             cell = [[TiUIListItem alloc] initWithProxy:cellProxy position:position grouped:grouped reuseIdentifier:cellIdentifier];
             id template = [_templates objectForKey:templateId];
             if (template != nil) {
                 [cellProxy unarchiveFromTemplate:template withEvents:YES];
             }
+            [cell configurationSet];
         }
         [cellProxy release];
         [cell autorelease];
@@ -1478,6 +1572,7 @@ static NSDictionary* replaceKeysForRow;
         NSDictionary *item = [section itemAtIndex:indexPath.row];
         NSDictionary * propertiesDict = @{
                                           @"view":((TiUIListItem*)cell).proxy,
+                                          @"listView": self.proxy,
                                           @"section":section,
                                           @"searchResult":NUMBOOL([self isSearchActive]),
                                           @"sectionIndex":NUMINT(indexPath.section),
@@ -1512,6 +1607,7 @@ static NSDictionary* replaceKeysForRow;
     {
         return nil;
     }
+    
     
     return [self sectionView:section forLocation:@"headerView" section:nil];
 }
@@ -1553,7 +1649,7 @@ static NSDictionary* replaceKeysForRow;
     }
     
     TiUIListSectionProxy *sectionProxy = [self.listViewProxy sectionForIndex:realSection];
-    TiViewProxy* viewProxy = [self sectionViewProxy:realSection forLocation:@"headerView" section:nil];
+    TiViewProxy* viewProxy = [sectionProxy sectionViewForLocation:@"headerView" inListView:self];
 	
     CGFloat size = 0.0;
     if (viewProxy!=nil) {
@@ -1614,7 +1710,7 @@ static NSDictionary* replaceKeysForRow;
     }
     
     TiUIListSectionProxy *sectionProxy = [self.listViewProxy sectionForIndex:realSection];
-    TiViewProxy* viewProxy = [self sectionViewProxy:realSection forLocation:@"footerView" section:nil];
+    TiViewProxy* viewProxy = [sectionProxy sectionViewForLocation:@"footerView" inListView:self];
 	
     CGFloat size = 0.0;
     if (viewProxy!=nil) {
@@ -1701,6 +1797,23 @@ static NSDictionary* replaceKeysForRow;
 	return height < 1 ? tableView.rowHeight : height;
 }
 
+-(TiUIListItem*)visibleCellAtIndexPath:(NSIndexPath *)indexPath {
+    NSArray* visibleCells = _tableView.visibleCells;
+    if (!visibleCells) return nil;
+    __block TiUIListItem* result = nil;
+    [visibleCells enumerateObjectsUsingBlock:^(TiUIListItem* obj, NSUInteger idx, BOOL *stop) {
+        if ([obj isKindOfClass:[TiUIListItem class]]) {
+            if ([obj.proxy.indexPath compare:indexPath] == NSOrderedSame) {
+                result = obj;
+                stop = YES;
+            }
+        }
+        
+    }];
+    return result;
+}
+
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSIndexPath* realIndexPath = [self pathForSearchPath:indexPath];
@@ -1726,7 +1839,14 @@ static NSDictionary* replaceKeysForRow;
         if (templateId == nil) {
             templateId = _defaultItemTemplate;
         }
-        TiUIListItemProxy *cellProxy = [_measureProxies objectForKey:templateId];
+        TiUIListItemProxy *cellProxy = nil;
+//        TiUIListItem* visibleCell = [self visibleCellAtIndexPath:realIndexPath];
+//        if (visibleCell) {
+//            cellProxy = [((TiUIListItem*)visibleCell) proxy];
+//        }
+        if (!cellProxy) {
+            cellProxy = [_measureProxies objectForKey:templateId];
+        }
         if (cellProxy != nil) {
             CGFloat width = [cellProxy sizeWidthForDecorations:[self computeRowWidth] forceResizing:YES];
             if (width > 0) {
@@ -1808,6 +1928,9 @@ static NSDictionary* replaceKeysForRow;
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
 {
+    if (_scrollHidesKeyboard) {
+        [scrollView endEditing:YES];
+    }
 	// suspend image loader while we're scrolling to improve performance
 	if (_scrollSuspendImageLoading) [[ImageLoader sharedLoader] suspend];
     [self.proxy fireEvent:@"dragstart" propagate:NO];
@@ -1879,7 +2002,7 @@ static NSDictionary* replaceKeysForRow;
 -(void)recognizedSwipe:(UISwipeGestureRecognizer *)recognizer
 {
     BOOL viaSearch = [self isSearchActive];
-    UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+    UITableView* theTableView = viaSearch ? [[self searchController] searchResultsTableView] : [self tableView];
     CGPoint point = [recognizer locationInView:theTableView];
     NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
     indexPath = [self pathForSearchPath:indexPath];
@@ -1905,7 +2028,7 @@ static NSDictionary* replaceKeysForRow;
 {
     if ([recognizer state] == UIGestureRecognizerStateBegan) {
         BOOL viaSearch = [self isSearchActive];
-        UITableView* theTableView = viaSearch ? [searchController searchResultsTableView] : [self tableView];
+        UITableView* theTableView = viaSearch ? [[self searchController] searchResultsTableView] : [self tableView];
         CGPoint point = [recognizer locationInView:theTableView];
         NSIndexPath* indexPath = [theTableView indexPathForRowAtPoint:point];
         indexPath = [self pathForSearchPath:indexPath];
@@ -1925,6 +2048,22 @@ static NSDictionary* replaceKeysForRow;
         {
             [theTableView deselectRowAtIndexPath:indexPath animated:YES];
         }
+        if (viaSearch) {
+            if (hideOnSearch) {
+                [self hideSearchScreen:nil];
+            }
+            else {
+                /*
+                 TIMOB-7397. Observed that `searchBarTextDidBeginEditing` delegate
+                 method was being called on screen transition which was causing a
+                 visual glitch. Checking for isFirstResponder at this point always
+                 returns false. Calling blur here so that the UISearchBar resigns
+                 as first responder on main thread
+                 */
+                [searchViewProxy performSelector:@selector(blur:) withObject:nil];
+            }
+            
+        }
     }
 }
 
@@ -1934,7 +2073,7 @@ static NSDictionary* replaceKeysForRow;
 {
     if (_searchWrapper != nil) {
         [_searchWrapper layoutProperties]->right = TiDimensionDip(0);
-        [_searchWrapper refreshView:nil];
+        [_searchWrapper refreshViewIfNeeded];
     }
 }
 
@@ -1942,7 +2081,7 @@ static NSDictionary* replaceKeysForRow;
 {
     self.searchString = (searchBar.text == nil) ? @"" : searchBar.text;
     [self buildResultsForSearchText];
-    [[searchController searchResultsTableView] reloadData];
+    [[[self searchController] searchResultsTableView] reloadData];
 }
 
 - (void)searchBarTextDidEndEditing:(UISearchBar *)searchBar
@@ -1950,8 +2089,8 @@ static NSDictionary* replaceKeysForRow;
     if ([searchBar.text length] == 0) {
         self.searchString = @"";
         [self buildResultsForSearchText];
-        if ([searchController isActive]) {
-            [searchController setActive:NO animated:YES];
+        if ([[self searchController] isActive]) {
+            [[self searchController] setActive:NO animated:YES];
         }
     }
 }
@@ -1977,13 +2116,26 @@ static NSDictionary* replaceKeysForRow;
 
 #pragma mark - UISearchDisplayDelegate Methods
 
+- (void)searchDisplayControllerWillBeginSearch:(UISearchDisplayController *)controller
+{
+    searchViewAnimating = YES;
+	[_tableView setContentOffset:CGPointZero animated:NO];
+}
+
+- (void) searchDisplayControllerWillEndSearch:(UISearchDisplayController *)controller {
+    searchViewAnimating = YES;
+}
+
+- (void) searchDisplayControllerDidBeginSearch:(UISearchDisplayController *)controller {
+    searchViewAnimating = NO;
+}
+
 - (void) searchDisplayControllerDidEndSearch:(UISearchDisplayController *)controller
 {
+    searchViewAnimating = NO;
     self.searchString = @"";
     [self buildResultsForSearchText];
-    if ([searchController isActive]) {
-        [searchController setActive:NO animated:YES];
-    }
+    
     //IOS7 DP3. TableView seems to be adding the searchView to
     //tableView. Bug on IOS7?
     if (_searchWrapper != nil) {
@@ -1991,11 +2143,13 @@ static NSDictionary* replaceKeysForRow;
         if (rowWidth > 0) {
             CGFloat right = _tableView.bounds.size.width - rowWidth;
             [_searchWrapper layoutProperties]->right = TiDimensionDip(right);
-            [_searchWrapper refreshView:nil];
+            [_searchWrapper refreshViewIfNeeded];
         }
     }
     [searchViewProxy ensureSearchBarHeirarchy];
     [_tableView reloadData];
+    [self hideSearchScreen:nil];
+//    [self performSelector:@selector(hideSearchScreen:) withObject:nil afterDelay:0.2];
 }
 
 #pragma mark - TiScrolling
@@ -2010,7 +2164,6 @@ static NSDictionary* replaceKeysForRow;
 {
     if ([_tableView isScrollEnabled]) {
         CGRect minimumContentRect = [_tableView bounds];
-        
         CGRect responderRect = [self convertRect:[firstResponderView bounds] fromView:firstResponderView];
         CGPoint offsetPoint = [_tableView contentOffset];
         responderRect.origin.x += offsetPoint.x;
@@ -2023,12 +2176,13 @@ static NSDictionary* replaceKeysForRow;
 
 #pragma mark - Internal Methods
 
-- (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView  accessoryButtonTapped:(BOOL)accessoryButtonTapped
+- (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView  atPoint:(CGPoint)point accessoryButtonTapped:(BOOL)accessoryButtonTapped
 {
     TiUIListSectionProxy *section = [self.listViewProxy sectionForIndex:indexPath.section];
 	NSDictionary *item = [section itemAtIndex:indexPath.row];
     NSMutableDictionary *eventObject = [[NSMutableDictionary alloc] initWithObjectsAndKeys:
 										section, @"section",
+										self.proxy, @"listView",
 										NUMBOOL([self isSearchActive]), @"searchResult",
 										NUMINT(indexPath.section), @"sectionIndex",
 										NUMINT(indexPath.row), @"itemIndex",
@@ -2043,7 +2197,7 @@ static NSDictionary* replaceKeysForRow;
 	TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:indexPath];
 	if (cell.templateStyle == TiUIListItemTemplateStyleCustom) {
 		UIView *contentView = cell.contentView;
-		TiViewProxy *tapViewProxy = FindViewProxyWithBindIdContainingPoint(contentView, [tableView convertPoint:tapPoint toView:contentView]);
+        TiViewProxy *tapViewProxy =[TiUIHelper findViewProxyWithBindIdUnder:contentView containingPoint:[tableView convertPoint:point toView:contentView]];
 		if (tapViewProxy != nil) {
 			[eventObject setObject:[tapViewProxy valueForKey:@"bindId"] forKey:@"bindId"];
 		}
@@ -2053,12 +2207,12 @@ static NSDictionary* replaceKeysForRow;
 
 - (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView
 {
-    return [self EventObjectForItemAtIndexPath:indexPath tableView:tableView accessoryButtonTapped:NO];
+    return [self EventObjectForItemAtIndexPath:indexPath tableView:tableView atPoint:[_tableView touchPoint]];
 }
 
 - (NSMutableDictionary*)EventObjectForItemAtIndexPath:(NSIndexPath *)indexPath tableView:(UITableView *)tableView atPoint:(CGPoint)point
 {
-    NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:tableView];
+    NSMutableDictionary *event = [self EventObjectForItemAtIndexPath:indexPath tableView:tableView atPoint:point accessoryButtonTapped:NO];
     [event setObject:NUMFLOAT(point.x) forKey:@"x"];
     [event setObject:NUMFLOAT(point.y) forKey:@"y"];
     return event;
@@ -2075,11 +2229,23 @@ static NSDictionary* replaceKeysForRow;
 	[self.proxy fireEvent:eventName withObject:[self EventObjectForItemAtIndexPath:indexPath tableView:tableView] checkForListener:NO];
 }
 
+
+- (NSIndexPath *) nextIndexPath:(NSIndexPath *) indexPath {
+    int numOfSections = [self numberOfSectionsInTableView:self.tableView];
+    int nextSection = ((indexPath.section + 1) % numOfSections);
+    
+    if (indexPath.row + 1 == [self tableView:self.tableView numberOfRowsInSection:indexPath.section]) {
+        return [NSIndexPath indexPathForRow:0 inSection:nextSection];
+    } else {
+        return [NSIndexPath indexPathForRow:(indexPath.row + 1) inSection:indexPath.section];
+    }
+}
+
 #pragma mark - UITapGestureRecognizer
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-	tapPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
+//	tapPoint = [gestureRecognizer locationInView:gestureRecognizer.view];
 	return NO;
 }
 
@@ -2140,28 +2306,6 @@ static NSDictionary* replaceKeysForRow;
 
 @end
 
-static TiViewProxy * FindViewProxyWithBindIdContainingPoint(UIView *view, CGPoint point)
-{
-	if (!CGRectContainsPoint([view bounds], point)) {
-		return nil;
-	}
-	for (UIView *subview in [view subviews]) {
-		TiViewProxy *viewProxy = FindViewProxyWithBindIdContainingPoint(subview, [view convertPoint:point toView:subview]);
-		if (viewProxy != nil) {
-			id bindId = [viewProxy valueForKey:@"bindId"];
-			if (bindId != nil) {
-				return viewProxy;
-			}
-		}
-	}
-	if ([view isKindOfClass:[TiUIView class]]) {
-		TiViewProxy *viewProxy = (TiViewProxy *)[(TiUIView *)view proxy];
-		id bindId = [viewProxy valueForKey:@"bindId"];
-		if (bindId != nil) {
-			return viewProxy;
-		}
-	}
-	return nil;
-}
+
 
 #endif

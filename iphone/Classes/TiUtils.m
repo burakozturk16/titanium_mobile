@@ -1748,7 +1748,9 @@ if ([str isEqualToString:@#orientation]) return (UIDeviceOrientation)orientation
     if (AppRouter!=nil)
     {
         DebugLog(@"[DEBUG] getDirectoryListing: %@, Resource: %@",urlstring,appurlstr);
-        return [AppRouter performSelector:@selector(getDirectoryListing:) withObject:appurlstr];
+        NSArray* result = [AppRouter performSelector:@selector(getDirectoryListing:) withObject:appurlstr];
+        result = [result sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+        return result;
     }
 }
 

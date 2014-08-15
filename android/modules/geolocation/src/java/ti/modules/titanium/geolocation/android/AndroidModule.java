@@ -293,5 +293,11 @@ public class AndroidModule extends KrollModule
 	{
 		return "Ti.Geolocation.Android";
 	}
+	
+	@Kroll.method
+    public int getProviderState(String provider)
+    {
+        return tiLocation.getProviderState(provider);
+    }
 }
 

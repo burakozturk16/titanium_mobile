@@ -49,6 +49,9 @@ import org.json.JSONObject;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class KrollProxy implements Handler.Callback, KrollProxySupport
 {
+    public static interface SetPropertyChangeListener {
+        public void onSetProperty(KrollProxy proxy, String name, Object value);
+    }
 	private static final String TAG = "KrollProxy";
 	private static final int INDEX_NAME = 0;
 	private static final int INDEX_OLD_VALUE = 1;
@@ -76,13 +79,14 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 
 	protected static AtomicInteger proxyCounter = new AtomicInteger();
 	protected AtomicInteger listenerIdGenerator;
-
+	
 	protected Map<String, HashMap<Integer, KrollEventCallback>> eventListeners;
 	protected KrollObject krollObject;
 	protected WeakReference<Activity> activity;
 	protected String proxyId;
 	protected TiUrl creationUrl;
-	protected KrollProxyListener modelListener;
+    protected KrollProxyListener modelListener;
+    protected SetPropertyChangeListener setPropertyListener;
 	protected KrollModule createdInModule;
 	protected boolean coverageEnabled;
 	protected KrollDict properties = new KrollDict();
@@ -394,10 +398,11 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public void handleCreationDict(KrollDict dict)
 	{
+        properties.clear();
 		if (dict == null) {
 			return;
 		}
-
+		
 		if (dict.containsKey(TiC.PROPERTY_BUBBLE_PARENT)) {
 			bubbleParent = TiConvert.toBoolean(dict, TiC.PROPERTY_BUBBLE_PARENT, true);
 		}
@@ -571,6 +576,13 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			setPropertyAndFire(name, value);
 		}
 	}
+	
+	public void propagateSetProperty(String name, Object value)
+	{
+	    if (setPropertyListener != null) {
+            setPropertyListener.onSetProperty(this, name, value);
+        }
+	}
 
 	/**
 	 * This sets the named property as well as updating the actual JS object.
@@ -579,7 +591,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	public void setProperty(String name, Object value)
 	{
 		properties.put(name, value);
-
+		
+        //That line is for listitemproxy to update its data
+        propagateSetProperty(name, value);
+		
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
 			doSetProperty(name, value);
 
@@ -686,12 +701,19 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			String name = TiConvert.toString(key);
 			Object value = props.get(key);
 			Object current = getProperty(name);
-			if (shouldFireChange(current, value)) {
-				setProperty(name, value);
-				changedProps.put(name, value);
+			if (current instanceof KrollProxy && value instanceof HashMap) {
+			    //we handle binded objects (same as done with listitems)
+			    ((KrollProxy)current).applyPropertiesInternal(value, force, wait);
 			}
-			else if (force)
-				changedProps.put(name, value);
+			else {
+			    if (shouldFireChange(current, value)) {
+			        setProperty(name, value);
+	                changedProps.put(name, value);
+	            }
+	            else if (force) {
+	                changedProps.put(name, value);
+			    }
+			}
 		}
 //		if (modelListener != null && changedProps.size() > 0) {
 		if (modelListener != null) {
@@ -793,7 +815,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 */
 	public boolean fireEvent(String event)
 	{
-		return fireEvent(event, null, true, true);
+		return fireEvent(event, null, false, true);
 	}
 	
 	/**
@@ -803,9 +825,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 * @return whether this proxy has an eventListener for this event.
 	 * @module.api
 	 */
-	public boolean fireEvent(String event, Object data)
+	@Kroll.method
+	public boolean fireEvent(String event, @Kroll.argument(optional = true) Object data)
 	{
-		return fireEvent(event, data, true, true);
+		return fireEvent(event, data, false, true);
 	}
 	
 
@@ -827,7 +850,18 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 		}
 		return false;
 	}
-
+	
+	/**
+     * Fires an event synchronously via KrollRuntime thread, which can be intercepted on JS side.
+     * @param event the event to be fired.
+     * @param data  the data to be sent.
+     * @return whether this proxy has an eventListener for this event.
+     * @module.api
+     */
+    public boolean fireSyncEvent(String event, Object data)
+    {
+        return fireSyncEvent(event, data, false);
+    }
 	/**
 	 * Fires an event synchronously via KrollRuntime thread, which can be intercepted on JS side.
 	 * @param event the event to be fired.
@@ -835,18 +869,19 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	 * @return whether this proxy has an eventListener for this event.
 	 * @module.api
 	 */
-	public boolean fireSyncEvent(String event, Object data)
+	public boolean fireSyncEvent(String event, Object data, final boolean bubble)
 	{
-		if (!hasListeners(event, true))
+		if (!hasListeners(event, bubble))
 		{
 			return false;
 		}
 		if (KrollRuntime.getInstance().isRuntimeThread()) {
-			return doFireEvent(event, data);
+			return doFireEvent(event, data, bubble);
 
 		} else {
 			Message message = getRuntimeHandler().obtainMessage(MSG_FIRE_SYNC_EVENT);
-			message.getData().putString(PROPERTY_NAME, event);
+            message.getData().putString(PROPERTY_NAME, event);
+            message.getData().putBoolean(PROPERTY_BUBBLES, bubble);
 
 			return (Boolean) TiMessenger.sendBlockingRuntimeMessage(message, data);
 		}
@@ -1309,7 +1344,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 			}
 			case MSG_FIRE_SYNC_EVENT: {
 				AsyncResult asyncResult = (AsyncResult) msg.obj;
-				boolean handled = doFireEvent(msg.getData().getString(PROPERTY_NAME), asyncResult.getArg());
+				boolean handled = doFireEvent(msg.getData().getString(PROPERTY_NAME), asyncResult.getArg(), msg.getData().getBoolean(PROPERTY_BUBBLES));
 				asyncResult.setResult(handled);
 
 				return handled;
@@ -1385,6 +1420,10 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
         return modelListener;
     }
     
+	public void setSetPropertyListener(SetPropertyChangeListener listener )
+    {
+        this.setPropertyListener = listener;
+    }
 	
 	public void setModelListener(KrollProxyListener modelListener , Boolean applyProps)
 	{
@@ -1545,7 +1584,7 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
         }
     }
     
-    protected void addBinding(String bindId, KrollProxy bindingProxy)
+    public void addBinding(String bindId, KrollProxy bindingProxy)
     {
         if (bindId == null) return;
         setProperty(bindId, bindingProxy);
@@ -1555,8 +1594,8 @@ public class KrollProxy implements Handler.Callback, KrollProxySupport
 	@SuppressWarnings("unchecked")
     protected void initFromTemplate(HashMap template_,
             KrollProxy rootProxy, boolean updateKrollProperties, boolean recursive) {
-        if (rootProxy != null && template_.containsKey(TiC.PROPERTY_BIND_ID)) {
-            rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID),this);
+        if (rootProxy != null) {
+            rootProxy.addBinding(TiConvert.toString(template_, TiC.PROPERTY_BIND_ID, null),this);
         }
         if (template_.containsKey(TiC.PROPERTY_EVENTS)) {
             Object events = template_

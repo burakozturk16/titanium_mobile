@@ -71,6 +71,8 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Process;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -175,7 +177,11 @@ public class TiUIHelper
 	public static void linkifyIfEnabled(TextView tv, Object autoLink)
 	{ 
 		if (autoLink != null) {
-			Linkify.addLinks(tv, TiConvert.toInt(autoLink));
+			//Default to Ti.UI.AUTOLINK_NONE
+			boolean success = Linkify.addLinks(tv, TiConvert.toInt(autoLink, 16));
+			if (!success && tv.getText() instanceof Spanned) {
+				tv.setMovementMethod(LinkMovementMethod.getInstance());
+			}
 		}
 	}
 
@@ -403,31 +409,66 @@ public class TiUIHelper
 		return getRawSize((int)result[0], size, context);
 	}
 
-	public static float getRawSize(String size) {
+	public static float getInPixels(String size) {
 		
 		return getRawSize(size, null);
 	}
 	
-	public static float getRawSizeOrZero(String size, Context context) {
-		if (size == null || size.length() == 0) return 0;
-		return getRawSize(size, context);
+	public static float getInPixels(String size, Context context) {
+		return getInPixels(size, 0.0f, context);
 	}
+	
+	public static float getInPixels(String size, float defaultValue, Context context) {
+        if (size == null || size.length() == 0) {
+            if (defaultValue > 0) {
+                return getRawSize(TypedValue.COMPLEX_UNIT_DIP, defaultValue, context);
+            }
+            return 0;
+        }
+        return getRawSize(size, context);
+    }
 
-	public static float getRawSizeOrZero(KrollDict dict, String property,
-			Context context) {
+	public static float getInPixels(HashMap dict, String property,
+			float defaultValue, Context context) {
 		if (dict.containsKey(property)) {
-			return TiUIHelper.getRawSize(dict.getString(property), context);
+			return getRawSize(TiConvert.toString(dict.get(property)), context);
+		}
+		if (defaultValue > 0) {
+	        return getRawSize(TypedValue.COMPLEX_UNIT_DIP, defaultValue, context);
 		}
 		return 0;
 	}
+	
+	public static float getInPixels(HashMap dict, String property,
+            Context context) {
+        return getInPixels(dict, property, 0.0f, context);
+    }
 
-	public static float getRawSizeOrZero(KrollDict dict, String property) {
-		return getRawSizeOrZero(dict, property, null);
+	public static float getInPixels(HashMap dict, String property) {
+		return getInPixels(dict, property, null);
 	}
+	
+    @Deprecated
+	public static float getRawSizeOrZero(HashMap dict, String property) {
+        return getInPixels(dict, property, null);
+    }
+	
+	public static float getInPixels(HashMap dict, String property, float defaultValue) {
+        return getInPixels(dict, property, defaultValue, null);
+    }
 
+	public static float getInPixels(Object value) {
+		return getInPixels(TiConvert.toString(value), null);
+	}
+	
+	@Deprecated
 	public static float getRawSizeOrZero(Object value) {
-		return getRawSizeOrZero(TiConvert.toString(value), null);
-	}
+        return getInPixels(TiConvert.toString(value), null);
+    }
+	
+	public static float getInPixels(Object value, float defaultValue) {
+        return getInPixels(TiConvert.toString(value), defaultValue, null);
+    }
 	
 	public static FontDesc getFontStyle(Context context, HashMap<String, Object> d) {
 		FontDesc desc = new FontDesc();
@@ -645,6 +686,53 @@ public class TiUIHelper
 		tv.setGravity(gravity);
 	}
 
+	public static final int FONT_SIZE_POSITION = 0;
+	public static final int FONT_FAMILY_POSITION = 1;
+	public static final int FONT_WEIGHT_POSITION = 2;
+	public static final int FONT_STYLE_POSITION = 3;
+	
+	public static String[] getFontProperties(KrollDict fontProps)
+	{
+		boolean bFontSet = false;
+		String[] fontProperties = new String[4];
+		if (fontProps.containsKey(TiC.PROPERTY_FONT) && fontProps.get(TiC.PROPERTY_FONT) instanceof HashMap) {
+			bFontSet = true;
+			KrollDict font = fontProps.getKrollDict(TiC.PROPERTY_FONT);
+			if (font.containsKey(TiC.PROPERTY_FONTSIZE)) {
+				fontProperties[FONT_SIZE_POSITION] = TiConvert.toString(font, TiC.PROPERTY_FONTSIZE);
+			}
+			if (font.containsKey(TiC.PROPERTY_FONTFAMILY)) {
+				fontProperties[FONT_FAMILY_POSITION] = TiConvert.toString(font, TiC.PROPERTY_FONTFAMILY);
+			}
+			if (font.containsKey(TiC.PROPERTY_FONTWEIGHT)) {
+				fontProperties[FONT_WEIGHT_POSITION] = TiConvert.toString(font, TiC.PROPERTY_FONTWEIGHT);
+			}
+			if (font.containsKey(TiC.PROPERTY_FONTSTYLE)) {
+				fontProperties[FONT_STYLE_POSITION] = TiConvert.toString(font, TiC.PROPERTY_FONTSTYLE);
+			}
+		} else {
+			if (fontProps.containsKey(TiC.PROPERTY_FONT_FAMILY)) {
+				bFontSet = true;
+				fontProperties[FONT_FAMILY_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONT_FAMILY);
+			}
+			if (fontProps.containsKey(TiC.PROPERTY_FONT_SIZE)) {
+				bFontSet = true;
+				fontProperties[FONT_SIZE_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONT_SIZE);
+			}
+			if (fontProps.containsKey(TiC.PROPERTY_FONT_WEIGHT)) {
+				bFontSet = true;
+				fontProperties[FONT_WEIGHT_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONT_WEIGHT);
+			}
+			if (fontProps.containsKey(TiC.PROPERTY_FONTSTYLE)) {
+				bFontSet = true;
+				fontProperties[FONT_STYLE_POSITION] = TiConvert.toString(fontProps, TiC.PROPERTY_FONTSTYLE);
+			}
+		}
+		if (!bFontSet) {
+			return null;
+		}
+		return fontProperties;
+	}
 	public static void setTextViewDIPPadding(TextView textView, int horizontalPadding, int verticalPadding) {
 		int rawHPadding = (int)getRawDIPSize(horizontalPadding, textView.getContext());
 		int rawVPadding = (int)getRawDIPSize(verticalPadding, textView.getContext());
@@ -1136,14 +1224,9 @@ public class TiUIHelper
 		paint.setColorFilter(createColorFilterForOpacity(opacity));
 	}
 
-	public static void requestSoftInputChange(KrollProxy proxy, View view) 
+	public static void requestSoftInputChange(TiUIView uiView, View view) 
 	{
-		int focusState = TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS;
-		
-		if (proxy.hasProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
-			focusState = TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS));
-		}
-
+		int focusState = uiView.getFocusState();
 		if (focusState > TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS) {
 			if (focusState == TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS) {
 				showSoftKeyboard(view, true);
@@ -1316,8 +1399,8 @@ public class TiUIHelper
 		if (dict.containsKey(TiC.PROPERTY_OFFSET)) 
 		{
 			HashMap offset = (HashMap) dict.get(TiC.PROPERTY_OFFSET);
-			result.dx = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_X));
-			result.dy = TiUIHelper.getRawSizeOrZero(offset.get(TiC.PROPERTY_Y));
+			result.dx = TiUIHelper.getInPixels(offset, TiC.PROPERTY_X);
+			result.dy = TiUIHelper.getInPixels(offset, TiC.PROPERTY_Y);
 		}
 		result.radius = dict.optFloat(TiC.PROPERTY_RADIUS, 3);
 		if (dict.containsKey(TiC.PROPERTY_COLOR))

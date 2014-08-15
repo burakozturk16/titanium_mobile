@@ -117,6 +117,12 @@ typedef enum {
 -(UIImage*)image;
 
 /**
+ Returns the ios representation of the object: NSString or UIImage
+ @return NSString or UIImage
+ */
+-(id)representedObject;
+
+/**
  Returns the blob file path.
  @return The file path.
  */

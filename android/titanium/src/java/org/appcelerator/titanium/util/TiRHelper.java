@@ -76,9 +76,10 @@ public class TiRHelper {
 		try {
 			i = getClass(prefix + classAndFieldNames[0]).getDeclaredField(classAndFieldNames[1]).getInt(null);
 		} catch (Exception e) {
-			Log.e(TAG, "Error looking up resource: " + e.getMessage(), e, Log.DEBUG_MODE);
+			Log.d(TAG, "Error looking up resource: " + e.getMessage(), e, Log.DEBUG_MODE);
 			valCache.put(path, 0);
-			throw new ResourceNotFoundException(path);
+			return 0;
+//			throw new ResourceNotFoundException(path);
 		}
 		
 		valCache.put(path, i);
@@ -101,15 +102,11 @@ public class TiRHelper {
 		
 		String[] classAndFieldNames = getClassAndFieldNames(path);
 		
-		try {
 			int resid = lookupResource(clsPrefixApplication, path, classAndFieldNames);
-			return resid;
-		} catch (ResourceNotFoundException e) {
-			if (!includeSystemResources) {
-				throw e;
+			if (resid == 0 && !includeSystemResources) {
+			    resid = lookupResource(clsPrefixAndroid, path, classAndFieldNames);
 			}
-			return lookupResource(clsPrefixAndroid, path, classAndFieldNames);
-		}
+			return resid;
 	}
 
 	/**

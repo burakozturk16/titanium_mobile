@@ -7,7 +7,6 @@
 
 package org.appcelerator.titanium.util;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -19,7 +18,6 @@ import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -29,8 +27,6 @@ import android.graphics.Path.Direction;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.RectF;
 import android.media.ExifInterface;
-import android.net.Uri;
-import android.provider.MediaStore;
 
 /**
  * Utility class for image manipulations.

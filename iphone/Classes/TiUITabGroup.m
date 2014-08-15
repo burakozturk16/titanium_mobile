@@ -141,9 +141,9 @@ DEFINE_EXCEPTIONS
 -(void)updateMoreBar:(UINavigationController *)moreController
 {
     UIColor * theColor = [TiUtils barColorForColor:barColor];
-    UIBarStyle navBarStyle = [TiUtils barStyleForColor:barColor];
     UIColor * nTintColor = [navTintColor color];
     BOOL translucent = [TiUtils boolValue:[self.proxy valueForUndefinedKey:@"translucent"] def:[TiUtils isIOS7OrGreater]];
+    UIBarStyle navBarStyle = [TiUtils intValue:[self.proxy valueForUndefinedKey:@"barStyle"] def:[TiUtils barStyleForColor:barColor]];
     
     //Update the UINavigationBar appearance.
     [[UINavigationBar appearanceWhenContainedIn:[UITabBarController class], nil] setBarStyle:navBarStyle];
@@ -435,6 +435,12 @@ DEFINE_EXCEPTIONS
 	barColor = [[TiUtils colorValue:value] retain];
 	[self.proxy replaceValue:value forKey:@"barColor" notification:NO];
 	[self updateMoreBar:[controller moreNavigationController]];
+}
+
+-(void)setBarStyle_:(id)value
+{
+	[[self proxy] replaceValue:value forKey:@"barStyle" notification:NO];
+    [self updateMoreBar:[controller moreNavigationController]];
 }
 
 -(void)setTitleAttributes_:(id)args

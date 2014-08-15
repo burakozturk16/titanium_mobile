@@ -698,7 +698,13 @@
 		D54C7D2018115D7D00F592A9 /* TiTransitionModernPush.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */; };
 		D54C7D2118115D7D00F592A9 /* TiTransitionModernPush.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */; };
 		D54C7D2218115D7D00F592A9 /* TiTransitionModernPush.m in Sources */ = {isa = PBXBuildFile; fileRef = D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */; };
+		D54E555719953BDC004A7335 /* RDActivityViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D54E555519953BDC004A7335 /* RDActivityViewController.m */; };
+		D54E555819953BDC004A7335 /* RDActivityViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D54E555519953BDC004A7335 /* RDActivityViewController.m */; };
+		D54E555919953BDC004A7335 /* RDActivityViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = D54E555519953BDC004A7335 /* RDActivityViewController.m */; };
 		D54E789E17D8901600443386 /* CoreTelephony.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D56FD2D6176EEAB0005BBC3F /* CoreTelephony.framework */; };
+		D5509FD8194B1C2D00655C61 /* AnalyticsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5509FD7194B1C2D00655C61 /* AnalyticsModule.m */; };
+		D5509FD9194B1C2D00655C61 /* AnalyticsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5509FD7194B1C2D00655C61 /* AnalyticsModule.m */; };
+		D5509FDA194B1C2D00655C61 /* AnalyticsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D5509FD7194B1C2D00655C61 /* AnalyticsModule.m */; };
 		D557957E1837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
 		D557957F1837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
 		D55795801837BF6C0057DD41 /* TiViewAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = D557957A1837BF6C0057DD41 /* TiViewAnimation.m */; };
@@ -746,6 +752,7 @@
 		D572BF5D1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5E1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
 		D572BF5F1827A71D00AB104A /* libSVGKit-iOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */; };
+		D57E7F74195AB92800C17ADE /* libakylas.location.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D57E7F6E195AB34D00C17ADE /* libakylas.location.a */; };
 		D5809D5019129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5809D5119129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5809D5219129CEB005A1F02 /* APSHTTPHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
@@ -758,13 +765,21 @@
 		D5809D5C19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5809D5D19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
 		D5809D5E19129CEB005A1F02 /* APSHTTPResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = D5809D4F19129CEB005A1F02 /* APSHTTPResponse.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
-		D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D5818EAE18AA8872007EF771 /* AdSupport.framework */; };
 		D585BC8517E630AB0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8717E630BA0062275E /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8417E630AB0062275E /* CoreVideo.framework */; };
 		D585BC8917E630CD0062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
 		D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
 		D585BC8B17E630DA0062275E /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D585BC8817E630CD0062275E /* CoreMedia.framework */; };
+		D586DCC219716E28002FBBBB /* CustomActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D586DCC119716E28002FBBBB /* CustomActionSheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D586DCC319716E28002FBBBB /* CustomActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D586DCC119716E28002FBBBB /* CustomActionSheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D586DCC419716E28002FBBBB /* CustomActionSheet.m in Sources */ = {isa = PBXBuildFile; fileRef = D586DCC119716E28002FBBBB /* CustomActionSheet.m */; settings = {COMPILER_FLAGS = "-fobjc-arc"; }; };
+		D58709BB19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B619796508002E8817 /* TiUIiOSActivityViewProxy.m */; };
+		D58709BC19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B619796508002E8817 /* TiUIiOSActivityViewProxy.m */; };
+		D58709BD19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B619796508002E8817 /* TiUIiOSActivityViewProxy.m */; };
+		D58709BE19796508002E8817 /* TiUIiOSActivityProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B819796508002E8817 /* TiUIiOSActivityProxy.m */; };
+		D58709BF19796508002E8817 /* TiUIiOSActivityProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B819796508002E8817 /* TiUIiOSActivityProxy.m */; };
+		D58709C019796508002E8817 /* TiUIiOSActivityProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = D58709B819796508002E8817 /* TiUIiOSActivityProxy.m */; };
 		D58791EA183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
 		D58791EB183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
 		D58791EC183E790F007F5BF1 /* TiTransitionPerspective.m in Sources */ = {isa = PBXBuildFile; fileRef = D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */; };
@@ -787,6 +802,7 @@
 		D597CF0717D719C4009A080B /* TiCellBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = D597CF0617D719C4009A080B /* TiCellBackgroundView.m */; };
 		D597CF0817D719C4009A080B /* TiCellBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = D597CF0617D719C4009A080B /* TiCellBackgroundView.m */; };
 		D597CF0917D719C4009A080B /* TiCellBackgroundView.m in Sources */ = {isa = PBXBuildFile; fileRef = D597CF0617D719C4009A080B /* TiCellBackgroundView.m */; };
+		D59A20C7194AF3D800BC5B93 /* libakylas.charts.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D59A20C0194AF3C800BC5B93 /* libakylas.charts.a */; };
 		D59DD42718096186002FDCDF /* ADModernPushTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D59DD42618096186002FDCDF /* ADModernPushTransition.m */; };
 		D59DD42818096186002FDCDF /* ADModernPushTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D59DD42618096186002FDCDF /* ADModernPushTransition.m */; };
 		D59DD42918096186002FDCDF /* ADModernPushTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = D59DD42618096186002FDCDF /* ADModernPushTransition.m */; };
@@ -902,6 +918,9 @@
 		D5E897B118A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
 		D5E897B218A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
 		D5E897B318A3FA0B00E565E1 /* NSDictionary+Merge.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */; };
+		D5E9511C195DC34800DB8B37 /* TiProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E9511B195DC34800DB8B37 /* TiProperties.m */; };
+		D5E9511D195DC34800DB8B37 /* TiProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E9511B195DC34800DB8B37 /* TiProperties.m */; };
+		D5E9511E195DC34800DB8B37 /* TiProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E9511B195DC34800DB8B37 /* TiProperties.m */; };
 		D5E999121869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999131869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
 		D5E999141869C8A2005B3664 /* TiBorderLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = D5E999111869C8A2005B3664 /* TiBorderLayer.m */; };
@@ -1242,6 +1261,20 @@
 /* End PBXBuildRule section */
 
 /* Begin PBXContainerItemProxy section */
+		D57E7F6D195AB34D00C17ADE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D57E7F66195AB34C00C17ADE /* akylas.location.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = akylas.location;
+		};
+		D57E7F72195AB91D00C17ADE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D57E7F66195AB34C00C17ADE /* akylas.location.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.location;
+		};
 		D58ED8E81928E6F700BA0E04 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */;
@@ -1297,6 +1330,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = D2AAC07D0554694100DB518D;
 			remoteInfo = akylas.shapes;
+		};
+		D59A20BF194AF3C800BC5B93 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D59A20B9194AF3C800BC5B93 /* akylas.charts.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D2AAC07E0554694100DB518D;
+			remoteInfo = akylas.charts;
+		};
+		D59A20C5194AF3D300BC5B93 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D59A20B9194AF3C800BC5B93 /* akylas.charts.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = D2AAC07D0554694100DB518D;
+			remoteInfo = akylas.charts;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -2047,6 +2094,11 @@
 		D54C7D1A18115C5200F592A9 /* TiTransitionSwap.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwap.m; sourceTree = "<group>"; };
 		D54C7D1E18115D7D00F592A9 /* TiTransitionModernPush.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionModernPush.h; sourceTree = "<group>"; };
 		D54C7D1F18115D7D00F592A9 /* TiTransitionModernPush.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionModernPush.m; sourceTree = "<group>"; };
+		D54E555419953BDC004A7335 /* RDActivityViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RDActivityViewController.h; path = ../Classes/RDActivityViewController/RDActivityViewController.h; sourceTree = "<group>"; };
+		D54E555519953BDC004A7335 /* RDActivityViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = RDActivityViewController.m; path = ../Classes/RDActivityViewController/RDActivityViewController.m; sourceTree = "<group>"; };
+		D54E555619953BDC004A7335 /* RDActivityViewControllerDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = RDActivityViewControllerDelegate.h; path = ../Classes/RDActivityViewController/RDActivityViewControllerDelegate.h; sourceTree = "<group>"; };
+		D5509FD6194B1C2D00655C61 /* AnalyticsModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AnalyticsModule.h; sourceTree = "<group>"; };
+		D5509FD7194B1C2D00655C61 /* AnalyticsModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AnalyticsModule.m; sourceTree = "<group>"; };
 		D55795791837BF6C0057DD41 /* TiViewAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiViewAnimation.h; path = Animation/TiViewAnimation.h; sourceTree = "<group>"; };
 		D557957A1837BF6C0057DD41 /* TiViewAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiViewAnimation.m; path = Animation/TiViewAnimation.m; sourceTree = "<group>"; };
 		D557957B1837BF6C0057DD41 /* TiViewAnimation+Friend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "TiViewAnimation+Friend.h"; path = "Animation/TiViewAnimation+Friend.h"; sourceTree = "<group>"; };
@@ -2085,6 +2137,7 @@
 		D57007F718255C520063F7FE /* TiTransitionSwipeDualFade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionSwipeDualFade.h; sourceTree = "<group>"; };
 		D57007F818255C520063F7FE /* TiTransitionSwipeDualFade.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionSwipeDualFade.m; sourceTree = "<group>"; };
 		D572BF5C1827A71D00AB104A /* libSVGKit-iOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libSVGKit-iOS.a"; path = "../libexternals/libSVGKit-iOS.a"; sourceTree = "<group>"; };
+		D57E7F66195AB34C00C17ADE /* akylas.location.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.location.xcodeproj; path = ../../../modules/akylas_modules/location/ios/akylas.location.xcodeproj; sourceTree = "<group>"; };
 		D5809D4519129CEB005A1F02 /* APSHTTPClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPClient.h; sourceTree = "<group>"; };
 		D5809D4619129CEB005A1F02 /* APSHTTPHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APSHTTPHelper.h; sourceTree = "<group>"; };
 		D5809D4719129CEB005A1F02 /* APSHTTPHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APSHTTPHelper.m; sourceTree = "<group>"; };
@@ -2097,6 +2150,13 @@
 		D5818EAE18AA8872007EF771 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		D585BC8417E630AB0062275E /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		D585BC8817E630CD0062275E /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		D586DCC019716E28002FBBBB /* CustomActionSheet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomActionSheet.h; sourceTree = "<group>"; };
+		D586DCC119716E28002FBBBB /* CustomActionSheet.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomActionSheet.m; sourceTree = "<group>"; };
+		D58709B419796501002E8817 /* ActivityProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityProxy.h; sourceTree = "<group>"; };
+		D58709B519796508002E8817 /* TiUIiOSActivityViewProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSActivityViewProxy.h; sourceTree = "<group>"; };
+		D58709B619796508002E8817 /* TiUIiOSActivityViewProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSActivityViewProxy.m; sourceTree = "<group>"; };
+		D58709B719796508002E8817 /* TiUIiOSActivityProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIiOSActivityProxy.h; sourceTree = "<group>"; };
+		D58709B819796508002E8817 /* TiUIiOSActivityProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiUIiOSActivityProxy.m; sourceTree = "<group>"; };
 		D58791E8183E790F007F5BF1 /* TiTransitionPerspective.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionPerspective.h; sourceTree = "<group>"; };
 		D58791E9183E790F007F5BF1 /* TiTransitionPerspective.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiTransitionPerspective.m; sourceTree = "<group>"; };
 		D58DCBCB17FEF0F50011FE0E /* TiSVGImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSVGImage.h; sourceTree = "<group>"; };
@@ -2109,6 +2169,7 @@
 		D590815B168B593B00362307 /* TiUIHorizontalTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiUIHorizontalTableView.h; sourceTree = "<group>"; };
 		D597CF0517D719C4009A080B /* TiCellBackgroundView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiCellBackgroundView.h; sourceTree = "<group>"; };
 		D597CF0617D719C4009A080B /* TiCellBackgroundView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiCellBackgroundView.m; sourceTree = "<group>"; };
+		D59A20B9194AF3C800BC5B93 /* akylas.charts.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = akylas.charts.xcodeproj; path = ../../../modules/akylas_modules/charts/ios/akylas.charts.xcodeproj; sourceTree = "<group>"; };
 		D59DD42518096186002FDCDF /* ADModernPushTransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ADModernPushTransition.h; path = ../Classes/ADTransitionController/ADModernPushTransition.h; sourceTree = "<group>"; };
 		D59DD42618096186002FDCDF /* ADModernPushTransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ADModernPushTransition.m; path = ../Classes/ADTransitionController/ADModernPushTransition.m; sourceTree = "<group>"; };
 		D59EC23B180FDC5D00FDDD11 /* TiTransitionFold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiTransitionFold.h; sourceTree = "<group>"; };
@@ -2253,6 +2314,8 @@
 		D5E75A7A187C59060016542B /* icon_120@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "icon_120@2x.png"; path = "../../demos/KitchenSink/icons/icon_120@2x.png"; sourceTree = "<group>"; };
 		D5E897AF18A3FA0B00E565E1 /* NSDictionary+Merge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+Merge.h"; sourceTree = "<group>"; };
 		D5E897B018A3FA0B00E565E1 /* NSDictionary+Merge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+Merge.m"; sourceTree = "<group>"; };
+		D5E9511A195DC34800DB8B37 /* TiProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiProperties.h; sourceTree = "<group>"; };
+		D5E9511B195DC34800DB8B37 /* TiProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiProperties.m; sourceTree = "<group>"; };
 		D5E999101869C8A2005B3664 /* TiBorderLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiBorderLayer.h; sourceTree = "<group>"; };
 		D5E999111869C8A2005B3664 /* TiBorderLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TiBorderLayer.m; sourceTree = "<group>"; };
 		D5EA4AD218EF05EB001F67E8 /* libresolv.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libresolv.dylib; path = usr/lib/libresolv.dylib; sourceTree = SDKROOT; };
@@ -2315,13 +2378,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D57E7F74195AB92800C17ADE /* libakylas.location.a in Frameworks */,
+				D59A20C7194AF3D800BC5B93 /* libakylas.charts.a in Frameworks */,
 				D58ED9071928F49F00BA0E04 /* libakylas.commonjs.a in Frameworks */,
 				D58ED9081928F49F00BA0E04 /* libakylas.map.a in Frameworks */,
 				D58ED9091928F49F00BA0E04 /* libakylas.shapes.a in Frameworks */,
 				D58ED90A1928F49F00BA0E04 /* libakylas.slidemenu.a in Frameworks */,
 				D5A016CA1926109E0005158A /* Accelerate.framework in Frameworks */,
 				312E36C1190B06D9008EAB8D /* libAPSAnalytics.a in Frameworks */,
-				D5818EAF18AA8872007EF771 /* AdSupport.framework in Frameworks */,
 				D585BC8A17E630D40062275E /* CoreMedia.framework in Frameworks */,
 				D585BC8617E630B30062275E /* CoreVideo.framework in Frameworks */,
 				D56FD2D7176EEAB0005BBC3F /* CoreTelephony.framework in Frameworks */,
@@ -2546,6 +2610,7 @@
 		24CA8903111160C30084E2DE /* Thirdparty */ = {
 			isa = PBXGroup;
 			children = (
+				D54E554D19953BD1004A7335 /* RDActivityViewController */,
 				D55795071837BEF90057DD41 /* CoconutKitAnimation */,
 				D5B6C6DD1811249F00A2612A /* DT */,
 				D5C8C93C17EF45BA00F54C19 /* ADTransitionController */,
@@ -2691,6 +2756,7 @@
 		24CA8A09111161D60084E2DE /* Modules */ = {
 			isa = PBXGroup;
 			children = (
+				D5509FD5194B1C2100655C61 /* Analytics */,
 				D55795781837BF3C0057DD41 /* Animation */,
 				D51697EF17FFF61D00B4FDB8 /* Image */,
 				D93DAA4C16CBF8A000AD64C9 /* Calendar */,
@@ -2852,6 +2918,8 @@
 				D5FD09DB1830EFE2000FF4C5 /* TiAnimatedImage.m */,
 				D50A302E18B0F6C1004CBD52 /* TouchCapturingWindow.h */,
 				D50A302F18B0F6C1004CBD52 /* TouchCapturingWindow.m */,
+				D5E9511A195DC34800DB8B37 /* TiProperties.h */,
+				D5E9511B195DC34800DB8B37 /* TiProperties.m */,
 			);
 			name = API;
 			sourceTree = "<group>";
@@ -3152,6 +3220,8 @@
 		24CA8C5F111165720084E2DE /* Option Dialog */ = {
 			isa = PBXGroup;
 			children = (
+				D586DCC019716E28002FBBBB /* CustomActionSheet.h */,
+				D586DCC119716E28002FBBBB /* CustomActionSheet.m */,
 				24CA8A6E111161FD0084E2DE /* TiUIOptionDialogProxy.m */,
 				24CA8A6F111161FD0084E2DE /* TiUIOptionDialogProxy.h */,
 			);
@@ -3359,6 +3429,7 @@
 		24D06FDE11D020E600F615D8 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
+				D58709B3197964EE002E8817 /* Activity */,
 				B6A0A2AF180DF4DA00E3FAA6 /* TiUIiOSTransitionAnimationProxy.h */,
 				B6A0A2B0180DF4DA00E3FAA6 /* TiUIiOSTransitionAnimationProxy.m */,
 				B6C5205E18035ACF002471C6 /* AttributedString */,
@@ -3936,6 +4007,25 @@
 			name = JRSwizzle;
 			sourceTree = "<group>";
 		};
+		D54E554D19953BD1004A7335 /* RDActivityViewController */ = {
+			isa = PBXGroup;
+			children = (
+				D54E555419953BDC004A7335 /* RDActivityViewController.h */,
+				D54E555519953BDC004A7335 /* RDActivityViewController.m */,
+				D54E555619953BDC004A7335 /* RDActivityViewControllerDelegate.h */,
+			);
+			name = RDActivityViewController;
+			sourceTree = "<group>";
+		};
+		D5509FD5194B1C2100655C61 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				D5509FD6194B1C2D00655C61 /* AnalyticsModule.h */,
+				D5509FD7194B1C2D00655C61 /* AnalyticsModule.m */,
+			);
+			name = Analytics;
+			sourceTree = "<group>";
+		};
 		D55795071837BEF90057DD41 /* CoconutKitAnimation */ = {
 			isa = PBXGroup;
 			children = (
@@ -3999,6 +4089,8 @@
 		D55ED5781861B3C90035749B /* _dependencies_ */ = {
 			isa = PBXGroup;
 			children = (
+				D57E7F66195AB34C00C17ADE /* akylas.location.xcodeproj */,
+				D59A20B9194AF3C800BC5B93 /* akylas.charts.xcodeproj */,
 				D52DF1CD18C77AF80076FB71 /* akylas.map.xcodeproj */,
 				D5E75A6E187C58F00016542B /* icon.png */,
 				D5E75A7A187C59060016542B /* icon_120@2x.png */,
@@ -4070,6 +4162,26 @@
 			name = transitions;
 			sourceTree = "<group>";
 		};
+		D57E7F67195AB34C00C17ADE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D57E7F6E195AB34D00C17ADE /* libakylas.location.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D58709B3197964EE002E8817 /* Activity */ = {
+			isa = PBXGroup;
+			children = (
+				D58709B519796508002E8817 /* TiUIiOSActivityViewProxy.h */,
+				D58709B619796508002E8817 /* TiUIiOSActivityViewProxy.m */,
+				D58709B719796508002E8817 /* TiUIiOSActivityProxy.h */,
+				D58709B819796508002E8817 /* TiUIiOSActivityProxy.m */,
+				D58709B419796501002E8817 /* ActivityProxy.h */,
+			);
+			name = Activity;
+			sourceTree = "<group>";
+		};
 		D58ED8E41928E6F700BA0E04 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -4098,6 +4210,14 @@
 			isa = PBXGroup;
 			children = (
 				D58ED8FB1928E6F800BA0E04 /* libakylas.commonjs.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D59A20BA194AF3C800BC5B93 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D59A20C0194AF3C800BC5B93 /* libakylas.charts.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -4320,6 +4440,8 @@
 				D56915C5168F19E800C3F89F /* PBXBuildRule */,
 			);
 			dependencies = (
+				D57E7F73195AB91D00C17ADE /* PBXTargetDependency */,
+				D59A20C6194AF3D300BC5B93 /* PBXTargetDependency */,
 				D58ED9051928F49600BA0E04 /* PBXTargetDependency */,
 				D58ED9031928F49300BA0E04 /* PBXTargetDependency */,
 				D58ED9011928F49000BA0E04 /* PBXTargetDependency */,
@@ -4401,8 +4523,16 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = D59A20BA194AF3C800BC5B93 /* Products */;
+					ProjectRef = D59A20B9194AF3C800BC5B93 /* akylas.charts.xcodeproj */;
+				},
+				{
 					ProductGroup = D58ED8F61928E6F800BA0E04 /* Products */;
 					ProjectRef = D5EE1BE31860CAB900579573 /* akylas.commonjs.xcodeproj */;
+				},
+				{
+					ProductGroup = D57E7F67195AB34C00C17ADE /* Products */;
+					ProjectRef = D57E7F66195AB34C00C17ADE /* akylas.location.xcodeproj */;
 				},
 				{
 					ProductGroup = D58ED8E41928E6F700BA0E04 /* Products */;
@@ -4427,6 +4557,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		D57E7F6E195AB34D00C17ADE /* libakylas.location.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libakylas.location.a;
+			remoteRef = D57E7F6D195AB34D00C17ADE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		D58ED8E91928E6F700BA0E04 /* libakylas.map.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -4453,6 +4590,13 @@
 			fileType = archive.ar;
 			path = libakylas.commonjs.a;
 			remoteRef = D58ED8FA1928E6F800BA0E04 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D59A20C0194AF3C800BC5B93 /* libakylas.charts.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libakylas.charts.a;
+			remoteRef = D59A20BF194AF3C800BC5B93 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -4695,12 +4839,14 @@
 				D535603818609A2800F8DEFD /* TiHLSLayerAnimationStep.m in Sources */,
 				D57007F918255C520063F7FE /* TiTransitionSwipeDualFade.m in Sources */,
 				24CA8BBC111161FE0084E2DE /* TiMediaVideoPlayerProxy.m in Sources */,
+				D586DCC219716E28002FBBBB /* CustomActionSheet.m in Sources */,
 				24CA8BBD111161FE0084E2DE /* TiMediaSoundProxy.m in Sources */,
 				D56E6699180C3B9000F1B737 /* TiTransitionSwipe.m in Sources */,
 				24CA8BBE111161FE0084E2DE /* TiMediaAudioPlayerProxy.m in Sources */,
 				D5C8C98217EF45C900F54C19 /* ADGlueTransition.m in Sources */,
 				24CA8BC2111161FE0084E2DE /* TiHost.m in Sources */,
 				24CA8BC3111161FE0084E2DE /* TiFilesystemFileProxy.m in Sources */,
+				D58709BB19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */,
 				24CA8BC7111161FE0084E2DE /* TiDimension.m in Sources */,
 				24CA8BC8111161FE0084E2DE /* TiDatabaseResultSetProxy.m in Sources */,
 				24CA8BC9111161FE0084E2DE /* TiDatabaseProxy.m in Sources */,
@@ -4715,6 +4861,7 @@
 				84E00A9C17B646EE00B6DCE2 /* TiUINavigationWindowProxy.m in Sources */,
 				B606EF35190B109D00663EFC /* TiNetworkHTTPClientProxy.m in Sources */,
 				8484E3A117A8279500C24B02 /* TiRootViewController.m in Sources */,
+				D5E9511C195DC34800DB8B37 /* TiProperties.m in Sources */,
 				24CA8BCD111161FE0084E2DE /* TiButtonUtil.m in Sources */,
 				24CA8BCE111161FE0084E2DE /* TiBlob.m in Sources */,
 				24CA8BCF111161FE0084E2DE /* TiBase.m in Sources */,
@@ -4793,6 +4940,7 @@
 				2412F467115C296300454E5B /* TiMediaVideoPlayer.m in Sources */,
 				24FB4EE3115C81A7001AAF99 /* TiUIiPadSplitWindowProxy.m in Sources */,
 				D54C7CFD18115BBE00F592A9 /* TiTransitionScale.m in Sources */,
+				D58709BE19796508002E8817 /* TiUIiOSActivityProxy.m in Sources */,
 				24FB4EF4115C81C5001AAF99 /* TiUIiPadPopoverProxy.m in Sources */,
 				24FB4EFC115C81DD001AAF99 /* TiUIiPadPopover.m in Sources */,
 				24FB4F42115C8C4E001AAF99 /* TiUIiPadProxy.m in Sources */,
@@ -4853,6 +5001,7 @@
 				DABF3ED7134D2CA100836137 /* StreamModule.m in Sources */,
 				DABF3EDC134D2E4400836137 /* TiStreamProxy.m in Sources */,
 				DAA4B2B4134E75AC00AB6011 /* CodecModule.m in Sources */,
+				D54E555719953BDC004A7335 /* RDActivityViewController.m in Sources */,
 				D54C7D1B18115C5200F592A9 /* TiTransitionSwap.m in Sources */,
 				DA2556441353D2FC005D459C /* TiNetworkSocketProxy.m in Sources */,
 				DAE541E313577BEC00A65123 /* TiDataStream.m in Sources */,
@@ -4867,6 +5016,7 @@
 				1D19459B13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
 				EF0ADCFA143F9ABF00977386 /* NSData+Additions.m in Sources */,
 				EF0ADD1A143FA0CD00977386 /* GeolocationModule.m in Sources */,
+				D5509FD8194B1C2D00655C61 /* AnalyticsModule.m in Sources */,
 				2B1F65771431031E006C5D37 /* ApplicationDefaults.m in Sources */,
 				D5C8C96A17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
 				2BCD59C51429561D00DEC2E8 /* TiUIiOSToolbar.m in Sources */,
@@ -5083,6 +5233,7 @@
 				84A0101417FCB46E00D4BF94 /* TiCollisionBehavior.m in Sources */,
 				24D8E43E119B9D8A00F8CAA6 /* TiBlob.m in Sources */,
 				24D8E43F119B9D8A00F8CAA6 /* TiBase.m in Sources */,
+				D58709BF19796508002E8817 /* TiUIiOSActivityProxy.m in Sources */,
 				24D8E440119B9D8A00F8CAA6 /* TiAppPropertiesProxy.m in Sources */,
 				D54C7CF01811565A00F592A9 /* TiTransitionSlide.m in Sources */,
 				24D8E441119B9D8A00F8CAA6 /* TiAnimation.m in Sources */,
@@ -5124,6 +5275,7 @@
 				24D8E467119B9D8A00F8CAA6 /* ListenerEntry.m in Sources */,
 				24D8E468119B9D8A00F8CAA6 /* XMLModule.m in Sources */,
 				24D8E469119B9D8A00F8CAA6 /* TiUIiPhoneTableViewScrollPositionProxy.m in Sources */,
+				D54E555819953BDC004A7335 /* RDActivityViewController.m in Sources */,
 				24D8E46A119B9D8A00F8CAA6 /* TiMediaAudioRecorderProxy.mm in Sources */,
 				24D8E46B119B9D8A00F8CAA6 /* CADebugMacros.cpp in Sources */,
 				24D8E46C119B9D8A00F8CAA6 /* CAStreamBasicDescription.cpp in Sources */,
@@ -5175,6 +5327,7 @@
 				24D8E493119B9D8A00F8CAA6 /* TopTiModule.m in Sources */,
 				24D8E494119B9D8A00F8CAA6 /* TiApp.m in Sources */,
 				D5AADFAC17EC32A6008987EF /* UIControl+TiUIView.m in Sources */,
+				D586DCC319716E28002FBBBB /* CustomActionSheet.m in Sources */,
 				24D8E495119B9D8A00F8CAA6 /* TiErrorController.m in Sources */,
 				D56E6695180BF0B900F1B737 /* TiTransitionSwipeFade.m in Sources */,
 				DAA905CF11A35A010030B119 /* TiMediaMusicPlayer.m in Sources */,
@@ -5229,6 +5382,7 @@
 				2B94603913F0A2AE000C5BEA /* TiUIiOSCoverFlowViewProxy.m in Sources */,
 				D55795891837C1680057DD41 /* TiHLSAnimation.m in Sources */,
 				1DCC543013FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
+				D5509FD9194B1C2D00655C61 /* AnalyticsModule.m in Sources */,
 				1D19459713FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459C13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
 				D5C8C96B17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
@@ -5253,6 +5407,7 @@
 				2B353A8215901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				D56E669F180C3BEB00F1B737 /* TiTransitionCarousel.m in Sources */,
 				2B0B6E0D15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
+				D5E9511D195DC34800DB8B37 /* TiProperties.m in Sources */,
 				D54C7D0318115BD100F592A9 /* TitransitionBackFade.m in Sources */,
 				4688700815E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				1D1029A915F9769200372EC0 /* TiBindingEvent.m in Sources */,
@@ -5284,6 +5439,7 @@
 				D52A8E74183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
 				D5B04536191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */,
 				D5C8C98917EF45C900F54C19 /* ADScaleTransition.m in Sources */,
+				D58709BC19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */,
 				D56E66A9180C664400F1B737 /* TiTransitionFade.m in Sources */,
 				D5C8C97D17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
 				D5C8C99217EF45C900F54C19 /* ADSwipeFadeTransition.m in Sources */,
@@ -5445,6 +5601,7 @@
 				84A0101517FCB46E00D4BF94 /* TiCollisionBehavior.m in Sources */,
 				DABB371712E8CB280026A6EA /* TiBlob.m in Sources */,
 				DABB371812E8CB280026A6EA /* TiBase.m in Sources */,
+				D58709C019796508002E8817 /* TiUIiOSActivityProxy.m in Sources */,
 				DABB371912E8CB280026A6EA /* TiAppPropertiesProxy.m in Sources */,
 				D54C7CF11811565A00F592A9 /* TiTransitionSlide.m in Sources */,
 				DABB371A12E8CB280026A6EA /* TiAnimation.m in Sources */,
@@ -5486,6 +5643,7 @@
 				DABB373F12E8CB280026A6EA /* ListenerEntry.m in Sources */,
 				DABB374012E8CB280026A6EA /* XMLModule.m in Sources */,
 				DABB374112E8CB280026A6EA /* TiUIiPhoneTableViewScrollPositionProxy.m in Sources */,
+				D54E555919953BDC004A7335 /* RDActivityViewController.m in Sources */,
 				DABB374212E8CB280026A6EA /* TiMediaAudioRecorderProxy.mm in Sources */,
 				DABB374312E8CB280026A6EA /* CADebugMacros.cpp in Sources */,
 				DABB374412E8CB280026A6EA /* CAStreamBasicDescription.cpp in Sources */,
@@ -5537,6 +5695,7 @@
 				DABB376B12E8CB280026A6EA /* TopTiModule.m in Sources */,
 				DABB376C12E8CB280026A6EA /* TiApp.m in Sources */,
 				D5AADFAD17EC32A6008987EF /* UIControl+TiUIView.m in Sources */,
+				D586DCC419716E28002FBBBB /* CustomActionSheet.m in Sources */,
 				DABB376D12E8CB280026A6EA /* TiErrorController.m in Sources */,
 				D56E6696180BF0B900F1B737 /* TiTransitionSwipeFade.m in Sources */,
 				DABB376F12E8CB280026A6EA /* TiMediaMusicPlayer.m in Sources */,
@@ -5591,6 +5750,7 @@
 				2B94603B13F0A2AE000C5BEA /* TiUIiOSCoverFlowViewProxy.m in Sources */,
 				D557958A1837C1680057DD41 /* TiHLSAnimation.m in Sources */,
 				1DCC543113FF0B0800DF3EE5 /* TIDOMCharacterDataProxy.m in Sources */,
+				D5509FDA194B1C2D00655C61 /* AnalyticsModule.m in Sources */,
 				1D19459813FF3BC400E2B4D0 /* TIDOMDOMImplementationProxy.m in Sources */,
 				1D19459D13FF3BE500E2B4D0 /* TIDOMDocumentTypeProxy.m in Sources */,
 				D5C8C96C17EF45C900F54C19 /* ADCarrouselTransition.m in Sources */,
@@ -5615,6 +5775,7 @@
 				2B353A8315901D41008FBD84 /* Ti3DMatrix.m in Sources */,
 				D56E66A0180C3BEB00F1B737 /* TiTransitionCarousel.m in Sources */,
 				2B0B6E0E15951F9400F3170F /* TiUIiOSDocumentViewerProxy.m in Sources */,
+				D5E9511E195DC34800DB8B37 /* TiProperties.m in Sources */,
 				D54C7D0418115BD100F592A9 /* TitransitionBackFade.m in Sources */,
 				4688700915E39A9D008FA326 /* TiUIiPhoneAlertDialogStyleProxy.m in Sources */,
 				1D1029AA15F9769200372EC0 /* TiBindingEvent.m in Sources */,
@@ -5646,6 +5807,7 @@
 				D52A8E75183606F6001AC6A1 /* TiAnimatableProxy.m in Sources */,
 				D5B04537191D2EC4001CF02F /* TiFileSystemHelper.m in Sources */,
 				D5C8C9A217EF45C900F54C19 /* ADZoomTransition.m in Sources */,
+				D58709BD19796508002E8817 /* TiUIiOSActivityViewProxy.m in Sources */,
 				D5C8C98A17EF45C900F54C19 /* ADScaleTransition.m in Sources */,
 				D56E66AA180C664400F1B737 /* TiTransitionFade.m in Sources */,
 				D5C8C97E17EF45C900F54C19 /* ADFoldTransition.m in Sources */,
@@ -5668,6 +5830,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D57E7F73195AB91D00C17ADE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = akylas.location;
+			targetProxy = D57E7F72195AB91D00C17ADE /* PBXContainerItemProxy */;
+		};
 		D58ED8FF1928F48E00BA0E04 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = akylas.map;
@@ -5687,6 +5854,11 @@
 			isa = PBXTargetDependency;
 			name = akylas.shapes;
 			targetProxy = D58ED9041928F49600BA0E04 /* PBXContainerItemProxy */;
+		};
+		D59A20C6194AF3D300BC5B93 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = akylas.charts;
+			targetProxy = D59A20C5194AF3D300BC5B93 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

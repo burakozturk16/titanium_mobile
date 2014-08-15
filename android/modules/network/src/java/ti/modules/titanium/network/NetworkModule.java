@@ -6,10 +6,12 @@
  */
 package ti.modules.titanium.network;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.client.CookieStore;
@@ -17,17 +19,28 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.appcelerator.kroll.KrollDict;
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.KrollProxy;
+import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
+import org.appcelerator.kroll.util.KrollAssetHelper;
+import org.appcelerator.titanium.ITiAppInfo;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.TiContext;
+import org.appcelerator.titanium.TiProperties;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiPlatformHelper;
+import org.json.JSONObject;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -40,6 +53,7 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.ScanResult;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -65,6 +79,21 @@ public class NetworkModule extends KrollModule {
 	@Kroll.constant public static final int NETWORK_MOBILE = 2;
 	@Kroll.constant public static final int NETWORK_LAN = 3;
 	@Kroll.constant public static final int NETWORK_UNKNOWN = 4;
+
+	private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    public static final String PROPERTY_GCM_REG_ID = "gcm_registration_id";
+    public static final String PROPERTY_GCM_CURRENT_VERSION = "gcm_current_app_version";
+    
+    public static final String GCM_NOTIFICATION_SCRIPT = "ti.android.gcm.notification.script";
+    @Kroll.constant public static final String GCM_NOTIFICATION_LAST = "ti.android.gcm.notification.last";
+    
+    
+    private KrollFunction gcmSuccessCallback = null;
+    private KrollFunction gcmErrorCallback = null;
+    private KrollFunction gcmMessageCallback = null;
+    private static String scriptUrl;
+    private static TiProperties appProperties;
+    private static NetworkModule _instance;
 
     public enum State {
         UNKNOWN,
@@ -163,15 +192,43 @@ public class NetworkModule extends KrollModule {
 	public NetworkModule()
 	{
 		super();
-
-		this.lastNetInfo = new NetInfo();
-		this.isListeningForConnectivity = false;
-		this.isListeningForWifiScan = false;
+		init();
+		
 	}
+	
+	private void init() {
+	    this.lastNetInfo = new NetInfo();
+        this.isListeningForConnectivity = false;
+        this.isListeningForWifiScan = false;
+        _instance = this;
+        if (appProperties == null) {
+            final TiApplication app = TiApplication.getInstance();
+            Log.d(TAG, "creation", Log.DEBUG_MODE);
+            appProperties = app.getAppProperties();
+            if (appProperties.hasProperty(GCM_NOTIFICATION_SCRIPT)) {
+                scriptUrl = appProperties.getString(GCM_NOTIFICATION_SCRIPT, null);
+                if (scriptUrl != null) {
+                    if (!scriptUrl.contains("://") && !scriptUrl.startsWith("/")) {
+                        scriptUrl = TiC.URL_ANDROID_ASSET_RESOURCES + scriptUrl;
+                    }
+                    if (scriptUrl.startsWith(TiC.URL_APP_PREFIX)) {
+                        scriptUrl = scriptUrl.replaceAll("app:/", "Resources");
+
+                    } else if (scriptUrl.startsWith(TiC.URL_ANDROID_ASSET_RESOURCES)) {
+                        scriptUrl = scriptUrl.replaceAll("file:///android_asset/", "");
+                    }
+                }
+            }
+        }
+    }
 
 	public NetworkModule(TiContext tiContext)
 	{
 		this();
+	}
+	
+	public static NetworkModule getInstance() {
+	    return _instance;
 	}
 
 	@Override
@@ -1016,5 +1073,220 @@ public class NetworkModule extends KrollModule {
         stats.put("timestamp", currentTime);
         return stats;
     }
+	
+	/**
+	 * Check the device to make sure it has the Google Play Services APK. If
+	 * it doesn't, display a dialog that allows users to download the APK from
+	 * the Google Play Store or enable it in the device's system settings.
+	 */
+	private boolean checkPlayServices(final Context context) {
+	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+	    if (resultCode != ConnectionResult.SUCCESS) {
+	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+	            GooglePlayServicesUtil.getErrorDialog(resultCode, getActivity(),
+	                    PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	        } else {
+	            Log.i(TAG, "This device is not supported.");
+	        }
+	        return false;
+	    }
+	    return true;
+	}
+
+	/**
+	 * Gets the current registration ID for application on GCM service.
+	 * <p>
+	 * If result is empty, the app needs to register.
+	 *
+	 * @return registration ID, or empty string if there is no existing
+	 *         registration ID.
+	 */
+	@SuppressLint("NewApi")
+    private String getRegistrationId(Context context) {
+	    final TiProperties prefs = TiApplication.getInstance().getAppProperties();
+	    final ITiAppInfo appInfo = TiApplication.getInstance().getAppInfo();
+	    String registrationId = prefs.getString(PROPERTY_GCM_REG_ID, "");
+	    if (registrationId.isEmpty()) {
+	        Log.i(TAG, "Registration not found.");
+	        return "";
+	    }
+	    // Check if app was updated; if so, it must clear the registration ID
+	    // since the existing regID is not guaranteed to work with the new
+	    // app version.
+	    final String registeredVersion = prefs.getString(PROPERTY_GCM_CURRENT_VERSION, "");
+	    final String currentVersion = appInfo.getVersion();
+	    if (registeredVersion != currentVersion) {
+	        Log.i(TAG, "App version changed.");
+	        return "";
+	    }
+	    return registrationId;
+	}
+	
+	/**
+	 * Stores the registration ID and app versionCode in the application's
+	 * {@code SharedPreferences}.
+	 *
+	 * @param context application's context.
+	 * @param regId registration ID
+	 */
+	private void storeRegistrationId(String regId) {
+	    final TiProperties prefs = TiApplication.getInstance().getAppProperties();
+        final ITiAppInfo appInfo = TiApplication.getInstance().getAppInfo();
+        
+//	    SharedPreferences.Editor editor = prefs.edit();
+        prefs.setString(PROPERTY_GCM_REG_ID, regId);
+        prefs.setString(PROPERTY_GCM_CURRENT_VERSION, appInfo.getVersion());
+	}
+	
+	private class RegistrationTask extends AsyncTask< Object, Void, String >
+    {
+        String senderId;
+
+        @Override
+        protected String doInBackground(Object... params)
+        {
+            senderId = (String)params[0];
+            String msg = "";
+            try {
+                GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(TiApplication.getInstance().getApplicationContext());
+                String regid = gcm.register(senderId);
+                msg = "Device registered, registration ID=" + regid;
+                storeRegistrationId(regid);
+                NetworkModule.gcmOnSuccess(regid, senderId);
+            } catch (IOException ex) {
+                msg = "Error :" + ex.getMessage();
+                NetworkModule.gcmOnError(msg);
+            }
+            return msg;
+        }
+        /**
+         * Always invoked on UI thread.
+         */
+        @Override
+        protected void onPostExecute(String result)
+        {
+            Log.d(TAG, result, Log.DEBUG_MODE);
+        }
+    }
+
+	private void registerInBackground(final String senderId) {
+        (new RegistrationTask()).execute(senderId);
+	}
+	
+	// Methods
+    @Kroll.method
+    public void registerForPushNotifications(HashMap options) {
+        final Context context = TiApplication.getInstance().getApplicationContext();
+       
+        if (checkPlayServices(context)) {
+            String senderId = null;
+            if (options.containsKey(TiC.PROPERTY_SENDER_ID)) {
+                senderId = (String)options.get(TiC.PROPERTY_SENDER_ID);
+            }
+            else {
+                final TiProperties prefs = TiApplication.getInstance().getAppProperties();
+                senderId = prefs.getString("ti.android.gcm.sender.id", null);
+            }
+            if (options.containsKey(TiC.PROPERTY_SUCCESS)) {
+                gcmSuccessCallback = (KrollFunction)options.get(TiC.PROPERTY_SUCCESS);
+            }
+            if (options.containsKey(TiC.PROPERTY_ERROR)) {
+                gcmErrorCallback = (KrollFunction)options.get(TiC.PROPERTY_ERROR);
+            }
+            if (options.containsKey(TiC.PROPERTY_CALLBACK)) {
+                gcmMessageCallback = (KrollFunction)options.get(TiC.PROPERTY_CALLBACK);
+            }
+            if (senderId == null) {
+                handleGcmOnError("no android.gcm.sender.id provided");
+            }
+            String regid = getRegistrationId( context);
+
+            if (regid == null || regid.length() == 0) {
+                registerInBackground(senderId);
+            }
+            else {
+                handleGcmOnSuccess(regid, senderId);
+            }
+        } else {
+            Log.i(TAG, "No valid Google Play Services APK found.");
+        }
+    }
+    @Kroll.method
+    public void unregisterForPushNotifications() {
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... params) {
+                GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(TiApplication.getInstance().getApplicationContext());
+                try {
+                    gcm.unregister();
+                } catch (IOException e) {
+                    NetworkModule.gcmOnError(e.getMessage());
+                }
+                return null;
+            }
+        };
+    }
     
+    public void handleGcmOnMessage(HashMap messageData) {
+        if(gcmMessageCallback != null) {
+            KrollDict data = new KrollDict();
+            data.put("data", messageData);
+            gcmMessageCallback.call(getKrollObject(),data);
+        }
+    }
+    
+    private static void runScript(HashMap messageData) {
+        KrollProxy proxy = TiApplication.getInstance().getModuleByName("App");
+        if (proxy == null) {
+            Log.e(TAG, "cant handle location as no App proxy", Log.DEBUG_MODE);
+            return;
+        }
+        try {
+            JSONObject json = new JSONObject(messageData);
+            appProperties.setString(GCM_NOTIFICATION_LAST, TiConvert.toString(json));
+        } catch (Exception e) {
+            appProperties.setString(GCM_NOTIFICATION_LAST, "");
+        }
+        if (scriptUrl != null) {
+            Log.d(TAG, "we have scriptUrl", Log.DEBUG_MODE);
+            KrollRuntime.getInstance().runModule(KrollAssetHelper.readAsset(scriptUrl), scriptUrl, proxy);
+        }
+    }
+    
+    public static void gcmOnMessage(HashMap messageData) {
+        if (_instance != null) {
+            _instance.handleGcmOnMessage(messageData);
+        }
+        runScript(messageData);
+    }
+    
+    public void handleGcmOnError(String message) {
+        if(gcmErrorCallback != null) {
+            KrollDict data = new KrollDict();
+            data.put("code", 0);
+            data.put("message", message);
+            gcmErrorCallback.call(getKrollObject(),data);
+        }
+    }
+    
+    public static void gcmOnError(String message) {
+        if (_instance == null) return;
+        _instance.handleGcmOnError(message);
+    }
+    
+
+    public void handleGcmOnSuccess(final String regId, final String senderId) {
+        if(gcmSuccessCallback != null) {
+            KrollDict data = new KrollDict();
+            data.put("registrationId", regId);
+            data.put("senderId", senderId);
+            gcmSuccessCallback.call(getKrollObject(),data);
+        }
+    }
+    
+    public static void gcmOnSuccess(final String regId, final String senderId) {
+        if (_instance == null) return;
+        _instance.handleGcmOnSuccess(regId, senderId);
+    }
 }

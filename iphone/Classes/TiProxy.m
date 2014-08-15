@@ -881,7 +881,9 @@ void TiClassSelectorFunction(TiBindingRunLoop runloop, void * payload)
 	int ourCallbackCount = 0;
 
 	pthread_rwlock_wrlock(&listenerLock);
-	ourCallbackCount = [[listeners objectForKey:type] intValue] - 1;
+	if ([listeners objectForKey:type]) {
+        ourCallbackCount = [[listeners objectForKey:type] intValue] - 1;
+    }
 	[listeners setObject:NUMINT(ourCallbackCount) forKey:type];
 	pthread_rwlock_unlock(&listenerLock);
 
@@ -1172,7 +1174,15 @@ DEFINE_EXCEPTIONS
 -(void)applyProperties:(id)args
 {
 	ENSURE_SINGLE_ARG(args, NSDictionary)
-	[self setValuesForKeysWithDictionary:args];	
+    [args enumerateKeysAndObjectsUsingBlock:^(id key, id value, BOOL *stop) {
+        id obj = [self valueForUndefinedKey:key];
+        if ([obj isKindOfClass:[TiProxy class]] && [value isKindOfClass:[NSDictionary class]]) {
+            [obj applyProperties:value];
+        }
+        else {
+            [self setValue:value forKey:key];
+        }
+    }];
 }
 
 -(NSDictionary*)allProperties
@@ -1377,6 +1387,7 @@ DEFINE_EXCEPTIONS
 	}
     NSString* type = [dictionary objectForKey:@"type"];
     
+	if (defaultType == nil) defaultType = @"Ti.UI.View";
 	if (type == nil) type = defaultType;
     TiProxy *proxy = [[self class] createProxy:[[self class] proxyClassFromString:type] withProperties:nil inContext:context];
     [context.krollContext invokeBlockOnThread:^{
@@ -1400,18 +1411,25 @@ DEFINE_EXCEPTIONS
 	NSDictionary* properties = (NSDictionary*)[dictionary objectForKey:@"properties"];
     if (properties == nil) properties = dictionary;
 	[self _initWithProperties:properties];
-    NSString* bindId = [dictionary objectForKey:@"bindId"];
-    if (bindId) {
-        [rootProxy setValue:self forKey:bindId];
-    }
 	NSDictionary* events = (NSDictionary*)[dictionary objectForKey:@"events"];
 	if ([events count] > 0) {
 		[context.krollContext invokeBlockOnThread:^{
 			[events enumerateKeysAndObjectsUsingBlock:^(NSString *eventName, KrollCallback *listener, BOOL *stop) {
-                [self addEventListener:[NSArray arrayWithObjects:eventName, listener, nil]];
+                if ([listener isKindOfClass:[KrollCallback class]]) {
+                    KrollWrapper *wrapper = ConvertKrollCallbackToWrapper(listener);
+                    [wrapper protectJsobject];
+                    [self addEventListener:[NSArray arrayWithObjects:eventName, wrapper, nil]];
+                } else if([listener isKindOfClass:[KrollWrapper class]]) {
+                    [self addEventListener:[NSArray arrayWithObjects:eventName, listener, nil]];
+                }
 			}];
 		}];
 	}
+}
+
+-(BOOL)canBeNextResponder
+{
+    return YES;
 }
 
 @end

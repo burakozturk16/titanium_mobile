@@ -10,7 +10,6 @@ import org.appcelerator.titanium.proxy.TiViewProxy;
 import com.nineoldandroids.animation.Animator;
 import com.nineoldandroids.animation.Animator.AnimatorListener;
 import com.nineoldandroids.animation.AnimatorSet;
-import com.nineoldandroids.animation.ValueAnimator;
 
 import android.view.View;
 

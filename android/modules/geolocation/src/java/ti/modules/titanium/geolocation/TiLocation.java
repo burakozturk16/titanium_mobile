@@ -27,17 +27,19 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.analytics.TiAnalyticsEventFactory;
 import org.appcelerator.titanium.util.TiPlatformHelper;
-import org.appcelerator.aps.analytics.APSAnalytics;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import ti.modules.titanium.geolocation.android.LocationProviderProxy;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
+
+import com.appcelerator.analytics.APSAnalytics;
 
 public class TiLocation implements Handler.Callback
 {
@@ -49,7 +51,7 @@ public class TiLocation implements Handler.Callback
 	public LocationManager locationManager;
 
 	private static final String TAG = "TiLocation";
-	private static final String BASE_GEO_URL = "http://api.appcelerator.com/p/v1/geo?";
+	private static final String BASE_GEO_URL = "http://api.appcelerator.net/p/v1/geo?";
 
 	private String mobileId;
 	private String appGuid;
@@ -94,6 +96,20 @@ public class TiLocation implements Handler.Callback
 	{
 		return knownProviders.contains(name);
 	}
+	
+	public int getProviderState(String name)
+    {
+	    if (!knownProviders.contains(name)) {
+	        return LocationProviderProxy.STATE_UNAVAILABLE;
+	    }
+        List<String> providerNames = locationManager.getProviders(true);
+        if (providerNames.contains(name)) {
+            return LocationProviderProxy.STATE_ENABLED;
+        }
+        else {
+            return LocationProviderProxy.STATE_DISABLED;
+        }
+    }
 
 	public boolean getLocationServicesEnabled()
 	{
@@ -151,8 +167,10 @@ public class TiLocation implements Handler.Callback
 	public void doAnalytics(Location location)
 	{
 		long locationTime = location.getTime();
-		if (locationTime - lastAnalyticsTimestamp > TiAnalyticsEventFactory.MAX_GEO_ANALYTICS_FREQUENCY) {
-			APSAnalytics.sendAppGeoEvent(location);
+
+		if ((locationTime - lastAnalyticsTimestamp > TiAnalyticsEventFactory.MAX_GEO_ANALYTICS_FREQUENCY)
+			&& TiApplication.getInstance().isAnalyticsEnabled()) {
+			APSAnalytics.getInstance().sendAppGeoEvent(location);
 		}
 	}
 
@@ -197,7 +215,9 @@ public class TiLocation implements Handler.Callback
 		try {
 			StringBuilder sb = new StringBuilder();
 			sb.append(BASE_GEO_URL)
-				.append("d=r")
+                .append("d=r")
+                .append("&c=")
+                .append(URLEncoder.encode(Locale.getDefault().getCountry(), "utf-8"))
 //				.append("&mid=")
 //				.append(mid)
 //				.append("&aguid=")

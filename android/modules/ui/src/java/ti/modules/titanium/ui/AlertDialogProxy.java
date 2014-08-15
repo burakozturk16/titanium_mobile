@@ -24,7 +24,9 @@ import android.app.Activity;
 		TiC.PROPERTY_MESSAGE,
 		TiC.PROPERTY_TITLE,
 		TiC.PROPERTY_OK,
-		TiC.PROPERTY_PERSISTENT
+		TiC.PROPERTY_PERSISTENT,
+		TiC.PROPERTY_HIDE_ON_CLICK,
+	    TiC.PROPERTY_TAP_OUT_DISMISS
 	}
 )
 public class AlertDialogProxy extends ViewProxy

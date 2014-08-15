@@ -12,6 +12,10 @@
 #import "TiUIListItem.h"
 #import "NSDictionary+Merge.h"
 
+@interface TiUIListView()
+-(TiViewProxy*)initWrapperProxyWithVerticalLayout:(BOOL)vertical;
+@end
+
 @interface TiUIListSectionProxy ()
 @property (nonatomic, readonly) id<TiUIListViewDelegate> dispatcher;
 @end
@@ -19,6 +23,7 @@
 @implementation TiUIListSectionProxy {
 	NSMutableArray *_items;
     BOOL _hidden;
+    NSMutableDictionary* _storedSectionViews;
 }
 
 @synthesize delegate = _delegate;
@@ -31,6 +36,7 @@
     self = [super init];
     if (self) {
 		_items = [[NSMutableArray alloc] initWithCapacity:20];
+        _storedSectionViews = [[NSMutableDictionary alloc] init];
         _hidden = false;
     }
     return self;
@@ -42,6 +48,14 @@
     RELEASE_TO_NIL(_items)
     RELEASE_TO_NIL(_headerTitle)
     RELEASE_TO_NIL(_footerTitle)
+    if (_storedSectionViews) {
+        [_storedSectionViews enumerateKeysAndObjectsUsingBlock:^(id key, TiViewProxy* childProxy, BOOL *stop) {
+            [childProxy setParent:nil];
+            [childProxy detachView];
+            [self forgetProxy:childProxy];
+        }];
+        RELEASE_TO_NIL(_storedSectionViews)
+    }
 	[super dealloc];
 }
 
@@ -89,6 +103,29 @@
     }
 }
 
+-(TiViewProxy*)sectionViewForLocation:(NSString*)location inListView:(TiUIListView*)listView
+{
+    if ([_storedSectionViews objectForKey:location]) {
+        return [_storedSectionViews objectForKey:location];
+    }
+    id value = [self valueForKey:location];
+    TiViewProxy* viewproxy = (TiViewProxy*)[self createChildFromObject:value];
+    if (viewproxy) {
+        LayoutConstraint *viewLayout = [viewproxy layoutProperties];
+        //If height is not dip, explicitly set it to SIZE
+        if (viewLayout->height.type != TiDimensionTypeDip) {
+            viewLayout->height = TiDimensionAutoSize;
+        }
+        if (viewLayout->width.type == TiDimensionTypeUndefined) {
+            viewLayout->width = TiDimensionAutoFill;
+        }
+        TiViewProxy* wrapperProxy = [listView initWrapperProxyWithVerticalLayout:YES];
+        [wrapperProxy add:viewproxy];
+        [_storedSectionViews setObject:wrapperProxy forKey:location];
+        return wrapperProxy;
+    }
+    return nil;
+}
 
 
 #pragma mark - Public API
@@ -143,11 +180,21 @@
 	}];
 }
 
+- (NSUInteger)itemCountInternal
+{
+    return _hidden?0:[_items count];
+}
+
 - (NSUInteger)itemCount
 {
 	return [[self.dispatcher dispatchBlockWithResult:^() {
 		return _hidden?0:[NSNumber numberWithUnsignedInteger:[_items count]];
 	}] unsignedIntegerValue];
+}
+
+- (TiUIListItemProxy*)getItemAtInternal:(NSUInteger)itemIndex
+{
+    return (itemIndex < [_items count]) ? [_items objectAtIndex:itemIndex] : nil;
 }
 
 - (id)getItemAt:(id)args
@@ -272,7 +319,10 @@
 	}
 	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
-	
+	BOOL animated = (animation != UITableViewRowAnimationNone);
+    //fix for now as it seems to be the only way to have the correct animation
+    //when the delete button is visible
+    [self.dispatcher hideDeleteButton:nil];
 	[self.dispatcher dispatchUpdateAction:^(UITableView *tableView) {
 		if ([_items count] <= deleteIndex) {
 			DebugLog(@"[WARN] ListView: Delete item index is out of range");
@@ -289,15 +339,15 @@
 		}
 		[tableView deleteRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		[indexPaths release];
-	} animated:(animation != UITableViewRowAnimationNone)];
+	} animated:animated];
 }
 
 - (void)updateItemAt:(id)args
 {
-	ENSURE_ARG_COUNT(args, 2);
+	ENSURE_ARG_COUNT(args, 1);
 	NSUInteger itemIndex = [TiUtils intValue:[args objectAtIndex:0]];
-	NSDictionary *item = [args objectAtIndex:1];
-	ENSURE_TYPE(item,NSDictionary);
+	NSDictionary *item = [args count] > 1 ? [args objectAtIndex:1] : nil;
+	ENSURE_TYPE_OR_NIL(item,NSDictionary);
 	NSDictionary *properties = [args count] > 2 ? [args objectAtIndex:2] : nil;
 	UITableViewRowAnimation animation = [TiUIListView animationStyleForProperties:properties];
 	
@@ -306,19 +356,24 @@
 			DebugLog(@"[WARN] ListView: Update item index is out of range");
 			return;
 		}
-        NSDictionary* currentItem = [[_items objectAtIndex:itemIndex] dictionaryByMergingWith:item force:YES];
-		if (currentItem)[_items replaceObjectAtIndex:itemIndex withObject:currentItem];
-		NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:itemIndex inSection:_sectionIndex], nil];
+        NSArray *indexPaths = [[NSArray alloc] initWithObjects:[NSIndexPath indexPathForRow:itemIndex inSection:_sectionIndex], nil];
+        TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
 		BOOL forceReload = (animation != UITableViewRowAnimationNone);
-		if (!forceReload) {
-			TiUIListItem *cell = (TiUIListItem *)[tableView cellForRowAtIndexPath:[indexPaths objectAtIndex:0]];
-			if ((cell != nil) && ([cell canApplyDataItem:currentItem])) {
-				cell.dataItem = currentItem;
-                [cell setNeedsLayout];
-			} else {
-				forceReload = YES;
-			}
-		}
+        if (item) {
+            NSDictionary* currentItem = [[_items objectAtIndex:itemIndex] dictionaryByMergingWith:item force:YES];
+            if (currentItem)[_items replaceObjectAtIndex:itemIndex withObject:currentItem];
+            if (!forceReload) {
+                if ((cell != nil) && ([cell canApplyDataItem:currentItem])) {
+                    cell.dataItem = currentItem;
+                    [cell setNeedsLayout];
+                } else {
+                    forceReload = YES;
+                }
+            }
+        } else {
+            [cell.proxy dirtyItAll];
+            [cell setNeedsLayout];
+        }
 		if (forceReload) {
 			[tableView reloadRowsAtIndexPaths:indexPaths withRowAnimation:animation];
 		}

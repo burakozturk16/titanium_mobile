@@ -348,7 +348,7 @@ public class TiResponseCache extends ResponseCache
 	@Override
 	public CacheRequest put(URI uri, URLConnection conn) throws IOException
 	{
-		if (cacheDir == null) return null;
+		if (cacheDir == null || !"true".equals(conn.getRequestProperty( "TiCache" ))) return null;
 		
 		// Make sure the cacheDir exists, in case user clears cache while app is running
 		if (!cacheDir.exists()) {
@@ -364,10 +364,10 @@ public class TiResponseCache extends ResponseCache
 		// Gingerbread 2.3 bug: getHeaderField tries re-opening the InputStream
 		// getHeaderFields() just checks the response itself
 		Map<String, List<String>> headers = makeLowerCaseHeaders(conn.getHeaderFields());
-		String cacheControl = getHeader(headers, "cache-control");
-		if (cacheControl != null && cacheControl.matches("^.*(no-cache|no-store|must-revalidate).*")) {
-			return null; // See RFC-2616
-		}
+//		String cacheControl = getHeader(headers, "cache-control");
+//		if (cacheControl != null && cacheControl.matches("^.*(no-cache|no-store|must-revalidate).*")) {
+//			return null; // See RFC-2616
+//		}
 
 		boolean skipTransferEncodingHeader = false;
 		String tEncoding = getHeader(headers, "transfer-encoding");

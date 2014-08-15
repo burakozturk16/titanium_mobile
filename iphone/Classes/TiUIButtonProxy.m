@@ -151,6 +151,9 @@
     // causing a crash. Very timing-dependent.
     
     //	RELEASE_TO_NIL(button);
+    if (button) {
+        [button detachProxy];
+    }
     [super removeBarButtonView];
 }
 

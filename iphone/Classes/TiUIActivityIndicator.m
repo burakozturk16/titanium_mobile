@@ -52,24 +52,24 @@
 	{
 		return;
 	}
-
+    
 	CGRect boundsRect = [self bounds];
 	CGPoint centerPoint = CGPointMake(boundsRect.origin.x + (boundsRect.size.width/2),
-			boundsRect.origin.y + (boundsRect.size.height/2));
-
+                                      boundsRect.origin.y + (boundsRect.size.height/2));
+    
 	if (messageLabel == nil)
 	{
 		[indicatorView setCenter:centerPoint];
 		return;
 	}
-
+    
 	CGSize spinnySize = [[self indicatorView] sizeThatFits:CGSizeZero];
 	CGSize messageSize = [messageLabel sizeThatFits:CGSizeZero];
 	
 	float fittingWidth = spinnySize.width + messageSize.width + 5;
 	
 	[indicatorView setCenter:CGPointMake(centerPoint.x - (fittingWidth - spinnySize.width)/2, centerPoint.y)];
-
+    
 	[messageLabel setBounds:CGRectMake(0, 0, messageSize.width, messageSize.height)];
 	[messageLabel setCenter:CGPointMake(centerPoint.x + (fittingWidth - messageSize.width)/2, centerPoint.y)];
 }
@@ -78,12 +78,19 @@
 {
 	if (indicatorView==nil)
 	{
-		indicatorView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:style];
+		indicatorView = [[UIActivityIndicatorView alloc] init];
+        [self updateStyle];
 		[self setNeedsLayout];
 		[self addSubview:indicatorView];
 	}
 	return indicatorView;
 }
+
+-(UIView*)viewForHitTest
+{
+    return indicatorView;
+}
+
 
 -(UILabel *)messageLabel
 {
@@ -142,7 +149,7 @@
 	{
 		return;
 	}
-
+    
 	if (newFont == nil)
 	{
 		newFont = [WebFont defaultFont];
@@ -150,7 +157,7 @@
 	
 	[fontDesc release];
 	fontDesc = [newFont retain];
-
+    
 	if (messageLabel != nil) {
 		[messageLabel setFont:[fontDesc font]];
 	}
@@ -173,6 +180,9 @@
 			[messageLabel setTextColor:textColor];
 		}
 	}
+    if (indicatorView) {
+        indicatorView.color = textColor;
+    }
 }
 
 -(void)setMessage_:(id)value
@@ -190,6 +200,20 @@
 	[self setNeedsLayout];
 }
 
+-(void)updateStyle {
+    switch ((int)style) {
+        case UIActivityIndicatorViewStyleGray:
+        case UIActivityIndicatorViewStyleWhite:
+        case UIActivityIndicatorViewStyleWhiteLarge:
+            [indicatorView setActivityIndicatorViewStyle:style];
+            break;
+        case 3:
+            [indicatorView setActivityIndicatorViewStyle:UIActivityIndicatorViewStyleWhiteLarge];
+            indicatorView.color = [UIColor grayColor];
+        default:
+            break;
+    }
+}
 
 -(void)setStyle_:(id)value
 {
@@ -204,7 +228,7 @@
 	
 	if (indicatorView != nil)
 	{
-		[indicatorView setActivityIndicatorViewStyle:style];
+        [self updateStyle];
 		CGRect newBounds;
 		newBounds.origin = CGPointZero;
 		newBounds.size = [indicatorView sizeThatFits:CGSizeZero];
@@ -213,7 +237,7 @@
 			[self setNeedsLayout];
 		}
 	}
-
+    
 }
 
 - (void)didMoveToWindow

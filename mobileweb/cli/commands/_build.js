@@ -1,7 +1,7 @@
 /*
  * build.js: Titanium Mobile Web CLI build command
  *
- * Copyright (c) 2012-2013, Appcelerator, Inc.  All Rights Reserved.
+ * Copyright (c) 2012-2014, Appcelerator, Inc.  All Rights Reserved.
  * See the LICENSE file for more information.
  */
 
@@ -13,9 +13,9 @@ var appc = require('node-appc'),
 	fields = require('fields'),
 	fs = require('fs'),
 	i18n = appc.i18n(__dirname),
+	jsanalyze = require('titanium-sdk/lib/jsanalyze'),
 	path = require('path'),
 	ti = require('titanium-sdk'),
-	UglifyJS = require('uglify-js'),
 	util = require('util'),
 	windows = require('titanium-sdk/lib/windows'),
 	wrench = require('wrench'),
@@ -24,26 +24,9 @@ var appc = require('node-appc'),
 	afs = appc.fs,
 	parallel = appc.async.parallel;
 
-// silence uglify's default warn mechanism
-UglifyJS.AST_Node.warn_function = function () {};
-
 ejs.filters.escapeQuotes = function escapeQuotes(s) {
 	return String(s).replace(/"/g, '\\"');
 };
-
-function assertIssue(logger, issues, name, exit) {
-	var i = 0,
-		len = issues.length;
-	for (; i < len; i++) {
-		if ((typeof name == 'string' && issues[i].id == name) || (typeof name == 'object' && name.test(issues[i].id))) {
-			issues[i].message.split('\n').forEach(function (line) {
-				logger.error(line.replace(/(__(.+?)__)/g, '$2'.bold));
-			});
-			logger.log();
-			exit && process.exit(1);
-		}
-	}
-}
 
 function MobileWebBuilder() {
 	Builder.apply(this, arguments);
@@ -105,6 +88,21 @@ MobileWebBuilder.prototype.config = function config(logger, config, cli) {
 
 		function configure() {
 			cli.createHook('build.mobileweb.config', function (callback) {
+				function assertIssue(logger, issues, name, exit) {
+					var i = 0,
+						len = issues.length;
+					for (; i < len; i++) {
+						if ((typeof name == 'string' && issues[i].id == name) || (typeof name == 'object' && name.test(issues[i].id))) {
+							logger.banner();
+							issues[i].message.split('\n').forEach(function (line) {
+								logger.error(line.replace(/(__(.+?)__)/g, '$2'.bold));
+							});
+							logger.log();
+							exit && process.exit(1);
+						}
+					}
+				}
+
 				var conf = {
 					options: {
 						'build-type': {
@@ -131,11 +129,15 @@ MobileWebBuilder.prototype.config = function config(logger, config, cli) {
 									// if this is a Windows Phone 8 target, validate the wp8 specific parameters
 									if (value == 'wp8') {
 										assertIssue(logger, _t.windowsInfo.issues, 'WINDOWS_PHONE_SDK_NOT_INSTALLED', true);
-										assertIssue(logger, _t.windowsInfo.issues, 'WINDOWS_PHONE_SDK_MISSING_XAP_DEPLOY_CMD', true);
+										assertIssue(logger, _t.windowsInfo.issues, 'WINDOWS_PHONE_SDK_MISSING_DEPLOY_CMD', true);
 										assertIssue(logger, _t.windowsInfo.issues, 'WINDOWS_PHONE_ENUMERATE_DEVICES_FAILED', true);
 
 										conf.options['wp8-publisher-guid'].required = true;
 										conf.options['device-id'].required = true;
+									}
+
+									if (value == 'winstore') {
+										assertIssue(logger, _t.windowsInfo.issues, 'WINDOWS_PHONE_POWERSHELL_SCRIPTS_DISABLED', true);
 									}
 								}
 							},
@@ -148,6 +150,38 @@ MobileWebBuilder.prototype.config = function config(logger, config, cli) {
 				};
 
 				if (process.platform == 'win32') {
+					function determineTargetSDK() {
+						// determine the target Windows Phone SDK version
+						var availableSDKs = Object.keys(_t.windowsInfo.windowsphone).sort().filter(function (v) { return _t.windowsInfo.windowsphone[v].supported; })
+							targetSDK = cli.tiapp['windows-phone'] && cli.tiapp['windows-phone']['target-sdk'];
+
+						if (!availableSDKs.length) {
+							logger.error(__('Unable to find any supported Windows Phone devices or emulators'));
+							logger.error(__('Run "ti info" for more info.') + '\n');
+							process.exit(1);
+						}
+
+						// make sure the target sdk is good
+						if (targetSDK && availableSDKs.indexOf(targetSDK) == -1) {
+							logger.error(__('Invalid Windows Phone Target SDK "%s"', targetSDK) + '\n');
+							logger.log(__('Available Target SDKs:'));
+							availableSDKs.forEach(function (ver) {
+								logger.log('   ' + String(ver).cyan);
+							});
+							logger.log();
+							process.exit(1);
+						}
+
+						// auto select the oldest, most compatible (in theory) version
+						if (!targetSDK) {
+							targetSDK = availableSDKs.shift();
+						}
+
+						cli.tiapp['windows-phone'] || (cli.tiapp['windows-phone'] = {});
+						cli.tiapp['windows-phone']['target-sdk'] = targetSDK;
+						return targetSDK;
+					}
+
 					conf.options['device-id'] = {
 						abbr: 'C',
 						callback: function (value) {
@@ -164,6 +198,15 @@ MobileWebBuilder.prototype.config = function config(logger, config, cli) {
 						desc: __('On Windows Phone 8, the device-id of the emulator/device to run the app in, "xd" for any emulator, or "de" for any device'),
 						order: 130,
 						prompt: function (callback) {
+							// get target sdk's devices
+							var targetSDK = determineTargetSDK(),
+								devices = _t.windowsInfo.devices = _t.windowsInfo.windowsphone[targetSDK].devices;
+
+							if (!devices) {
+								cli.argv['build-only'] = true;
+								return callback();
+							}
+
 							callback(fields.select({
 								title: __("Which device or emulator do you want to install your app on?"),
 								promptLabel: __('Select by number or name'),
@@ -172,15 +215,16 @@ MobileWebBuilder.prototype.config = function config(logger, config, cli) {
 								relistOnError: true,
 								complete: true,
 								suggest: true,
-								options: Object.keys(_t.windowsInfo.devices).map(function (id) {
+								options: Object.keys(devices).map(function (id) {
 									return {
-										label: _t.windowsInfo.devices[id],
+										label: devices[id],
 										value: id
 									};
 								})
 							}));
 						},
 						validate: function (value, callback) {
+							determineTargetSDK();
 							if (!value || (value != 'xd' && value != 'de' && _t.windowsInfo.devices && !_t.windowsInfo.devices[value])) {
 								return callback(new Error(__('Invalid device id: %s', value)));
 							}
@@ -293,7 +337,7 @@ MobileWebBuilder.prototype.run = function run(logger, config, cli, finished) {
 			});
 		},
 
-		'minifyJavaScript',
+		'processJavaScript',
 		'createFilesystemRegistry',
 		'createIndexHtml',
 
@@ -797,7 +841,9 @@ MobileWebBuilder.prototype.assembleTitaniumJS = function assembleTitaniumJS(next
 		function (tiJS, next) {
 			var first = true,
 				requireCacheWritten = false,
-				moduleCounter = 0;
+				moduleCounter = 0,
+				tiJSFile = path.join(this.buildDir, 'titanium.js'),
+				tiDir = path.join(this.buildDir, 'titanium') + path.sep;
 
 			// uncomment next line to bypass module caching (which is ill advised):
 			// this.modulesToCache = [];
@@ -823,19 +869,24 @@ MobileWebBuilder.prototype.assembleTitaniumJS = function assembleTitaniumJS(next
 				first = false;
 				moduleCounter++;
 
-				var file = path.join(dep[0], /\.js$/.test(dep[1]) ? dep[1] : dep[1] + '.js');
+				var file = path.join(dep[0], /\.js$/.test(dep[1]) ? dep[1] : dep[1] + '.js'),
+					r;
+
+				try {
+					r = jsanalyze.analyzeJsFile(file, { minify: /^url\:/.test(moduleName) && this.minifyJS, skipStats: file == tiJSFile || file.indexOf(tiDir) == 0 });
+				} catch (ex) {
+					ex.message.split('\n').forEach(this.logger.error);
+					this.logger.log();
+					process.exit(1);
+				}
 
 				if (/^url\:/.test(moduleName)) {
 					if (this.minifyJS) {
-						//var source = file + '.uncompressed.js';
-						//fs.renameSync(file, source);
-						this.logger.debug(__('Minifying include %s', file));
+						this.logger.debug(__('Minifying include %s', file.cyan));
 						try {
-							fs.writeFileSync(file, UglifyJS.minify(file).code);
-							//fs.writeFileSync(file, UglifyJS.minify(source).code);
+							fs.writeFileSync(file, r.contents);
 						} catch (ex) {
 							this.logger.error(__('Failed to minify %s', file));
-							//this.logger.error(__('Failed to minify %s', source));
 							if (ex.line) {
 								this.logger.error(__('%s [line %s, column %s]', ex.message, ex.line, ex.col));
 							} else {
@@ -843,7 +894,6 @@ MobileWebBuilder.prototype.assembleTitaniumJS = function assembleTitaniumJS(next
 							}
 							try {
 								var contents = fs.readFileSync(file).toString().split('\n');
-								//var contents = fs.readFileSync(source).toString().split('\n');
 								if (ex.line && ex.line <= contents.length) {
 									this.logger.error('');
 									this.logger.error('    ' + contents[ex.line-1]);
@@ -1042,50 +1092,26 @@ MobileWebBuilder.prototype.assembleTitaniumCSS = function assembleTitaniumCSS(ne
 	next();
 };
 
-MobileWebBuilder.prototype.minifyJavaScript = function minifyJavaScript(next) {
-	if (!this.minifyJS) return next();
+MobileWebBuilder.prototype.processJavaScript = function processJavaScript(next) {
+	var self = this,
+		tiJSFile = path.join(this.buildDir, 'titanium.js');
 
-	this.logger.info(__('Minifying JavaScript'));
-	var self = this;
+	this.logger.info(this.minifyJS ? __('Minifying JavaScript') : __('Analyzing JavaScript'));
 
-	(function walk(dir) {
+	(function walk(dir, isTitaniumFolder) {
 		fs.readdirSync(dir).sort().forEach(function (filename) {
 			var file = path.join(dir, filename),
 				stat = fs.statSync(file);
 			if (stat.isDirectory()) {
-				walk(file);
+				walk(file, isTitaniumFolder || filename == 'titanium');
 			} else if (/\.js$/.test(filename)) {
-				//var source = file + '.uncompressed.js';
-				//fs.renameSync(file, source);
-				self.logger.debug(__('Minifying include %s', file));
+				self.logger.debug(self.minifyJS ? __('Minifying %s', file.cyan) : __('Analyzing %s', file.cyan));
 				try {
-					fs.writeFileSync(file, UglifyJS.minify(file).code);
-					//fs.writeFileSync(file, UglifyJS.minify(source).code);
+					var r = jsanalyze.analyzeJsFile(file, { minify: self.minifyJS, skipStats: isTitaniumFolder || file == tiJSFile });
+					self.minifyJS && fs.writeFileSync(file, r.contents);
 				} catch (ex) {
-					self.logger.error(__('Failed to minify %s', file));
-					if (ex.line) {
-						self.logger.error(__('%s [line %s, column %s]', ex.message, ex.line, ex.col));
-					} else {
-						self.logger.error(__('%s', ex.message));
-					}
-					try {
-						var contents = fs.readFileSync(file).toString().split('\n');
-						//var contents = fs.readFileSync(source).toString().split('\n');
-						if (ex.line && ex.line <= contents.length) {
-							self.logger.error('');
-							self.logger.error('    ' + contents[ex.line-1]);
-							if (ex.col) {
-								var i = 0,
-									len = ex.col;
-									buffer = '    ';
-								for (; i < len; i++) {
-									buffer += '-';
-								}
-								self.logger.error(buffer + '^');
-							}
-							self.logger.log();
-						}
-					} catch (ex2) {}
+					ex.message.split('\n').forEach(self.logger.error);
+					self.logger.log();
 					process.exit(1);
 				}
 			}

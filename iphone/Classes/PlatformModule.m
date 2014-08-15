@@ -158,11 +158,7 @@
 
 -(NSString*)manufacturer
 {
-#if TARGET_IPHONE_SIMULATOR
-    return @"unknown";
-#else
     return @"apple";
-#endif
 }
 
 -(NSString*)locale
@@ -229,12 +225,22 @@
 	return [NSNumber numberWithBool:result];
 }
 
-
--(NSNumber*)canOpenURL:(id)arg
+-(id)canOpenURL:(id)arg
 {
-	ENSURE_SINGLE_ARG(arg, NSString);
-	NSURL* url = [TiUtils toURL:arg proxy:self];
-	return NUMBOOL([[UIApplication sharedApplication] canOpenURL:url]);
+	ENSURE_SINGLE_ARG(arg, NSObject);
+    if ([arg isKindOfClass:[NSArray class]]) {
+        for (int i =0; i < [arg count]; i++) {
+            NSURL* url = [TiUtils toURL:[arg objectAtIndex:i] proxy:self];
+            if ([[UIApplication sharedApplication] canOpenURL:url]) {
+                return @(i);
+            }
+        }
+        return @(-1);
+    }
+    else {
+        NSURL* url = [TiUtils toURL:arg proxy:self];
+        return NUMBOOL([[UIApplication sharedApplication] canOpenURL:url]);
+    }
 }
 
 -(TiPlatformDisplayCaps*)displayCaps

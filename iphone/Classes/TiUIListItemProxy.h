@@ -23,6 +23,7 @@
 -(void)cleanup;
 
 -(void)deregisterProxy:(id<TiEvaluator>)context;
+-(BOOL)shouldHighlight;
 @end
 
 #endif

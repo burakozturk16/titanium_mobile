@@ -343,9 +343,9 @@ static NetworkModule *_sharedInstance = nil;
                                  @"ssid": (NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeySSID),
                                  @"bssid":(NSString*)CFDictionaryGetValue(networkinfo, kCNNetworkInfoKeyBSSID)
                                  } forKey:@"wifi"] ;
+            CFRelease(networkinfo);
             break;
         }
-        CFRelease(networkinfo);
     }
     [ifs release];
     if (networkinfo) CFRelease(networkinfo);

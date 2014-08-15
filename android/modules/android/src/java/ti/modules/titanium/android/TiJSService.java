@@ -49,7 +49,8 @@ public class TiJSService extends TiBaseService
 		return intent.getIntExtra(TiC.INTENT_PROPERTY_START_MODE, AndroidModule.START_REDELIVER_INTENT);
 	}
 
-	protected void executeServiceCode(ServiceProxy proxy)
+	@Override
+	protected void executeServiceCode()
 	{
 		String fullUrl = url;
 		if (!fullUrl.contains("://") && !fullUrl.startsWith("/") && proxy.getCreationUrl().baseUrl != null) {
@@ -73,7 +74,7 @@ public class TiJSService extends TiBaseService
 		proxy.fireEvent(TiC.EVENT_RESUME, new KrollDict());
 		KrollRuntime.getInstance().runModule(KrollAssetHelper.readAsset(fullUrl), fullUrl, proxy);
 		proxy.fireEvent(TiC.EVENT_PAUSE, new KrollDict());
-		proxy.fireEvent(TiC.EVENT_STOP, new KrollDict()); // this basic JS Service class only runs once.
+//		proxy.fireEvent(TiC.EVENT_STOP, new KrollDict()); // this basic JS Service class only runs once.
 
 	}
 
@@ -86,15 +87,7 @@ public class TiJSService extends TiBaseService
 		if (baseUrl.length() == 0) {
 			baseUrl = null;
 		}
-		serviceProxy= new ServiceProxy(this, intent, proxyCounter.incrementAndGet());
-		return serviceProxy;
-	}
-
-	@Override
-	public void start(ServiceProxy proxy)
-	{
-		proxy.fireEvent(TiC.EVENT_START, new KrollDict());
-		executeServiceCode(proxy);
+		return super.createProxy(intent);
 	}
 
 }

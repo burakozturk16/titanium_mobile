@@ -31,7 +31,9 @@ import android.app.Activity;
 	TiC.PROPERTY_ANIMATED_IMAGES,
 	TiC.PROPERTY_AUTOREVERSE,
 	TiC.PROPERTY_REVERSE,
-	TiC.PROPERTY_TRANSITION,
+    TiC.PROPERTY_TRANSITION,
+    TiC.PROPERTY_INDEX,
+    TiC.PROPERTY_PROGRESS,
 	TiC.PROPERTY_SCALE_TYPE
 })
 public class ImageViewProxy extends ViewProxy
@@ -94,13 +96,8 @@ public class ImageViewProxy extends ViewProxy
 	public void pauseOrResume() {
 		boolean animating = TiConvert.toBoolean(getProperty("animating"), false);
 		boolean paused = TiConvert.toBoolean(getProperty("paused"), true);
-		if (!animating) {
-			start();
-		}
-		else {
-			if (paused) resume();
-			else pause();
-		}
+		if (paused) resume();
+		else pause();
 	}
 	
 	@Kroll.method
@@ -113,4 +110,22 @@ public class ImageViewProxy extends ViewProxy
 	{
 		return "Ti.UI.ImageView";
 	}
+	
+    @Kroll.getProperty
+    @Kroll.method
+    public int getIndex() {
+        if (view != null) {
+            ((TiUIImageView)view).getCurrentIndex();
+        }
+        return 0;
+    }
+    
+    @Kroll.getProperty
+    @Kroll.method
+    public float getProgress() {
+        if (view != null) {
+            ((TiUIImageView)view).getProgress();
+        }
+        return 1;
+    }
 }

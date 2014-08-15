@@ -8,98 +8,132 @@ package org.appcelerator.titanium;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollRuntime;
 import org.appcelerator.titanium.proxy.ServiceProxy;
 import org.appcelerator.kroll.common.Log;
 
 import android.app.Service;
 import android.content.Intent;
-import android.os.Binder;
 import android.os.IBinder;
 
 /**
  * The base class for Titanium services. To learn more about Services, see the
  * <a href="http://developer.android.com/reference/android/app/Service.html">Android Service documentation</a>.
  */
-public class TiBaseService extends Service
-{
-	private static final String TAG = "TiBaseService";
-	public static final String TI_SERVICE_INTENT_ID_KEY = "$__TITANIUM_SERVICE_INTENT_ID__$";
-	protected AtomicInteger proxyCounter = new AtomicInteger();
-	protected ServiceProxy serviceProxy;
+public class TiBaseService extends Service implements TiServiceInterface{
 
-	public class TiServiceBinder extends Binder
-	{
-		public Service getService()
-		{
-			return TiBaseService.this;
-		}
-	}
+    static final String TAG = "TiBaseService";
+    public static final String TI_SERVICE_INTENT_ID_KEY = "$__TITANIUM_SERVICE_INTENT_ID__$";
+    protected AtomicInteger proxyCounter = new AtomicInteger();
 
-	@Override
-	public IBinder onBind(Intent intent)
-	{
-		return new TiServiceBinder();
-	}
+    protected ServiceProxy proxy = null;
 
-	/**
-	 * Creates and returns a service proxy, also increments the instance id.
-	 * Each service proxy has a unique instance id.
-	 * @param intent the intent used to create the proxy.
-	 * @return service proxy
-	 */
-	protected ServiceProxy createProxy(Intent intent)
-	{
-		serviceProxy = new ServiceProxy(this, intent, proxyCounter.incrementAndGet());
-		return serviceProxy;
-	}
+    private boolean started = false;
+    
+    protected String logTAG() {
+        return TAG;
+    }
 
-	/**
-	 * Implementing subclasses should use this method to start the service.
-	 * @param proxy the ServiceProxy.
-	 */
-	public void start(ServiceProxy proxy)
-	{
-		// meant to be overridden
-	}
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        KrollRuntime.incrementServiceReceiverRefCount();
+    }
 
-	/**
-	 * Implementing subclasses should use this method to release the proxy.
-	 * @param proxy the proxy to release.
-	 */
-	public void unbindProxy(ServiceProxy proxy)
-	{
-		// meant to be overridden
-	}
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        KrollRuntime.decrementServiceReceiverRefCount();
+    }
+    
 
-	/**
-	 * @return next service instance id.
-	 */
-	public int nextServiceInstanceId()
-	{
-		return proxyCounter.incrementAndGet();
-	}
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        boolean needsStart = intent == null || intent.getBooleanExtra(ServiceProxy.NEEDS_STARTING, true);
+        if (needsStart){
+            start(this.proxy);
+        }
 
-	@Override
-	public void onCreate()
-	{
-		super.onCreate();
-		KrollRuntime.incrementServiceReceiverRefCount();
-	}
+        int result = START_STICKY;
+        if (intent != null) result = intent.getIntExtra(TiC.INTENT_PROPERTY_START_MODE,
+                result);
+        return result;
+    }
 
-	@Override
-	public void onDestroy()
-	{
-		super.onDestroy();
-		KrollRuntime.decrementServiceReceiverRefCount();
-	}
+    @Override
+    public IBinder onBind(Intent intent) {
+        return new TiServiceBinder(this);
+    }
 
-	@Override
-	public void onTaskRemoved(Intent rootIntent)
-	{
-		if (Log.isDebugModeEnabled()) {
-			Log.d(TAG, "The task that comes from the service's application has been removed.");
-		}
-		serviceProxy.fireSyncEvent(TiC.EVENT_TASK_REMOVED, null);
-	}
+    protected void executeServiceCode() {
+        //meant to be overriden
+    }
+    
+    /**
+    * Creates and returns a service proxy, also increments the instance id.
+    * Each service proxy has a unique instance id.
+    * @param intent the intent used to create the proxy.
+    * @return service proxy
+    */
+   protected ServiceProxy createProxy(Intent intent)
+   {
+       this.proxy = new ServiceProxy(this, intent, proxyCounter.incrementAndGet());
+       return this.proxy;
+   }
+
+    
+
+    public void start(ServiceProxy proxy) {
+        this.proxy = proxy;
+        
+        
+        if (started == false) {
+            started = true;
+            executeServiceCode();
+        }
+        
+        if (this.proxy != null) {
+            this.proxy.fireEvent(TiC.EVENT_START, new KrollDict());
+        }
+    }
+    
+    public void stop(){
+        if (this.proxy != null) {
+            this.proxy.fireEvent(TiC.EVENT_STOP, new KrollDict());
+        }
+        if (this.proxy != null) {
+            this.proxy.unbindService();
+        }
+        stopSelf();
+    }
+
+    /**
+     * Implementing subclasses should use this method to release the proxy.
+     * 
+     * @param proxy
+     *            the proxy to release.
+     */
+    public void unbindProxy(ServiceProxy proxy) {
+        this.proxy = null;
+    }
+
+    /**
+     * @return next service instance id.
+     */
+    public int nextServiceInstanceId() {
+        return proxyCounter.incrementAndGet();
+    }
+    
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent)
+    {
+        if (Log.isDebugModeEnabled()) {
+            Log.d(TAG, "The task that comes from the service's application has been removed.");
+        }
+        if (this.proxy != null) {
+            this.proxy.fireSyncEvent(TiC.EVENT_TASK_REMOVED, null);
+        }
+    }
 }

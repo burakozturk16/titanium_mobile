@@ -308,7 +308,7 @@ def zip_iphone_ipad(zf,basepath,platform,version,version_tag):
 	# xcode_templates_dir =  os.path.join(top_dir,'iphone','templates','xcode')
 	# zip_dir(zf,xcode_templates_dir,basepath+'/iphone/xcode/templates',subs)
 
-	iphone_lib = os.path.join(top_dir,'iphone',platform,'build')
+	# iphone_lib = os.path.join(top_dir,'iphone',platform,'build')
 
 	zip_dir(zf,os.path.join(top_dir,'iphone','Classes'),basepath+'/iphone/Classes',subs)
 	zip_dir(zf,os.path.join(top_dir,'iphone','headers'),basepath+'/iphone/headers',subs)
@@ -319,6 +319,7 @@ def zip_iphone_ipad(zf,basepath,platform,version,version_tag):
 	ignore_paths=[]
 	ignore_paths.append(os.path.join(iphoneSrc, xcodeProject))
 	ignore_paths.append(os.path.join(iphoneSrc,  'Build'))
+	ignore_paths.append(os.path.join(iphoneSrc,  'build'))
 
 	zip_dir(zf,iphoneSrc,iphoneDst,subs, ignore_paths=ignore_paths)
 	if (prepare_xcode() == 0):

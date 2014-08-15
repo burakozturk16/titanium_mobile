@@ -19,6 +19,7 @@
     TiWindowProxy *rootWindow;
     TiWindowProxy *current;
 }
+@property (nonatomic, readwrite, retain) KrollCallback* onstackchange;
 
 //Private API
 -(void)setFrame:(CGRect)bounds;

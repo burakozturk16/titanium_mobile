@@ -525,16 +525,29 @@ DEFINE_EXCEPTIONS
 	[super dealloc];
 }
 
--(id)initWithCallback:(NSObject<ImageLoaderDelegate>*)target_ userInfo:(id)userInfo_ url:(NSURL*)url_
+//-(id)initWithCallback:(NSObject<ImageLoaderDelegate>*)target_ userInfo:(id)userInfo_ url:(NSURL*)url_
+//{
+//	if (self = [super init])
+//	{
+//		delegate = [target_ retain];
+//		userInfo = [userInfo_ retain];
+//		url = [url_ retain];
+//	}
+//	return self;
+//}
+
+-(id)initWithCallback:(NSObject<ImageLoaderDelegate>*)target_ options:(NSDictionary*)options_ userInfo:(id)userInfo_ url:(NSURL*)url_
 {
 	if (self = [super init])
 	{
 		delegate = [target_ retain];
 		userInfo = [userInfo_ retain];
+		options = [options_ retain];
 		url = [url_ retain];
 	}
 	return self;
 }
+
 
 -(void)cancel
 {
@@ -551,6 +564,11 @@ DEFINE_EXCEPTIONS
 -(id)userInfo
 {
 	return userInfo;
+}
+
+-(NSDictionary*)options
+{
+	return options;
 }
 
 -(NSURL*)url
@@ -878,60 +896,58 @@ DEFINE_EXCEPTIONS
 	return [[self setSVGImage:svg forKey:url] imageForSize:imageSize];
 }
 
--(id)loadRemote:(NSURL*)url
+-(id)loadRemote:(NSURL*)url withOptions:(NSDictionary*)options_
 {
 	if (url==nil) return nil;
-    if ([TiUtils isSVG:url]) return [self loadRemoteSVG:url];
 	UIImage *image = [[self entryForKey:url] imageForSize:CGSizeZero];
 	if (image!=nil)
 	{
 		return image;
 	}
 	
-    APSHTTPRequest *req = [[[APSHTTPRequest alloc] init] autorelease];
-    [req setUrl:url];
-    [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-    [req setSynchronous:YES];
-	[req send];
+	APSHTTPRequest *req = [[[APSHTTPRequest alloc] init] autorelease];
+    
+    NSMutableDictionary* realOptions = [[NSMutableDictionary alloc] init];
+    if (options_) {
+        [realOptions addEntriesFromDictionary:options_];
+    }
+    [realOptions setObject:url forKey:@"url"];
 
+    if (![realOptions objectForKey:@"headers"]) {
+        [realOptions setObject:@{@"User-Agent":[[TiApp app] userAgent]} forKey:@"headers"];
+    }
+    else {
+        [[realOptions objectForKey:@"headers"] setObject:[[TiApp app] userAgent] forKey:@"User-Agent"];
+    }
+    [realOptions setObject:@(NO) forKey:@"async"];
+	
+    [req prepareAndSendFromDictionary:realOptions];
+    [realOptions release];
+   
 	if (req!=nil && [[req response] error]==nil)
 	{
-	   NSData *data = [[req response] responseData];
-	   UIImage *resultImage = [UIImage imageWithData:data];
-	   ImageCacheEntry *result = [self setImage:resultImage forKey:url hires:NO];
-	   [result setData:data];
-	   return [result imageForSize:CGSizeZero];
+        NSData *data = [[req response] responseData];
+        if ([TiUtils isSVG:[req url]]) {
+            SVGKImage *resultImage = [SVGKImage imageWithData:data];
+            SVGImageCacheEntry *result = [self setSVGImage:resultImage forKey:url];
+            [result setData:data];
+            return [result svgImage];
+        }
+        else {
+            UIImage *resultImage = [UIImage imageWithData:data];
+            ImageCacheEntry *result = [self setImage:resultImage forKey:url hires:NO];
+            [result setData:data];
+            return [result imageForSize:CGSizeZero];
+        }
+        
 	}
 	
 	return nil;
 }
 
--(id)loadRemoteSVG:(NSURL*)url
+-(id)loadRemote:(NSURL*)url
 {
-	if (url==nil) return nil;
-	SVGKImage *image = [[self svgEntryForKey:url] svgImage];
-	if (image!=nil)
-	{
-		return image;
-	}
-	
-	APSHTTPRequest *req = [[[APSHTTPRequest alloc] init] autorelease];
-    [req setUrl:url];
-    [req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-    [req setSynchronous:YES];
-	[req send];
-    
-	if (req!=nil && [[req response] error]==nil)
-	{
-        NSData *data = [[req response] responseData];
-        SVGKImage *resultImage = [SVGKImage imageWithData:data];
-        SVGImageCacheEntry *result = [self setSVGImage:resultImage forKey:url];
-        [result setData:data];
-        return [result svgImage];
-
-	}
-	
-	return nil;
+    return [self loadRemote:url withOptions:nil];
 }
 
 -(SVGKImage *)loadImmediateSVGImage:(NSURL *)url
@@ -1022,23 +1038,34 @@ DEFINE_EXCEPTIONS
 		queue = [[NSOperationQueue alloc] init];
 		[queue setMaxConcurrentOperationCount:4];
 	}
+    
+    NSMutableDictionary* realOptions = [[NSMutableDictionary alloc] init];
+    if ([request options]) {
+        [realOptions addEntriesFromDictionary:[request options]];
+    }
+    [realOptions setObject:queue forKey:@"queue"];
+    [realOptions setObject:url forKey:@"url"];
+    if (![realOptions objectForKey:@"method"]) {
+        [realOptions setObject:@"GET" forKey:@"method"];
+    }
+    if (![realOptions objectForKey:@"headers"]) {
+        [realOptions setObject:@{@"User-Agent":[[TiApp app] userAgent]} forKey:@"headers"];
+    }
+    else {
+        [[realOptions objectForKey:@"headers"] setObject:[[TiApp app] userAgent] forKey:@"User-Agent"];
+    }
+    [realOptions setObject:@{@"request":request} forKey:@"userInfo"];
 	
-	NSDictionary *dict = [NSDictionary dictionaryWithObject:request forKey:@"request"];
 	APSHTTPRequest *req = [[[APSHTTPRequest alloc] init] autorelease];
     [req setDelegate:self];
-    [req setUrl:url];
-	[req setUserInfo:dict];
-	[req setMethod:@"GET"];
-	[req addRequestHeader:@"User-Agent" value:[[TiApp app] userAgent]];
-	[req setTimeout:20];
-    [req setTheQueue:queue];
-    [req send];
 	[request setRequest:req];
+    [req prepareAndSendFromDictionary:realOptions];
+    [realOptions release];
 }
 
--(ImageLoaderRequest*)loadImage:(NSURL*)url delegate:(NSObject<ImageLoaderDelegate>*)delegate userInfo:(NSDictionary*)userInfo
+-(ImageLoaderRequest*)loadImage:(NSURL*)url delegate:(NSObject<ImageLoaderDelegate>*)delegate options:(NSDictionary*)options_ userInfo:(NSDictionary*)userInfo
 {
-	ImageLoaderRequest *request = [[[ImageLoaderRequest alloc] initWithCallback:delegate userInfo:userInfo url:url] autorelease];
+	ImageLoaderRequest *request = [[[ImageLoaderRequest alloc] initWithCallback:delegate options:options_ userInfo:userInfo url:url] autorelease];
 	
 	// if have a queue and it's suspend, just throw our request
 	// in the timeout queue until we're resumed
@@ -1164,7 +1191,7 @@ DEFINE_EXCEPTIONS
 	[request retain];
 	
 	ImageLoaderRequest *req = [[[request userInfo] objectForKey:@"request"] retain];
-	if ([req cancelled]==NO)
+	if (req && [req cancelled]==NO)
 	{
 		NSData *data = [response responseData];
 		if (data == nil || [data length]==0)

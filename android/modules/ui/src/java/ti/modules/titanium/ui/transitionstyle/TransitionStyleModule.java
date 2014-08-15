@@ -20,7 +20,8 @@ public class TransitionStyleModule extends KrollModule {
 	@Kroll.constant public static final int PUSH_ROTATE = TransitionHelper.Types.kTransitionPushRotate.ordinal();
 	@Kroll.constant public static final int SCALE = TransitionHelper.Types.kTransitionScale.ordinal();
 	@Kroll.constant public static final int SLIDE = TransitionHelper.Types.kTransitionSlide.ordinal();
-	@Kroll.constant public static final int SWIPE_DUAL_FADE = TransitionHelper.Types.kTransitionSwipeDualFade.ordinal();
+    @Kroll.constant public static final int SWIPE_DUAL_FADE = TransitionHelper.Types.kTransitionSwipeDualFade.ordinal();
+    @Kroll.constant public static final int MODERN_PUSH = TransitionHelper.Types.kTransitionModernPush.ordinal();
 
 	@Kroll.constant public static final int LEFT_TO_RIGHT = TransitionHelper.SubTypes.kLeftToRight.ordinal();
 	@Kroll.constant public static final int RIGHT_TO_LEFT = TransitionHelper.SubTypes.kRightToLeft.ordinal();

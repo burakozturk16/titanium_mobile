@@ -1,6 +1,6 @@
 /**
  * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2012 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -17,7 +17,6 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollPropertyChange;
 import org.appcelerator.kroll.KrollProxy;
-import org.appcelerator.kroll.KrollProxyListener;
 import org.appcelerator.kroll.common.AsyncResult;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiMessenger;
@@ -95,6 +94,7 @@ public abstract class TiUIView
 	private static final boolean HONEYCOMB_OR_GREATER = (Build.VERSION.SDK_INT >= 11);
 	private static final boolean JELLY_BEAN_OR_GREATER = (Build.VERSION.SDK_INT >= 16);
 	private static final String TAG = "TiUIView";
+	
 
 	private static AtomicInteger idGenerator;
 
@@ -108,7 +108,8 @@ public abstract class TiUIView
 
 	private static final int MSG_FIRST_ID = 100;
 	private static final int MSG_SET_BACKGROUND = MSG_FIRST_ID + 1;
-	private static final int MSG_CLEAR_FOCUS = MSG_FIRST_ID + 2;
+    private static final int MSG_CLEAR_FOCUS = MSG_FIRST_ID + 2;
+    private static final int MSG_FOCUS = MSG_FIRST_ID + 3;
 
 	protected View nativeView; // Native View object
 
@@ -121,9 +122,13 @@ public abstract class TiUIView
 	
 	protected KrollDict additionalEventData;
 
-	protected boolean touchPassThrough = false;
+    protected boolean preventListViewSelection = false;
+    protected boolean touchPassThrough = false;
 	protected boolean dispatchPressed = false;
 	protected boolean reusing = false;
+	
+	protected boolean isEnabled = true;
+	protected boolean isFocusable = false;
 
 	private boolean clipChildren = true;
 
@@ -153,6 +158,8 @@ public abstract class TiUIView
 	public boolean hardwareAccEnabled = true;
 	protected TiTouchDelegate mTouchDelegate;
 	private RectF mBorderPadding;
+	
+	protected int focusKeyboardState = TiUIView.SOFT_KEYBOARD_DEFAULT_ON_FOCUS;
 	/**
 	 * Constructs a TiUIView object with the associated proxy.
 	 * @param proxy the associated proxy.
@@ -192,6 +199,9 @@ public abstract class TiUIView
 		if (child != null) {
 			View cv = child.getOuterView();
 			if (cv != null) {
+			    if (!isEnabled) {
+                    child.setEnabled(isEnabled, true);
+                }
 				View nv = getParentViewForChild();
 				if (nv instanceof ViewGroup) {
 					if (cv.getParent() == null) {
@@ -334,12 +344,18 @@ public abstract class TiUIView
 				applyCustomBackground();
 				return true;
 			}
-			case MSG_CLEAR_FOCUS : {
+			case MSG_FOCUS : {
 				AsyncResult result = (AsyncResult) msg.obj;
-				handleClearFocus((View) result.getArg());
+				handleFocus((View) result.getArg());
 				result.setResult(null); //Signal added.
 				return true;
 			}
+			case MSG_CLEAR_FOCUS : {
+                AsyncResult result = (AsyncResult) msg.obj;
+                handleClearFocus((View) result.getArg());
+                result.setResult(null); //Signal added.
+                return true;
+            }
 		}
 		return false;
 	}
@@ -637,7 +653,7 @@ public abstract class TiUIView
 			}
 				layoutNativeView(true);
 		} else if (key.equals(TiC.PROPERTY_FOCUSABLE) && newValue != null) {
-			isFocusable = TiConvert.toBoolean(newValue, true);
+			isFocusable = TiConvert.toBoolean(newValue, false);
 			if (changedProperty)
 				registerForKeyPress(nativeView, isFocusable);
 		} else if (key.equals(TiC.PROPERTY_TOUCH_ENABLED)) {
@@ -652,8 +668,7 @@ public abstract class TiUIView
 			isEnabled = TiConvert.toBoolean(newValue, true);
 			if (oldEnabled != isEnabled) {
 				setEnabled(isEnabled, true);
-				}
-
+			}
 		} else if (key.equals(TiC.PROPERTY_EXCLUSIVE_TOUCH)) {
 			exclusiveTouch = TiConvert.toBoolean(newValue);
 		} else if (key.startsWith(TiC.PROPERTY_BACKGROUND_PREFIX)) {
@@ -825,7 +840,7 @@ public abstract class TiUIView
 		} else if (key.equals(TiC.PROPERTY_BORDER_RADIUS)) {
 			setBorderRadius(newValue);
 		} else if (key.equals(TiC.PROPERTY_BORDER_WIDTH)) {
-			setBorderWidth(TiUIHelper.getRawSizeOrZero(newValue));
+			setBorderWidth(TiUIHelper.getInPixels(newValue));
 		} else if (key.equals(TiC.PROPERTY_BORDER_PADDING)) {
 			mBorderPadding = TiConvert.toPaddingRect(newValue);
 			if (borderView != null) {
@@ -844,7 +859,7 @@ public abstract class TiUIView
 			applyAnchorPoint(newValue);
 		} else if (key.equals(TiC.PROPERTY_KEEP_SCREEN_ON)) {
 			if (nativeView != null) {
-				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue));
+				nativeView.setKeepScreenOn(TiConvert.toBoolean(newValue, false));
 			}
 
 		} else if (key.indexOf("accessibility") == 0
@@ -855,23 +870,27 @@ public abstract class TiUIView
 			applyAccessibilityHidden(newValue);
 
 		} else if (key.equals(TiC.PROPERTY_TOUCH_PASSTHROUGH)) {
-			touchPassThrough = TiConvert.toBoolean(newValue);
+			touchPassThrough = TiConvert.toBoolean(newValue, false);
 		} else if (key.equals(TiC.PROPERTY_DISPATCH_PRESSED)) {
-			dispatchPressed = TiConvert.toBoolean(newValue);
-		} else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
-			clipChildren = TiConvert.toBoolean(newValue);
+            dispatchPressed = TiConvert.toBoolean(newValue, false);
+		} else if (key.equals(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) {
+            focusKeyboardState = TiConvert.toInt(newValue);
+        } else if (key.equals(TiC.PROPERTY_PREVENT_LISTVIEW_SELECTION)) {
+            preventListViewSelection = TiConvert.toBoolean(newValue, false);
+        } else if (key.equals(TiC.PROPERTY_CLIP_CHILDREN)) {
+			clipChildren = TiConvert.toBoolean(newValue, false);
 			View parentViewForChild = getParentViewForChild();
 			if (parentViewForChild instanceof ViewGroup) {
 				((ViewGroup) parentViewForChild).setClipChildren(clipChildren);
 		}
 			if (borderView != null) {
 				borderView.setClipChildren(clipChildren);
-	}
+			}
 			if (!clipChildren) {
 				ViewGroup parent = (ViewGroup) getOuterView().getParent();
 				if (parent != null)
 					parent.setClipChildren(clipChildren);
-		}
+			}
 		} else if (key.equals(TiC.PROPERTY_DISABLE_HW)) {
 			boolean value = TiConvert.toBoolean(newValue);
 			if (value)
@@ -914,10 +933,18 @@ public abstract class TiUIView
 			}
 		}
 	}
+	
+	public static void setFocusable(View view, boolean focusable) 
+	{
+	    view.setFocusable(focusable);
+        //so dumb setFocusable to false set  setFocusableInTouchMode
+        // but not when using true :s so we have to do it
+        view.setFocusableInTouchMode(focusable);
+	}
 		
 	protected void setEnabled(View view, boolean enabled, boolean focusable, boolean setChildren) {
 		view.setEnabled(enabled);
-		view.setFocusable(focusable);
+		setFocusable(view, focusable);
 		if (setChildren && view instanceof ViewGroup) {
 			ViewGroup group = (ViewGroup) view;
 			for (int i = 0; i < group.getChildCount(); i++) {
@@ -925,15 +952,13 @@ public abstract class TiUIView
 				Object tag = child.getTag();
 				if (tag != null && tag instanceof TiUIView) {
 					((TiUIView) tag).setEnabled(enabled, setChildren);
-			} else {
-					setEnabled(child, enabled, focusable, setChildren);
-			}
-		}
+    			} else {
+    					setEnabled(child, enabled, focusable, setChildren);
+    			}
+    		}
 		}
 	}
 
-	private boolean isEnabled = true;
-	private boolean isFocusable = true;
 	protected void setEnabled(boolean enabled, boolean setChildren){
         setEnabled(getOuterView(), enabled && isEnabled, enabled && isFocusable, setChildren);
     }
@@ -986,7 +1011,7 @@ public abstract class TiUIView
 		if (hasFocus) {
 			TiMessenger.postOnMain(new Runnable() {
 				public void run() {
-					TiUIHelper.requestSoftInputChange(proxy, v);
+					TiUIHelper.requestSoftInputChange(TiUIView.this, v);
 				}
 			});
 			fireEvent(TiC.EVENT_FOCUS, getFocusEventObject(hasFocus));
@@ -1006,16 +1031,36 @@ public abstract class TiUIView
 		imm = (InputMethodManager) TiApplication.getInstance().getSystemService(Context.INPUT_METHOD_SERVICE);
 		return imm;
 	}
+	
+	public static void handleFocus(View view)
+    {
+        int oldDesc = ViewGroup.FOCUS_AFTER_DESCENDANTS;
+        if (view instanceof ViewGroup){
+            oldDesc = ((ViewGroup) view).getDescendantFocusability();
+            ((ViewGroup) view).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
+        }
+        view.requestFocus();
+        if (view instanceof ViewGroup){
+            ((ViewGroup) view).setDescendantFocusability(oldDesc);
+        }
+    }
 
 	/**
 	 * Focuses the view.
 	 */
-	public void focus()
+	public boolean focus()
 	{
 		View view = getFocusView();
-		if (view != null) {
-			view.requestFocus();
+		if (view != null && !hasFocus()) {
+			if (TiApplication.isUIThread()) {
+	            handleFocus(view);
+	        }
+	        else {
+	            TiMessenger.sendBlockingMainMessage(proxy.getMainHandler().obtainMessage(MSG_FOCUS), view);
+	        }
+	        return true;
 		}
+		return false;
 	}
 
 	public boolean hasFocus()
@@ -1027,7 +1072,7 @@ public abstract class TiUIView
 		return false;
 	}
 		
-	protected void handleClearFocus(View view)
+	public static void handleClearFocus(View view)
 	{
         View root = view.getRootView();
         boolean oldValue = true;
@@ -1039,11 +1084,11 @@ public abstract class TiUIView
             	((ViewGroup) root).setDescendantFocusability(ViewGroup.FOCUS_BLOCK_DESCENDANTS);
             }
         	oldValue = root.isFocusable();
-        	root.setFocusable(false);
+            setFocusable(root, false);
         }
 		view.clearFocus();
 		if (root != null) {
-        	root.setFocusable(oldValue);
+	        setFocusable(root, oldValue);
         	if (root instanceof ViewGroup){
             	((ViewGroup) root).setDescendantFocusability(oldDesc);
             }
@@ -1068,7 +1113,7 @@ public abstract class TiUIView
 	public boolean blur()
 	{
 		View view = getFocusView();
-		if (view != null && view.hasFocus()) {
+		if (view != null && hasFocus()) {
 			clearFocus(view);
 			return true;
 		}
@@ -1416,6 +1461,11 @@ public abstract class TiUIView
 	{
 		return nativeView;
 	}
+	
+	public int getFocusState()
+    {
+        return focusKeyboardState;
+    }
 
 	public void registerForTouch()
 	{
@@ -1653,8 +1703,15 @@ public abstract class TiUIView
 			// that info. However, an "up" seems to always occur before the click listener gets invoked,
 			// so we store the last up event's x,y coordinates (see onTouch above) and use them here.
 			// Note: AdapterView throws an exception if you try to put a click listener on it.
-			doSetClickable(touchable, clickable);
 		}
+		else {
+		    if (touchView != null) {
+                touchView.get().setOnTouchListener(null);
+		        touchView = null;
+		    }
+		}
+		
+       doSetClickable(touchable, clickable);
 	}
 
 
@@ -1680,7 +1737,7 @@ public abstract class TiUIView
 			return;
 		}
 
-		v.setFocusable(focusable);
+        setFocusable(v, focusable);
 
 		// The listener for the "keypressed" event is only triggered when the view has focus. So we only register the
 		// "keypressed" event when the view is focusable.
@@ -1784,21 +1841,25 @@ public abstract class TiUIView
 		return null;
 	}
 	
-	public boolean touchPassThrough(ViewGroup view, MotionEvent event)
+	public boolean touchPassThrough(View view, MotionEvent event)
 	{
 		if (touchPassThrough == true)
 		{
-			if (view != null) {
-				int[] location = new int[2];
-				double x = event.getRawX();
-				double y = event.getRawY();
-				for (int i=0; i<view.getChildCount(); i++) {
-		            View child = view.getChildAt(i);
-		            child.getLocationOnScreen(location);
-		            if(location[0] <= x && x <= (location[0] + child.getWidth()) && location[1] <= y && y <= (location[1] + child.getHeight())){
-		                return false;
-		            }
-				}
+		    if (view != null) {
+		        int[] location = new int[2];
+                double x = event.getRawX();
+                double y = event.getRawY();
+    		    for (int i = 0; i < children.size(); i++) {
+                    TiUIView child = children.get(i);
+                    View childView = child.getOuterView();
+                    childView.getLocationOnScreen(location);
+                    if(location[0] <= x && x <= (location[0] + childView.getWidth()) && 
+                            location[1] <= y && y <= (location[1] + childView.getHeight())){
+                        if (!child.touchPassThrough(childView, event)) {
+                            return false;
+                        }
+                    }
+                }
 			}
 			return true;
 		}
@@ -1812,6 +1873,14 @@ public abstract class TiUIView
 	public boolean getDispatchPressed() {
 		return dispatchPressed;
 	}
+	   
+    public boolean getPreventListViewSelection() {
+        return preventListViewSelection;
+    }
+    
+    public boolean getClipChildren() {
+        return clipChildren;
+    }
 
 	protected void doSetClickable(View view, boolean clickable)
 	{
@@ -1849,7 +1918,7 @@ public abstract class TiUIView
 		if (view == null) {
 			return;
 		}
-		doSetClickable(view, view.isEnabled());
+		doSetClickable(view, view.isClickable());
 	}
 
 	/**
@@ -2190,7 +2259,11 @@ public abstract class TiUIView
 				ObjectAnimator anim = ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, matrix);
 				list.add(anim);
 				if (needsReverse) {
-					listReverse.add(ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, getLayoutParams().matrix));
+				    Ti2DMatrix reverseMatrix = getLayoutParams().matrix;
+				    if (reverseMatrix == null) {
+				        reverseMatrix = TiConvert.IDENTITY_MATRIX;
+				    }
+					listReverse.add(ObjectAnimator.ofObject(this, "ti2DMatrix", evaluator, reverseMatrix));
 				}
 			}
 			else {

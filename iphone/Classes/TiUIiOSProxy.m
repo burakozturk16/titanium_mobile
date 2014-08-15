@@ -40,6 +40,12 @@
 #if defined(USE_TI_UIIPADDOCUMENTVIEWER) || defined(USE_TI_UIIOSDOCUMENTVIEWER)
     #import "TiUIiOSDocumentViewerProxy.h"
 #endif
+#ifdef USE_TI_UIIOSACTIVITYVIEW
+#import "TiUIiOSActivityViewProxy.h"
+#endif
+#ifdef USE_TI_UIIOSACTIVITY
+#import "TiUIiOSActivityProxy.h"
+#endif
 #ifdef USE_TI_UIIOSANIMATOR
 #import "TiAnimatorProxy.h"
 #ifdef USE_TI_UIIOSSNAPBEHAVIOR
@@ -80,6 +86,19 @@
 -(NSNumber*)SCROLL_DECELERATION_RATE_FAST
 {
     return NUMFLOAT(UIScrollViewDecelerationRateFast);
+}
+
+-(NSNumber*)CLIP_MODE_DEFAULT
+{
+    return NUMINT(0);
+}
+-(NSNumber*)CLIP_MODE_ENABLED
+{
+    return NUMINT(1);
+}
+-(NSNumber*)CLIP_MODE_DISABLED
+{
+    return NUMINT(-1);
 }
 
 #ifdef USE_TI_UIIOSATTRIBUTEDSTRING
@@ -170,19 +189,6 @@ MAKE_SYSTEM_PROP(ATTRIBUTE_EXPANSION, AttributeNameExpansion);
     return ([TiUtils isIOS7OrGreater] ? NSTextEffectLetterpressStyle : @"");
 }
 
--(NSNumber*)CLIP_MODE_DEFAULT
-{
-    return NUMINT(0);
-}
--(NSNumber*)CLIP_MODE_ENABLED
-{
-    return NUMINT(1);
-}
--(NSNumber*)CLIP_MODE_DISABLED
-{
-    return NUMINT(-1);
-}
-
 
 #endif
 
@@ -251,10 +257,16 @@ MAKE_SYSTEM_PROP(ATTRIBUTE_EXPANSION, AttributeNameExpansion);
 	return [[[TiUIiOSDocumentViewerProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
-#ifdef USE_TI_UIIOSNAVIGATIONWINDOW
--(id)createNavigationWindow:(id)args
+#ifdef USE_TI_UIIOSACTIVITYVIEW
+-(id)createActivityView:(id)args
 {
-    return [[[TiUIiOSNavWindowProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
+    return [[[TiUIiOSActivityViewProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
+}
+#endif
+#ifdef USE_TI_UIIOSACTIVITY
+-(id)createActivity:(id)args
+{
+    return [[[TiUIiOSActivityProxy alloc] _initWithPageContext:[self executionContext] args:args] autorelease];
 }
 #endif
 #ifdef USE_TI_UIIOSTRANSITIONANIMATION
@@ -400,6 +412,26 @@ MAKE_SYSTEM_PROP(WEBVIEW_NAVIGATIONTYPE_BACK_FORWARD,UIWebViewNavigationTypeBack
 MAKE_SYSTEM_PROP(WEBVIEW_NAVIGATIONTYPE_RELOAD,UIWebViewNavigationTypeReload);
 MAKE_SYSTEM_PROP(WEBVIEW_NAVIGATIONTYPE_FORM_RESUBMITTED,UIWebViewNavigationTypeFormResubmitted);
 MAKE_SYSTEM_PROP(WEBVIEW_NAVIGATIONTYPE_OTHER,UIWebViewNavigationTypeOther);
+
+
+MAKE_SYSTEM_PROP(ACTIVITY_CATEGORY_ACTION,  UIActivityCategoryAction);
+MAKE_SYSTEM_PROP(ACTIVITY_CATEGORY_SHARE,   UIActivityCategoryShare);
+
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_FACEBOOK,     UIActivityTypePostToFacebook);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_TWITTER,      UIActivityTypePostToTwitter);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_WEIBO,        UIActivityTypePostToWeibo);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_MESSAGE,      UIActivityTypeMessage);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_MAIL,         UIActivityTypeMail);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_PRINT,        UIActivityTypePrint);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_COPY,         UIActivityTypeCopyToPasteboard);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_TO_CONTACT,   UIActivityTypeAssignToContact);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_CAMERA_ROLL,  UIActivityTypeSaveToCameraRoll);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_TO_READING_LIST, UIActivityTypeAddToReadingList);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_FLICKR,       UIActivityTypePostToFlickr);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_VIMEO,        UIActivityTypePostToVimeo);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_TENCENT_WEIBO, UIActivityTypePostToTencentWeibo);
+MAKE_SYSTEM_STR(ACTIVITY_TYPE_AIRDROP,      UIActivityTypeAirDrop);
+
 
 #endif
 @end

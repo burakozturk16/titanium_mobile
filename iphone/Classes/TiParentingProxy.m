@@ -47,6 +47,23 @@
 	[super _destroy];
 }
 
+-(BOOL)_hasListeners:(NSString *)type checkParent:(BOOL)check
+{
+    BOOL returnVal = [super _hasListeners:type];
+    if (_bubbleParentDefined) {
+        check = _bubbleParent;
+    }
+    if (!returnVal && check) {
+        returnVal = [[self parentForBubbling] _hasListeners:type];
+    }
+	return returnVal;
+}
+
+-(BOOL)_hasListeners:(NSString *)type
+{
+	return [self _hasListeners:type checkParent:YES];
+}
+
 -(NSArray*)children
 {
     if (childrenCount == 0) {
@@ -66,6 +83,21 @@
 	return ((copy != nil) ? [copy autorelease] : [NSMutableArray array]);
 }
 
+-(BOOL)containsChild:(TiProxy*)child
+{
+    if (child == self)return YES;
+    NSArray* subproxies = [self children];
+    for (TiProxy * thisChildProxy in subproxies)
+    {
+        if (thisChildProxy == child || ([thisChildProxy isKindOfClass:[TiParentingProxy class]] &&
+            [(TiParentingProxy*)thisChildProxy containsChild:child])) {
+            return YES;
+            
+        }
+    }
+    return NO;
+}
+
 -(void)add:(id)arg
 {
     [self addInternal:arg atIndex:-1 shouldRelayout:YES];
@@ -76,27 +108,22 @@
 	// allow either an array of arrays or an array of single proxy
 	if ([arg isKindOfClass:[NSArray class]])
 	{
-        NSInteger newPos = position;
-		for (id a in arg)
-		{
-            [self addInternal:a atIndex:newPos shouldRelayout:shouldRelayout];
-		}
+        if ( [arg count] == 2 && [[arg objectAtIndex:1] isKindOfClass:[NSNumber class]]) {
+            [self addInternal:[arg objectAtIndex:0] atIndex:[TiUtils intValue:[arg objectAtIndex:1]] shouldRelayout:shouldRelayout];
+        } else {
+            NSInteger newPos = position;
+            for (id a in arg)
+            {
+                [self addInternal:a atIndex:newPos shouldRelayout:shouldRelayout];
+            }
+        }
+        
 		return;
 	}
-    if ([arg isKindOfClass:[NSDictionary class]]) {
-        id<TiEvaluator> context = self.executionContext;
-        if (context == nil) {
-            context = self.pageContext;
-        }
-        TiProxy *child = [[self class] createFromDictionary:arg rootProxy:self inContext:context];
-        [context.krollContext invokeBlockOnThread:^{
-            [self rememberProxy:child];
-            [child forgetSelf];
-        }];
-        [self addInternal:child atIndex:position shouldRelayout:shouldRelayout];
-        return;
+    TiProxy *child = [self createChildFromObject:arg];
+    if (child != nil) {
+        [self addProxy:child atIndex:position shouldRelayout:shouldRelayout];
     }
-    [self addProxy:arg atIndex:position shouldRelayout:shouldRelayout];
 }
 
 -(void)childAdded:(TiProxy*)child atIndex:(NSInteger)position shouldRelayout:(BOOL)shouldRelayout
@@ -223,6 +250,33 @@
 }
 
 
+- (TiProxy *)createChildFromObject:(id)object
+{
+    TiProxy *child = nil;
+    NSString* bindId = nil;
+    if ([object isKindOfClass:[NSDictionary class]]) {
+        bindId = [object valueForKey:@"bindId"];
+        id<TiEvaluator> context = self.executionContext;
+        if (context == nil) {
+            context = self.pageContext;
+        }
+        child = [[self class] createFromDictionary:object rootProxy:self inContext:context];
+        [self rememberProxy:child];
+        [context.krollContext invokeBlockOnThread:^{
+            [child forgetSelf];
+        }];
+   }
+    else if(([object isKindOfClass:[TiProxy class]]))
+    {
+        child = (TiProxy *)object;
+        bindId = [object valueForUndefinedKey:@"bindId"];
+    }
+    if (child && bindId) {
+        [self setValue:child forKey:bindId];
+    }
+    return child;
+}
+
 
 - (void)unarchiveFromDictionary:(NSDictionary*)dictionary rootProxy:(TiProxy*)rootProxy
 {
@@ -239,20 +293,12 @@
     NSArray* childTemplates = (NSArray*)[dictionary objectForKey:@"childTemplates"];
 	
 	[childTemplates enumerateObjectsUsingBlock:^(id childTemplate, NSUInteger idx, BOOL *stop) {
-        TiProxy *child = nil;
-        if ([childTemplate isKindOfClass:[NSDictionary class]]) {
-            child = [[self class] createFromDictionary:childTemplate rootProxy:rootProxy inContext:context];
-        }
-        else if(([childTemplate isKindOfClass:[TiProxy class]]))
-        {
-            child = (TiProxy *)childTemplate;
-        }
+        TiProxy *child = [rootProxy createChildFromObject:childTemplate];
 		if (child != nil) {
-			[context.krollContext invokeBlockOnThread:^{
-				[self rememberProxy:child];
+			[self addProxy:child atIndex:-1 shouldRelayout:NO];
+            [context.krollContext invokeBlockOnThread:^{
 				[child forgetSelf];
 			}];
-			[self addProxy:child atIndex:-1 shouldRelayout:NO];
 		}
 	}];
 	_unarchiving = NO;
@@ -289,13 +335,29 @@
 	[viewTemplate.childTemplates enumerateObjectsUsingBlock:^(TiProxyTemplate *childTemplate, NSUInteger idx, BOOL *stop) {
 		TiProxy *child = [[self class] unarchiveFromTemplate:childTemplate inContext:context withEvents:withEvents];
 		if (child != nil) {
-			[context.krollContext invokeBlockOnThread:^{
-				[self rememberProxy:child];
+    
+			[self addProxy:child atIndex:-1 shouldRelayout:NO];
+            [context.krollContext invokeBlockOnThread:^{
 				[child forgetSelf];
 			}];
-			[self addProxy:child atIndex:-1 shouldRelayout:NO];
 		}
 	}];
+}
+
+-(id)getNextChildrenOfClass:(Class)theClass afterChild:(TiProxy*)child
+{
+    id result = nil;
+    NSArray* subproxies = [self children];
+    NSInteger index=[subproxies indexOfObject:child];
+    if(NSNotFound != index) {
+        for (int i = index + 1; i < [subproxies count] ; i++) {
+            TiProxy* obj = [subproxies objectAtIndex:i];
+            if ([obj isKindOfClass:theClass] && [obj canBeNextResponder]) {
+                    return obj;
+            }
+        }
+    }
+    return result;
 }
 
 @end

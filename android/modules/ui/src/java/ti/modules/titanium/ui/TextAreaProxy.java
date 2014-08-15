@@ -39,7 +39,10 @@ import android.os.Message;
 	TiC.PROPERTY_TEXT_ALIGN,
 	TiC.PROPERTY_VALUE,
 	TiC.PROPERTY_VERTICAL_ALIGN,
-	TiC.PROPERTY_RETURN_KEY_TYPE
+    TiC.PROPERTY_RETURN_KEY_TYPE,
+    TiC.PROPERTY_SUPPRESS_RETURN,
+    TiC.PROPERTY_MASK,
+    TiC.PROPERTY_MASK_CHAR
 })
 public class TextAreaProxy extends ViewProxy
 {
@@ -51,7 +54,7 @@ public class TextAreaProxy extends ViewProxy
 	{
 		super();
 		defaultValues.put(TiC.PROPERTY_VALUE, "");
-		defaultValues.put(TiC.PROPERTY_MAX_LENGTH, -1);
+//		defaultValues.put(TiC.PROPERTY_MAX_LENGTH, -1);
 	}
 
 	public TextAreaProxy(TiContext tiContext)
@@ -148,4 +151,15 @@ public class TextAreaProxy extends ViewProxy
 	{
 		return "Ti.UI.TextArea";
 	}
+	
+    @Override
+    public boolean shouldFireChange(Object oldValue, Object newValue)
+    {
+        boolean oldNullEmpty = oldValue == null || (oldValue instanceof String && TiConvert.toString(oldValue).length() == 0);
+        boolean newNullEmpty = newValue == null || (oldValue instanceof String && TiConvert.toString(newValue).length() == 0);
+        
+        if (!oldNullEmpty && !newNullEmpty) return (!oldValue.equals(newValue));
+        return oldNullEmpty != newNullEmpty;
+        
+    }
 }

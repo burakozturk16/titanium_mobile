@@ -21,9 +21,11 @@
 
 @implementation TiUINavigationWindowProxy
 {
-    BOOL _hasOnStackChange;
+//    BOOL _hasOnStackChange;
+    BOOL _swipeToClose;
     UIScreenEdgePanGestureRecognizer* popRecognizer;
 }
+@synthesize onstackchange;
 
 -(void)dealloc
 {
@@ -44,7 +46,8 @@
 	if ((self = [super init]))
 	{
         self.defaultTransition = [self platformDefaultTransition];
-        _hasOnStackChange = NO;
+//        _hasOnStackChange = NO;
+        _swipeToClose = YES;
 	}
 	return self;
 }
@@ -146,7 +149,7 @@ else{\
             _navigationDelegate = [[ADNavigationControllerDelegate alloc] init];
             [_navigationDelegate manageNavigationController:(id)navController];
             _navigationDelegate.delegate = self;
-            SETPROP(@"swipeToClose", setSwipeToClose);
+            [_navigationDelegate setIsInteractive:_swipeToClose];
         } else {
             navController = [[ADTransitionController alloc] initWithRootViewController:[self rootController]];
             ((ADTransitionController*)navController).delegate = self;
@@ -236,6 +239,24 @@ else{\
 }
 
 
+-(id)currentWindow
+{
+    if (current) return current;
+    if (rootWindow) return rootWindow;
+    return [self valueForKey:@"window"];
+}
+
+-(id)getWindow:(id)args
+{
+    ENSURE_SINGLE_ARG(args, NSNumber)
+	NSUInteger index = [TiUtils intValue:args def:-1];
+    NSArray* controllers  = [navController viewControllers];
+    if (controllers && index < [controllers count]) {
+        return [[controllers objectAtIndex:index] proxy];
+    }
+    return nil;
+}
+
 -(id)stackSize
 {
     return [NSNumber numberWithInt:[[navController viewControllers] count]];
@@ -290,6 +311,10 @@ else{\
 //        [theWindow windowWillOpen];
         [theWindow setAnimating:YES];
     }
+    //make sure our size is updated.
+    //if our size change during the push/pop animation, ios wont retain it
+    // and will forget it at the end of the animation
+    [self refreshViewOrParent];
 }
 
 - (void)navController:(id)transitionController didShowViewController:(UIViewController *)viewController animated:(BOOL)animated;
@@ -311,6 +336,9 @@ else{\
         [theWindow windowDidOpen];
     }
     current = [theWindow retain];
+    if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
+        [_navigationDelegate setIsInteractive:[TiUtils boolValue:[current valueForKey:@"swipeToClose"] def:_swipeToClose]];
+    }
     [self childOrientationControllerChangedFlags:current];
     if (focussed) {
         [current gainFocus];
@@ -333,7 +361,8 @@ else{\
     id<UIViewControllerTransitionCoordinator> tc = navigationController.topViewController.transitionCoordinator;
     [tc notifyWhenInteractionEndsUsingBlock:^(id<UIViewControllerTransitionCoordinatorContext> context) {
         if (![context isCancelled]) {
-            [self fireEvent:@"closeWindow" forController:viewController transition:[((ADTransitioningViewController*)viewController) transition]];
+            ADTransition* transition = [(ADTransitioningViewController*)[current hostingController] transition];
+            [self fireEvent:@"closeWindow" forController:viewController transition:transition];
         }
     }];
 }
@@ -353,41 +382,36 @@ else{\
              @"reverse": NUMBOOL(transition.isReversed)};
 }
 
--(void)setOnstackchange:(KrollCallback *)callback
-{
-	_hasOnStackChange = [callback isKindOfClass:[KrollCallback class]];
-	[self setValue:callback forUndefinedKey:@"onstackchange"];
-}
-
 -(void)fireEvent:(NSString *)type forController:(UIViewController *)viewController transition:(ADTransition *)transition
 {
     BOOL hasEvent = [self _hasListeners:type checkParent:NO];
     
-    if (_hasOnStackChange || hasEvent) {
+    if (onstackchange || hasEvent) {
         NSDictionary* dict = @{@"window": ((TiViewController*)viewController).proxy,
                                @"transition":[self propsDictFromTransition:transition],
                                @"stackIndex":NUMINT([[navController viewControllers] indexOfObject:viewController]),
                                @"animated": NUMBOOL(transition != nil)};
-        if (_hasOnStackChange){
+        if (onstackchange){
             NSMutableDictionary * event = [dict mutableCopy];
             [event setObject:type forKey:@"type"];
-            [self fireCallback:@"onstackchange" withArg:event withSource:self];
+            [onstackchange call:@[event] thisObject:nil];
+            [event release];
         }
-        else {
+        if (hasEvent) {
             [self fireEvent:type withObject:dict propagate:NO checkForListener:NO];
         }
     }
 }
 
-//- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
-//{
-//    [self fireEvent:@"openWindow" forController:viewController transition:transition];
-//}
-//
-//- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
-//{
-//    [self fireEvent:@"closeWindow" forController:viewController transition:transition];
-//}
+- (void)transitionController:(ADTransitionController *)transitionController willPushViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    [self fireEvent:@"openWindow" forController:viewController transition:transition];
+}
+
+- (void)transitionController:(ADTransitionController *)transitionController willPopToViewController:(UIViewController *)viewController transition:(ADTransition *)transition
+{
+    [self fireEvent:@"closeWindow" forController:viewController transition:transition];
+}
 
 -(ADTransition*) lastTransition {
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
@@ -493,8 +517,9 @@ else{\
 -(void)setSwipeToClose:(id)arg
 {
     ENSURE_SINGLE_ARG_OR_NIL(arg, NSNumber)
+    _swipeToClose = [TiUtils boolValue:arg def:_swipeToClose];
     if (AD_SYSTEM_VERSION_GREATER_THAN_7) {
-        [[self navigationDelegate] setIsInteractive:[TiUtils boolValue:arg def:YES]];
+        [[self navigationDelegate] setIsInteractive:_swipeToClose];
     }
     [self replaceValue:arg forKey:@"swipeToClose" notification:NO];
 }
@@ -796,17 +821,11 @@ else{\
 {
 	CGRect frame = [TiUtils appFrame];
 	TiUINavigationWindow * win = [[TiUINavigationWindow alloc] initWithFrame:frame];
+    UIView *nview = [[self controller] view];
+	[nview setFrame:[win bounds]];
+	[win addSubview:nview];
 	return win;
 }
-
--(void)windowWillOpen
-{
-    UIView *nview = [[self controller] view];
-	[nview setFrame:[[self view] bounds]];
-	[[self view] addSubview:nview];
-    return [super windowWillOpen];
-}
-
 
 -(void) windowDidClose
 {
@@ -828,6 +847,27 @@ else{\
 		}
 	}
 }
+
+
+-(void)layoutChildren:(BOOL)optimize
+{
+	[super layoutChildren:optimize];
+    
+    for (UIViewController * thisController in [navController viewControllers])
+	{
+		if ([thisController isKindOfClass:[TiViewController class]])
+		{
+			TiViewProxy * thisProxy = [(TiViewController *)thisController proxy];
+			[self performBlock:^{                
+                [thisProxy refreshViewOrParent];
+                
+            } withinOurAnimationOnProxy:thisProxy];
+		}
+	}
+
+    
+}
+
 
 @end
 

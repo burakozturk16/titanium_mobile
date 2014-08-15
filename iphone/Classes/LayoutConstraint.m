@@ -367,7 +367,7 @@ CGPoint PositionConstraintGivenSizeBoundsAddingResizing(LayoutConstraint * const
         }
         if (isSizeUndefined || (marginSuggestions == 0) || flexibleSize) {
             CGFloat frameBottom;
-            if((!horizontal || flexibleSize) && TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom) && TiDimensionIsUndefined(constraint->top))
+            if(TiDimensionDidCalculateValue(constraint->bottom, referenceSize.height, &frameBottom) && TiDimensionIsUndefined(constraint->top))
             {
                 marginSuggestions++;
                 frameTop += parentSize.height - viewSize.height - frameBottom;

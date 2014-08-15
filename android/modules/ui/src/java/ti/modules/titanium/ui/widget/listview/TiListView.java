@@ -85,11 +85,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	private int[] marker = new int[2];
 	private View headerView;
 	private View footerView;
-	private TiViewProxy pullView;
+    private TiViewProxy pullView;
+    private TiViewProxy searchView;
 	private String searchText;
 	private boolean caseInsensitive;
 	private RelativeLayout searchLayout;
 	private static final String TAG = "TiListView";
+	private boolean hideKeyboardOnScroll = true;
 	
 	private static final String defaultTemplateKey = UIModule.LIST_ITEM_TEMPLATE_DEFAULT;
 	private static final TiListViewTemplate defaultTemplate = new TiDefaultListViewTemplate(defaultTemplateKey);
@@ -102,7 +104,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	 * that must be reset every time a view is recycled, to ensure synchronization. Currently, only
 	 * "value" is in this list to correctly update the value of Ti.UI.Switch.
 	 */
-	public static List<String> MUST_SET_PROPERTIES = Arrays.asList(TiC.PROPERTY_VALUE);
+	public static List<String> MUST_SET_PROPERTIES = Arrays.asList(TiC.PROPERTY_VALUE, TiC.PROPERTY_AUTO_LINK, TiC.PROPERTY_TEXT, TiC.PROPERTY_HTML);
 	
 	public static final String MIN_ROW_HEIGHT = "40dp";
 	public static final String MIN_SEARCH_HEIGHT = "50dp";
@@ -279,7 +281,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				setBoundsForBaseItem(itemContent);
 				boolean reusing = sectionIndex != itemContent.sectionIndex || 
 						itemContent.itemIndex >= section.getItemCount() || 
-						section.getListItem(sectionItemIndex) != section.getListItem(itemContent.itemIndex);
+						item != section.getListItem(itemContent.itemIndex);
 				section.populateViews(data, itemContent, template, sectionItemIndex, sectionIndex, content, reusing);
 			} else {
 				content = inflater.inflate(listItemId, null);
@@ -408,13 +410,20 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			@Override
 			public void onScrollStateChanged(AbsListView view, int scrollState)
 			{
+                
 				view.requestDisallowInterceptTouchEvent(scrollState != ViewPager.SCROLL_STATE_IDLE);		
 				if (scrollState == OnScrollListener.SCROLL_STATE_IDLE) {
-					scrollValid = false;
-					if (!fProxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
-					fProxy.fireEvent(TiC.EVENT_SCROLLEND, dictForScrollEvent());
+				    if (scrollValid) {
+				        scrollValid = false;
+	                    if (!fProxy.hasListeners(TiC.EVENT_SCROLLEND)) return;
+	                    fProxy.fireEvent(TiC.EVENT_SCROLLEND, dictForScrollEvent());
+				    }
+					
 				}
 				else if (scrollState == OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
+				    if (hideKeyboardOnScroll && hasFocus()) {
+	                    blur();
+	                }
 					if (scrollValid == false) {
 						scrollValid = true;
 						if (!fProxy.hasListeners(TiC.EVENT_SCROLLSTART)) return;
@@ -515,6 +524,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 	public void setHeaderTitle(String title) {
 		TextView textView = (TextView) headerView.findViewById(titleId);
+		if (textView == null) return;
 		textView.setText(title);
 		if (textView.getVisibility() == View.GONE) {
 			textView.setVisibility(View.VISIBLE);
@@ -523,6 +533,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	
 	public void setFooterTitle(String title) {
 		TextView textView = (TextView) footerView.findViewById(titleId);
+        if (textView == null) return;
 		textView.setText(title);
 		if (textView.getVisibility() == View.GONE) {
 			textView.setVisibility(View.VISIBLE);
@@ -594,15 +605,15 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 		
 		if (d.containsKey(TiC.PROPERTY_SEARCH_VIEW)) {
-			TiViewProxy searchView = (TiViewProxy) d.get(TiC.PROPERTY_SEARCH_VIEW);
-			if (isSearchViewValid(searchView)) {
-				TiUIView search = searchView.getOrCreateView();
-				setSearchListener(searchView, search);
-				layoutSearchView(searchView);
-			} else {
-				Log.e(TAG, "Searchview type is invalid");
-			}
+			setSearchView(d.get(TiC.PROPERTY_SEARCH_VIEW), true);
 		}
+		else if (d.containsKey(TiC.PROPERTY_SEARCH_VIEW_EXTERNAL)) {
+            setSearchView(d.get(TiC.PROPERTY_SEARCH_VIEW_EXTERNAL), false);
+        }
+		
+		if (d.containsKey(TiC.PROPERTY_SCROLL_HIDES_KEYBOARD)) {
+            this.hideKeyboardOnScroll = TiConvert.toBoolean(d, TiC.PROPERTY_SCROLL_HIDES_KEYBOARD, true);
+        }
 		
 		if (d.containsKey(TiC.PROPERTY_CASE_INSENSITIVE_SEARCH)) {
 			this.caseInsensitive = TiConvert.toBoolean(d, TiC.PROPERTY_CASE_INSENSITIVE_SEARCH, true);
@@ -709,6 +720,9 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	}
 
 	private void layoutSearchView(TiViewProxy searchView) {
+	    if (searchLayout != null) {
+            searchLayout.removeAllViews();
+        }
 		TiUIView search = searchView.getOrCreateView();
 		RelativeLayout layout = new RelativeLayout(proxy.getActivity());
 		layout.setGravity(Gravity.NO_GRAVITY);
@@ -769,6 +783,20 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 	}
 	
+	private void setSearchView (Object viewObj, boolean addInHeader) {
+        if (searchView != null) {
+            searchView.releaseViews(true);
+        }
+        if (isSearchViewValid(viewObj)) {
+            searchView = (TiViewProxy) viewObj;
+            TiUIView search = searchView.getOrCreateView();
+            setSearchListener(searchView, search);
+            if (addInHeader) layoutSearchView(searchView);
+        } else {
+            Log.e(TAG, "Searchview type is invalid");
+        }
+    }
+	
 	private View setPullView (Object viewObj) {
 		if (pullView != null) {
 			pullView.releaseViews(true);
@@ -791,18 +819,18 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 
 
 	private void reFilter(String searchText) {
-		if (searchText != null) {
+//		if (searchText != null) {
 			for (int i = 0; i < sections.size(); ++i) {
 				ListSectionProxy section = sections.get(i);
 				section.applyFilter(searchText);
 			}
-		}
+//		}
 		if (adapter != null) {
 			adapter.notifyDataSetChanged();
 		}
 	}
 
-	private boolean isSearchViewValid(TiViewProxy proxy) {
+	private boolean isSearchViewValid(Object proxy) {
 		if (proxy instanceof SearchBarProxy || proxy instanceof SearchViewProxy) {
 			return true;
 		} else {
@@ -825,6 +853,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			if (Build.VERSION.SDK_INT >= 9) {
 				listView.setOverScrollMode(TiConvert.toInt(newValue, View.OVER_SCROLL_ALWAYS));
 			}
+		} else if (key.equals(TiC.PROPERTY_HEADER_VIEW)) {
+		    setHeaderOrFooterView(TiConvert.toString(newValue), true);
+		} else if (key.equals(TiC.PROPERTY_FOOTER_VIEW)) {
+            setHeaderOrFooterView(TiConvert.toString(newValue), false);
 		} else if (key.equals(TiC.PROPERTY_HEADER_TITLE)) {
 			setHeaderTitle(TiConvert.toString(newValue));
 		} else if (key.equals(TiC.PROPERTY_FOOTER_TITLE)) {
@@ -844,22 +876,13 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			if (this.searchText != null) {
 				reFilter(this.searchText);
 			}
+		} else if (key.equals(TiC.PROPERTY_SCROLL_HIDES_KEYBOARD)) {
+            this.hideKeyboardOnScroll = TiConvert.toBoolean(newValue, true);
 		} else if (key.equals(TiC.PROPERTY_SEARCH_VIEW)) {
-			TiViewProxy searchView = (TiViewProxy) newValue;
-			if (isSearchViewValid(searchView)) {
-				TiUIView search = searchView.getOrCreateView();
-				setSearchListener(searchView, search);
-				if (searchLayout != null) {
-					searchLayout.removeAllViews();
-					addSearchLayout(searchLayout, searchView, search);
-				} else {
-					layoutSearchView(searchView);
-				}
-			} else {
-				Log.e(TAG, "Searchview type is invalid");
-			}
-			
-		} else if (key.equals(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR) && newValue != null) {
+            setSearchView(newValue, true);
+		} else if (key.equals(TiC.PROPERTY_SEARCH_VIEW_EXTERNAL)) {
+            setSearchView(newValue, false);
+        } else if (key.equals(TiC.PROPERTY_SHOW_VERTICAL_SCROLL_INDICATOR) && newValue != null) {
 			listView.setVerticalScrollBarEnabled(TiConvert.toBoolean(newValue));
 		} else if (key.equals(TiC.PROPERTY_DEFAULT_ITEM_TEMPLATE) && newValue != null) {
 			defaultTemplateBinding = TiConvert.toString(newValue);
@@ -897,7 +920,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	}
 	
 	
-	private TiListViewTemplate getTemplate(String template)
+	public TiListViewTemplate getTemplate(String template)
 	{
 		if (template == null) template = defaultTemplateBinding;
 		if (templatesByBinding.containsKey(template))
@@ -949,6 +972,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		} else {
 			tiView = viewProxy.forceCreateView();
 		}
+        if (tiView == null) return null;
 		View outerView = tiView.getOuterView();
 		ViewGroup parentView = (ViewGroup) outerView.getParent();
 		if (parentView != null && parentView.getId() == HEADER_FOOTER_WRAP_ID) {
@@ -958,7 +982,6 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 			TiCompositeLayout wrapper = new TiCompositeLayout(viewProxy.getActivity(), LayoutArrangement.DEFAULT, null);
 			AbsListView.LayoutParams params = new AbsListView.LayoutParams(AbsListView.LayoutParams.MATCH_PARENT,  AbsListView.LayoutParams.WRAP_CONTENT);
 			wrapper.setLayoutParams(params);
-			outerView = tiView.getOuterView();
 			wrapper.addView(outerView, tiView.getLayoutParams());
 			wrapper.setId(HEADER_FOOTER_WRAP_ID);
 			return wrapper;
@@ -980,8 +1003,10 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 				return;
 			}
 			if (index == -1 || index >= sections.size()) {
-				this.sections.add(section);	
+                section.setIndex(this.sections.size());
+				this.sections.add(section);
 			} else {
+                section.setIndex(index);
 				this.sections.add(index, section);
 			}
 			section.setAdapter(adapter);
@@ -1105,7 +1130,7 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 					return -1;
 				}
 				position += sectionItemIndex;
-				if (section.getHeaderTitle() != null) {
+				if (section.hasHeader()) {
 					position += 1;			
 				}
 				break;
@@ -1227,8 +1252,11 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 	
 	public KrollProxy getChildByBindId(int sectionIndex, int itemIndex, String bindId) {
 		int position = findItemPosition(sectionIndex, itemIndex);
+		if (headerView != null) {
+            position += 1;
+        }
 		if (position > -1) {
-			View content = listView.getChildAt(position);
+			View content = listView.getChildAt(position - listView.getFirstVisiblePosition());
 			if (content != null) {
 				TiBaseListViewItem itemContent = (TiBaseListViewItem) content.findViewById(listContentId);
 				if (itemContent != null) {
@@ -1238,4 +1266,17 @@ public class TiListView extends TiUIView implements OnSearchChangeListener {
 		}
 		return null;
 	}
+	
+	public View getCellAt(int sectionIndex, int itemIndex) {
+        int position = findItemPosition(sectionIndex, itemIndex);
+        if (headerView != null) {
+            position += 1;
+        }
+        if (position > -1) {
+            View content = listView.getChildAt(position - listView.getFirstVisiblePosition());
+            return content;
+            
+        }
+        return null;
+    }
 }

@@ -56,6 +56,7 @@ extern NSString * const DTUseiOS6Attributes;
 extern NSString * const DTWillFlushBlockCallBack;
 extern NSString * const DTProcessCustomHTMLAttributes;
 extern NSString * const DTIgnoreInlineStylesOption;
+extern NSString * const DTIgnoreLinkStyleOption;
 
 
 // attributed string attribute constants

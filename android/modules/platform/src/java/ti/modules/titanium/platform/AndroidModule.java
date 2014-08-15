@@ -5,6 +5,8 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.titanium.TiContext;
 
 import android.os.Build;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 
 @Kroll.module(parentModule=PlatformModule.class)
@@ -43,4 +45,15 @@ public class AndroidModule extends PlatformModule{
 	{
 		return "Ti.Platform.Android";
 	}
+	
+	@Kroll.method
+    public boolean isPackageInstalled(final String packagename) {
+	    PackageManager pm = TiApplication.getInstance().getApplicationContext().getPackageManager();
+	    try {
+	        pm.getPackageInfo(packagename, PackageManager.GET_ACTIVITIES);
+	        return true;
+	    } catch (NameNotFoundException e) {
+	        return false;
+	    }
+    }
 }

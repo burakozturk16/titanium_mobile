@@ -18,6 +18,7 @@ import org.appcelerator.titanium.transition.TransitionHelper;
 import org.appcelerator.titanium.util.TiConvert;
 import org.appcelerator.titanium.util.TiHtml;
 import org.appcelerator.titanium.util.TiHtml.CustomBackgroundSpan;
+import org.appcelerator.titanium.util.TiHtml.URLSpanNoUnderline;
 import org.appcelerator.titanium.util.TiTypefaceSpan;
 import org.appcelerator.titanium.util.TiUIHelper;
 import org.appcelerator.titanium.view.FreeLayout;
@@ -39,19 +40,22 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.View.MeasureSpec;
 import android.widget.TextView;
 import android.graphics.Typeface;
 import android.text.Layout;
 import android.text.Layout.Alignment;
+import android.text.Selection;
 import android.text.Spannable;
+import android.text.Spannable.Factory;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.SpannedString;
 import android.text.StaticLayout;
 import android.text.TextUtils.TruncateAt;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.BackgroundColorSpan;
 import android.text.style.BulletSpan;
+import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.ImageSpan;
 import android.text.style.MaskFilterSpan;
@@ -81,6 +85,7 @@ public class TiUILabel extends TiUINonViewGroupView
 	private float shadowX = 0f;
 	private float shadowY = -1f; // to have the same value as ios
 	private int shadowColor = Color.TRANSPARENT;
+	private boolean disableLinkStyle = false;
 	
 
 	private RectF textPadding;
@@ -325,17 +330,59 @@ public class TiUILabel extends TiUINonViewGroupView
 			int width =getMeasuredWidth();
 		}
 
-		@Override
-		public void setPressed(boolean pressed) {
-			super.setPressed(pressed);
-			if (dispatchPressed == true && childrenHolder != null) {
-				int count = childrenHolder.getChildCount();
-				for (int i = 0; i < count; i++) {
-					final View child = childrenHolder.getChildAt(i);
-					child.setPressed(pressed);
-				}
-			}
-		}
+        @Override
+        public void dispatchSetPressed(boolean pressed) {
+            if (childrenHolder != null && dispatchPressed) {
+                childrenHolder.setPressed(pressed);
+            }
+        }
+		
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            TextView textView = (TextView) this;
+            Object text = textView.getText();
+            // For html texts, we will manually detect url clicks.
+            if (text instanceof SpannedString) {
+                SpannedString spanned = (SpannedString) text;
+                Spannable buffer = Factory.getInstance().newSpannable(
+                        spanned.subSequence(0, spanned.length()));
+
+                int action = event.getAction();
+
+                if (action == MotionEvent.ACTION_UP
+                        || action == MotionEvent.ACTION_DOWN) {
+                    int x = (int) event.getX();
+                    int y = (int) event.getY();
+
+                    x -= textView.getTotalPaddingLeft();
+                    y -= textView.getTotalPaddingTop();
+
+                    x += textView.getScrollX();
+                    y += textView.getScrollY();
+
+                    Layout layout = textView.getLayout();
+                    int line = layout.getLineForVertical(y);
+                    int off = layout.getOffsetForHorizontal(line, x);
+
+                    ClickableSpan[] link = buffer.getSpans(off, off,
+                            ClickableSpan.class);
+
+                    if (link.length != 0) {
+                        ClickableSpan cSpan = link[0];
+                        if (action == MotionEvent.ACTION_UP) {
+                            cSpan.onClick(textView);
+                        } else if (action == MotionEvent.ACTION_DOWN) {
+                            Selection.setSelection(buffer,
+                                    buffer.getSpanStart(cSpan),
+                                    buffer.getSpanEnd(cSpan));
+                        }
+                    }
+                }
+
+            }
+
+            return super.onTouchEvent(event);
+        }
 
 		@Override
 		public boolean dispatchTouchEvent(MotionEvent event) {
@@ -665,6 +712,9 @@ public class TiUILabel extends TiUINonViewGroupView
 			else if (span instanceof TextAppearanceSpan){
 				return new TextAppearanceSpan(((TextAppearanceSpan)span).getFamily(), ((TextAppearanceSpan)span).getTextStyle(), ((TextAppearanceSpan)span).getTextSize(), ((TextAppearanceSpan)span).getTextColor(), ((TextAppearanceSpan)span).getLinkTextColor());
 			}
+			else if (span instanceof URLSpanNoUnderline){
+                return new URLSpanNoUnderline(((URLSpanNoUnderline)span).getURL());
+            }
 			else if (span instanceof URLSpan){
 				return new URLSpan(((URLSpan)span).getURL());
 			}
@@ -949,7 +999,7 @@ public class TiUILabel extends TiUINonViewGroupView
 
 	private Spanned fromHtml(String str)
 	{
-		SpannableStringBuilder htmlText = new SpannableStringBuilder(TiHtml.fromHtml(str));
+		SpannableStringBuilder htmlText = new SpannableStringBuilder(TiHtml.fromHtml(str, disableLinkStyle));
 		return htmlText;
 	}
 	
@@ -998,7 +1048,7 @@ public class TiUILabel extends TiUINonViewGroupView
 //	        for(URLSpan span : urls) {
 //	            makeLinkClickable(strBuilder, span);
 //	        }
-	    return fromHtml(html);       
+	    return fromHtml(html);
 	}
 
 	@Override
@@ -1112,6 +1162,10 @@ public class TiUILabel extends TiUINonViewGroupView
 				transitionDict = null;
 			}
 		}
+		
+		if (d.containsKey(TiC.PROPERTY_DISABLE_LINK_STYLE)) {
+            disableLinkStyle = TiConvert.toBoolean(d, TiC.PROPERTY_DISABLE_LINK_STYLE);
+        }
 		//always set padding as shadowlayer is also using it
 		TiUIHelper.setPadding(textView, textPadding);
 
@@ -1123,7 +1177,7 @@ public class TiUILabel extends TiUINonViewGroupView
 		if (html != null) {
 			tv.setText(prepareHtml(html));
 		} else if (title != null) {
-			tv.setText(prepareHtml(title));
+			tv.setText(title);
 		} else if (text != null) {
 			tv.setText(text);
 		}
@@ -1134,29 +1188,33 @@ public class TiUILabel extends TiUINonViewGroupView
 		textView.requestLayout();
 	}
 	
+	private void setTextValue(String value, final boolean html) {
+        EllipsizingTextView textView = tv.textView;
+	    String text = TiConvert.toString(value);
+        if (text == null) {
+            text = "";
+        }
+        tv.setText(html?prepareHtml(text):text);
+        TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
+        textView.requestLayout();
+	}
+	
 	@Override
 	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy)
 	{
 		EllipsizingTextView textView = tv.textView;
 		if (key.equals(TiC.PROPERTY_HTML)) {
-			String html = TiConvert.toString(newValue);
-			if (html == null) {
-				html = "";
-			}
-			tv.setText(prepareHtml(html));
-			TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
-			textView.requestLayout();
+		    setTextValue(TiConvert.toString(newValue), true);
 		} else if (key.equals(TiC.PROPERTY_TEXT) || key.equals(TiC.PROPERTY_TITLE)) {
-			String text = TiConvert.toString(newValue);
-			if (text == null) {
-				text = "";
+            setTextValue(TiConvert.toString(newValue), false);
+		} else if (key.equals(TiC.PROPERTY_DISABLE_LINK_STYLE)) {
+			this.disableLinkStyle = TiConvert.toBoolean(newValue);
+			if (proxy.hasProperty(TiC.PROPERTY_HTML)) {
+	            setTextValue(TiConvert.toString(proxy.getProperty(TiC.PROPERTY_HTML)), true);
 			}
-			tv.setText(text);
-			TiUIHelper.linkifyIfEnabled(textView, proxy.getProperty(TiC.PROPERTY_AUTO_LINK));
-			textView.requestLayout();
 		} else if (key.equals(TiC.PROPERTY_COLOR)) {
-			this.color = TiConvert.toColor(newValue);
-			updateTextColors();
+            this.color = TiConvert.toColor(newValue);
+            updateTextColors();
 		} else if (key.equals(TiC.PROPERTY_SELECTED_COLOR)) {
 			this.selectedColor = TiConvert.toColor(newValue);
 			updateTextColors();

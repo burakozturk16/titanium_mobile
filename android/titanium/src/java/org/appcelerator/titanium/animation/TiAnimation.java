@@ -1,9 +1,3 @@
-/**
- * Appcelerator Titanium Mobile
- * Copyright (c) 2009-2010 by Appcelerator, Inc. All Rights Reserved.
- * Licensed under the terms of the Apache Public License
- * Please see the LICENSE included with this distribution for details.
- */
 package org.appcelerator.titanium.animation;
 
 import org.appcelerator.kroll.KrollProxy;
@@ -20,6 +14,7 @@ public class TiAnimation extends KrollProxy {
 	public void setAnimator(TiAnimator animator) {
 		this.animator = animator;
 	}
+
 	
 	@Kroll.getProperty
 	public boolean animating() {

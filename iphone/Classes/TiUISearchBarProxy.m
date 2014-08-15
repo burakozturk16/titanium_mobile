@@ -15,8 +15,28 @@
 #import "TiUISearchBarProxy.h"
 #import "TiUISearchBar.h"
 
+@interface TiViewProxy(Private)
+-(UIViewController*)getContentController;
+@end
+
+@interface TiUISearchBar()
+-(void)setShowCancel_:(id)value withObject:(id)object;
+@end
+
 @implementation TiUISearchBarProxy
-@synthesize showsCancelButton;
+@synthesize canHaveSearchDisplayController;
+
+
+NSArray* keySequence;
+
+-(NSArray*)keySequence
+{
+	if (keySequence == nil) {
+		keySequence = [[[super keySequence] arrayByAddingObjectsFromArray:@[@"barColor"]] retain];
+	}
+	return keySequence;
+}
+
 
 #pragma mark Method forwarding
 
@@ -24,6 +44,13 @@
 {
     return @"Ti.UI.SearchBar";
 }
+
+-(void)_configure
+{
+    canHaveSearchDisplayController = NO;
+	[super _configure];
+}
+
 
 -(void)blur:(id)args
 {
@@ -37,18 +64,9 @@
 
 -(void)setShowCancel:(id)value withObject:(id)object
 {
-	BOOL boolValue = [TiUtils boolValue:value];
-	BOOL animated = [TiUtils boolValue:@"animated" properties:object def:NO];
-	//TODO: Value checking and exception generation, if necessary.
-
-	[self replaceValue:value forKey:@"showCancel" notification:NO];
-	showsCancelButton = boolValue;
-
 	//ViewAttached gives a false negative when not attached to a window.
 	TiThreadPerformOnMainThread(^{
-		UISearchBar *search = [self searchBar];
-		[search setShowsCancelButton:showsCancelButton animated:animated];
-		[search sizeToFit];
+		[(TiUISearchBar*)[self view] setShowCancel_:value withObject:object];
 	}, NO);
 }
 
@@ -85,6 +103,19 @@
 -(TiDimension)defaultAutoHeightBehavior:(id)unused
 {
     return TiDimensionAutoSize;
+}
+
+-(TiSearchDisplayController*)searchController {
+    return [(TiUISearchBar*)[self view] searchController];
+}
+
+
+-(UIViewController*)getContentController
+{
+    if (canHaveSearchDisplayController) {
+        return [super getContentController];
+    }
+    return nil;
 }
 
 USE_VIEW_FOR_CONTENT_SIZE

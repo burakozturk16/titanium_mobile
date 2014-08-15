@@ -418,14 +418,9 @@ typedef void (^PermissionBlock)(BOOL granted)
 	{
 		[self commonPickerSetup:args];
 		
-		NSNumber * imageEditingObject = [args objectForKey:@"allowImageEditing"];  //backwards compatible
 		saveToRoll = [TiUtils boolValue:@"saveToPhotoGallery" properties:args def:NO];
 		
-		if (imageEditingObject==nil)
-		{
-			imageEditingObject = [args objectForKey:@"allowEditing"];
-			editable = [TiUtils boolValue:imageEditingObject];
-		}
+        editable = [TiUtils boolValue:[args objectForKey:@"allowEditing"] def:editable];
 		
 		// introduced in 3.1
 		[picker setAllowsEditing:editable];

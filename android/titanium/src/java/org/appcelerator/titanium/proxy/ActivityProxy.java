@@ -28,7 +28,14 @@ import android.os.Message;
 
 @Kroll.proxy(propertyAccessors = {
 	TiC.PROPERTY_ON_CREATE_OPTIONS_MENU,
-	TiC.PROPERTY_ON_PREPARE_OPTIONS_MENU
+	TiC.PROPERTY_ON_PREPARE_OPTIONS_MENU,
+	TiC.PROPERTY_ON_CREATE,
+	TiC.PROPERTY_ON_START,
+	TiC.PROPERTY_ON_RESTART,
+	TiC.PROPERTY_ON_RESUME,
+	TiC.PROPERTY_ON_PAUSE,
+	TiC.PROPERTY_ON_STOP,
+	TiC.PROPERTY_ON_DESTROY
 })
 /**
  * This is a proxy representation of the Android Activity type.
@@ -250,8 +257,10 @@ public class ActivityProxy extends KrollProxy
 	@Kroll.method @Kroll.getProperty
 	public ActionBarProxy getActionBar()
 	{
-		TiBaseActivity activity = (TiBaseActivity)getWrappedActivity();
-		actionBarProxy = new ActionBarProxy(activity);
+	    if (actionBarProxy == null) {
+	        TiBaseActivity activity = (TiBaseActivity)getWrappedActivity();
+	        actionBarProxy = new ActionBarProxy(activity);
+	    }
 
 		return actionBarProxy;
 	}
@@ -359,7 +368,7 @@ public class ActivityProxy extends KrollProxy
 				else {
 					actionBarDict = new KrollDict(); //to make sure we go into processProperties
 				}
-				actionBarProxy.setProperties(actionBarDict); //apply to actually update properties
+				actionBarProxy.handleCreationDict(actionBarDict); //apply to actually update properties
 				invalidateOptionsMenu();
 			}
 	}

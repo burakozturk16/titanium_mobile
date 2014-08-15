@@ -42,12 +42,14 @@ DEFINE_EXCEPTIONS
 	NSLog(@"[DEBUG] Deallocing %X (%d)",self,[self retainCount]);
 #endif
 	RELEASE_TO_NIL(activityDelegate);
+    RELEASE_TO_NIL(proxy)
 	[super dealloc];
 }
 
 -(void)detachProxy
 {
-	proxy = nil;
+    RELEASE_TO_NIL(proxy)
+//	proxy = nil;
 }
 
 -(UIBarButtonItemStyle)style:(TiUIButtonProxy*)proxy_
@@ -127,7 +129,7 @@ DEFINE_EXCEPTIONS
         }
     }
 	
-    proxy = proxy_; // Don't retain
+    proxy = [proxy_ retain]; // Don't retain
     proxy.modelDelegate = self;
     
     id<NSFastEnumeration> values = [proxy allKeys];
@@ -140,7 +142,7 @@ DEFINE_EXCEPTIONS
 {
 	if ([proxy _hasListeners:@"click"])
 	{
-		[proxy fireEvent:@"click" withObject:nil];
+		[proxy fireEvent:@"click" withObject:nil checkForListener:NO];
 	}
 }
 

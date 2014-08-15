@@ -36,11 +36,14 @@ import ti.modules.titanium.ui.WebViewProxy;
 import ti.modules.titanium.ui.android.AndroidModule;
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.FeatureInfo;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -92,41 +95,44 @@ public class TiUIWebView extends TiUIView
 		}
 		
 		@Override
-		public boolean onTouchEvent(MotionEvent event) {
-			if (event.getAction() == MotionEvent.ACTION_MOVE && !mScrollingEnabled) {
-				return false;
-			}
-			return super.onTouchEvent(event);
+        public boolean onCheckIsTextEditor()
+        {
+            return true;
+        }
+
+		@Override
+		public boolean onTouchEvent(MotionEvent event)
+		{
+			
+			boolean handled = false;
+			
+			switch (event.getAction()) {
+                case MotionEvent.ACTION_MOVE:
+                    if (!mScrollingEnabled) {
+                        return false;
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                {
+                 // In Android WebView, all the click events are directly sent to WebKit. As a result, OnClickListener() is
+                    // never called. Therefore, we have to manually call performClick() when a click event is detected.
+                    //
+                    // In native Android and in the Ti world, it's possible to to have a touchEvent click on a link in a webview and
+                    // also to be detected as a click on the webview.  So we cannot let handling of the event one way block
+                    // the handling the other way -- it must be passed to both in all cases for everything to work correctly.
+                    //
+                    if (hierarchyHasListener(TiC.EVENT_CLICK)) {
+                        Rect r = new Rect(0, 0, getWidth(), getHeight());
+                        if (r.contains((int) event.getX(), (int) event.getY())) {
+                            proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(event), true, false);
+                        }
+                    }
+                    break;
+                }
+                    
+            }
+            return super.onTouchEvent(event);
 		}
-		
-//		@Override
-//		public boolean onTouchEvent(MotionEvent ev)
-//		{
-//			
-//			boolean handled = false;
-//
-//			// In Android WebView, all the click events are directly sent to WebKit. As a result, OnClickListener() is
-//			// never called. Therefore, we have to manually call performClick() when a click event is detected.
-//			//
-//			// In native Android and in the Ti world, it's possible to to have a touchEvent click on a link in a webview and
-//			// also to be detected as a click on the webview.  So we cannot let handling of the event one way block
-//			// the handling the other way -- it must be passed to both in all cases for everything to work correctly.
-//			//
-//			if (ev.getAction() == MotionEvent.ACTION_UP && hierarchyHasListener(TiC.EVENT_CLICK)) {
-//				Rect r = new Rect(0, 0, getWidth(), getHeight());
-//				if (r.contains((int) ev.getX(), (int) ev.getY())) {
-//					handled = proxy.fireEvent(TiC.EVENT_CLICK, dictFromEvent(ev), true, false);
-//				}
-//			}
-//			
-//			boolean swipeHandled = (detector != null && detector.onTouchEvent(ev));
-//			
-//			// Don't return here -- must call super.onTouchEvent()
-//			
-//			boolean superHandled = super.onTouchEvent(ev);
-//			
-//			return false;
-//		}
 
 		@SuppressWarnings("deprecation")
 		@Override
@@ -135,23 +141,62 @@ public class TiUIWebView extends TiUIView
 			super.onLayout(changed, left, top, right, bottom);
 			TiUIHelper.firePostLayoutEvent(TiUIWebView.this);
 		}
-
+	}
+	
+	//TIMOB-16952. Overriding onCheckIsTextEditor crashes HTC Sense devices
+	private class NonHTCWebView extends TiWebView
+	{
+		public NonHTCWebView(Context context)
+		{
+			super(context);
+		}
+		
 		@Override
 		public boolean onCheckIsTextEditor()
 		{
-			if (proxy.hasProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)
-				&& TiConvert.toInt(proxy.getProperty(TiC.PROPERTY_SOFT_KEYBOARD_ON_FOCUS)) == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
+			int value = getFocusState();
+			
+			if (value == TiUIView.SOFT_KEYBOARD_HIDE_ON_FOCUS) {
 				return false;
+			} else if (value == TiUIView.SOFT_KEYBOARD_SHOW_ON_FOCUS) {
+				return true;
 			}
-			return true;
+			return super.onCheckIsTextEditor();
 		}
 	}
+	
+	private boolean isHTCSenseDevice()
+	{
+		boolean isHTC = false;
+		
+		FeatureInfo[] features = TiApplication.getInstance().getApplicationContext().getPackageManager().getSystemAvailableFeatures();
+		for (FeatureInfo f : features) {
+			String fName = f.name;
+			if (fName != null) {
+				isHTC = fName.contains("com.htc.software.Sense");
+				if (isHTC) {
+					Log.i(TAG, "Detected com.htc.software.Sense feature "+fName);
+					break;
+				}
+			}
+		}
+		
+		return isHTC;
+	}
+	
 
 	public TiUIWebView(TiViewProxy proxy)
 	{
 		super(proxy);
-
-		TiWebView webView = new TiWebView(proxy.getActivity()) {
+		this.isFocusable = true;
+		TiWebView webView = isHTCSenseDevice() ? new TiWebView(proxy.getActivity()){
+			@Override
+			public boolean dispatchTouchEvent(MotionEvent event) {
+				if (touchPassThrough == true)
+					return false;
+				return super.dispatchTouchEvent(event);
+			}
+		} : new NonHTCWebView(proxy.getActivity()){
 			@Override
 			public boolean dispatchTouchEvent(MotionEvent event) {
 				if (touchPassThrough == true)
@@ -405,6 +450,7 @@ public class TiUIWebView extends TiUIView
 
 	public void setUrl(String url)
 	{
+	    if (url == null) return;
 		reloadMethod = reloadTypes.URL;
 		reloadData = url;
 		String finalUrl = url;
@@ -616,6 +662,7 @@ public class TiUIWebView extends TiUIView
 		}
 	}
 
+    @JavascriptInterface
 	public String getJSValue(String expression)
 	{
 		return client.getBinding().getJSValue(expression);
