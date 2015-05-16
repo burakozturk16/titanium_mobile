@@ -5151,7 +5151,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "cp -R -f $BUILT_PRODUCTS_DIR/modules $BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/\n";
+			shellScript = "if test -d $BUILT_PRODUCTS_DIR/modules; then cp -R -f $BUILT_PRODUCTS_DIR/modules $BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/; fi";
 		};
 		24D8E3B9119B9D8A00F8CAA6 /* Pre-Compile */ = {
 			isa = PBXShellScriptBuildPhase;
