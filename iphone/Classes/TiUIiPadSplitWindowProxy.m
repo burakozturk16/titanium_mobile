@@ -17,7 +17,7 @@
 
 -(TiUIView*)newView
 {
-	return [[TiUIiPadSplitWindow alloc] init];
+	return [[[TiUIiPadSplitWindow alloc] init] autorelease];
 }
 
 -(NSString*)apiName

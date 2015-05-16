@@ -6,6 +6,9 @@
  */
 package ti.modules.titanium.ui;
 
+import java.util.HashMap;
+
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiContext;
 import org.appcelerator.titanium.proxy.TiViewProxy;
@@ -37,7 +40,8 @@ public class ViewProxy extends TiViewProxy {
 	}
 
 	@Override
-	public String getApiName() {
+	public String getApiName()
+	{
 		return "Ti.UI.View";
 	}
 }
